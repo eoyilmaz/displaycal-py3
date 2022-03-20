@@ -41,9 +41,28 @@ What is not working (yet)
 How to install
 --------------
 
-Currently, there is no ``RPM``, ``DEB``, ``APP`` or ``MSI`` packages. To test the code
-you can either run it directly from the source or install it as a ``sdist`` package:
+Currently, there is no ``RPM``, ``DEB``, ``APP`` or ``MSI`` packages. 
+To test the code you can either run it directly from the source or install it as a ``sdist`` package.  To do this: 
 
+Prequisties:
+* Assorted C/C++ builder tools
+* dbus-1
+* glib 2.0
+* gtkd 3
+* libxxf86vm
+* pkg-config
+
+Please install these from your package manager. 
+
+```shell
+# Brew on Macs
+brew install pkg-config dbus glib gtk+3
+
+# Debian installs
+apt-get install build-essential dbus libglib2.0-dev pkg-config libgtkd-3-dev libxxf86vm-dev
+```
+
+Then 
 ```shell
 git clone https://github.com/eoyilmaz/displaycal-py3
 cd ./displaycal-py3/

@@ -1,22 +1,33 @@
-all:
-    ./setup.py build --use-distutils
+NUM_CPUS = $(shell nproc ||  grep -c '^processor' /proc/cpuinfo)
 
-clean:
-    -rm -rf build
+all: build FORCE
+
+build: FORCE
+	python setup.py build -j${NUM_CPUS} --use-distutils
+
+clean: FORCE
+	-rm -rf build
 
 dist:
-    util/sdist.sh
+	util/sdist.sh
 
-distclean: clean
-    -rm -f INSTALLED_FILES
-    -rm -f setuptools-*.egg
-    -rm -f use-distutils
+distclean: clean FORCE
+	-rm -f INSTALLED_FILES
+	-rm -f setuptools-*.egg
+	-rm -f use-distutils
 
 html:
-    ./setup.py readme
+	./setup.py readme
 
-install:
-    ./setup.py install --use-distutils
+install: build FORCE
+	python setup.py install --use-distutils
+
+requirements: requirements.txt requirements-dev.txt
+	MAKEFLAGS="-j$(NUM_CORES)" pip install  -r requirements.txt
+	MAKEFLAGS="-j$(NUM_CORES)" pip install  -r requirements-dev.txt
 
 uninstall:
-    ./setup.py uninstall --use-distutils
+	./setup.py uninstall --use-distutils
+
+# https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
+FORCE:

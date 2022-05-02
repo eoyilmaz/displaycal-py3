@@ -1202,7 +1202,7 @@ if sys.platform == "win32":
 
 class ProfileLoader(object):
     def __init__(self):
-        from wxwindows import BaseApp, wx
+        from DisplayCAL.wxwindows import BaseApp, wx
 
         if not wx.GetApp():
             app = BaseApp(0, clearSigInt=sys.platform != "win32")
@@ -1964,8 +1964,8 @@ class ProfileLoader(object):
                 app.MainLoop()
 
     def apply_profiles(self, event=None, index=None):
-        from util_os import dlopen, which
-        from worker import Worker, get_argyll_util
+        from DisplayCAL.util_os import dlopen, which
+        from DisplayCAL.worker import Worker, get_argyll_util
 
         if sys.platform == "win32":
             self.lock.acquire()
@@ -2166,7 +2166,7 @@ class ProfileLoader(object):
             )
             and "--silent" not in sys.argv[1:]
         ):
-            from wxwindows import InfoDialog, wx
+            from DisplayCAL.wxwindows import InfoDialog, wx
 
             dlg = InfoDialog(
                 None,
@@ -4004,7 +4004,7 @@ def main():
             )
 
         global lang
-        import localization as lang
+        from DisplayCAL import localization as lang
 
         lang.init()
 

@@ -70,7 +70,7 @@ Please install these from your package manager.
 brew install pkg-config dbus glib gtk+3
 
 # Debian installs
-apt-get install build-essential dbus libglib2.0-dev pkg-config libgtkd-3-dev libxxf86vm-dev
+apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libxxf86vm-dev
 ```
 
 Then pull the source and create a virtual environment:

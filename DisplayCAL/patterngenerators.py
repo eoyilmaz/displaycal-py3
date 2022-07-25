@@ -424,10 +424,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         self.enable_processing(False, size)
 
     def enable_processing(self, enable=True, size=10):
-        if enable:
-            win = 1
-        else:
-            win = 2
+        win = 1 if enable else 2
         self.invoke("Window", "win%i" % win, {"sz": size})
 
     def get_config(self):
@@ -504,7 +501,7 @@ class ResolveLSPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
             '<geometry x="%.4f" y="%.4f" cx="%.4f" cy="%.4f" /></rectangle>'
             "</shapes></calibration>" % tuple(rgb + [x, y, w, h])
         )
-        self.conn.sendall("%s%s" % (struct.pack(">I", len(xml)), xml))
+        self.conn.sendall(b"%s%s" % (struct.pack(">I", len(xml)), xml))
 
 
 class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
@@ -533,7 +530,7 @@ class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
             '<geometry x="%.4f" y="%.4f" cx="%.4f" cy="%.4f"/>'
             "</calibration>" % tuple(rgb + [bits] + bgrgb + [bits, x, y, w, h])
         )
-        self.conn.sendall("%s%s" % (struct.pack(">I", len(xml)), xml))
+        self.conn.sendall(b"%s%s" % (struct.pack(">I", len(xml)), xml))
 
 
 class WebWinHTTPPatternGeneratorServer(TCPServer, object):

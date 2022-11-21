@@ -232,15 +232,17 @@ else:
             # codeset is deprecated with python 3.11
             try:
                 obj.translation = gettext.translation(
-                    obj.GETTEXT_PACKAGE, locale_dir, codeset="UTF-8"
+                    obj.GETTEXT_PACKAGE, locale_dir, codeset="UTF-8",
+                    fallback=True
                 )
             except TypeError:
                 obj.translation = gettext.translation(
-                    obj.GETTEXT_PACKAGE, locale_dir
+                    obj.GETTEXT_PACKAGE, locale_dir, fallback=True
                 )
-            except IOError as exception:
-                print("XDG:", exception)
-                obj.translation = gettext.NullTranslations()
+
+            if obj.translation._charset is None:
+                print("XDG: unable to find locale for domain",
+                      obj.GETTEXT_PACKAGE)
                 return False
             return True
 

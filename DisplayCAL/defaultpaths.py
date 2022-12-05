@@ -235,9 +235,14 @@ else:
                     obj.GETTEXT_PACKAGE, locale_dir, codeset="UTF-8"
                 )
             except TypeError:
-                obj.translation = gettext.translation(
-                    obj.GETTEXT_PACKAGE, locale_dir
-                )
+                try:
+                    obj.translation = gettext.translation(
+                        obj.GETTEXT_PACKAGE, locale_dir
+                    )
+                except FileNotFoundError as exc:
+                    print("XDG:", exc)
+                    obj.translation = gettext.NullTranslations()
+                    return False
             except IOError as exception:
                 print("XDG:", exception)
                 obj.translation = gettext.NullTranslations()
@@ -261,11 +266,7 @@ else:
 
         @staticmethod
         def shell_unescape(s):
-            a = []
-            for i, c in enumerate(s):
-                if c == "\\" and len(s) > i + 1:
-                    continue
-                a.append(c)
+            a = [c for i, c in enumerate(s) if c != "\\" or len(s) <= i + 1]
             return "".join(a)
 
         @staticmethod

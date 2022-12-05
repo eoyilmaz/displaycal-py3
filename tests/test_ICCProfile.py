@@ -2,6 +2,7 @@
 """Tests for the DisplayCAL.ICCProfile module."""
 import binascii
 import datetime
+import sys
 from time import strftime
 
 from DisplayCAL import ICCProfile, colormath
@@ -37,7 +38,7 @@ def test_iccprofile_from_rgb_space():
         ["Color model", "RGB"],
         ["Profile connection space (PCS)", "XYZ"],
         ["Created", "2022-03-09 00:19:53"],
-        ["Platform", "0x2A6E6978 '*nix'"],
+        ["Platform", "Apple"] if sys.platform == "darwin" else ["Platform", "0x2A6E6978 '*nix'"],
         ["Is embedded", "No"],
         ["Can be used independently", "Yes"],
         ["Device", ""],
@@ -178,7 +179,7 @@ def test_iccprofile_get_info():
         ["Color model", "RGB"],
         ["Profile connection space (PCS)", "XYZ"],
         ["Created", "2022-02-14 02:44:22"],
-        ["Platform", "0x2A6E6978 '*nix'"],
+        ["Platform", "Apple"] if sys.platform == "darwin" else ["Platform", "0x2A6E6978 '*nix'"],
         ["Is embedded", "No"],
         ["Can be used independently", "Yes"],
         ["Device", ""],

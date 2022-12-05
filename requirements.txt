@@ -1,7 +1,7 @@
 attrdict3
 build
 certifi
-dbus-python
+dbus-python; sys_platform=='linux'
 distro
 numpy
 Pillow

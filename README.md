@@ -70,8 +70,8 @@ Prerequisites:
 Please install these from your package manager. 
 
 ```shell
-# Brew on Macs
-brew install pkg-config dbus glib gtk+3
+# Brew on MacOS
+brew install glib gtk+3 python@3.10
 
 # Debian installs
 apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libxxf86vm-dev
@@ -109,15 +109,6 @@ This should install DisplayCAL. To run the UI:
 ```shell
 displaycal
 ```
-
-ATTENTION!
-----------
-
-Previously the ``--install-data=$HOME/.local`` option has to be used with the
-``setup.py`` script in order to let the DisplayCAL to find the required data files. But
-it is not needed anymore, and it is a good idea to delete the ``DisplayCAL*`` files and
-folders from the ``site-packages`` folder of your ``python`` interpreter if you used
-that option in a previous version of ``DisplayCAL-py3``.
 
 Road Map
 --------

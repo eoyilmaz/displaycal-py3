@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import sys
 from unittest import mock
 
 import pytest
@@ -9,7 +10,11 @@ from _pytest.monkeypatch import MonkeyPatch
 from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.dev.mocks import check_call
 from tests.data.display_data import DisplayData
-from tests.data.fake_dbus import FakeDBusObject
+
+try:
+    from tests.data.fake_dbus import FakeDBusObject
+except ImportError:
+    pass
 
 
 def test_real_display_size_mm():
@@ -112,6 +117,8 @@ def test_get_x_icc_profile_atom_id(function) -> None:
     assert isinstance(result, int)
 
 
+@pytest.mark.skipif('fake_dbus' not in sys.modules,
+                    reason="requires the DBus library")
 def test_get_wayland_display(monkeypatch: MonkeyPatch) -> None:
     """Test if wayland display is returned."""
     with mock.patch.object(RealDisplaySizeMM, "DBusObject", new=FakeDBusObject):

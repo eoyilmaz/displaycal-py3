@@ -23,10 +23,12 @@ def test_default_values_1():
     assert config.pyext != ""  # .py
     # $HOME/Documents/development/displaycal/DisplayCAL
     assert config.pydir != ""
-    assert config.xdg_config_dir_default == "/etc/xdg"
-    assert config.xdg_config_home == os.path.expanduser("~/.config")
-    assert config.xdg_data_home == os.path.expanduser("~/.local/share")
-    assert config.xdg_data_home_default == os.path.expanduser("~/.local/share")
+
+    if sys.platform == "linux":
+        assert config.xdg_config_dir_default == "/etc/xdg"
+        assert config.xdg_config_home == os.path.expanduser("~/.config")
+        assert config.xdg_data_home == os.path.expanduser("~/.local/share")
+        assert config.xdg_data_home_default == os.path.expanduser("~/.local/share")
 
     # skip the rest of the test for now
     return

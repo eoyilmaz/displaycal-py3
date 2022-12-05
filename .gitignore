@@ -1,3 +1,4 @@
+.DS_Store
 /DisplayCAL/__version__.py
 /build/
 /dist/
@@ -20,3 +21,4 @@ __pycache__/
 /DisplayCAL/lib64/python38/*.so
 /DisplayCAL/lib64/python39/*.so
 /DisplayCAL/lib64/python310/*.so
+/DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so

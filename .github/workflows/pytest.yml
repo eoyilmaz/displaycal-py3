@@ -37,7 +37,7 @@ jobs:
         elif [ "${{ matrix.python-version }}" == "3.10" ]; then
           echo "add_dir_str=cpython-310" >> $GITHUB_ENV
         elif [ "${{ matrix.python-version }}" == "3.11" ]; then
-          echo "add_dir_str=${{ matrix.python-version }}" >> $GITHUB_ENV
+          echo "add_dir_str=cpython-311" >> $GITHUB_ENV
         fi
 
     - name: Setup timezone

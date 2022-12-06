@@ -25,6 +25,8 @@ else:
         from DisplayCAL.lib64.python39.RealDisplaySizeMM import *
     elif sys.version_info[:2] == (3, 10):
         from DisplayCAL.lib64.python310.RealDisplaySizeMM import *
+    elif sys.version_info[:2] == (3, 11):
+        from DisplayCAL.lib64.python311.RealDisplaySizeMM import *
 # else:
 #     pass
 

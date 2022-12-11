@@ -13631,7 +13631,7 @@ usage: spotread [-options] [logfile]
                 if ext.lower() != ".ti1":
                     ti3_lines = [line.strip() for line in ti3]
                     ti3.close()
-                    if "CTI3" not in ti3_lines:
+                    if b"CTI3" not in ti3_lines:
                         return (
                             Error(
                                 lang.getstr(

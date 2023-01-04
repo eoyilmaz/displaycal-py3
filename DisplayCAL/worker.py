@@ -141,7 +141,6 @@ from DisplayCAL.debughelpers import (
 )
 from DisplayCAL.defaultpaths import (
     cache,
-    get_known_folder_path,
     iccprofiles_home,
     iccprofiles_display_home,
     appdata,

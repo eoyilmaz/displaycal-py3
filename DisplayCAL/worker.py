@@ -6583,7 +6583,7 @@ while 1:
     if os.path.isfile(okfilename):
         try:
             os.remove(okfilename)
-        except OSError, e:
+        except OSError:
             pass
         else:
             break
@@ -6624,7 +6624,7 @@ while 1:
                     waitfile.write("#!/usr/bin/env python3\n")
                     waitfile.write(pythonscript)
                 os.chmod(waitfilename, 0o755)
-                args[index] += '"%s" ./%s' % (
+                args[index] += '%s ./%s' % (
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
                 )

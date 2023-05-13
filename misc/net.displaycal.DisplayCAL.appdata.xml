@@ -26,6 +26,7 @@
             <caption>Interactive display adjustment</caption>
         </screenshot>
     </screenshots>
+    <content_rating type="oars-1.1" />
     <url type="homepage">${URL}</url>
     <url type="bugtracker">${URL}issues/</url>
     <url type="help">${URL}#toc</url>

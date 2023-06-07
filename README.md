@@ -101,7 +101,7 @@ make build
 make install
 ```
 
-If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manual-setup)
+If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
 section below.
 
 Otherwise, this should install DisplayCAL. To run the UI:

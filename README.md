@@ -43,8 +43,8 @@ Here is a list of things that is working:
 - Creating synthetic ICC profiles.
 - and a lot of other stuff are working properly.
 
-What is not working (yet)
--------------------------
+What is not working
+-------------------
 
 - Everything should be working now. But, incase you encounter any bugs please create
   [issues](https://github.com/eoyilmaz/displaycal-py3/issues).
@@ -80,12 +80,10 @@ apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libx
 dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel
 ```
 
-Then pull the source and create a virtual environment:
+Then pull the source:
 
 ```shell
 git clone https://github.com/eoyilmaz/displaycal-py3
-python -m venv ./displaycal_venv
-source ./displaycal_venv/bin/activate  # Windows: .\displaycal_venv\Scripts\activate.bat
 cd ./displaycal-py3/
 ```
 
@@ -96,9 +94,31 @@ or possibly fixed issues over the ``main`` branch.
 git checkout develop
 ```
 
-And the rest of the instructions are as followed:
+Then you can build and install DisplayCAL using:
 
 ```shell
+make build
+make install
+```
+
+If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manual-setup)
+section below.
+
+Otherwise, this should install DisplayCAL. To run the UI:
+
+```shell
+make launch
+```
+
+Manually Setup
+--------------
+
+If the `makefile` workflow doesn't work for you, you can setup the virtual environment
+manually:
+
+```shell
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate.bat
 pip install -r requirements.txt
 python -m build
 pip install dist/DisplayCAL-3.9.*.whl

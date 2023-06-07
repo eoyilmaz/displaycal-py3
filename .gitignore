@@ -1,4 +1,5 @@
 .DS_Store
+/.venv/
 /DisplayCAL/__version__.py
 /build/
 /dist/

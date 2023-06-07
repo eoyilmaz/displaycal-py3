@@ -1,3 +1,4 @@
+SHELL:=bash
 NUM_CPUS = $(shell nproc ||  grep -c '^processor' /proc/cpuinfo)
 SETUP_PY_FLAGS = --use-distutils
 VERSION := $(shell cat VERSION_BASE)
@@ -5,23 +6,35 @@ VERSION_FILE=$(CURDIR)/VERSION_BASE
 
 all: build FORCE
 
-build: FORCE
-	python setup.py build -j$(NUM_CPUS) $(SETUP_PY_FLAGS)
+venv:
+	python3.10 -m venv .venv; \
+	source ./.venv/bin/activate; \
+	pip install -r requirements.txt; \
+	pip install -r requirements-dev.txt;
+
+build: venv FORCE
+	source ./.venv/bin/activate; \
+	python -m build;
+
+install:
+	source ./.venv/bin/activate; \
+	pip install ./dist/DisplayCAL-$(VERSION)-*.whl;
+
+launch:
+	source ./.venv/bin/activate; \
+	displaycal
 
 clean: FORCE
-	-rm -rf build
 	-rm -rf .pytest_cache
+	-rm -rf .venv
+	-rm -rf dist
+	-rm -rf build
 
-dist:
-	util/sdist.sh
-
-distclean: clean FORCE
+clean-all: clean
 	-rm -f INSTALLED_FILES
 	-rm -f setuptools-*.egg
 	-rm -f use-distutils
 	-rm -rf dist
-
-clean-all: distclean
 	-rm MANIFEST.in
 	-rm VERSION
 	-rm -Rf DisplayCAL.egg-info
@@ -29,17 +42,6 @@ clean-all: distclean
 
 html:
 	./setup.py readme
-
-install: build FORCE
-	python setup.py install $(SETUP_PY_FLAGS)
-
-requirements: requirements.txt requirements-dev.txt
-	pip install wheel pip --upgrade
-	MAKEFLAGS="-j$(NUM_CPUS)" pip install  -r requirements.txt
-	MAKEFLAGS="-j$(NUM_CPUS)" pip install  -r requirements-dev.txt
-
-uninstall:
-	./setup.py uninstall $(SETUP_PY_FLAGS)
 
 new-release:
 	git add $(VERSION_FILE)
@@ -50,7 +52,7 @@ new-release:
 	git merge develop
 	git tag $(VERSION)
 	git push origin main --tags
-	python -m build
+	python3 -m build
 # 	twine check dist/DisplayCAL-$(VERSION).whl
 	twine check dist/DisplayCAL-$(VERSION).tar.gz
 # 	twine upload dist/DisplayCAL-$(VERSION).whl

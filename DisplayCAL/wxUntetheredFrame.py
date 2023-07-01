@@ -310,7 +310,7 @@ class UntetheredFrame(BaseFrame):
 
     def finish_btn_handler(self, event):
         self.finish_btn.Disable()
-        self.cgats[0].type = "CTI3"
+        self.cgats[0].type = b"CTI3"
         self.cgats[0].add_keyword("COLOR_REP", "RGB_XYZ")
         if self.white_XYZ[1] > 0:
             # Normalize to Y = 100
@@ -329,10 +329,10 @@ class UntetheredFrame(BaseFrame):
             self.cgats[0].remove_keyword("APPROX_WHITE_POINT")
         # Remove L*a*b* from DATA_FORMAT if present
         for i, label in reversed(list(self.cgats[0].DATA_FORMAT.items())):
-            if label.startswith("LAB_"):
+            if label.startswith(b"LAB_"):
                 self.cgats[0].DATA_FORMAT.pop(i)
         # Add XYZ to DATA_FORMAT if not yet present
-        for label in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
+        for label in (b"XYZ_X", b"XYZ_Y", b"XYZ_Z"):
             if label not in list(self.cgats[0].DATA_FORMAT.values()):
                 self.cgats[0].DATA_FORMAT.add_data((label,))
         self.cgats[0].write(os.path.splitext(self.cgats.filename)[0] + ".ti3")

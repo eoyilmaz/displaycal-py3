@@ -1,12 +1,16 @@
 name: Tests
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, unlabeled]
+    branches:
+      - develop
 
 jobs:
   build:
     name: Test with Python ${{ matrix.python-version }} and wxPython ${{ matrix.wx-version }}
     env:
       DISPLAY: :0
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: False
@@ -18,7 +22,7 @@ jobs:
           - "3.11"
         wx-version:
           - "4.1.1"
-          - "4.2.0"
+          - "4.2.1"
         exclude:
           - python-version: "3.11"
             wx-version: "4.1.1"
@@ -70,7 +74,6 @@ jobs:
       run: |
         sudo apt-get install -y $(grep -o ^[^#][[:alnum:]-]*.* "packages.list")
         python3 -m pip install --upgrade pip
-        pip install attrdict3
         pip install wheel
 
     - name: Install wxPython wheels ${{ matrix.wx-version }}

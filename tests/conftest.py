@@ -28,6 +28,7 @@ def data_files():
         displaycal_parent_dir.parent / "tests" / "data",
         displaycal_parent_dir.parent / "tests" / "data" / "sample",
         displaycal_parent_dir.parent / "tests" / "data" / "sample" / "issue129",
+        displaycal_parent_dir.parent / "tests" / "data" / "sample" / "issue268",
         displaycal_parent_dir.parent / "tests" / "data" / "icc",
     ]
     d_files = {}

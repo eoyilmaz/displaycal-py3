@@ -1,4 +1,3 @@
-attrdict3
 build
 certifi
 dbus-python; sys_platform=='linux'

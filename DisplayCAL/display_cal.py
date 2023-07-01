@@ -9502,16 +9502,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # set Lab values
         labels_Lab = ("LAB_L", "LAB_A", "LAB_B")
         for data in (ti3_ref, ti3_joined):
-            if (
-                "XYZ_X" in list(data.DATA_FORMAT.values())
-                and "XYZ_Y" in list(data.DATA_FORMAT.values())
-                and "XYZ_Z" in list(data.DATA_FORMAT.values())
-            ):
-                if (
-                    "LAB_L" not in list(data.DATA_FORMAT.values())
-                    and "LAB_A" not in list(data.DATA_FORMAT.values())
-                    and "LAB_B" not in list(data.DATA_FORMAT.values())
-                ):
+            data_formats = list(data.DATA_FORMAT.values())
+            if b"XYZ_X" in data_formats and b"XYZ_Y" in data_formats and b"XYZ_Z" in data_formats:
+                if b"LAB_L" not in data_formats and b"LAB_A" not in data_formats and b"LAB_B" not in data_formats:
                     # add Lab fields to DATA_FORMAT if not present
                     data.DATA_FORMAT.add_data(labels_Lab)
                     has_Lab = False
@@ -10180,11 +10173,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             cancel_event = threading.Event()
 
             def connect(self):
+                exception = None
+                action = None
                 try:
                     if not self.worker.madtpg_connect():
                         raise Error(lang.getstr("madtpg.launch.failure"))
-                except Exception:
+                except Exception as e:
                     action = wx.ID_CLOSE
+                    exception = e
                 else:
                     action = wx.ID_OK
                 finally:

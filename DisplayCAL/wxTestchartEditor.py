@@ -1510,7 +1510,7 @@ END_DATA"""
             self.ti1.checkerboard(None, None, split_grays=True, shift=True)
         elif idx == 19:
             # Maximize L* difference
-            self.ti1.checkerboard()
+            self.ti1.checkerboard(sort1=CGATS.stable_sort_by_L)
         elif idx == 20:
             # Maximize Rec. 709 luma difference
             self.ti1.checkerboard(CGATS.sort_by_rec709_luma)
@@ -2868,7 +2868,7 @@ END_DATA"""
             self.tc_export_subroutine(path, filter_index)
         else:
             # CSV
-            with open(path, "wb") as csvfile:
+            with open(path, "w") as csvfile:
                 self.tc_export_subroutine(csv.writer(csvfile), filter_index)
 
     def tc_export_subroutine(self, target, filter_index, allow_gaps=False):

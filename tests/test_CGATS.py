@@ -940,6 +940,24 @@ def test_cgats_checkerboard(
         assert calls[0][0][1] == result
 
 
+@pytest.mark.parametrize("name", ['fails_when_unstable', 'ok_when_unstable', 'large_set'])
+def test_cgats_maximise_lightness_sort_is_invariant_to_input(data_files, name):
+    path = data_files[f"{name}.ti1"].absolute()
+    cgats = CGATS.CGATS(cgats=path)
+    results = []
+
+    for i in range(3):
+        cgats.checkerboard(sort1=CGATS.stable_sort_by_L)
+        results.append(cgats.get_RGB_XYZ_values()[1])
+    assert results
+    for i in range(len(results[0])):
+        last = None
+        for r in results:
+            if last is not None:
+                assert r[i] == last[i]
+            last = r
+
+
 @pytest.mark.parametrize(
     "weight",
     (True, False),

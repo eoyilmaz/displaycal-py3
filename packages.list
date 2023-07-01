@@ -9,7 +9,6 @@ libgdbm-dev
 libglib2.0-dev
 libgtk-3-dev
 libncursesw5-dev
-libreadline-gplv2-dev
 libsdl2-dev
 libsqlite3-dev
 libssl-dev

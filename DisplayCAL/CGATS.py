@@ -165,15 +165,29 @@ def sort_by_RGB_pow_sum(a, b):
         return 0
 
 
-def sort_by_L(a, b):
+def stable_sort_by_L(a, b):
+    return sort_by_L(a, b, stable=True)
+
+
+def sort_by_L(a, b, stable=False):
+    def sort(a1, b1):
+        if a1 > b1:
+            return 1
+        elif a1 < b1:
+            return -1
+        else:
+            return 0
+
     Lab1 = colormath.XYZ2Lab(*a[3:])
     Lab2 = colormath.XYZ2Lab(*b[3:])
-    if Lab1[0] > Lab2[0]:
-        return 1
-    elif Lab1[0] < Lab2[0]:
-        return -1
-    else:
+    if stable:
+        for i in range(len(Lab1)):
+            v = sort(Lab1[i], Lab2[i])
+            if v != 0:
+                return v
         return 0
+    else:
+        return sort(Lab1[0], Lab2[0])
 
 
 def sort_by_luma_factory(RY, GY, BY, gamma=1):

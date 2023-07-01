@@ -12878,7 +12878,7 @@ usage: spotread [-options] [logfile]
                 "Changing patch sequence:", lang.getstr("testchart." + patch_sequence)
             )
             if patch_sequence == "maximize_lightness_difference":
-                result = ti1.checkerboard()
+                result = ti1.checkerboard(sort1=CGATS.stable_sort_by_L)
             elif patch_sequence == "maximize_rec709_luma_difference":
                 result = ti1.checkerboard(CGATS.sort_by_rec709_luma)
             elif patch_sequence == "maximize_RGB_difference":

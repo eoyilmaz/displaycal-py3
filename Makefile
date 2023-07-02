@@ -14,7 +14,7 @@ venv:
 
 build: venv FORCE
 	source ./.venv/bin/activate; \
-	python -m build;
+	python3 -m build;
 
 install:
 	source ./.venv/bin/activate; \

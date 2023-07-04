@@ -31,4 +31,8 @@ class HStretchStaticBitmapXmlHandler(xrc.XmlResourceHandler):
         )
 
         self.SetupWindow(w)
+        if self.GetBool("hidden") and w.Shown:
+            from log import safe_print
+            safe_print(f"{self.Name} should have been hidden")
+            w.Hide()
         return w

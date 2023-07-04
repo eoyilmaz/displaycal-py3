@@ -8797,7 +8797,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 mprof = profile
         apply_map = (
             use_sim
-            and mprof.colorSpace == "RGB"
+            and mprof.colorSpace == b"RGB"
             and isinstance(mprof.tags.get("rXYZ"), ICCP.XYZType)
             and isinstance(mprof.tags.get("gXYZ"), ICCP.XYZType)
             and isinstance(mprof.tags.get("bXYZ"), ICCP.XYZType)
@@ -18147,11 +18147,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if 'HIRES_B2A "YES"' not in ti3_lines:
                         setcfg("profile.b2a.hires", 0)
                     setcfg("profile.b2a.hires.smooth", 0)
+                simset = False  # Only HDR 3D LUTs will have this set
                 if "BEGIN_DATA_FORMAT" in ti3_lines:
                     cfgend = ti3_lines.index(b"BEGIN_DATA_FORMAT")
                     cfgpart = CGATS.CGATS(b"\n".join(ti3_lines[:cfgend]))
                     lut3d_trc_set = False
-                    simset = False  # Only HDR 3D LUTs will have this set
                     config_lut = {
                         "SMOOTH_B2A_SIZE": "profile.b2a.hires.size",
                         "HIRES_B2A_SIZE": "profile.b2a.hires.size",

@@ -19,3 +19,5 @@ pytest-xdist
 snowballstemmer
 twine
 yappi
+py2app
+wheel

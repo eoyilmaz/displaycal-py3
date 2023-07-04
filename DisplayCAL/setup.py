@@ -308,7 +308,7 @@ def create_app_symlinks(dist_dir, scripts):
                     tgt = os.path.join(toolcontents, entry, subentry)
                     if subentry == "main.py":
                         # py2app
-                        with open(src, "rb") as main_in:
+                        with open(src, "r") as main_in:
                             py = main_in.read()
                         py = py.replace("main()", "main(%r)" % script[len(name) + 1:])
                         with open(tgt, "wb") as main_out:
@@ -478,11 +478,11 @@ def setup():
             pass
         try:
             import setuptools
-            from setuptools import setup, Extension
+            from setuptools import setup, Extension, find_packages
 
             setuptools = True
             print("using setuptools")
-            current_findall = setuptools.findall
+            current_findall = find_packages
         except ImportError:
             pass
     else:
@@ -1624,38 +1624,40 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
         if dry_run or help:
             return
 
-        if do_py2app:
-            frameworks_dir = os.path.join(
-                dist_dir, name + ".app", "Contents", "Frameworks"
-            )
-            lib_dynload_dir = os.path.join(
-                dist_dir,
-                name + ".app",
-                "Contents",
-                "Resources",
-                "lib",
-                "python%s.%s" % sys.version_info[:2],
-                "lib-dynload",
-            )
-            # Fix Pillow (PIL) dylibs not being included
-            pil_dylibs = os.path.join(lib_dynload_dir, "PIL", ".dylibs")
-            if not os.path.isdir(pil_dylibs):
-                import PIL
+            # if do_py2app:
+            #     frameworks_dir = os.path.join(
+            #         dist_dir, name + ".app", "Contents", "Frameworks"
+            #     )
+            #     lib_dynload_dir = os.path.join(
+            #         dist_dir,
+            #         name + ".app",
+            #         "Contents",
+            #         "Resources",
+            #         "lib",
+            #         "python%s.%s" % sys.version_info[:2],
+            #         "lib-dynload",
+            #     )
+            #     # Fix Pillow (PIL) dylibs not being included
+            #     pil_dylibs = os.path.join(lib_dynload_dir, "PIL", ".dylibs")
+            #     if not os.path.isdir(pil_dylibs):
+            #         import PIL
 
-                pil_installed_dylibs = os.path.join(
-                    os.path.dirname(PIL.__file__), ".dylibs"
-                )
-                print("Copying", pil_installed_dylibs, "->", pil_dylibs)
-                shutil.copytree(pil_installed_dylibs, pil_dylibs)
-                for entry in os.listdir(pil_dylibs):
-                    print(os.path.join(pil_dylibs, entry))
-                # Remove wrongly included frameworks
-                dylibs_entries = os.listdir(pil_installed_dylibs)
-                for entry in os.listdir(frameworks_dir):
-                    if entry in dylibs_entries:
-                        dylib = os.path.join(frameworks_dir, entry)
-                        print("Removing", dylib)
-                        os.remove(dylib)
+            #         pil_installed_dylibs = os.path.join(
+            #             os.path.dirname(PIL.__file__), ".dylibs"
+            #         )
+            #         print("Copying", pil_installed_dylibs, "->", pil_dylibs)
+            #         shutil.copytree(pil_installed_dylibs, pil_dylibs)
+            #         for entry in os.listdir(pil_dylibs):
+            #             print(os.path.join(pil_dylibs, entry))
+            #         # Remove wrongly included frameworks
+            #         dylibs_entries = os.listdir(pil_installed_dylibs)
+            #         print("frameworks_dir", frameworks_dir)
+            #         for entry in os.listdir(frameworks_dir):
+            #             if entry in dylibs_entries:
+            #                 dylib = os.path.join(frameworks_dir, entry)
+            #                 print("Removing", dylib)
+            #                 os.remove(dylib)
+
             import wx
 
             if wx.VERSION >= (4,):

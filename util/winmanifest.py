@@ -990,9 +990,9 @@ class Manifest(object):
             xmlstr = domtree.toprettyxml(indent, newl, encoding)
         else:
             xmlstr = domtree.toprettyxml(indent, newl)
-        xmlstr = xmlstr.strip(os.linesep).replace(
-            '<?xml version="1.0" encoding="%s"?>' % encoding,
-            '<?xml version="1.0" encoding="%s" standalone="yes"?>' % encoding,
+        xmlstr = xmlstr.strip(os.linesep.encode('utf-8')).replace(
+            ('<?xml version="1.0" encoding="%s"?>' % encoding).encode('utf-8'),
+            ('<?xml version="1.0" encoding="%s" standalone="yes"?>' % encoding).encode('utf-8'),
         )
         domtree.unlink()
         return xmlstr

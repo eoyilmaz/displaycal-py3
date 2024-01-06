@@ -104,95 +104,95 @@ if sys.platform == "win32":
 
     _access = os.access
 
-    def access(path, mode):
-        return _access(make_win32_compatible_long_path(path), mode)
+    def access(path, mode, *args, **kwargs):
+        return _access(make_win32_compatible_long_path(path), mode, *args, **kwargs)
 
     os.access = access
 
     _exists = os.path.exists
 
-    def exists(path):
-        return _exists(make_win32_compatible_long_path(path))
+    def exists(path, *args, **kwargs):
+        return _exists(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.path.exists = exists
 
     _isdir = os.path.isdir
 
-    def isdir(path):
-        return _isdir(make_win32_compatible_long_path(path))
+    def isdir(path, *args, **kwargs):
+        return _isdir(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.path.isdir = isdir
 
     _isfile = os.path.isfile
 
-    def isfile(path):
-        return _isfile(make_win32_compatible_long_path(path))
+    def isfile(path, *args, **kwargs):
+        return _isfile(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.path.isfile = isfile
 
-    def listdir(path):
-        return _listdir(make_win32_compatible_long_path(path))
+    def listdir(path, *args, **kwargs):
+        return _listdir(make_win32_compatible_long_path(path), *args, **kwargs)
 
     _lstat = os.lstat
 
-    def lstat(path):
-        return _lstat(make_win32_compatible_long_path(path))
+    def lstat(path, *args, **kwargs):
+        return _lstat(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.lstat = lstat
 
     _mkdir = os.mkdir
 
-    def mkdir(path, mode=0o777):
-        return _mkdir(make_win32_compatible_long_path(path, 247), mode)
+    def mkdir(path, mode=0o777, *args, **kwargs):
+        return _mkdir(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
 
     os.mkdir = mkdir
 
     _makedirs = os.makedirs
 
-    def makedirs(path, mode=0o777):
-        return _makedirs(make_win32_compatible_long_path(path, 247), mode)
+    def makedirs(path, mode=0o777, *args, **kwargs):
+        return _makedirs(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
 
     os.makedirs = makedirs
 
     _remove = os.remove
 
-    def remove(path):
-        return _remove(make_win32_compatible_long_path(path))
+    def remove(path, *args, **kwargs):
+        return _remove(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.remove = retry_sharing_violation_factory(remove)
 
     _rename = os.rename
 
-    def rename(src, dst):
+    def rename(src, dst, *args, **kwargs):
         src, dst = [make_win32_compatible_long_path(path) for path in (src, dst)]
-        return _rename(src, dst)
+        return _rename(src, dst, *args, **kwargs)
 
     os.rename = retry_sharing_violation_factory(rename)
 
     _stat = os.stat
 
-    def stat(path):
-        return _stat(make_win32_compatible_long_path(path))
+    def stat(path, *args, **kwargs):
+        return _stat(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.stat = stat
 
     _unlink = os.unlink
 
-    def unlink(path):
-        return _unlink(make_win32_compatible_long_path(path))
+    def unlink(path, *args, **kwargs):
+        return _unlink(make_win32_compatible_long_path(path), *args, **kwargs)
 
     os.unlink = retry_sharing_violation_factory(unlink)
 
     _GetShortPathName = win32api.GetShortPathName
 
-    def GetShortPathName(path):
-        return _GetShortPathName(make_win32_compatible_long_path(path))
+    def GetShortPathName(path, *args, **kwargs):
+        return _GetShortPathName(make_win32_compatible_long_path(path), *args, **kwargs)
 
     win32api.GetShortPathName = GetShortPathName
 else:
 
-    def listdir(path):
-        paths = _listdir(path)
+    def listdir(path, *args, **kwargs):
+        paths = _listdir(path, *args, **kwargs)
         if isinstance(path, str):
             # Undecodable filenames will still be string objects. Ignore them.
             paths = [path for path in paths if isinstance(path, str)]
@@ -465,9 +465,9 @@ def listdir_re(path, rex=None):
 def make_win32_compatible_long_path(path, maxpath=259):
     if (
         sys.platform == "win32"
-        and len(path) > maxpath
+        and len(str(path)) > maxpath
         and os.path.isabs(path)
-        and not path.startswith("\\\\?\\")
+        and not str(path).startswith("\\\\?\\")
     ):
         path = "\\\\?\\" + path
     return path

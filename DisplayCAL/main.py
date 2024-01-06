@@ -70,7 +70,7 @@ from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
 
 if sys.platform == "win32":
-    from util_win import win_ver
+    from DisplayCAL.util_win import win_ver
     import ctypes
 
 
@@ -392,8 +392,9 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                     handle_error(lang.getstr("app.otherinstance", name))
                 # Exit
                 return
+    lock.unlock()
     # Use exclusive lock during app startup
-    with lock:
+    with AppLock(app_lock_file_name, "a+", True, True) as lock:
         # Create listening socket
         appsocket = AppSocket()
         if appsocket:
@@ -513,27 +514,27 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                         % ";".join(script).encode(fs_enc),
                     ]
                 )
-        # Initialize & run
-        if module == "3DLUT-maker":
-            from DisplayCAL.wxLUT3DFrame import main
-        elif module == "curve-viewer":
-            from DisplayCAL.wxLUTViewer import main
-        elif module == "profile-info":
-            from DisplayCAL.wxProfileInfo import main
-        elif module == "scripting-client":
-            from DisplayCAL.wxScriptingClient import main
-        elif module == "synthprofile":
-            from DisplayCAL.wxSynthICCFrame import main
-        elif module == "testchart-editor":
-            from DisplayCAL.wxTestchartEditor import main
-        elif module == "VRML-to-X3D-converter":
-            from DisplayCAL.wxVRML2X3D import main
-        elif module == "apply-profiles":
-            from DisplayCAL.profile_loader import main
-        else:
-            from DisplayCAL.display_cal import main
-        # Run main after releasing lock
-        main()
+    # Initialize & run
+    if module == "3DLUT-maker":
+        from DisplayCAL.wxLUT3DFrame import main
+    elif module == "curve-viewer":
+        from DisplayCAL.wxLUTViewer import main
+    elif module == "profile-info":
+        from DisplayCAL.wxProfileInfo import main
+    elif module == "scripting-client":
+        from DisplayCAL.wxScriptingClient import main
+    elif module == "synthprofile":
+        from DisplayCAL.wxSynthICCFrame import main
+    elif module == "testchart-editor":
+        from DisplayCAL.wxTestchartEditor import main
+    elif module == "VRML-to-X3D-converter":
+        from DisplayCAL.wxVRML2X3D import main
+    elif module == "apply-profiles":
+        from DisplayCAL.profile_loader import main
+    else:
+        from DisplayCAL.display_cal import main
+    # Run main after releasing lock
+    main()
 
 
 def main(module=None):

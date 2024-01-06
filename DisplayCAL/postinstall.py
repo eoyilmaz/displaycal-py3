@@ -83,7 +83,7 @@ if sys.platform == "win32":
                         installed_files.extend(line.rstrip("\n") for line in recordfile)
                         recordfile.close()
                     try:
-                        path.decode("ASCII")
+                        path.encode("ASCII")
                     except (UnicodeDecodeError, UnicodeEncodeError):
                         # the contents of the record file used by distutils
                         # must be ASCII GetShortPathName allows us to avoid

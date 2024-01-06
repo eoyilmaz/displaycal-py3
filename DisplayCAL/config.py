@@ -2226,7 +2226,5 @@ if sys.platform in ("darwin", "win32") and not os.getenv("SSL_CERT_FILE"):
     if not cafile:
         # Use our bundled CA file
         cafile = get_data_path("cacert.pem")
-        if cafile:
-            cafile = cafile.encode(fs_enc, "replace")
     if cafile:
         os.environ["SSL_CERT_FILE"] = cafile

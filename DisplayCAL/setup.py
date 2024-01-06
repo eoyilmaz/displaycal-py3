@@ -197,9 +197,9 @@ def add_lib_excludes(key, excludebits):
         config["excludes"][key].extend([f"{name}.lib{exclude}", f"lib{exclude}"])
 
     for exclude in ("32", "64"):
-        for pycompat in ("38", "39", "310"):
+        for pycompat in ("38", "39", "310", "311", "312"):
             if key == "win32" and (
-                pycompat == sys.version[0] + sys.version[2] or exclude == excludebits[0]
+                pycompat == str(sys.version_info[0]) + str(sys.version_info[2]) or exclude == excludebits[0]
             ):
                 continue
             config["excludes"][key].extend(
@@ -955,7 +955,7 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
     if sdist:
         # For source distributions we want all libraries
-        for pycompat in ("38", "39", "310"):
+        for pycompat in ("38", "39", "310", "311", "312"):
             packages.extend(
                 [
                     f"{name}.lib{bits}",
@@ -1265,6 +1265,8 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
                     "mswsock.dll",
                     "urlmon.dll",
                     "w9xpopen.exe",
+                    "gdiplus.dll",
+                    "mfc90.dll",
                 ],
                 "excludes": config["excludes"]["all"] + config["excludes"]["win32"],
                 "bundle_files": 3 if wx.VERSION >= (2, 8, 10, 1) else 1,

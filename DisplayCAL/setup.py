@@ -197,9 +197,9 @@ def add_lib_excludes(key, excludebits):
         config["excludes"][key].extend([f"{name}.lib{exclude}", f"lib{exclude}"])
 
     for exclude in ("32", "64"):
-        for pycompat in ("38", "39", "310", "311", "312"):
+        for pycompat in ("38", "39", "310", "311"):
             if key == "win32" and (
-                pycompat == str(sys.version_info[0]) + str(sys.version_info[2]) or exclude == excludebits[0]
+                pycompat == str(sys.version_info[0]) + str(sys.version_info[1]) or exclude == excludebits[0]
             ):
                 continue
             config["excludes"][key].extend(
@@ -955,7 +955,7 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
     if sdist:
         # For source distributions we want all libraries
-        for pycompat in ("38", "39", "310", "311", "312"):
+        for pycompat in ("38", "39", "310", "311"):
             packages.extend(
                 [
                     f"{name}.lib{bits}",

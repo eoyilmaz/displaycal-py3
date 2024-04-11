@@ -25,7 +25,7 @@ Here is a screenshots showing the tool working with Python 3.10:
 
 ![image](https://user-images.githubusercontent.com/1786804/169152229-e06ff549-55fe-4149-8742-405446e6b01f.png)
 
-Currently, DisplayCAL is working with Python 3.8, 3.9, 3.10 and 3.11 and wxPython 4.1.1 to 4.2.1.
+Currently, DisplayCAL is working with Python 3.8 to 3.12 and wxPython 4.1.1 to 4.2.1.
 
 Here is a list of things that is working:
 
@@ -66,6 +66,7 @@ Prerequisites:
 * gtk-3
 * libXxf86vm
 * pkg-config
+* python3-devel
 
 Please install these from your package manager. 
 
@@ -77,7 +78,7 @@ brew install glib gtk+3 python@3.10
 apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libxxf86vm-dev
 
 # Fedora core installs
-dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel
+dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel python3-devel
 ```
 
 Then pull the source:

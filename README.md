@@ -81,6 +81,8 @@ apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libx
 dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel python3-devel
 ```
 
+Note, if your system's default python is outside the supported range you will need to install a supported version and its related devel package. 
+
 Then pull the source:
 
 ```shell
@@ -115,10 +117,10 @@ Manually Setup
 --------------
 
 If the `makefile` workflow doesn't work for you, you can setup the virtual environment
-manually:
+manually. Ensure the python binary you're using is supported:
 
 ```shell
-python -m venv .venv
+python -m venv .venv # python3.12 -m venv .venv if system python is not a supported version
 source .venv/bin/activate  # Windows: .venv\Scripts\activate.bat
 pip install -r requirements.txt
 python -m build

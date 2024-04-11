@@ -4,6 +4,7 @@ SETUP_PY_FLAGS = --use-distutils
 VERSION := $(shell cat VERSION_BASE)
 VERSION_FILE=$(CURDIR)/VERSION_BASE
 VIRTUALENV_DIR:=.venv
+SYSTEM_PYTHON:=python3
 
 all: build FORCE
 
@@ -15,7 +16,7 @@ help:
 
 .PHONY: venv
 venv:
-	python3 -m venv $(VIRTUALENV_DIR); \
+	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR); \
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	pip install -r requirements.txt; \
 	pip install -r requirements-dev.txt;

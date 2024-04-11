@@ -103,6 +103,17 @@ Then you can build and install DisplayCAL using:
 make build
 make install
 ```
+The build step assumes your system has a python3 binary available that is within the correct range. If your system python3 is not supported and you installed a new one, you can try passing it to the build command.
+eg
+
+```shell
+$ python3 --version
+# Python 3.13.0
+make build # this will fail
+$ python3.12 --version
+# Python 3.12.2
+make SYSTEM_PYTHON=python3.12 build # should work
+```
 
 If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
 section below.

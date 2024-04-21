@@ -25,7 +25,7 @@ Here is a screenshots showing the tool working with Python 3.10:
 
 ![image](https://user-images.githubusercontent.com/1786804/169152229-e06ff549-55fe-4149-8742-405446e6b01f.png)
 
-Currently, DisplayCAL is working with Python 3.8 to 3.12 and wxPython 4.1.1 to 4.2.1.
+Currently, DisplayCAL is working with Python 3.8 to 3.11 and wxPython 4.1.1 to 4.2.1.
 
 Here is a list of things that is working:
 
@@ -108,11 +108,11 @@ eg
 
 ```shell
 $ python3 --version
-# Python 3.13.0
-make build # this will fail
-$ python3.12 --version
 # Python 3.12.2
-make SYSTEM_PYTHON=python3.12 build # should work
+make build # this will fail
+$ python3.11 --version
+# Python 3.11.8
+make SYSTEM_PYTHON=python3.11 build # should work
 ```
 
 If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
@@ -131,7 +131,7 @@ If the `makefile` workflow doesn't work for you, you can setup the virtual envir
 manually. Ensure the python binary you're using is supported:
 
 ```shell
-python -m venv .venv # python3.12 -m venv .venv if system python is not a supported version
+python -m venv .venv # python3.11 -m venv .venv if system python is not a supported version
 source .venv/bin/activate  # Windows: .venv\Scripts\activate.bat
 pip install -r requirements.txt
 python -m build

@@ -5,7 +5,7 @@ from binascii import hexlify
 import atexit
 import math
 import os
-import pipes
+import shlex
 import re
 import shutil
 import struct
@@ -422,7 +422,7 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
             if not item.startswith('"'):
                 item = quote_args([item])[0]
         else:
-            item = pipes.quote(item)
+            item = shlex.quote(item)
         lines.append(item)
         i += 1
     for line in lines:

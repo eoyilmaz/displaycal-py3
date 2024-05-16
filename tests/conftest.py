@@ -56,16 +56,16 @@ def argyll():
     can not find it, it will download from the source.
     """
     argyll_download_url = {
-        "win32": "https://www.argyllcms.com/Argyll_V3.1.0_win64_exe.zip",
-        "darwin": "https://www.argyllcms.com/Argyll_V3.1.0_osx10.6_x86_64_bin.tgz",
-        "linux": "https://www.argyllcms.com/Argyll_V3.1.0_linux_x86_64_bin.tgz",
+        "win32": "https://www.argyllcms.com/Argyll_V3.2.0_win64_exe.zip",
+        "darwin": "https://www.argyllcms.com/Argyll_V3.2.0_osx10.6_x86_64_bin.tgz",
+        "linux": "https://www.argyllcms.com/Argyll_V3.2.0_linux_x86_64_bin.tgz",
     }
 
     # first look in to ~/local/bin/ArgyllCMS
     home = pathlib.Path().home()
     argyll_search_paths = [
         home / ".local" / "bin" / "Argyll" / "bin",
-        home / ".local" / "bin" / "Argyll_V3.1.0" / "bin",
+        home / ".local" / "bin" / "Argyll_V3.2.0" / "bin",
     ]
 
     argyll_path = None
@@ -108,7 +108,7 @@ def argyll():
         shutil.rmtree(argyll_temp_path)
         os.chdir(current_working_directory)
 
-    argyll_path = pathlib.Path(argyll_temp_path) / "Argyll_V3.1.0" / "bin"
+    argyll_path = pathlib.Path(argyll_temp_path) / "Argyll_V3.2.0" / "bin"
     print(f"argyll_path: {argyll_path}")
     if argyll_path.is_dir():
         setcfg("argyll.dir", str(argyll_path.absolute()))

@@ -533,7 +533,7 @@ def app_update_confirm(
         #       we don't have access to displaycal.net to update the ArgylCMS
         #       version. So, this mechanism should be updated to use some
         #       other way of getting newer app versions...
-        newversion = "3.1.0"
+        newversion = "3.2.0"
     else:
         newversion_desc = appname
     newversion_desc += f" {newversion}"

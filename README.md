@@ -133,7 +133,7 @@ Windows version is currently not working properly. But here is the installation 
 
    Preferrebly install Python 3.11: https://www.python.org/downloads/windows/
 
-   Also don't forget to select "Add `python` to your PATH" in the installer.
+   Also don't forget to select "Add Python to environment variables" in the installer.
 
 2- Download and install Visual Studio Build Tools:
 

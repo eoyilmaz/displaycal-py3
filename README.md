@@ -141,7 +141,7 @@ Windows version is currently not working properly. But here is the installation 
 
    Select "Desktop development with C++" only:
 
-   ![image](./screenshots/Visual_Studio_Build_Tools.jpg)
+   ![image](screenshots/Visual_Studio_Build_Tools.jpg)
 
 3- Install DisplayCAL through PyPI:
 

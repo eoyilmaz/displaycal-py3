@@ -16,7 +16,7 @@ DisplayCAL community, to contribute back to this great tool.
 This project is based on the ``HEAD`` of the Sourceforge version, which had 5 extra
 commits that Florian has created after the ``3.8.9.3`` release on 14 Jan 2020.
 
-Status Update (18 May 2022)
+Status Update (6 June 2024)
 ---------------------------
 
 DisplayCAL is in [PyPI](https://pypi.org/project/DisplayCAL/) now (yay!).
@@ -49,8 +49,8 @@ What is not working
 - Everything should be working now. But, incase you encounter any bugs please create
   [issues](https://github.com/eoyilmaz/displaycal-py3/issues).
 
-How to install
---------------
+How to install (Linux and MacOS)
+--------------------------------
 
 Currently, there is no ``RPM``, ``DEB``, ``APP`` or ``MSI`` packages. These are coming
 soon.
@@ -123,6 +123,41 @@ Otherwise, this should install DisplayCAL. To run the UI:
 ```shell
 make launch
 ```
+
+How To Install (Windows)
+-----------------------
+
+Windows version is currently not working properly. But here is the installation procedure:
+
+1- Download and install Python:
+
+   Preferrebly install Python 3.11: https://www.python.org/downloads/windows/
+
+   Also don't forget to select "Add `python` to your PATH" in the installer.
+
+2- Download and install Visual Studio Build Tools:
+
+   Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+   Select "Desktop development with C++" only:
+
+   ![image](./screenshots/Visual_Studio_Build_Tools.jpg)
+
+3- Install DisplayCAL through PyPI:
+
+   Run the following in the command prompt:
+
+   ```shell
+   pip install displaycal
+   ```
+
+4- Run DisplayCAL:
+
+   ```shell
+   python displaycal
+   ```
+
+An installer will later be supplied for Windows.
 
 Manually Setup
 --------------

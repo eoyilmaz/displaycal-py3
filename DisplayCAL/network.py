@@ -153,4 +153,4 @@ class ScriptingClientSocket(socket.socket):
 
     def send_command(self, command):
         # Automatically append newline (command end marker)
-        self.sendall(safe_str(command, "UTF-8") + "\n")
+        self.sendall(safe_str(command, "utf-8") + "\n")

@@ -83,7 +83,9 @@ apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libx
 dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel python3-devel
 ```
 
-Note, if your system's default python is outside the supported range you will need to install a supported version and its related devel package. 
+> [!NOTE]
+> Note, if your system's default python is outside the supported range you will need to
+> install a supported version and its related devel package. 
 
 Then pull the source:
 
@@ -131,19 +133,22 @@ make launch
 How To Install (Windows)
 -----------------------
 
-Windows version is currently not working properly. But here is the installation procedure:
+Windows version is now working properly. The catch is that you need to use the
+system Python, so no Virtual Environments. Here is the installation procedure:
 
-1- Download and install Python 3.9:
+1- Download and install on of Python 3.9, 3.10, 3.11 or 3.12:
 
-   Install Python 3.9:
+   Here is some download links that are now hidden in Python's home page:
    https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
    https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
 
-   Wexpect (a Python library that DisplayCAL depends on) is not working properly with
-   newer Python versions like Python 3.11 and 3.12. So, stick with Python 3.9 until we
-   find a solution.
+   Python 11 and 12 are available directly.
 
-   Also don't forget to select "Add Python to environment variables" in the installer.
+   Wexpect (a Python library that DisplayCAL depends on) is not working
+   properly with newer Python versions like Python 3.11 and 3.12. So, stick
+   with Python 3.9 until we find a solution.
+
+   Also don't forget to select "Add Python 3.xx to PATH" in the installer.
 
    ![image](screenshots/Python_3.9_Installation_Windows.jpg)
 
@@ -157,7 +162,8 @@ Windows version is currently not working properly. But here is the installation 
 
 3- Install DisplayCAL through PyPI:
 
-   Run the following in the command prompt:
+   After both Python and Visual Studio Build Tools are installed run the following in
+   the command prompt:
 
    ```shell
    pip install displaycal
@@ -169,20 +175,18 @@ Windows version is currently not working properly. But here is the installation 
    python displaycal
    ```
 
-> [!Warning]
+> [!WARNING]
 > Under Windows use the system Python installation instead of a virtual environment as
 > Wexpect module cannot read ArgyllCMS command outputs from inside a virtual
 > environment.
 
-> [!Warning]
+> [!WARNING]
 > Under Windows don't run DisplayCAL inside the IDE (Vscode, Pycharm etc.) terminal as
 > most of the IDE's are creating virtual terminals and it is not possible to capture the
-> command outputs.
+> command outputs with Wexpect.
 
-An installer will later be supplied for Windows.
-
-Manually Setup
---------------
+Manual Setup
+------------
 
 If the `makefile` workflow doesn't work for you, you can setup the virtual environment
 manually. Ensure the python binary you're using is supported:

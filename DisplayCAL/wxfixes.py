@@ -139,10 +139,10 @@ if "phoenix" in wx.PlatformInfo:
     wx.IconFromBitmap = wx.Icon
     wx.ImageFromStream = wx.Image
     wx.ListCtrl.InsertStringItem = lambda self, index, label: self.InsertItem(
-        index, label
+        int(index), str(label)
     )
     wx.ListCtrl.SetStringItem = lambda self, index, col, label: self.SetItem(
-        index, col, label
+        int(index), int(col), str(label)
     )
     wx.Menu.RemoveItem = lambda self, item: self.Remove(item)
     wx.NamedColour = wx.Colour

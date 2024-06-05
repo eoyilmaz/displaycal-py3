@@ -8869,7 +8869,6 @@ BEGIN_DATA
 
         If name can't be shortened (e.g. because it's already 10 characters
         or less), return full string
-
         """
         display_name = self.get_display_name(prepend_manufacturer, prefer_edid)
         if len(display_name) > 10:
@@ -8893,14 +8892,15 @@ BEGIN_DATA
                     # Weigh parts further to the right higher
                     display_name = re.sub(r"^[^([{\w]+", "", part)
                     maxweight = weight
+
+        # Shortname should not contain any spaces.
+        display_name = re.sub(r"[\s]+", "_", display_name)
         return display_name
 
     def get_dispwin_display_profile_argument(self, display_no=0):
-        """Return argument corresponding to the display profile for use
-        with dispwin.
+        """Return argument corresponding to the display profile for use with dispwin.
 
-        Will either return '-L' (use current profile) or a filename
-
+        Will either return '-L' (use current profile) or a filename.
         """
         arg = "-L"
         try:
@@ -13393,7 +13393,6 @@ usage: spotread [-options] [logfile]
         All options are read from the user configuration.
         You can choose if you want to calibrate and/or verify by passing
         the corresponding arguments.
-
         """
         cmd = get_argyll_util("dispcal")
         args = ["-v2"]
@@ -15196,7 +15195,10 @@ usage: spotread [-options] [logfile]
         capture_output = not sys.stdout.isatty()
         cmd, args = self.prepare_dispcal()
         if not isinstance(cmd, Exception):
+            print(f"cmd: {cmd}")
+            print(f"args: {args}")
             result = self.exec_cmd(cmd, args, capture_output=capture_output)
+            print(f"result: {result}")
         else:
             result = cmd
         if not isinstance(result, Exception) and result and getcfg("trc"):
@@ -15205,10 +15207,13 @@ usage: spotread [-options] [logfile]
                 getcfg("profile.name.expanded"),
                 getcfg("profile.name.expanded"),
             )
+            print(f"dst_pathname: {dst_pathname}")
             cal = args[-1] + ".cal"
+            print(f"cal         : {cal}")
             result = check_cal_isfile(
                 cal, lang.getstr("error.calibration.file_not_created")
             )
+            print(f"result      : {result}")
             if not isinstance(result, Exception) and result:
                 cal_cgats = add_dispcal_options_to_cal(cal, self.options_dispcal)
                 if cal_cgats:

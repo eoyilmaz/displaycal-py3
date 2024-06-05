@@ -1531,7 +1531,10 @@ class spawn_unix(object):
                 c = self.read_nonblocking(self.maxread, timeout)
                 freshlen = len(c)
                 time.sleep(0.0001)
-                incoming = incoming + c #.decode()
+                if sys.platform == "win32":
+                    incoming += c
+                else:
+                    incoming += c.decode()
                 if timeout is not None:
                     timeout = end_time - time.time()
         except EOF as e:

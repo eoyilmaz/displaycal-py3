@@ -139,14 +139,13 @@ system Python, so no Virtual Environments. Here is the installation procedure:
 1- Download and install one of Python 3.9, 3.10, 3.11 or 3.12:
 
    Here is some download links that are now hidden in Python's home page:
-   https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
-   https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
+   - [python-3.9.13-amd64.exe](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)
+   - [python-3.10.11-amd64.exe](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+   - Python 3.11 and 3.12 can be downloaded directly from [Python.org](https://www.python.org/downloads/windows/).
 
-   Python 11 and 12 are available directly.
-
-   Wexpect (a Python library that DisplayCAL depends on) is not working
-   properly with newer Python versions like Python 3.11 and 3.12. So, stick
-   with Python 3.9 until we find a solution.
+   Wexpect (a Python library that DisplayCAL depends on) is not working properly with
+   newer Python versions like Python 3.11 and 3.12. So, stick with Python 3.9 until we
+   find a solution.
 
    Also don't forget to select "Add Python 3.xx to PATH" in the installer.
 

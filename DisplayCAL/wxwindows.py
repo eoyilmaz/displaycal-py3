@@ -2015,19 +2015,18 @@ class BaseFrame(wx.Frame):
                     if response == scripting_host:
                         conn.send_command(command)
                         response = conn.get_single_response()
-                        print("%s %s returned" % (scripting_host, command), response)
+                        print(f"{scripting_host} {command} returned", response)
                     else:
                         print(
-                            "Warning - %s not running "
-                            "under expected port" % scripting_host,
+                            f"Warning - {scripting_host} not running under expected port",
                             port,
                         )
                     del conn
                     return response
             else:
-                print("Warning - %s not running?" % scripting_host)
+                print(f"Warning - {scripting_host} not running?")
         except Exception as exception:
-            print("Warning - couldn't talk to %s:" % scripting_host, exception)
+            print(f"Warning - couldn't talk to {scripting_host}:", exception)
             return exception
 
     def focus_handler(self, event=None):

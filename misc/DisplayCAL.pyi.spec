@@ -124,8 +124,8 @@ if sys.platform == 'win32':
     python = os.path.join(build_dir, 'python')
     with open(python, 'wb') as py:
         py.write('\n'.join(['if __name__ == "__main__":',
-                            '    import %s.wexpect' % appname,
-                            '    sys.modules["wexpect"] = sys.modules["%s.wexpect"]' % appname,
+                            f'    import {appname}.wexpect',
+                            f'    sys.modules["wexpect"] = sys.modules["{appname}.wexpect"]',
                             '    for i, arg in enumerate(sys.argv[1:]):',
                             '        if arg == "-c":',
                             '            exec("".join(sys.argv[i + 2]))']))

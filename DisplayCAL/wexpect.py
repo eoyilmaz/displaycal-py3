@@ -64,18 +64,21 @@ http://pexpect.sourceforge.net/
 $Id: pexpect.py 507 2007-12-27 02:40:52Z noah $
 """
 
-import os
-import sys
-import time
-import select
-import string
-import re
-import struct
-import types
+import copy
 import errno
-import traceback
+import logging
+import re
+import os
+import select
 import signal
+import string
+import struct
 import subprocess
+import sys
+import tempfile
+import time
+import traceback
+import types
 
 if sys.platform != "win32":
     import pty
@@ -89,10 +92,55 @@ else:
     import pywintypes
     from win32com.shell.shellcon import CSIDL_APPDATA
     from win32com.shell.shell import SHGetSpecialFolderPath
-    from win32console import *
-    from win32process import *
-    from win32con import *
-    from win32gui import *
+    from win32console import (
+        AllocConsole,
+        AttachConsole,
+        FreeConsole,
+        GetConsoleProcessList,
+        GetConsoleWindow,
+        GetStdHandle,
+        KEY_EVENT,
+        PyConsoleScreenBufferType,
+        PyCOORDType,
+        PyINPUT_RECORDType,
+        PySMALL_RECTType,
+        SetConsoleOutputCP,
+        SetConsoleTitle,
+        STD_INPUT_HANDLE
+    )
+    from win32process import (
+        CreateProcess,
+        GetCurrentProcessId,
+        GetExitCodeProcess,
+        GetStartupInfo,
+        GetWindowThreadProcessId,
+        ResumeThread,
+        SuspendThread,
+        TerminateProcess,
+    )
+    from win32con import (
+        CREATE_NEW_CONSOLE,
+        CREATE_NEW_PROCESS_GROUP,
+        CTRL_BREAK_EVENT,
+        FILE_SHARE_READ,
+        FILE_SHARE_WRITE,
+        GENERIC_READ,
+        GENERIC_WRITE,
+        OPEN_EXISTING,
+        PM_REMOVE,
+        PROCESS_QUERY_INFORMATION,
+        PROCESS_TERMINATE,
+        SW_HIDE,
+        SW_SHOW,
+        STARTF_USESHOWWINDOW,
+        STILL_ACTIVE,
+        THREAD_SUSPEND_RESUME,
+        WM_USER,
+    )
+    from win32gui import (
+        PeekMessage,
+        ShowWindow,
+    )
     import win32api
     import win32file
     import winerror
@@ -121,7 +169,6 @@ class ExceptionPexpect(Exception):
     """Base class for all exceptions raised by this module."""
 
     def __init__(self, value):
-
         self.value = value
 
     def __str__(self):
@@ -248,7 +295,6 @@ def run(
     the child. 'extra_args' is not used by directly run(). It provides a way to
     pass data to a callback function through run() through the locals
     dictionary passed to a callback."""
-
     if timeout == -1:
         child = spawn(command, maxread=2000, logfile=logfile, cwd=cwd, env=env)
     else:
@@ -313,15 +359,17 @@ def spawn(
         args = []
 
     log("=" * 80)
-    log("Buffer size: %s" % maxread)
+    log(f"Buffer size: {maxread}")
     if searchwindowsize:
-        log("Search window size: %s" % searchwindowsize)
-    log("Timeout: %ss" % timeout)
+        log(f"Search window size: {searchwindowsize}")
+    log(f"Timeout: {timeout}s")
     if env:
         log("Environment:")
         for name in env:
-            log("\t%s=%s" % (name, env[name]))
+            log(f"\t{name}={env[name]}")
     if cwd:
+        if isinstance(cwd, bytes):
+            cwd = cwd.decode("utf-8")
         log(f"Working directory: {cwd}")
     log("Spawning {}".format(join_args([command] + args)))
     if sys.platform == "win32":
@@ -505,7 +553,7 @@ class spawn_unix(object):
         self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
         self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
         self.softspace = False  # File-like object.
-        self.name = "<" + repr(self) + ">"  # File-like object.
+        self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
         self.closed = True  # File-like object.
         self.ocwd = os.getcwd()
@@ -536,7 +584,6 @@ class spawn_unix(object):
         objects, so they must be handled explicitly. If the child file
         descriptor was opened outside this class (passed to the constructor)
         then this does not close it."""
-
         if not self.closed:
             # It is possible for __del__ methods to execute during the
             # teardown of the Python VM itself. Thus, self.close() may
@@ -695,7 +742,6 @@ class spawn_unix(object):
             http://mail.python.org/pipermail/python-dev/2003-May/035281.html
 
         """
-
         parent_fd, child_fd = os.openpty()
         if parent_fd < 0 or child_fd < 0:
             raise ExceptionPexpect("Error! Could not open pty with os.openpty().")
@@ -725,7 +771,6 @@ class spawn_unix(object):
         """This makes the pseudo-terminal the controlling tty. This should be
         more portable than the pty.fork() function. Specifically, this should
         work on Solaris."""
-
         child_name = os.ttyname(tty_fd)
 
         # Disconnect from controlling tty if still connected.
@@ -764,7 +809,6 @@ class spawn_unix(object):
     def fileno(self):  # File-like object.
 
         """This returns the file descriptor of the pty for the child."""
-
         return self.child_fd
 
     def close(self, force=True):  # File-like object.
@@ -774,7 +818,6 @@ class spawn_unix(object):
         behavior with files. Set force to True if you want to make sure that
         the child is terminated (SIGKILL is sent if the child ignores SIGHUP
         and SIGINT)."""
-
         if not self.closed:
             self.flush()
             os.close(self.child_fd)
@@ -794,14 +837,12 @@ class spawn_unix(object):
 
         """This does nothing. It is here to support the interface for a
         File-like object."""
-
         pass
 
     def isatty(self):  # File-like object.
 
         """This returns True if the file descriptor is open and connected to a
         tty(-like) device, else False."""
-
         return os.isatty(self.child_fd)
 
     def waitnoecho(self, timeout=-1):
@@ -822,7 +863,6 @@ class spawn_unix(object):
         False.
 
         """
-
         if timeout == -1:
             timeout = self.timeout
         if timeout is not None:
@@ -841,7 +881,6 @@ class spawn_unix(object):
         """This returns the terminal echo mode. This returns True if echo is
         on or False if echo is off. Child applications that are expecting you
         to enter a password often set ECHO False. See waitnoecho()."""
-
         attr = termios.tcgetattr(self.child_fd)
         if attr[3] & termios.ECHO:
             return True
@@ -877,7 +916,6 @@ class spawn_unix(object):
             p.expect (['abcd'])
             p.expect (['wxyz'])
         """
-
         self.child_fd
         attr = termios.tcgetattr(self.child_fd)
         if state:
@@ -909,7 +947,6 @@ class spawn_unix(object):
 
         This is a wrapper around os.read(). It uses select.select() to
         implement the timeout."""
-
         if self.closed:
             raise ValueError("I/O operation on closed file in read_nonblocking().")
 
@@ -982,7 +1019,6 @@ class spawn_unix(object):
         omitted, read all data until EOF is reached. The bytes are returned as
         a string object. An empty string is returned when EOF is encountered
         immediately."""
-
         if size == 0:
             return ""
         if size < 0:
@@ -1011,7 +1047,6 @@ class spawn_unix(object):
         is returned when EOF is hit immediately. Currently, the size argument is
         mostly ignored, so this behavior is not standard for a file-like
         object. If size is 0 then an empty string is returned."""
-
         if size == 0:
             return ""
         index = self.expect(["\r\n", self.delimiter])  # delimiter default is EOF
@@ -1058,7 +1093,6 @@ class spawn_unix(object):
         """This sends a string to the child process. This returns the number of
         bytes written. If a log file was set then the data is also written to
         the log."""
-
         time.sleep(self.delaybeforesend)
         if self.logfile is not None:
             self.logfile.write(s)
@@ -1162,7 +1196,6 @@ class spawn_unix(object):
         SIGHUP and SIGINT. If "force" is True then moves onto SIGKILL. This
         returns True if the child was terminated. This returns False if the
         child could not be terminated."""
-
         if not self.isalive():
             return True
         try:
@@ -1203,7 +1236,6 @@ class spawn_unix(object):
         child has unread output and has terminated. In other words, the child
         may have printed output then called exit(); but, technically, the child
         is still alive until its output is read."""
-
         if self.isalive():
             pid, status = os.waitpid(self.pid, 0)
         else:
@@ -1232,7 +1264,6 @@ class spawn_unix(object):
         exitstatus or signalstatus of the child. This returns True if the child
         process appears to be running or False if not. It can take literally
         SECONDS for Solaris to return the right status."""
-
         if self.terminated:
             return False
 
@@ -1300,17 +1331,14 @@ class spawn_unix(object):
         return False
 
     def kill(self, sig):
-
         """This sends the given signal to the child application. In keeping
         with UNIX tradition it has a misleading name. It does not necessarily
         kill the child unless you send the right signal."""
-
         # Same as os.kill, but the pid is given for you.
         if self.isalive():
             os.kill(self.pid, sig)
 
     def compile_pattern_list(self, patterns):
-
         """This compiles a pattern-string or a list of pattern-strings.
         Patterns must be a StringType, EOF, TIMEOUT, SRE_Pattern, or a list of
         those. Patterns may also be None which results in an empty list (you
@@ -1333,7 +1361,6 @@ class spawn_unix(object):
                 i = self.expect_list(clp, timeout)
                 ...
         """
-
         if patterns is None:
             return []
         if not isinstance(patterns, list):
@@ -1435,7 +1462,6 @@ class spawn_unix(object):
 
         If you are trying to optimize for speed then see expect_list().
         """
-
         compiled_pattern_list = self.compile_pattern_list(pattern)
         return self.expect_list(compiled_pattern_list, timeout, searchwindowsize)
 
@@ -1475,7 +1501,6 @@ class spawn_unix(object):
         to search for in the input.
 
         See expect() for other arguments, return value and exceptions."""
-
         self.searcher = searcher
 
         end_time = -1
@@ -1506,7 +1531,7 @@ class spawn_unix(object):
                 c = self.read_nonblocking(self.maxread, timeout)
                 freshlen = len(c)
                 time.sleep(0.0001)
-                incoming = incoming + c.decode()
+                incoming = incoming + c #.decode()
                 if timeout is not None:
                     timeout = end_time - time.time()
         except EOF as e:
@@ -1556,7 +1581,6 @@ class spawn_unix(object):
         physical window size. It changes the size reported to TTY-aware
         applications like vi or curses -- applications that respond to the
         SIGWINCH signal."""
-
         # Check for buggy platforms. Some Python versions on some platforms
         # (notably OSF1 Alpha and RedHat 7.1) truncate the value for
         # termios.TIOCSWINSZ. It is not clear why this happens.
@@ -1635,7 +1659,6 @@ class spawn_unix(object):
         self, escape_character=None, input_filter=None, output_filter=None
     ):
         """This is used by the ``interact()`` method."""
-
         while self.isalive():
             r, w, e = self.__select([self.child_fd, self.STDIN_FILENO], [], [])
             if self.child_fd in r:
@@ -1665,7 +1688,6 @@ class spawn_unix(object):
         select.select raises a select.error exception and errno is an EINTR
         error then it is ignored. Mainly this is used to ignore sigwinch
         (terminal resize)."""
-
         # if select() is interrupted by a signal (errno==EINTR) then
         # we loop back and enter the select() again.
         end_time = -1
@@ -1753,7 +1775,7 @@ class spawn_windows(spawn_unix):
         self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
         self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
         self.softspace = False  # File-like object.
-        self.name = "<" + repr(self) + ">"  # File-like object.
+        self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
         self.closed = True  # File-like object.
         self.ocwd = os.getcwd()
@@ -1762,6 +1784,7 @@ class spawn_windows(spawn_unix):
         self.codepage = codepage
         self.columns = columns
         self.rows = rows
+        self.wtty = None
 
         if args is None:
             args = []
@@ -1791,7 +1814,6 @@ class spawn_windows(spawn_unix):
         fork/exec type of stuff for a pty. This is called by __init__. If args
         is empty then command will be parsed (split on spaces) and args will be
         set to parsed arguments."""
-
         if args is None:
             args = []
 
@@ -1832,7 +1854,7 @@ class spawn_windows(spawn_unix):
         self.command = command_with_path
         self.args[0] = self.command
 
-        self.name = "<" + " ".join(self.args) + ">"
+        self.name = f'<{" ".join(self.args)}>'
 
         # assert self.pid is None, 'The pid member should be None.'
         # assert self.command is not None, 'The command member should not be None.'
@@ -1905,7 +1927,6 @@ class spawn_windows(spawn_unix):
             timeout = self.timeout
 
         s = self.wtty.read_nonblocking(timeout, size)
-
         if s == "":
             if not self.wtty.isalive():
                 self.flag_eof = True
@@ -1956,7 +1977,6 @@ class spawn_windows(spawn_unix):
 
     def terminate(self, force=False):
         """Terminate the child. Force not used."""
-
         if not self.isalive():
             return True
 
@@ -1969,7 +1989,6 @@ class spawn_windows(spawn_unix):
 
     def kill(self, sig):
         """Sig == sigint for ctrl-c otherwise the child is terminated."""
-
         if sig == signal.SIGINT:
             self.wtty.sendintr()
         else:
@@ -1982,7 +2001,6 @@ class spawn_windows(spawn_unix):
         may have printed output then called exit(); but, technically, the child
         is still alive until its output is read.
         """
-
         if not self.isalive():
             raise ExceptionPexpect("Cannot wait for dead child process.")
 
@@ -1996,7 +2014,6 @@ class spawn_windows(spawn_unix):
 
     def isalive(self):
         """Determines if the child is still alive."""
-
         if self.terminated:
             return False
 
@@ -2030,12 +2047,9 @@ class spawn_windows(spawn_unix):
         self.wtty.stop_interact()
 
 
-##############################################################################
-# End of spawn_windows class
-##############################################################################
+class Wtty(object):
+    """"""
 
-
-class Wtty:
     def __init__(self, timeout=30, codepage=None, columns=None, rows=None, cwd=None):
         self.__buffer = StringIO()
         self.__bufferY = 0
@@ -2051,8 +2065,10 @@ class Wtty:
             or windll.kernel32.GetConsoleOutputCP()
             or windll.kernel32.GetOEMCP()
         )
-        log("Code page: %s" % self.codepage)
+        log(f"Code page: {self.codepage}")
         self.columns = columns
+        if isinstance(cwd, bytes):
+            cwd = cwd.decode("utf-8")
         self.cwd = cwd
         self.rows = rows
         self.console = False
@@ -2094,12 +2110,10 @@ class Wtty:
             time.sleep(0.05)
 
         if not self.__childProcess:
-            raise ExceptionPexpect("The process " + args[0] + " could not be started.")
+            raise ExceptionPexpect(f"The process {args[0]} could not be started.")
 
         winHandle = int(GetConsoleWindow())
-
         self.__switch = True
-
         if winHandle != 0:
             self.__parentPid = GetWindowThreadProcessId(winHandle)[1]
             # Do we have a console attached? Do not rely on winHandle, because
@@ -2117,7 +2131,7 @@ class Wtty:
     def startChild(self, args, env):
         si = GetStartupInfo()
         si.dwFlags = STARTF_USESHOWWINDOW
-        si.wShowWindow = SW_HIDE
+        si.wShowWindow = SW_HIDE # SW_SHOW
         # Determine the directory of wexpect.py or, if we are running 'frozen'
         # (eg. py2exe deployment), of the packed executable
         dirname = os.path.dirname(
@@ -2157,7 +2171,8 @@ class Wtty:
             " ".join(pyargs),
             "import sys; sys.path = %s + sys.path;"
             "args = %s; from DisplayCAL import wexpect;"
-            "wexpect.ConsoleReader(wexpect.join_args(args), %i, %i, cp=%i, c=%s, r=%s, logdir=%r)"
+            # "args = %s; import wexpect;"
+            "wexpect.ConsoleReader(wexpect.join_args(args), %i, %i, cp='%s', c=%s, r=%s, logdir=%r)"
             % (
                 ("%r" % spath).replace('"', r"\""),
                 ("%r" % args).replace('"', r"\""),
@@ -2172,12 +2187,19 @@ class Wtty:
 
         log(commandLine)
         self.__oproc, _, self.conpid, self.__otid = CreateProcess(
-            None, commandLine, None, None, False, CREATE_NEW_CONSOLE, env, self.cwd, si
+            None,
+            commandLine,
+            None,
+            None,
+            False,
+            CREATE_NEW_CONSOLE,
+            env,
+            self.cwd,
+            si
         )
 
     def switchTo(self, attached=True):
-        """Releases from the current console and attatches
-        to the childs."""
+        """Release from the current console and attatches to the childs."""
         if not self.__switch or not self.__oproc_isalive():
             return
 
@@ -2191,7 +2213,6 @@ class Wtty:
     def switchBack(self):
         """Releases from the current console and attaches
         to the parents."""
-
         if not self.__switch or not self.__oproc_isalive():
             return
 
@@ -2237,7 +2258,6 @@ class Wtty:
     def createKeyEvent(self, char):
         """Creates a single key record corresponding to
         the ascii character char."""
-
         evt = PyINPUT_RECORDType(KEY_EVENT)
         evt.KeyDown = True
         evt.Char = char
@@ -2248,7 +2268,6 @@ class Wtty:
 
     def write(self, s):
         """Writes input into the child consoles input buffer."""
-
         if len(s) == 0:
             return 0
         records = [self.createKeyEvent(c) for c in str(s)]
@@ -2275,8 +2294,7 @@ class Wtty:
         return x + y * consinfo["Size"].X
 
     def readConsole(self, startCo, endCo):
-        """Reads the console area from startCo to endCo and returns it
-        as a string."""
+        """Reads the console area from startCo to endCo and returns it as a string."""
         buff = []
         self.lastRead = 0
 
@@ -2301,7 +2319,7 @@ class Wtty:
             self.totalRead += ln
             buff.append(s)
 
-            startCo.X, startCo.Y = endPoint[0], endPoint[1]
+            startCo.X, startCo.Y = int(endPoint[0]), int(endPoint[1])
             if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):
                 break
 
@@ -2311,7 +2329,6 @@ class Wtty:
         """Ensures that special characters are interpreted as
         newlines or blanks, depending on if there written over
         characters or screen-buffer-fill characters."""
-
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         strlist = []
         for i, c in enumerate(s):
@@ -2321,12 +2338,12 @@ class Wtty:
 
         s = "\r\n".join([line.rstrip(" ") for line in "".join(strlist).split("\r\n")])
         try:
-            return s.encode("cp%i" % self.codepage, "replace")
+            return s #.encode("cp%i" % self.codepage, "replace")
         except LookupError:
-            return s.encode(
-                getattr(sys.stdout, "encoding", None) or sys.getdefaultencoding(),
-                "replace",
-            )
+            return s #.encode(
+            #    getattr(sys.stdout, "encoding", None) or sys.getdefaultencoding(),
+            #    "replace",
+            #)
 
     def readConsoleToCursor(self):
         """Reads from the current read position to the current cursor
@@ -2437,7 +2454,7 @@ class Wtty:
                     reset = True
                     time.sleep(0.2)
 
-                start = time.clock()
+                start = time.time()
                 s = self.readConsoleToCursor()
 
                 if reset:
@@ -2465,7 +2482,7 @@ class Wtty:
                     time.sleep(0.1)
 
                 time.sleep(0.001)
-                end = time.clock()
+                end = time.time()
                 timeout -= end - start
 
         except Exception as e:
@@ -2478,7 +2495,6 @@ class Wtty:
         """Clears the console after pausing the child and
         reading all the data currently on the console.
         The last line before clearing becomes the first line after clearing."""
-
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         cursorPos = consinfo["CursorPosition"]
         startCo = PyCOORDType(0, cursorPos.Y)
@@ -2514,7 +2530,6 @@ class Wtty:
 
     def getecho(self):
         """Returns the echo mode of the child console."""
-
         self.switchTo()
         try:
             mode = self.__consin.GetConsoleMode()
@@ -2528,7 +2543,6 @@ class Wtty:
     def getwinsize(self):
         """Returns the size of the child console as a tuple of
         (rows, columns)."""
-
         self.switchTo()
         try:
             size = self.__consout.GetConsoleScreenBufferInfo()["Size"]
@@ -2595,23 +2609,22 @@ class ConsoleReader(object):
     def __init__(self, path, pid, tid, env=None, cp=None, c=None, r=None, logdir=None):
         self.logdir = logdir
         log("=" * 80, "consolereader", logdir)
-        log("OEM code page: %s" % windll.kernel32.GetOEMCP(), "consolereader", logdir)
+        log(f"OEM code page: {windll.kernel32.GetOEMCP()}", "consolereader", logdir)
         consolecp = windll.kernel32.GetConsoleOutputCP()
-        log("Console output code page: %s" % consolecp, "consolereader", logdir)
+        log(f"Console output code page: {consolecp}", "consolereader", logdir)
         if consolecp != cp:
-            log("Setting console output code page to %s" % cp, "consolereader", logdir)
+            log(f"Setting console output code page to {cp}", "consolereader", logdir)
             try:
                 SetConsoleOutputCP(cp)
             except Exception as e:
                 log(e, "consolereader_exceptions", logdir)
             else:
                 log(
-                    "Console output code page: %s"
-                    % windll.kernel32.GetConsoleOutputCP(),
+                    f"Console output code page: {windll.kernel32.GetConsoleOutputCP()}",
                     "consolereader",
                     logdir,
                 )
-        log("Spawning %s" % path, "consolereader", logdir)
+        log(f"Spawning {path}", "consolereader", logdir)
         try:
             try:
                 consout = self.getConsoleOut()
@@ -2619,13 +2632,15 @@ class ConsoleReader(object):
                 SetConsoleTitle(path)
 
                 si = GetStartupInfo()
+                # si.dwFlags = STARTF_USESHOWWINDOW
+                # si.wShowWindow = SW_SHOW
                 self.__childProcess, _, childPid, self.__tid = CreateProcess(
                     None,
                     path,
                     None,
                     None,
                     False,
-                    CREATE_NEW_PROCESS_GROUP,
+                    CREATE_NEW_PROCESS_GROUP, # | CREATE_NEW_CONSOLE,
                     None,
                     None,
                     si,
@@ -2665,7 +2680,7 @@ class ConsoleReader(object):
                         # log('suspendThread', 'consolereader', logdir)
                         self.suspendThread()
                         paused = True
-                        SetConsoleTitle(path + " (suspended)")
+                        SetConsoleTitle(f"{path} (suspended)")
                         # Hide cursor
                         consout.SetConsoleCursorInfo(cursorinfo[0], 0)
 
@@ -2683,7 +2698,7 @@ class ConsoleReader(object):
                     # Only let child react to CTRL+C, ignore in ConsoleReader
                     pass
 
-            SetConsoleTitle(path + " (terminated)")
+            SetConsoleTitle(f"ConsoleReader: {path} (terminated)")
             consout.SetConsoleCursorInfo(cursorinfo[0], 0)  # Hide cursor
 
             while GetExitCodeProcess(parent) == STILL_ACTIVE:
@@ -2691,7 +2706,7 @@ class ConsoleReader(object):
         except Exception as e:
             log(e, "consolereader_exceptions", logdir)
 
-    def handler(self, sig):
+    def handler(self, sig, logdir):
         log(sig, "consolereader", logdir)
         return False
 
@@ -2726,13 +2741,11 @@ class ConsoleReader(object):
 
     def suspendThread(self):
         """Pauses the main thread of the child process."""
-
         handle = windll.kernel32.OpenThread(THREAD_SUSPEND_RESUME, 0, self.__tid)
         SuspendThread(handle)
 
     def resumeThread(self):
         """Un-pauses the main thread of the child process."""
-
         handle = windll.kernel32.OpenThread(THREAD_SUSPEND_RESUME, 0, self.__tid)
         ResumeThread(handle)
 
@@ -2757,7 +2770,6 @@ class searcher_string(object):
         """This creates an instance of searcher_string. This argument 'strings'
         may be a list; a sequence of strings; or the EOF or TIMEOUT types.
         """
-
         self.eof_index = -1
         self.timeout_index = -1
         self._strings = []
@@ -2793,7 +2805,6 @@ class searcher_string(object):
 
         If there is a match this returns the index of that string, and sets
         'start', 'end' and 'match'. Otherwise, this returns -1."""
-
         absurd_match = len(buffer)
         first_match = absurd_match
 
@@ -2891,7 +2902,8 @@ class searcher_re(object):
         See class spawn for the 'searchwindowsize' argument.
 
         If there is a match this returns the index of that string, and sets
-        'start', 'end' and 'match'. Otherwise, returns -1."""
+        'start', 'end' and 'match'. Otherwise, returns -1.
+        """
         absurd_match = len(buffer)
         first_match = absurd_match
         the_match = None
@@ -3005,7 +3017,6 @@ def which(filename):
     then checks if it is executable. This returns the full path to the filename
     if found and executable. Otherwise this returns None.
     """
-
     # Special case where filename already contains a path.
     if os.path.dirname(filename) != "":
         if os.access(filename, os.X_OK):

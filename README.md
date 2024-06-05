@@ -129,11 +129,19 @@ How To Install (Windows)
 
 Windows version is currently not working properly. But here is the installation procedure:
 
-1- Download and install Python:
+1- Download and install Python 3.9:
 
-   Preferrebly install Python 3.11: https://www.python.org/downloads/windows/
+   Install Python 3.9:
+   https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
+   https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
+
+   Wexpect (a Python library that DisplayCAL depends on) is not working properly with
+   newer Python versions like Python 3.11 and 3.12. So, stick with Python 3.9 until we
+   find a solution.
 
    Also don't forget to select "Add Python to environment variables" in the installer.
+
+   ![image](screenshots/Python_3.9_Installation_Windows.jpg)
 
 2- Download and install Visual Studio Build Tools:
 
@@ -156,6 +164,16 @@ Windows version is currently not working properly. But here is the installation 
    ```shell
    python displaycal
    ```
+
+> [!Warning]
+> Under Windows use the system Python installation instead of a virtual environment as
+> Wexpect module cannot read ArgyllCMS command outputs from inside a virtual
+> environment.
+
+> [!Warning]
+> Under Windows don't run DisplayCAL inside the IDE (Vscode, Pycharm etc.) terminal as
+> most of the IDE's are creating virtual terminals and it is not possible to capture the
+> command outputs.
 
 An installer will later be supplied for Windows.
 
@@ -207,11 +225,9 @@ Here are some ideas on where to focus the future development effort:
   work, with the latest commits we have around 200 tests (which is super low, should be
   thousands) and the code coverage is around 26% (again this is super low, should be
   over 99%).
-- Replace the ``wexpect.py`` with the latest release of ``Pexpect``. There is no comment
+- Replace the ``wexpect.py`` with the latest release of ``Wexpect``. There is no comment
   in the code on why we have a ``wexpect.py`` instead of using the PyPI version of
-  ``Pexpect``. Update: we believe it is because ``Pexpect`` doesn't support Windows.
-  Then it is a good idea to port the DisplayCAL implementation to the ``Pexpect``
-  project.
+  ``Wexpect``.
 - Replace ``os.path`` related code with ``pathlib.Path`` class.
 - Organize the module structure, move UI related stuff in to ``ui`` module etc., move
   data files into their own folders.

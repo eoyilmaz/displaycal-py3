@@ -218,7 +218,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                     lockfile.unlock()
             except EnvironmentError as exception:
                 # This shouldn't happen
-                print("Warning - could not read lockfile %s:" % lockfilename, exception)
+                print(f"Warning - could not read lockfile {lockfilename}:", exception)
         if module not in multi_instance:
             # Check lockfile(s) and probe port(s)
             for lockfilename in [app_lock_file_name]:
@@ -228,7 +228,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                     pid, port = pids_ports[0]
                     appsocket = AppSocket()
                     if appsocket and port:
-                        print("Connecting to %s..." % port)
+                        print(f"Connecting to {port}...")
                         if appsocket.connect(host, port):
                             print("Connected to", port)
                             # Other instance already running?

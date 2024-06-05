@@ -19,6 +19,8 @@ commits that Florian has created after the ``3.8.9.3`` release on 14 Jan 2020.
 Status Update (6 June 2024)
 ---------------------------
 
+Windows version is now working!
+
 DisplayCAL is in [PyPI](https://pypi.org/project/DisplayCAL/) now (yay!).
 
 Here is a screenshots showing the tool working with Python 3.10:
@@ -103,19 +105,21 @@ Then you can build and install DisplayCAL using:
 make build
 make install
 ```
-The build step assumes your system has a python3 binary available that is within the correct range. If your system python3 is not supported and you installed a new one, you can try passing it to the build command.
-eg
+The build step assumes your system has a `python3` binary available that is
+within the correct range. If your system `python3` is not supported and you
+installed a new one, you can try passing it to the build command:
 
 ```shell
 $ python3 --version
 # Python 3.12.2
-make build # this will fail
+$ make build # this will fail
 $ python3.11 --version
 # Python 3.11.8
-make SYSTEM_PYTHON=python3.11 build # should work
+$ make SYSTEM_PYTHON=python3.11 build # should work
 ```
 
-If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
+If this errors out for you, you can follow the
+[Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
 section below.
 
 Otherwise, this should install DisplayCAL. To run the UI:

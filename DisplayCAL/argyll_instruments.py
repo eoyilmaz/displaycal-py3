@@ -473,5 +473,5 @@ def remove_vendor_names(txt):
             )
         elif isinstance(txt, str):
             txt = re.sub(re.compile(re.escape(vendor) + r"\s*", re.I), "", txt)
-    txt = txt.strip()
+            txt = txt.strip()
     return txt

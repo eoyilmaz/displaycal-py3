@@ -1192,11 +1192,11 @@ defaults = {
     else "u",  # Linux, OSX
     "profile.license": "Public Domain",
     "profile.load_on_login": 1,
-    "profile.name": " ".join(
+    "profile.name": "_".join(
         [
             "%dns",
             "%out",
-            "%Y-%m-%d %H-%M",
+            "%Y-%m-%d_%H-%M",
             "%cb",
             "%wp",
             "%cB",

@@ -136,7 +136,7 @@ How To Install (Windows)
 Windows version is now working properly. The catch is that you need to use the
 system Python, so no Virtual Environments. Here is the installation procedure:
 
-1- Download and install on of Python 3.9, 3.10, 3.11 or 3.12:
+1- Download and install one of Python 3.9, 3.10, 3.11 or 3.12:
 
    Here is some download links that are now hidden in Python's home page:
    https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe

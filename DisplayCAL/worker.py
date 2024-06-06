@@ -6991,8 +6991,8 @@ BEGIN_DATA
                 kwargs = dict(timeout=20, cwd=working_dir, env=os.environ)
                 if sys.platform == "win32":
                     # FIX: stdio cp1252 vs utf-8 issue under Windows 10/11+
-                    os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
-                    kwargs["codepage"] = windll.kernel32.GetACP()
+                    # os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
+                    kwargs["codepage"] = "utf-8" # windll.kernel32.GetACP()
                     # As Windows' console always hard wraps at the
                     # rightmost column, increase the buffer width
                     kwargs["columns"] = 160

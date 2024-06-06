@@ -133,20 +133,21 @@ make launch
 How To Install (Windows)
 -----------------------
 
-Windows version is now working properly. The catch is that you need to use Python 3.9 or
-3.10 and use the system Python, so no Virtual Environments. Here is th installation
-procedure:
+Windows version is now working properly. The catch is that you need to use Python 3.9,
+3.10 or 3.11 and use the system Python, so no Virtual Environments. Here is the
+installation procedure:
 
-1- Download and install one of Python 3.9 or 3.10. Unfortunatelly Python 3.11 or 3.12 is
+1- Download and install one of Python 3.9, 3.10 or 3.11. Unfortunatelly Python 3.12 is
    not currently working:
 
    Here is some download links that are now hidden in Python's home page:
    - [python-3.9.13-amd64.exe](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)
    - [python-3.10.11-amd64.exe](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+   - Python 3.11 can be downloaded directly from [Python.org](https://www.python.org/downloads/windows/).
+   - Python 3.12 is not supported currently.
 
-   `Wexpect` (a Python library that DisplayCAL depends on) is not working properly with
-   newer Python versions like Python 3.11 and 3.12. So, stick with Python 3.9 or 3.10
-   until we find a solution.
+   Some of the libraries that DisplayCAL depends on are not working or supported with
+   Python 3.12. So, stick with Python 3.9, 3.10 or 3.11 until we find a solution.
 
    Also don't forget to select "Add Python 3.xx to PATH" in the installer.
 

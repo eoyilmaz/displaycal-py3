@@ -186,16 +186,16 @@ installation procedure:
 > most of the IDE's are creating virtual terminals and it is not possible to capture the
 > command outputs with Wexpect.
 
-Manual Setup
-------------
+Manual Setup (Linux & MacOS)
+----------------------------
 
 If the `makefile` workflow doesn't work for you, you can setup the virtual environment
 manually. Ensure the python binary you're using is supported:
 
 ```shell
 python -m venv .venv # python3.11 -m venv .venv if system python is not a supported version
-source .venv/bin/activate  # Windows: .venv\Scripts\activate.bat
-pip install -r requirements.txt
+source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
 python -m build
 pip install dist/DisplayCAL-3.9.*.whl
 ```
@@ -205,6 +205,97 @@ This should install DisplayCAL. To run the UI:
 ```shell
 displaycal
 ```
+
+Manual Setup (Windows)
+----------------------
+
+Under Windwos the `makefile` workflow will not work, using a virtual environment is also
+breaking Wexpect module, so you need to use your system Python installation. Currently
+under Windows, DisplayCAL will run with Python 3.9, 3.10 and 3.11, but Python 3.12 is
+not supported. To install DisplayCAL manually under Windows follow these steps:
+
+1- Download and install one of Python 3.9, 3.10 or 3.11. Unfortunatelly Python 3.12 is
+   not currently working:
+
+   Here is some download links that are now hidden in Python's home page:
+   - [python-3.9.13-amd64.exe](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)
+   - [python-3.10.11-amd64.exe](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+   - Python 3.11 can be downloaded directly from [Python.org](https://www.python.org/downloads/windows/).
+   - Python 3.12 is not supported currently.
+
+   Some of the libraries that DisplayCAL depends on are not working or supported with
+   Python 3.12. So, stick with Python 3.9, 3.10 or 3.11 until we find a solution.
+
+   Also don't forget to select "Add Python 3.xx to PATH" in the installer.
+
+   ![image](screenshots/Python_3.9_Installation_Windows.jpg)
+
+2- Download and install Visual Studio Build Tools:
+
+   Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+   Select "Desktop development with C++" only:
+
+   ![image](screenshots/Visual_Studio_Build_Tools.jpg)
+
+3- Download and install Git:
+
+   https://www.git-scm.com/download/win
+
+   When installer asks, the default settings are okay.
+
+4- Clone DisplayCAL repository, build and install it:
+
+   Open up a command prompt and run the following:
+
+   ```shell
+   cd %HOME%
+   git clone https://github.com/eoyilmaz/displaycal-py3.git
+   cd displaycal-py3
+   ```
+
+   Then we suggest switching to the `develop` branch as we would have fixes introduced
+   to that branch the earliest. To do that run:
+
+   ```shell
+   git checkout develop
+   ```
+
+   If you want to switch to some other branches to test the code you can replace
+   `develop` in the previous command with the branch name:
+
+   ```shell
+   git checkout 367-compiled-sucessfully-in-w10-py311-but-createprocess-fails-call-to-dispread-to-measure
+   ```
+
+   Let's install the requirements, build displaycal and install it:
+
+   ```shell
+   pip install -r requirements.txt -r requirements-dev.txt
+   python -m build
+   pip install dist/DisplayCAL-3.9.*.whl
+   ```
+
+5- Run DisplayCAL:
+
+   ```shell
+   python -m DisplayCAL
+   ```
+
+6- To rebuild and install it again:
+
+   First remove the old installation:
+
+   ```shell
+   pip uninstall displaycal
+   ```
+
+   Build and install it again:
+
+   ```shell
+   python -m build
+   pip install dist/DisplayCAL-3.9.*.whl
+   ```
 
 Road Map
 --------

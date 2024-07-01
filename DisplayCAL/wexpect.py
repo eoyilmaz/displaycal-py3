@@ -2635,15 +2635,20 @@ class ConsoleReader(object):
                 SetConsoleTitle(path)
 
                 si = GetStartupInfo()
-                # si.dwFlags = STARTF_USESHOWWINDOW
-                # si.wShowWindow = SW_SHOW
+                # We do not actually need stdio inherited - Wtty reads from the console.
+                # Python 3.x sets STARTF_USESTDHANDLES flag but the stdio handles do not correspond to console.
+                # That causes Argyll to not write anything to console for us.
+                si.dwFlags = STARTF_USESHOWWINDOW
+                si.wShowWindow = SW_HIDE
+                #si.wShowWindow = SW_SHOW
                 self.__childProcess, _, childPid, self.__tid = CreateProcess(
                     None,
                     path,
                     None,
                     None,
                     False,
-                    CREATE_NEW_PROCESS_GROUP, # | CREATE_NEW_CONSOLE,
+                    # The console has been created in the script that launches this class, and reconfigured from here.
+                    CREATE_NEW_PROCESS_GROUP,
                     None,
                     None,
                     si,

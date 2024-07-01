@@ -2765,7 +2765,7 @@ class Worker(WorkerBase):
                 rgb_space = colormath.get_rgb_space(rgb_space)
                 self.recent.write(desc + "\n")
                 linebuffered_logfiles = []
-                if sys.stdout.isatty():
+                if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                     linebuffered_logfiles.append(print)
                 else:
                     linebuffered_logfiles.append(log)
@@ -5955,7 +5955,7 @@ END_DATA
         # If dry_run is explicitly set to False, ignore dry_run config value
         dry_run = dry_run is not False and (dry_run or getcfg("dry_run"))
         if not capture_output:
-            capture_output = not sys.stdout.isatty()
+            capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
         self.clear_cmd_output()
         if None in [cmd, args]:
             if verbose >= 1 and not silent:
@@ -6977,7 +6977,7 @@ BEGIN_DATA
                     stderr = tempfile.SpooledTemporaryFile()
                 if capture_output:
                     stdout = tempfile.SpooledTemporaryFile()
-                elif sys.stdout.isatty():
+                elif sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                     stdout = sys.stdout
                 else:
                     stdout = sp.PIPE
@@ -7013,7 +7013,7 @@ BEGIN_DATA
                     )
                 if log_output:
                     linebuffered_logfiles = []
-                    if sys.stdout.isatty():
+                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -11194,7 +11194,7 @@ usage: spotread [-options] [logfile]
                 ):
                     # Smooth existing B2A tables
                     linebuffered_logfiles = []
-                    if sys.stdout.isatty():
+                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -12372,7 +12372,7 @@ usage: spotread [-options] [logfile]
 
     def get_logfiles(self, include_progress_buffers=True):
         linebuffered_logfiles = []
-        if sys.stdout.isatty():
+        if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
             linebuffered_logfiles.append(print)
         else:
             linebuffered_logfiles.append(log)
@@ -15193,7 +15193,7 @@ usage: spotread [-options] [logfile]
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
-        capture_output = not sys.stdout.isatty()
+        capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
         cmd, args = self.prepare_dispcal()
         if not isinstance(cmd, Exception):
             print(f"cmd: {cmd}")

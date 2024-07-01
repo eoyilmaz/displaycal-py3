@@ -177,7 +177,7 @@ class SafeLogger(SafePrinter):
     and converting all other objects to safe string representations.
     """
 
-    def __init__(self, log=True, print_=hasattr(sys.stdout, "isatty") and
+    def __init__(self, log=True, print_=sys.stdout and hasattr(sys.stdout, "isatty") and
                                         sys.stdout.isatty()):
         SafePrinter.__init__(self)
         self.log = log

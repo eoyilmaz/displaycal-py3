@@ -82,7 +82,7 @@ if isapp:
     pydir = os.path.normpath(os.path.join(exedir, "..", "Resources"))
 else:
     pyname, pyext = os.path.splitext(os.path.basename(pypath))
-    pydir = os.path.dirname(exe if isexe else os.path.abspath(__file__))
+    pydir = os.path.dirname(exe if isexe else os.path.abspath(__file__) + "/..")
 
 # TODO: Modifying ``data_dirs`` here was not an elegant solution, and it is not solving
 #       the problem either.

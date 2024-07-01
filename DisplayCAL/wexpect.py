@@ -2175,7 +2175,7 @@ class Wtty(object):
             "import sys; sys.path = %s + sys.path;"
             "args = %s; from DisplayCAL import wexpect;"
             # "args = %s; import wexpect;"
-            "wexpect.ConsoleReader(wexpect.join_args(args), %i, %i, cp='%s', c=%s, r=%s, logdir=%r)"
+            "wexpect.ConsoleReader(wexpect.join_args(args), %i, %i, cp=%s, c=%s, r=%s, logdir=%r)"
             % (
                 ("%r" % spath).replace('"', r"\""),
                 ("%r" % args).replace('"', r"\""),

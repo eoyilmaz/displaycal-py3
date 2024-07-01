@@ -319,11 +319,12 @@ keycodes = {
 workers = []
 
 
-WAIT_FILE_TEMPLATE = """import os, sys, time
+WAIT_FILE_TEMPLATE = """# coding=utf-8
+import os, sys, time
 if sys.platform != "win32":
     print(*(["\\nCurrent RGB"] + sys.argv[1:]))
-abortfilename = os.path.join("{script_dir}", ".abort")
-okfilename = os.path.join("{script_dir}", ".ok")
+abortfilename = os.path.join(r"{script_dir}", ".abort")
+okfilename = os.path.join(r"{script_dir}", ".ok")
 while True:
     if os.path.isfile(abortfilename):
         break
@@ -6610,11 +6611,11 @@ BEGIN_DATA
                         pythonpath[i] = win32api.GetShortPathName(path)
                 # Write out .wait.py file
                 scriptfilename =  f"{waitfilename}.py"
-                with open(scriptfilename, "w") as scriptfile:
+                with open(scriptfilename, "w", encoding="utf-8") as scriptfile:
                     scriptfile.write(pythonscript)
                 scriptfilename = win32api.GetShortPathName(scriptfilename)
                 # Write out .wait.cmd file
-                with open(f"{waitfilename}.cmd", "w") as waitfile:
+                with open(f"{waitfilename}.cmd", "w", encoding="utf-8") as waitfile:
                     waitfile.write("@echo off\n")
                     waitfile.write("echo.\n")
                     waitfile.write("echo Current RGB %*\n")
@@ -6992,7 +6993,7 @@ BEGIN_DATA
                 if sys.platform == "win32":
                     # FIX: stdio cp1252 vs utf-8 issue under Windows 10/11+
                     # os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
-                    kwargs["codepage"] = "utf-8" # windll.kernel32.GetACP()
+                    kwargs["codepage"] = 65001 # windll.kernel32.GetACP()
                     # As Windows' console always hard wraps at the
                     # rightmost column, increase the buffer width
                     kwargs["columns"] = 160

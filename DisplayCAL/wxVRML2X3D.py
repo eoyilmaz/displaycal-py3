@@ -157,7 +157,7 @@ def main():
                 )
         if result is None:
             print("No filename given.")
-        if sys.stdout.isatty() and "--batch" not in sys.argv[1:]:
+        if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty() and "--batch" not in sys.argv[1:]:
             input("Press RETURN to exit")
         sys.exit(int(not result))
     else:

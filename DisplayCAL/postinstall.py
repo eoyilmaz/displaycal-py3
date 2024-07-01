@@ -13,7 +13,7 @@ from DisplayCAL.util_os import relpath, safe_glob, which
 
 recordfile_name = "INSTALLED_FILES"
 
-if not sys.stdout.isatty():
+if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
     sys.stdout = StringIO()
 
 if sys.platform == "win32":

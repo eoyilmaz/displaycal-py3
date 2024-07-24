@@ -18,6 +18,5 @@ pytest-github-actions-annotate-failures
 pytest-xdist
 snowballstemmer
 twine
-yappi
-py2app
 wheel
+yappi

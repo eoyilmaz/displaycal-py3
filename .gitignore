@@ -1,25 +1,34 @@
+# Ignore macOS system files
 .DS_Store
-/.venv/
-.vscode/
-/DisplayCAL/__version__.py
-/build/
-/dist/
+
+# Ignore virtual environment directories
 /venv/
 .venv/
-/INSTALLED_FILES
-/MANIFEST.in
-/VERSION
-__pycache__/
-/.pytest_cache/
-/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.png
-/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.smooth.png
+
+# Ignore IDE-specific files
+.vscode/
+
+# Ignore build and distribution files
+/build/
+/dist/
+
+# Ignore specific package metadata files
 /DisplayCAL.egg-info/top_level.txt
 /DisplayCAL.egg-info/requires.txt
 /DisplayCAL.egg-info/SOURCES.txt
 /DisplayCAL.egg-info/PKG-INFO
 /DisplayCAL.egg-info/dependency_links.txt
-*.blend1
+
+# Ignore specific test data files
+/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.png
+/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.smooth.png
+
+# Ignore Python cache and test coverage files
+__pycache__/
+/.pytest_cache/
 /.coverage
+
+# Ignore specific log and binary files
 /DisplayCAL/ref/*.log
 /DisplayCAL/lib64/python38/*.so
 /DisplayCAL/lib64/python39/*.so
@@ -27,3 +36,11 @@ __pycache__/
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-311-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-312-darwin.so
+
+# Ignore version and installation files
+/DisplayCAL/__version__.py
+/INSTALLED_FILES
+/MANIFEST.in
+/VERSION
+
+*.blend1

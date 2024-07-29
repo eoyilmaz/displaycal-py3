@@ -1,6 +1,6 @@
 [run]
 omit =
-    ./venv/*
-    *.pyw
-    */__init__.py
+    ./venv/*,
+    *.pyw,
+    */__init__.py,
     */tests/*

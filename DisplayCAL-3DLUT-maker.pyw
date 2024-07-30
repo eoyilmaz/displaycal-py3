@@ -2,23 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-Dynamically executes `DisplayCAL-3DLUT-maker.pyw` from the `scripts` directory.
+Executes the corresponding script from the `scripts` directory, dynamically determined by the lowercase basename of this file.
 
-**Benefits:**
-- Decouples entry point from implementation, easing maintenance, testing, and alternative implementations.
-- Concise, self-contained entry point with organized logic separation.
+This bootstrapper allows for a concise, self-contained entry point while keeping the main logic separate and organized.
+
+**Why:** This approach decouples the entry point from the implementation, facilitating easier maintenance, testing, and potential alternative implementations.
 """
 
 import os
 
-script_path = os.path.join(
-    os.path.dirname(__file__),
-    "scripts",
-    os.path.splitext(os.path.basename(__file__))[0].lower() + ".py"
+exec(
+    open(
+        os.path.join(
+            os.path.dirname(__file__),
+            "scripts",
+            os.path.splitext(os.path.basename(__file__))[0].lower(),
+        )
+    ).read()
 )
-
-if os.path.isfile(script_path):
-    with open(script_path, "r", encoding="utf-8") as file:
-        exec(file.read())
-else:
-    raise FileNotFoundError(f"Script '{script_path}' not found.")

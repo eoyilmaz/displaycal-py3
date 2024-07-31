@@ -1,22 +1,23 @@
+# Code quality and linting
 black
-coverage
-darglint
-flake8
-flake8-bugbear
-flake8-docstrings
-flake8-import-order
-flake8-mutable
-flake8-pep3101
-flake8-spellcheck
-matplotlib
-ppdir
-py2app
-pyglet
+flake8[bugbear,docstrings,import_order,mutable,pep3101,spellcheck]
+
+# Testing
 pytest
 pytest-cov
 pytest-github-actions-annotate-failures
 pytest-xdist
-snowballstemmer
+
+# Build and distribution
 twine
 wheel
+
+# Dependencies for specific features
+coverage
+darglint
+matplotlib
+py2app
+pyglet
+ppdir
+snowballstemmer
 yappi

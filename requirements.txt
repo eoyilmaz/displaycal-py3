@@ -1,6 +1,5 @@
 build
 certifi
-dbus-python; sys_platform=='linux'
 distro
 numpy
 Pillow
@@ -8,3 +7,6 @@ PyChromecast
 Send2Trash
 wxPython>=4.1.1
 zeroconf
+
+; Linux-specific dependency
+dbus-python; platform_linux

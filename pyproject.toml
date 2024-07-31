@@ -1,4 +1,6 @@
 [build-system]
-requires = ["setuptools",
-	'pywin32; platform_system=="Windows"']
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.dependencies]
+pywin32 = { platform = "windows" }

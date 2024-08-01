@@ -16,8 +16,10 @@ DisplayCAL community, to contribute back to this great tool.
 This project is based on the ``HEAD`` of the Sourceforge version, which had 5 extra
 commits that Florian has created after the ``3.8.9.3`` release on 14 Jan 2020.
 
-Status Update (18 May 2022)
+Status Update (6 June 2024)
 ---------------------------
+
+Windows version is now working!
 
 DisplayCAL is in [PyPI](https://pypi.org/project/DisplayCAL/) now (yay!).
 
@@ -49,8 +51,8 @@ What is not working
 - Everything should be working now. But, incase you encounter any bugs please create
   [issues](https://github.com/eoyilmaz/displaycal-py3/issues).
 
-How to install
---------------
+How to install (Linux and MacOS)
+--------------------------------
 
 Currently, there is no ``RPM``, ``DEB``, ``APP`` or ``MSI`` packages. These are coming
 soon.
@@ -81,7 +83,9 @@ apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libx
 dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel python3-devel
 ```
 
-Note, if your system's default python is outside the supported range you will need to install a supported version and its related devel package. 
+> [!NOTE]
+> Note, if your system's default python is outside the supported range you will need to
+> install a supported version and its related devel package. 
 
 Then pull the source:
 
@@ -103,19 +107,21 @@ Then you can build and install DisplayCAL using:
 make build
 make install
 ```
-The build step assumes your system has a python3 binary available that is within the correct range. If your system python3 is not supported and you installed a new one, you can try passing it to the build command.
-eg
+The build step assumes your system has a `python3` binary available that is
+within the correct range. If your system `python3` is not supported and you
+installed a new one, you can try passing it to the build command:
 
 ```shell
 $ python3 --version
 # Python 3.12.2
-make build # this will fail
+$ make build # this will fail
 $ python3.11 --version
 # Python 3.11.8
-make SYSTEM_PYTHON=python3.11 build # should work
+$ make SYSTEM_PYTHON=python3.11 build # should work
 ```
 
-If this errors out for you, you can follow the [Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
+If this errors out for you, you can follow the
+[Manual Setup](https://github.com/eoyilmaz/displaycal-py3#manually-setup)
 section below.
 
 Otherwise, this should install DisplayCAL. To run the UI:
@@ -124,16 +130,72 @@ Otherwise, this should install DisplayCAL. To run the UI:
 make launch
 ```
 
-Manually Setup
---------------
+How To Install (Windows)
+-----------------------
+
+Windows version is now working properly. The catch is that you need to use Python 3.9,
+3.10 or 3.11 and use the system Python, so no Virtual Environments. Here is the
+installation procedure:
+
+1- Download and install one of Python 3.9, 3.10 or 3.11. Unfortunatelly Python 3.12 is
+   not currently working:
+
+   Here is some download links that are now hidden in Python's home page:
+   - [python-3.9.13-amd64.exe](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)
+   - [python-3.10.11-amd64.exe](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+   - Python 3.11 can be downloaded directly from [Python.org](https://www.python.org/downloads/windows/).
+   - Python 3.12 is not supported currently.
+
+   Some of the libraries that DisplayCAL depends on are not working or supported with
+   Python 3.12. So, stick with Python 3.9, 3.10 or 3.11 until we find a solution.
+
+   Also don't forget to select "Add Python 3.xx to PATH" in the installer.
+
+   ![image](screenshots/Python_3.9_Installation_Windows.jpg)
+
+2- Download and install Visual Studio Build Tools:
+
+   Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+   Select "Desktop development with C++" only:
+
+   ![image](screenshots/Visual_Studio_Build_Tools.jpg)
+
+3- Install DisplayCAL through PyPI:
+
+   After both Python and Visual Studio Build Tools are installed run the following in
+   the command prompt:
+
+   ```shell
+   pip install displaycal
+   ```
+
+4- Run DisplayCAL:
+
+   ```shell
+   python -m DisplayCAL
+   ```
+
+> [!WARNING]
+> Under Windows use the system Python installation instead of a virtual environment as
+> Wexpect module cannot read ArgyllCMS command outputs from inside a virtual
+> environment.
+
+> [!WARNING]
+> Under Windows don't run DisplayCAL inside the IDE (Vscode, Pycharm etc.) terminal as
+> most of the IDE's are creating virtual terminals and it is not possible to capture the
+> command outputs with Wexpect.
+
+Manual Setup (Linux & MacOS)
+----------------------------
 
 If the `makefile` workflow doesn't work for you, you can setup the virtual environment
 manually. Ensure the python binary you're using is supported:
 
 ```shell
 python -m venv .venv # python3.11 -m venv .venv if system python is not a supported version
-source .venv/bin/activate  # Windows: .venv\Scripts\activate.bat
-pip install -r requirements.txt
+source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
 python -m build
 pip install dist/DisplayCAL-3.9.*.whl
 ```
@@ -143,6 +205,97 @@ This should install DisplayCAL. To run the UI:
 ```shell
 displaycal
 ```
+
+Manual Setup (Windows)
+----------------------
+
+Under Windwos the `makefile` workflow will not work, using a virtual environment is also
+breaking Wexpect module, so you need to use your system Python installation. Currently
+under Windows, DisplayCAL will run with Python 3.9, 3.10 and 3.11, but Python 3.12 is
+not supported. To install DisplayCAL manually under Windows follow these steps:
+
+1- Download and install one of Python 3.9, 3.10 or 3.11. Unfortunatelly Python 3.12 is
+   not currently working:
+
+   Here is some download links that are now hidden in Python's home page:
+   - [python-3.9.13-amd64.exe](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)
+   - [python-3.10.11-amd64.exe](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+   - Python 3.11 can be downloaded directly from [Python.org](https://www.python.org/downloads/windows/).
+   - Python 3.12 is not supported currently.
+
+   Some of the libraries that DisplayCAL depends on are not working or supported with
+   Python 3.12. So, stick with Python 3.9, 3.10 or 3.11 until we find a solution.
+
+   Also don't forget to select "Add Python 3.xx to PATH" in the installer.
+
+   ![image](screenshots/Python_3.9_Installation_Windows.jpg)
+
+2- Download and install Visual Studio Build Tools:
+
+   Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+   Select "Desktop development with C++" only:
+
+   ![image](screenshots/Visual_Studio_Build_Tools.jpg)
+
+3- Download and install Git:
+
+   https://www.git-scm.com/download/win
+
+   When installer asks, the default settings are okay.
+
+4- Clone DisplayCAL repository, build and install it:
+
+   Open up a command prompt and run the following:
+
+   ```shell
+   cd %HOME%
+   git clone https://github.com/eoyilmaz/displaycal-py3.git
+   cd displaycal-py3
+   ```
+
+   Then we suggest switching to the `develop` branch as we would have fixes introduced
+   to that branch the earliest. To do that run:
+
+   ```shell
+   git checkout develop
+   ```
+
+   If you want to switch to some other branches to test the code you can replace
+   `develop` in the previous command with the branch name:
+
+   ```shell
+   git checkout 367-compiled-sucessfully-in-w10-py311-but-createprocess-fails-call-to-dispread-to-measure
+   ```
+
+   Let's install the requirements, build displaycal and install it:
+
+   ```shell
+   pip install -r requirements.txt -r requirements-dev.txt
+   python -m build
+   pip install dist/DisplayCAL-3.9.*.whl
+   ```
+
+5- Run DisplayCAL:
+
+   ```shell
+   python -m DisplayCAL
+   ```
+
+6- To rebuild and install it again:
+
+   First remove the old installation:
+
+   ```shell
+   pip uninstall displaycal
+   ```
+
+   Build and install it again:
+
+   ```shell
+   python -m build
+   pip install dist/DisplayCAL-3.9.*.whl
+   ```
 
 Road Map
 --------
@@ -172,11 +325,9 @@ Here are some ideas on where to focus the future development effort:
   work, with the latest commits we have around 200 tests (which is super low, should be
   thousands) and the code coverage is around 26% (again this is super low, should be
   over 99%).
-- Replace the ``wexpect.py`` with the latest release of ``Pexpect``. There is no comment
+- Replace the ``wexpect.py`` with the latest release of ``Wexpect``. There is no comment
   in the code on why we have a ``wexpect.py`` instead of using the PyPI version of
-  ``Pexpect``. Update: we believe it is because ``Pexpect`` doesn't support Windows.
-  Then it is a good idea to port the DisplayCAL implementation to the ``Pexpect``
-  project.
+  ``Wexpect``.
 - Replace ``os.path`` related code with ``pathlib.Path`` class.
 - Organize the module structure, move UI related stuff in to ``ui`` module etc., move
   data files into their own folders.

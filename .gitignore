@@ -5,7 +5,7 @@
 /build/
 /dist/
 /venv/
-.venv/
+.venv*/
 /INSTALLED_FILES
 /MANIFEST.in
 /VERSION

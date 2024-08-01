@@ -807,10 +807,10 @@ class PlotGraphics:
 
     def draw(self, dc):
         for o in self.objects:
-            # t=_time.clock()          # profile info
+            # t=_time.time()          # profile info
             o._pointSize = self._pointSize
             o.draw(dc, self.printerScale)
-            # dt= _time.clock()-t
+            # dt= _time.time() - t
             # print o, "time=", dt
 
     def getSymExtent(self, printerScale):
@@ -1790,7 +1790,7 @@ class PlotCanvas(wx.Panel):
         # Draw extras
         self._drawExtras(dc, p1, p2, scale, shift)
         # Draw the lines and markers
-        # start = _time.clock()
+        # start = _time.time()
         graphics.draw(dc)
 
         # draw legend makers and text (if inside) so that it overlaps graphics
@@ -1800,7 +1800,7 @@ class PlotCanvas(wx.Panel):
                 dc, graphics, rhsW, topH, legendBoxWH, legendSymExt, legendTextExt
             )
 
-        # print "entire graphics drawing took: %f second"%(_time.clock() - start)
+        # print "entire graphics drawing took: %f second"%(_time.time() - start)
         # remove the clipping region
         dc.DestroyClippingRegion()
 
@@ -3146,10 +3146,10 @@ class TestFrame(wx.Frame):
         self.client.Draw(drawObj)
 
         # # profile
-        # start = _time.clock()
+        # start = _time.time()
         # for x in range(10):
         #    self.client.Draw(drawObj)
-        # print "10 plots of Draw4 took: %f sec."%(_time.clock() - start)
+        # print "10 plots of Draw4 took: %f sec."%(_time.time() - start)
         # # profile end
 
     def OnPlotDraw5(self, event):

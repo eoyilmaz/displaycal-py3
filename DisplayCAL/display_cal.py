@@ -113,6 +113,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     from DisplayCAL import util_mac
 from DisplayCAL import wexpect
+# import wexpect
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
@@ -11201,9 +11202,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                     for key, name, _volume in gamuts:
                         try:
-                            gamut_coverage = float(
-                                profile.tags.meta.getvalue(f"GAMUT_coverage({key})")
-                            )
+                            gamut_coverage = profile.tags.meta.getvalue(f"GAMUT_coverage({key})")
+                            gamut_coverage = float(gamut_coverage) if gamut_coverage is not None else gamut_coverage
                         except (TypeError, ValueError):
                             traceback.print_exc()
                             gamut_coverage = None

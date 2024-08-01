@@ -222,18 +222,22 @@ class WorkerFunc(object):
                     # interested in our own exit handler though.
                     # Note all of this only applies to Windows, as it doesn't
                     # have fork().
-                    for func, targs, kargs in atexit._exithandlers:
-                        # Find our lockfile removal exit handler
-                        if (
-                            targs
-                            and isinstance(targs[0], str)
-                            and targs[0].endswith(".lock")
-                        ):
-                            print("Removing lockfile", targs[0])
-                            try:
-                                func(*targs, **kargs)
-                            except Exception as exception:
-                                print("Could not remove lockfile:", exception)
+
+                    # This is not working with Ptyhon 3 as atexit is reimplemented in C
+                    # and atexit._exithandlers are not available.
+                    # for func, targs, kargs in atexit._exithandlers:
+                    #     # Find our lockfile removal exit handler
+                    #     if (
+                    #         targs
+                    #         and isinstance(targs[0], str)
+                    #         and targs[0].endswith(".lock")
+                    #     ):
+                    #         print("Removing lockfile", targs[0])
+                    #         try:
+                    #             func(*targs, **kargs)
+                    #         except Exception as exception:
+                    #             print("Could not remove lockfile:", exception)
+
                     # Logging is normally shutdown by atexit, as well. Do
                     # it explicitly instead.
                     logging.shutdown()

@@ -167,7 +167,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                         pass
             elif sys.platform != "darwin":
                 # Hard-code lib names for Linux
-                libfn = "lib" + libname
+                libfn = f"lib{libname}"
                 if libname.startswith("SDL2"):
                     # SDL 2.0
                     libfn += "-2.0.so.0"
@@ -176,7 +176,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                     libfn += "-1.2.so.0"
             dll = dlopen(libfn, handle=handle)
             if dll:
-                print("%s:" % libname, libfn)
+                print(f"{libname}:", libfn)
             if libname.endswith("_mixer"):
                 if not dll:
                     continue
@@ -247,7 +247,7 @@ def Sound(filename, loop=False, raise_exceptions=False):
             sound = _Sound(filename, loop)
         except Exception as exception:
             if raise_exceptions:
-                raise
+                raise exception
             print(exception)
             sound = _Sound(None, loop)
         _sounds[(filename, loop)] = sound
@@ -303,8 +303,7 @@ class Mix_Chunk(Structure):
 
 
 class _Sound(object):
-
-    """Sound wrapper class"""
+    """Sound wrapper class."""
 
     def __init__(self, filename, loop=False):
         self._filename = filename
@@ -396,7 +395,6 @@ class _Sound(object):
         """Fade in/out.
 
         If fade_in is None, fade in/out depending on current volume.
-
         """
         if fade_in is None:
             fade_in = not self.volume
@@ -440,7 +438,10 @@ class _Sound(object):
                 # and Linux even when seeking to start position which allows
                 # replaying the sound under Windows.
                 if stop_already_playing:
-                    self._ch.delete()
+                    try:
+                        self._ch.delete()
+                    except TypeError:
+                        pass
                 self._ch = pyglet.media.Player()
                 if self._lib_version >= "1.4.0":
                     self._ch.loop = self._loop

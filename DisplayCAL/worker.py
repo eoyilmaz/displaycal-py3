@@ -75,6 +75,7 @@ from DisplayCAL import defaultpaths
 from DisplayCAL import imfile
 from DisplayCAL import localization as lang
 from DisplayCAL import wexpect
+# import wexpect
 from DisplayCAL.argyll_cgats import (
     add_dispcal_options_to_cal,
     add_options_to_ti3,
@@ -318,11 +319,12 @@ keycodes = {
 workers = []
 
 
-WAIT_FILE_TEMPLATE = """import os, sys, time
+WAIT_FILE_TEMPLATE = """# coding=utf-8
+import os, sys, time
 if sys.platform != "win32":
     print(*(["\\nCurrent RGB"] + sys.argv[1:]))
-abortfilename = os.path.join("{script_dir}", ".abort")
-okfilename = os.path.join("{script_dir}", ".ok")
+abortfilename = os.path.join(r"{script_dir}", ".abort")
+okfilename = os.path.join(r"{script_dir}", ".ok")
 while True:
     if os.path.isfile(abortfilename):
         break
@@ -2395,7 +2397,7 @@ class Worker(WorkerBase):
             if (
                 (self.argyll_version <= [1, 0, 4] and not get_arg("-p", args))
                 or (self.argyll_version > [1, 0, 4] and not get_arg("-P", args))
-                and "-d%s" % self.argyll_virtual_display not in args
+                and f"-d{self.argyll_virtual_display}" not in args
             ):
                 if (
                     config.get_display_name() == "Resolve" or non_argyll_prisma
@@ -2763,7 +2765,7 @@ class Worker(WorkerBase):
                 rgb_space = colormath.get_rgb_space(rgb_space)
                 self.recent.write(desc + "\n")
                 linebuffered_logfiles = []
-                if sys.stdout.isatty():
+                if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                     linebuffered_logfiles.append(print)
                 else:
                     linebuffered_logfiles.append(log)
@@ -3328,7 +3330,7 @@ class Worker(WorkerBase):
         if "read failed due to the sensor being in the wrong position" in txt.lower():
             self.instrument_sensor_position_msg = True
         if self.instrument_sensor_position_msg and " or q to " in txt.lower():
-            self.log("%s: Detected read failed due to wrong sensor position" % appname)
+            self.log(f"{appname}: Detected read failed due to wrong sensor position")
             self.instrument_sensor_position_msg = False
             self.instrument_reposition_sensor()
 
@@ -5953,7 +5955,7 @@ END_DATA
         # If dry_run is explicitly set to False, ignore dry_run config value
         dry_run = dry_run is not False and (dry_run or getcfg("dry_run"))
         if not capture_output:
-            capture_output = not sys.stdout.isatty()
+            capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
         self.clear_cmd_output()
         if None in [cmd, args]:
             if verbose >= 1 and not silent:
@@ -6609,11 +6611,11 @@ BEGIN_DATA
                         pythonpath[i] = win32api.GetShortPathName(path)
                 # Write out .wait.py file
                 scriptfilename =  f"{waitfilename}.py"
-                with open(scriptfilename, "w") as scriptfile:
+                with open(scriptfilename, "w", encoding="utf-8") as scriptfile:
                     scriptfile.write(pythonscript)
                 scriptfilename = win32api.GetShortPathName(scriptfilename)
                 # Write out .wait.cmd file
-                with open(f"{waitfilename}.cmd", "w") as waitfile:
+                with open(f"{waitfilename}.cmd", "w", encoding="utf-8") as waitfile:
                     waitfile.write("@echo off\n")
                     waitfile.write("echo.\n")
                     waitfile.write("echo Current RGB %*\n")
@@ -6898,7 +6900,7 @@ BEGIN_DATA
                     "Warning - error during shell script creation:", str(exception)
                 )
         cmdline = [safe_str(arg, fs_enc) for arg in cmdline]
-        working_dir = None if not working_dir else working_dir.encode(fs_enc)
+        working_dir = None if not working_dir else working_dir
         try:
             if not self.measure_cmd and self.argyll_version >= [1, 2]:
                 # Argyll tools will no longer respond to keys
@@ -6920,41 +6922,37 @@ BEGIN_DATA
                     ("MIN_DISPLAY_UPDATE_DELAY_MS", [1, 5]),
                     ("DISPLAY_SETTLE_TIME_MULT", [1, 7]),
                 ):
-                    backup = os.getenv("ARGYLL_%s_BACKUP" % name)
+                    backup = os.getenv(f"ARGYLL_{name}_BACKUP")
                     value = None
                     if (
-                        getcfg("measure.override_%s" % name.lower())
+                        getcfg(f"measure.override_{name.lower()}")
                         and self.argyll_version >= version
                     ):
                         if backup is None:
                             # Backup current value if any
-                            current = os.getenv("ARGYLL_%s" % name, "")
-                            os.environ["ARGYLL_%s_BACKUP" % name] = current
+                            current = os.getenv(f"ARGYLL_{name}", "")
+                            os.environ[f"ARGYLL_{name}_BACKUP"] = current
                         else:
                             current = backup
                         if current:
-                            self.log(
-                                "%s: Overriding ARGYLL_%s %s" % (appname, name, current)
-                            )
+                            self.log(f"{appname}: Overriding ARGYLL_{name} {current}")
                         # Override
-                        value = str(getcfg("measure.%s" % name.lower()))
-                        self.log("%s: Setting ARGYLL_%s %s" % (appname, name, value))
+                        value = str(getcfg(f"measure.{name.lower()}"))
+                        self.log(f"{appname}: Setting ARGYLL_{name} {value}")
                     elif backup is not None:
                         value = backup
-                        del os.environ["ARGYLL_%s_BACKUP" % name]
+                        del os.environ[f"ARGYLL_{name}_BACKUP"]
                         if value:
-                            self.log(
-                                "%s: Restoring ARGYLL_%s %s" % (appname, name, value)
-                            )
-                        elif "ARGYLL_%s" % name in os.environ:
-                            del os.environ["ARGYLL_%s" % name]
-                    elif "ARGYLL_%s" % name in os.environ:
+                            self.log(f"{appname}: Restoring ARGYLL_{name} {value}")
+                        elif f"ARGYLL_{name}" in os.environ:
+                            del os.environ[f"ARGYLL_{name}"]
+                    elif f"ARGYLL_{name}" in os.environ:
                         self.log(
-                            "%s: ARGYLL_%s" % (appname, name),
-                            os.getenv("ARGYLL_%s" % name),
+                            f"{appname}: ARGYLL_{name}",
+                            os.getenv(f"ARGYLL_{name}"),
                         )
                     if value:
-                        os.environ["ARGYLL_%s" % name] = value
+                        os.environ[f"ARGYLL_{name}"] = value
             elif cmdname in (
                 get_argyll_utilname("iccgamut"),
                 get_argyll_utilname("tiffgamut"),
@@ -6979,7 +6977,7 @@ BEGIN_DATA
                     stderr = tempfile.SpooledTemporaryFile()
                 if capture_output:
                     stdout = tempfile.SpooledTemporaryFile()
-                elif sys.stdout.isatty():
+                elif sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                     stdout = sys.stdout
                 else:
                     stdout = sp.PIPE
@@ -6993,7 +6991,9 @@ BEGIN_DATA
                 data_encoding = self.pty_encoding
                 kwargs = dict(timeout=20, cwd=working_dir, env=os.environ)
                 if sys.platform == "win32":
-                    kwargs["codepage"] = windll.kernel32.GetACP()
+                    # FIX: stdio cp1252 vs utf-8 issue under Windows 10/11+
+                    # os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
+                    kwargs["codepage"] = 65001 # windll.kernel32.GetACP()
                     # As Windows' console always hard wraps at the
                     # rightmost column, increase the buffer width
                     kwargs["columns"] = 160
@@ -7013,7 +7013,7 @@ BEGIN_DATA
                     )
                 if log_output:
                     linebuffered_logfiles = []
-                    if sys.stdout.isatty():
+                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -7078,13 +7078,17 @@ BEGIN_DATA
                         # Minimum Windows version: XP or Server 2003
                         if sys.platform == "win32" and sys.getwindowsversion() < (5, 1):
                             raise Error(lang.getstr("windows.version.unsupported"))
+
                         try:
+                            # print(f"cmdline: {cmdline}")
+                            # print(f"kwargs : {kwargs}")
                             self.subprocess = wexpect.spawn(
                                 cmdline[0], cmdline[1:], **kwargs
                             )
                         except wexpect.ExceptionPexpect as exception:
                             self.retcode = -1
                             raise Error(str(exception))
+
                         if sys.platform == "darwin" and self.measure_cmd:
                             # Caffeinate (prevent sleep/screensaver)
                             caffeinate = which("caffeinate")
@@ -7140,10 +7144,10 @@ BEGIN_DATA
                     if self.measure_cmd:
                         keyhit_strs = [" or Q to ", r"8\) Exit"]
                         patterns = keyhit_strs + ["Current", r" \d+ of \d+"]
-                        self.log("%s: Starting interaction with subprocess" % appname)
+                        self.log(f"{appname}: Starting interaction with subprocess")
                     else:
                         patterns = []
-                        self.log("%s: Waiting for EOF" % appname)
+                        self.log(f"{appname}: Waiting for EOF")
                     loop = 0
                     pwdsent = False
                     authfailed = False
@@ -7159,12 +7163,12 @@ BEGIN_DATA
                             curpatterns + [wexpect.EOF, wexpect.TIMEOUT], timeout=1
                         )
                         if self.subprocess.after is wexpect.EOF:
-                            self.log("%s: Reached EOF (OK)" % appname)
+                            self.log(f"{appname}: Reached EOF (OK)")
                             break
                         elif self.subprocess.after is wexpect.TIMEOUT:
                             if not self.subprocess.isalive():
                                 self.log(
-                                    "%s: Subprocess no longer alive (timeout)" % appname
+                                    f"{appname}: Subprocess no longer alive (timeout)"
                                 )
                                 if eof:
                                     break
@@ -7185,25 +7189,22 @@ BEGIN_DATA
                                 break
                             continue
                         elif self.measure_cmd:
-
                             if [
                                 keyhit_str
                                 for keyhit_str in keyhit_strs
                                 if re.search(keyhit_str, self.subprocess.after)
                             ]:
                                 # Wait for the keypress
-                                self.log("%s: Waiting for send buffer" % appname)
+                                self.log(f"{appname}: Waiting for send buffer")
                                 while not self.send_buffer:
                                     if not self.subprocess.isalive():
                                         self.log(
-                                            "%s: Subprocess no longer alive (unknown reason)"
-                                            % appname
+                                            f"{appname}: Subprocess no longer alive (unknown reason)"
                                         )
                                         break
                                     sleep(0.05)
                                 self.log(
-                                    "%s: Send buffer received: %s"
-                                    % (appname, self.send_buffer)
+                                    f"{appname}: Send buffer received: {self.send_buffer}"
                                 )
                             if (
                                 self.send_buffer is not None
@@ -7216,10 +7217,7 @@ BEGIN_DATA
                                 ):
                                     # Restore madTPG OSD and fullscreen
                                     self.madtpg_restore_settings(False)
-                                self.log(
-                                    "%s: Sending buffer: %r"
-                                    % (appname, self.send_buffer)
-                                )
+                                self.log(f"{appname}: Sending buffer: {self.send_buffer}")
                                 self._safe_send(self.send_buffer)
                                 self.send_buffer = None
                         if not self.subprocess.isalive():
@@ -7229,10 +7227,10 @@ BEGIN_DATA
                     # We can't use wait() because it might block in the
                     # case of a timeout
                     if self.subprocess.isalive():
-                        self.log("%s: Checking subprocess status" % appname)
+                        self.log(f"{appname}: Checking subprocess status")
                         while self.subprocess.isalive():
                             sleep(0.1)
-                        self.log("%s: Subprocess no longer alive (OK)" % appname)
+                        self.log(f"{appname}: Subprocess no longer alive (OK)")
                     self.retcode = self.subprocess.exitstatus
                     if authfailed:
                         raise Error(lang.getstr("auth.failed"))
@@ -7410,13 +7408,13 @@ BEGIN_DATA
                         self.log(cd_exception)
                         profiling_inhibit = False
                     else:
-                        self.log(appname + ": Uninhibited display device")
+                        self.log(f"{appname}: Uninhibited display device")
                 if not profiling_inhibit:
                     # Fallback - restore display profile
-                    self.log(appname + ": Re-assigning display profile...")
+                    self.log(f"{appname}: Re-assigning display profile...")
                     cdinstall = self._attempt_install_profile_colord(display_profile)
                     if cdinstall is True:
-                        self.log(appname + ": Successfully re-assigned display profile")
+                        self.log(f"{appname}: Successfully re-assigned display profile")
                     elif not cdinstall:
                         self.log(lang.getstr("calibration.load_error"))
                     # Remove temp sRGB profile
@@ -8769,7 +8767,6 @@ BEGIN_DATA
         """Get the currently configured display.
 
         Returned is the Argyll CMS dispcal/dispread -d argument
-
         """
         display_name = config.get_display_name(None, True)
         if display_name == "Web @ localhost":
@@ -8873,7 +8870,6 @@ BEGIN_DATA
 
         If name can't be shortened (e.g. because it's already 10 characters
         or less), return full string
-
         """
         display_name = self.get_display_name(prepend_manufacturer, prefer_edid)
         if len(display_name) > 10:
@@ -8897,14 +8893,15 @@ BEGIN_DATA
                     # Weigh parts further to the right higher
                     display_name = re.sub(r"^[^([{\w]+", "", part)
                     maxweight = weight
+
+        # Shortname should not contain any spaces.
+        display_name = re.sub(r"[\s]+", "_", display_name)
         return display_name
 
     def get_dispwin_display_profile_argument(self, display_no=0):
-        """Return argument corresponding to the display profile for use
-        with dispwin.
+        """Return argument corresponding to the display profile for use with dispwin.
 
-        Will either return '-L' (use current profile) or a filename
-
+        Will either return '-L' (use current profile) or a filename.
         """
         arg = "-L"
         try:
@@ -11197,7 +11194,7 @@ usage: spotread [-options] [logfile]
                 ):
                     # Smooth existing B2A tables
                     linebuffered_logfiles = []
-                    if sys.stdout.isatty():
+                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -12375,7 +12372,7 @@ usage: spotread [-options] [logfile]
 
     def get_logfiles(self, include_progress_buffers=True):
         linebuffered_logfiles = []
-        if sys.stdout.isatty():
+        if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
             linebuffered_logfiles.append(print)
         else:
             linebuffered_logfiles.append(log)
@@ -13397,7 +13394,6 @@ usage: spotread [-options] [logfile]
         All options are read from the user configuration.
         You can choose if you want to calibrate and/or verify by passing
         the corresponding arguments.
-
         """
         cmd = get_argyll_util("dispcal")
         args = ["-v2"]
@@ -13510,8 +13506,9 @@ usage: spotread [-options] [logfile]
             else:
                 args.append("-w%s,%s" % (whitepoint_x, whitepoint_y))
             luminance = getcfg("calibration.luminance", False)
-            if luminance:
-                args.append("-b%s" % luminance)
+            self.log(f"{appname}: luminance: {luminance}")
+            if luminance is not None:
+                args.append("-b{luminance}")
             if getcfg("trc"):
                 args.append("-" + getcfg("trc.type") + str(getcfg("trc")))
                 args.append("-f%s" % getcfg("calibration.black_output_offset"))
@@ -13550,7 +13547,9 @@ usage: spotread [-options] [logfile]
                 # above zero device input if set up correctly. Using this option
                 # with a display that is not well behaved may result in a loss
                 # of shadow detail.
-                args.append("-b")
+                self.log("skipping -b parameter")
+                # args.append("-b")
+                pass
             if verify:
                 if calibrate and type(verify) == int:
                     args.append("-e%s" % verify)  # Verify final computed curves
@@ -13588,7 +13587,6 @@ usage: spotread [-options] [logfile]
         either the previously by dispcal created one by passing in True, by
         passing in a valid path to a .cal file, or by passing in None
         (current video card gamma table).
-
         """
         self.lastcmdname = get_argyll_utilname("dispread")
         inoutfile = self.setup_inout()
@@ -14447,7 +14445,7 @@ usage: spotread [-options] [logfile]
         return True
 
     def _safe_send(self, bytes_, retry=3, obfuscate=False):
-        """Safely send a keystroke to the current subprocess"""
+        """Safely send a keystroke to the current subprocess."""
         for i in range(0, retry):
             if obfuscate:
                 logbytes = "***"
@@ -14455,11 +14453,15 @@ usage: spotread [-options] [logfile]
                 logbytes = bytes_
             self.logger.info("Sending key(s) %r (%i)" % (logbytes, i + 1))
             try:
-                self.subprocess.send(bytes_.encode())
+                if sys.platform == "win32":
+                    # directly send the bytes_ without encoding to anything
+                    self.subprocess.send(bytes_)
+                else:
+                    # for Linux and MacOS encode to bytes
+                    self.subprocess.send(bytes_.encode())
             except Exception as exception:
                 self.logger.exception("Exception: %s" % str(exception))
             else:
-                # if wrote == len(bytes_):
                 return True
             sleep(0.25)
         return False
@@ -15191,10 +15193,13 @@ usage: spotread [-options] [logfile]
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
-        capture_output = not sys.stdout.isatty()
+        capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
         cmd, args = self.prepare_dispcal()
         if not isinstance(cmd, Exception):
+            print(f"cmd: {cmd}")
+            print(f"args: {args}")
             result = self.exec_cmd(cmd, args, capture_output=capture_output)
+            print(f"result: {result}")
         else:
             result = cmd
         if not isinstance(result, Exception) and result and getcfg("trc"):
@@ -15203,10 +15208,13 @@ usage: spotread [-options] [logfile]
                 getcfg("profile.name.expanded"),
                 getcfg("profile.name.expanded"),
             )
+            print(f"dst_pathname: {dst_pathname}")
             cal = args[-1] + ".cal"
+            print(f"cal         : {cal}")
             result = check_cal_isfile(
                 cal, lang.getstr("error.calibration.file_not_created")
             )
+            print(f"result      : {result}")
             if not isinstance(result, Exception) and result:
                 cal_cgats = add_dispcal_options_to_cal(cal, self.options_dispcal)
                 if cal_cgats:
@@ -17029,7 +17037,7 @@ BEGIN_DATA
                                 )
                         else:
                             if verbose >= 2:
-                                print(appname + ": Removing temporary file", src)
+                                print(f"{appname}: Removing temporary file", src)
                             try:
                                 os.remove(src)
                             except Exception as exception:

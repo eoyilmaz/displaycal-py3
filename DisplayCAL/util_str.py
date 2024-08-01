@@ -512,7 +512,7 @@ def replace_control_chars(txt, replacement=" ", collapse=False):
 
 
 def safe_basestring(obj, enc="utf-8", errors="replace"):
-    """Return a unicode or string representation of obj
+    """Return a string or bytes representation of obj.
 
     Return obj if isinstance(obj, basestring). Otherwise, return unicode(obj),
     string(obj), or repr(obj), whichever succeeds first.

@@ -1002,7 +1002,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     rgb_space[0] = 1.0  # Set gamma to 1.0 (not actually used)
                     rgb_space = colormath.get_rgb_space(rgb_space)
                     linebuffered_logfiles = []
-                    if sys.stdout.isatty():
+                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)

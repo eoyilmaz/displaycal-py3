@@ -117,7 +117,7 @@ if sys.platform == "win32":
 
     def setup_profile_loader_task(exe, exedir, pydir):
         if sys.getwindowsversion() >= (6,):
-            import taskscheduler
+            from DisplayCAL import taskscheduler
 
             taskname = appname + " Profile Loader Launcher"
 
@@ -3037,7 +3037,7 @@ class ProfileLoader(object):
             timestamp = time.time()
             localtime = list(time.localtime(self._timestamp))
             localtime[3:6] = 23, 59, 59
-            midnight = time.mktime(localtime) + 1
+            midnight = time.mktime(tuple(localtime)) + 1
             if timestamp >= midnight:
                 self.reload_count = 0
                 self._timestamp = timestamp

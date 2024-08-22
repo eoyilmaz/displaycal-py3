@@ -4,6 +4,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, unlabeled]
     branches:
       - develop
+  push:
+    branches:
+      - develop
 
 jobs:
   build:

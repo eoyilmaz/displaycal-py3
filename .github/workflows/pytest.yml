@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     strategy:
-      fail-fast: False
+      fail-fast: true
       matrix:
         python-version:
           - "3.8"

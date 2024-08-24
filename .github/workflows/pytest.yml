@@ -127,17 +127,17 @@ jobs:
 
     - name: Set Environment Variables
       run: |
-        $py_version = ${{ matrix.python-version }} -replace '\.', ''
+        $py_version = "${{ matrix.python-version }}" -replace '\.', ''
         echo "py_version=$py_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        if (${{ matrix.python-version }} -eq "3.8") {
+        if ("${{ matrix.python-version }}" -eq "3.8") {
           echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        } elseif (${{ matrix.python-version }} -eq "3.9") {
+        } elseif ("${{ matrix.python-version }}" -eq "3.9") {
           echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        } elseif (${{ matrix.python-version }} -eq "3.10") {
+        } elseif ("${{ matrix.python-version }}" -eq "3.10") {
           echo "add_dir_str=cpython-310" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        } elseif (${{ matrix.python-version }} -eq "3.11") {
+        } elseif ("${{ matrix.python-version }}" -eq "3.11") {
           echo "add_dir_str=cpython-311" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        } elseif (${{ matrix.python-version }} -eq "3.12") {
+        } elseif ("${{ matrix.python-version }}" -eq "3.12") {
           echo "add_dir_str=cpython-312" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         }
 

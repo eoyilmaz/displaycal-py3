@@ -150,6 +150,10 @@ jobs:
         ls -l dist/
         $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
         pip install $wheel_file.FullName
+        export PYPATH=`which python`
+        export PYDIR=`dirname $PYPATH`
+        cp $PYDIR/../lib/python${{ matrix.python-version }}/site-packages/DisplayCAL/lib64/python${{ env.py_version }}/RealDisplaySizeMM.*.so ./DisplayCAL/lib64/python${{ env.py_version }}/
+
 
     - name: Test with pytest
       run: |

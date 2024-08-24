@@ -92,7 +92,8 @@ jobs:
         sudo chmod a+rw /etc/udev/rules.d
         python3 -m build
         ls -l dist/
-        pip install dist/DisplayCAL-*.whl
+        wheel_file=$(ls dist/DisplayCAL-*.whl)
+        pip install $wheel_file
         export PYPATH=`which python`
         export PYDIR=`dirname $PYPATH`
         cp $PYDIR/../lib/python${{ matrix.python-version }}/site-packages/DisplayCAL/lib64/python${{ env.py_version }}/RealDisplaySizeMM.*.so ./DisplayCAL/lib64/python${{ env.py_version }}/
@@ -147,7 +148,8 @@ jobs:
       run: |
         python -m build
         ls -l dist/
-        pip install dist/DisplayCAL-*.whl
+        $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
+        pip install $wheel_file.FullName
 
     - name: Test with pytest
       run: |

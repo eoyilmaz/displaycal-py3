@@ -152,7 +152,7 @@ jobs:
         pip install $wheel_file.FullName
         $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
         $PYDIR = Split-Path $PYPATH
-        Copy-Item -Path "$PYDIR\..\lib\python${{ matrix.python-version }}\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.so" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
+        Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
 
 
     - name: Test with pytest

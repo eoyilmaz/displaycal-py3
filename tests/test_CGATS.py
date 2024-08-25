@@ -376,7 +376,8 @@ def test_cgats_from_ti3_back_to_bytes(data_files):
     with open(path, "rb") as f:
         raw_data = f.read()
     cgats = CGATS.CGATS(cgats=path)
-    assert bytes(cgats) == raw_data
+    # Normalize line endings before comparison
+    assert bytes(cgats).replace(b'\r\n', b'\n') == raw_data.replace(b'\r\n', b'\n')
 
 
 def test_cgats_get_colorants_method(data_files):

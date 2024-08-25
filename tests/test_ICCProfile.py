@@ -30,6 +30,9 @@ def test_iccprofile_from_rgb_space():
     result = icc.get_info()
     assert isinstance(result, list)
 
+    # Add debugging information
+    print("Result:", result)
+
     expected_result = [
         ["Size", "0 Bytes (0.00 KiB)"],
         ["Preferred CMM", "0x6172676C 'argl' ArgyllCMS"],
@@ -99,6 +102,9 @@ def test_iccprofile_from_rgb_space():
         "Checksum",
         "0x{}".format(binascii.hexlify(icc.ID).upper().decode()),
     ]
+
+    # Add debugging information
+    print("Expected Result:", expected_result)
 
     assert result == expected_result
 

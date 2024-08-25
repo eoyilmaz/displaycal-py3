@@ -9,5 +9,6 @@ PyChromecast
 pywin32; sys_platform=='win32'
 Send2Trash
 #wexpect; sys_platform=='win32'
+wmi; sys_platform=='win32'
 wxPython>=4.1.1
 zeroconf

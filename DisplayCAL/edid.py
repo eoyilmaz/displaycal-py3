@@ -345,6 +345,10 @@ def parse_edid(edid):
         # This apparently is a wrong conversion.
         edid = edid.decode("utf-8").encode("latin-1")
 
+    # Ensure edid is bytes
+    if isinstance(edid, str):
+        edid = edid.encode("latin-1")
+
     result = {
         "edid": edid,
         "hash": md5(edid).hexdigest(),

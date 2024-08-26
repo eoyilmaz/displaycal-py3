@@ -13,7 +13,9 @@ def test_device_id_from_edid_1():
         with check_call(
             RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
         ):
+            print("Before calling get_edid")
             edid = get_edid(0)
-    device_id = device_id_from_edid(edid)
-    assert isinstance(device_id, str)
-    assert device_id != ""
+            print("After calling get_edid")
+            device_id = device_id_from_edid(edid)
+            assert isinstance(device_id, str)
+            assert device_id != ""

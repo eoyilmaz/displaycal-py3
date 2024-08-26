@@ -19,3 +19,8 @@ def test_device_id_from_edid_1():
             device_id = device_id_from_edid(edid)
             assert isinstance(device_id, str)
             assert device_id != ""
+
+            # Additional debug prints
+            print(f"call_count: {check_call.call_count}")
+            print(f"call_args_list: {check_call.call_args_list}")
+            print(f"call_kwargs_list: {check_call.call_kwargs_list}")

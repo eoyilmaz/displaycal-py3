@@ -10,9 +10,9 @@ def test_device_id_from_edid_1():
     from DisplayCAL.colord import device_id_from_edid
 
     with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-        with check_call(
-            RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
-        ):
+        print("Before calling _enumerate_displays")
+        with check_call(RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()):
+            print("After calling _enumerate_displays")
             print("Before calling get_edid")
             edid = get_edid(0)
             print("After calling get_edid")

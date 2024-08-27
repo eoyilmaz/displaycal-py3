@@ -1,4 +1,4 @@
-build
+build #mamba python-build
 certifi
 comtypes; sys_platform=='win32'
 dbus-python; sys_platform=='linux'

@@ -27,3 +27,4 @@ __pycache__/
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-311-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-312-darwin.so
+DisplayCAL/lib64/python311/RealDisplaySizeMM.cp311-win_amd64.pyd

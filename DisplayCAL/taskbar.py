@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import win32com.client
 
 TBPF_NOPROGRESS = 0
@@ -12,6 +10,10 @@ try:
     taskbar = win32com.client.Dispatch("Shell.Taskbar")
 except Exception as e:
     print(f"Error creating COM object: {e}")
+    # Additional debugging information
+    print(f"COM error code: {e.hresult}")
+    print(f"COM error message: {e.strerror}")
+    print(f"COM error details: {e.excepinfo}")
 
 class Taskbar(object):
     def __init__(self, frame, maxv=100):

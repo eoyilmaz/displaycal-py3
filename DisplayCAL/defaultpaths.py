@@ -14,7 +14,6 @@ if sys.platform not in ("darwin", "win32"):
 
 elif sys.platform == "win32":
     try:
-        from win32comext.shell import shell
         from win32comext.shell.shellcon import (
             CSIDL_APPDATA,
             CSIDL_COMMON_APPDATA,

@@ -488,16 +488,11 @@ def mkstemp_bypath(path, dir=None, text=False):
 #
 # This is from Python2.7 version of tempfile
 #
-try:
+if sys.platform != "win32":
     import fcntl as _fcntl
-except ImportError:
 
-    def _set_cloexec(fd):
-        return None
-
-else:
-
-    def _set_cloexec(fd):
+def _set_cloexec(fd):
+    if sys.platform != "win32":
         try:
             flags = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
         except IOError:
@@ -506,7 +501,6 @@ else:
             # flags read successfully, modify
             flags |= _fcntl.FD_CLOEXEC
             _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
-
 
 def mksfile(filename):
     """Create a file safely and return (fd, abspath)
@@ -916,7 +910,6 @@ def whereis(
 
 
 class FileLock(object):
-
     if sys.platform == "win32":
         _exception_cls = pywintypes.error
     else:

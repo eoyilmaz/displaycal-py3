@@ -8,7 +8,10 @@ TBPF_NORMAL = 0x2
 TBPF_ERROR = 0x4
 TBPF_PAUSED = 0x8
 
-taskbar = win32com.client.Dispatch("Shell.Taskbar")
+try:
+    taskbar = win32com.client.Dispatch("Shell.Taskbar")
+except Exception as e:
+    print(f"Error creating COM object: {e}")
 
 class Taskbar(object):
     def __init__(self, frame, maxv=100):

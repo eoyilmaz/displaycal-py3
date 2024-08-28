@@ -25,7 +25,7 @@ if sys.platform != "win32":
     import fcntl
 
 try:
-    reloaded
+    reloaded # type: ignore
 except NameError:
     # First import. All fine
     reloaded = 0

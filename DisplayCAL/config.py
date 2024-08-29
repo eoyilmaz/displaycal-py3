@@ -12,28 +12,9 @@ import re
 import string
 import sys
 from DisplayCAL.log import logger
-
-if sys.platform == "win32":
-    import winreg
-
-configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
-
 from DisplayCAL.argyll_names import observers, viewconds, intents, video_encodings
 from DisplayCAL.defaultpaths import appdata, commonappdata
-
-if sys.platform == "win32":
-    from DisplayCAL.defaultpaths import commonprogramfiles
-elif sys.platform == "darwin":
-    from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
-else:
-    from DisplayCAL.defaultpaths import (
-        xdg_config_dir_default,
-        xdg_config_home,
-        xdg_data_home,
-        xdg_data_home_default,
-        xdg_data_dirs,
-    )
-from DisplayCAL.defaultpaths import (
+from DisplayCAL.defaultpaths import (  # noqa: F401
     autostart,  # don't remove this, imported by other modules
     autostart_home,  # don't remove this, imported by other modules
     home,  # don't remove this, imported by other modules
@@ -54,6 +35,23 @@ from DisplayCAL.util_os import (
 from DisplayCAL.util_str import create_replace_function, strtr
 from DisplayCAL import colormath, encodedstdio
 
+if sys.platform == "win32":
+    import winreg
+
+configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
+
+if sys.platform == "win32":
+    from DisplayCAL.defaultpaths import commonprogramfiles
+elif sys.platform == "darwin":
+    from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
+else:
+    from DisplayCAL.defaultpaths import (
+        xdg_config_dir_default,
+        xdg_config_home,
+        xdg_data_home,
+        xdg_data_home_default,
+        xdg_data_dirs,
+    )
 
 exe = sys.executable
 exedir = os.path.dirname(exe)

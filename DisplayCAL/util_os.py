@@ -131,14 +131,16 @@ else:
 
 
 def quote_args(args):
-    """Quote commandline arguments where needed. It quotes all arguments that
-    contain spaces or any of the characters ^!$%&()[]{}=;'+,`~
+    """Quote commandline arguments where needed.
 
-    Parameters:
-    args (list of str): List of commandline arguments to be quoted.
+    It quotes all arguments that contain spaces or any of the characters
+    ^!$%&()[]{}=;'+,`~
+
+    Args:
+        args: (list of str): List of commandline arguments to be quoted.
 
     Returns:
-    list of str: List of quoted commandline arguments.
+        list of str: List of quoted commandline arguments.
     """
     args_out = []
     for arg in args:
@@ -176,23 +178,23 @@ def find_library(pattern, arch=None):
         except Exception:
             pass
         else:
-            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,
-            # version 1 (SYSV), dynamically linked, interpreter
-            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
-            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8, stripped
+            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,  # noqa: SC100
+            # version 1 (SYSV), dynamically linked, interpreter  # noqa: SC100
+            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,  # noqa: SC100
+            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8, stripped  # noqa: SC100
             parts = file_stdout.split(",")
             if len(parts) > 1:
                 arch = parts[1].strip()
 
     for line in stdout.decode().splitlines():
-        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1
+        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1  # noqa: SC100
         parts = line.split("=>", 1)
         candidate = parts[0].split(None, 1)
         if len(parts) < 2 or len(candidate) < 2:
             continue
         info = candidate[1].strip("( )").split(",")
         if arch and len(info) > 1 and info[1].strip() != arch:
-            # Skip libs for wrong arch
+            # Skip libs for wrong arch  # noqa: SC100
             continue
         filename = candidate[0]
         if fnmatch.fnmatch(filename, pattern):
@@ -201,97 +203,113 @@ def find_library(pattern, arch=None):
 
 
 def expanduseru(path):
-    """Unicode version of os.path.expanduser"""
+    """Unicode version of os.path.expanduser."""
     return str(pathlib.Path(path).expanduser())
 
 
 def expandvarsu(path):
-    """Unicode version of os.path.expandvars"""
+    """Unicode version of os.path.expandvars."""
     if sys.platform == "win32":
-        # The code in this if-statement is copied from Python 2.7's expandvars
-        # in ntpath.py, but uses getenvu() instead of os.environ[]
-        if "$" not in path and "%" not in path:
-            return path
-        import string
-
-        varchars = string.ascii_letters + string.digits + "_-"
-        res = ""
-        index = 0
-        pathlen = len(path)
-        while index < pathlen:
-            c = path[index]
-            if c == "'":  # no expansion within single quotes
-                path = path[index + 1:]
-                pathlen = len(path)
-                try:
-                    index = path.index("'")
-                    res = res + "'" + path[: index + 1]
-                except ValueError:
-                    res = res + path
-                    index = pathlen - 1
-            elif c == "%":  # variable or '%'
-                if path[index + 1: index + 2] == "%":
-                    res = res + c
-                    index = index + 1
-                else:
-                    path = path[index + 1:]
-                    pathlen = len(path)
-                    try:
-                        index = path.index("%")
-                    except ValueError:
-                        res = res + "%" + path
-                        index = pathlen - 1
-                    else:
-                        var = path[:index]
-                        if var in os.environ:
-                            res = res + getenvu(var)
-                        else:
-                            res = res + "%" + var + "%"
-            elif c == "$":  # variable or '$$'
-                if path[index + 1: index + 2] == "$":
-                    res = res + c
-                    index = index + 1
-                elif path[index + 1: index + 2] == "{":
-                    path = path[index + 2:]
-                    pathlen = len(path)
-                    try:
-                        index = path.index("}")
-                        var = path[:index]
-                        if var in os.environ:
-                            res = res + getenvu(var)
-                        else:
-                            res = res + "${" + var + "}"
-                    except ValueError:
-                        res = res + "${" + path
-                        index = pathlen - 1
-                else:
-                    var = ""
-                    index = index + 1
-                    c = path[index: index + 1]
-                    while c != "" and c in varchars:
-                        var = var + c
-                        index = index + 1
-                        c = path[index: index + 1]
-                    if var in os.environ:
-                        res = res + getenvu(var)
-                    else:
-                        res = res + "$" + var
-                    if c != "":
-                        index = index - 1
-            else:
-                res = res + c
-            index = index + 1
-        return res
+        return _expandvarsu_win32(path)
     return os.path.expandvars(path)
 
 
+def _expandvarsu_win32(path):
+    """Expand environment variables in a path for Windows."""
+    if "$" not in path and "%" not in path:
+        return path
+
+    res = ""
+    index = 0
+    pathlen = len(path)
+
+    while index < pathlen:
+        c = path[index]
+        if c == "'":  # no expansion within single quotes
+            path = path[index + 1:]
+            pathlen = len(path)
+            try:
+                index = path.index("'")
+                res = res + "'" + path[: index + 1]
+            except ValueError:
+                res = res + path
+                index = pathlen - 1
+        elif c == "%":  # variable or '%'
+            res = _handle_percent_sign(path, index, res)
+        elif c == "$":  # variable or '$$'
+            res = _handle_dollar_sign(path, index, res)
+        else:
+            res = res + c
+        index = index + 1
+
+    return res
+
+
+def _handle_percent_sign(path, index, res):
+    if path[index + 1: index + 2] == "%":
+        res = res + "%"
+        index = index + 1
+    else:
+        path = path[index + 1:]
+        pathlen = len(path)
+        try:
+            index = path.index("%")
+        except ValueError:
+            res = res + "%" + path
+            index = pathlen - 1
+        else:
+            var = path[:index]
+            if var in os.environ:
+                res = res + getenvu(var)
+            else:
+                res = res + "%" + var + "%"
+    return res
+
+
+def _handle_dollar_sign(path, index, res):
+    import string
+    varchars = string.ascii_letters + string.digits + "_-"
+
+    if path[index + 1: index + 2] == "$":
+        res = res + "$"
+        index = index + 1
+    elif path[index + 1: index + 2] == "{":
+        path = path[index + 2:]
+        pathlen = len(path)
+        try:
+            index = path.index("}")
+            var = path[:index]
+            if var in os.environ:
+                res = res + getenvu(var)
+            else:
+                res = res + "${" + var + "}"
+        except ValueError:
+            res = res + "${" + path
+            index = pathlen - 1
+    else:
+        var = ""
+        index = index + 1
+        c = path[index: index + 1]
+        while c != "" and c in varchars:
+            var = var + c
+            index = index + 1
+            c = path[index: index + 1]
+        if var in os.environ:
+            res = res + getenvu(var)
+        else:
+            res = res + "$" + var
+        if c != "":
+            index = index - 1
+    return res
+
+
 def fname_ext(path):
-    """Get filename and extension"""
+    """Get filename and extension."""
     return os.path.splitext(os.path.basename(path))
 
 
 def get_program_file(name, foldername):
-    """Get path to program file"""
+    """Get path to program file."""
     if sys.platform == "win32":
         paths = getenvu("PATH", os.defpath).split(os.pathsep)
         paths += safe_glob(os.path.join(getenvu("PROGRAMFILES", ""), foldername))
@@ -304,7 +322,7 @@ def get_program_file(name, foldername):
 
 
 def getenvu(name, default=None):
-    """Unicode version of os.getenv"""
+    """Unicode version of os.getenv."""
     if sys.platform == "win32":
         name = str(name)
         # http://stackoverflow.com/questions/2608200/problems-with-umlauts-in-python-appdata-environvent-variable
@@ -320,16 +338,17 @@ def getenvu(name, default=None):
 
 
 def getgroups(username=None, names_only=False):
-    """Return a list of groups that user is member of, or groups of current
-    process if username not given
+    """Return a list of groups that user is member of.
+
+    Or groups of current process if username not given
 
     """
     if username is None:
-        groups = [grp.getgrgid(g) for g in os.getgroups()]
+        groups = [grp.getgrgid(g) for g in os.getgroups()]  # type: ignore
     else:
-        groups = [g for g in grp.getgrall() if username in g.gr_mem]
-        gid = pwd.getpwnam(username).pw_gid
-        groups.append(grp.getgrgid(gid))
+        groups = [g for g in grp.getgrall() if username in g.gr_mem]  # type: ignore
+        gid = pwd.getpwnam(username).pw_gid  # type: ignore
+        groups.append(grp.getgrgid(gid))  # type: ignore
     if names_only:
         groups = [g.gr_name for g in groups]
     return groups

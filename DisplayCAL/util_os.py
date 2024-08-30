@@ -4,7 +4,7 @@ import fnmatch
 import ctypes
 import errno
 import glob
-import locale
+import locale  # noqa: F401
 import os
 import pathlib
 import re
@@ -15,6 +15,10 @@ import sys
 import tempfile
 import time
 import importlib
+import builtins
+if sys.platform == "win32":
+    import win32api
+from DisplayCAL.encoding import get_encodings
 
 if sys.platform not in ("darwin", "win32"):
     # Linux
@@ -25,32 +29,57 @@ if sys.platform != "win32":
     import fcntl
 
 try:
-    reloaded # type: ignore
+    reloaded  # type: ignore
 except NameError:
     # First import. All fine
     reloaded = 0
 else:
     # Module is being reloaded. NOT recommended.
-    reloaded += 1
+    reloaded += 1  # type: ignore
     import warnings
 
     warnings.warn(
-        "Module %s is being reloaded. This is NOT recommended." % __name__,
+        "Module {} is being reloaded. This is NOT recommended.".format(__name__),
         RuntimeWarning,
+        stacklevel=2,  # Correct argument name
     )
-    warnings.warn("Implicitly reloading builtins", RuntimeWarning)
+    warnings.warn(
+        "Implicitly reloading builtins",
+        RuntimeWarning,
+        stacklevel=2,  # Correct argument name
+    )
     if sys.platform == "win32":
-        importlib.reload(__builtin__)
-    warnings.warn("Implicitly reloading os", RuntimeWarning)
+        importlib.reload(builtins)
+    warnings.warn(
+        "Implicitly reloading os",
+        RuntimeWarning,
+        stacklevel=2,  # Correct argument name
+    )
     importlib.reload(os)
-    warnings.warn("Implicitly reloading os.path", RuntimeWarning)
+    warnings.warn(
+        "Implicitly reloading os.path",
+        RuntimeWarning,
+        stacklevel=2,  # Correct argument name
+    )
     importlib.reload(os.path)
     if sys.platform == "win32":
-        warnings.warn("Implicitly reloading win32api", RuntimeWarning)
+        warnings.warn(
+            "Implicitly reloading win32api",
+            RuntimeWarning,
+            stacklevel=2,  # Correct argument name
+        )
         importlib.reload(win32api)
 
 if sys.platform == "win32":
-    from win32file import *
+    from win32file import (
+        CreateFile,
+        DeviceIoControl,
+        CloseHandle,
+        GENERIC_READ,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        FILE_FLAG_OPEN_REPARSE_POINT,
+    )
     from winioctlcon import FSCTL_GET_REPARSE_POINT
     import win32file
     import win32con
@@ -65,20 +94,13 @@ FILE_ATTRIBUTE_REPARSE_POINT = 1024
 IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # Junction
 IO_REPARSE_TAG_SYMLINK = 0xA000000C
 
-from DisplayCAL.encoding import get_encodings
 
 fs_enc = get_encodings()[1]
 
 _listdir = os.listdir
 
 if sys.platform == "win32":
-    # Add support for long paths (> 260 chars)
-    # and retry ERROR_SHARING_VIOLATION
-    import builtins
-    import winerror
-    import win32api
-
-    _open = builtins.open
+    # retry ERROR_SHARING_VIOLATION
 
     def retry_sharing_violation_factory(fn, delay=0.25, maxretries=20):
         def retry_sharing_violation(*args, **kwargs):
@@ -96,115 +118,28 @@ if sys.platform == "win32":
 
         return retry_sharing_violation
 
-    def open(path, *args, **kwargs):
-        """Wrapper around __builtin__.open dealing with win32 long paths"""
-        return _open(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    builtins.open = open
-
-    _access = os.access
-
-    def access(path, mode, *args, **kwargs):
-        return _access(make_win32_compatible_long_path(path), mode, *args, **kwargs)
-
-    os.access = access
-
-    _exists = os.path.exists
-
-    def exists(path, *args, **kwargs):
-        return _exists(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.path.exists = exists
-
-    _isdir = os.path.isdir
-
-    def isdir(path, *args, **kwargs):
-        return _isdir(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.path.isdir = isdir
-
-    _isfile = os.path.isfile
-
-    def isfile(path, *args, **kwargs):
-        return _isfile(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.path.isfile = isfile
-
-    def listdir(path, *args, **kwargs):
-        return _listdir(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    _lstat = os.lstat
-
-    def lstat(path, *args, **kwargs):
-        return _lstat(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.lstat = lstat
-
-    _mkdir = os.mkdir
-
-    def mkdir(path, mode=0o777, *args, **kwargs):
-        return _mkdir(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
-
-    os.mkdir = mkdir
-
-    _makedirs = os.makedirs
-
-    def makedirs(path, mode=0o777, *args, **kwargs):
-        return _makedirs(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
-
-    os.makedirs = makedirs
-
-    _remove = os.remove
-
-    def remove(path, *args, **kwargs):
-        return _remove(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.remove = retry_sharing_violation_factory(remove)
-
-    _rename = os.rename
-
-    def rename(src, dst, *args, **kwargs):
-        src, dst = [make_win32_compatible_long_path(path) for path in (src, dst)]
-        return _rename(src, dst, *args, **kwargs)
-
-    os.rename = retry_sharing_violation_factory(rename)
-
-    _stat = os.stat
-
-    def stat(path, *args, **kwargs):
-        return _stat(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.stat = stat
-
-    _unlink = os.unlink
-
-    def unlink(path, *args, **kwargs):
-        return _unlink(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    os.unlink = retry_sharing_violation_factory(unlink)
-
-    _GetShortPathName = win32api.GetShortPathName
-
-    def GetShortPathName(path, *args, **kwargs):
-        return _GetShortPathName(make_win32_compatible_long_path(path), *args, **kwargs)
-
-    win32api.GetShortPathName = GetShortPathName
 else:
 
     def listdir(path, *args, **kwargs):
         paths = _listdir(path, *args, **kwargs)
         if isinstance(path, str):
-            # Undecodable filenames will still be string objects. Ignore them.
+            # Undecodable filenames will still be string objects. Ignore them.  # noqa: SC100
             paths = [path for path in paths if isinstance(path, str)]
         return paths
 
-
-os.listdir = listdir
+    os.listdir = listdir
 
 
 def quote_args(args):
     """Quote commandline arguments where needed. It quotes all arguments that
-    contain spaces or any of the characters ^!$%&()[]{}=;'+,`~"""
+    contain spaces or any of the characters ^!$%&()[]{}=;'+,`~
+
+    Parameters:
+    args (list of str): List of commandline arguments to be quoted.
+
+    Returns:
+    list of str: List of quoted commandline arguments.
+    """
     args_out = []
     for arg in args:
         if re.search(r"[\^!$%&()[\]{}=;'+,`~\s]", arg):
@@ -460,17 +395,6 @@ def listdir_re(path, rex=None):
         rex = re.compile(rex, re.IGNORECASE)
         files = list(filter(rex.search, files))
     return files
-
-
-def make_win32_compatible_long_path(path, maxpath=259):
-    if (
-        sys.platform == "win32"
-        and len(str(path)) > maxpath
-        and os.path.isabs(path)
-        and not str(path).startswith("\\\\?\\")
-    ):
-        path = "\\\\?\\" + path
-    return path
 
 
 def mkstemp_bypath(path, dir=None, text=False):

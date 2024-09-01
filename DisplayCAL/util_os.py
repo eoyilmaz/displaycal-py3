@@ -1,32 +1,47 @@
 # -*- coding: utf-8 -*-
 
-import fnmatch
+from DisplayCAL.encoding import get_encodings
+import sys
+if sys.platform == "win32":
+    from win32file import (
+        CloseHandle,
+        CreateFile,
+        CreateFileW,
+        DeviceIoControl,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        FILE_FLAG_OPEN_REPARSE_POINT,
+        GENERIC_READ,
+        GetFileAttributes,
+        OPEN_EXISTING
+    )
+    from winioctlcon import FSCTL_GET_REPARSE_POINT
+    import pywintypes
+    import win32api
+    import win32con
+    import win32file
+    import winerror
+if sys.platform != "win32":
+    import fcntl
+if sys.platform not in ("darwin", "win32"):
+    # Linux
+    import grp
+    import pwd
+import builtins
 import ctypes
 import errno
+import fnmatch
 import glob
+import importlib
 import locale  # noqa: F401
+import msvcrt
 import os
 import pathlib
 import re
 import shutil
 import struct
 import subprocess as sp
-import sys
 import tempfile
 import time
-import importlib
-import builtins
-if sys.platform == "win32":
-    import win32api
-from DisplayCAL.encoding import get_encodings
-
-if sys.platform not in ("darwin", "win32"):
-    # Linux
-    import grp
-    import pwd
-
-if sys.platform != "win32":
-    import fcntl
 
 try:
     reloaded  # type: ignore
@@ -41,50 +56,34 @@ else:
     warnings.warn(
         "Module {} is being reloaded. This is NOT recommended.".format(__name__),
         RuntimeWarning,
-        stacklevel=2,  # Correct argument name
+        stacklevel=2,
     )
     warnings.warn(
         "Implicitly reloading builtins",
         RuntimeWarning,
-        stacklevel=2,  # Correct argument name
+        stacklevel=2,
     )
     if sys.platform == "win32":
         importlib.reload(builtins)
     warnings.warn(
         "Implicitly reloading os",
         RuntimeWarning,
-        stacklevel=2,  # Correct argument name
+        stacklevel=2,
     )
     importlib.reload(os)
     warnings.warn(
         "Implicitly reloading os.path",
         RuntimeWarning,
-        stacklevel=2,  # Correct argument name
+        stacklevel=2,
     )
     importlib.reload(os.path)
     if sys.platform == "win32":
         warnings.warn(
             "Implicitly reloading win32api",
             RuntimeWarning,
-            stacklevel=2,  # Correct argument name
+            stacklevel=2,
         )
         importlib.reload(win32api)
-
-if sys.platform == "win32":
-    from win32file import (
-        CreateFile,
-        DeviceIoControl,
-        CloseHandle,
-        GENERIC_READ,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
-        FILE_FLAG_OPEN_REPARSE_POINT,
-    )
-    from winioctlcon import FSCTL_GET_REPARSE_POINT
-    import win32file
-    import win32con
-    import pywintypes
-    import winerror
 
 # Cache used for safe_shell_filter() function
 _cache = {}
@@ -94,13 +93,15 @@ FILE_ATTRIBUTE_REPARSE_POINT = 1024
 IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # Junction
 IO_REPARSE_TAG_SYMLINK = 0xA000000C
 
-
 fs_enc = get_encodings()[1]
 
 _listdir = os.listdir
 
 if sys.platform == "win32":
-    # retry ERROR_SHARING_VIOLATION
+    # Add support for long paths (> 260 chars)
+    # and retry ERROR_SHARING_VIOLATION
+
+    _open = builtins.open
 
     def retry_sharing_violation_factory(fn, delay=0.25, maxretries=20):
         def retry_sharing_violation(*args, **kwargs):
@@ -117,7 +118,99 @@ if sys.platform == "win32":
                     raise
 
         return retry_sharing_violation
+    def open(path, *args, **kwargs):
+        """Wrapper around __builtin__.open dealing with win32 long paths"""
+        return _open(make_win32_compatible_long_path(path), *args, **kwargs)
 
+    builtins.open = open
+
+    _access = os.access
+
+    def access(path, mode, *args, **kwargs):
+        return _access(make_win32_compatible_long_path(path), mode, *args, **kwargs)
+
+    os.access = access
+
+    _exists = os.path.exists
+
+    def exists(path, *args, **kwargs):
+        return _exists(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.path.exists = exists
+
+    _isdir = os.path.isdir
+
+    def isdir(path, *args, **kwargs):
+        return _isdir(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.path.isdir = isdir
+
+    _isfile = os.path.isfile
+
+    def isfile(path, *args, **kwargs):
+        return _isfile(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.path.isfile = isfile
+
+    def listdir(path, *args, **kwargs):
+        return _listdir(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    _lstat = os.lstat
+
+    def lstat(path, *args, **kwargs):
+        return _lstat(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.lstat = lstat
+
+    _mkdir = os.mkdir
+
+    def mkdir(path, mode=0o777, *args, **kwargs):
+        return _mkdir(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
+
+    os.mkdir = mkdir
+
+    _makedirs = os.makedirs
+
+    def makedirs(path, mode=0o777, *args, **kwargs):
+        return _makedirs(make_win32_compatible_long_path(path, 247), mode, *args, **kwargs)
+
+    os.makedirs = makedirs
+
+    _remove = os.remove
+
+    def remove(path, *args, **kwargs):
+        return _remove(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.remove = retry_sharing_violation_factory(remove)
+
+    _rename = os.rename
+
+    def rename(src, dst, *args, **kwargs):
+        src, dst = [make_win32_compatible_long_path(path) for path in (src, dst)]
+        return _rename(src, dst, *args, **kwargs)
+
+    os.rename = retry_sharing_violation_factory(rename)
+
+    _stat = os.stat
+
+    def stat(path, *args, **kwargs):
+        return _stat(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.stat = stat
+
+    _unlink = os.unlink
+
+    def unlink(path, *args, **kwargs):
+        return _unlink(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    os.unlink = retry_sharing_violation_factory(unlink)
+
+    _GetShortPathName = win32api.GetShortPathName
+
+    def GetShortPathName(path, *args, **kwargs):
+        return _GetShortPathName(make_win32_compatible_long_path(path), *args, **kwargs)
+
+    win32api.GetShortPathName = GetShortPathName
 else:
 
     def listdir(path, *args, **kwargs):
@@ -127,7 +220,8 @@ else:
             paths = [path for path in paths if isinstance(path, str)]
         return paths
 
-    os.listdir = listdir
+
+os.listdir = listdir
 
 
 def quote_args(args):
@@ -390,25 +484,27 @@ def launch_file(filepath):
     """
     filepath = filepath.encode(fs_enc)
     retcode = None
-    kwargs = dict(stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    kwargs = {
+        "startupinfo": sp.STARTUPINFO(),
+        "shell": True,
+        "close_fds": True
+    }
+    kwargs["startupinfo"].dwFlags |= sp.STARTF_USESHOWWINDOW
+    kwargs["startupinfo"].wShowWindow = sp.SW_HIDE
+
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":
-        # for win32, we could use os.startfile, but then we'd not be able
-        # to return exitcode (does it matter?)
-        kwargs = {"startupinfo": sp.STARTUPINFO()}
-        kwargs["startupinfo"].dwFlags |= sp.STARTF_USESHOWWINDOW
-        kwargs["startupinfo"].wShowWindow = sp.SW_HIDE
-        kwargs["shell"] = True
-        kwargs["close_fds"] = True
-        retcode = sp.call('start "" "%s"' % filepath, **kwargs)
+        # for win32, we could use os.startfile, but then we'd not be able  # noqa: SC100
+        # to return exitcode (does it matter?)  # noqa: SC100
+        retcode = sp.call(f'start "" "{filepath}"', **kwargs)
     elif which("xdg-open"):
         retcode = sp.call(["xdg-open", filepath], **kwargs)
     return retcode
 
 
 def listdir_re(path, rex=None):
-    """Filter directory contents through a regular expression"""
+    """Filter directory contents through a regular expression."""
     files = os.listdir(path)
     if rex:
         rex = re.compile(rex, re.IGNORECASE)
@@ -416,11 +512,30 @@ def listdir_re(path, rex=None):
     return files
 
 
-def mkstemp_bypath(path, dir=None, text=False):
-    """Wrapper around mkstemp that uses filename and extension from path as prefix
-    and suffix for the temporary file, and the directory component as temporary
-    file directory if 'dir' is not given.
+def make_win32_compatible_long_path(path, maxpath=259):
+    if (
+        sys.platform == "win32"
+        and len(str(path)) > maxpath
+        and os.path.isabs(path)
+        and not str(path).startswith("\\\\?\\")
+    ):
+        path = "\\\\?\\" + path
+    return path
 
+
+def mkstemp_bypath(path, dir=None, text=False):
+    """Wrap around mkstemp.
+
+    Uses filename and extension from path as prefix and suffix for the temporary file.
+
+    Args:
+        path (str): The path to use for generating the temporary file name.
+        dir (str, optional): The directory in which to create the temporary file.
+                         Defaults to None.
+        text (bool, optional): Whether to open the file in text mode. Defaults to False.
+
+    Returns:
+        tuple: A tuple containing the file descriptor and the path of the temporary file.
     """
     fname, ext = fname_ext(path)
     if not dir:
@@ -434,6 +549,7 @@ def mkstemp_bypath(path, dir=None, text=False):
 if sys.platform != "win32":
     import fcntl as _fcntl
 
+
 def _set_cloexec(fd):
     if sys.platform != "win32":
         try:
@@ -445,23 +561,32 @@ def _set_cloexec(fd):
             flags |= _fcntl.FD_CLOEXEC
             _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
 
+
 def mksfile(filename):
-    """Create a file safely and return (fd, abspath)
+    """Create a file safely and return (fd, abspath).
 
     If filename already exists, add '(n)' as suffix before extension (will try up to os.TMP_MAX or 10000 for n)
 
-    Basically, this works in a similar way as _mkstemp_inner from the
-    standard library 'tempfile' module.
-    """
+    Args:
+        filename (str): The name of the file to be created.
 
-    flags = tempfile._bin_openflags
+    Returns:
+        tuple: A tuple containing the file descriptor and the absolute path of the created file.
+
+    Raises:
+        IOError: If no usable temporary file name is found.
+        OSError: If an OS error occurs during file creation.
+    """
+    flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
+    if hasattr(os, 'O_BINARY'):
+        flags |= os.O_BINARY
 
     fname, ext = os.path.splitext(filename)
     for seq in range(tempfile.TMP_MAX):
         if not seq:
             pth = filename
         else:
-            pth = "%s(%i)%s" % (fname, seq, ext)
+            pth = f"{fname}({seq}){ext}"
         try:
             fd = os.open(pth, flags, 0o600)
             _set_cloexec(fd)
@@ -491,7 +616,7 @@ def movefile(src, dst, overwrite=True):
 
 
 def putenvu(name, value):
-    """Unicode version of os.putenv (also correctly updates os.environ)"""
+    """Unicode version of os.putenv (also correctly updates os.environ)."""
     if sys.platform == "win32" and isinstance(value, str):
         ctypes.windll.kernel32.SetEnvironmentVariableW(str(name), value)
     else:
@@ -499,7 +624,7 @@ def putenvu(name, value):
 
 
 def parse_reparse_buffer(buf):
-    """Implementing the below in Python:
+    """Implement the below in Python:.
 
     typedef struct _REPARSE_DATA_BUFFER {
         ULONG  ReparseTag;
@@ -527,6 +652,11 @@ def parse_reparse_buffer(buf):
         } DUMMYUNIONNAME;
     } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
+    Args:
+        buf (bytes): The buffer to parse.
+
+    Returns:
+        dict: A dictionary containing the parsed reparse data.
     """
     # See https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/ntifs/ns-ntifs-_reparse_data_buffer
 
@@ -629,7 +759,6 @@ def relpath(path, start):
     elif start[: len(path)] == path:
         return os.path.sep.join([".."] * (len(start) - len(path)))
 
-
 def safe_glob(pathname):
     """Return a list of paths matching a pathname pattern.
 
@@ -645,7 +774,6 @@ def safe_glob(pathname):
 
     """
     return list(safe_iglob(pathname))
-
 
 def safe_iglob(pathname):
     """Return an iterator which yields the paths matching a pathname pattern.
@@ -690,7 +818,6 @@ def safe_iglob(pathname):
         for name in glob_in_dir(dirname, basename):
             yield os.path.join(dirname, name)
 
-
 def safe_glob1(dirname, pattern):
     if not dirname:
         dirname = os.curdir
@@ -703,7 +830,6 @@ def safe_glob1(dirname, pattern):
     if pattern[0] != ".":
         names = [x for x in names if x[0] != "."]
     return safe_shell_filter(names, pattern)
-
 
 def safe_shell_filter(names, pat):
     """Return the subset of the list NAMES that match PAT
@@ -737,7 +863,6 @@ def safe_shell_filter(names, pat):
                 result.append(name)
     return result
 
-
 def safe_translate(pat):
     """Translate a shell PATTERN to a regular expression.
 
@@ -759,7 +884,6 @@ def safe_translate(pat):
             translated = re.escape(component)
         components[i] = translated
     return re.escape(os.path.sep).join(components)
-
 
 def waccess(path, mode):
     """Test access to path"""
@@ -786,7 +910,6 @@ def waccess(path, mode):
         return os.access(path, mode)
     return True
 
-
 def which(executable, paths=None):
     """Return the full path of executable"""
     if not paths:
@@ -801,7 +924,6 @@ def which(executable, paths=None):
             except Exception:
                 pass
     return None
-
 
 def whereis(
     names,
@@ -850,7 +972,6 @@ def whereis(
         if match:
             result[match[0]] = match[-1].split()
     return result
-
 
 class FileLock(object):
     if sys.platform == "win32":
@@ -910,18 +1031,14 @@ class FileLock(object):
         except FileLock._exception_cls as exception:
             raise exception_cls(*exception.args)
 
-
 class Error(Exception):
     pass
-
 
 class LockingError(Error):
     pass
 
-
 class UnlockingError(Error):
     pass
-
 
 if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
 

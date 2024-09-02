@@ -3,6 +3,7 @@ certifi
 comtypes; sys_platform=='win32'
 dbus-python; sys_platform=='linux'
 distro
+msvcrt
 numpy
 Pillow
 PyChromecast

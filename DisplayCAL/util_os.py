@@ -22,6 +22,7 @@ from DisplayCAL.encoding import get_encodings
 if sys.platform == "win32":
     from win32file import GetFileAttributes
     from winioctlcon import FSCTL_GET_REPARSE_POINT
+    import msvcrt
     import pywintypes
     import win32api
     import win32con
@@ -34,8 +35,6 @@ if sys.platform not in ("darwin", "win32"):
     # Linux
     import grp
     import pwd
-
-import msvcrt
 
 try:
     reloaded  # type: ignore

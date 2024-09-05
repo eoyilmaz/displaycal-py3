@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
+
 import codecs
 
 from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.dev.mocks import check_call
-from tests.data.display_data import DisplayData
 from DisplayCAL.edid import parse_edid, parse_manufacturer_id
+
+from tests.data.display_data import DisplayData
 
 
 def test_get_edid_1():
-    """Testing DisplayCAL.colord.device_id_from_edid() function."""
     from DisplayCAL.edid import get_edid
-
     RealDisplaySizeMM._displays = None
     assert RealDisplaySizeMM._displays is None
     with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-        with check_call(
-            RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
-        ):
+        print("Before calling _enumerate_displays")
+        with check_call(RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()):
+            print("After calling _enumerate_displays")
             result = get_edid(0)
     assert isinstance(result, dict)
     assert "blue_x" in result
@@ -74,7 +74,6 @@ def test_get_edid_1():
 
 
 def test_get_edid_2():
-    """Testing DisplayCAL.colord.device_id_from_edid() function."""
     from DisplayCAL.edid import parse_edid
 
     edid = DisplayData.DISPLAY_DATA_2["edid"]
@@ -83,29 +82,28 @@ def test_get_edid_2():
     assert result == DisplayData.DISPLAY_DATA_2
 
 
-# def test_get_edid_3():
-#     """Testing DisplayCAL.colord.device_id_from_edid() function."""
-#     from DisplayCAL import RealDisplaySizeMM as RDSMM
+# def test_get_edid_3():                                                   # noqa: SC100
+#     from DisplayCAL import RealDisplaySizeMM as RDSMM                    # noqa: SC100
 #     from DisplayCAL import config
 #
-#     config.initcfg()
-#     display = RDSMM.get_display(0)
-#     edid = display.get("edid")
-#     assert isinstance(edid, str)
-#     edid = edid.encode("utf-8")
+#     config.initcfg()                                                     # noqa: SC100
+#     display = RDSMM.get_display(0)                                       # noqa: SC100
+#     edid = display.get("edid")                                           # noqa: SC100
+#     assert isinstance(edid, str)                                         # noqa: SC100
+#     edid = edid.encode("utf-8")                                          # noqa: SC100
 #
-#     # assert len(edid) == 256
-#     assert edid == (
-#         b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04\xb57\x1fx:U"
-#         b"\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80\xd1\xc0\x01\x01\x01\x01\x01\x01"
-#         b"\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00"
-#         b"TYPR371U504L\n\x00\x00\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX"
-#         b"\x19\x01\n      \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06"
-#         b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E"
-#         b"\x00)7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a\x01\x1d\x00rQ"
-#         b"\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808\x13@0 :\x00)7!\x00\x00"
-#         b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-#         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"
+#     # assert len(edid) == 256                                            # noqa: SC100
+#     assert edid == (                                                     # noqa: SC100
+#         b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04\xb57\x1fx:U"  # noqa: SC100
+#         b"\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80\xd1\xc0\x01\x01\x01\x01\x01\x01"  # noqa: SC100
+#         b"\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00"  # noqa: SC100
+#         b"TYPR371U504L\n\x00\x00\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX"  # noqa: SC100
+#         b"\x19\x01\n      \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06"  # noqa: SC100
+#         b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E"  # noqa: SC100
+#         b"\x00)7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a\x01\x1d\x00rQ"  # noqa: SC100
+#         b"\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808\x13@0 :\x00)7!\x00\x00"  # noqa: SC100
+#         b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"  # noqa: SC100
+#         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"                      # noqa: SC100
 #     )
 
 
@@ -169,7 +167,7 @@ def test_parse_edid_1():
 
 
 def test_parse_edid_2():
-    """Testing DisplayCAL.edid.parse_edid() function. for #50"""
+    """Testing DisplayCAL.edid.parse_edid() function. for #50."""
     xrandr_edid_data = """
                 00ffffffffffff0004725805436e6072
                 1a1b0103805e35782aa191a9544d9c26
@@ -323,18 +321,18 @@ def test_parse_edid_4():
         "checksum": 44,
         "checksum_valid": True,
         "edid": (
-        b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04"
-        b"\xb57\x1fx:U\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80"
-        b"\xd1\xc0\x01\x01\x01\x01\x01\x01\x01\x01V^\x00\xa0\xa0\xa0)P0 "
-        b"5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00TYPR371U504L\n\x00\x00"
-        b"\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX\x19\x01\n    "
-        b"  \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06\x11\x12"
-        b"\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E\x00"
-        b")7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a"
-        b"\x01\x1d\x00rQ\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808"
-        b"\x13@0 :\x00)7!\x00\x00\x1a\x00\x00\x00\x00\x00\x00\x00\x00"
-        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-        b"\x00\x00\x00\x86"
+            b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04"
+            b"\xb57\x1fx:U\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80"
+            b"\xd1\xc0\x01\x01\x01\x01\x01\x01\x01\x01V^\x00\xa0\xa0\xa0)P0 "
+            b"5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00TYPR371U504L\n\x00\x00"
+            b"\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX\x19\x01\n    "
+            b"  \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06\x11\x12"
+            b"\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E\x00"
+            b")7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a"
+            b"\x01\x1d\x00rQ\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808"
+            b"\x13@0 :\x00)7!\x00\x00\x1a\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x86"
         ),
         "edid_revision": 4,
         "edid_version": 1,

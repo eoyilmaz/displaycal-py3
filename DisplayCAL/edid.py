@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from hashlib import md5
 import codecs
 import math
 import os
@@ -9,41 +8,33 @@ import string
 import struct
 import sys
 import warnings
-
-if sys.platform == "win32":
-    from threading import _MainThread, currentThread
-
-    wmi = None
-    if sys.getwindowsversion() >= (6,):
-        # Use WMI for Vista/Win7
-        import pythoncom
-
-        try:
-            import wmi
-        except Exception:
-            pass
-    else:
-        # Use registry as fallback for Win2k/XP/2003
-        import winreg
-    import pywintypes
-    import win32api
-elif sys.platform == "darwin":
-    import binascii
-    import subprocess as sp
+from hashlib import md5
 
 from DisplayCAL import config
-from DisplayCAL.config import enc
-from DisplayCAL.log import log
 from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
 
 if sys.platform == "win32":
     from DisplayCAL import util_win
+    import pythoncom
+    import threading
+    # Use registry as fallback for Win2k/XP/2003                           # noqa: SC100
+    import winreg
+    wmi = None
+    if sys.getwindowsversion() >= (6,):
+        # Use WMI for Vista/Win7                                           # noqa: SC100
+        try:
+            import wmi
+        except Exception:
+            pass
 elif sys.platform != "darwin":
     try:
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
-        warnings.warn(str(exception), Warning)
+        warnings.warn(str(exception), Warning, stacklevel=2)
         RDSMM = None
+elif sys.platform == "darwin":
+    import binascii
+    import subprocess as sp
 
 HEADER = (0, 8)
 MANUFACTURER_ID = (8, 10)
@@ -88,142 +79,173 @@ def combine_hi_8lo(hi, lo):
 
 
 def get_edid(display_no=0, display_name=None, device=None):
-    """Get and parse EDID. Return dict.
+    """
+    Get and parse EDID. Return dict.
 
     On Mac OS X, you need to specify a display name.
     On all other platforms, you need to specify a display number (zero-based).
-
     """
     edid = None
+
     if sys.platform == "win32":
-        if not device:
-            # The ordering will work as long as Argyll continues using
-            # EnumDisplayMonitors
-            monitors = util_win.get_real_display_devices_info()
-            moninfo = monitors[display_no]
-            device = util_win.get_active_display_device(moninfo["Device"])
-        if not device:
-            return {}
-        id = device.DeviceID.split("\\")[1]
-        wmi_connection = None
-        not_main_thread = currentThread().__class__ is not _MainThread
-        if wmi:
-            if not_main_thread:
-                pythoncom.CoInitialize()
-            wmi_connection = wmi.WMI(namespace="WMI")
-        if wmi_connection:
-            # Use WMI for Vista/Win7
-            # http://msdn.microsoft.com/en-us/library/Aa392707
-            try:
-                msmonitors = wmi_connection.WmiMonitorDescriptorMethods()
-            except Exception as exception:
-                if not_main_thread:
-                    pythoncom.CoUninitialize()
-                raise WMIError(safe_str(exception))
-            for msmonitor in msmonitors:
-                if msmonitor.InstanceName.split("\\")[1] == id:
-                    try:
-                        edid = msmonitor.WmiGetMonitorRawEEdidV1Block(0)
-                    except Exception:
-                        # No EDID entry
-                        pass
-                    else:
-                        edid = "".join(chr(i) for i in edid[0])
-                    break
-            if not_main_thread:
-                pythoncom.CoUninitialize()
-        elif sys.getwindowsversion() < (6,):
-            # Use registry as fallback for Win2k/XP/2003
-            # http://msdn.microsoft.com/en-us/library/ff546173%28VS.85%29.aspx
-            # "The Enum tree is reserved for use by operating system components,
-            #  and its layout is subject to change. (...) Drivers and Windows
-            #  applications must not access the Enum tree directly."
-            # But do we care? Probably not, as older Windows' API isn't likely
-            # gonna change.
-            driver = "\\".join(device.DeviceID.split("\\")[-2:])
-            subkey = "\\".join(["SYSTEM", "CurrentControlSet", "Enum", "DISPLAY", id])
-            try:
-                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
-            except WindowsError:
-                # Registry error
-                print(
-                    "Windows registry error: Key",
-                    "\\".join(["HKEY_LOCAL_MACHINE", subkey]),
-                    "does not exist.",
-                )
-                return {}
-            numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)
-            for i in range(numsubkeys):
-                hkname = winreg.EnumKey(key, i)
-                hk = winreg.OpenKey(
-                    winreg.HKEY_LOCAL_MACHINE, "\\".join([subkey, hkname])
-                )
-                try:
-                    test = winreg.QueryValueEx(hk, "Driver")[0]
-                except WindowsError:
-                    # No Driver entry
-                    continue
-                if test == driver:
-                    # Found our display device
-                    try:
-                        devparms = winreg.OpenKey(
-                            winreg.HKEY_LOCAL_MACHINE,
-                            "\\".join([subkey, hkname, "Device Parameters"]),
-                        )
-                    except WindowsError:
-                        # No Device Parameters (registry error?)
-                        print(
-                            "Windows registry error: Key",
-                            "\\".join(
-                                [
-                                    "HKEY_LOCAL_MACHINE",
-                                    subkey,
-                                    hkname,
-                                    "Device Parameters",
-                                ]
-                            ),
-                            "does not exist.",
-                        )
-                        continue
-                    try:
-                        edid = winreg.QueryValueEx(devparms, "EDID")[0]
-                    except WindowsError:
-                        # No EDID entry
-                        pass
-        else:
-            raise WMIError("No WMI connection")
+        edid = get_edid_windows(display_no, device)
     elif sys.platform == "darwin":
-        # Get EDID via ioreg
-        p = sp.Popen(["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=sp.PIPE)
-        stdout, stderr = p.communicate()
-        if stdout:
-            for edid in [
-                binascii.unhexlify(edid_hex)
-                for edid_hex in re.findall(
-                    r'"IODisplayEDID"\s*=\s*<([0-9A-Fa-f]*)>', stdout.decode()
-                )
-            ]:
-                if edid and len(edid) >= 128:
-                    parsed_edid = parse_edid(edid)
-                    if (
-                        parsed_edid.get("monitor_name", parsed_edid.get("ascii"))
-                        == display_name
-                    ):
-                        # On Mac OS X, you need to specify a display name
-                        # because the order is unknown
-                        return parsed_edid
-        return {}
+        edid = get_edid_darwin(display_name)
     elif RDSMM:
-        display = RDSMM.get_display(display_no)
-        if display:
-            edid = display.get("edid")
+        edid = get_edid_rdsmm(display_no)
+
     if edid and len(edid) >= 128:
         return parse_edid(edid)
+
     return {}
 
 
+def get_edid_windows(display_no, device):
+    edid = None
+
+    if not device:
+        # The ordering will work as long as Argyll continues using         # noqa: SC100
+        # EnumDisplayMonitors
+        monitors = util_win.get_real_display_devices_info()
+        moninfo = monitors[display_no]
+        device = util_win.get_active_display_device(moninfo["Device"])
+
+    if not device:
+        return None
+
+    id = device.DeviceID.split("\\")[1]
+    wmi_connection = None
+    not_main_thread = not isinstance(threading.current_thread(), threading.Thread)
+
+    if wmi:
+        if not_main_thread:
+            pythoncom.CoInitialize()
+        wmi_connection = wmi.WMI(namespace="WMI")
+
+    if wmi_connection:
+        return get_edid_windows_wmi(id, wmi_connection, not_main_thread)
+    elif sys.getwindowsversion() < (6,):
+        return get_edid_windows_registry(id, device)
+    else:
+        raise WMIError("No WMI connection")
+
+    return edid
+
+
+def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
+    edid = None
+
+    # Use WMI for Vista/Win7                                               # noqa: SC100
+    # http://msdn.microsoft.com/en-us/library/Aa392707
+    try:
+        msmonitors = wmi_connection.WmiMonitorDescriptorMethods()
+    except Exception as exception:
+        if not_main_thread:
+            pythoncom.CoUninitialize()
+        raise WMIError(safe_str(exception))
+
+    for msmonitor in msmonitors:
+        if msmonitor.InstanceName.split("\\")[1] == id:
+            try:
+                edid = msmonitor.WmiGetMonitorRawEEdidV1Block(0)
+            except Exception:
+                # No EDID entry                                            # noqa: SC100
+                pass
+            else:
+                edid = "".join(chr(i) for i in edid[0])
+                break
+
+    if not_main_thread:
+        pythoncom.CoUninitialize()
+
+    return edid
+
+
+def get_edid_windows_registry(id, device):
+    edid = None
+
+    # Use registry as fallback for Win2k/XP/2003                           # noqa: SC100
+    # http://msdn.microsoft.com/en-us/library/ff546173%28VS.85%29.aspx
+    # "The Enum tree is reserved for use by operating system components,
+    #  and its layout is subject to change. (...)
+    #  Drivers and Windows applications must not access the Enum tree directly."
+    # But do we care?
+    # Probably not, as older Windows' API isn't likely gonna change.
+    driver = "\\".join(device.DeviceID.split("\\")[-2:])
+    subkey = "\\".join(["SYSTEM", "CurrentControlSet", "Enum", "DISPLAY", id])
+
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
+    except WindowsError:
+        # Registry error
+        print("Windows registry error: Key", "\\".join(["HKEY_LOCAL_MACHINE", subkey]),
+              "does not exist.")
+        return None
+
+    numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)
+
+    for i in range(numsubkeys):
+        hkname = winreg.EnumKey(key, i)
+        hk = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, "\\".join([subkey, hkname]))
+
+        try:
+            test = winreg.QueryValueEx(hk, "Driver")[0]
+        except WindowsError:
+            # No Driver entry
+            continue
+
+        if test == driver:
+            # Found our display device
+            try:
+                devparms = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                          "\\".join([subkey, hkname,
+                                                     "Device Parameters"]))
+            except WindowsError:
+                # No Device Parameters (registry error?)
+                print("Windows registry error: Key",
+                      "\\".join(["HKEY_LOCAL_MACHINE", subkey, hkname,
+                                 "Device Parameters"]), "does not exist.")
+                continue
+
+            try:
+                edid = winreg.QueryValueEx(devparms, "EDID")[0]
+            except WindowsError:
+                # No EDID entry                                            # noqa: SC100
+                pass
+            else:
+                return edid
+
+    return edid
+
+def get_edid_darwin(display_name):
+    # Get EDID via ioreg                                                   # noqa: SC100
+    p = sp.Popen(["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=sp.PIPE)
+    stdout, stderr = p.communicate()
+
+    if stdout:
+        for edid in [binascii.unhexlify(edid_hex) for edid_hex in
+                     re.findall(r'"IODisplayEDID"\s*=\s*<([0-9A-Fa-f]*)>',
+                                stdout.decode())]:
+            if edid and len(edid) >= 128:
+                parsed_edid = parse_edid(edid)
+                if parsed_edid.get("monitor_name",
+                                   parsed_edid.get("ascii")) == display_name:
+                    # On Mac OS X,
+                    # you need to specify a display name because the order is unknown
+                    return parsed_edid
+
+        return {}
+
+def get_edid_rdsmm(display_no):
+    display = RDSMM.get_display(display_no)
+    if display:
+        return display.get("edid")
+    return None
+
+
 def parse_manufacturer_id(block):
-    """Parse the manufacturer id and return decoded string.
+    """
+    Parse the manufacturer id and return decoded string.
 
     The range is always ASCII charcode 64 to 95.
     """
@@ -235,29 +257,30 @@ def parse_manufacturer_id(block):
 
 
 def get_manufacturer_name(manufacturer_id):
-    """Try and get a nice descriptive string for our manufacturer id.
+    """
+    Try and get a nice descriptive string for our manufacturer id.
+
     This uses either hwdb or pnp.ids which will be looked for in several places.
     If it can't find the file, it returns None.
 
     Examples:
-    SAM -> Samsung Electric Company
-    NEC -> NEC Corporation
+        SAM -> Samsung Electric Company
+        NEC -> NEC Corporation
 
     hwdb/pnp.ids can be created from Excel data available from uefi.org:
-    http://www.uefi.org/PNP_ACPI_Registry
-    http://www.uefi.org/uefi-pnp-export
-    http://www.uefi.org/uefi-acpi-export
+        http://www.uefi.org/PNP_ACPI_Registry
+        http://www.uefi.org/uefi-pnp-export
+        http://www.uefi.org/uefi-acpi-export
 
-    But it is probably a better idea to use HWDB as it contains various
-    additions from other sources:
-    https://github.com/systemd/systemd/blob/master/hwdb/20-acpi-vendor.hwdb
-
+    But it is probably a better idea to use HWDB as it contains various additions from
+    other sources:
+        https://github.com/systemd/systemd/blob/master/hwdb/20-acpi-vendor.hwdb
     """
     if not pnpidcache:
         paths = [
-            "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",  # systemd
-            "/usr/share/hwdata/pnp.ids",  # hwdata, e.g. Red Hat
-            "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
+            "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",  # systemd         # noqa: SC100
+            "/usr/share/hwdata/pnp.ids",  # hwdata, e.g. Red Hat           # noqa: SC100
+            "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian            # noqa: SC100
             "/usr/share/libgnome-desktop/pnp.ids",
         ]  # fallback gnome-desktop
         if sys.platform in ("darwin", "win32"):
@@ -318,10 +341,11 @@ def edid_decode_fraction(high, low):
 
 
 def edid_parse_string(desc):
-    # Return value should match colord's cd_edid_parse_string in cd-edid.c
+    # Return value should match colord's cd_edid_parse_string in           # noqa: SC100
+    # cd-edid.c                                                            # noqa: SC100
     # Remember: In C, NULL terminates a string, so do the same here
-    # Replace newline with NULL, then strip anything after first NULL byte
-    # (if any), then strip trailing whitespace
+    # Replace newline with NULL, then strip anything after first NULL byte (if any),
+    # then strip trailing whitespace
     desc = strtr(desc[:13], {b"\n": b"\x00", b"\r": b"\x00"}).split(b"\x00")[0].rstrip()
     if desc:
         # Replace all non-printable chars with NULL
@@ -339,30 +363,30 @@ def parse_edid(edid):
         # this is probably encoded/decoded in a wrong way and contains 2-bytes
         # characters
         #
-        # b"\xc2" and b"\xc3" are codepoints
+        # b"\xc2" and b"\xc3" are codepoints                               # noqa: SC100
         # they can only appear if the byte data is decoded with latin-1 and encoded back
         # with utf-8.
         # This apparently is a wrong conversion.
         edid = edid.decode("utf-8").encode("latin-1")
 
-    # Ensure edid is bytes
+    # Ensure edid is bytes                                                 # noqa: SC100
     if isinstance(edid, str):
         edid = edid.encode("latin-1")
 
     result = {
         "edid": edid,
         "hash": md5(edid).hexdigest(),
-        "header": edid[HEADER[0] : HEADER[1]],
+        "header": edid[HEADER[0]: HEADER[1]],
         "manufacturer_id": parse_manufacturer_id(
-            edid[MANUFACTURER_ID[0] : MANUFACTURER_ID[1]]
+            edid[MANUFACTURER_ID[0]: MANUFACTURER_ID[1]]
         ),
     }
     manufacturer = get_manufacturer_name(result["manufacturer_id"])
     if manufacturer:
         result["manufacturer"] = manufacturer
 
-    result["product_id"] = struct.unpack("<H", edid[PRODUCT_ID[0] : PRODUCT_ID[1]])[0]
-    result["serial_32"] = struct.unpack("<I", edid[SERIAL_32[0] : SERIAL_32[1]])[0]
+    result["product_id"] = struct.unpack("<H", edid[PRODUCT_ID[0]: PRODUCT_ID[1]])[0]
+    result["serial_32"] = struct.unpack("<I", edid[SERIAL_32[0]: SERIAL_32[1]])[0]
     result["week_of_manufacture"] = edid[WEEK_OF_MANUFACTURE]
     result["year_of_manufacture"] = edid[YEAR_OF_MANUFACTURE] + 1990
     result["edid_version"] = edid[EDID_VERSION]
@@ -413,15 +437,15 @@ def parse_edid(edid):
         if block[:BLOCK_TYPE] != b"\x00\x00\x00":
             # Ignore pixel clock data
             continue
-        text_type = text_types.get(block[BLOCK_TYPE : BLOCK_TYPE + 1])
+        text_type = text_types.get(block[BLOCK_TYPE: BLOCK_TYPE + 1])
         if text_type:
-            desc = edid_parse_string(block[BLOCK_CONTENTS[0] : BLOCK_CONTENTS[1]])
+            desc = edid_parse_string(block[BLOCK_CONTENTS[0]: BLOCK_CONTENTS[1]])
             if desc is not None:
                 result[text_type] = desc.decode("utf-8")
         elif block[BLOCK_TYPE] == BLOCK_TYPE_COLOR_POINT:
             for i in (5, 10):
-                # 2nd white point index in range 1...255
-                # 3rd white point index in range 2...255
+                # 2nd white point index in range 1...255                   # noqa: SC100
+                # 3rd white point index in range 2...255                   # noqa: SC100
                 # 0 = do not use
                 if block[i] > i / 5:
                     white_x = edid_decode_fraction(
@@ -443,9 +467,8 @@ def parse_edid(edid):
                             result["gamma"] = gamma
         elif block[BLOCK_TYPE] == BLOCK_TYPE_COLOR_MANAGEMENT_DATA:
             # TODO: Implement? How could it be used?
-            result["color_management_data"] = block[
-                                              BLOCK_CONTENTS[0] : BLOCK_CONTENTS[1]
-                                              ]
+            result["color_management_data"] = block[BLOCK_CONTENTS[0]:
+                                                    BLOCK_CONTENTS[1]]
 
     result["ext_flag"] = edid[EXTENSION_FLAG]
     result["checksum"] = edid[CHECKSUM]

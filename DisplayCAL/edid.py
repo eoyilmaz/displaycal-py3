@@ -128,6 +128,9 @@ def get_edid_windows(display_no, device):
 
     Returns:
         bytes: The EDID data.
+
+    Raises:
+        WMIError: If there is an error with WMI.
     """
     edid = None
 
@@ -171,6 +174,9 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
 
     Returns:
         bytes: The EDID data.
+
+    Raises:
+        WMIError: If there is an error with WMI.
     """
     edid = None
 
@@ -497,7 +503,7 @@ def edid_decode_fraction(high, low):
     return result
 
 
-def edid_parse_string(desc: bytes) -> bytes:
+def edid_parse_string(desc):
     """
     Parse a string from EDID data.
 
@@ -510,33 +516,31 @@ def edid_parse_string(desc: bytes) -> bytes:
     # Return value should match colord's cd_edid_parse_string in           # noqa: SC100
     # cd-edid.c                                                            # noqa: SC100
     # Remember: In C, NULL terminates a string, so do the same here
-    # Step 1: Replace newline with NULL
+    # Replace newline with NULL
     desc = desc[:13].replace(b'\n', b'\x00').replace(b'\r', b'\x00')
 
-    # Step 2: Strip anything after the first NULL byte (if any)
+    # Strip anything after the first NULL byte (if any)
     null_index: int = desc.find(b'\x00')
     if null_index != -1:
         desc = desc[:null_index]
 
-    # Step 3: Strip trailing whitespace
+    # Strip trailing whitespace
     desc = desc.rstrip()
 
-    # Step 4: Replace all non-printable chars with NULL
+    # Replace all non-printable chars with NULL
     desc = bytearray(desc)
-    replaced_count = 0
+    non_printable_count = 0
     for i in range(len(desc)):
-        if not (32 <= desc[i] <= 126):  # ASCII printable range
+        if desc[i] < 32 or desc[i] > 126:
             desc[i] = 0
-            replaced_count += 1
+            non_printable_count += 1
 
-    # Step 5: Only use the string if it has a maximum of 4 replaced characters
-    if replaced_count > 4:
-        return b''
+    # Only use string if max 4 replaced chars
+    if non_printable_count <= 4:
 
-    # Step 6: Replace any NULL chars with dashes to make a printable string
-    desc = desc.replace(b'\x00', b'-')
-
-    return bytes(desc)
+        # Replace any NULL chars with dashes to make a printable string
+        desc = desc.replace(b'\x00', b'-')
+        return bytes(desc)
 
 
 def parse_edid(edid):

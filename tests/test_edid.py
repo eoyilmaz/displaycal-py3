@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""This module contains tests for the EDID parsing functionality in DisplayCAL."""
 import codecs
+import sys
 
 from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.dev.mocks import check_call
@@ -10,13 +11,22 @@ from tests.data.display_data import DisplayData
 
 
 def test_get_edid_1():
+    """Test the get_edid function to ensure it returns the correct EDID data."""
     from DisplayCAL.edid import get_edid
+
     RealDisplaySizeMM._displays = None
     assert RealDisplaySizeMM._displays is None
+
     with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-        print("Before calling _enumerate_displays")
-        with check_call(RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()):
-            print("After calling _enumerate_displays")
+
+        if sys.platform.startswith("linux"):
+            with check_call(
+                RealDisplaySizeMM,
+                "_enumerate_displays",
+                DisplayData.enumerate_displays(),
+            ):
+                result = get_edid(0)
+        else:
             result = get_edid(0)
     assert isinstance(result, dict)
     assert "blue_x" in result
@@ -74,6 +84,7 @@ def test_get_edid_1():
 
 
 def test_get_edid_2():
+    """Test the parse_edid function to ensure it correctly parses EDID data."""
     from DisplayCAL.edid import parse_edid
 
     edid = DisplayData.DISPLAY_DATA_2["edid"]
@@ -82,29 +93,29 @@ def test_get_edid_2():
     assert result == DisplayData.DISPLAY_DATA_2
 
 
-# def test_get_edid_3():                                                   # noqa: SC100
-#     from DisplayCAL import RealDisplaySizeMM as RDSMM                    # noqa: SC100
-#     from DisplayCAL import config
+# def test_get_edid_3():                                                                # noqa: SC100
+#   from DisplayCAL import RealDisplaySizeMM as RDSMM                                   # noqa: SC100
+#   from DisplayCAL import config
 #
-#     config.initcfg()                                                     # noqa: SC100
-#     display = RDSMM.get_display(0)                                       # noqa: SC100
-#     edid = display.get("edid")                                           # noqa: SC100
-#     assert isinstance(edid, str)                                         # noqa: SC100
-#     edid = edid.encode("utf-8")                                          # noqa: SC100
+#   config.initcfg()                                                                    # noqa: SC100
+#   display = RDSMM.get_display(0)                                                      # noqa: SC100
+#   edid = display.get("edid")                                                          # noqa: SC100
+#   assert isinstance(edid, str)                                                        # noqa: SC100
+#   edid = edid.encode("utf-8")                                                         # noqa: SC100
 #
-#     # assert len(edid) == 256                                            # noqa: SC100
-#     assert edid == (                                                     # noqa: SC100
-#         b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04\xb57\x1fx:U"  # noqa: SC100
-#         b"\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80\xd1\xc0\x01\x01\x01\x01\x01\x01"  # noqa: SC100
-#         b"\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00"  # noqa: SC100
-#         b"TYPR371U504L\n\x00\x00\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX"  # noqa: SC100
-#         b"\x19\x01\n      \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06"  # noqa: SC100
-#         b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E"  # noqa: SC100
-#         b"\x00)7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a\x01\x1d\x00rQ"  # noqa: SC100
-#         b"\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808\x13@0 :\x00)7!\x00\x00"  # noqa: SC100
-#         b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"  # noqa: SC100
-#         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"                      # noqa: SC100
-#     )
+#   # assert len(edid) == 256                                                           # noqa: SC100
+#   assert edid == (                                                                    # noqa: SC100
+#     b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04\xb57\x1fx:U"  # noqa: SC100
+#     b"\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80\xd1\xc0\x01\x01\x01\x01\x01\x01"  # noqa: SC100
+#     b"\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00"         # noqa: SC100
+#     b"TYPR371U504L\n\x00\x00\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX"    # noqa: SC100
+#     b"\x19\x01\n      \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06"     # noqa: SC100
+#     b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E"        # noqa: SC100
+#     b"\x00)7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a\x01\x1d\x00rQ"    # noqa: SC100
+#     b"\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808\x13@0 :\x00)7!\x00\x00"    # noqa: SC100
+#     b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"   # noqa: SC100
+#     b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"                                       # noqa: SC100
+#   )
 
 
 def test_parse_edid_1():
@@ -246,13 +257,13 @@ def test_parse_edid_3():
     xrandr_edid_data = "".join(xrandr_edid_data.split("\n")).replace(" ", "").strip()
     raw_edid = codecs.decode(xrandr_edid_data, "hex")
     expected_raw_edid = (
-        b'\x00\xff\xff\xff\xff\xff\xff\x00\t\xe5\x12\x08\x00\x00\x00\x00'
+        b"\x00\xff\xff\xff\xff\xff\xff\x00\t\xe5\x12\x08\x00\x00\x00\x00"
         b'\x1f\x1c\x01\x04\xa5"\x13x\x03\t\x80\x95\\Z\x91)!PT\x00'
-        b'\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01'
-        b'\x01\x01\x03:\x806q8\x1e@0 6\x00X\xc2\x10\x00\x00\x1a'
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-        b'\x00\x00\x00\x00\x00\xfe\x00BOE CQ\n      \x00\x00\x00\xfe\x00NT1'
-        b'56FHM-N61\n\x00\xed'
+        b"\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+        b"\x01\x01\x03:\x806q8\x1e@0 6\x00X\xc2\x10\x00\x00\x1a"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\xfe\x00BOE CQ\n      \x00\x00\x00\xfe\x00NT1"
+        b"56FHM-N61\n\x00\xed"
     )
     assert raw_edid == expected_raw_edid
     assert len(raw_edid) == 128
@@ -264,8 +275,7 @@ def test_parse_edid_3():
         "blue_y": 0.12890625,
         "checksum": 237,
         "checksum_valid": True,
-        "edid":
-        b"\x00\xff\xff\xff\xff\xff\xff\x00\t\xe5\x12\x08\x00\x00\x00\x00"
+        "edid": b"\x00\xff\xff\xff\xff\xff\xff\x00\t\xe5\x12\x08\x00\x00\x00\x00"
         b'\x1f\x1c\x01\x04\xa5"\x13x\x03\t\x80\x95\\Z\x91)!PT\x00'
         b"\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
         b"\x01\x01\x03:\x806q8\x1e@0 6\x00X\xc2\x10\x00\x00\x1a"
@@ -300,19 +310,19 @@ def test_parse_edid_3():
 def test_parse_edid_4():
     """Testing DisplayCAL.edid.parse_edid() function. for #119."""
     raw_edid = (
-        b'\x00\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\x00\x10\xc2'
-        b'\xac\xc3\xa0@L405\x05\x1b\x01\x04\xc2\xb57\x1fx:U\xc3\x85\xc2\xafO3\xc2\xb8%'
-        b'\x0bPT\xc2\xa5K\x00qO\xc2\xa9@\xc2\x81\xc2\x80\xc3\x91\xc3\x80'
-        b'\x01\x01\x01\x01\x01\x01\x01\x01V^\x00\xc2\xa0\xc2\xa0\xc2\xa0)P0 5\x00)'
-        b'7!\x00\x00\x1a\x00\x00\x00\xc3\xbf\x00TYPR371U504L\n\x00\x00\x00\xc3'
-        b'\xbc\x00DELL UP2516D\n\x00\x00\x00\xc3\xbd\x002K\x1eX\x19\x01\n      \x01,'
-        b'\x02\x03\x1c\xc3\xb1O\xc2\x90\x05\x04\x03\x02\x07\x16\x01\x06'
-        b'\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\xc2\x83\x01\x00\x00\x02:\xc2\x80\x18q8-@'
-        b'X,E\x00)7!\x00\x00\x1e~9\x00\xc2\xa0\xc2\x808\x1f@0 :\x00)7!\x00'
-        b'\x00\x1a\x01\x1d\x00rQ\xc3\x90\x1e n(U\x00)7!\x00\x00\x1e\xc2\xbf\x16'
-        b'\x00\xc2\xa0\xc2\x808\x13@0 :\x00)7!\x00\x00\x1a\x00\x00\x00\x00\x00\x00'
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-        b'\x00\x00\x00\x00\x00\xc2\x86'
+        b"\x00\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\xc3\xbf\x00\x10\xc2"
+        b"\xac\xc3\xa0@L405\x05\x1b\x01\x04\xc2\xb57\x1fx:U\xc3\x85\xc2\xafO3\xc2\xb8%"
+        b"\x0bPT\xc2\xa5K\x00qO\xc2\xa9@\xc2\x81\xc2\x80\xc3\x91\xc3\x80"
+        b"\x01\x01\x01\x01\x01\x01\x01\x01V^\x00\xc2\xa0\xc2\xa0\xc2\xa0)P0 5\x00)"
+        b"7!\x00\x00\x1a\x00\x00\x00\xc3\xbf\x00TYPR371U504L\n\x00\x00\x00\xc3"
+        b"\xbc\x00DELL UP2516D\n\x00\x00\x00\xc3\xbd\x002K\x1eX\x19\x01\n      \x01,"
+        b"\x02\x03\x1c\xc3\xb1O\xc2\x90\x05\x04\x03\x02\x07\x16\x01\x06"
+        b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\xc2\x83\x01\x00\x00\x02:\xc2\x80\x18q8-@"
+        b"X,E\x00)7!\x00\x00\x1e~9\x00\xc2\xa0\xc2\x808\x1f@0 :\x00)7!\x00"
+        b"\x00\x1a\x01\x1d\x00rQ\xc3\x90\x1e n(U\x00)7!\x00\x00\x1e\xc2\xbf\x16"
+        b"\x00\xc2\xa0\xc2\x808\x13@0 :\x00)7!\x00\x00\x1a\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\xc2\x86"
     )
     result = parse_edid(raw_edid)
     expected_result = {
@@ -396,7 +406,7 @@ def test_parse_edid_5():
         "blue_y": 0.0693359375,
         "checksum": 49,
         "checksum_valid": True,
-        "edid": b"\x00\xff\xff\xff\xff\xff\xff\x00L-\\\x10VJXC\x0c\x1f\x01\x04\xb5<\"x"
+        "edid": b'\x00\xff\xff\xff\xff\xff\xff\x00L-\\\x10VJXC\x0c\x1f\x01\x04\xb5<"x'
         b":.\xb5\xaeOF\xa6&\x11PT\xbf\xef\x80\x81\xc0\x81\x00\x81\x80"
         b"\x95\x00\xa9\xc0\xb3\x00qO\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00UP"
         b"!\x00\x00\x1a\x00\x00\x00\xfd\x082\xf0\x1egb\x00\n      \x00\x00"
@@ -444,6 +454,6 @@ def test_parse_edid_5():
 
 def test_parse_manufacturer_id_1():
     """Test parse_manufacturer_id."""
-    manufacturer_id_raw = b'\x10\xac'
+    manufacturer_id_raw = b"\x10\xac"
     manufacturer_id = parse_manufacturer_id(manufacturer_id_raw)
     assert manufacturer_id == "DEL"

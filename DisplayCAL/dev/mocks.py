@@ -12,6 +12,7 @@ from types import ModuleType
 from typing import Any, Callable, Dict, Generator, List, Tuple, Type, overload
 
 from _pytest.monkeypatch import MonkeyPatch
+
 from mypy_extensions import KwArg, VarArg
 
 Call = Tuple[Tuple[Any, ...], Dict[str, Any]]
@@ -20,25 +21,23 @@ CallList = List[Call]
 
 @overload
 @contextlib.contextmanager
-def _mp_call(
+def _mp_call(  # noqa: E704
     monkeypatch: MonkeyPatch,
     mock_class: Type[Any] | ModuleType,
     method: str,
     return_value: Any,
     as_property: bool,
-) -> CallList:
-    ...
+) -> CallList: ...
 
 
 @overload
 @contextlib.contextmanager
-def _mp_call(
+def _mp_call(  # noqa: E704
     monkeypatch: MonkeyPatch,
     mock_class: str,
     method: Any,  # return value in this case
     return_value: bool,  # as_property in this case
-) -> CallList:
-    ...
+) -> CallList: ...
 
 
 def _mp_call(
@@ -51,8 +50,8 @@ def _mp_call(
     """
     Mock a method in a class and record the calls to it.
 
-    If the given return_value is an Exception, it will be raised. If not, the
-    value will be returned from the mocked function/method.
+    If the given return_value is an Exception, it will be raised.
+    If not, the value will be returned from the mocked function/method.
     """
     calls: CallList = []
 
@@ -60,8 +59,8 @@ def _mp_call(
         """Mock the function call."""
         calls.append((a, k))
         if isinstance(return_value, Exception):
-            # bug in pylint https://www.logilab.org/ticket/3207
-            raise return_value  # pylint: disable-msg=raising-bad-type
+            # bug in pylint https://www.logilab.org/ticket/3207                         # noqa: SC100
+            raise return_value  # pylint: disable-msg=raising-bad-type                  # noqa: SC100
         if callable(return_value):
             # Handle the case that a function was passed
             return return_value(*a, **k)
@@ -84,7 +83,7 @@ def _mp_call(
 
 
 @contextlib.contextmanager
-def check_call(  # pylint: disable=too-many-arguments
+def check_call(  # pylint: disable=too-many-arguments                                   # noqa: SC100
     mock_class: Type[Any] | ModuleType,
     method: str,
     return_value: Any = None,
@@ -96,17 +95,15 @@ def check_call(  # pylint: disable=too-many-arguments
     """
     Context manager for mocking and checking a call to a method.
 
-    If called is greater 0, and call_args and call_kwargs are given, the
-    context manager will check that the mocked method was called with
-    those arguments. Also, it will assert that the mock was called exactly
-    once.
+    If called is greater 0, and call_args and call_kwargs are given, the context
+    manager will check that the mocked method was called with those arguments.
+    Also, it will assert that the mock was called exactly once.
 
     If called is False, it will assert that the mock was not called.
 
-    If a return_value is given, the mock will return this value. One can pass
-    an exception that will be raised by the mocked method instead of returning
-    a value. If a Callable is passed, it will be called and its return value
-    returned.
+    If a return_value is given, the mock will return this value. One can pass an
+    exception that will be raised by the mocked method instead of returning a value.
+    If a Callable is passed, it will be called and its return value returned.
     """
     assert (call_args_list is not None and call_kwargs_list is not None) or (
         call_args_list is None and call_kwargs_list is None
@@ -124,7 +121,7 @@ def check_call(  # pylint: disable=too-many-arguments
 # Duplicate the code because overloading is a mess due to this bug:
 # https://github.com/python/mypy/issues/11373
 @contextlib.contextmanager
-def check_call_str(  # pylint: disable=too-many-arguments
+def check_call_str(  # pylint: disable=too-many-arguments                               # noqa: SC100
     mock_class: str,
     return_value: Any = None,
     call_args_list: List[Tuple[Any, ...]] | None = None,

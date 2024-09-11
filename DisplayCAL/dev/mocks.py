@@ -27,7 +27,7 @@ def _mp_call(  # noqa: E704
     method: str,
     return_value: Any,
     as_property: bool,
-) -> CallList: ...
+) -> Generator[CallList, None, None]: ...
 
 
 @overload
@@ -37,7 +37,7 @@ def _mp_call(  # noqa: E704
     mock_class: str,
     method: Any,  # return value in this case
     return_value: bool,  # as_property in this case
-) -> CallList: ...
+) -> Generator[CallList, None, None]: ...
 
 
 def _mp_call(
@@ -46,7 +46,7 @@ def _mp_call(
     method: str | Any,
     return_value: Any,
     as_property: bool = False,
-) -> CallList:
+) -> Generator[CallList, None, None]:
     """
     Mock a method in a class and record the calls to it.
 
@@ -79,7 +79,7 @@ def _mp_call(
         monkeypatch.setattr(mock_class, callback)
     else:
         monkeypatch.setattr(mock_class, method, callback)
-    return calls
+    yield calls
 
 
 @contextlib.contextmanager

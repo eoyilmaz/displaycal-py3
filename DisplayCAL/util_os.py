@@ -40,13 +40,13 @@ if sys.platform not in ("darwin", "win32"):
     import pwd
 
 try:
-    reloaded                                                              # type: ignore
+    reloaded  # type: ignore
 except NameError:
     # First import. All fine
     reloaded = 0
 else:
     # Module is being reloaded. NOT recommended.
-    reloaded += 1                                                         # type: ignore
+    reloaded += 1  # type: ignore
     import warnings
 
     warnings.warn(
@@ -96,6 +96,7 @@ _listdir = os.listdir
 
 def setup_win32_long_paths():
     """Add support for long paths (> 260 chars) and retry ERROR_SHARING_VIOLATION."""
+
     def retry_sharing_violation_factory(fn, delay=0.25, maxretries=20):
         def retry_sharing_violation(*args, **kwargs):
             retries = 0
@@ -113,17 +114,21 @@ def setup_win32_long_paths():
         return retry_sharing_violation
 
     def make_win32_compatible_long_path_wrapper(fn):
-        return lambda path, *args, **kwargs: fn(make_win32_compatible_long_path(path),
-                                                *args, **kwargs)
+        return lambda path, *args, **kwargs: fn(
+            make_win32_compatible_long_path(path), *args, **kwargs
+        )
 
     def make_win32_compatible_long_path_with_mode_wrapper(fn):
-        return lambda path, mode=0o777, *args, **kwargs: fn(make_win32_compatible_long_path(path, 247),
-                                                            mode, *args, **kwargs)
+        return lambda path, mode=0o777, *args, **kwargs: fn(
+            make_win32_compatible_long_path(path, 247), mode, *args, **kwargs
+        )
 
     def make_win32_compatible_long_path_with_src_dst_wrapper(fn):
-        return lambda src, dst, *args, **kwargs: fn(*[make_win32_compatible_long_path(path)
-                                                      for path in (src, dst)],
-                                                    *args, **kwargs)
+        return lambda src, dst, *args, **kwargs: fn(
+            *[make_win32_compatible_long_path(path) for path in (src, dst)],
+            *args,
+            **kwargs,
+        )
 
     builtins.open = make_win32_compatible_long_path_wrapper(builtins.open)
     os.access = make_win32_compatible_long_path_wrapper(os.access)
@@ -134,16 +139,25 @@ def setup_win32_long_paths():
     os.lstat = make_win32_compatible_long_path_wrapper(os.lstat)
     os.mkdir = make_win32_compatible_long_path_with_mode_wrapper(os.mkdir)
     os.makedirs = make_win32_compatible_long_path_with_mode_wrapper(os.makedirs)
-    os.remove = retry_sharing_violation_factory(make_win32_compatible_long_path_wrapper(os.remove))
-    os.rename = retry_sharing_violation_factory(make_win32_compatible_long_path_with_src_dst_wrapper(os.rename))
+    os.remove = retry_sharing_violation_factory(
+        make_win32_compatible_long_path_wrapper(os.remove)
+    )
+    os.rename = retry_sharing_violation_factory(
+        make_win32_compatible_long_path_with_src_dst_wrapper(os.rename)
+    )
     os.stat = make_win32_compatible_long_path_wrapper(os.stat)
-    os.unlink = retry_sharing_violation_factory(make_win32_compatible_long_path_wrapper(os.unlink))
-    win32api.GetShortPathName = make_win32_compatible_long_path_wrapper(win32api.GetShortPathName)
+    os.unlink = retry_sharing_violation_factory(
+        make_win32_compatible_long_path_wrapper(os.unlink)
+    )
+    win32api.GetShortPathName = make_win32_compatible_long_path_wrapper(
+        win32api.GetShortPathName
+    )
 
 
 if sys.platform == "win32":
     setup_win32_long_paths()
 else:
+
     def listdir(path, *args, **kwargs):
         """
         List directory contents.
@@ -161,7 +175,7 @@ else:
         """
         paths = _listdir(path, *args, **kwargs)
         if isinstance(path, str):
-            # Undecodable filenames will still be string objects.          # noqa: SC100
+            # Undecodable filenames will still be string objects.                       # noqa: SC100
             # Ignore them.
             paths = [path for path in paths if isinstance(path, str)]
         return paths
@@ -235,24 +249,24 @@ def find_library(pattern, arch=None):
         except Exception:
             pass
         else:
-            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,    # noqa: SC100
-            # version 1 (SYSV), dynamically linked, interpreter            # noqa: SC100
-            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,            # noqa: SC100
-            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8,      # noqa: SC100
+            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,                 # noqa: SC100
+            # version 1 (SYSV), dynamically linked, interpreter                         # noqa: SC100
+            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,                         # noqa: SC100
+            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8,                   # noqa: SC100
             # stripped
             parts = file_stdout.split(",")
             if len(parts) > 1:
                 arch = parts[1].strip()
 
     for line in stdout.decode().splitlines():
-        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1                   # noqa: SC100
+        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1                                # noqa: SC100
         parts = line.split("=>", 1)
         candidate = parts[0].split(None, 1)
         if len(parts) < 2 or len(candidate) < 2:
             continue
         info = candidate[1].strip("( )").split(",")
         if arch and len(info) > 1 and info[1].strip() != arch:
-            # Skip libs for wrong arch                                     # noqa: SC100
+            # Skip libs for wrong arch                                                  # noqa: SC100
             continue
         filename = candidate[0]
         if fnmatch.fnmatch(filename, pattern):
@@ -308,7 +322,7 @@ def _expandvarsu_win32(path):
     while index < pathlen:
         c = path[index]
         if c == "'":  # no expansion within single quotes
-            path = path[index + 1:]
+            path = path[index + 1 :]
             pathlen = len(path)
             try:
                 index = path.index("'")
@@ -328,11 +342,11 @@ def _expandvarsu_win32(path):
 
 
 def _handle_percent_sign(path, index, res):
-    if path[index + 1: index + 2] == "%":
+    if path[index + 1 : index + 2] == "%":
         res = res + "%"
         index = index + 1
     else:
-        path = path[index + 1:]
+        path = path[index + 1 :]
         pathlen = len(path)
         try:
             index = path.index("%")
@@ -350,13 +364,14 @@ def _handle_percent_sign(path, index, res):
 
 def _handle_dollar_sign(path, index, res):
     import string
+
     varchars = string.ascii_letters + string.digits + "_-"
 
-    if path[index + 1: index + 2] == "$":
+    if path[index + 1 : index + 2] == "$":
         res = res + "$"
         index = index + 1
-    elif path[index + 1: index + 2] == "{":
-        path = path[index + 2:]
+    elif path[index + 1 : index + 2] == "{":
+        path = path[index + 2 :]
         pathlen = len(path)
         try:
             index = path.index("}")
@@ -371,11 +386,11 @@ def _handle_dollar_sign(path, index, res):
     else:
         var = ""
         index = index + 1
-        c = path[index: index + 1]
+        c = path[index : index + 1]
         while c != "" and c in varchars:
             var = var + c
             index = index + 1
-            c = path[index: index + 1]
+            c = path[index : index + 1]
         if var in os.environ:
             res = res + getenvu(var)
         else:
@@ -462,11 +477,11 @@ def getgroups(username=None, names_only=False):
         list: A list of groups.
     """
     if username is None:
-        groups = [grp.getgrgid(g) for g in os.getgroups()]                # type: ignore
+        groups = [grp.getgrgid(g) for g in os.getgroups()]
     else:
-        groups = [g for g in grp.getgrall() if username in g.gr_mem]      # type: ignore
-        gid = pwd.getpwnam(username).pw_gid                               # type: ignore
-        groups.append(grp.getgrgid(gid))                                  # type: ignore
+        groups = [g for g in grp.getgrall() if username in g.gr_mem]
+        gid = pwd.getpwnam(username).pw_gid
+        groups.append(grp.getgrgid(gid))
     if names_only:
         groups = [g.gr_name for g in groups]
     return groups
@@ -526,19 +541,15 @@ def launch_file(filepath):
     """
     filepath = filepath.encode(fs_enc)
     retcode = None
-    kwargs = {
-        "startupinfo": sp.STARTUPINFO(),
-        "shell": True,
-        "close_fds": True
-    }
+    kwargs = {"startupinfo": sp.STARTUPINFO(), "shell": True, "close_fds": True}
     kwargs["startupinfo"].dwFlags |= sp.STARTF_USESHOWWINDOW
     kwargs["startupinfo"].wShowWindow = sp.SW_HIDE
 
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":
-        # for win32, we could use os.startfile,                            # noqa: SC100
-        # but then we'd not be able to return exitcode (does it matter?)   # noqa: SC100
+        # for win32, we could use os.startfile,                                         # noqa: SC100
+        # but then we'd not be able to return exitcode (does it matter?)                # noqa: SC100
         retcode = sp.call(f'start "" "{filepath}"', **kwargs)
     elif which("xdg-open"):
         retcode = sp.call(["xdg-open", filepath], **kwargs)
@@ -630,21 +641,21 @@ def mksfile(filename):
     Create a file safely and return (fd, abspath).
 
     If filename already exists, add '(n)' as suffix before extension
-        (will try up to os.TMP_MAX or 10000 for n).
+    (will try up to os.TMP_MAX or 10000 for n).
 
     Args:
         filename (str): The name of the file to be created.
 
     Returns:
-        tuple: A tuple containing the file descriptor and the absolute path of the
-            created file.
+        tuple: A tuple containing the file descriptor and the absolute path of
+            the created file.
 
     Raises:
         IOError: If no usable temporary file name is found.
         OSError: If an OS error occurs during file creation.
     """
     flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
-    if hasattr(os, 'O_BINARY'):
+    if hasattr(os, "O_BINARY"):
         flags |= os.O_BINARY
 
     fname, ext = os.path.splitext(filename)
@@ -669,8 +680,8 @@ def movefile(src, dst, overwrite=True):
     """
     Move a file to another location.
 
-    dst can be a directory in which case a file with the same basename as src will be
-    created in it.
+    dst can be a directory in which case a file with the same basename as src
+    will be created in it.
 
     Set overwrite to True to make sure existing files are overwritten.
 
@@ -792,7 +803,7 @@ def readlink(path):
 
     # This wouldn't return true if the file didn't exist
     if not islink(path):
-        # Mimic POSIX error                                                # noqa: SC100
+        # Mimic POSIX error                                                             # noqa: SC100
         raise OSError(22, "Invalid argument", path)
 
     # Open the file correctly depending on the string type.
@@ -801,11 +812,11 @@ def readlink(path):
     else:
         createfilefn = win32file.CreateFile
 
-    # Create a PySECURITY_ATTRIBUTES object                                # noqa: SC100
+    # Create a PySECURITY_ATTRIBUTES object                                             # noqa: SC100
     security_attributes = win32security.SECURITY_ATTRIBUTES()
 
-    # FILE_FLAG_OPEN_REPARSE_POINT alone is not enough if 'path' is a      # noqa: SC100
-    # symbolic link to a directory or a NTFS junction.                     # noqa: SC100
+    # FILE_FLAG_OPEN_REPARSE_POINT alone is not enough if 'path' is a symbolic          # noqa: SC100
+    # link to a directory or a NTFS junction.                                           # noqa: SC100
     # We need to set FILE_FLAG_BACKUP_SEMANTICS as well. See
     # https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilea
     # Now use this security_attributes object in the CreateFileW call
@@ -827,7 +838,7 @@ def readlink(path):
     else:
         handle = int(str(handle))
 
-    # MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16384 = (16 * 1024)               # noqa: SC100
+    # MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16384 = (16 * 1024)                            # noqa: SC100
     buf = win32file.DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, None, 16 * 1024)
     # Above will return an ugly string (byte array), so we'll need to parse it.
 
@@ -866,7 +877,7 @@ def relpath(path, start):
     if path == start:
         return "."
     elif path[: len(start)] == start:
-        return os.path.sep.join(path[len(start):])
+        return os.path.sep.join(path[len(start) :])
     elif start[: len(path)] == path:
         return os.path.sep.join([".."] * (len(start) - len(path)))
 
@@ -876,8 +887,8 @@ def safe_glob(pathname):
     Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la fnmatch.
-    However, unlike fnmatch, filenames starting with a dot are special cases that are
-    not matched by '*' and '?' patterns.
+    However, unlike fnmatch, filenames starting with a dot are special cases
+    that are not matched by '*' and '?' patterns.
 
     Like fnmatch.glob,
     but suppresses re.compile errors by escaping uncompilable path components.
@@ -898,8 +909,8 @@ def safe_iglob(pathname):
     Return an iterator which yields the paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la fnmatch.
-    However, unlike fnmatch, filenames starting with a dot are special cases that are
-    not matched by '*' and '?' patterns.
+    However, unlike fnmatch, filenames starting with a dot are special cases
+    that are not matched by '*' and '?' patterns.
 
     Like fnmatch.iglob,
     but suppresses re.compile errors by escaping uncompilable path components.
@@ -926,9 +937,9 @@ def safe_iglob(pathname):
         for name in safe_glob1(os.curdir, basename):
             yield name
         return
-    # `os.path.split()` returns the argument itself as a dirname if it is  # noqa: SC100
-    # a drive or UNC path.                                                 # noqa: SC100
-    # Prevent an infinite recursion if a drive or UNC path contains magic  # noqa: SC100
+    # `os.path.split()` returns the argument itself as a dirname if it is a             # noqa: SC100
+    # drive or UNC path.                                                                # noqa: SC100
+    # Prevent an infinite recursion if a drive or UNC path contains magic               # noqa: SC100
     # characters (i.e. r'\\?\C:').
     if dirname != pathname and glob.has_magic(dirname):
         dirs = safe_iglob(dirname)
@@ -996,7 +1007,7 @@ def safe_shell_filter(names, pat):
         _cache[pat] = re_pat = re.compile(res)
     match = re_pat.match
     if os.path is posixpath:
-        # normcase on posix is NOP. Optimize it away from the loop.        # noqa: SC100
+        # normcase on posix is NOP. Optimize it away from the loop.                     # noqa: SC100
         for name in names:
             if match(name):
                 result.append(name)
@@ -1125,13 +1136,15 @@ def whereis(
     Returns:
         dict: The results of the whereis command.
     """
-    args = build_whereis_args(bin, bin_paths, man, man_paths, src, src_paths, unusual,
-                              list_paths)
+    args = build_whereis_args(
+        bin, bin_paths, man, man_paths, src, src_paths, unusual, list_paths
+    )
     return execute_whereis(names, args)
 
 
-def build_whereis_args(bin, bin_paths, man, man_paths, src, src_paths, unusual,
-                       list_paths):
+def build_whereis_args(
+    bin, bin_paths, man, man_paths, src, src_paths, unusual, list_paths
+):
     """
     Build arguments for the whereis command.
 

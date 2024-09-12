@@ -1,5 +1,95 @@
 # -*- coding: utf-8 -*-
-"""Module for handling EDID (Extended Display Identification Data) parsing and retrieval."""
+"""
+edid.py.
+
+This module provides functionality for retrieving and parsing EDID
+(Extended Display Identification Data) from various operating systems.
+It includes methods for fetching EDID data from Windows, macOS,
+and other platforms, as well as parsing the EDID data into a structured format.
+
+Functions:
+    get_edid(display_no=0, display_name=None, device=None):
+        Get and parse EDID. Return dict.
+
+    get_edid_windows(display_no, device):
+        Get EDID for a Windows display.
+
+    get_edid_windows_wmi(id, wmi_connection, not_main_thread):
+        Get EDID using WMI for Windows Vista/Win7.
+
+    get_edid_windows_registry(id, device):
+        Get EDID using the Windows registry for Win2k/XP/2003.
+
+    get_edid_darwin(display_name):
+        Get EDID via ioreg on macOS.
+
+    get_edid_rdsmm(display_no):
+        Get EDID using RealDisplaySizeMM module.
+
+    parse_manufacturer_id(block):
+        Parse the manufacturer id and return decoded string.
+
+    get_manufacturer_name(manufacturer_id):
+        Try and get a nice descriptive string for our manufacturer id.
+
+    load_pnpidcache():
+        Load the pnpidcache from various possible locations.
+
+    get_pnpid_paths():
+        Get the list of possible paths for the pnp.ids file.
+
+    parse_pnpid_file(pnp_ids, path):
+        Parse the pnp.ids file and populate the pnpidcache.
+
+    parse_hwdb_line(line):
+        Parse a line from the hwdb file.
+
+    parse_pnpid_line(line):
+        Parse a line from the pnp.ids file.
+
+    edid_get_bit(value, bit):
+        Get the bit value at the specified position.
+
+    edid_get_bits(value, begin, end):
+        Get the bits from the specified range.
+
+    edid_decode_fraction(high, low):
+        Decode a fraction from high and low bits.
+
+    edid_parse_string(desc):
+        Parse a string from EDID data.
+
+    parse_edid(edid):
+        Parse raw EDID data (binary string) and return dict.
+
+    fix_edid_encoding(edid):
+        Fix the encoding of EDID data.
+
+    ensure_bytes(edid):
+        Ensure that the EDID data is in bytes.
+
+    parse_edid_header(edid):
+        Parse the EDID header.
+
+    parse_edid_basic_display_parameters(edid):
+        Parse the basic display parameters from the EDID data.
+
+    parse_edid_chromaticity_coordinates(edid):
+        Parse the chromaticity coordinates from the EDID data.
+
+    parse_edid_descriptor_blocks(edid):
+        Parse the descriptor blocks from the EDID data.
+
+    parse_color_point_data(block):
+        Parse the color point data from the EDID data.
+
+    parse_edid_extension_blocks(edid):
+        Parse the extension blocks from the EDID data.
+
+Classes:
+    WMIError:
+        Custom exception for WMI errors.
+"""
 import binascii
 import codecs
 import math

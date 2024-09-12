@@ -38,6 +38,7 @@ def _mp_call(  # noqa: E704
 ) -> Generator[CallList, None, None]: ...
 
 
+@contextlib.contextmanager
 def _mp_call(
     monkeypatch: MonkeyPatch,
     mock_class: Type[Any] | ModuleType | str,
@@ -75,7 +76,10 @@ def _mp_call(
         monkeypatch.setattr(mock_class, callback)
     else:
         monkeypatch.setattr(mock_class, method, callback)
-    yield calls
+    try:
+        yield calls
+    finally:
+        monkeypatch.undo()
 
 
 @contextlib.contextmanager

@@ -20,8 +20,6 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
     iccprofiles,
     iccprofiles_home,
 )
-
-# from DisplayCAL.log import logger
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.safe_print import (  # noqa: F401
@@ -31,6 +29,8 @@ from DisplayCAL.safe_print import (  # noqa: F401
 from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_os import expanduseru, getenvu, is_superuser, listdir_re, which
 from DisplayCAL.util_str import create_replace_function, strtr
+
+# from DisplayCAL.log import logger
 
 if sys.platform == "win32":
     from DisplayCAL.defaultpaths import commonprogramfiles

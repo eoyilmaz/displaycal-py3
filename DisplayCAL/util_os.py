@@ -34,11 +34,6 @@ if sys.platform == "win32":
 if sys.platform != "win32":
     import fcntl
 
-if sys.platform not in ("darwin", "win32"):
-    # Linux
-    import grp
-    import pwd
-
 try:
     reloaded  # type: ignore
 except NameError:
@@ -476,6 +471,11 @@ def getgroups(username=None, names_only=False):
     Returns:
         list: A list of groups.
     """
+    if sys.platform not in ("darwin", "win32"):
+        # Linux
+        import grp
+        import pwd
+
     if username is None:
         groups = [grp.getgrgid(g) for g in os.getgroups()]
     else:

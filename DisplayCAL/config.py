@@ -55,8 +55,10 @@ exename = os.path.basename(exe)
 
 isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)
 
-if isexe and os.getenv("_MEIPASS2"):
-    os.environ["_MEIPASS2"] = os.getenv("_MEIPASS2").replace("/", os.path.sep)
+if isexe:
+    _meipass2 = os.getenv("_MEIPASS2")
+    if _meipass2:
+        os.environ["_MEIPASS2"] = _meipass2.replace("/", os.path.sep)
 
 pyfile = (
     exe

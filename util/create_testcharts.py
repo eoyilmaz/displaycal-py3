@@ -4,6 +4,8 @@
 import os
 import sys
 
+import DisplayCAL.get_data_path
+
 root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(root)
 
@@ -16,9 +18,9 @@ def create_testcharts(overwrite=False):
     # Profile, amount of dark region emphasis
     precond = {
         "eRGBv2": (ICCP.ICCProfile("eciRGB_v2.icc").fileName, 1.0),
-        "aRGB": (config.get_data_path("ref/ClayRGB1998.icm"), 1.6),
-        "Rec709_Gamma22": (config.get_data_path("ref/Rec709_Gamma22.icm"), 1.6),
-        "sRGB": (config.get_data_path("ref/sRGB.icm"), 1.6),
+        "aRGB": (DisplayCAL.get_data_path.get_data_path("ref/ClayRGB1998.icm"), 1.6),
+        "Rec709_Gamma22": (DisplayCAL.get_data_path.get_data_path("ref/Rec709_Gamma22.icm"), 1.6),
+        "sRGB": (DisplayCAL.get_data_path.get_data_path("ref/sRGB.icm"), 1.6),
     }
     worker = Worker()
     targen = get_argyll_util("targen")

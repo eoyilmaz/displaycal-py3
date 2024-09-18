@@ -9,6 +9,7 @@ import shutil
 import sys
 import time
 
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 
 if sys.platform == "win32":
@@ -31,7 +32,6 @@ from DisplayCAL.config import (
     geticon,
     get_current_profile,
     get_display_name,
-    get_data_path,
     get_total_patches,
     get_verified_path,
     hascfg,

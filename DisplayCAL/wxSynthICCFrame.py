@@ -8,7 +8,6 @@ from DisplayCAL.ICCProfile import ICCProfile
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
-    get_data_path,
     get_verified_path,
     getcfg,
     hascfg,
@@ -16,6 +15,7 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.debughelpers import Error
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug

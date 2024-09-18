@@ -4,13 +4,15 @@
 import os
 import sys
 
+import DisplayCAL.get_data_path
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from DisplayCAL import ICCProfile as ICCP, colormath, config, worker
 
 
 config.initcfg()
-srgb = config.get_data_path("ref/sRGB.icm")
+srgb = DisplayCAL.get_data_path.get_data_path("ref/sRGB.icm")
 if not srgb:
     raise OSError("File not found: ref/sRGB.icm")
 ref = ICCP.ICCProfile(srgb)
@@ -19,7 +21,7 @@ print("sRGB:", ref.fileName)
 
 def update_preset(name):
     print("Preset name:", name)
-    pth = config.get_data_path("presets/%s.icc" % name)
+    pth = DisplayCAL.get_data_path.get_data_path("presets/%s.icc" % name)
     if not pth:
         print("ERROR: Preset not found")
         return False
@@ -100,7 +102,7 @@ def update_preset(name):
 
 
 def update_presets():
-    presets = config.get_data_path("presets", r"\.icc$")
+    presets = DisplayCAL.get_data_path.get_data_path("presets", r"\.icc$")
     for fn in presets:
         update_preset(os.path.splitext(os.path.basename(fn))[0])
 

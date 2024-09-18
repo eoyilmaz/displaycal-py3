@@ -4,7 +4,8 @@ from time import gmtime, strftime
 import math
 import os
 
-from DisplayCAL.config import get_data_path, initcfg, getcfg, geticon, hascfg, setcfg
+from DisplayCAL.config import initcfg, getcfg, geticon, hascfg, setcfg
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog

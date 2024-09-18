@@ -4,7 +4,7 @@ import json
 import os
 import traceback
 
-from DisplayCAL.config import get_data_path
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.util_str import safe_str
 

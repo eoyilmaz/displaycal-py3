@@ -20,6 +20,7 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
     iccprofiles,
     iccprofiles_home,
 )
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
@@ -28,7 +29,7 @@ from DisplayCAL.safe_print import (  # noqa: F401
     fs_enc,
 )
 from DisplayCAL.util_io import StringIOu as StringIO
-from DisplayCAL.util_os import expanduseru, getenvu, is_superuser, listdir_re, which
+from DisplayCAL.util_os import expanduseru, getenvu, is_superuser
 from DisplayCAL.util_str import create_replace_function, strtr
 
 # from DisplayCAL.log import logger
@@ -337,7 +338,7 @@ def get_display_number(display_no):
         if display.endswith(" [PRIMARY]"):
             display = " ".join(display.split(" ")[:-1])
         for i in range(wx.Display.GetCount()):
-            geometry = "%i, %i, %ix%i" % tuple(wx.Display(i).Geometry)
+            geometry = "{}, {}, {}x{}".format(*wx.Display(i).Geometry)
             if display.endswith(f"@ {geometry}"):
                 if debug:
                     print(f"[D] Found display {geometry} at index {i}")
@@ -399,67 +400,10 @@ def get_measureframe_dimensions(dimensions_measureframe=None, percent=10):
 def geticon(size, name, scale=True, use_mask=False):
     """Convenience function for getbitmap('theme/icons/<size>/<name>')."""
     return getbitmap(
-        "theme/icons/%(size)sx%(size)s/%(name)s" % {"size": size, "name": name},
+        f"theme/icons/{size}x{size}/{name}",
         scale=scale,
         use_mask=use_mask,
     )
-
-
-def get_data_path(relpath, rex=None):
-    """
-    Search data_dirs for relpath and return the path or a file list.
-
-    If relpath is a file, return the full path, if relpath is a directory,
-    return a list of files in the intersection of searched directories.
-    """
-    if (
-        not relpath
-        or relpath.endswith(os.path.sep)
-        or (isinstance(os.path.altsep, str) and relpath.endswith(os.path.altsep))
-    ):
-        return None
-    dirs = list(data_dirs)
-    argyll_dir = getcfg("argyll.dir") or os.path.dirname(
-        os.path.realpath(which(f"dispcal{exe_ext}") or "")
-    )
-    if argyll_dir and os.path.isdir(os.path.join(argyll_dir, "..", "ref")):
-        dirs.append(os.path.dirname(argyll_dir))
-    dirs.extend(extra_data_dirs)
-    intersection = []
-    paths = []
-    for dir_ in dirs:
-        curpath = os.path.join(dir_, relpath)
-        if (
-            dir_.endswith("/argyll")
-            and f"{relpath}/".startswith("ref/")
-            and not os.path.exists(curpath)
-        ):
-            # Work-around distribution-specific differences for location of
-            # Argyll reference files                                                    # noqa: SC100
-            # Fedora and Ubuntu: /usr/share/color/argyll/ref                            # noqa: SC100
-            # openSUSE: /usr/share/color/argyll                                         # noqa: SC100
-            pth = relpath.split("/", 1)[-1]
-            if pth != "ref":
-                curpath = os.path.join(dir_, pth)
-            else:
-                curpath = dir_
-        if os.path.exists(curpath):
-            curpath = os.path.normpath(curpath)
-            if os.path.isdir(curpath):
-                try:
-                    filelist = listdir_re(curpath, rex)
-                except Exception as exception:
-                    print(f"Error - directory '{curpath}' listing failed: {exception}")
-                else:
-                    for filename in filelist:
-                        if filename not in intersection:
-                            intersection.append(filename)
-                            paths.append(os.path.join(curpath, filename))
-            else:
-                return curpath
-    if paths:
-        paths.sort(key=lambda path: os.path.basename(path).lower())
-    return None if len(paths) == 0 else paths
 
 
 def get_default_dpi():
@@ -1644,9 +1588,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     # This won't raise an exception if the file does not exist,
     # only if it can't be parsed
     except Exception:
-        print(
-            f"Warning - could not parse configuration files:\n{cfgfiles}"
-        )
+        print(f"Warning - could not parse configuration files:\n{cfgfiles}")
         # Fix Python 2.7 ConfigParser option values being lists instead of
         # strings in case of a ParsingError. http://bugs.python.org/issue24142
         all_sections = [configparser.DEFAULTSECT]

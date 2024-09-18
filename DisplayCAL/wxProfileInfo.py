@@ -9,7 +9,6 @@ from DisplayCAL.config import (
     defaults,
     fs_enc,
     get_argyll_display_number,
-    get_data_path,
     get_display_profile,
     get_display_rects,
     getcfg,
@@ -19,6 +18,7 @@ from DisplayCAL.config import (
     setcfg,
     writecfg,
 )
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug

@@ -15,6 +15,8 @@ import tempfile
 import textwrap
 import traceback
 
+from DisplayCAL.get_data_path import get_data_path
+
 if sys.platform == "win32":
     import win32api
 
@@ -29,7 +31,7 @@ from DisplayCAL.colormath import (
     cLUT65_to_VidRGB,
     eeColor_to_VidRGB,
 )
-from DisplayCAL.config import exe_ext, fs_enc, get_data_path, getcfg, profile_ext
+from DisplayCAL.config import exe_ext, fs_enc, getcfg, profile_ext
 from DisplayCAL.debughelpers import (
     Error,
     Info,

@@ -5,6 +5,7 @@ from datetime import datetime
 import html
 from html.parser import HTMLParser
 
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 
 import DisplayCAL.getbitmap
@@ -36,7 +37,6 @@ from DisplayCAL.config import (
     defaults,
     getcfg,
     geticon,
-    get_data_path,
     get_default_dpi,
     get_verified_path,
     hascfg,

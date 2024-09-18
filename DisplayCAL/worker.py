@@ -46,6 +46,8 @@ from time import sleep, strftime, time
 
 from send2trash import send2trash
 
+from DisplayCAL.get_data_path import get_data_path
+
 if sys.platform == "darwin":
     from platform import mac_ver
     from _thread import start_new_thread
@@ -114,7 +116,6 @@ from DisplayCAL.config import (
     fs_enc,
     getcfg,
     geticon,
-    get_data_path,
     get_total_patches,
     get_verified_path,
     isapp,

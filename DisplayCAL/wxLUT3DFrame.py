@@ -7,6 +7,7 @@ import shutil
 import sys
 import traceback
 
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.wxaddons import CustomEvent
 
 if sys.platform == "win32":
@@ -16,7 +17,6 @@ from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import video_encodings
 from DisplayCAL.config import (
     defaults,
-    get_data_path,
     get_verified_path,
     getcfg,
     geticon,

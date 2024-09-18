@@ -20,6 +20,7 @@ if sys.platform == "darwin":
     import posix
 
 # Python version check
+from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.meta import py_minversion, py_maxversion
 
 pyver = sys.version_info[:2]
@@ -42,7 +43,6 @@ from DisplayCAL.config import (
     exe_ext,
     exedir,
     exename,
-    get_data_path,
     getcfg,
     fs_enc,
     initcfg,

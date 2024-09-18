@@ -9,6 +9,8 @@ import shutil
 import sys
 import time
 
+from DisplayCAL.getbitmap import getbitmap
+
 if sys.platform == "win32":
     import win32file
 
@@ -25,7 +27,6 @@ from DisplayCAL.argyll_RGB2XYZ import (
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
 from DisplayCAL.config import (
     defaults,
-    getbitmap,
     getcfg,
     geticon,
     get_current_profile,

@@ -12,7 +12,6 @@ from DisplayCAL.config import (
     get_data_path,
     get_display_profile,
     get_display_rects,
-    getbitmap,
     getcfg,
     geticon,
     get_verified_path,
@@ -20,6 +19,7 @@ from DisplayCAL.config import (
     setcfg,
     writecfg,
 )
+from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort

@@ -8,9 +8,9 @@ import re
 import sys
 import time
 
+from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.config import (
-    getbitmap,
     getcfg,
     geticon,
     get_data_path,

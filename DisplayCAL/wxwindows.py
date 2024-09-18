@@ -5,6 +5,10 @@ from datetime import datetime
 import html
 from html.parser import HTMLParser
 
+from DisplayCAL.getbitmap import getbitmap
+
+import DisplayCAL.getbitmap
+
 htmlparser = HTMLParser()
 from time import gmtime, sleep, strftime, time
 import errno
@@ -30,7 +34,6 @@ from DisplayCAL import audio
 from DisplayCAL import config
 from DisplayCAL.config import (
     defaults,
-    getbitmap,
     getcfg,
     geticon,
     get_data_path,
@@ -7307,7 +7310,7 @@ class TaskBarNotification(wx.Frame):
         msg.Bind(wx.EVT_LEFT_DOWN, lambda event: self.fade("out"))
         sizer.Add(msg)
         close = wx.BitmapButton(
-            panel, -1, config.getbitmap("theme/x-2px-12x12-999"), style=wx.NO_BORDER
+            panel, -1, DisplayCAL.getbitmap.getbitmap("theme/x-2px-12x12-999"), style=wx.NO_BORDER
         )
         close.BackgroundColour = panel.BackgroundColour
         close.Bind(wx.EVT_BUTTON, lambda event: self.fade("out"))

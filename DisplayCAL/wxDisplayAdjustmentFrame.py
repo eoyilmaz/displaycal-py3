@@ -12,6 +12,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     from platform import mac_ver
 
+from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.lib.agw import labelbook
 from DisplayCAL.lib.agw.fmresources import *
@@ -21,7 +22,6 @@ from DisplayCAL.config import (
     get_data_path,
     get_default_dpi,
     get_icon_bundle,
-    getbitmap,
     getcfg,
     geticon,
     setcfg,

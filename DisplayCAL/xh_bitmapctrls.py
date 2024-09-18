@@ -5,7 +5,7 @@ import os
 import wx
 import wx.xrc as xrc
 
-from DisplayCAL.config import getbitmap
+from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.log import safe_print
 
 

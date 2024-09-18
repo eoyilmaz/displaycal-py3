@@ -44,6 +44,7 @@ import zipfile
 
 from send2trash import send2trash
 
+from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
@@ -72,7 +73,6 @@ from DisplayCAL.config import (
     exe,
     exe_ext,
     fs_enc,
-    getbitmap,
     geticon,
     get_ccxx_testchart,
     get_current_profile,

@@ -5,7 +5,7 @@ import os
 import sys
 
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-from DisplayCAL.config import getcfg
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import make_filename_safe

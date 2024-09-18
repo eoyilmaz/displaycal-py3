@@ -7,7 +7,6 @@ import os
 import re
 import string
 import sys
-from decimal import Decimal
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
@@ -22,6 +21,7 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
 )
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.runtimeconfig import runtimeconfig
@@ -30,7 +30,7 @@ from DisplayCAL.safe_print import (  # noqa: F401
 )
 from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_os import expanduseru, getenvu, is_superuser
-from DisplayCAL.util_str import create_replace_function, strtr
+from DisplayCAL.util_str import strtr
 
 # from DisplayCAL.log import logger
 
@@ -39,7 +39,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
 else:
-    from DisplayCAL.defaultpaths import (
+    from DisplayCAL.defaultpaths import (  # noqa: F401
         xdg_config_dir_default,
         xdg_config_home,
         xdg_data_dirs,
@@ -413,10 +413,14 @@ def get_default_dpi():
         return 96.0
 
 
+class CaseSensitiveConfigParser(configparser.RawConfigParser):
+    def optionxform(self, optionstr):
+        return optionstr
+
+
 # User settings
-cfg = configparser.RawConfigParser()
+cfg = CaseSensitiveConfigParser()
 cfg["Default"] = {}
-cfg.optionxform = str
 
 
 valid_ranges = {
@@ -1015,149 +1019,6 @@ def _init_testcharts():
     testchart_defaults["S"] = testchart_defaults["s"]
     for key in ("X", "x"):
         testchart_defaults[key] = testchart_defaults["l"]
-
-
-def getcfg(name, fallback=True, raw=False, cfg=cfg):
-    """
-    Get and return an option value from the configuration.
-
-    If fallback evaluates to True and the option is not set, return its default value.
-    """
-    if name == "profile.name.expanded" and is_ccxx_testchart():
-        name = "measurement.name.expanded"
-    value = None
-    hasdef = name in defaults
-    if hasdef:
-        defval = defaults[name]
-        deftype = type(defval)
-
-    if cfg.has_option(configparser.DEFAULTSECT, name):
-        try:
-            value = cfg.get(configparser.DEFAULTSECT, name)
-        except UnicodeDecodeError:
-            pass
-        else:
-            # Check for invalid types and return default if wrong type
-            if raw:
-                pass
-            elif (
-                (name != "trc" or value not in valid_values["trc"])
-                and hasdef
-                and deftype in (Decimal, int, float)
-            ):
-                try:
-                    value = deftype(value)
-                except ValueError:
-                    value = defval
-                else:
-                    valid_range = valid_ranges.get(name)
-                    if valid_range:
-                        value = min(max(valid_range[0], value), valid_range[1])
-                    elif name in valid_values and value not in valid_values[name]:
-                        value = defval
-            elif name.startswith("dimensions.measureframe"):
-                try:
-                    value = [max(0, float(n)) for n in value.split(",")]
-                    if len(value) != 3:
-                        raise ValueError()
-                except ValueError:
-                    value = defaults[name]
-                else:
-                    value[0] = min(value[0], 1)
-                    value[1] = min(value[1], 1)
-                    value[2] = min(value[2], 50)
-                    value = ",".join([str(n) for n in value])
-            elif name == "profile.quality" and getcfg("profile.type") in ("g", "G"):
-                # default to high quality for gamma + matrix
-                value = "h"
-            elif name == "trc.type" and getcfg("trc") in valid_values["trc"]:
-                value = "g"
-            elif name in valid_values and value not in valid_values[name]:
-                if debug:
-                    print(f"Invalid config value for {name}: {value}", end=" ")
-                value = None
-            elif name == "copyright":
-                # Make sure DisplayCAL and Argyll version are up-to-date                # noqa: SC100
-                pattern = re.compile(
-                    r"(%s(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*" % appname, re.I
-                )
-                repl = create_replace_function("\\1%s", version)
-                value = re.sub(pattern, repl, value)
-                if appbasename != appname:
-                    pattern = re.compile(
-                        r"(%s(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*" % appbasename,
-                        re.I,
-                    )
-                    repl = create_replace_function("\\1%s", version)
-                    value = re.sub(pattern, repl, value)
-                pattern = re.compile(
-                    r"(Argyll(?:\s*CMS)?)((?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",
-                    re.I,
-                )
-                if defval.split()[-1] != "CMS":
-                    repl = create_replace_function("\\1\\2%s", defval.split()[-1])
-                else:
-                    repl = "\\1"
-                value = re.sub(pattern, repl, value)
-            elif name == "measurement_mode":
-                # Map n and r measurement modes to canonical l and c
-                # the inverse mapping happens per-instrument in
-                # Worker.add_measurement_features().
-                # That way we can have compatibility with old and current Argyll CMS    # noqa: SC100
-                value = {"n": "l", "r": "c"}.get(value, value)
-    if value is None:
-        if hasdef and fallback:
-            value = defval
-            if debug > 1:
-                print(name, "- falling back to", value)
-        else:
-            if debug and not hasdef:
-                print("Warning - unknown option:", name)
-    if raw:
-        return value
-    if (
-        value
-        and isinstance(value, str)
-        and name.endswith("file")
-        and name != "colorimeter_correction_matrix_file"
-        and (name != "testchart.file" or value != "auto")
-        and (not os.path.isabs(value) or not os.path.exists(value))
-    ):
-        # colorimeter_correction_matrix_file is special because it's not (only) a path  # noqa: SC100
-        if debug:
-            print(f"{name} does not exist: {value}", end=" ")
-        # Normalize path (important, this turns altsep into sep under Windows)          # noqa: SC100
-        value = os.path.normpath(value)
-        # Check if this is a relative path covered by data_dirs                         # noqa: SC100
-        if (
-            value.split(os.path.sep)[-3:-2] == [appname] or not os.path.isabs(value)
-        ) and (
-            value.split(os.path.sep)[-2:-1] == ["presets"]
-            or value.split(os.path.sep)[-2:-1] == ["ref"]
-            or value.split(os.path.sep)[-2:-1] == ["ti1"]
-        ):
-            value = os.path.join(*value.split(os.path.sep)[-2:])
-            value = get_data_path(value)
-        elif hasdef:
-            value = None
-        if not value and hasdef:
-            value = defval
-        if debug > 1:
-            print(name, "- falling back to", value)
-    elif name in ("displays", "instruments"):
-        if not value:
-            return []
-        value = [
-            strtr(
-                v,
-                [
-                    ("%{}".format(hex(ord(os.pathsep))[2:].upper()), os.pathsep),
-                    ("%25", "%"),
-                ],
-            )
-            for v in value.split(os.pathsep)
-        ]
-    return value
 
 
 def hascfg(name, fallback=True, cfg=cfg):

@@ -16,6 +16,7 @@ import threading
 from math import pi, sin, cos, sqrt, atan2
 
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 
 if sys.platform == "darwin":
     from platform import mac_ver
@@ -29,7 +30,6 @@ from wx.lib.intctrl import IntCtrl
 from DisplayCAL.config import (
     defaults,
     fs_enc,
-    getcfg,
     get_argyll_display_number,
     get_default_dpi,
     get_display_name,

@@ -9,6 +9,7 @@ from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 
 import DisplayCAL.getbitmap
+from DisplayCAL.getcfg import getcfg
 
 htmlparser = HTMLParser()
 from time import gmtime, sleep, strftime, time
@@ -35,7 +36,6 @@ from DisplayCAL import audio
 from DisplayCAL import config
 from DisplayCAL.config import (
     defaults,
-    getcfg,
     geticon,
     get_default_dpi,
     get_verified_path,
@@ -7010,7 +7010,7 @@ class SimpleTerminal(InvincibleFrame):
 
 class TabButton(PlateButton):
     def __init__(self, *args, **kwargs):
-        from DisplayCAL.config import get_default_dpi, getcfg
+        from DisplayCAL.config import get_default_dpi
 
         self.dpiscale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
         PlateButton.__init__(self, *args, **kwargs)

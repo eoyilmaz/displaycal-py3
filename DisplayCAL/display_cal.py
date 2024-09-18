@@ -46,6 +46,7 @@ from send2trash import send2trash
 
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
@@ -78,7 +79,6 @@ from DisplayCAL.config import (
     get_ccxx_testchart,
     get_current_profile,
     get_display_profile,
-    getcfg,
     get_total_patches,
     get_verified_path,
     hascfg,

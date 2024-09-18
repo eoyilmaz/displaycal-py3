@@ -1,5 +1,6 @@
-from DisplayCAL.config import bitmaps, get_default_dpi, getcfg, set_default_app_dpi
+from DisplayCAL.config import bitmaps, get_default_dpi, set_default_app_dpi
 from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 
 

@@ -11,7 +11,6 @@ from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     defaults,
     enc,
-    getcfg,
     geticon,
     get_argyll_display_number,
     get_default_dpi,
@@ -22,6 +21,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist

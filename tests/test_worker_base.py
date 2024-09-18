@@ -6,6 +6,7 @@ from DisplayCAL import worker_base
 from DisplayCAL import config
 from DisplayCAL.dev.mocks import check_call
 
+import DisplayCAL.getcfg
 from tests.data.argyll_sp_data import SUBPROCESS_COM
 
 # todo: deactivated test temporarily
@@ -23,7 +24,7 @@ def test_get_argyll_util(argyll):
     """Test worker_base.get_argyll_util() function."""
     config.initcfg()
     result = worker_base.get_argyll_util("ccxxmake")
-    expected_result = os.path.join(config.getcfg("argyll.dir"), "ccxxmake")
+    expected_result = os.path.join(DisplayCAL.getcfg.getcfg("argyll.dir"), "ccxxmake")
     assert result == expected_result
 
 

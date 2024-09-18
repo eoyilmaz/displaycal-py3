@@ -8,7 +8,8 @@ import socket
 import sys
 import threading
 
-from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writecfg
+from DisplayCAL.config import confighome, geticon, initcfg, setcfg, writecfg
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line

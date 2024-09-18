@@ -15,6 +15,8 @@ import threading
 
 import distro
 
+from DisplayCAL.getcfg import getcfg
+
 if sys.platform == "darwin":
     from platform import mac_ver
     import posix
@@ -43,7 +45,6 @@ from DisplayCAL.config import (
     exe_ext,
     exedir,
     exename,
-    getcfg,
     fs_enc,
     initcfg,
     isapp,

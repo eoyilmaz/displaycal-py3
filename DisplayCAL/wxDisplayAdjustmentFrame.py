@@ -7,6 +7,8 @@ import os
 import re
 import sys
 
+from DisplayCAL.getcfg import getcfg
+
 if sys.platform == "win32":
     from ctypes import windll
 elif sys.platform == "darwin":
@@ -22,7 +24,6 @@ from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.config import (
     get_default_dpi,
     get_icon_bundle,
-    getcfg,
     geticon,
     setcfg,
 )

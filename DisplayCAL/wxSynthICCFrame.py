@@ -9,13 +9,13 @@ from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
     get_verified_path,
-    getcfg,
     hascfg,
     profile_ext,
     setcfg,
 )
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug

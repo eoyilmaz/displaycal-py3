@@ -11,6 +11,7 @@ import time
 
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 
 if sys.platform == "win32":
     import win32file
@@ -28,7 +29,6 @@ from DisplayCAL.argyll_RGB2XYZ import (
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
 from DisplayCAL.config import (
     defaults,
-    getcfg,
     geticon,
     get_current_profile,
     get_display_name,

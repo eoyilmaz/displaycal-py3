@@ -11,10 +11,10 @@ import re
 import sys
 
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.wxaddons import wx
 
 from DisplayCAL.config import (
-    getcfg,
     get_icon_bundle,
     get_display_number,
     get_display_rects,

@@ -10,9 +10,9 @@ import time
 
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.config import (
-    getcfg,
     geticon,
     get_icon_bundle,
     setcfg,

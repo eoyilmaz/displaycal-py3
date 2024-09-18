@@ -15,12 +15,12 @@ from DisplayCAL.config import (
     get_argyll_display_number,
     get_display_profile,
     get_display_rects,
-    getcfg,
     geticon,
     get_verified_path,
     setcfg,
 )
 from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec

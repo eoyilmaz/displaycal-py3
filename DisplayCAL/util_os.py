@@ -32,7 +32,10 @@ if sys.platform == "win32":
     import winerror
 
 if sys.platform != "win32":
+    # Linux
     import fcntl
+    import grp
+    import pwd
 
 try:
     reloaded  # type: ignore
@@ -471,20 +474,57 @@ def getgroups(username=None, names_only=False):
     Returns:
         list: A list of groups.
     """
-    if sys.platform not in ("darwin", "win32"):
-        # Linux
-        import grp
-        import pwd
-
-    if username is None:
-        groups = [grp.getgrgid(g) for g in os.getgroups()]
+    if sys.platform == "win32":
+        return _getgroups_win32(username, names_only)
     else:
-        groups = [g for g in grp.getgrall() if username in g.gr_mem]
-        gid = pwd.getpwnam(username).pw_gid
-        groups.append(grp.getgrgid(gid))
-    if names_only:
-        groups = [g.gr_name for g in groups]
-    return groups
+        return _getgroups_unix(username, names_only)
+
+
+def _getgroups_win32(username=None, names_only=False):
+    if username is None:
+        username = getenvu("USERNAME")
+
+    if not username:
+        return []
+
+    groups = []
+
+    try:
+        sid, domain, type = win32security.LookupAccountName("", username)
+        groups_sids = win32security.GetTokenInformation(
+            win32security.OpenProcessToken(
+                win32api.GetCurrentProcess(), win32security.TOKEN_QUERY
+            ),
+            win32security.TokenGroups,
+        )
+        for group_sid in groups_sids:
+            try:
+                group_name, domain, type = win32security.LookupAccountSid(
+                    "", group_sid.Sid
+                )
+                groups.append(group_name)
+            except pywintypes.error:
+                pass
+    except ImportError:
+        pass
+
+    return groups if names_only else groups
+
+
+if sys.platform != "win32":
+
+    def _getgroups_unix(username=None, names_only=False):
+        groups = []
+
+        if username is None:
+            groups = [grp.getgrgid(g).gr_name for g in os.getgroups()]
+        else:
+            all_groups = grp.getgrall()
+            groups = [g.gr_name for g in all_groups if username in g.gr_mem]
+            gid = pwd.getpwnam(username).pw_gid
+            groups.append(grp.getgrgid(gid).gr_name)
+
+        return groups
 
 
 def islink(path):

@@ -6,6 +6,7 @@ import os
 
 from DisplayCAL.config import initcfg, geticon, hascfg, setcfg
 from DisplayCAL.get_data_path import get_data_path
+import DisplayCAL.get_standard_profiles
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import strtr
@@ -86,7 +87,7 @@ class ReportFrame(BaseFrame):
                     wildcard = r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
-                    standard_profiles = config.get_standard_profiles(True)
+                    standard_profiles = DisplayCAL.get_standard_profiles.get_standard_profiles(True)
                     basenames = []
                     for path in standard_profiles:
                         basename = os.path.basename(path)

@@ -18,6 +18,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.get_data_path import get_data_path
+import DisplayCAL.get_standard_profiles
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
@@ -815,7 +816,7 @@ class GamutViewOptions(wx_Panel):
             print(exception)
         if srgb:
             self.comparison_profiles[srgb.getDescription()] = srgb
-        for profile in config.get_standard_profiles():
+        for profile in DisplayCAL.get_standard_profiles.get_standard_profiles():
             desc = profile.getDescription()
             if desc not in self.comparison_profiles:
                 self.comparison_profiles[desc] = profile

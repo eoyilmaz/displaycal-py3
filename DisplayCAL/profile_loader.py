@@ -24,7 +24,7 @@ from DisplayCAL.meta import (
 from DisplayCAL import config
 from DisplayCAL.config import appbasename, confighome, setcfg
 from DisplayCAL.options import debug, test, verbose
-from DisplayCAL.shared_constants import pydir
+from DisplayCAL.constants import pydir
 import DisplayCAL.writecfg
 
 if sys.platform == "win32":

@@ -1,3 +1,10 @@
+"""
+This module contains constants and configuration settings for DisplayCAL.
+
+It defines various paths and directories used by the application,
+as well as platform-specific settings such as the executable extension.
+"""
+
 import os
 import sys
 

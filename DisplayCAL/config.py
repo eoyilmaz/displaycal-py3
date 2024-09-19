@@ -431,8 +431,8 @@ valid_ranges = {
     "app.port": [1, 65535],
     "gamma": [0.000001, 10],
     "trc": [0.000001, 10],
-    # Argyll dispcal uses 20% of ambient (in lux, fixed steradiant of 3.1415)           # noqa: SC100
-    # as adapting luminance, but we assume it already *is* the adapting luminance.      # noqa: SC100
+    # Argyll dispcal uses 20% of ambient (in lux, fixed steradiant of 3.1415) as        # noqa: SC100
+    # adapting luminance, but we assume it already *is* the adapting luminance.         # noqa: SC100
     # To correct for this, scale so that dispcal gets the correct value.                # noqa: SC100
     "calibration.ambient_viewcond_adjust.lux": [0.0, sys.maxsize / 5.0],
     "calibration.black_luminance": [0.000001, 10],
@@ -1213,12 +1213,13 @@ def setcfg(name, value, cfg=cfg):
     else:
         if name in ("displays", "instruments") and isinstance(value, (list, tuple)):
             value = os.pathsep.join(
-                str(v) for v in strtr(
+                str(v)
+                for v in strtr(
                     value,
                     [
                         ("%", "%25"),
                         (os.pathsep, "%{}".format(hex(ord(os.pathsep))[2:].upper())),
-                    ]
+                    ],
                 )
             )
         cfg.set(configparser.DEFAULTSECT, name, value)
@@ -1256,5 +1257,5 @@ if sys.platform in ("darwin", "win32") and not os.getenv("SSL_CERT_FILE"):
     if not cafile:
         # Use our bundled CA file
         cafile = get_data_path("cacert.pem")
-    if cafile:
+    if cafile and isinstance(cafile, str):
         os.environ["SSL_CERT_FILE"] = cafile

@@ -5,6 +5,7 @@ import os
 import sys
 
 import DisplayCAL.get_data_path
+import DisplayCAL.get_total_patches
 
 root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(root)
@@ -27,7 +28,7 @@ def create_testcharts(overwrite=False):
     for bcc_steps in range(min_bcc_steps, max_bcc_steps + 1):
         single_channel = bcc_steps * 4 - 3
         gray_channel = single_channel * 3 - 2
-        total = config.get_total_patches(
+        total = DisplayCAL.get_total_patches.get_total_patches(
             4, 4, single_channel, gray_channel, bcc_steps, bcc_steps, 0
         )
         for name in precond:

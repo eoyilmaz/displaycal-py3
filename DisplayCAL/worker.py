@@ -47,6 +47,8 @@ from time import sleep, strftime, time
 from send2trash import send2trash
 
 from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.get_total_patches import get_total_patches
+import DisplayCAL.get_total_patches
 from DisplayCAL.getcfg import getcfg
 
 if sys.platform == "darwin":
@@ -116,7 +118,6 @@ from DisplayCAL.config import (
     exe_ext,
     fs_enc,
     geticon,
-    get_total_patches,
     get_verified_path,
     isapp,
     isexe,
@@ -13998,7 +13999,7 @@ usage: spotread [-options] [logfile]
             args.append("-b%s" % getcfg("tc_multi_bcc_steps"))
         tc_algo = getcfg("tc_algo")
         if getcfg("tc_fullspread_patches") > 0:
-            args.append("-f%s" % config.get_total_patches())
+            args.append("-f%s" % DisplayCAL.get_total_patches.get_total_patches())
             if tc_algo:
                 args.append("-" + tc_algo)
             if tc_algo in ("i", "I"):

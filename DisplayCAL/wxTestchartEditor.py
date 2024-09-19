@@ -10,6 +10,7 @@ import sys
 import time
 
 from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 
@@ -32,7 +33,6 @@ from DisplayCAL.config import (
     geticon,
     get_current_profile,
     get_display_name,
-    get_total_patches,
     get_verified_path,
     hascfg,
     profile_ext,

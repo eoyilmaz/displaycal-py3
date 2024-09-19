@@ -15,6 +15,7 @@ import tempfile
 import textwrap
 import traceback
 
+from DisplayCAL.constants import exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.initcfg
@@ -33,7 +34,7 @@ from DisplayCAL.colormath import (
     cLUT65_to_VidRGB,
     eeColor_to_VidRGB,
 )
-from DisplayCAL.config import exe_ext, fs_enc, profile_ext
+from DisplayCAL.config import fs_enc, profile_ext
 from DisplayCAL.debughelpers import (
     Error,
     Info,

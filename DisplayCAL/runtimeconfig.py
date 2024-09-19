@@ -1,4 +1,5 @@
-from DisplayCAL.config import confighome, data_dirs, defaults, exe_ext, exedir, isapp, logdir, pydir, pyext, pyname
+from DisplayCAL.config import confighome, defaults, exedir, isapp, logdir, pydir, pyext, pyname
+from DisplayCAL.constants import data_dirs, exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug

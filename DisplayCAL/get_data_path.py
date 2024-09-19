@@ -1,4 +1,5 @@
-from DisplayCAL.config import data_dirs, exe_ext, extra_data_dirs
+from DisplayCAL.constants import extra_data_dirs
+from DisplayCAL.constants import data_dirs, exe_ext
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.util_os import listdir_re, which
 

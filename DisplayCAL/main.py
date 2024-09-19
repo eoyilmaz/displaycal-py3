@@ -15,6 +15,7 @@ import threading
 
 import distro
 
+from DisplayCAL.constants import exe_ext
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
 
@@ -43,7 +44,6 @@ from DisplayCAL.config import (
     datahome,
     enc,
     exe,
-    exe_ext,
     exedir,
     exename,
     fs_enc,

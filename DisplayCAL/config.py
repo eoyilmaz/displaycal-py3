@@ -9,6 +9,7 @@ import sys
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
+from DisplayCAL.constants import data_dirs, extra_data_dirs
 from DisplayCAL.defaultpaths import (  # noqa: F401
     appdata,
     autostart,  # don't remove this, imported by other modules
@@ -79,21 +80,6 @@ else:
     pyname, pyext = os.path.splitext(os.path.basename(pypath))
     pydir = os.path.dirname(exe if isexe else os.path.abspath(__file__))
 
-# TODO: Modifying ``data_dirs`` here was not an elegant solution,                       # noqa: SC100
-# and it is not solving the problem either.
-data_dirs = [
-    # venv/share/DisplayCAL                                                             # noqa: SC100
-    os.path.join(os.path.dirname(os.path.dirname(pypath)), "share", "DisplayCAL"),
-    # venv/lib/python3.x/site-packages/DisplayCAL                                       # noqa: SC100
-    pydir,
-    # venv/share                                                                        # noqa: SC100
-    os.path.join(os.path.dirname(pydir), "share"),
-    # venv/lib/python3.x/site-packages/DisplayCAL-*.egg/share/DisplayCAL                # noqa: SC100
-    os.path.join(os.path.dirname(pydir), "share", "DisplayCAL"),
-]
-
-
-extra_data_dirs = []
 # Search directories on PATH for data directories so Argyll reference files can         # noqa: SC100
 # be found automatically if Argyll directory not explicitly configured                  # noqa: SC100
 for dir_ in getenvu("PATH", "").split(os.pathsep):
@@ -127,7 +113,6 @@ if sys.platform == "win32":
     data_dirs.append(datahome)
     data_dirs.extend(os.path.join(dir_, appbasename) for dir_ in commonappdata)
     data_dirs.append(os.path.join(commonprogramfiles, appbasename))
-    exe_ext = ".exe"
     profile_ext = ".icm"
 else:
     if sys.platform == "darwin":
@@ -163,7 +148,6 @@ else:
         extra_data_dirs.extend(
             os.path.join(dir_, "color", "argyll") for dir_ in xdg_data_dirs
         )
-    exe_ext = ""
     profile_ext = ".icc"
 
 storage = os.path.join(datahome, "storage")

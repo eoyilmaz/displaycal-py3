@@ -44,6 +44,7 @@ import zipfile
 
 from send2trash import send2trash
 
+from DisplayCAL.constants import exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
@@ -77,7 +78,6 @@ from DisplayCAL.config import (
     defaults,
     enc,
     exe,
-    exe_ext,
     fs_enc,
     geticon,
     get_ccxx_testchart,

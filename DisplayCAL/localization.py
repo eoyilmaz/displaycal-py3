@@ -3,7 +3,8 @@
 import os
 import re
 
-from DisplayCAL.config import data_dirs, defaults, storage
+from DisplayCAL.config import defaults, storage
+from DisplayCAL.constants import data_dirs
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.lazydict import LazyDict_YAML_UltraLite

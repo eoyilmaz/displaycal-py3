@@ -8,15 +8,7 @@ as well as platform-specific settings such as the executable extension.
 import os
 import sys
 
-from DisplayCAL.config import exe, exedir, isapp, pyfile
-
-isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)
-pydir = (
-    os.path.normpath(os.path.join(exedir, "..", "Resources"))
-    if isapp
-    else os.path.dirname(exe if isexe else os.path.abspath(__file__))
-)
-pypath = exe if isexe else os.path.abspath(pyfile)
+from DisplayCAL.shared_constants import isexe, pydir, pypath
 
 # TODO: Modifying ``data_dirs`` here was not an elegant solution,                       # noqa: SC100
 # and it is not solving the problem either.

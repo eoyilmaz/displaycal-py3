@@ -44,14 +44,15 @@ import zipfile
 
 from send2trash import send2trash
 
-from DisplayCAL.constants import exe_ext, isexe
+from DisplayCAL.constants import exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
 import DisplayCAL.initcfg
-from DisplayCAL.constants import pydir
+from DisplayCAL.shared_constants import pydir
+from DisplayCAL.shared_constants import isexe
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.writecfg import writecfg
 

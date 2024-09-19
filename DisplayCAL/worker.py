@@ -46,12 +46,13 @@ from time import sleep, strftime, time
 
 from send2trash import send2trash
 
-from DisplayCAL.constants import exe_ext, isexe
+from DisplayCAL.constants import exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 import DisplayCAL.get_total_patches
 from DisplayCAL.getcfg import getcfg
-from DisplayCAL.constants import pydir
+from DisplayCAL.shared_constants import pydir
+from DisplayCAL.shared_constants import isexe
 from DisplayCAL.writecfg import writecfg
 
 if sys.platform == "darwin":

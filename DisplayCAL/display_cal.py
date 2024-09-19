@@ -51,7 +51,7 @@ from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
 import DisplayCAL.initcfg
-from DisplayCAL.shared_constants import pydir
+from DisplayCAL.shared_constants import isexe, pydir
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.writecfg import writecfg
 
@@ -89,7 +89,6 @@ from DisplayCAL.config import (
     is_ccxx_testchart,
     is_profile,
     isapp,
-    isexe,
     profile_ext,
     resfiles,
     setcfg,

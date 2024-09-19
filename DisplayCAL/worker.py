@@ -51,7 +51,7 @@ from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 import DisplayCAL.get_total_patches
 from DisplayCAL.getcfg import getcfg
-from DisplayCAL.shared_constants import pydir
+from DisplayCAL.shared_constants import isexe, pydir
 from DisplayCAL.writecfg import writecfg
 
 if sys.platform == "darwin":
@@ -122,7 +122,6 @@ from DisplayCAL.config import (
     geticon,
     get_verified_path,
     isapp,
-    isexe,
     is_ccxx_testchart,
     logdir,
     profile_ext,

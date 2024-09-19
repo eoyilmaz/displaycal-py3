@@ -16,7 +16,7 @@ def test_default_values_1():
     assert config.exe == sys.executable  # venv/bin/python
     assert config.exedir == os.path.dirname(sys.executable)  # venv/bin
     assert config.exename == os.path.basename(sys.executable)  # python
-    assert config.isexe is False
+    assert DisplayCAL.shared_constants.isexe is False
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
     assert config.pyfile != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py

@@ -20,8 +20,8 @@ from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
-from DisplayCAL.shared_constants import pydir, pypath
 from DisplayCAL.runtimeconfig import runtimeconfig
+from DisplayCAL.shared_constants import isexe, pydir, pypath
 from DisplayCAL.util_os import expanduseru, getenvu, is_superuser
 from DisplayCAL.util_str import strtr
 
@@ -46,8 +46,6 @@ configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
 exe = sys.executable
 exedir = os.path.dirname(exe)
 exename = os.path.basename(exe)
-
-isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)
 
 if isexe:
     _meipass2 = os.getenv("_MEIPASS2")

@@ -10,3 +10,4 @@ pydir = (
     else os.path.dirname(exe if isexe else os.path.abspath(__file__))
 )
 pypath = exe if isexe else os.path.abspath(pyfile)
+isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)

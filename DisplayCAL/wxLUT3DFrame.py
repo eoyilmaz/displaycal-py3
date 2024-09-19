@@ -10,6 +10,7 @@ import traceback
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.initcfg
+import DisplayCAL.writecfg
 from DisplayCAL.wxaddons import CustomEvent
 
 if sys.platform == "win32":
@@ -693,9 +694,9 @@ class LUT3DMixin(object):
                     if result != wx.ID_OK:
                         return
                 if self.Parent:
-                    config.writecfg()
+                    DisplayCAL.writecfg.writecfg()
                 elif isinstance(self, LUT3DFrame):
-                    config.writecfg(
+                    DisplayCAL.writecfg.writecfg(
                         module="3DLUT-maker",
                         options=(
                             "3dlut.",
@@ -1627,9 +1628,9 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             self.setcfg("size.lut3dframe.w", self.ClientSize[0])
             self.setcfg("size.lut3dframe.h", self.ClientSize[1])
         if self.Parent:
-            config.writecfg()
+            DisplayCAL.writecfg.writecfg()
         else:
-            config.writecfg(
+            DisplayCAL.writecfg.writecfg(
                 module="3DLUT-maker",
                 options=(
                     "3dlut.",

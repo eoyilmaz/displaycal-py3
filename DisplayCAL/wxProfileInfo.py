@@ -15,7 +15,6 @@ from DisplayCAL.config import (
     get_verified_path,
     profile_ext,
     setcfg,
-    writecfg,
 )
 from DisplayCAL.get_data_path import get_data_path
 import DisplayCAL.get_standard_profiles
@@ -37,6 +36,7 @@ from DisplayCAL.worker import (
     make_argyll_compatible_path,
     show_result_dialog,
 )
+from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
 from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile

@@ -36,6 +36,7 @@ from DisplayCAL import colormath
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import worker
+import DisplayCAL.writecfg
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -191,7 +192,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.setcfg("position.synthiccframe.y", y)
             self.setcfg("size.synthiccframe.w", self.ClientSize[0])
             self.setcfg("size.synthiccframe.h", self.ClientSize[1])
-        config.writecfg(
+        DisplayCAL.writecfg.writecfg(
             module="synthprofile",
             options=(
                 "synthprofile.",

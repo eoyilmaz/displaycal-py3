@@ -9,6 +9,7 @@ from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, wac
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import x3dom
+import DisplayCAL.writecfg
 
 gui = "wx" in sys.modules
 
@@ -217,7 +218,7 @@ def vrmlfile2x3dfile(
         if result != wx.ID_OK:
             return
         config.setcfg("last_vrml_path", vrmlpath)
-        config.writecfg(module="VRML-to-X3D-converter", options=("last_vrml_path",))
+        DisplayCAL.writecfg.writecfg(module="VRML-to-X3D-converter", options=("last_vrml_path",))
     filename, ext = os.path.splitext(vrmlpath)
     if x3dpath is None:
         x3dpath = filename + ".x3d"

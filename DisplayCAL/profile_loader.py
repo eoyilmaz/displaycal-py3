@@ -24,6 +24,7 @@ from DisplayCAL.meta import (
 from DisplayCAL import config
 from DisplayCAL.config import appbasename, confighome, setcfg
 from DisplayCAL.options import debug, test, verbose
+import DisplayCAL.writecfg
 
 if sys.platform == "win32":
     import errno
@@ -2195,7 +2196,7 @@ class ProfileLoader(object):
                     "profile_loader.error.show_msg",
                     int(not dlg.do_not_show_again_cb.GetValue()),
                 )
-                config.writecfg(
+                DisplayCAL.writecfg.writecfg(
                     module="apply-profiles",
                     options=("argyll.dir", "profile.load_on_login", "profile_loader"),
                 )
@@ -3791,7 +3792,7 @@ class ProfileLoader(object):
         dlg.ShowModalThenDestroy()
 
     def writecfg(self):
-        config.writecfg(
+        DisplayCAL.writecfg.writecfg(
             module="apply-profiles",
             options=("argyll.dir", "profile.load_on_login", "profile_loader"),
         )
@@ -4002,7 +4003,7 @@ def main():
 
         if "--error-dialog" in sys.argv[1:]:
             config.setcfg("profile_loader.error.show_msg", 1)
-            config.writecfg(
+            DisplayCAL.writecfg.writecfg(
                 module="apply-profiles",
                 options=("argyll.dir", "profile.load_on_login", "profile_loader"),
             )

@@ -18,7 +18,6 @@ from DisplayCAL.config import (
     get_display_rects,
     scale_adjustment_factor,
     setcfg,
-    writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.getcfg import getcfg
@@ -26,6 +25,7 @@ import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist
+from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
     BaseApp,

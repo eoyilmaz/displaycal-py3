@@ -36,7 +36,7 @@ from DisplayCAL.wxwindows import (
 from DisplayCAL import CGATS
 from DisplayCAL import audio
 from DisplayCAL import colormath
-from DisplayCAL import config
+from DisplayCAL import writecfg
 from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
@@ -242,7 +242,7 @@ class UntetheredFrame(BaseFrame):
         pass
 
     def OnClose(self, event):
-        config.writecfg()
+        writecfg.writecfg()
         if not self.timer.IsRunning():
             self.Destroy()
         else:

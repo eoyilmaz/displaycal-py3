@@ -44,7 +44,7 @@ from DisplayCAL.wxwindows import (
     wx_Panel,
 )
 from DisplayCAL import audio
-from DisplayCAL import config
+from DisplayCAL import writecfg
 from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
@@ -942,7 +942,7 @@ class DisplayAdjustmentFrame(windowcls):
         # if getattr(self, "measurement_play_sound_ctrl", None):
         # setcfg("measurement.play_sound",
         # int(self.measurement_play_sound_ctrl.GetValue()))
-        config.writecfg()
+        writecfg.writecfg()
         if not self.timer.IsRunning():
             self.Destroy()
         else:

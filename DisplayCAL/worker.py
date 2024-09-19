@@ -50,6 +50,7 @@ from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 import DisplayCAL.get_total_patches
 from DisplayCAL.getcfg import getcfg
+from DisplayCAL.writecfg import writecfg
 
 if sys.platform == "darwin":
     from platform import mac_ver
@@ -128,7 +129,6 @@ from DisplayCAL.config import (
     setcfg,
     setcfg_cond,
     split_display_name,
-    writecfg,
     appbasename,
 )
 from DisplayCAL.debughelpers import (

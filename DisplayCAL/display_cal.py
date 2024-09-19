@@ -51,6 +51,7 @@ from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
 import DisplayCAL.initcfg
 from DisplayCAL.util_dict import dict_sort
+from DisplayCAL.writecfg import writecfg
 
 if sys.platform == "win32":
     import winreg
@@ -93,7 +94,6 @@ from DisplayCAL.config import (
     resfiles,
     setcfg,
     setcfg_cond,
-    writecfg,
 )
 
 # Custom modules

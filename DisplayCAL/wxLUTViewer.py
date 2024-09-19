@@ -35,6 +35,7 @@ from DisplayCAL.worker import (
     make_argyll_compatible_path,
     show_result_dialog,
 )
+import DisplayCAL.writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
@@ -2179,7 +2180,7 @@ class LUTFrame(BaseFrame):
         self.listening = False
         if self.worker.tempdir and os.path.isdir(self.worker.tempdir):
             self.worker.wrapup(False)
-        config.writecfg(
+        DisplayCAL.writecfg.writecfg(
             module="curve-viewer",
             options=("display.number", "position.lut_viewer", "size.lut_viewer"),
         )

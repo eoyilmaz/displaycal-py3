@@ -14,6 +14,7 @@ from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.initcfg
+from DisplayCAL.writecfg import writecfg
 
 if sys.platform == "win32":
     import win32file
@@ -38,7 +39,6 @@ from DisplayCAL.config import (
     hascfg,
     profile_ext,
     setcfg,
-    writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.meta import name as appname

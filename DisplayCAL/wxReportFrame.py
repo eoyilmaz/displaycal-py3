@@ -19,6 +19,7 @@ from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import worker
 from DisplayCAL.util_list import natsort_key_factory
+import DisplayCAL.writecfg
 from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
 from DisplayCAL.wxfixes import TempXmlResource
@@ -213,7 +214,7 @@ class ReportFrame(BaseFrame):
             setcfg("position.reportframe.y", y)
             setcfg("size.reportframe.w", self.ClientSize[0])
             setcfg("size.reportframe.h", self.ClientSize[1])
-        config.writecfg()
+        DisplayCAL.writecfg.writecfg()
         if event:
             event.Skip()
 

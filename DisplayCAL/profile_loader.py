@@ -13,6 +13,7 @@ import time
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.meta import (
     VERSION,
     VERSION_BASE,
@@ -3989,7 +3990,7 @@ def main():
         if sys.platform == "win32":
             setup_profile_loader_task(exe, exedir, pydir)
 
-        config.initcfg("apply-profiles")
+        DisplayCAL.initcfg.initcfg("apply-profiles")
 
         if (
             "--force" not in sys.argv[1:]

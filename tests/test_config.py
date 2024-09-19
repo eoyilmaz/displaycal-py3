@@ -3,11 +3,13 @@
 import os
 import sys
 
+import DisplayCAL.initcfg
+
 
 def test_default_values_1():
     """Test default values of module level variables."""
     from DisplayCAL import config
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
 
     assert config.configparser.DEFAULTSECT == "Default"
     assert config.exe == sys.executable  # venv/bin/python

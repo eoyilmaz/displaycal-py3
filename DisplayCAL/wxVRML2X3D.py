@@ -3,6 +3,7 @@
 import os
 import sys
 
+import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
 from DisplayCAL import config
@@ -134,7 +135,7 @@ def main():
         if gui:
             return
     if gui:
-        config.initcfg("VRML-to-X3D-converter")
+        DisplayCAL.initcfg.initcfg("VRML-to-X3D-converter")
         lang.init()
         lang.update_defaults()
     cache = "--no-cache" not in sys.argv[1:]

@@ -17,6 +17,7 @@ from math import pi, sin, cos, sqrt, atan2
 
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
 
 if sys.platform == "darwin":
     from platform import mac_ver
@@ -35,7 +36,6 @@ from DisplayCAL.config import (
     get_display_name,
     get_icon_bundle,
     geticon,
-    initcfg,
     profile_ext,
     setcfg,
 )

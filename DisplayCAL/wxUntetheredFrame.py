@@ -11,6 +11,7 @@ import time
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.config import (
     geticon,
@@ -773,7 +774,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
     print("untethered.min_delta", getcfg("untethered.min_delta"))
     print("untethered.min_delta.lightness", getcfg("untethered.min_delta.lightness"))
     print("untethered.max_delta.chroma", getcfg("untethered.max_delta.chroma"))

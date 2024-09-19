@@ -48,6 +48,8 @@ from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
+import DisplayCAL.initcfg
 from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
@@ -84,7 +86,6 @@ from DisplayCAL.config import (
     hascfg,
     is_ccxx_testchart,
     is_profile,
-    initcfg,
     isapp,
     isexe,
     profile_ext,
@@ -2400,7 +2401,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Avoid messing with main configuration (e.g. when not running standalone)
         # because we share HDR settings with 3D LUT HDR settings
         SynthICCFrame.cfg = config.configparser.RawConfigParser()
-        config.initcfg("synthprofile", SynthICCFrame.cfg)
+        DisplayCAL.initcfg.initcfg("synthprofile", SynthICCFrame.cfg)
         self.synthiccframe = SynthICCFrame()
 
     def infoframe_close_handler(self, event):
@@ -10362,7 +10363,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def measureframe_consumer(self, delayedResult):
         returncode, stderr = delayedResult.get()
         if returncode != -1:
-            config.initcfg()
+            DisplayCAL.initcfg.initcfg()
             self.get_set_display()
         if returncode != 255:
             self.Show(start_timers=True)

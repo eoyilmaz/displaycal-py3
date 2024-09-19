@@ -21,6 +21,7 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
@@ -2490,7 +2491,7 @@ class LUTFrame(BaseFrame):
 
 
 def main():
-    config.initcfg("curve-viewer")
+    DisplayCAL.initcfg.initcfg("curve-viewer")
     # Backup display config
     cfg_display = getcfg("display.number")
     lang.init()

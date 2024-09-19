@@ -4,10 +4,12 @@ from time import gmtime, strftime
 import math
 import os
 
-from DisplayCAL.config import initcfg, geticon, hascfg, setcfg
+from DisplayCAL.config import geticon, hascfg, setcfg
 from DisplayCAL.get_data_path import get_data_path
 import DisplayCAL.get_standard_profiles
 from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
+import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
@@ -1117,7 +1119,7 @@ class ReportFrame(BaseFrame):
 
 
 if __name__ == "__main__":
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

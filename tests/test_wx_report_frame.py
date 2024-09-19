@@ -10,7 +10,7 @@ def test_update_estimated_measurement_time_1(argyll):
     wxReportFrame.ReportFrame.update_estimated_measurement_time() method raising
     TypeError.
     """
-    from DisplayCAL.config import initcfg
+    from DisplayCAL.initcfg import initcfg
     from DisplayCAL.wxReportFrame import ReportFrame
     import wx
 

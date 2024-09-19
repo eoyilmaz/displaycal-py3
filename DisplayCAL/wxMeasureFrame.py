@@ -22,6 +22,7 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist
@@ -825,7 +826,7 @@ def test():
 
 
 def main():
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
     lang.init()
     app = BaseApp(0)
     app.TopWindow = MeasureFrame()

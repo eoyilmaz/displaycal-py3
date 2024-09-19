@@ -10,7 +10,7 @@ import DisplayCAL.get_total_patches
 root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(root)
 
-from DisplayCAL import config, ICCProfile as ICCP, localization as lang, meta
+from DisplayCAL import initcfg, ICCProfile as ICCP, localization as lang, meta
 from DisplayCAL.worker import Worker, check_argyll_bin, get_argyll_util
 
 
@@ -65,7 +65,7 @@ def create_testcharts(overwrite=False):
 
 
 if __name__ == "__main__":
-    config.initcfg()
+    initcfg.initcfg()
     lang.init()
     if check_argyll_bin():
         create_testcharts("--overwrite" in sys.argv[1:])

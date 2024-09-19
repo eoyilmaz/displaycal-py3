@@ -8,6 +8,7 @@ import re
 import sys
 
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 
 if sys.platform == "win32":
     from ctypes import windll
@@ -1662,7 +1663,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
     lang.init()
     app = BaseApp(0)
 

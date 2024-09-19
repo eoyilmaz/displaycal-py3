@@ -36,7 +36,7 @@ from DisplayCAL.wxwindows import (
     wx_Panel,
 )
 from DisplayCAL import colormath
-from DisplayCAL import config
+from DisplayCAL import initcfg
 from DisplayCAL import localization as lang
 from DisplayCAL import report
 
@@ -529,7 +529,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    config.initcfg()
+    initcfg.initcfg()
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

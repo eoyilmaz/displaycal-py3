@@ -16,6 +16,7 @@ import threading
 import distro
 
 from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
 
 if sys.platform == "darwin":
     from platform import mac_ver
@@ -46,7 +47,6 @@ from DisplayCAL.config import (
     exedir,
     exename,
     fs_enc,
-    initcfg,
     isapp,
     isexe,
     logdir,

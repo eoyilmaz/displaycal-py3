@@ -8,10 +8,10 @@ import DisplayCAL.get_data_path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import ICCProfile as ICCP, colormath, config, worker
+from DisplayCAL import ICCProfile as ICCP, colormath, initcfg, worker
 
 
-config.initcfg()
+initcfg.initcfg()
 srgb = DisplayCAL.get_data_path.get_data_path("ref/sRGB.icm")
 if not srgb:
     raise OSError("File not found: ref/sRGB.icm")

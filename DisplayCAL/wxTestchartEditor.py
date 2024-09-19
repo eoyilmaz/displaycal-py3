@@ -13,6 +13,7 @@ from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 
 if sys.platform == "win32":
     import win32file
@@ -4411,7 +4412,7 @@ END_DATA"""
 
 
 def main():
-    config.initcfg("testchart-editor")
+    DisplayCAL.initcfg.initcfg("testchart-editor")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

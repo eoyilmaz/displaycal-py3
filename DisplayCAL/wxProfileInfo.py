@@ -21,6 +21,7 @@ from DisplayCAL.get_data_path import get_data_path
 import DisplayCAL.get_standard_profiles
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort
@@ -2173,7 +2174,7 @@ class ProfileInfoFrame(LUTFrame):
 
 
 def main():
-    config.initcfg("profile-info")
+    DisplayCAL.initcfg.initcfg("profile-info")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

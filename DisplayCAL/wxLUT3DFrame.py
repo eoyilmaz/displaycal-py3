@@ -9,6 +9,7 @@ import traceback
 
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.wxaddons import CustomEvent
 
 if sys.platform == "win32":
@@ -2052,7 +2053,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
 
 
 def main():
-    config.initcfg("3DLUT-maker")
+    DisplayCAL.initcfg.initcfg("3DLUT-maker")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

@@ -3,7 +3,7 @@ import os
 from subprocess import Popen
 
 from DisplayCAL import worker_base
-from DisplayCAL import config
+from DisplayCAL import initcfg
 from DisplayCAL.dev.mocks import check_call
 
 import DisplayCAL.getcfg
@@ -22,7 +22,7 @@ from tests.data.argyll_sp_data import SUBPROCESS_COM
 
 def test_get_argyll_util(argyll):
     """Test worker_base.get_argyll_util() function."""
-    config.initcfg()
+    initcfg.initcfg()
     result = worker_base.get_argyll_util("ccxxmake")
     expected_result = os.path.join(DisplayCAL.getcfg.getcfg("argyll.dir"), "ccxxmake")
     assert result == expected_result
@@ -30,7 +30,7 @@ def test_get_argyll_util(argyll):
 
 def test_get_argyll_version_string_1(argyll):
     """Test worker_base.get_argyll_version_string() function."""
-    config.initcfg()
+    initcfg.initcfg()
     with check_call(Popen, "communicate", SUBPROCESS_COM):
         result = worker_base.get_argyll_version_string("ccxxmake")
     expected_result = "2.3.0"

@@ -16,6 +16,7 @@ from DisplayCAL.config import (
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
@@ -1344,7 +1345,7 @@ def get_mapping(mapping, keys):
 
 
 def main():
-    config.initcfg("synthprofile")
+    DisplayCAL.initcfg.initcfg("synthprofile")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

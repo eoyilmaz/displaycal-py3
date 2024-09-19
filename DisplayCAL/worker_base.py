@@ -17,6 +17,7 @@ import traceback
 
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 
 if sys.platform == "win32":
     import win32api
@@ -79,7 +80,7 @@ def _mp_xicclu(
     verbose=1,
 ):
     if not config.cfg.items(config.configparser.DEFAULTSECT):
-        config.initcfg()
+        DisplayCAL.initcfg.initcfg()
     profile = ICCP.ICCProfile(profile_filename)
     xicclu = Xicclu(
         profile,
@@ -158,7 +159,7 @@ def _mp_generate_B2A_clut(
         print("wx?", "wx" in str(list(sys.modules.keys())))
         print("x3dom?", "x3dom" in str(list(sys.modules.keys())))
     if not config.cfg.items(config.configparser.DEFAULTSECT):
-        config.initcfg()
+        DisplayCAL.initcfg.initcfg()
     idata = []
     abmaxval = 255 + (255 / 256.0)
     profile = ICCP.ICCProfile(profile_filename)

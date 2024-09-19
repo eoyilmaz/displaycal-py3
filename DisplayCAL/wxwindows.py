@@ -10,6 +10,7 @@ from DisplayCAL.getbitmap import getbitmap
 
 import DisplayCAL.getbitmap
 from DisplayCAL.getcfg import getcfg
+import DisplayCAL.initcfg
 
 htmlparser = HTMLParser()
 from time import gmtime, sleep, strftime, time
@@ -8101,7 +8102,7 @@ def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
 
 
 def test():
-    config.initcfg()
+    DisplayCAL.initcfg.initcfg()
     lang.init()
 
     def key_handler(self, event):

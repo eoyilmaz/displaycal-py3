@@ -201,6 +201,16 @@ virtual_displays = untethered_displays + ("madVR$",)
 
 
 def is_special_display(display=None, tests=virtual_displays):
+    """
+    Check if the display is a special display.
+
+    Args:
+        display (str): The display name.
+        tests (list): List of special display patterns.
+
+    Returns:
+        bool: True if the display is special, False otherwise.
+    """
     if not isinstance(display, str):
         display = get_display_name(display)
     for test in tests:
@@ -210,6 +220,15 @@ def is_special_display(display=None, tests=virtual_displays):
 
 
 def is_uncalibratable_display(display=None):
+    """
+    Check if the display is uncalibratable.
+
+    Args:
+        display (str): The display name.
+
+    Returns:
+        bool: True if the display is uncalibratable, False otherwise.
+    """
     return is_special_display(display, uncalibratable_displays)
 
 
@@ -222,14 +241,41 @@ def is_non_argyll_display(display=None):
 
 
 def is_untethered_display(display=None):
+    """
+    Check if the display is untethered.
+
+    Args:
+        display (str): The display name.
+
+    Returns:
+        bool: True if the display is untethered, False otherwise.
+    """
     return is_special_display(display, untethered_displays)
 
 
 def is_virtual_display(display=None):
+    """
+    Check if the display is virtual.
+
+    Args:
+        display (str): The display name.
+
+    Returns:
+        bool: True if the display is virtual, False otherwise.
+    """
     return is_special_display(display, virtual_displays)
 
 
 def check_3dlut_format(devicename):
+    """
+    Check the 3D LUT format for the given device.
+
+    Args:
+        devicename (str): The name of the device.
+
+    Returns:
+        bool: True if the 3D LUT format is correct, False otherwise.
+    """
     if get_display_name(None, True) == devicename:
         if devicename == "Prisma":
             return (
@@ -241,7 +287,17 @@ def check_3dlut_format(devicename):
 
 
 def get_bitmap_as_icon(size, name, scale=True):
-    """Like geticon, but return a wx.Icon instance."""
+    """
+    Like geticon, but return a wx.Icon instance.
+
+    Args:
+        size (int): The size of the icon.
+        name (str): The name of the icon.
+        scale (bool): Whether to scale the icon.
+
+    Returns:
+        wx.Icon: The icon instance.
+    """
     from DisplayCAL.wxaddons import wx
 
     icon = wx.EmptyIcon()
@@ -254,6 +310,12 @@ def get_bitmap_as_icon(size, name, scale=True):
 
 
 def get_argyll_data_dir():
+    """
+    Get the Argyll data directory.
+
+    Returns:
+        str: The path to the Argyll data directory.
+    """
     if getcfg("argyll.version") < "1.5.0":
         argyll_data_dirname = "color"
     else:
@@ -269,7 +331,16 @@ def get_argyll_data_dir():
 
 
 def get_display_name(disp_index=None, include_geometry=False):
-    """Return name of currently configured display."""
+    """
+    Return name of currently configured display.
+
+    Args:
+        disp_index (int): The index of the display.
+        include_geometry (bool): Whether to include geometry in the display name.
+
+    Returns:
+        str: The name of the display.
+    """
     if disp_index is None:
         disp_index = getcfg("display.number") - 1
     displays = getcfg("displays")
@@ -286,6 +357,12 @@ def split_display_name(display):
     """
     Split and return name part of display.
 
+    Args:
+        display (str): The display name.
+
+    Returns:
+        str: The name part of the display.
+
     E.g.
     'LCD2690WUXi @ 0, 0, 1920x1200' -> 'LCD2690WUXi'
     'madVR' -> 'madVR'
@@ -296,7 +373,15 @@ def split_display_name(display):
 
 
 def get_argyll_display_number(geometry):
-    """Translate from wx display geometry to Argyll display index."""
+    """
+    Translate from wx display geometry to Argyll display index.
+
+    Args:
+        geometry (tuple): The geometry of the display.
+
+    Returns:
+        int: The Argyll display index.
+    """
     geometry = f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
     for i, display in enumerate(getcfg("displays")):
         if display.find(f"@ {geometry}") > -1:
@@ -306,7 +391,15 @@ def get_argyll_display_number(geometry):
 
 
 def get_display_number(display_no):
-    """Translate from Argyll display index to wx display index."""
+    """
+    Translate from Argyll display index to wx display index.
+
+    Args:
+        display_no (int): The Argyll display index.
+
+    Returns:
+        int: The wx display index.
+    """
     if is_virtual_display(display_no):
         return 0
     from DisplayCAL.wxaddons import wx
@@ -328,7 +421,12 @@ def get_display_number(display_no):
 
 
 def get_display_rects():
-    """Return the Argyll enumerated display coordinates and sizes."""
+    """
+    Return the Argyll enumerated display coordinates and sizes.
+
+    Returns:
+        list: A list of wx.Rect objects representing the display coordinates and sizes.
+    """
     from DisplayCAL.wxaddons import wx
 
     display_rects = []
@@ -340,7 +438,16 @@ def get_display_rects():
 
 
 def get_icon_bundle(sizes, name):
-    """Return a wx.IconBundle with given icon sizes."""
+    """
+    Return a wx.IconBundle with given icon sizes.
+
+    Args:
+        sizes (list): A list of icon sizes.
+        name (str): The name of the icon.
+
+    Returns:
+        wx.IconBundle: The icon bundle.
+    """
     from DisplayCAL.wxaddons import wx
 
     iconbundle = wx.IconBundle()
@@ -359,7 +466,12 @@ def get_icon_bundle(sizes, name):
 
 
 def get_instrument_name():
-    """Return name of currently configured instrument."""
+    """
+    Return name of currently configured instrument.
+
+    Returns:
+        str: The name of the instrument.
+    """
     n = getcfg("comport.number") - 1
     instrument_names = getcfg("instruments")
     if 0 <= n < len(instrument_names):
@@ -368,7 +480,16 @@ def get_instrument_name():
 
 
 def get_measureframe_dimensions(dimensions_measureframe=None, percent=10):
-    """Return measurement area size adjusted for percentage of screen area."""
+    """
+    Return measurement area size adjusted for percentage of screen area.
+
+    Args:
+        dimensions_measureframe (str): The dimensions of the measure frame.
+        percent (int): The percentage of screen area.
+
+    Returns:
+        str: The adjusted dimensions of the measure frame.
+    """
     if not dimensions_measureframe:
         dimensions_measureframe = getcfg("dimensions.measureframe")
     dimensions_measureframe = [float(n) for n in dimensions_measureframe.split(",")]

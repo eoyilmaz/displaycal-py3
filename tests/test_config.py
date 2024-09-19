@@ -4,6 +4,7 @@ import os
 import sys
 
 import DisplayCAL.initcfg
+import DisplayCAL.shared_constants
 
 
 def test_default_values_1():
@@ -19,12 +20,12 @@ def test_default_values_1():
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
     assert config.pyfile != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert config.pypath != ""
+    assert DisplayCAL.shared_constants.pypath != ""
     assert config.isapp is False  #
     assert config.pyname != ""  # _jb_pytest_runner
     assert config.pyext != ""  # .py
     # $HOME/Documents/development/displaycal/DisplayCAL
-    assert config.pydir != ""
+    assert DisplayCAL.shared_constants.pydir != ""
 
     if sys.platform == "linux":
         assert config.xdg_config_dir_default == "/etc/xdg"

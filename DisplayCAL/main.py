@@ -18,6 +18,7 @@ import distro
 from DisplayCAL.constants import exe_ext
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
+from DisplayCAL.shared_constants import pydir, pypath
 
 if sys.platform == "darwin":
     from platform import mac_ver
@@ -50,9 +51,7 @@ from DisplayCAL.config import (
     isapp,
     isexe,
     logdir,
-    pydir,
     pyname,
-    pypath,
     resfiles,
     runtype,
     appbasename,

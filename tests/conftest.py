@@ -125,6 +125,7 @@ def random_icc_profile():
     import tempfile
     from DisplayCAL import colormath
     from DisplayCAL import ICCProfile
+
     rec709_gamma18 = list(colormath.get_rgb_space("Rec. 709"))
     icc_profile = ICCProfile.ICCProfile.from_rgb_space(
         rec709_gamma18, b"Rec. 709 gamma 1.8"

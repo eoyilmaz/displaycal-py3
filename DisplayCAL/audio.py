@@ -37,7 +37,7 @@ if sys.platform == "win32":
     except ImportError:
         win32api = None
 
-from DisplayCAL.config import pydir
+from DisplayCAL.shared_constants import pydir
 from DisplayCAL.util_os import dlopen, getenvu
 from DisplayCAL.util_str import safe_str
 

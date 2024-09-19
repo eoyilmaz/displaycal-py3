@@ -8,7 +8,7 @@ as well as platform-specific settings such as the executable extension.
 import os
 import sys
 
-from DisplayCAL.config import pydir, pypath
+from DisplayCAL.shared_constants import pydir, pypath
 
 # TODO: Modifying ``data_dirs`` here was not an elegant solution,                       # noqa: SC100
 # and it is not solving the problem either.

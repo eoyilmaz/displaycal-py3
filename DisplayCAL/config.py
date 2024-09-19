@@ -12,10 +12,7 @@ from DisplayCAL.argyll_names import intents, observers, video_encodings, viewcon
 from DisplayCAL.constants import data_dirs, extra_data_dirs
 from DisplayCAL.defaultpaths import (  # noqa: F401
     appdata,
-    autostart,  # don't remove this, imported by other modules
-    autostart_home,  # don't remove this, imported by other modules
-    commonappdata,
-    home,  # don't remove this, imported by other modules,
+    commonappdata,  # don't remove this, imported by other modules,
 )
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_hidpi_scaling_factor import get_hidpi_scaling_factor
@@ -23,10 +20,8 @@ from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
+from DisplayCAL.shared_constants import pydir, pypath
 from DisplayCAL.runtimeconfig import runtimeconfig
-from DisplayCAL.safe_print import (  # noqa: F401
-    enc,  # don't remove this, imported by other modules,
-)
 from DisplayCAL.util_os import expanduseru, getenvu, is_superuser
 from DisplayCAL.util_str import strtr
 
@@ -45,7 +40,6 @@ else:
         xdg_data_home_default,
     )
 
-import build  # don't remove this, imported by other modules                            # noqa: F401
 
 configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
 
@@ -66,20 +60,17 @@ pyfile = (
     else (os.path.isfile(sys.argv[0]) and sys.argv[0])
     or os.path.join(os.path.dirname(__file__), "main.py")
 )
-pypath = exe if isexe else os.path.abspath(pyfile)
 # Mac OS X: isapp should only be true for standalone, not 0install                      # noqa: SC100
 isapp = (
     sys.platform == "darwin"
     and exe.split(os.path.sep)[-3:-1] == ["Contents", "MacOS"]
     and os.path.exists(os.path.join(exedir, "..", "Resources", "xrc"))
 )
-if isapp:
-    pyname, pyext = os.path.splitext(exe.split(os.path.sep)[-4])
-    pydir = os.path.normpath(os.path.join(exedir, "..", "Resources"))
-else:
-    pyname, pyext = os.path.splitext(os.path.basename(pypath))
-    pydir = os.path.dirname(exe if isexe else os.path.abspath(__file__))
-
+pyname, pyext = (
+    os.path.splitext(exe.split(os.path.sep)[-4])
+    if isapp
+    else os.path.splitext(os.path.basename(pypath))
+)
 # Search directories on PATH for data directories so Argyll reference files can         # noqa: SC100
 # be found automatically if Argyll directory not explicitly configured                  # noqa: SC100
 for dir_ in getenvu("PATH", "").split(os.pathsep):

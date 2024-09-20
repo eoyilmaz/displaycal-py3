@@ -46,6 +46,7 @@ from time import sleep, strftime, time
 
 from send2trash import send2trash
 
+from DisplayCAL.common_constants import exe, exedir, isapp
 from DisplayCAL.constants import exe_ext
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.get_total_patches import get_total_patches
@@ -117,12 +118,9 @@ from DisplayCAL.config import (
     script_ext,
     defaults,
     enc,
-    exe,
-    exedir,
     fs_enc,
     geticon,
     get_verified_path,
-    isapp,
     is_ccxx_testchart,
     logdir,
     profile_ext,

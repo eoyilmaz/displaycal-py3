@@ -10,6 +10,7 @@ import sys
 import threading
 import time
 
+from DisplayCAL.common_constants import exe, exedir
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.getcfg
@@ -51,8 +52,6 @@ if sys.platform == "win32":
     from DisplayCAL.config import (
         autostart,
         autostart_home,
-        exe,
-        exedir,
         get_default_dpi,
         get_icon_bundle,
         geticon,

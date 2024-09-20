@@ -1,7 +1,7 @@
 import os
 import sys
 
-from DisplayCAL.config import exe, exedir, isapp, pyfile
+from DisplayCAL.common_constants import exe, exedir, isapp, pyfile
 
 
 isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)

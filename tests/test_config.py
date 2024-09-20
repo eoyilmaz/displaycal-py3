@@ -3,6 +3,7 @@
 import os
 import sys
 
+import DisplayCAL.common_constants
 import DisplayCAL.initcfg
 import DisplayCAL.shared_constants
 
@@ -13,15 +14,15 @@ def test_default_values_1():
     DisplayCAL.initcfg.initcfg()
 
     assert config.configparser.DEFAULTSECT == "Default"
-    assert config.exe == sys.executable  # venv/bin/python
-    assert config.exedir == os.path.dirname(sys.executable)  # venv/bin
+    assert DisplayCAL.common_constants.exe == sys.executable  # venv/bin/python
+    assert DisplayCAL.common_constants.exedir == os.path.dirname(sys.executable)  # venv/bin
     assert config.exename == os.path.basename(sys.executable)  # python
     assert DisplayCAL.shared_constants.isexe is False
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert config.pyfile != ""
+    assert DisplayCAL.common_constants.pyfile != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
     assert DisplayCAL.shared_constants.pypath != ""
-    assert config.isapp is False  #
+    assert DisplayCAL.common_constants.isapp is False  #
     assert config.pyname != ""  # _jb_pytest_runner
     assert config.pyext != ""  # .py
     # $HOME/Documents/development/displaycal/DisplayCAL

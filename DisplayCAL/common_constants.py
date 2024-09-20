@@ -1,6 +1,7 @@
 import os
 import sys
 
+from DisplayCAL.shared_constants import isexe
 
 exe = sys.executable
 exedir = os.path.dirname(exe)

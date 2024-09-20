@@ -9,8 +9,8 @@ import sys
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
-from DisplayCAL.common_constants import exe, exedir, isapp, pyfile
-from DisplayCAL.constants import data_dirs, extra_data_dirs
+from DisplayCAL.constants import pyfile
+from DisplayCAL.constants import data_dirs, exe, exedir, extra_data_dirs, isapp, isexe
 from DisplayCAL.defaultpaths import (  # noqa: F401
     appdata,
     commonappdata,  # don't remove this, imported by other modules,
@@ -22,8 +22,8 @@ from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.runtimeconfig import runtimeconfig
-from DisplayCAL.shared_constants import pypath
-from DisplayCAL.shared_constants import isexe, pydir
+from DisplayCAL.constants import pypath
+from DisplayCAL.constants import pydir
 from DisplayCAL.util_os import expanduseru, getenvu, is_superuser
 from DisplayCAL.util_str import strtr
 

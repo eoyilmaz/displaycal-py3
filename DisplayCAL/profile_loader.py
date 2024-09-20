@@ -10,7 +10,8 @@ import sys
 import threading
 import time
 
-from DisplayCAL.common_constants import exe, exedir
+from DisplayCAL.constants import exedir
+from DisplayCAL.constants import exe
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.getcfg
@@ -25,7 +26,7 @@ from DisplayCAL.meta import (
 from DisplayCAL import config
 from DisplayCAL.config import appbasename, confighome, setcfg
 from DisplayCAL.options import debug, test, verbose
-from DisplayCAL.shared_constants import pydir
+from DisplayCAL.constants import pydir
 import DisplayCAL.writecfg
 
 if sys.platform == "win32":

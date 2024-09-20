@@ -15,12 +15,12 @@ import threading
 
 import distro
 
-from DisplayCAL.common_constants import exe, exedir, isapp
-from DisplayCAL.constants import exe_ext
+from DisplayCAL.constants import isapp
+from DisplayCAL.constants import exe, exe_ext, exedir, isexe
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.initcfg import initcfg
-from DisplayCAL.shared_constants import pypath
-from DisplayCAL.shared_constants import isexe, pydir
+from DisplayCAL.constants import pypath
+from DisplayCAL.constants import pydir
 
 if sys.platform == "darwin":
     from platform import mac_ver

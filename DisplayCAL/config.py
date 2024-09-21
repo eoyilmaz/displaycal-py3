@@ -7,6 +7,7 @@ import re
 import sys
 
 from DisplayCAL.common import get_default_dpi
+from DisplayCAL.common_constants import datahome
 from DisplayCAL.constants import (
     appbasename,
     cfg,
@@ -70,8 +71,6 @@ for dir_ in getenvu("PATH", "").split(os.pathsep):
     dir_parent = os.path.dirname(dir_)
     if os.path.isdir(os.path.join(dir_parent, "ref")):
         extra_data_dirs.append(dir_parent)
-
-datahome = os.path.join(appdata, appbasename)
 
 if sys.platform == "win32":
     if pydir.lower().startswith(exedir.lower()) and pydir != exedir:

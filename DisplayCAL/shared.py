@@ -1,4 +1,4 @@
-from DisplayCAL.config import datahome
+from DisplayCAL.common_constants import datahome
 
 
 import os

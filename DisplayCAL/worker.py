@@ -43,6 +43,7 @@ from DisplayCAL.argyll_names import (
     viewconds,
 )
 from DisplayCAL.colormath import eeColor_to_VidRGB, VidRGB_to_eeColor
+import DisplayCAL.common_constants
 from DisplayCAL.config import (
     autostart,
     autostart_home,
@@ -9554,7 +9555,7 @@ usage: spotread [-options] [logfile]
             )
         if uninstall:
             backupbase = os.path.join(
-                config.datahome, "backup", strftime("%Y%m%dT%H%M%S")
+                DisplayCAL.common_constants.datahome, "backup", strftime("%Y%m%dT%H%M%S")
             )
         for filename in filenames:
             if filename.endswith(".rules"):
@@ -9707,7 +9708,7 @@ usage: spotread [-options] [logfile]
                 "Argyll_V%s_USB_driver_installer.exe" % argyll_version_string
             )
 
-            download_dir = os.path.join(config.datahome, "dl")
+            download_dir = os.path.join(DisplayCAL.common_constants.datahome, "dl")
             installer = os.path.join(download_dir, installer_basename)
 
             if not os.path.isfile(installer):
@@ -16293,7 +16294,7 @@ BEGIN_DATA
         total_size = None
         filename = os.path.basename(uri)
         if not download_dir:
-            download_dir = os.path.join(config.datahome, "dl")
+            download_dir = os.path.join(DisplayCAL.common_constants.datahome, "dl")
         download_path = os.path.join(download_dir, filename)
         response = None
         hashes = None
@@ -16881,7 +16882,7 @@ BEGIN_DATA
                     # the current directory on drive C: (c:foo), not c:\foo.
 
                     # Save incomplete runs to different directory
-                    parts = [config.datahome, "incomplete"] + parts[-2:]
+                    parts = [DisplayCAL.common_constants.datahome, "incomplete"] + parts[-2:]
                     dst_path = os.sep.join(parts)
                 result = check_create_dir(os.path.dirname(dst_path))
                 if isinstance(result, Exception):

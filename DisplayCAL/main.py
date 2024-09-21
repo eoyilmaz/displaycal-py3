@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from DisplayCAL.common_constants import datahome
 from DisplayCAL.config import (
     autostart_home,
     confighome,
-    datahome,
     enc,
     exename,
     fs_enc,

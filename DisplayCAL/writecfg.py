@@ -1,4 +1,5 @@
-from DisplayCAL.config import appbasename, cfg, config_sys, confighome, defaults, setcfg
+from DisplayCAL.config import config_sys, confighome, setcfg
+from DisplayCAL.constants import appbasename, cfg, defaults
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.util_io import StringIOu as StringIO
 

@@ -1,13 +1,17 @@
-from DisplayCAL.constants import isapp
-from DisplayCAL.config import confighome, defaults, logdir, pyext, pyname
-from DisplayCAL.constants import data_dirs, exe_ext, exedir
+from DisplayCAL.config import confighome, logdir, pyext, pyname
+from DisplayCAL.constants import (
+    data_dirs,
+    defaults,
+    exe_ext,
+    exedir,
+    isapp,
+    pydir,
+)
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
-from DisplayCAL.constants import pydir
 from DisplayCAL.safe_print import fs_enc
 from DisplayCAL.util_os import getenvu
-
 
 import os
 import sys

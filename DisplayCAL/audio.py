@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Audio wrapper module
+Audio wrapper module.
 
-Can use SDL, pyglet, pyo or wx.
-pyglet or SDL will be used by default if available.
+Can use SDL, pyglet, pyo or wx. pyglet or SDL will be used by default if available.
 pyglet can only be used if version >= 1.2.2 is available.
 pyo is still buggy under Linux and has a few quirks under Windows.
-wx doesn't support fading, changing volume, multiple concurrent sounds, and
-only supports wav format.
+wx doesn't support fading, changing volume, multiple concurrent sounds,
+and only supports wav format.
 
 Example:
 sound = Sound("test.wav", loop=True)
@@ -15,15 +14,19 @@ sound.Play(fade_ms=1000)
 """
 
 from ctypes import (
-    CFUNCTYPE,
-    POINTER,
-    Structure,
     c_int,
     c_uint8,
     c_uint16,
     c_uint32,
     c_void_p,
+    CFUNCTYPE,
+    POINTER,
+    Structure,
 )
+from DisplayCAL.constants import pydir
+from DisplayCAL.util_os import dlopen, getenvu
+from DisplayCAL.util_str import safe_str
+
 import ctypes.util
 import os
 import sys
@@ -32,15 +35,10 @@ import time
 
 if sys.platform == "win32":
     try:
-        import win32api
         import pywintypes
+        import win32api
     except ImportError:
         win32api = None
-
-from DisplayCAL.constants import pydir
-from DisplayCAL.util_os import dlopen, getenvu
-from DisplayCAL.util_str import safe_str
-
 
 _ch = {}
 _initialized = False

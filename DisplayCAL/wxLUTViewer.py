@@ -1,42 +1,42 @@
 # -*- coding: utf-8 -*-
 
-import math
-import os
-import re
-import subprocess as sp
-import sys
-import tempfile
-
-import numpy
-
+from DisplayCAL import (
+    colormath,
+    config,
+    ICCProfile as ICCP,
+    localization as lang,
+    wxenhancedplot as plot,
+)
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
     get_argyll_display_number,
     get_display_profile,
     get_display_rects,
-    geticon,
     get_verified_path,
+    geticon,
     setcfg,
 )
+from DisplayCAL.constants import defaults
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
 from DisplayCAL.worker import (
     Error,
-    UnloggedError,
-    UnloggedInfo,
-    Worker,
     get_argyll_util,
     make_argyll_compatible_path,
     show_result_dialog,
+    UnloggedError,
+    UnloggedInfo,
+    Worker,
 )
-import DisplayCAL.writecfg
+from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel
 from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
@@ -48,11 +48,14 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     TooltipWindow,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel
-from DisplayCAL import colormath, config
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
+
+import math
+import numpy
+import os
+import re
+import subprocess as sp
+import sys
+import tempfile
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -1017,8 +1020,8 @@ class LUTFrame(BaseFrame):
 
         border, titlebar = get_platform_window_decoration_size()
         self.MinSize = (
-            config.defaults["size.lut_viewer.w"] + border * 2,
-            config.defaults["size.lut_viewer.h"] + titlebar + border,
+            defaults["size.lut_viewer.w"] + border * 2,
+            defaults["size.lut_viewer.h"] + titlebar + border,
         )
         self.SetSaneGeometry(
             getcfg("position.lut_viewer.x"),

@@ -1,68 +1,46 @@
 # -*- coding: utf-8 -*-
+"""Set ICC profiles and load calibration curves for all configured display devices."""
 
-"""
-Set ICC profiles and load calibration curves for all configured display devices
-
-"""
+from DisplayCAL import config
+from DisplayCAL.config import confighome, setcfg
+from DisplayCAL.constants import appbasename, exe, exedir, pydir
+from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
+from DisplayCAL.meta import (
+    name as appname,
+    version,
+    VERSION,
+    VERSION_BASE,
+    version_short,
+)
+from DisplayCAL.options import debug, test, verbose
+from DisplayCAL.writecfg import writecfg
 
 import os
 import sys
 import threading
 import time
 
-from DisplayCAL.constants import exedir
-from DisplayCAL.constants import exe
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-import DisplayCAL.getcfg
-import DisplayCAL.initcfg
-from DisplayCAL.meta import (
-    VERSION,
-    VERSION_BASE,
-    name as appname,
-    version,
-    version_short,
-)
-from DisplayCAL import config
-from DisplayCAL.config import appbasename, confighome, setcfg
-from DisplayCAL.options import debug, test, verbose
-from DisplayCAL.constants import pydir
-import DisplayCAL.writecfg
-
 if sys.platform == "win32":
-    import errno
-    import ctypes
-    import math
-    import re
-    import struct
-    import subprocess as sp
-    import traceback
-    import warnings
-    import winerror
-    import winreg
-
-    import pywintypes
-    import win32api
-    import win32event
-    import win32gui
-    import win32process
-    import win32ts
-
+    from DisplayCAL import (
+        ICCProfile as ICCP,
+        madvr,
+    )
     from DisplayCAL.colord import device_id_from_edid
     from DisplayCAL.colormath import smooth_avg
     from DisplayCAL.config import (
         autostart,
         autostart_home,
+        enc,
         get_default_dpi,
         get_icon_bundle,
         geticon,
         iccprofiles,
-        enc,
     )
-    from DisplayCAL.debughelpers import Error, UnloggedError, handle_error
+    from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
     from DisplayCAL.edid import get_edid
     from DisplayCAL.meta import DOMAIN
-
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
     from DisplayCAL.util_list import natsort_key_factory
     from DisplayCAL.util_os import (
@@ -76,10 +54,8 @@ if sys.platform == "win32":
     )
     from DisplayCAL.util_str import safe_asciize
     from DisplayCAL.util_win import (
-        DISPLAY_DEVICE_ACTIVE,
-        MONITORINFOF_PRIMARY,
-        USE_REGISTRY,
         calibration_management_isenabled,
+        DISPLAY_DEVICE_ACTIVE,
         enable_per_user_profiles,
         get_active_display_device,
         get_active_display_devices,
@@ -90,26 +66,42 @@ if sys.platform == "win32":
         get_process_filename,
         get_real_display_devices_info,
         get_windows_error,
+        MONITORINFOF_PRIMARY,
         per_user_profiles_isenabled,
         run_as_admin,
+        USE_REGISTRY,
         win_ver,
     )
     from DisplayCAL.wxaddons import CustomGridCellEvent
-    from DisplayCAL.wxfixes import ThemedGenButton, set_bitmap_labels
+    from DisplayCAL.wxfixes import set_bitmap_labels, ThemedGenButton
     from DisplayCAL.wxwindows import (
         BaseApp,
         BaseFrame,
         ConfirmDialog,
         CustomCellBoolRenderer,
         CustomGrid,
+        get_dialogs,
         InfoDialog,
+        show_result_dialog,
         TaskBarNotification,
         wx,
-        show_result_dialog,
-        get_dialogs,
     )
-    from DisplayCAL import ICCProfile as ICCP
-    from DisplayCAL import madvr
+    import ctypes
+    import errno
+    import math
+    import pywintypes
+    import re
+    import struct
+    import subprocess as sp
+    import traceback
+    import warnings
+    import win32api
+    import win32event
+    import win32gui
+    import win32process
+    import win32ts
+    import winerror
+    import winreg
 
     if islink(exe):
         try:
@@ -1249,12 +1241,12 @@ class ProfileLoader(object):
         self._known_apps = set(
             [
                 known_app.lower()
-                for known_app in config.defaults["profile_loader.known_apps"].split(";")
+                for known_app in DisplayCAL.constants.defaults["profile_loader.known_apps"].split(";")
                 + DisplayCAL.getcfg.getcfg("profile_loader.known_apps").split(";")
             ]
         )
         self._known_window_classes = set(
-            config.defaults["profile_loader.known_window_classes"].split(";")
+            DisplayCAL.constants.defaults["profile_loader.known_window_classes"].split(";")
             + DisplayCAL.getcfg.getcfg("profile_loader.known_window_classes").split(";")
         )
         self._buggy_video_drivers = set(
@@ -3916,7 +3908,7 @@ def main():
                 % os.path.join(confighome, appbasename + "-apply-profiles.ini")
             )
             print("")
-            for cfgname, cfgdefault in sorted(config.defaults.items()):
+            for cfgname, cfgdefault in sorted(DisplayCAL.constants.defaults.items()):
                 if (
                     cfgname.startswith("profile_loader.")
                     or cfgname == "profile.load_on_login"
@@ -3965,11 +3957,11 @@ def main():
                     else:
                         continue
                     # Name and valid values
-                    valid = config.valid_values.get(cfgname)
+                    valid = DisplayCAL.constants.valid_values.get(cfgname)
                     if valid:
                         valid = "[%s]" % "|".join("%s" % v for v in valid)
                     else:
-                        valid = config.valid_ranges.get(cfgname)
+                        valid = DisplayCAL.constants.valid_ranges.get(cfgname)
                         if valid:
                             valid = "[%s..%s]" % tuple(valid)
                         elif isinstance(cfgdefault, int):

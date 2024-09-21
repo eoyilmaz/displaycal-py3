@@ -1,46 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from time import sleep
-import atexit
-import errno
-import glob
-import logging
-import os
-import platform
-import socket
-import sys
-import subprocess as sp
-import threading
-
-import distro
-
-from DisplayCAL.constants import isapp
-from DisplayCAL.constants import exe, exe_ext, exedir, isexe
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
-from DisplayCAL.constants import pypath
-from DisplayCAL.constants import pydir
-
-if sys.platform == "darwin":
-    from platform import mac_ver
-    import posix
-
-# Python version check
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.meta import py_minversion, py_maxversion
-
-pyver = sys.version_info[:2]
-if pyver < py_minversion or pyver > py_maxversion:
-    raise RuntimeError(
-        "Need Python version >= %s <= %s, got %s"
-        % (
-            ".".join(str(n) for n in py_minversion),
-            ".".join(str(n) for n in py_maxversion),
-            sys.version.split()[0],
-        )
-    )
-
 from DisplayCAL.config import (
     autostart_home,
     confighome,
@@ -52,24 +11,56 @@ from DisplayCAL.config import (
     pyname,
     resfiles,
     runtype,
-    appbasename,
 )
+from DisplayCAL.constants import appbasename, exe_ext
 from DisplayCAL.debughelpers import ResourceError, handle_error
+from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import (
+    build,
+    name as appname,
+    py_maxversion,
+    py_minversion,
     VERSION,
     VERSION_BASE,
     VERSION_STRING,
-    build,
-    name as appname,
 )
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
+from time import sleep
 
+import atexit
+import distro
+import errno
+import glob
+import logging
+import os
+import platform
+import socket
+import subprocess as sp
+import sys
+import threading
+
+if sys.platform == "darwin":
+    from platform import mac_ver
+    import posix
 if sys.platform == "win32":
     from DisplayCAL.util_win import win_ver
     import ctypes
+
+pyver = sys.version_info[:2]
+if pyver < py_minversion or pyver > py_maxversion:
+    raise RuntimeError(
+        "Need Python version >= %s <= %s, got %s"
+        % (
+            ".".join(str(n) for n in py_minversion),
+            ".".join(str(n) for n in py_maxversion),
+            sys.version.split()[0],
+        )
+    )
 
 
 def _excepthook(etype, value, tb):

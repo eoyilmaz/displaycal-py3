@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import math
-import os
-import sys
-import time
-import warnings
-
-from DisplayCAL import config
-from DisplayCAL import localization as lang
+from DisplayCAL import (
+    config,
+    localization as lang,
+)
 from DisplayCAL.config import (
-    defaults,
     enc,
     geticon,
     get_argyll_display_number,
@@ -19,14 +14,16 @@ from DisplayCAL.config import (
     scale_adjustment_factor,
     setcfg,
 )
+from DisplayCAL.constants import defaults
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist
 from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BitmapBackgroundPanel,
@@ -34,7 +31,12 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     InvincibleFrame,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
+
+import math
+import os
+import sys
+import time
+import warnings
 
 try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM

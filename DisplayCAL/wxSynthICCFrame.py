@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import math
-import os
-import sys
-
-from DisplayCAL.ICCProfile import ICCProfile
+from DisplayCAL import (
+    CGATS,
+    colormath,
+    config,
+    floatspin,
+    ICCProfile as ICCP,
+    localization as lang,
+    worker,
+    xh_bitmapctrls,
+    xh_floatspin,
+)
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
@@ -13,10 +19,12 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
+from DisplayCAL.constants import cfg
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
+from DisplayCAL.ICCProfile import ICCProfile
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
@@ -30,13 +38,9 @@ from DisplayCAL.worker import (
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import worker
-import DisplayCAL.writecfg
+from DisplayCAL.writecfg import writecfg
+from DisplayCAL.wxfixes import TempXmlResource
+from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -45,19 +49,17 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     wx,
 )
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-from DisplayCAL import floatspin
-from DisplayCAL import xh_floatspin
-from DisplayCAL import xh_bitmapctrls
-
 from wx import xrc
+
+import math
+import os
+import sys
 
 
 class SynthICCFrame(BaseFrame, LUT3DMixin):
     """Synthetic ICC creation window"""
 
-    cfg = config.cfg
+    cfg = cfg
 
     def __init__(self, parent=None):
         self.res = TempXmlResource(get_data_path(os.path.join("xrc", "synthicc.xrc")))
@@ -155,7 +157,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.save_btn.Hide()
 
-        config.defaults.update(
+        DisplayCAL.constants.defaults.update(
             {
                 "position.synthiccframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.synthiccframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -1200,8 +1202,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             try:
                 v = float(self.trc_gamma_ctrl.GetValue().replace(",", "."))
                 if (
-                    v < config.valid_ranges["gamma"][0]
-                    or v > config.valid_ranges["gamma"][1]
+                    v < DisplayCAL.constants.valid_ranges["gamma"][0]
+                    or v > DisplayCAL.constants.valid_ranges["gamma"][1]
                 ):
                     raise ValueError()
             except ValueError:

@@ -3,30 +3,38 @@
 import os
 import sys
 
-import DisplayCAL.common_constants
-import DisplayCAL.initcfg
-import DisplayCAL.shared_constants
+from DisplayCAL.constants import (
+    data_dirs,
+    exe,
+    exedir,
+    isapp,
+    isexe,
+    pydir,
+    pyfile,
+    pypath,
+)
+from DisplayCAL.initcfg import initcfg
 
 
 def test_default_values_1():
     """Test default values of module level variables."""
     from DisplayCAL import config
-    DisplayCAL.initcfg.initcfg()
+    initcfg()
 
     assert config.configparser.DEFAULTSECT == "Default"
-    assert DisplayCAL.common_constants.exe == sys.executable  # venv/bin/python
-    assert DisplayCAL.common_constants.exedir == os.path.dirname(sys.executable)  # venv/bin
+    assert exe == sys.executable  # venv/bin/python
+    assert exedir == os.path.dirname(sys.executable)  # venv/bin
     assert config.exename == os.path.basename(sys.executable)  # python
-    assert DisplayCAL.shared_constants.isexe is False
+    assert isexe is False
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert DisplayCAL.common_constants.pyfile != ""
+    assert pyfile != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert DisplayCAL.shared_constants.pypath != ""
-    assert DisplayCAL.common_constants.isapp is False  #
+    assert pypath != ""
+    assert isapp is False  #
     assert config.pyname != ""  # _jb_pytest_runner
     assert config.pyext != ""  # .py
     # $HOME/Documents/development/displaycal/DisplayCAL
-    assert DisplayCAL.shared_constants.pydir != ""
+    assert pydir != ""
 
     if sys.platform == "linux":
         assert config.xdg_config_dir_default == "/etc/xdg"
@@ -65,7 +73,7 @@ def test_default_values_1():
         ),
         os.path.expanduser("~/.local/share/flatpak/exports/share/icons/hicolor"),
         os.path.expanduser("~/.local/share/icons/hicolor"),
-        config.pydir,
+        pydir,
         os.path.expanduser(
             "~/PycharmProjects/DisplayCAL/venv/lib/python3.9/site-packages/DisplayCAL-3.8.9.3-py3.9-linux-x86_64.egg/DisplayCAL"
         ),
@@ -100,4 +108,4 @@ def test_default_values_1():
         "/var/lib/flatpak/exports/share/icons/hicolor",
         "/var/lib/icons/hicolor",
     ]
-    assert sorted(config.data_dirs) == sorted(expected_data_dirs)
+    assert sorted(data_dirs) == sorted(expected_data_dirs)

@@ -1,35 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Visual whitepoint editor
+Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
 
 License: wxPython license
 """
 
-
-import colorsys
-import os
-import re
-import sys
-import threading
-from math import pi, sin, cos, sqrt, atan2
-
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
-
-if sys.platform == "darwin":
-    from platform import mac_ver
-
-from time import sleep
-
-from DisplayCAL.wxfixes import wx
-from wx.lib.agw import aui
-from wx.lib.intctrl import IntCtrl
-
+from DisplayCAL import (
+    ICCProfile as ICCP,
+    localization as lang,
+)
 from DisplayCAL.config import (
-    defaults,
     fs_enc,
     get_argyll_display_number,
     get_default_dpi,
@@ -39,31 +21,47 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
+from DisplayCAL.constants import defaults
+from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import intlist
-from DisplayCAL.util_str import wrap, safe_asciize
+from DisplayCAL.util_str import safe_asciize, wrap
 from DisplayCAL.worker import (
     Error,
+    get_argyll_util,
+    show_result_dialog,
     UnloggedError,
     Warn,
     Worker,
-    get_argyll_util,
-    show_result_dialog,
 )
 from DisplayCAL.wxfixes import (
-    wx_Panel,
     GenBitmapButton as BitmapButton,
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
+    wx,
+    wx_Panel,
 )
 from DisplayCAL.wxwindows import (
     FlatShadedButton,
     HStretchStaticBitmap,
     TaskBarNotification,
 )
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
+from math import atan2, cos, pi, sin, sqrt
+from time import sleep
+from wx.lib.agw import aui
+from wx.lib.intctrl import IntCtrl
+
+import colorsys
+import os
+import re
+import sys
+import threading
+
+if sys.platform == "darwin":
+    from platform import mac_ver
 
 try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM

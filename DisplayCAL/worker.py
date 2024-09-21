@@ -1,91 +1,22 @@
 # -*- coding: utf-8 -*-
 
 # stdlib
-import codecs
 from binascii import hexlify
-import atexit
-import ctypes
-import datetime
-
-import getpass
-import http.client
-import math
-import mimetypes
-import os
-import pipes
-from io import BytesIO
-from pathlib import Path
-
-import distro
-import platform
-import re
-import socket
-import shutil
-import string
-import struct
-import subprocess as sp
-import sys
-import tempfile
-import textwrap
-import threading
-import traceback
-import urllib.request
-import urllib.parse
-import urllib.error
-import urllib.request
-import urllib.error
-import urllib.parse
-import urllib.parse
-import warnings
-import zipfile
-import zlib
 from collections import UserString
-from hashlib import md5, sha256
-from threading import currentThread
-from time import sleep, strftime, time
-
-from send2trash import send2trash
-
-from DisplayCAL.constants import isapp
-from DisplayCAL.constants import exe, exe_ext, exedir
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_total_patches import get_total_patches
-import DisplayCAL.get_total_patches
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.constants import pydir
-from DisplayCAL.constants import isexe
-from DisplayCAL.writecfg import writecfg
-
-if sys.platform == "darwin":
-    from platform import mac_ver
-    from _thread import start_new_thread
-elif sys.platform == "win32":
-    from ctypes import windll
-    import winreg
-else:
-    import grp
-
-# 3rd party
-if sys.platform == "win32":
-    from win32com.shell import shell as win32com_shell
-    import pythoncom
-    import win32api
-    import win32con
-    import win32event
-    import pywintypes
-    import winerror
-
 # custom
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import audio
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import defaultpaths
-from DisplayCAL import imfile
-from DisplayCAL import localization as lang
-from DisplayCAL import wexpect
-# import wexpect
+from DisplayCAL import (
+    audio,
+    CGATS,
+    colord,
+    colormath,
+    config,
+    defaultpaths,
+    ICCProfile as ICCP,
+    imfile,
+    localization as lang,
+    madvr,
+    wexpect,
+)
 from DisplayCAL.argyll_cgats import (
     add_dispcal_options_to_cal,
     add_options_to_ti3,
@@ -104,53 +35,70 @@ from DisplayCAL.argyll_instruments import (
     instruments as all_instruments,
 )
 from DisplayCAL.argyll_names import (
-    names as argyll_names,
     altnames as argyll_altnames,
+    intents,
+    names as argyll_names,
+    observers,
     optional as argyll_optional,
     viewconds,
-    intents,
-    observers,
 )
-from DisplayCAL.colormath import VidRGB_to_eeColor, eeColor_to_VidRGB
+from DisplayCAL.colormath import eeColor_to_VidRGB, VidRGB_to_eeColor
 from DisplayCAL.config import (
     autostart,
     autostart_home,
-    script_ext,
-    defaults,
     enc,
     fs_enc,
-    geticon,
     get_verified_path,
-    is_ccxx_testchart,
+    geticon,
     logdir,
     profile_ext,
+    script_ext,
     setcfg,
     setcfg_cond,
     split_display_name,
+)
+from DisplayCAL.constants import (
     appbasename,
+    defaults,
+    exe,
+    exe_ext,
+    exedir,
+    is_ccxx_testchart,
+    isapp,
+    isexe,
+    pydir,
 )
 from DisplayCAL.debughelpers import (
-    Error,
     DownloadError,
+    Error,
+    handle_error,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
     UntracedError,
     Warn,
-    handle_error,
 )
 from DisplayCAL.defaultpaths import (
-    cache,
-    iccprofiles_home,
-    iccprofiles_display_home,
     appdata,
+    cache,
+    iccprofiles_display_home,
+    iccprofiles_home,
 )
-from DisplayCAL.edid import WMIError, get_edid
-from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
-from DisplayCAL import madvr
-from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version
+from DisplayCAL.edid import get_edid, WMIError
+from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.get_total_patches import get_total_patches
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.log import DummyLogger, get_file_logger, log, LogFile
+from DisplayCAL.meta import (
+    DOMAIN,
+    name as appname,
+    version,
+    VERSION,
+    VERSION_BASE,
+)
 from DisplayCAL.multiprocess import cpu_count, pool_slice
+from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.options import (
     always_fail_download,
     debug,
@@ -161,12 +109,10 @@ from DisplayCAL.options import (
     test_require_sensor_cal,
     verbose,
 )
-
-from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.patterngenerators import (
     PrismaPatternGeneratorClient,
-    ResolveLSPatternGeneratorServer,
     ResolveCMPatternGeneratorServer,
+    ResolveLSPatternGeneratorServer,
     WebWinHTTPPatternGeneratorServer,
 )
 from DisplayCAL.util_decimal import stripzeros
@@ -182,41 +128,6 @@ from DisplayCAL.util_io import (
     TarFileProper,
 )
 from DisplayCAL.util_list import intlist, natsort
-
-if sys.platform == "darwin":
-    from DisplayCAL.util_mac import (
-        mac_app_activate,
-        mac_terminal_do_script,
-        mac_terminal_set_colors,
-        osascript,
-        get_machine_attributes,
-        get_model_id,
-    )
-elif sys.platform == "win32":
-    from DisplayCAL import util_win
-    from DisplayCAL.util_win import run_as_admin, shell_exec, win_ver
-
-    try:
-        import wmi
-    except Exception as exception:
-        print("Error - could not import WMI:", exception)
-        wmi = None
-else:
-    # Linux
-    from DisplayCAL.defaultpaths import xdg_data_home
-
-    try:
-        from DisplayCAL.util_dbus import (
-            DBusObject,
-            DBusException,
-            BUSTYPE_SESSION,
-            dbus_session,
-            dbus_system,
-        )
-    except ImportError:
-        dbus_session = None
-        dbus_system = None
-from DisplayCAL import colord
 from DisplayCAL.util_os import (
     dlopen,
     expanduseru,
@@ -231,54 +142,133 @@ from DisplayCAL.util_os import (
     safe_glob,
     which,
 )
-
-if sys.platform not in ("darwin", "win32"):
-    from DisplayCAL.util_os import getgroups
-if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
-    from DisplayCAL.util_os import win64_disable_file_system_redirection
-
 from DisplayCAL.util_str import (
     make_filename_safe,
-    safe_basestring,
     safe_asciize,
+    safe_basestring,
     safe_str,
     strtr,
     universal_newlines,
 )
 from DisplayCAL.worker_base import (
-    MP_Xicclu,
-    WorkerBase,
-    Xicclu,
     _mp_generate_B2A_clut,
     _mp_xicclu,
     check_argyll_bin,
     get_argyll_util,
     get_argyll_utilname,
     get_argyll_version_string as base_get_argyll_version_string,
+    MP_Xicclu,
     parse_argyll_version_string,
     printcmdline,
+    WorkerBase,
+    Xicclu,
 )
+from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
+from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
+from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
+from DisplayCAL.wxUntetheredFrame import UntetheredFrame
 from DisplayCAL.wxwindows import (
     ConfirmDialog,
     HtmlInfoDialog,
     InfoDialog,
     ProgressDialog,
-    SimpleTerminal,
     show_result_dialog,
+    SimpleTerminal,
 )
-from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxUntetheredFrame import UntetheredFrame
+from hashlib import md5, sha256
+from io import BytesIO
+from pathlib import Path
+from send2trash import send2trash
+from threading import currentThread
+from time import sleep, strftime, time
+
+import atexit
+import codecs
+import ctypes
+import datetime
+import distro
+import getpass
+import http.client
+import math
+import mimetypes
+import os
+import pipes
+import platform
+import re
+import shutil
+import socket
+import string
+import struct
+import subprocess as sp
+import sys
+import tempfile
+import textwrap
+import threading
+import traceback
+import urllib.error
+import urllib.parse
+import urllib.request
+import warnings
+# import wexpect
+import wx.lib.delayedresult as delayedresult
+import zipfile
+import zlib
 
 RDSMM = None
-if sys.platform not in ("darwin", "win32"):
+
+if sys.platform == "darwin":
+    from _thread import start_new_thread
+    from DisplayCAL.util_mac import (
+        get_machine_attributes,
+        get_model_id,
+        mac_app_activate,
+        mac_terminal_do_script,
+        mac_terminal_set_colors,
+        osascript,
+    )
+    from platform import mac_ver
+elif sys.platform == "win32":
+    # 3rd party
+    from ctypes import windll
+    from DisplayCAL import util_win
+    from DisplayCAL.util_win import run_as_admin, shell_exec, win_ver
+    from win32com.shell import shell as win32com_shell
+    import pythoncom
+    import pywintypes
+    import win32api
+    import win32con
+    import win32event
+    import winerror
+    import winreg
+    try:
+        import wmi
+    except Exception as exception:
+        print("Error - could not import WMI:", exception)
+        wmi = None
+else:
+    # Linux
+    from DisplayCAL.defaultpaths import xdg_data_home
+    from DisplayCAL.util_os import getgroups
+    import grp
     try:
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning)
-import wx.lib.delayedresult as delayedresult
+    try:
+        from DisplayCAL.util_dbus import (
+            BUSTYPE_SESSION,
+            dbus_session,
+            dbus_system,
+            DBusException,
+            DBusObject,
+        )
+    except ImportError:
+        dbus_session = None
+        dbus_system = None
 
+if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
+    from DisplayCAL.util_os import win64_disable_file_system_redirection
 
 INST_CAL_MSGS = [
     "Do a reflective white calibration",
@@ -294,6 +284,7 @@ INST_CAL_MSGS = [
     "Use the appropriate tramissive blocking",
     "Change filter on instrument to",
 ]
+
 USE_WPOPEN = 0
 
 keycodes = {
@@ -315,9 +306,7 @@ keycodes = {
     wx.WXK_NUMPAD_SUBTRACT: ord("-"),
 }
 
-
 workers = []
-
 
 WAIT_FILE_TEMPLATE = """# coding=utf-8
 import os, sys, time
@@ -1180,9 +1169,9 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
         r"[moupHVFE]",
         r"d(?:\d+(?:,\d+)?|madvr|web)",
         r"[cv]\d+",
-        r"q(?:%s)" % "|".join(config.valid_values["calibration.quality"]),
+        r"q(?:%s)" % "|".join(DisplayCAL.constants.valid_values["calibration.quality"]),
         r"y(?:%s)"
-        % "|".join([_f for _f in config.valid_values["measurement_mode"] if _f]),
+        % "|".join([_f for _f in DisplayCAL.constants.valid_values["measurement_mode"] if _f]),
         r"[tT](?:\d+(?:\.\d+)?)?",
         r"w\d+(?:\.\d+)?,\d+(?:\.\d+)?",
         r"[bfakAB]\d+(?:\.\d+)?",
@@ -1196,7 +1185,7 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
     re_options_colprof = [
         r"q[lmh]",
         r"b[lmh]",  # B2A quality
-        r"a(?:%s)" % "|".join(config.valid_values["profile.type"]),
+        r"a(?:%s)" % "|".join(DisplayCAL.constants.valid_values["profile.type"]),
         r'[sSMA]\s+["\'][^"\']+?["\']',
         r"[cd](?:%s)(?=\W|$)" % "|".join(viewconds),
         r"[tT](?:%s)(?=\W|$)" % "|".join(intents),
@@ -5528,7 +5517,7 @@ END_DATA
                             "colorimeter_correction.%s.reference",
                         ]:
                             key %= "observer"
-                            config.valid_values[key] = valid_observers
+                            DisplayCAL.constants.valid_values[key] = valid_observers
                         continue
                     line = line.split(None, 1)
                     if len(line) and line[0][0] == "-":
@@ -15885,7 +15874,7 @@ BEGIN_DATA
             # Fall back to configured 3D LUT encoding
             if (
                 not input_encoding
-                or input_encoding not in config.valid_values["3dlut.encoding.input"]
+                or input_encoding not in DisplayCAL.constants.valid_values["3dlut.encoding.input"]
             ):
                 input_encoding = getcfg("3dlut.encoding.input")
                 if input_encoding == "T":
@@ -15893,7 +15882,7 @@ BEGIN_DATA
                     input_encoding = "t"
             if (
                 not output_encoding
-                or output_encoding not in config.valid_values["3dlut.encoding.output"]
+                or output_encoding not in DisplayCAL.constants.valid_values["3dlut.encoding.output"]
             ):
                 output_encoding = getcfg("3dlut.encoding.output")
             if self.argyll_version < [1, 6] and not (

@@ -1,4 +1,5 @@
-from DisplayCAL.config import appbasename, cfg, cfginited, config_sys, confighome, defaults, makecfgdir, setcfg
+from DisplayCAL.config import cfginited, config_sys, confighome, makecfgdir, setcfg
+from DisplayCAL.constants import appbasename, cfg, defaults
 from DisplayCAL.getcfg import getcfg
 
 

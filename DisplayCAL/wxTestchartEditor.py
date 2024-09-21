@@ -1,5 +1,61 @@
 # -*- coding: utf-8 -*-
 
+from DisplayCAL import (
+    CGATS,
+    colormath,
+    config,
+    floatspin,
+    ICCProfile as ICCP,
+    imfile,
+    localization as lang,
+)
+from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
+from DisplayCAL.argyll_RGB2XYZ import (
+    RGB2XYZ as argyll_RGB2XYZ,
+    XYZ2RGB as argyll_XYZ2RGB,
+)
+from DisplayCAL.config import (
+    get_current_profile,
+    get_display_name,
+    get_verified_path,
+    geticon,
+    hascfg,
+    profile_ext,
+    setcfg,
+)
+from DisplayCAL.constants import defaults, valid_ranges, valid_values
+from DisplayCAL.debughelpers import handle_error
+from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.get_total_patches import get_total_patches
+from DisplayCAL.getbitmap import getbitmap
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
+from DisplayCAL.meta import name as appname
+from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
+from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
+from DisplayCAL.worker import (
+    check_file_isfile,
+    check_set_argyll_bin,
+    Error,
+    get_argyll_util,
+    get_current_profile_path,
+    show_result_dialog,
+    Worker,
+)
+from DisplayCAL.writecfg import writecfg
+from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wxMeasureFrame import get_default_size
+from DisplayCAL.wxwindows import (
+    BaseApp,
+    BaseFrame,
+    ConfirmDialog,
+    CustomGrid,
+    FileBrowseBitmapButtonWithChoiceHistory,
+    FileDrop,
+    get_gradient_panel,
+    InfoDialog,
+)
 
 import csv
 import math
@@ -9,64 +65,8 @@ import shutil
 import sys
 import time
 
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_total_patches import get_total_patches
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
-from DisplayCAL.writecfg import writecfg
-
 if sys.platform == "win32":
     import win32file
-
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import imfile
-from DisplayCAL import localization as lang
-from DisplayCAL.argyll_RGB2XYZ import (
-    RGB2XYZ as argyll_RGB2XYZ,
-    XYZ2RGB as argyll_XYZ2RGB,
-)
-from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
-from DisplayCAL.config import (
-    defaults,
-    geticon,
-    get_current_profile,
-    get_display_name,
-    get_verified_path,
-    hascfg,
-    profile_ext,
-    setcfg,
-)
-from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
-from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
-from DisplayCAL.worker import (
-    Error,
-    Worker,
-    check_file_isfile,
-    check_set_argyll_bin,
-    get_argyll_util,
-    get_current_profile_path,
-    show_result_dialog,
-)
-from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
-from DisplayCAL.wxwindows import (
-    BaseApp,
-    BaseFrame,
-    CustomGrid,
-    ConfirmDialog,
-    FileBrowseBitmapButtonWithChoiceHistory,
-    FileDrop,
-    InfoDialog,
-    get_gradient_panel,
-)
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
-from DisplayCAL import floatspin
-from DisplayCAL.wxMeasureFrame import get_default_size
 
 
 def swap_dict_keys_values(mydict):
@@ -729,7 +729,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_cie_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=config.valid_values["tc_vrml_cie_colorspace"]
+            panel, -1, choices=valid_values["tc_vrml_cie_colorspace"]
         )
         self.tc_vrml_cie_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -751,7 +751,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_device_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=config.valid_values["tc_vrml_device_colorspace"]
+            panel, -1, choices=valid_values["tc_vrml_device_colorspace"]
         )
         self.tc_vrml_device_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -2542,12 +2542,12 @@ END_DATA"""
         self.tc_filter_rad.SetValue(getcfg("tc_filter_rad"))
         self.tc_vrml_cie.SetValue(bool(int(getcfg("tc_vrml_cie"))))
         self.tc_vrml_cie_colorspace_ctrl.SetSelection(
-            config.valid_values["tc_vrml_cie_colorspace"].index(
+            valid_values["tc_vrml_cie_colorspace"].index(
                 getcfg("tc_vrml_cie_colorspace")
             )
         )
         self.tc_vrml_device_colorspace_ctrl.SetSelection(
-            config.valid_values["tc_vrml_device_colorspace"].index(
+            valid_values["tc_vrml_device_colorspace"].index(
                 getcfg("tc_vrml_device_colorspace")
             )
         )
@@ -2813,8 +2813,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=config.valid_ranges["tc_export_repeat_patch_max"][0],
-                max=config.valid_ranges["tc_export_repeat_patch_max"][1],
+                min=valid_ranges["tc_export_repeat_patch_max"][0],
+                max=valid_ranges["tc_export_repeat_patch_max"][1],
                 value=str(getcfg("tc_export_repeat_patch_max")),
             )
             sizer.Add(intctrl, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -2828,8 +2828,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=config.valid_ranges["tc_export_repeat_patch_min"][0],
-                max=config.valid_ranges["tc_export_repeat_patch_min"][1],
+                min=valid_ranges["tc_export_repeat_patch_min"][0],
+                max=valid_ranges["tc_export_repeat_patch_min"][1],
                 value=str(getcfg("tc_export_repeat_patch_min")),
             )
             sizer.Add(intctrl2, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -3033,7 +3033,7 @@ END_DATA"""
                     defaultDir = os.path.dirname(self.ti1.filename)
                 defaultFile = os.path.basename(self.ti1.filename)
             else:
-                defaultFile = os.path.basename(config.defaults["last_ti1_path"])
+                defaultFile = os.path.basename(defaults["last_ti1_path"])
             dlg = wx.FileDialog(
                 self,
                 lang.getstr("save_as"),
@@ -4375,7 +4375,7 @@ END_DATA"""
         menu = wx.Menu()
 
         item_selected = False
-        for file_format in config.valid_values["3d.format"]:
+        for file_format in valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)

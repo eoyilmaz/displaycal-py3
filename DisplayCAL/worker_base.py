@@ -1,40 +1,26 @@
 # -*- coding: utf-8 -*-
 
-
 from binascii import hexlify
-import atexit
-import math
-import os
-import shlex
-import re
-import shutil
-import struct
-import subprocess as sp
-import sys
-import tempfile
-import textwrap
-import traceback
-
-from DisplayCAL.constants import exe_ext
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
-
-if sys.platform == "win32":
-    import win32api
-
+from DisplayCAL import (
+    CGATS,
+    colormath,
+    config,
+    ICCProfile as ICCP,
+    localization as lang,
+)
 from DisplayCAL.argyll_names import (
-    names as argyll_names,
     altnames as argyll_altnames,
+    names as argyll_names,
     optional as argyll_optional,
 )
 from DisplayCAL.colormath import (
-    VidRGB_to_eeColor,
-    VidRGB_to_cLUT65,
     cLUT65_to_VidRGB,
     eeColor_to_VidRGB,
+    VidRGB_to_cLUT65,
+    VidRGB_to_eeColor,
 )
 from DisplayCAL.config import fs_enc, profile_ext
+from DisplayCAL.constants import cfg, exe_ext
 from DisplayCAL.debughelpers import (
     Error,
     Info,
@@ -43,17 +29,31 @@ from DisplayCAL.debughelpers import (
     UnloggedWarning,
     Warn,
 )
+from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.getcfg import getcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import LogFile
 from DisplayCAL.meta import name as appname
 from DisplayCAL.multiprocess import mp, pool_slice
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import getenvu, quote_args, which
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
-from DisplayCAL import CGATS
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import localization as lang
+
+import atexit
+import math
+import os
+import re
+import shlex
+import shutil
+import struct
+import subprocess as sp
+import sys
+import tempfile
+import textwrap
+import traceback
+
+if sys.platform == "win32":
+    import win32api
 
 
 def _mp_xicclu(
@@ -80,8 +80,8 @@ def _mp_xicclu(
     convert_video_rgb_to_clut65=False,
     verbose=1,
 ):
-    if not config.cfg.items(config.configparser.DEFAULTSECT):
-        DisplayCAL.initcfg.initcfg()
+    if not cfg.items(config.configparser.DEFAULTSECT):
+        initcfg()
     profile = ICCP.ICCProfile(profile_filename)
     xicclu = Xicclu(
         profile,
@@ -159,8 +159,8 @@ def _mp_generate_B2A_clut(
         print("numpy?", "numpy" in str(list(sys.modules.keys())))
         print("wx?", "wx" in str(list(sys.modules.keys())))
         print("x3dom?", "x3dom" in str(list(sys.modules.keys())))
-    if not config.cfg.items(config.configparser.DEFAULTSECT):
-        DisplayCAL.initcfg.initcfg()
+    if not cfg.items(config.configparser.DEFAULTSECT):
+        initcfg()
     idata = []
     abmaxval = 255 + (255 / 256.0)
     profile = ICCP.ICCProfile(profile_filename)
@@ -288,15 +288,15 @@ def check_argyll_bin(paths=None):
                 paths = [argyll_dir] + paths
         print("[D] Searchpath:\n  ", "\n  ".join(paths))
     # Fedora doesn't ship Rec709.icm
-    config.defaults["3dlut.input.profile"] = (
+    DisplayCAL.constants.defaults["3dlut.input.profile"] = (
         get_data_path(os.path.join("ref", "Rec709.icm"))
         or get_data_path(os.path.join("ref", "sRGB.icm"))
         or ""
     )
-    config.defaults["testchart.reference"] = (
+    DisplayCAL.constants.defaults["testchart.reference"] = (
         get_data_path(os.path.join("ref", "ColorChecker.cie")) or ""
     )
-    config.defaults["gamap_profile"] = (
+    DisplayCAL.constants.defaults["gamap_profile"] = (
         get_data_path(os.path.join("ref", "sRGB.icm")) or ""
     )
     return True

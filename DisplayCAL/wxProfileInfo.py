@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
-import re
-import os
-import sys
 
-import traceback
-
+from DisplayCAL import (
+    colormath,
+    config,
+    ICCProfile as ICCP,
+    localization as lang,
+    wxenhancedplot as plot,
+    x3dom,
+)
 from DisplayCAL.config import (
-    defaults,
     fs_enc,
     get_argyll_display_number,
     get_display_profile,
     get_display_rects,
-    geticon,
     get_verified_path,
+    geticon,
     profile_ext,
     setcfg,
 )
+from DisplayCAL.constants import defaults, valid_values
 from DisplayCAL.get_data_path import get_data_path
-import DisplayCAL.get_standard_profiles
+from DisplayCAL.get_standard_profiles import get_standard_profiles
 from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
+from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort
@@ -29,15 +32,20 @@ from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
 from DisplayCAL.util_str import strtr, universal_newlines, wrap
 from DisplayCAL.worker import (
-    Error,
-    UnloggedError,
     check_set_argyll_bin,
+    Error,
     get_argyll_util,
     make_argyll_compatible_path,
     show_result_dialog,
+    UnloggedError,
 )
 from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import (
+    GenBitmapButton as BitmapButton,
+    set_maxsize,
+    wx_Panel,
+)
 from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
 from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile
 from DisplayCAL.wxwindows import (
@@ -52,13 +60,11 @@ from DisplayCAL.wxwindows import (
     SimpleBook,
     TwoWaySplitter,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel, set_maxsize
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import x3dom
+
+import os
+import re
+import sys
+import traceback
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -2155,7 +2161,7 @@ class ProfileInfoFrame(LUTFrame):
         menu = wx.Menu()
 
         item_selected = False
-        for file_format in config.valid_values["3d.format"]:
+        for file_format in valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)

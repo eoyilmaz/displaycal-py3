@@ -102,7 +102,7 @@ import sys
 import warnings
 from hashlib import md5
 
-from DisplayCAL import constants
+from DisplayCAL.constants import pydir
 from DisplayCAL.util_str import safe_str
 
 if sys.platform == "win32":
@@ -501,7 +501,7 @@ def get_pnpid_paths():
         "/usr/share/libgnome-desktop/pnp.ids",
     ]  # fallback gnome-desktop
     if sys.platform in ("darwin", "win32"):
-        paths.append(os.path.join(constants.pydir, "pnp.ids"))  # fallback
+        paths.append(os.path.join(pydir, "pnp.ids"))  # fallback
     return paths
 
 

@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 
-import math
-import os
-import sys
-
+from DisplayCAL import (
+    CGATS,
+    colormath,
+    config,
+    ICCProfile as ICCP,
+    localization as lang,
+    wxenhancedplot as plot,
+)
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-from DisplayCAL.getcfg import getcfg
+from DisplayCAL.constants import valid_values
 from DisplayCAL.debughelpers import UnloggedError
+from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxLUTViewer import LUTCanvas
 from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
-from DisplayCAL import CGATS
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import localization as lang
-from DisplayCAL import wxenhancedplot as plot
 
+import math
+import os
+import sys
 
 BGCOLOUR = "#101010"
 FGCOLOUR = "#999999"
@@ -341,7 +343,7 @@ class CCXXPlot(wx.Frame):
 
         if not self.is_ccss:
             observers_ab = {}
-            for observer in config.valid_values["observer"]:
+            for observer in valid_values["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
             x_label.extend(["%9.6f %9.6f %9.6f" % tuple(row) for row in mtx])

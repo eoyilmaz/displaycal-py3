@@ -5,17 +5,17 @@ import shutil
 import subprocess
 import sys
 import tarfile
-
-import pytest
 import tempfile
 
 import DisplayCAL
 from DisplayCAL.config import setcfg
 
+import pytest
+
 
 @pytest.fixture(scope="module")
 def data_files():
-    """generates data file list"""
+    """Generates data file list."""
     #  test/data
     extensions = ["*.txt", "*.tsv", "*.lin", "*.cal", "*.ti1", "*.ti3", "*.icc"]
 
@@ -50,10 +50,11 @@ def data_path():
 
 @pytest.fixture(scope="module")
 def argyll():
-    """Setup ArgyllCMS.
+    """
+    Setup ArgyllCMS.
 
-    This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it
-    can not find it, it will download from the source.
+    This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and
+    if it can not find it, it will download from the source.
     """
     argyll_download_url = {
         "win32": "https://www.argyllcms.com/Argyll_V3.2.0_win64_exe.zip",
@@ -61,7 +62,7 @@ def argyll():
         "linux": "https://www.argyllcms.com/Argyll_V3.2.0_linux_x86_64_bin.tgz",
     }
 
-    # first look in to ~/local/bin/ArgyllCMS
+    # first look in to ~/local/bin/ArgyllCMS                                            # noqa: SC100
     home = pathlib.Path().home()
     argyll_search_paths = [
         home / ".local" / "bin" / "Argyll" / "bin",
@@ -79,7 +80,7 @@ def argyll():
         yield argyll_path
         return
 
-    # apparently argyll has not been found
+    # apparently argyll has not been found                                              # noqa: SC100
     # download from source
     url = argyll_download_url[sys.platform]
 
@@ -87,7 +88,7 @@ def argyll():
     # store current working directory
     current_working_directory = os.getcwd()
 
-    # change dir to argyll temp path
+    # change dir to argyll temp path                                                    # noqa: SC100
     os.chdir(argyll_temp_path)
 
     tar_file_name = "Argyll.tgz"

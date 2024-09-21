@@ -1,4 +1,11 @@
-from DisplayCAL.config import appbasename, cfg, defaults, is_ccxx_testchart, valid_ranges, valid_values
+from DisplayCAL.constants import (
+    appbasename,
+    cfg,
+    defaults,
+    is_ccxx_testchart,
+    valid_ranges,
+    valid_values,
+)
 from DisplayCAL.get_data_path import get_data_path
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug

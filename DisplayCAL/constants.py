@@ -11,7 +11,7 @@ import string
 import sys
 
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
-from DisplayCAL.common import get_ccxx_testchart, get_default_dpi
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.config import storage
 from DisplayCAL.config_parser import CaseSensitiveConfigParser
 from DisplayCAL.defaultpaths import appdata
@@ -21,6 +21,7 @@ from DisplayCAL.meta import (
     version,
 )
 from DisplayCAL.shared_constants import cbx, cby, cgx, cgy, crx, cry, cwx, cwy
+from DisplayCAL.testchart_utils import get_ccxx_testchart
 from DisplayCAL.util_os import expanduseru
 
 # User settings

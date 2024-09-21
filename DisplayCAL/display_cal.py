@@ -61,7 +61,7 @@ from DisplayCAL.colormath import (
     XYZ2Lab,
     XYZ2xyY,
 )
-from DisplayCAL.common import get_ccxx_testchart
+from DisplayCAL.testchart_utils import get_ccxx_testchart
 import DisplayCAL.common
 from DisplayCAL.config import (
     autostart,

@@ -6,6 +6,7 @@ import os
 import re
 import sys
 
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.constants import (
     appbasename,
     cfg,
@@ -487,13 +488,6 @@ def geticon(size, name, scale=True, use_mask=False):
     )
 
 
-def get_default_dpi():
-    if sys.platform == "darwin":
-        return 72.0
-    else:
-        return 96.0
-
-
 testchart_defaults = {
     "s": {
         None: "auto"
@@ -527,13 +521,6 @@ def hascfg(name, fallback=True, cfg=cfg):
     elif fallback:
         return name in defaults
     return False
-
-
-def get_ccxx_testchart():
-    """Get the path to the default chart for CCMX/CCSS creation."""
-    return get_data_path(
-        os.path.join("ti1", defaults["colorimeter_correction.testchart"])
-    )
 
 
 def get_current_profile(include_display_profile=False):

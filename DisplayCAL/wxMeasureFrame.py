@@ -4,11 +4,11 @@ from DisplayCAL import (
     config,
     localization as lang,
 )
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.config import (
     enc,
     geticon,
     get_argyll_display_number,
-    get_default_dpi,
     get_display_number,
     get_display_rects,
     scale_adjustment_factor,

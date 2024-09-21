@@ -14,6 +14,7 @@ from DisplayCAL.argyll_RGB2XYZ import (
     RGB2XYZ as argyll_RGB2XYZ,
     XYZ2RGB as argyll_XYZ2RGB,
 )
+import DisplayCAL.common
 from DisplayCAL.config import (
     get_current_profile,
     get_display_name,
@@ -143,7 +144,7 @@ class TestchartEditor(BaseFrame):
             ".txt": self.ti1_drop_handler,
         }
 
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
 
@@ -2796,7 +2797,7 @@ END_DATA"""
             return
         if filter_index < 5:
             # Image format
-            scale = getcfg("app.dpi") / config.get_default_dpi()
+            scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
             if scale < 1:
                 scale = 1
             dlg = ConfirmDialog(

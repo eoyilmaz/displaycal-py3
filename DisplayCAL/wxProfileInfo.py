@@ -8,6 +8,7 @@ from DisplayCAL import (
     wxenhancedplot as plot,
     x3dom,
 )
+import DisplayCAL.common
 from DisplayCAL.config import (
     fs_enc,
     get_argyll_display_number,
@@ -653,7 +654,7 @@ class GamutCanvas(LUTCanvas):
 
 class GamutViewOptions(wx_Panel):
     def __init__(self, *args, **kwargs):
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
 

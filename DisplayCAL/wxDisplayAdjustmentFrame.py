@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.getcfg import getcfg
 import DisplayCAL.initcfg
 
@@ -23,7 +24,6 @@ from DisplayCAL.lib.agw.fmresources import *
 from DisplayCAL.lib.agw.pygauge import PyGauge
 
 from DisplayCAL.config import (
-    get_default_dpi,
     get_icon_bundle,
     geticon,
     setcfg,

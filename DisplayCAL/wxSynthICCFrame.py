@@ -12,6 +12,7 @@ from DisplayCAL import (
     xh_floatspin,
 )
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
+import DisplayCAL.common
 from DisplayCAL.config import (
     enc,
     get_verified_path,
@@ -322,7 +323,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.parse_xy("blue")
 
     def chromatic_adaptation_btn_handler(self, event):
-        scale = self.getcfg("app.dpi") / config.get_default_dpi()
+        scale = self.getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
         dlg = ConfirmDialog(

@@ -9,6 +9,7 @@ from DisplayCAL import (
     wxenhancedplot as plot,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+import DisplayCAL.common
 from DisplayCAL.constants import valid_values
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.getcfg import getcfg
@@ -395,7 +396,7 @@ class CCXXPlot(wx.Frame):
                 x_max,
             )
 
-        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
 
         style = wx.DEFAULT_FRAME_STYLE
 

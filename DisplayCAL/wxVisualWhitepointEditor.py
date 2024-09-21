@@ -11,10 +11,10 @@ from DisplayCAL import (
     ICCProfile as ICCP,
     localization as lang,
 )
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.config import (
     fs_enc,
     get_argyll_display_number,
-    get_default_dpi,
     get_display_name,
     get_icon_bundle,
     geticon,

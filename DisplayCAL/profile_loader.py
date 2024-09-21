@@ -2,6 +2,8 @@
 """Set ICC profiles and load calibration curves for all configured display devices."""
 
 from DisplayCAL import config
+from DisplayCAL.common import get_default_dpi
+import DisplayCAL.common
 from DisplayCAL.config import confighome, setcfg
 from DisplayCAL.constants import appbasename, exe, exedir, pydir
 from DisplayCAL.get_data_path import get_data_path
@@ -33,7 +35,6 @@ if sys.platform == "win32":
         autostart,
         autostart_home,
         enc,
-        get_default_dpi,
         get_icon_bundle,
         geticon,
         iccprofiles,
@@ -419,7 +420,7 @@ if sys.platform == "win32":
                 known_apps = set()
             self._exceptions = {}
             self.known_apps = known_apps
-            scale = getcfg("app.dpi") / config.get_default_dpi()
+            scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
             if scale < 1:
                 scale = 1
             ConfirmDialog.__init__(

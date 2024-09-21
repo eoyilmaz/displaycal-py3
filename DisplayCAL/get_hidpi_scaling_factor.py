@@ -1,4 +1,4 @@
-from DisplayCAL.config import get_default_dpi
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.getcfg import getcfg
 
 

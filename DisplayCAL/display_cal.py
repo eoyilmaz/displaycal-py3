@@ -61,13 +61,14 @@ from DisplayCAL.colormath import (
     XYZ2Lab,
     XYZ2xyY,
 )
+from DisplayCAL.common import get_ccxx_testchart
+import DisplayCAL.common
 from DisplayCAL.config import (
     autostart,
     autostart_home,
     build,
     enc,
     fs_enc,
-    get_ccxx_testchart,
     get_current_profile,
     get_display_profile,
     get_verified_path,
@@ -538,7 +539,7 @@ def app_update_confirm(
         bitmap=geticon(32, "dialog-information"),
         log=True,
     )
-    scale = getcfg("app.dpi") / config.get_default_dpi()
+    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
     if scale < 1:
         scale = 1
     if (
@@ -779,7 +780,7 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     dlg.info.SetBitmapDisabled(get_bitmap_disabled(geticon(16, "info")))
     dlg.sizer2.Insert(0, dlg.info, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=12)
     dlg.sizer2.Insert(0, (32 + 7, 1))
-    scale = getcfg("app.dpi") / config.get_default_dpi()
+    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
     if scale < 1:
         scale = 1
     dlg_list_ctrl = wx.ListCtrl(
@@ -1105,7 +1106,7 @@ def get_header(
     repeat_sub_bitmap_h=(220, 0, 2, 64),
 ):
     w, h = 222, 64
-    scale = getcfg("app.dpi") / config.get_default_dpi()
+    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
     if scale > 1:
         size = tuple(int(math.floor(v * scale)) if v > 0 else v for v in size)
         x, y = [int(round(v * scale)) if v else v for v in (x, y)]
@@ -2036,7 +2037,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         y = 64
         w = 80
         h = 120
-        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
         if scale > 1:
             y, w, h = [int(math.floor(v * scale)) for v in (y, w, h)]
         self.header_btm = BitmapBackgroundPanel(self.headerpanel, size=(w, -1))
@@ -2316,7 +2317,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def OnResize(self, event):
         # Hide the header bitmap on small screens
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
         self.header.GetContainingSizer().Show(self.header, self.Size[1] > 480 * scale)
@@ -2542,7 +2543,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             height = self.ClientSize[1]
         borders_lr = self.Size[0] - self.ClientSize[0]
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         margin = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         header_min_h = 64
         if scale > 1:
@@ -13920,7 +13921,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         lang.getstr("corrected"),
                     ),
                 )
-                scale = getcfg("app.dpi") / config.get_default_dpi()
+                scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
                 if scale < 1:
                     scale = 1
                 for i, label in enumerate(labels):
@@ -18680,7 +18681,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 bitmap=geticon(32, "dialog-warning"),
             )
             if self.related_files:
-                scale = getcfg("app.dpi") / config.get_default_dpi()
+                scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
                 if scale < 1:
                     scale = 1
                 scrolled = ScrolledPanel(dlg, -1, style=wx.VSCROLL)
@@ -18821,7 +18822,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.SYS_COLOUR_WINDOW
         )
         items = []
-        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
         items.append(
             wx_Panel(self.aboutdialog.panel, -1, size=(-1, int(round(6 * scale))))
         )
@@ -19601,7 +19602,7 @@ class StartupFrame(start_cls):
             label_str += " Beta"
         dc.SetTextForeground("#101010")
         yoff = 10
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale > 1:
             yoff = int(round(yoff * scale))
         yoff -= 10
@@ -19704,7 +19705,7 @@ class StartupFrame(start_cls):
 
 class MeasurementFileCheckSanityDialog(ConfirmDialog):
     def __init__(self, parent, ti3, suspicious, force=False):
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
         ConfirmDialog.__init__(

@@ -10,9 +10,10 @@ from DisplayCAL import (
     localization as lang,
     util_str,
 )
+from DisplayCAL.common import get_default_dpi
+import DisplayCAL.common
 from DisplayCAL.config import (
     confighome,
-    get_default_dpi,
     get_verified_path,
     geticon,
     hascfg,
@@ -2806,7 +2807,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
             bitmap_margin=bitmap_margin,
         )
 
-        scale = getcfg("app.dpi") / config.get_default_dpi()
+        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
         if scale < 1:
             scale = 1
         htmlwnd = HtmlWindow(
@@ -2824,7 +2825,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
 class HtmlWindow(wx.html.HtmlWindow):
     def __init__(self, *args, **kwargs):
         wx.html.HtmlWindow.__init__(self, *args, **kwargs)
-        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
         if "gtk3" in wx.PlatformInfo:
             size = int(
                 round(
@@ -7006,7 +7007,7 @@ class SimpleTerminal(InvincibleFrame):
 
 class TabButton(PlateButton):
     def __init__(self, *args, **kwargs):
-        from DisplayCAL.config import get_default_dpi
+        from DisplayCAL.common import get_default_dpi
 
         self.dpiscale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
         PlateButton.__init__(self, *args, **kwargs)

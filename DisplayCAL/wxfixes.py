@@ -6,6 +6,7 @@ import shutil
 import sys
 import tempfile
 
+from DisplayCAL.common import get_default_dpi
 from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname, wx_minversion
 
@@ -665,7 +666,7 @@ wx.Window.SetToolTipString = SetToolTipString
 
 
 def _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs):
-    from DisplayCAL.config import get_default_dpi
+    from DisplayCAL.common import get_default_dpi
 
     scale = getcfg("app.dpi") / get_default_dpi()
     if "border" in kwargs:
@@ -731,7 +732,7 @@ wx._GridSizer = wx.GridSizer
 class GridSizer(wx._GridSizer):
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
-            from DisplayCAL.config import get_default_dpi
+            from DisplayCAL.common import get_default_dpi
 
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
@@ -753,7 +754,7 @@ wx._FlexGridSizer = wx.FlexGridSizer
 class FlexGridSizer(wx._FlexGridSizer):
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
-            from DisplayCAL.config import get_default_dpi
+            from DisplayCAL.common import get_default_dpi
 
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
@@ -827,7 +828,7 @@ def get_dc_font_scale(dc):
     else:
         # On Linux, we need to correct the font size by a certain factor if
         # wx.GCDC is used, to make text the same size as if wx.GCDC weren't used
-        from DisplayCAL.config import get_default_dpi, set_default_app_dpi
+        from DisplayCAL.config import set_default_app_dpi
 
         set_default_app_dpi()
         scale = getcfg("app.dpi") / get_default_dpi()
@@ -1403,7 +1404,7 @@ class PlateButton(platebtn.PlateButton):
     _reallyenabled = True
 
     def __init__(self, *args, **kwargs):
-        from DisplayCAL.config import get_default_dpi
+        from DisplayCAL.common import get_default_dpi
 
         self.dpiscale = getcfg("app.dpi") / get_default_dpi()
         platebtn.PlateButton.__init__(self, *args, **kwargs)
@@ -1620,7 +1621,7 @@ class TempXmlResource(object):
     _temp = None
 
     def __init__(self, xmlpath):
-        from DisplayCAL.config import get_default_dpi
+        from DisplayCAL.common import get_default_dpi
 
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1)
         if scale > 1 or "gtk3" in wx.PlatformInfo:

@@ -130,8 +130,6 @@ else:
         )
     profile_ext = ".icc"
 
-storage = os.path.join(datahome, "storage")
-
 resfiles = [
     # Only essentials
     "lang/en.yaml",

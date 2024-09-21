@@ -3,7 +3,7 @@
 import os
 import re
 
-from DisplayCAL.config import storage
+from DisplayCAL.shared import storage
 from DisplayCAL.constants import data_dirs, defaults
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.getcfg import getcfg

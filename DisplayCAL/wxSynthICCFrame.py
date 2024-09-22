@@ -55,7 +55,7 @@ import sys
 class SynthICCFrame(BaseFrame, LUT3DMixin):
     """Synthetic ICC creation window"""
 
-    cfg = cfg
+    cfg = config.cfg
 
     def __init__(self, parent=None):
         self.res = TempXmlResource(get_data_path(os.path.join("xrc", "synthicc.xrc")))

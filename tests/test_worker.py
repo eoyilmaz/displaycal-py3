@@ -23,6 +23,7 @@ from DisplayCAL.worker import (
     check_ti3_criteria1,
 )
 
+from DisplayCAL.worker_base import get_argyll_util
 from tests.data.display_data import DisplayData
 
 
@@ -533,7 +534,7 @@ def test_prepare_dispcal_1():
         '-k0.0',
         '/var/folders/8l/xy1__ym94nn35x86xyg56xq80000gn/T/DisplayCAL-2fdjtyql/'
     ]
-    assert return_val[0] is None
+    assert return_val[0] == get_argyll_util("dispcal")
     assert isinstance(return_val[1], list)
     assert return_val[1][:-1] == expected_result[:-1]  # don't check the final part
     assert tempfile.gettempdir() in return_val[1][-1]  # this should be in a temp path

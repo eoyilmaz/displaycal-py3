@@ -2140,7 +2140,7 @@ class Wtty(object):
         dirname = os.path.dirname(
             sys.executable
             if getattr(sys, "frozen", False)
-            else os.path.abspath(__file__ + "/..")
+            else os.path.abspath(os.path.dirname(__file__))
         )
         if getattr(sys, "frozen", False):
             logdir = appname

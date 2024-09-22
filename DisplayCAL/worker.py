@@ -14554,7 +14554,7 @@ usage: spotread [-options] [logfile]
         self.terminal.cgats = cgats
 
     def setup_inout(self, basename=None):
-        """Setup in/outfile basename and session logfile"""
+        """Setup in/outfile basename and session logfile."""
         dirname = self.create_tempdir()
         if not dirname or isinstance(dirname, Exception):
             return dirname

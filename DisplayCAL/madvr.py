@@ -1854,9 +1854,9 @@ class MadTPG_Net_Sender(object):
 
 
 if __name__ == "__main__":
-    from DisplayCAL import initcfg
+    from DisplayCAL import config
 
-    initcfg.initcfg()
+    config.initcfg()
     lang.init()
     if sys.platform == "win32":
         madtpg = MadTPG()

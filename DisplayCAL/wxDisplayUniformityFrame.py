@@ -10,11 +10,11 @@ import os
 import re
 import sys
 
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
 from DisplayCAL.wxaddons import wx
 
 from DisplayCAL.config import (
+    getbitmap,
+    getcfg,
     get_icon_bundle,
     get_display_number,
     get_display_rects,
@@ -36,7 +36,7 @@ from DisplayCAL.wxwindows import (
     wx_Panel,
 )
 from DisplayCAL import colormath
-from DisplayCAL import initcfg
+from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import report
 
@@ -529,7 +529,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    initcfg.initcfg()
+    config.initcfg()
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

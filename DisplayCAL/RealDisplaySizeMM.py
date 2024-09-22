@@ -5,7 +5,6 @@ import platform
 import re
 import sys
 
-from DisplayCAL.getcfg import getcfg
 from DisplayCAL.util_dbus import BUSTYPE_SESSION, DBusException, DBusObject
 from DisplayCAL.util_x import get_display as _get_x_display
 
@@ -140,7 +139,7 @@ def get_display(display_no=0):
 
     # Translate from Argyll display index to enumerated display index      # noqa: SC100
     # using the coordinates and dimensions
-    from DisplayCAL.config import is_virtual_display
+    from DisplayCAL.config import getcfg, is_virtual_display
 
     if is_virtual_display(display_no):
         return None

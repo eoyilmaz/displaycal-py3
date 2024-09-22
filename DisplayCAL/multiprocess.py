@@ -73,7 +73,7 @@ def pool_slice(
     if kwds is None:
         kwds = {}
 
-    from DisplayCAL.getcfg import getcfg
+    from DisplayCAL.config import getcfg
 
     if num_workers is None:
         num_workers = cpu_count()

@@ -4,14 +4,10 @@ from DisplayCAL import (
     config,
     localization as lang,
 )
-from DisplayCAL.config import confighome, geticon, setcfg
-from DisplayCAL.constants import appbasename
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
+from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writecfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxfixes import GenBitmapButton
 from DisplayCAL.wxwindows import BaseApp, numpad_keycodes, SimpleTerminal
@@ -24,6 +20,7 @@ import socket
 import sys
 import threading
 import wx.lib.delayedresult as delayedresult
+
 
 ERRORCOLOR = "#FF3300"
 RESPONSECOLOR = "#CCCCCC"
@@ -58,7 +55,7 @@ class ScriptingClientFrame(SimpleTerminal):
         self.commands = []
         self.history = []
         self.historyfilename = os.path.join(
-            confighome, "%s-scripting-client.history" % appbasename
+            confighome, "%s-scripting-client.history" % config.appbasename
         )
         if os.path.isfile(self.historyfilename):
             try:
@@ -545,7 +542,7 @@ class ScriptingClientFrame(SimpleTerminal):
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("scripting-client")
+    config.initcfg("scripting-client")
     lang.init()
     app = BaseApp(0)
     app.TopWindow = ScriptingClientFrame()

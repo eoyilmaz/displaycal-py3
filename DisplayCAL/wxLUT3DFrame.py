@@ -15,16 +15,15 @@ from DisplayCAL import (
 from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import video_encodings
 from DisplayCAL.config import (
+    defaults,
+    get_data_path,
     get_verified_path,
+    getcfg,
     geticon,
     hascfg,
     profile_ext,
     setcfg,
 )
-from DisplayCAL.constants import defaults, valid_ranges, valid_values
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
@@ -40,7 +39,6 @@ from DisplayCAL.worker import (
     UnloggedInfo,
     UnloggedWarning,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import CustomEvent
 from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxwindows import (
@@ -295,8 +293,8 @@ class LUT3DMixin(object):
         try:
             v = float(self.lut3d_trc_gamma_ctrl.GetValue().replace(",", "."))
             if (
-                v < valid_ranges["3dlut.trc_gamma"][0]
-                or v > valid_ranges["3dlut.trc_gamma"][1]
+                v < config.valid_ranges["3dlut.trc_gamma"][0]
+                or v > config.valid_ranges["3dlut.trc_gamma"][1]
             ):
                 raise ValueError()
         except ValueError:
@@ -651,7 +649,7 @@ class LUT3DMixin(object):
                     defaultFile = (
                         os.path.splitext(
                             defaultFile
-                            or os.path.basename(defaults.get("last_3dlut_path"))
+                            or os.path.basename(config.defaults.get("last_3dlut_path"))
                         )[0]
                         + "."
                         + ext
@@ -694,9 +692,9 @@ class LUT3DMixin(object):
                     if result != wx.ID_OK:
                         return
                 if self.Parent:
-                    DisplayCAL.writecfg.writecfg()
+                    config.writecfg()
                 elif isinstance(self, LUT3DFrame):
-                    DisplayCAL.writecfg.writecfg(
+                    config.writecfg(
                         module="3DLUT-maker",
                         options=(
                             "3dlut.",
@@ -1112,7 +1110,7 @@ class LUT3DMixin(object):
         self.rendering_intents_ab = {}
         self.rendering_intents_ba = {}
         self.lut3d_rendering_intent_ctrl.Clear()
-        intents = list(valid_values["3dlut.rendering_intent"])
+        intents = list(config.valid_values["3dlut.rendering_intent"])
         if self.worker.argyll_version < [1, 8, 3]:
             intents.remove("lp")
         for i, ri in enumerate(intents):
@@ -1124,7 +1122,7 @@ class LUT3DMixin(object):
         self.lut3d_formats_ba = {}
         self.lut3d_format_ctrl.Clear()
         i = 0
-        for format in valid_values["3dlut.format"]:
+        for format in config.valid_values["3dlut.format"]:
             if format != "madVR" or self.worker.argyll_version >= [1, 6]:
                 self.lut3d_format_ctrl.Append(lang.getstr("3dlut.format.%s" % format))
                 self.lut3d_formats_ab[i] = format
@@ -1141,7 +1139,7 @@ class LUT3DMixin(object):
         self.lut3d_size_ab = {}
         self.lut3d_size_ba = {}
         self.lut3d_size_ctrl.Clear()
-        for i, size in enumerate(valid_values["3dlut.size"]):
+        for i, size in enumerate(config.valid_values["3dlut.size"]):
             self.lut3d_size_ctrl.Append("%sx%sx%s" % ((size,) * 3))
             self.lut3d_size_ab[i] = size
             self.lut3d_size_ba[size] = i
@@ -1150,7 +1148,7 @@ class LUT3DMixin(object):
         self.lut3d_bitdepth_ba = {}
         self.lut3d_bitdepth_input_ctrl.Clear()
         self.lut3d_bitdepth_output_ctrl.Clear()
-        for i, bitdepth in enumerate(valid_values["3dlut.bitdepth.input"]):
+        for i, bitdepth in enumerate(config.valid_values["3dlut.bitdepth.input"]):
             self.lut3d_bitdepth_input_ctrl.Append(str(bitdepth))
             self.lut3d_bitdepth_output_ctrl.Append(str(bitdepth))
             self.lut3d_bitdepth_ab[i] = bitdepth
@@ -1161,15 +1159,15 @@ class LUT3DMixin(object):
         # Shared with amin window
         if format == "madVR":
             encodings = ["t"]
-            defaults["3dlut.encoding.input"] = "t"
-            defaults["3dlut.encoding.output"] = "t"
+            config.defaults["3dlut.encoding.input"] = "t"
+            config.defaults["3dlut.encoding.output"] = "t"
         else:
             if format == "dcl":
                 encodings = ["n"]
             else:
                 encodings = list(video_encodings)
-            defaults["3dlut.encoding.input"] = "n"
-            defaults["3dlut.encoding.output"] = "n"
+            config.defaults["3dlut.encoding.input"] = "n"
+            config.defaults["3dlut.encoding.output"] = "n"
         if (
             self.worker.argyll_version >= [1, 7]
             and self.worker.argyll_version != [1, 7, 0, "_beta"]
@@ -1177,9 +1175,9 @@ class LUT3DMixin(object):
         ):
             # Argyll 1.7 beta 3 (2015-04-02) added clip WTW on input TV encoding
             encodings.insert(2, "T")
-        valid_values["3dlut.encoding.input"] = encodings
+        config.valid_values["3dlut.encoding.input"] = encodings
         # collink: xvYCC output encoding is not supported
-        valid_values["3dlut.encoding.output"] = [
+        config.valid_values["3dlut.encoding.output"] = [
             v for v in encodings if v not in ("T", "x", "X")
         ]
         self.encoding_input_ab = {}
@@ -1190,12 +1188,12 @@ class LUT3DMixin(object):
         self.encoding_input_ctrl.Clear()
         self.encoding_output_ctrl.Freeze()
         self.encoding_output_ctrl.Clear()
-        for i, encoding in enumerate(valid_values["3dlut.encoding.input"]):
+        for i, encoding in enumerate(config.valid_values["3dlut.encoding.input"]):
             lstr = lang.getstr("3dlut.encoding.type_%s" % encoding)
             self.encoding_input_ctrl.Append(lstr)
             self.encoding_input_ab[i] = encoding
             self.encoding_input_ba[encoding] = i
-        for o, encoding in enumerate(valid_values["3dlut.encoding.output"]):
+        for o, encoding in enumerate(config.valid_values["3dlut.encoding.output"]):
             lstr = lang.getstr("3dlut.encoding.type_%s" % encoding)
             self.encoding_output_ctrl.Append(lstr)
             self.encoding_output_ab[o] = encoding
@@ -1591,7 +1589,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             scrollrate_x = 0
         self.panel.SetScrollRate(scrollrate_x, 2)
 
-        defaults.update(
+        config.defaults.update(
             {
                 "position.lut3dframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.lut3dframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -1628,9 +1626,9 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             self.setcfg("size.lut3dframe.w", self.ClientSize[0])
             self.setcfg("size.lut3dframe.h", self.ClientSize[1])
         if self.Parent:
-            DisplayCAL.writecfg.writecfg()
+            config.writecfg()
         else:
-            DisplayCAL.writecfg.writecfg(
+            config.writecfg(
                 module="3DLUT-maker",
                 options=(
                     "3dlut.",
@@ -2054,7 +2052,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("3DLUT-maker")
+    config.initcfg("3DLUT-maker")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

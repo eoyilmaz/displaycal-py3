@@ -11,7 +11,6 @@ import pytest
 
 from DisplayCAL import ICCProfile, CGATS
 from DisplayCAL.dev.mocks import check_call_str
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.worker import (
     make_argyll_compatible_path,
     Worker,
@@ -177,7 +176,7 @@ def test_download_method_4():
 def test_get_display_name_1():
     """Testing Worker.get_display_name() method."""
     from DisplayCAL.worker import Worker
-    from DisplayCAL.config import setcfg
+    from DisplayCAL.config import initcfg, setcfg
 
     initcfg()
     setcfg("display.number", 1)
@@ -189,7 +188,7 @@ def test_get_display_name_1():
 def test_get_pwd():
     """Testing Worker.get_display_name() method."""
     from DisplayCAL.worker import Worker
-    from DisplayCAL.initcfg import initcfg
+    from DisplayCAL.config import initcfg
 
     initcfg()
     worker = Worker()
@@ -202,7 +201,7 @@ def test_update_profile_1(random_icc_profile):
     """Testing Worker.update_profile() method."""
     from DisplayCAL import worker
     from DisplayCAL.worker import Worker
-    from DisplayCAL.initcfg import initcfg
+    from DisplayCAL.config import initcfg
 
     worker.dbus_session = None
     worker.dbus_system = None
@@ -255,11 +254,11 @@ def test_ti3_lookup_to_ti1_1(data_files):
     profile_path = data_files[
         "UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"
     ].absolute()
-    from DisplayCAL import initcfg, ICCProfile
+    from DisplayCAL import config, ICCProfile
 
     ti3_cgat = CGATS.CGATS(ti3_path)
     icc_profile = ICCProfile.ICCProfile(profile_path)
-    initcfg.initcfg()
+    config.initcfg()
     worker = Worker()
     ti1, ti3v = worker.ti3_lookup_to_ti1(ti3_cgat, icc_profile)
     assert isinstance(ti1, CGATS.CGATS)

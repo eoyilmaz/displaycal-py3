@@ -19,8 +19,7 @@ from DisplayCAL.colormath import (
     VidRGB_to_cLUT65,
     VidRGB_to_eeColor,
 )
-from DisplayCAL.config import fs_enc, profile_ext
-from DisplayCAL.constants import cfg, exe_ext
+from DisplayCAL.config import exe_ext, fs_enc, get_data_path, getcfg, profile_ext
 from DisplayCAL.debughelpers import (
     Error,
     Info,
@@ -29,9 +28,6 @@ from DisplayCAL.debughelpers import (
     UnloggedWarning,
     Warn,
 )
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import LogFile
 from DisplayCAL.meta import name as appname
 from DisplayCAL.multiprocess import mp, pool_slice
@@ -80,8 +76,8 @@ def _mp_xicclu(
     convert_video_rgb_to_clut65=False,
     verbose=1,
 ):
-    if not cfg.items(config.configparser.DEFAULTSECT):
-        initcfg()
+    if not config.cfg.items(config.configparser.DEFAULTSECT):
+        config.initcfg()
     profile = ICCP.ICCProfile(profile_filename)
     xicclu = Xicclu(
         profile,
@@ -159,8 +155,8 @@ def _mp_generate_B2A_clut(
         print("numpy?", "numpy" in str(list(sys.modules.keys())))
         print("wx?", "wx" in str(list(sys.modules.keys())))
         print("x3dom?", "x3dom" in str(list(sys.modules.keys())))
-    if not cfg.items(config.configparser.DEFAULTSECT):
-        initcfg()
+    if not config.cfg.items(config.configparser.DEFAULTSECT):
+        config.initcfg()
     idata = []
     abmaxval = 255 + (255 / 256.0)
     profile = ICCP.ICCProfile(profile_filename)
@@ -288,15 +284,15 @@ def check_argyll_bin(paths=None):
                 paths = [argyll_dir] + paths
         print("[D] Searchpath:\n  ", "\n  ".join(paths))
     # Fedora doesn't ship Rec709.icm
-    DisplayCAL.constants.defaults["3dlut.input.profile"] = (
+    config.defaults["3dlut.input.profile"] = (
         get_data_path(os.path.join("ref", "Rec709.icm"))
         or get_data_path(os.path.join("ref", "sRGB.icm"))
         or ""
     )
-    DisplayCAL.constants.defaults["testchart.reference"] = (
+    config.defaults["testchart.reference"] = (
         get_data_path(os.path.join("ref", "ColorChecker.cie")) or ""
     )
-    DisplayCAL.constants.defaults["gamap_profile"] = (
+    config.defaults["gamap_profile"] = (
         get_data_path(os.path.join("ref", "sRGB.icm")) or ""
     )
     return True

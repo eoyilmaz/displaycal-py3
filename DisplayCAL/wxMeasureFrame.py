@@ -4,24 +4,24 @@ from DisplayCAL import (
     config,
     localization as lang,
 )
-from DisplayCAL.common import get_default_dpi
 from DisplayCAL.config import (
+    defaults,
     enc,
     geticon,
     get_argyll_display_number,
+    get_default_dpi,
     get_display_number,
     get_display_rects,
+    getcfg,
+    geticon,
     scale_adjustment_factor,
     setcfg,
+    writecfg,
 )
-from DisplayCAL.constants import defaults
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
@@ -828,7 +828,7 @@ def test():
 
 
 def main():
-    DisplayCAL.initcfg.initcfg()
+    config.initcfg()
     lang.init()
     app = BaseApp(0)
     app.TopWindow = MeasureFrame()

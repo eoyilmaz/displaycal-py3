@@ -10,11 +10,15 @@ from DisplayCAL import (
     localization as lang,
     util_str,
 )
-from DisplayCAL.common import get_default_dpi
-import DisplayCAL.common
 from DisplayCAL.config import (
+    appbasename,
     confighome,
+    defaults,
+    get_data_path,
+    get_default_dpi,
     get_verified_path,
+    getbitmap,
+    getcfg,
     geticon,
     hascfg,
     logdir,
@@ -22,7 +26,6 @@ from DisplayCAL.config import (
     set_default_app_dpi,
     setcfg,
 )
-from DisplayCAL.constants import appbasename, cfg, defaults, valid_ranges, valid_values
 from DisplayCAL.debughelpers import (
     DownloadError,
     Error,
@@ -35,10 +38,6 @@ from DisplayCAL.debughelpers import (
     UnloggedWarning,
     Warn,
 )
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.lib.agw import labelbook, pygauge
 from DisplayCAL.lib.agw.fourwaysplitter import (
     _TOLERANCE,
@@ -1145,8 +1144,8 @@ class BaseFrame(wx.Frame):
                             if responseformats[conn] != "plain":
                                 response = {}
                                 for section, options in (
-                                    ("ranges", valid_ranges),
-                                    ("values", valid_values),
+                                    ("ranges", config.valid_ranges),
+                                    ("values", config.valid_values),
                                 ):
                                     valid = response[section] = []
                                     for name in options:
@@ -1154,8 +1153,8 @@ class BaseFrame(wx.Frame):
                                         valid.append({"name": name, "values": values})
                             else:
                                 response = {
-                                    "ranges": valid_ranges,
-                                    "values": valid_values,
+                                    "ranges": config.valid_ranges,
+                                    "values": config.valid_values,
                                 }
                             if responseformats[conn] == "plain":
                                 valid = []
@@ -2466,13 +2465,13 @@ class BaseFrame(wx.Frame):
                     or event.Skip(),
                 )
 
-    def getcfg(self, name, fallback=True, raw=False, cfg=cfg):
+    def getcfg(self, name, fallback=True, raw=False, cfg=config.cfg):
         return getcfg(name, fallback, raw, cfg)
 
-    def hascfg(self, name, fallback=True, cfg=cfg):
+    def hascfg(self, name, fallback=True, cfg=config.cfg):
         return hascfg(name, fallback, cfg)
 
-    def setcfg(self, name, value, cfg=cfg):
+    def setcfg(self, name, value, cfg=config.cfg):
         setcfg(name, value, cfg)
 
 
@@ -2807,7 +2806,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
             bitmap_margin=bitmap_margin,
         )
 
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
         htmlwnd = HtmlWindow(
@@ -2825,7 +2824,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
 class HtmlWindow(wx.html.HtmlWindow):
     def __init__(self, *args, **kwargs):
         wx.html.HtmlWindow.__init__(self, *args, **kwargs)
-        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
         if "gtk3" in wx.PlatformInfo:
             size = int(
                 round(
@@ -7007,7 +7006,7 @@ class SimpleTerminal(InvincibleFrame):
 
 class TabButton(PlateButton):
     def __init__(self, *args, **kwargs):
-        from DisplayCAL.common import get_default_dpi
+        from DisplayCAL.config import get_default_dpi, getcfg
 
         self.dpiscale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
         PlateButton.__init__(self, *args, **kwargs)
@@ -7307,7 +7306,7 @@ class TaskBarNotification(wx.Frame):
         msg.Bind(wx.EVT_LEFT_DOWN, lambda event: self.fade("out"))
         sizer.Add(msg)
         close = wx.BitmapButton(
-            panel, -1, DisplayCAL.getbitmap.getbitmap("theme/x-2px-12x12-999"), style=wx.NO_BORDER
+            panel, -1, config.getbitmap("theme/x-2px-12x12-999"), style=wx.NO_BORDER
         )
         close.BackgroundColour = panel.BackgroundColour
         close.Bind(wx.EVT_BUTTON, lambda event: self.fade("out"))
@@ -8098,7 +8097,7 @@ def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
 
 
 def test():
-    DisplayCAL.initcfg.initcfg()
+    config.initcfg()
     lang.init()
 
     def key_handler(self, event):

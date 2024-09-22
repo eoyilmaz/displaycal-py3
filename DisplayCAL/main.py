@@ -1,22 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from DisplayCAL.common_constants import datahome
 from DisplayCAL.config import (
+    appbasename,
     autostart_home,
     confighome,
+    datahome,
     enc,
+    exe,
+    exe_ext,
+    exedir,
     exename,
     fs_enc,
+    get_data_path,
+    getcfg,
+    initcfg,
+    isapp,
+    isexe,
     logdir,
+    pydir,
     pyname,
+    pypath,
     resfiles,
     runtype,
 )
-from DisplayCAL.constants import appbasename, exe_ext
 from DisplayCAL.debughelpers import ResourceError, handle_error
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import (
     build,

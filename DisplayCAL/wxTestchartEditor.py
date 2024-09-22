@@ -14,23 +14,22 @@ from DisplayCAL.argyll_RGB2XYZ import (
     RGB2XYZ as argyll_RGB2XYZ,
     XYZ2RGB as argyll_XYZ2RGB,
 )
-import DisplayCAL.common
 from DisplayCAL.config import (
+    defaults,
     get_current_profile,
+    get_data_path,
     get_display_name,
+    get_total_patches,
     get_verified_path,
+    getbitmap,
+    getcfg,
     geticon,
     hascfg,
     profile_ext,
     setcfg,
+    writecfg,
 )
-from DisplayCAL.constants import defaults, valid_ranges, valid_values
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_total_patches import get_total_patches
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
 from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
@@ -43,7 +42,6 @@ from DisplayCAL.worker import (
     show_result_dialog,
     Worker,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
 from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxMeasureFrame import get_default_size
@@ -730,7 +728,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_cie_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=valid_values["tc_vrml_cie_colorspace"]
+            panel, -1, choices=config.valid_values["tc_vrml_cie_colorspace"]
         )
         self.tc_vrml_cie_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -752,7 +750,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_device_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=valid_values["tc_vrml_device_colorspace"]
+            panel, -1, choices=config.valid_values["tc_vrml_device_colorspace"]
         )
         self.tc_vrml_device_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -2543,12 +2541,12 @@ END_DATA"""
         self.tc_filter_rad.SetValue(getcfg("tc_filter_rad"))
         self.tc_vrml_cie.SetValue(bool(int(getcfg("tc_vrml_cie"))))
         self.tc_vrml_cie_colorspace_ctrl.SetSelection(
-            valid_values["tc_vrml_cie_colorspace"].index(
+            config.valid_values["tc_vrml_cie_colorspace"].index(
                 getcfg("tc_vrml_cie_colorspace")
             )
         )
         self.tc_vrml_device_colorspace_ctrl.SetSelection(
-            valid_values["tc_vrml_device_colorspace"].index(
+            config.valid_values["tc_vrml_device_colorspace"].index(
                 getcfg("tc_vrml_device_colorspace")
             )
         )
@@ -2797,7 +2795,7 @@ END_DATA"""
             return
         if filter_index < 5:
             # Image format
-            scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+            scale = getcfg("app.dpi") / config.get_default_dpi()
             if scale < 1:
                 scale = 1
             dlg = ConfirmDialog(
@@ -2814,8 +2812,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=valid_ranges["tc_export_repeat_patch_max"][0],
-                max=valid_ranges["tc_export_repeat_patch_max"][1],
+                min=config.valid_ranges["tc_export_repeat_patch_max"][0],
+                max=config.valid_ranges["tc_export_repeat_patch_max"][1],
                 value=str(getcfg("tc_export_repeat_patch_max")),
             )
             sizer.Add(intctrl, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -2829,8 +2827,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=valid_ranges["tc_export_repeat_patch_min"][0],
-                max=valid_ranges["tc_export_repeat_patch_min"][1],
+                min=config.valid_ranges["tc_export_repeat_patch_min"][0],
+                max=config.valid_ranges["tc_export_repeat_patch_min"][1],
                 value=str(getcfg("tc_export_repeat_patch_min")),
             )
             sizer.Add(intctrl2, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -3034,7 +3032,7 @@ END_DATA"""
                     defaultDir = os.path.dirname(self.ti1.filename)
                 defaultFile = os.path.basename(self.ti1.filename)
             else:
-                defaultFile = os.path.basename(defaults["last_ti1_path"])
+                defaultFile = os.path.basename(config.defaults["last_ti1_path"])
             dlg = wx.FileDialog(
                 self,
                 lang.getstr("save_as"),
@@ -4376,7 +4374,7 @@ END_DATA"""
         menu = wx.Menu()
 
         item_selected = False
-        for file_format in valid_values["3d.format"]:
+        for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)
@@ -4413,7 +4411,7 @@ END_DATA"""
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("testchart-editor")
+    config.initcfg("testchart-editor")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

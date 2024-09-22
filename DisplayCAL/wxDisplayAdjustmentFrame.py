@@ -7,24 +7,22 @@ import os
 import re
 import sys
 
-from DisplayCAL.common import get_default_dpi
-from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
-
 if sys.platform == "win32":
     from ctypes import windll
 elif sys.platform == "darwin":
     from platform import mac_ver
 
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getbitmap import getbitmap
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.lib.agw import labelbook
 from DisplayCAL.lib.agw.fmresources import *
 from DisplayCAL.lib.agw.pygauge import PyGauge
 
 from DisplayCAL.config import (
+    get_data_path,
+    get_default_dpi,
     get_icon_bundle,
+    getbitmap,
+    getcfg,
     geticon,
     setcfg,
 )
@@ -44,7 +42,7 @@ from DisplayCAL.wxwindows import (
     wx_Panel,
 )
 from DisplayCAL import audio
-from DisplayCAL import writecfg
+from DisplayCAL import config
 from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
@@ -942,7 +940,7 @@ class DisplayAdjustmentFrame(windowcls):
         # if getattr(self, "measurement_play_sound_ctrl", None):
         # setcfg("measurement.play_sound",
         # int(self.measurement_play_sound_ctrl.GetValue()))
-        writecfg.writecfg()
+        config.writecfg()
         if not self.timer.IsRunning():
             self.Destroy()
         else:
@@ -1663,7 +1661,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    DisplayCAL.initcfg.initcfg()
+    config.initcfg()
     lang.init()
     app = BaseApp(0)
 

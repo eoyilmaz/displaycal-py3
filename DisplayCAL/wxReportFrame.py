@@ -11,17 +11,11 @@ from DisplayCAL import (
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
-from DisplayCAL.config import geticon, hascfg, setcfg
-from DisplayCAL.constants import defaults, valid_ranges
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_standard_profiles import get_standard_profiles
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
+from DisplayCAL.config import get_data_path, getcfg, geticon, hascfg, initcfg, setcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
@@ -91,7 +85,7 @@ class ReportFrame(BaseFrame):
                     wildcard = r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
-                    standard_profiles = DisplayCAL.get_standard_profiles.get_standard_profiles(True)
+                    standard_profiles = config.get_standard_profiles(True)
                     basenames = []
                     for path in standard_profiles:
                         basename = os.path.basename(path)
@@ -184,7 +178,7 @@ class ReportFrame(BaseFrame):
 
         self.update_layout()
 
-        defaults.update(
+        config.defaults.update(
             {
                 "position.reportframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.reportframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -215,7 +209,7 @@ class ReportFrame(BaseFrame):
             setcfg("position.reportframe.y", y)
             setcfg("size.reportframe.w", self.ClientSize[0])
             setcfg("size.reportframe.h", self.ClientSize[1])
-        DisplayCAL.writecfg.writecfg()
+        config.writecfg()
         if event:
             event.Skip()
 
@@ -247,8 +241,8 @@ class ReportFrame(BaseFrame):
         try:
             v = float(self.mr_trc_gamma_ctrl.GetValue().replace(",", "."))
             if (
-                v < valid_ranges["measurement_report.trc_gamma"][0]
-                or v > valid_ranges["measurement_report.trc_gamma"][1]
+                v < config.valid_ranges["measurement_report.trc_gamma"][0]
+                or v > config.valid_ranges["measurement_report.trc_gamma"][1]
             ):
                 raise ValueError()
         except ValueError:
@@ -718,7 +712,7 @@ class ReportFrame(BaseFrame):
             self.set_profile_ctrl_path(which)
         chart = getcfg("measurement_report.chart")
         if not chart or not os.path.isfile(chart):
-            chart = defaults["measurement_report.chart"]
+            chart = config.defaults["measurement_report.chart"]
             setcfg("measurement_report.chart", chart)
         self.mr_set_testchart(chart, load=False)
 
@@ -1121,7 +1115,7 @@ class ReportFrame(BaseFrame):
 
 
 if __name__ == "__main__":
-    DisplayCAL.initcfg.initcfg()
+    config.initcfg()
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

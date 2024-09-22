@@ -7,8 +7,7 @@ import re
 import shutil
 import sys
 
-from DisplayCAL.initcfg import initcfg
-from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.config import get_data_path, initcfg
 from DisplayCAL.meta import version_short
 from DisplayCAL import jspacker
 from DisplayCAL import localization as lang

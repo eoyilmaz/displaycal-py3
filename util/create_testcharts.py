@@ -4,13 +4,10 @@
 import os
 import sys
 
-import DisplayCAL.get_data_path
-import DisplayCAL.get_total_patches
-
 root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(root)
 
-from DisplayCAL import initcfg, ICCProfile as ICCP, localization as lang, meta
+from DisplayCAL import config, ICCProfile as ICCP, localization as lang, meta
 from DisplayCAL.worker import Worker, check_argyll_bin, get_argyll_util
 
 
@@ -19,16 +16,16 @@ def create_testcharts(overwrite=False):
     # Profile, amount of dark region emphasis
     precond = {
         "eRGBv2": (ICCP.ICCProfile("eciRGB_v2.icc").fileName, 1.0),
-        "aRGB": (DisplayCAL.get_data_path.get_data_path("ref/ClayRGB1998.icm"), 1.6),
-        "Rec709_Gamma22": (DisplayCAL.get_data_path.get_data_path("ref/Rec709_Gamma22.icm"), 1.6),
-        "sRGB": (DisplayCAL.get_data_path.get_data_path("ref/sRGB.icm"), 1.6),
+        "aRGB": (config.get_data_path("ref/ClayRGB1998.icm"), 1.6),
+        "Rec709_Gamma22": (config.get_data_path("ref/Rec709_Gamma22.icm"), 1.6),
+        "sRGB": (config.get_data_path("ref/sRGB.icm"), 1.6),
     }
     worker = Worker()
     targen = get_argyll_util("targen")
     for bcc_steps in range(min_bcc_steps, max_bcc_steps + 1):
         single_channel = bcc_steps * 4 - 3
         gray_channel = single_channel * 3 - 2
-        total = DisplayCAL.get_total_patches.get_total_patches(
+        total = config.get_total_patches(
             4, 4, single_channel, gray_channel, bcc_steps, bcc_steps, 0
         )
         for name in precond:
@@ -65,7 +62,7 @@ def create_testcharts(overwrite=False):
 
 
 if __name__ == "__main__":
-    initcfg.initcfg()
+    config.initcfg()
     lang.init()
     if check_argyll_bin():
         create_testcharts("--overwrite" in sys.argv[1:])

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# stdlib
 from binascii import hexlify
 from collections import UserString
-# custom
 from DisplayCAL import (
     audio,
     CGATS,
@@ -43,31 +41,32 @@ from DisplayCAL.argyll_names import (
     viewconds,
 )
 from DisplayCAL.colormath import eeColor_to_VidRGB, VidRGB_to_eeColor
-import DisplayCAL.common_constants
 from DisplayCAL.config import (
+    appbasename,
     autostart,
     autostart_home,
+    defaults,
     enc,
+    exe,
+    exe_ext,
+    exedir,
     fs_enc,
+    get_data_path,
+    get_total_patches,
     get_verified_path,
+    getcfg,
     geticon,
+    is_ccxx_testchart,
+    isapp,
+    isexe,
     logdir,
     profile_ext,
+    pydir,
     script_ext,
     setcfg,
     setcfg_cond,
     split_display_name,
-)
-from DisplayCAL.constants import (
-    appbasename,
-    defaults,
-    exe,
-    exe_ext,
-    exedir,
-    is_ccxx_testchart,
-    isapp,
-    isexe,
-    pydir,
+    writecfg,
 )
 from DisplayCAL.debughelpers import (
     DownloadError,
@@ -87,9 +86,6 @@ from DisplayCAL.defaultpaths import (
     iccprofiles_home,
 )
 from DisplayCAL.edid import get_edid, WMIError
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_total_patches import get_total_patches
-from DisplayCAL.getcfg import getcfg
 from DisplayCAL.log import DummyLogger, get_file_logger, log, LogFile
 from DisplayCAL.meta import (
     DOMAIN,
@@ -164,7 +160,6 @@ from DisplayCAL.worker_base import (
     WorkerBase,
     Xicclu,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
 from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
 from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
@@ -230,7 +225,6 @@ if sys.platform == "darwin":
     )
     from platform import mac_ver
 elif sys.platform == "win32":
-    # 3rd party
     from ctypes import windll
     from DisplayCAL import util_win
     from DisplayCAL.util_win import run_as_admin, shell_exec, win_ver
@@ -285,7 +279,6 @@ INST_CAL_MSGS = [
     "Use the appropriate tramissive blocking",
     "Change filter on instrument to",
 ]
-
 USE_WPOPEN = 0
 
 keycodes = {
@@ -307,7 +300,9 @@ keycodes = {
     wx.WXK_NUMPAD_SUBTRACT: ord("-"),
 }
 
+
 workers = []
+
 
 WAIT_FILE_TEMPLATE = """# coding=utf-8
 import os, sys, time
@@ -1170,9 +1165,9 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
         r"[moupHVFE]",
         r"d(?:\d+(?:,\d+)?|madvr|web)",
         r"[cv]\d+",
-        r"q(?:%s)" % "|".join(DisplayCAL.constants.valid_values["calibration.quality"]),
+        r"q(?:%s)" % "|".join(config.valid_values["calibration.quality"]),
         r"y(?:%s)"
-        % "|".join([_f for _f in DisplayCAL.constants.valid_values["measurement_mode"] if _f]),
+        % "|".join([_f for _f in config.valid_values["measurement_mode"] if _f]),
         r"[tT](?:\d+(?:\.\d+)?)?",
         r"w\d+(?:\.\d+)?,\d+(?:\.\d+)?",
         r"[bfakAB]\d+(?:\.\d+)?",
@@ -1186,7 +1181,7 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
     re_options_colprof = [
         r"q[lmh]",
         r"b[lmh]",  # B2A quality
-        r"a(?:%s)" % "|".join(DisplayCAL.constants.valid_values["profile.type"]),
+        r"a(?:%s)" % "|".join(config.valid_values["profile.type"]),
         r'[sSMA]\s+["\'][^"\']+?["\']',
         r"[cd](?:%s)(?=\W|$)" % "|".join(viewconds),
         r"[tT](?:%s)(?=\W|$)" % "|".join(intents),
@@ -5518,7 +5513,7 @@ END_DATA
                             "colorimeter_correction.%s.reference",
                         ]:
                             key %= "observer"
-                            DisplayCAL.constants.valid_values[key] = valid_observers
+                            config.valid_values[key] = valid_observers
                         continue
                     line = line.split(None, 1)
                     if len(line) and line[0][0] == "-":
@@ -9555,7 +9550,7 @@ usage: spotread [-options] [logfile]
             )
         if uninstall:
             backupbase = os.path.join(
-                DisplayCAL.common_constants.datahome, "backup", strftime("%Y%m%dT%H%M%S")
+                config.datahome, "backup", strftime("%Y%m%dT%H%M%S")
             )
         for filename in filenames:
             if filename.endswith(".rules"):
@@ -9708,7 +9703,7 @@ usage: spotread [-options] [logfile]
                 "Argyll_V%s_USB_driver_installer.exe" % argyll_version_string
             )
 
-            download_dir = os.path.join(DisplayCAL.common_constants.datahome, "dl")
+            download_dir = os.path.join(config.datahome, "dl")
             installer = os.path.join(download_dir, installer_basename)
 
             if not os.path.isfile(installer):
@@ -13987,7 +13982,7 @@ usage: spotread [-options] [logfile]
             args.append("-b%s" % getcfg("tc_multi_bcc_steps"))
         tc_algo = getcfg("tc_algo")
         if getcfg("tc_fullspread_patches") > 0:
-            args.append("-f%s" % DisplayCAL.get_total_patches.get_total_patches())
+            args.append("-f%s" % config.get_total_patches())
             if tc_algo:
                 args.append("-" + tc_algo)
             if tc_algo in ("i", "I"):
@@ -15875,7 +15870,7 @@ BEGIN_DATA
             # Fall back to configured 3D LUT encoding
             if (
                 not input_encoding
-                or input_encoding not in DisplayCAL.constants.valid_values["3dlut.encoding.input"]
+                or input_encoding not in config.valid_values["3dlut.encoding.input"]
             ):
                 input_encoding = getcfg("3dlut.encoding.input")
                 if input_encoding == "T":
@@ -15883,7 +15878,7 @@ BEGIN_DATA
                     input_encoding = "t"
             if (
                 not output_encoding
-                or output_encoding not in DisplayCAL.constants.valid_values["3dlut.encoding.output"]
+                or output_encoding not in config.valid_values["3dlut.encoding.output"]
             ):
                 output_encoding = getcfg("3dlut.encoding.output")
             if self.argyll_version < [1, 6] and not (
@@ -16294,7 +16289,7 @@ BEGIN_DATA
         total_size = None
         filename = os.path.basename(uri)
         if not download_dir:
-            download_dir = os.path.join(DisplayCAL.common_constants.datahome, "dl")
+            download_dir = os.path.join(config.datahome, "dl")
         download_path = os.path.join(download_dir, filename)
         response = None
         hashes = None
@@ -16882,7 +16877,7 @@ BEGIN_DATA
                     # the current directory on drive C: (c:foo), not c:\foo.
 
                     # Save incomplete runs to different directory
-                    parts = [DisplayCAL.common_constants.datahome, "incomplete"] + parts[-2:]
+                    parts = [config.datahome, "incomplete"] + parts[-2:]
                     dst_path = os.sep.join(parts)
                 result = check_create_dir(os.path.dirname(dst_path))
                 if isinstance(result, Exception):

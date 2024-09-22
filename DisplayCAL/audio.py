@@ -23,7 +23,7 @@ from ctypes import (
     POINTER,
     Structure,
 )
-from DisplayCAL.constants import pydir
+from DisplayCAL.config import pydir
 from DisplayCAL.util_os import dlopen, getenvu
 from DisplayCAL.util_str import safe_str
 
@@ -532,7 +532,7 @@ class _Sound(object):
 
 if __name__ == "__main__":
     import wx
-    from DisplayCAL.get_data_path import get_data_path
+    from DisplayCAL.config import get_data_path
 
     sound = Sound(get_data_path("theme/engine_hum_loop.wav"), True)
     app = wx.App(0)

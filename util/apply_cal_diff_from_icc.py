@@ -3,11 +3,9 @@
 
 import os, sys
 
-import DisplayCAL.get_data_path
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import CGATS, ICCProfile as ICCP, argyll_cgats, initcfg, colormath as cm
+from DisplayCAL import CGATS, ICCProfile as ICCP, argyll_cgats, config, colormath as cm
 from DisplayCAL.worker import Worker, Xicclu, get_argyll_util, _applycal_bug_workaround
 
 
@@ -447,7 +445,7 @@ def main(icc_profile_filename, target_whitepoint=None, gamma=2.2, skip_cal=False
             num_cal_entries = len(ccal)
         else:
             if not existing_cgats:
-                existing_cgats = CGATS.CGATS(DisplayCAL.get_data_path.get_data_path("linear.cal"))
+                existing_cgats = CGATS.CGATS(config.get_data_path("linear.cal"))
 
             num_cal_entries = len(existing_cgats[0].DATA)
 
@@ -514,5 +512,5 @@ def main(icc_profile_filename, target_whitepoint=None, gamma=2.2, skip_cal=False
 
 
 if __name__ == "__main__":
-    initcfg.initcfg()
+    config.initcfg()
     main(*sys.argv[1:4])

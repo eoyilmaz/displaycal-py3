@@ -2,13 +2,7 @@
 """Set ICC profiles and load calibration curves for all configured display devices."""
 
 from DisplayCAL import config
-from DisplayCAL.common import get_default_dpi
-import DisplayCAL.common
-from DisplayCAL.config import confighome, setcfg
-from DisplayCAL.constants import appbasename, exe, exedir, pydir
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
+from DisplayCAL.config import appbasename, confighome, getcfg, setcfg
 from DisplayCAL.meta import (
     name as appname,
     version,
@@ -17,7 +11,6 @@ from DisplayCAL.meta import (
     version_short,
 )
 from DisplayCAL.options import debug, test, verbose
-from DisplayCAL.writecfg import writecfg
 
 import os
 import sys
@@ -35,9 +28,14 @@ if sys.platform == "win32":
         autostart,
         autostart_home,
         enc,
+        exe,
+        exedir,
+        get_data_path,
+        get_default_dpi,
         get_icon_bundle,
         geticon,
         iccprofiles,
+        pydir,
     )
     from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
     from DisplayCAL.edid import get_edid
@@ -420,7 +418,7 @@ if sys.platform == "win32":
                 known_apps = set()
             self._exceptions = {}
             self.known_apps = known_apps
-            scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+            scale = getcfg("app.dpi") / config.get_default_dpi()
             if scale < 1:
                 scale = 1
             ConfirmDialog.__init__(
@@ -1227,32 +1225,32 @@ class ProfileLoader(object):
             for k in range(256):
                 self.linear_vcgt_values[j].append([float(k), k * 257])
         self.setgammaramp_success = {}
-        self.use_madhcnet = bool(DisplayCAL.getcfg.getcfg("profile_loader.use_madhcnet"))
+        self.use_madhcnet = bool(config.getcfg("profile_loader.use_madhcnet"))
         self._has_display_changed = False
         self._last_exception_args = ()
         self._shutdown = False
         self._skip = "--skip" in sys.argv[1:]
         apply_profiles = bool(
-            "--force" in sys.argv[1:] or DisplayCAL.getcfg.getcfg("profile.load_on_login")
+            "--force" in sys.argv[1:] or config.getcfg("profile.load_on_login")
         )
         self._manual_restore = apply_profiles
         self._reset_gamma_ramps = bool(
-            DisplayCAL.getcfg.getcfg("profile_loader.reset_gamma_ramps")
+            config.getcfg("profile_loader.reset_gamma_ramps")
         )
         self._known_apps = set(
             [
                 known_app.lower()
-                for known_app in DisplayCAL.constants.defaults["profile_loader.known_apps"].split(";")
-                + DisplayCAL.getcfg.getcfg("profile_loader.known_apps").split(";")
+                for known_app in config.defaults["profile_loader.known_apps"].split(";")
+                + config.getcfg("profile_loader.known_apps").split(";")
             ]
         )
         self._known_window_classes = set(
-            DisplayCAL.constants.defaults["profile_loader.known_window_classes"].split(";")
-            + DisplayCAL.getcfg.getcfg("profile_loader.known_window_classes").split(";")
+            config.defaults["profile_loader.known_window_classes"].split(";")
+            + config.getcfg("profile_loader.known_window_classes").split(";")
         )
         self._buggy_video_drivers = set(
             buggy_video_driver.lower()
-            for buggy_video_driver in DisplayCAL.getcfg.getcfg(
+            for buggy_video_driver in config.getcfg(
                 "profile_loader.buggy_video_drivers"
             ).split(";")
         )
@@ -1420,7 +1418,7 @@ class ProfileLoader(object):
                     ):
                         restore_auto_kind = apply_kind = wx.ITEM_NORMAL
                     else:
-                        if DisplayCAL.getcfg.getcfg("profile.load_on_login"):
+                        if config.getcfg("profile.load_on_login"):
                             apply_kind = wx.ITEM_RADIO
                         else:
                             apply_kind = wx.ITEM_NORMAL
@@ -1558,7 +1556,7 @@ class ProfileLoader(object):
                                     if option == "reset_gamma_ramps":
                                         value = self.pl._reset_gamma_ramps
                                     else:
-                                        value = DisplayCAL.getcfg.getcfg(option)
+                                        value = config.getcfg(option)
                                     item.Check(method and oxform(value))
 
                     return menu
@@ -2101,7 +2099,7 @@ class ProfileLoader(object):
                     else:
                         results.append(display)
                 if (
-                    DisplayCAL.getcfg.getcfg("profile_loader.verify_calibration")
+                    config.getcfg("profile_loader.verify_calibration")
                     or "--verify" in sys.argv[1:]
                 ):
                     # Verify the calibration was actually loaded
@@ -2159,7 +2157,7 @@ class ProfileLoader(object):
         if (
             errors
             and (
-                DisplayCAL.getcfg.getcfg("profile_loader.error.show_msg")
+                config.getcfg("profile_loader.error.show_msg")
                 or "--error-dialog" in sys.argv[1:]
             )
             and "--silent" not in sys.argv[1:]
@@ -2181,7 +2179,7 @@ class ProfileLoader(object):
                 dlg, -1, lang.getstr("dialog.do_not_show_again")
             )
             dlg.do_not_show_again_cb.SetValue(
-                not bool(DisplayCAL.getcfg.getcfg("profile_loader.error.show_msg"))
+                not bool(config.getcfg("profile_loader.error.show_msg"))
             )
 
             def do_not_show_again_handler(event=None):
@@ -2189,7 +2187,7 @@ class ProfileLoader(object):
                     "profile_loader.error.show_msg",
                     int(not dlg.do_not_show_again_cb.GetValue()),
                 )
-                DisplayCAL.writecfg.writecfg(
+                config.writecfg(
                     module="apply-profiles",
                     options=("argyll.dir", "profile.load_on_login", "profile_loader"),
                 )
@@ -2285,7 +2283,7 @@ class ProfileLoader(object):
             and event.GetEventType() == wx.EVT_MENU.typeId
             and (
                 not calibration_management_isenabled()
-                or DisplayCAL.getcfg.getcfg("profile_loader.fix_profile_associations")
+                or config.getcfg("profile_loader.fix_profile_associations")
             )
         ):
             dlg = ConfirmDialog(
@@ -3400,7 +3398,7 @@ class ProfileLoader(object):
             if other_component != self.__other_component:
                 if other_component[2] and not self.__other_component[2]:
                     self._reset_gamma_ramps = bool(
-                        DisplayCAL.getcfg.getcfg("profile_loader.reset_gamma_ramps")
+                        config.getcfg("profile_loader.reset_gamma_ramps")
                     )
                 check = (not other_component[2] and not self.__other_component[2]) or (
                     other_component[2]
@@ -3714,7 +3712,7 @@ class ProfileLoader(object):
                 "--force" in sys.argv[1:]
                 or self._manual_restore
                 or (
-                    DisplayCAL.getcfg.getcfg("profile.load_on_login")
+                    config.getcfg("profile.load_on_login")
                     and (
                         sys.platform != "win32"
                         or not calibration_management_isenabled()
@@ -3752,7 +3750,7 @@ class ProfileLoader(object):
     def _set_exceptions(self):
         self._exceptions = {}
         self._exception_names = set()
-        exceptions = DisplayCAL.getcfg.getcfg("profile_loader.exceptions").strip()
+        exceptions = config.getcfg("profile_loader.exceptions").strip()
         if exceptions:
             print("Exceptions:")
         for exception in exceptions.split(";"):
@@ -3785,7 +3783,7 @@ class ProfileLoader(object):
         dlg.ShowModalThenDestroy()
 
     def writecfg(self):
-        DisplayCAL.writecfg.writecfg(
+        config.writecfg(
             module="apply-profiles",
             options=("argyll.dir", "profile.load_on_login", "profile_loader"),
         )
@@ -3909,7 +3907,7 @@ def main():
                 % os.path.join(confighome, appbasename + "-apply-profiles.ini")
             )
             print("")
-            for cfgname, cfgdefault in sorted(DisplayCAL.constants.defaults.items()):
+            for cfgname, cfgdefault in sorted(config.defaults.items()):
                 if (
                     cfgname.startswith("profile_loader.")
                     or cfgname == "profile.load_on_login"
@@ -3958,11 +3956,11 @@ def main():
                     else:
                         continue
                     # Name and valid values
-                    valid = DisplayCAL.constants.valid_values.get(cfgname)
+                    valid = config.valid_values.get(cfgname)
                     if valid:
                         valid = "[%s]" % "|".join("%s" % v for v in valid)
                     else:
-                        valid = DisplayCAL.constants.valid_ranges.get(cfgname)
+                        valid = config.valid_ranges.get(cfgname)
                         if valid:
                             valid = "[%s..%s]" % tuple(valid)
                         elif isinstance(cfgdefault, int):
@@ -3984,11 +3982,11 @@ def main():
         if sys.platform == "win32":
             setup_profile_loader_task(exe, exedir, pydir)
 
-        DisplayCAL.initcfg.initcfg("apply-profiles")
+        config.initcfg("apply-profiles")
 
         if (
             "--force" not in sys.argv[1:]
-            and not DisplayCAL.getcfg.getcfg("profile.load_on_login")
+            and not config.getcfg("profile.load_on_login")
             and sys.platform != "win32"
         ):
             # Early exit incase profile loading has been disabled and isn't forced
@@ -3996,7 +3994,7 @@ def main():
 
         if "--error-dialog" in sys.argv[1:]:
             config.setcfg("profile_loader.error.show_msg", 1)
-            DisplayCAL.writecfg.writecfg(
+            config.writecfg(
                 module="apply-profiles",
                 options=("argyll.dir", "profile.load_on_login", "profile_loader"),
             )

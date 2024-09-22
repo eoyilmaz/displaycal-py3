@@ -10,7 +10,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
-from DisplayCAL.get_data_path import get_data_path
+from DisplayCAL.config import get_data_path
 from DisplayCAL.defaultpaths import cache as cachepath
 from DisplayCAL.log import safe_print as _safe_print
 from DisplayCAL.meta import DOMAIN

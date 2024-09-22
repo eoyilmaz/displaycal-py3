@@ -9,10 +9,8 @@ from DisplayCAL import (
     wxenhancedplot as plot,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-import DisplayCAL.common
-from DisplayCAL.constants import valid_values
+from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
-from DisplayCAL.getcfg import getcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
@@ -344,7 +342,7 @@ class CCXXPlot(wx.Frame):
 
         if not self.is_ccss:
             observers_ab = {}
-            for observer in valid_values["observer"]:
+            for observer in config.valid_values["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
             x_label.extend(["%9.6f %9.6f %9.6f" % tuple(row) for row in mtx])
@@ -396,7 +394,7 @@ class CCXXPlot(wx.Frame):
                 x_max,
             )
 
-        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
 
         style = wx.DEFAULT_FRAME_STYLE
 

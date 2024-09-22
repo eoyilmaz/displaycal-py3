@@ -18,10 +18,7 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, see <http://www.gnu.org/licenses/>
 """
 
-# Standard modules
 from decimal import Decimal
-
-# Custom modules
 from DisplayCAL import (
     audio,
     ccmx,
@@ -61,35 +58,38 @@ from DisplayCAL.colormath import (
     XYZ2Lab,
     XYZ2xyY,
 )
-from DisplayCAL.testchart_utils import get_ccxx_testchart
-import DisplayCAL.common
 from DisplayCAL.config import (
+    appbasename,
     autostart,
     autostart_home,
     build,
+    defaults,
     enc,
+    exe,
+    exe_ext,
     fs_enc,
+    get_ccxx_testchart,
     get_current_profile,
+    get_data_path,
     get_display_profile,
+    get_total_patches,
     get_verified_path,
+    getbitmap,
+    getcfg,
     geticon,
     hascfg,
+    initcfg,
     is_profile,
+    isapp,
+    is_ccxx_testchart,
+    isexe,
     profile_ext,
+    pydir,
     resfiles,
     script_ext,
     setcfg,
     setcfg_cond,
-)
-from DisplayCAL.constants import (
-    appbasename,
-    defaults,
-    exe,
-    exe_ext,
-    is_ccxx_testchart,
-    isapp,
-    isexe,
-    pydir,
+    writecfg,
 )
 from DisplayCAL.debughelpers import (
     getevtobjname,
@@ -98,11 +98,6 @@ from DisplayCAL.debughelpers import (
     ResourceError,
 )
 from DisplayCAL.edid import get_manufacturer_name, pnpidcache
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_total_patches import get_total_patches
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
     author,
@@ -178,7 +173,6 @@ from DisplayCAL.worker import (
     Warn,
     Worker,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import (
     BetterWindowDisabler,
     CustomEvent,
@@ -539,7 +533,7 @@ def app_update_confirm(
         bitmap=geticon(32, "dialog-information"),
         log=True,
     )
-    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+    scale = getcfg("app.dpi") / config.get_default_dpi()
     if scale < 1:
         scale = 1
     if (
@@ -780,7 +774,7 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     dlg.info.SetBitmapDisabled(get_bitmap_disabled(geticon(16, "info")))
     dlg.sizer2.Insert(0, dlg.info, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=12)
     dlg.sizer2.Insert(0, (32 + 7, 1))
-    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+    scale = getcfg("app.dpi") / config.get_default_dpi()
     if scale < 1:
         scale = 1
     dlg_list_ctrl = wx.ListCtrl(
@@ -1106,7 +1100,7 @@ def get_header(
     repeat_sub_bitmap_h=(220, 0, 2, 64),
 ):
     w, h = 222, 64
-    scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+    scale = getcfg("app.dpi") / config.get_default_dpi()
     if scale > 1:
         size = tuple(int(math.floor(v * scale)) if v > 0 else v for v in size)
         x, y = [int(round(v * scale)) if v else v for v in (x, y)]
@@ -1427,7 +1421,7 @@ class GamapFrame(BaseFrame):
             self.profile_quality_b2a_ctrl_handler,
             id=self.b2a_hires_cb.GetId(),
         )
-        for v in DisplayCAL.constants.valid_values["profile.b2a.hires.size"]:
+        for v in config.valid_values["profile.b2a.hires.size"]:
             if v > -1:
                 v = "%sx%sx%s" % ((v,) * 3)
             else:
@@ -1452,7 +1446,7 @@ class GamapFrame(BaseFrame):
         self.default_intent_ab = {}
         self.default_intent_ba = {}
         for i, ri in enumerate(
-            DisplayCAL.constants.valid_values["gamap_default_intent"]
+            config.valid_values["gamap_default_intent"]
         ):
             self.default_intent_ab[i] = ri
             self.default_intent_ba[ri] = i
@@ -1465,7 +1459,7 @@ class GamapFrame(BaseFrame):
         self.Hide()
 
     def b2a_size_ctrl_handler(self, event):
-        v = DisplayCAL.constants.valid_values["profile.b2a.hires.size"][
+        v = config.valid_values["profile.b2a.hires.size"][
             self.b2a_size_ctrl.GetSelection()
         ]
         if (
@@ -1738,7 +1732,7 @@ class GamapFrame(BaseFrame):
         self.gamap_default_intent_ctrl.SetItems(
             [
                 lang.getstr("gamap.intents." + v)
-                for v in DisplayCAL.constants.valid_values["gamap_default_intent"]
+                for v in config.valid_values["gamap_default_intent"]
             ]
         )
 
@@ -1760,7 +1754,7 @@ class GamapFrame(BaseFrame):
             enable_b2a_extra and not self.low_quality_b2a_cb.GetValue()
         )
         self.b2a_size_ctrl.SetSelection(
-            DisplayCAL.constants.valid_values["profile.b2a.hires.size"].index(
+            config.valid_values["profile.b2a.hires.size"].index(
                 getcfg("profile.b2a.hires.size")
             )
         )
@@ -2037,7 +2031,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         y = 64
         w = 80
         h = 120
-        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
         if scale > 1:
             y, w, h = [int(math.floor(v * scale)) for v in (y, w, h)]
         self.header_btm = BitmapBackgroundPanel(self.headerpanel, size=(w, -1))
@@ -2317,7 +2311,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def OnResize(self, event):
         # Hide the header bitmap on small screens
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
         self.header.GetContainingSizer().Show(self.header, self.Size[1] > 480 * scale)
@@ -2391,7 +2385,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Avoid messing with main configuration (e.g. when not running standalone)
         # because we share HDR settings with 3D LUT HDR settings
         SynthICCFrame.cfg = config.configparser.RawConfigParser()
-        DisplayCAL.initcfg.initcfg("synthprofile", SynthICCFrame.cfg)
+        config.initcfg("synthprofile", SynthICCFrame.cfg)
         self.synthiccframe = SynthICCFrame()
 
     def infoframe_close_handler(self, event):
@@ -2465,7 +2459,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         items = [
             lang.getstr("testchart." + v)
-            for v in DisplayCAL.constants.valid_values["testchart.patch_sequence"]
+            for v in config.valid_values["testchart.patch_sequence"]
         ]
         self.testchart_patch_sequence_ctrl.Items = items
 
@@ -2543,7 +2537,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             height = self.ClientSize[1]
         borders_lr = self.Size[0] - self.ClientSize[0]
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         margin = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         header_min_h = 64
         if scale > 1:
@@ -3352,12 +3346,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
 
         # Display update delay & settle time
-        min_val, max_val = DisplayCAL.constants.valid_ranges[
+        min_val, max_val = config.valid_ranges[
             "measure.min_display_update_delay_ms"
         ]
         self.min_display_update_delay_ms.SetRange(min_val, max_val)
 
-        min_val, max_val = DisplayCAL.constants.valid_ranges[
+        min_val, max_val = config.valid_ranges[
             "measure.display_settle_time_mult"
         ]
         self.display_settle_time_mult.SetDigits(
@@ -3393,7 +3387,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             or self.update_ffp_insertion_ctrl()
             or self.update_estimated_measurement_times(),
         )
-        min_val, max_val = DisplayCAL.constants.valid_ranges[
+        min_val, max_val = config.valid_ranges[
             "patterngenerator.ffp_insertion.interval"
         ]
         self.ffp_insertion_interval.SetRange(min_val, max_val)
@@ -3404,7 +3398,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             or self.update_estimated_measurement_times(),
         )
-        min_val, max_val = DisplayCAL.constants.valid_ranges[
+        min_val, max_val = config.valid_ranges[
             "patterngenerator.ffp_insertion.duration"
         ]
         self.ffp_insertion_duration.SetRange(min_val, max_val)
@@ -3643,8 +3637,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             id=self.create_testchart_btn.GetId(),
         )
         self.testchart_patches_amount_ctrl.SetRange(
-            DisplayCAL.constants.valid_values["testchart.auto_optimize"][1],
-            DisplayCAL.constants.valid_values["testchart.auto_optimize"][-1],
+            config.valid_values["testchart.auto_optimize"][1],
+            config.valid_values["testchart.auto_optimize"][-1],
         )
         self.testchart_patches_amount_ctrl.Bind(
             wx.EVT_SLIDER, self.testchart_patches_amount_ctrl_handler
@@ -7509,14 +7503,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             dlg,
             -1,
             choices=list(
-                map(str, DisplayCAL.constants.valid_values["uniformity.cols"])
+                map(str, config.valid_values["uniformity.cols"])
             ),
         )
         rows = wx.Choice(
             dlg,
             -1,
             choices=list(
-                map(str, DisplayCAL.constants.valid_values["uniformity.rows"])
+                map(str, config.valid_values["uniformity.rows"])
             ),
         )
         cols.SetStringSelection(str(getcfg("uniformity.cols")))
@@ -8452,7 +8446,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Profile loader not running? Fall back to config files
 
                 # 1. Remember current config
-                items = DisplayCAL.constants.cfg.items(config.configparser.DEFAULTSECT)
+                items = config.cfg.items(config.configparser.DEFAULTSECT)
 
                 # 2. Read in profile loader config. Result is unison of current
                 #    config and profile loader config.
@@ -8462,7 +8456,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 #    options)
                 for name, value in items:
                     if not name.startswith("profile_loader"):
-                        DisplayCAL.constants.cfg.set(
+                        config.cfg.set(
                             config.configparser.DEFAULTSECT, name, value
                         )
 
@@ -10031,7 +10025,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """Setup observer control. Choice of available observers varies with
         ArgyllCMS version."""
         self.observers_ab = dict()
-        for observer in DisplayCAL.constants.valid_values["observer"]:
+        for observer in config.valid_values["observer"]:
             self.observers_ab[observer] = lang.getstr("observer." + observer)
         self.observers_ba = swap_dict_keys_values(self.observers_ab)
         self.observer_ctrl.SetItems(list(self.observers_ab.values()))
@@ -10079,7 +10073,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 preset = wx.Choice(
                     dlg,
                     -1,
-                    choices=DisplayCAL.constants.valid_values[
+                    choices=config.valid_values[
                         "patterngenerator.prisma.preset"
                     ],
                 )
@@ -10392,7 +10386,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def measureframe_consumer(self, delayedResult):
         returncode, stderr = delayedResult.get()
         if returncode != -1:
-            DisplayCAL.initcfg.initcfg()
+            config.initcfg()
             self.get_set_display()
         if returncode != 255:
             self.Show(start_timers=True)
@@ -11398,7 +11392,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # Profile loader not running? Fall back to config files
 
                         # 1. Remember current config
-                        items = DisplayCAL.constants.cfg.items(
+                        items = config.cfg.items(
                             config.configparser.DEFAULTSECT
                         )
 
@@ -11412,7 +11406,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             if name != "profile.load_on_login" and not name.startswith(
                                 "profile_loader"
                             ):
-                                DisplayCAL.constants.cfg.set(
+                                config.cfg.set(
                                     config.configparser.DEFAULTSECT, name, value
                                 )
 
@@ -13921,7 +13915,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         lang.getstr("corrected"),
                     ),
                 )
-                scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+                scale = getcfg("app.dpi") / config.get_default_dpi()
                 if scale < 1:
                     scale = 1
                 for i, label in enumerate(labels):
@@ -15505,7 +15499,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg(
                     "testchart.auto_optimize",
                     max(
-                        DisplayCAL.constants.valid_values["testchart.auto_optimize"][1],
+                        config.valid_values["testchart.auto_optimize"][1],
                         int(round(colormath.cbrt(recommended))),
                     ),
                 )
@@ -15798,7 +15792,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "." + strtr(lut3d_format, {"eeColor": "txt", "madVR": "3dlut"})
             for lut3d_format in [
                 format
-                for format in DisplayCAL.constants.valid_values["3dlut.format"]
+                for format in config.valid_values["3dlut.format"]
                 if format not in ("icc", "icm", "png")
             ]
         ]
@@ -17095,7 +17089,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         sel = self.testchart_patch_sequence_ctrl.Selection
         setcfg(
             "testchart.patch_sequence",
-            DisplayCAL.constants.valid_values["testchart.patch_sequence"][sel],
+            config.valid_values["testchart.patch_sequence"][sel],
         )
         self.profile_settings_changed()
         self.update_estimated_measurement_time("testchart")
@@ -18681,7 +18675,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 bitmap=geticon(32, "dialog-warning"),
             )
             if self.related_files:
-                scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+                scale = getcfg("app.dpi") / config.get_default_dpi()
                 if scale < 1:
                     scale = 1
                 scrolled = ScrolledPanel(dlg, -1, style=wx.VSCROLL)
@@ -18822,7 +18816,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.SYS_COLOUR_WINDOW
         )
         items = []
-        scale = max(getcfg("app.dpi") / DisplayCAL.common.get_default_dpi(), 1)
+        scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
         items.append(
             wx_Panel(self.aboutdialog.panel, -1, size=(-1, int(round(6 * scale))))
         )
@@ -19602,7 +19596,7 @@ class StartupFrame(start_cls):
             label_str += " Beta"
         dc.SetTextForeground("#101010")
         yoff = 10
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale > 1:
             yoff = int(round(yoff * scale))
         yoff -= 10
@@ -19705,7 +19699,7 @@ class StartupFrame(start_cls):
 
 class MeasurementFileCheckSanityDialog(ConfirmDialog):
     def __init__(self, parent, ti3, suspicious, force=False):
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
         ConfirmDialog.__init__(

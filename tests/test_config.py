@@ -3,38 +3,26 @@
 import os
 import sys
 
-from DisplayCAL.constants import (
-    data_dirs,
-    exe,
-    exedir,
-    isapp,
-    isexe,
-    pydir,
-    pyfile,
-    pypath,
-)
-from DisplayCAL.initcfg import initcfg
-
 
 def test_default_values_1():
     """Test default values of module level variables."""
     from DisplayCAL import config
-    initcfg()
+    config.initcfg()
 
     assert config.configparser.DEFAULTSECT == "Default"
-    assert exe == sys.executable  # venv/bin/python
-    assert exedir == os.path.dirname(sys.executable)  # venv/bin
+    assert config.exe == sys.executable  # venv/bin/python
+    assert config.exedir == os.path.dirname(sys.executable)  # venv/bin
     assert config.exename == os.path.basename(sys.executable)  # python
-    assert isexe is False
+    assert config.isexe is False
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert pyfile != ""
+    assert config.pyfile != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert pypath != ""
-    assert isapp is False  #
+    assert config.pypath != ""
+    assert config.isapp is False  #
     assert config.pyname != ""  # _jb_pytest_runner
     assert config.pyext != ""  # .py
     # $HOME/Documents/development/displaycal/DisplayCAL
-    assert pydir != ""
+    assert config.pydir != ""
 
     if sys.platform == "linux":
         assert config.xdg_config_dir_default == "/etc/xdg"
@@ -73,7 +61,7 @@ def test_default_values_1():
         ),
         os.path.expanduser("~/.local/share/flatpak/exports/share/icons/hicolor"),
         os.path.expanduser("~/.local/share/icons/hicolor"),
-        pydir,
+        config.pydir,
         os.path.expanduser(
             "~/PycharmProjects/DisplayCAL/venv/lib/python3.9/site-packages/DisplayCAL-3.8.9.3-py3.9-linux-x86_64.egg/DisplayCAL"
         ),
@@ -108,4 +96,4 @@ def test_default_values_1():
         "/var/lib/flatpak/exports/share/icons/hicolor",
         "/var/lib/icons/hicolor",
     ]
-    assert sorted(data_dirs) == sorted(expected_data_dirs)
+    assert sorted(config.data_dirs) == sorted(expected_data_dirs)

@@ -12,20 +12,16 @@ from DisplayCAL import (
     xh_floatspin,
 )
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
-import DisplayCAL.common
 from DisplayCAL.config import (
     enc,
+    get_data_path,
     get_verified_path,
+    getcfg,
     hascfg,
     profile_ext,
     setcfg,
 )
-from DisplayCAL.constants import cfg
 from DisplayCAL.debughelpers import Error
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.ICCProfile import ICCProfile
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
@@ -39,7 +35,6 @@ from DisplayCAL.worker import (
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
 from DisplayCAL.wxwindows import (
@@ -158,7 +153,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.save_btn.Hide()
 
-        DisplayCAL.constants.defaults.update(
+        config.defaults.update(
             {
                 "position.synthiccframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.synthiccframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -195,7 +190,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.setcfg("position.synthiccframe.y", y)
             self.setcfg("size.synthiccframe.w", self.ClientSize[0])
             self.setcfg("size.synthiccframe.h", self.ClientSize[1])
-        DisplayCAL.writecfg.writecfg(
+        config.writecfg(
             module="synthprofile",
             options=(
                 "synthprofile.",
@@ -323,7 +318,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.parse_xy("blue")
 
     def chromatic_adaptation_btn_handler(self, event):
-        scale = self.getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = self.getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
         dlg = ConfirmDialog(
@@ -1203,8 +1198,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             try:
                 v = float(self.trc_gamma_ctrl.GetValue().replace(",", "."))
                 if (
-                    v < DisplayCAL.constants.valid_ranges["gamma"][0]
-                    or v > DisplayCAL.constants.valid_ranges["gamma"][1]
+                    v < config.valid_ranges["gamma"][0]
+                    or v > config.valid_ranges["gamma"][1]
                 ):
                     raise ValueError()
             except ValueError:
@@ -1349,7 +1344,7 @@ def get_mapping(mapping, keys):
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("synthprofile")
+    config.initcfg("synthprofile")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

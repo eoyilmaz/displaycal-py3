@@ -11,16 +11,14 @@ from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
     get_argyll_display_number,
+    get_data_path,
     get_display_profile,
     get_display_rects,
     get_verified_path,
+    getcfg,
     geticon,
     setcfg,
 )
-from DisplayCAL.constants import defaults
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
@@ -34,9 +32,11 @@ from DisplayCAL.worker import (
     UnloggedInfo,
     Worker,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel
+from DisplayCAL.wxfixes import (
+    GenBitmapButton as BitmapButton,
+    wx_Panel,
+)
 from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
@@ -1020,8 +1020,8 @@ class LUTFrame(BaseFrame):
 
         border, titlebar = get_platform_window_decoration_size()
         self.MinSize = (
-            defaults["size.lut_viewer.w"] + border * 2,
-            defaults["size.lut_viewer.h"] + titlebar + border,
+            config.defaults["size.lut_viewer.w"] + border * 2,
+            config.defaults["size.lut_viewer.h"] + titlebar + border,
         )
         self.SetSaneGeometry(
             getcfg("position.lut_viewer.x"),
@@ -2183,7 +2183,7 @@ class LUTFrame(BaseFrame):
         self.listening = False
         if self.worker.tempdir and os.path.isdir(self.worker.tempdir):
             self.worker.wrapup(False)
-        DisplayCAL.writecfg.writecfg(
+        config.writecfg(
             module="curve-viewer",
             options=("display.number", "position.lut_viewer", "size.lut_viewer"),
         )
@@ -2495,7 +2495,7 @@ class LUTFrame(BaseFrame):
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("curve-viewer")
+    config.initcfg("curve-viewer")
     # Backup display config
     cfg_display = getcfg("display.number")
     lang.init()

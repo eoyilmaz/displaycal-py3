@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import colormath as cm
-from DisplayCAL import initcfg
+from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import worker
 from DisplayCAL.wxwindows import BaseApp, wx
@@ -84,7 +84,7 @@ def main(*args, **kwargs):
         print("Reading display profile")
         profile = ICCP.get_display_profile()
     # Setup
-    initcfg.initcfg()
+    config.initcfg()
     lang.init()
     w = worker.Worker()
     fn = w.change_display_profile_cal_whitepoint

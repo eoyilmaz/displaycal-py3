@@ -8,13 +8,12 @@ import re
 import sys
 import time
 
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-import DisplayCAL.initcfg
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.config import (
+    getbitmap,
+    getcfg,
     geticon,
+    get_data_path,
     get_icon_bundle,
     setcfg,
 )
@@ -36,7 +35,7 @@ from DisplayCAL.wxwindows import (
 from DisplayCAL import CGATS
 from DisplayCAL import audio
 from DisplayCAL import colormath
-from DisplayCAL import writecfg
+from DisplayCAL import config
 from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
@@ -242,7 +241,7 @@ class UntetheredFrame(BaseFrame):
         pass
 
     def OnClose(self, event):
-        writecfg.writecfg()
+        config.writecfg()
         if not self.timer.IsRunning():
             self.Destroy()
         else:
@@ -774,7 +773,7 @@ if __name__ == "__main__":
             self.subprocess.send(bytes_)
             return True
 
-    DisplayCAL.initcfg.initcfg()
+    config.initcfg()
     print("untethered.min_delta", getcfg("untethered.min_delta"))
     print("untethered.min_delta.lightness", getcfg("untethered.min_delta.lightness"))
     print("untethered.max_delta.chroma", getcfg("untethered.max_delta.chroma"))

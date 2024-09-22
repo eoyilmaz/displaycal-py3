@@ -8,23 +8,21 @@ from DisplayCAL import (
     wxenhancedplot as plot,
     x3dom,
 )
-import DisplayCAL.common
 from DisplayCAL.config import (
+    defaults,
     fs_enc,
     get_argyll_display_number,
+    get_data_path,
     get_display_profile,
     get_display_rects,
     get_verified_path,
+    getbitmap,
+    getcfg,
     geticon,
     profile_ext,
     setcfg,
+    writecfg,
 )
-from DisplayCAL.constants import defaults, valid_values
-from DisplayCAL.get_data_path import get_data_path
-from DisplayCAL.get_standard_profiles import get_standard_profiles
-from DisplayCAL.getbitmap import getbitmap
-from DisplayCAL.getcfg import getcfg
-from DisplayCAL.initcfg import initcfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort
@@ -40,7 +38,6 @@ from DisplayCAL.worker import (
     show_result_dialog,
     UnloggedError,
 )
-from DisplayCAL.writecfg import writecfg
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxfixes import (
     GenBitmapButton as BitmapButton,
@@ -654,7 +651,7 @@ class GamutCanvas(LUTCanvas):
 
 class GamutViewOptions(wx_Panel):
     def __init__(self, *args, **kwargs):
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
 
@@ -824,7 +821,7 @@ class GamutViewOptions(wx_Panel):
             print(exception)
         if srgb:
             self.comparison_profiles[srgb.getDescription()] = srgb
-        for profile in DisplayCAL.get_standard_profiles.get_standard_profiles():
+        for profile in config.get_standard_profiles():
             desc = profile.getDescription()
             if desc not in self.comparison_profiles:
                 self.comparison_profiles[desc] = profile
@@ -2162,7 +2159,7 @@ class ProfileInfoFrame(LUTFrame):
         menu = wx.Menu()
 
         item_selected = False
-        for file_format in valid_values["3d.format"]:
+        for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)
@@ -2181,7 +2178,7 @@ class ProfileInfoFrame(LUTFrame):
 
 
 def main():
-    DisplayCAL.initcfg.initcfg("profile-info")
+    config.initcfg("profile-info")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

@@ -152,9 +152,9 @@ class ChromeCastPatternGenerator(object):
 
 
 if __name__ == "__main__":
-    from DisplayCAL import initcfg
+    from DisplayCAL import config
 
-    initcfg.initcfg()
+    config.initcfg()
     lang.init()
 
     pg = ChromeCastPatternGenerator("Smörebröd")

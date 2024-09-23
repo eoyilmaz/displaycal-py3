@@ -5,13 +5,12 @@ import configparser
 import locale
 import math
 import os
-import pprint
 import re
 import string
 import sys
 
 from decimal import Decimal
-from DisplayCAL import colormath, encodedstdio
+from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
 from DisplayCAL.defaultpaths import (  # noqa: F401
     appdata,
@@ -22,15 +21,16 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
     iccprofiles,
     iccprofiles_home,
 )
-# from DisplayCAL.log import logger
-from DisplayCAL.meta import (
-    build,
-    lastmod,
+from DisplayCAL.meta import (  # noqa: F401
+    build,  # don't remove this, imported by other modules
     name as appname,
     version,
 )
-from DisplayCAL.options import ascii, debug, verbose
-from DisplayCAL.safe_print import enc, fs_enc, original_codepage
+from DisplayCAL.options import debug
+from DisplayCAL.safe_print import (  # noqa: F401
+    enc,  # don't remove this, imported by other modules
+    fs_enc,
+)
 from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_os import (
     expanduseru,
@@ -43,7 +43,6 @@ from DisplayCAL.util_str import create_replace_function, strtr
 
 if sys.platform == "win32":
     from DisplayCAL.defaultpaths import commonprogramfiles
-    import winreg
 elif sys.platform == "darwin":
     from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
 else:

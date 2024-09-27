@@ -1,31 +1,31 @@
 # --------------------------------------------------------------------------- #
-# LABELBOOK And FLATIMAGEBOOK Widgets wxPython IMPLEMENTATION
+# LABELBOOK And FLATIMAGEBOOK Widgets wxPython IMPLEMENTATION                           # noqa: SC100
 #
-# Original C++ Code From Eran, embedded in the FlatMenu source code
+# Original C++ Code From Eran, embedded in the FlatMenu source code                     # noqa: SC100
 #
 #
-# License: wxWidgets license
+# License: wxWidgets license                                                            # noqa: SC100
 #
 #
 # Python Code By:
 #
-# Andrea Gavana, @ 03 Nov 2006
+# Andrea Gavana, @ 03 Nov 2006                                                          # noqa: SC100
 # Latest Revision: 17 Jan 2011, 15.00 GMT
 #
 #
-# For All Kind Of Problems, Requests Of Enhancements And Bug Reports, Please
-# Write To Me At:
+# For All Kind Of Problems, Requests Of Enhancements And Bug Reports,
+# Please Write To Me At:
 #
-# andrea.gavana@gmail.com
-# gavana@kpo.kz
+# andrea.gavana@gmail.com                                                               # noqa: SC100
+# gavana@kpo.kz                                                                         # noqa: SC100
 #
-# Or, Obviously, To The wxPython Mailing List!!!
+# Or, Obviously, To The wxPython Mailing List!!!                                        # noqa: SC100
 #
 # TODO:
-# LabelBook - Support IMB_SHOW_ONLY_IMAGES
-# LabelBook - An option for the draw border to only draw the border
-#             between the controls and the pages so the background
-#             colour can flow into the window background
+# LabelBook - Support IMB_SHOW_ONLY_IMAGES                                              # noqa: SC100
+# LabelBook - An option for the draw border to only draw the border between the
+#             controls and the pages so the background colour can flow into the
+#             window background
 #
 #
 #
@@ -33,37 +33,34 @@
 # --------------------------------------------------------------------------- #
 
 """
-LabelBook and FlatImageBook are a quasi-full generic and owner-drawn
-implementations of `wx.Notebook`.
-
+LabelBook and FlatImageBook are a quasi-full generic and owner-drawn implementations of `wx.Notebook`.
 
 Description
 ===========
 
 LabelBook and FlatImageBook are a quasi-full implementations of the `wx.Notebook`,
-and designed to be a drop-in replacement for `wx.Notebook`. The API functions are
-similar so one can expect the function to behave in the same way.
-LabelBook anf FlatImageBook share their appearance with `wx.Toolbook` and
-`wx.Listbook`, while having more options for custom drawings, label positioning,
-mouse pointing and so on. Moreover, they retain also some visual characteristics
-of the Outlook address book.
+and designed to be a drop-in replacement for `wx.Notebook`.
+The API functions are similar so one can expect the function to behave in the same way.
+LabelBook anf FlatImageBook share their appearance with `wx.Toolbook` and `wx.Listbook`,
+while having more options for custom drawings, label positioning,
+mouse pointing and so on.
+Moreover, they retain also some visual characteristics of the Outlook address book.
 
 Some features:
 
 - They are generic controls;
-- Supports for left, right, top (FlatImageBook only), bottom (FlatImageBook
-  only) book styles;
+- Supports for left, right, top (FlatImageBook only),
+  bottom (FlatImageBook only) book styles;
 - Possibility to draw images only, text only or both (FlatImageBook only);
-- Support for a "pin-button", that allows the user to shrink/expand the book
-  tab area;
+- Support for a "pin-button", that allows the user to shrink/expand the book tab area;
 - Shadows behind tabs (LabelBook only);
 - Gradient shading of the tab area (LabelBook only);
 - Web-like mouse pointing on tabs style (LabelBook only);
-- Many customizable colours (tab area, active tab text, tab borders, active
-  tab, highlight) - LabelBook only.
+- Many customizable colours
+  (tab area, active tab text, tab borders, active tab, highlight) - LabelBook only.
 
-And much more. See the demo for a quasi-complete review of all the functionalities
-of LabelBook and FlatImageBook.
+And much more. See the demo for a quasi-complete review of all the
+functionalities of LabelBook and FlatImageBook.
 
 
 Supported Platforms
@@ -79,24 +76,37 @@ Window Styles
 
 This class supports the following window styles:
 
-=========================== =========== ==================================================
+=========================== =========== ========================================
 Window Styles               Hex Value   Description
-=========================== =========== ==================================================
-``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for `FlatImageBook`.
-``INB_LEFT``                        0x2 Place labels on the left side. Available only for `FlatImageBook`.
+=========================== =========== ========================================
+``INB_BOTTOM``                      0x1 Place labels below the page area.
+                                        Available only for `FlatImageBook`.
+``INB_LEFT``                        0x2 Place labels on the left side.
+                                        Available only for `FlatImageBook`.
 ``INB_RIGHT``                       0x4 Place labels on the right side.
 ``INB_TOP``                         0x8 Place labels above the page area.
-``INB_BORDER``                     0x10 Draws a border around `LabelBook` or `FlatImageBook`.
-``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for `LabelBook`.
-``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for `LabelBook`.
-``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for `LabelBook`.
-``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for `LabelBook`.
-``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for `LabelBook`.
+``INB_BORDER``                     0x10 Draws a border around `LabelBook` or
+                                        `FlatImageBook`.
+``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images.
+                                        Available only for `LabelBook`.
+``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts.
+                                        Available only for `LabelBook`.
+``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the
+                                        book control.
+``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs.
+                                        Available only for `LabelBook`.
+``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the
+                                        book control.
+``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background.
+                                        Available only for `LabelBook`.
+``INB_WEB_HILITE``                0x800 On mouse hovering,
+                                        tabs behave like html hyperlinks.
+                                        Available only for `LabelBook`.
 ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-=========================== =========== ==================================================
+``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text
+                                        (or text+image if you have images) in
+                                        all the tabs.
+=========================== =========== ========================================
 
 
 Events Processing
@@ -104,14 +114,18 @@ Events Processing
 
 This class processes the following events:
 
-=================================== ==================================================
+=================================== ============================================
 Event Name                          Description
-=================================== ==================================================
-``EVT_IMAGENOTEBOOK_PAGE_CHANGED``  Notify client objects when the active page in `ImageNotebook` has changed.
-``EVT_IMAGENOTEBOOK_PAGE_CHANGING`` Notify client objects when the active page in `ImageNotebook` is about to change.
-``EVT_IMAGENOTEBOOK_PAGE_CLOSED``   Notify client objects when a page in `ImageNotebook` has been closed.
-``EVT_IMAGENOTEBOOK_PAGE_CLOSING``  Notify client objects when a page in `ImageNotebook` is closing.
-=================================== ==================================================
+=================================== ============================================
+``EVT_IMAGENOTEBOOK_PAGE_CHANGED``  Notify client objects when the active page
+                                    in `ImageNotebook` has changed.
+``EVT_IMAGENOTEBOOK_PAGE_CHANGING`` Notify client objects when the active page
+                                    in `ImageNotebook` is about to change.
+``EVT_IMAGENOTEBOOK_PAGE_CLOSED``   Notify client objects when a page in
+                                    `ImageNotebook` has been closed.
+``EVT_IMAGENOTEBOOK_PAGE_CLOSING``  Notify client objects when a page in
+                                    `ImageNotebook` is closing.
+=================================== ============================================
 
 
 License And Version
@@ -129,47 +143,90 @@ __docformat__ = "epytext"
 
 
 # ----------------------------------------------------------------------
-# Beginning Of IMAGENOTEBOOK wxPython Code
+# Beginning Of IMAGENOTEBOOK wxPython Code                                              # noqa: SC100
 # ----------------------------------------------------------------------
 
 import wx
 
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
-from DisplayCAL.lib.agw.fmresources import *
-
-# Check for the new method in 2.7 (not present in 2.6.3.3)
-if wx.VERSION_STRING < "2.7":
-    wx.Rect.Contains = lambda self, point: wx.Rect.Inside(self, point)
+from DisplayCAL.lib.agw.fmresources import (
+    BottomShadow,
+    BottomShadowFull,
+    IMG_NONE,
+    IMG_OVER_EW_BORDER,
+    IMG_OVER_IMG,
+    IMG_OVER_PIN,
+    INB_ACTIVE_TAB_COLOUR,
+    INB_ACTIVE_TEXT_COLOUR,
+    INB_HILITE_TAB_COLOUR,
+    INB_PIN_HOVER,
+    INB_PIN_NONE,
+    INB_PIN_PRESSED,
+    INB_TAB_AREA_BACKGROUND_COLOUR,
+    INB_TABS_BORDER_COLOUR,
+    INB_TEXT_COLOUR,
+    pin_down_xpm,
+    pin_left_xpm,
+    RightShadow,
+)
 
 # FlatImageBook and LabelBook styles
 INB_BOTTOM = 1
-""" Place labels below the page area. Available only for `FlatImageBook`."""
+"""
+Place labels below the page area.
+
+Available only for `FlatImageBook`.
+"""
 INB_LEFT = 2
-""" Place labels on the left side. Available only for `FlatImageBook`."""
+"""
+Place labels on the left side.
+
+Available only for `FlatImageBook`.
+"""
 INB_RIGHT = 4
-""" Place labels on the right side. """
+"""Place labels on the right side."""
 INB_TOP = 8
-""" Place labels above the page area. """
+"""Place labels above the page area."""
 INB_BORDER = 16
-""" Draws a border around `LabelBook` or `FlatImageBook`. """
+"""Draws a border around `LabelBook` or `FlatImageBook`."""
 INB_SHOW_ONLY_TEXT = 32
-""" Shows only text labels and no images. Available only for `LabelBook`."""
+"""
+Shows only text labels and no images.
+
+Available only for `LabelBook`.
+"""
 INB_SHOW_ONLY_IMAGES = 64
-""" Shows only tab images and no label texts. Available only for `LabelBook`."""
+"""
+Shows only tab images and no label texts.
+
+Available only for `LabelBook`.
+"""
 INB_FIT_BUTTON = 128
-""" Displays a pin button to show/hide the book control. """
+"""Displays a pin button to show/hide the book control."""
 INB_DRAW_SHADOW = 256
-""" Draw shadows below the book tabs. Available only for `LabelBook`."""
+"""
+Draw shadows below the book tabs.
+
+Available only for `LabelBook`.
+"""
 INB_USE_PIN_BUTTON = 512
-""" Displays a pin button to show/hide the book control. """
+"""Displays a pin button to show/hide the book control."""
 INB_GRADIENT_BACKGROUND = 1024
-""" Draws a gradient shading on the tabs background. Available only for `LabelBook`."""
+"""
+Draws a gradient shading on the tabs background.
+
+Available only for `LabelBook`.
+"""
 INB_WEB_HILITE = 2048
-""" On mouse hovering, tabs behave like html hyperlinks. Available only for `LabelBook`."""
+"""
+On mouse hovering, tabs behave like html hyperlinks.
+
+Available only for `LabelBook`.
+"""
 INB_NO_RESIZE = 4096
-""" Don't allow resizing of the tab area. """
+"""Don't allow resizing of the tab area."""
 INB_FIT_LABELTEXT = 8192
-""" Will fit the tab area to the longest text (or text+image if you have images) in all the tabs. """
+"""Fits tab area to longest text/image in all tabs."""
 
 wxEVT_IMAGENOTEBOOK_PAGE_CHANGED = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED
 wxEVT_IMAGENOTEBOOK_PAGE_CHANGING = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
@@ -181,13 +238,13 @@ wxEVT_IMAGENOTEBOOK_PAGE_CLOSED = wx.NewEventType()
 # -----------------------------------#
 
 EVT_IMAGENOTEBOOK_PAGE_CHANGED = wx.EVT_NOTEBOOK_PAGE_CHANGED
-""" Notify client objects when the active page in `ImageNotebook` has changed. """
+"""Notify client objects when the active page in `ImageNotebook` has changed."""
 EVT_IMAGENOTEBOOK_PAGE_CHANGING = wx.EVT_NOTEBOOK_PAGE_CHANGING
-""" Notify client objects when the active page in `ImageNotebook` is about to change. """
+"""Notify client objects when the active page in `ImageNotebook` is about to change."""
 EVT_IMAGENOTEBOOK_PAGE_CLOSING = wx.PyEventBinder(wxEVT_IMAGENOTEBOOK_PAGE_CLOSING, 1)
-""" Notify client objects when a page in `ImageNotebook` is closing. """
+"""Notify client objects when a page in `ImageNotebook` is closing."""
 EVT_IMAGENOTEBOOK_PAGE_CLOSED = wx.PyEventBinder(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED, 1)
-""" Notify client objects when a page in `ImageNotebook` has been closed. """
+"""Notify client objects when a page in `ImageNotebook` has been closed."""
 
 
 # ---------------------------------------------------------------------------- #
@@ -196,76 +253,73 @@ EVT_IMAGENOTEBOOK_PAGE_CLOSED = wx.PyEventBinder(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED
 
 
 class ImageNotebookEvent(wx.PyCommandEvent):
-    """This events will be sent when a ``EVT_IMAGENOTEBOOK_PAGE_CHANGED``,
-    ``EVT_IMAGENOTEBOOK_PAGE_CHANGING``, ``EVT_IMAGENOTEBOOK_PAGE_CLOSING``,
-    ``EVT_IMAGENOTEBOOK_PAGE_CLOSED`` is mapped in the parent.
-    """
+    """Event sent on page change, changing, closing, or closed."""
 
-    def __init__(self, eventType, eventId=1, sel=-1, oldsel=-1):
-        """Default class constructor.
-
-        :param eventType: the event type;
-        :param eventId: the event identifier;
-        :param sel: the current selection;
-        :param oldsel: the old selection.
+    def __init__(self, event_type, event_id=1, sel=-1, oldsel=-1):
         """
+        Default class constructor.
 
-        wx.PyCommandEvent.__init__(self, eventType, eventId)
-        self._eventType = eventType
+        Args:
+            event_type: the event type;
+            event_id: the event identifier;
+            sel: the current selection;
+            oldsel: the old selection.
+        """
+        wx.PyCommandEvent.__init__(self, event_type, event_id)
+        self._eventType = event_type
         self._sel = sel
         self._oldsel = oldsel
         self._allowed = True
 
-    def SetSelection(self, s):
-        """Sets the event selection.
-
-        :param s: an integer specifying the new selection.
+    def set_selection(self, s):
         """
+        Sets the event selection.
 
+        Args:
+            s: an integer specifying the new selection.
+        """
         self._sel = s
 
-    def SetOldSelection(self, s):
-        """Sets the event old selection.
-
-        :param s: an integer specifying the old selection.
+    def set_old_selection(self, s):
         """
+        Sets the event old selection.
 
+        Args:
+            s: an integer specifying the old selection.
+        """
         self._oldsel = s
 
     def GetSelection(self):
         """Returns the event selection."""
-
         return self._sel
 
-    def GetOldSelection(self):
+    def get_old_selection(self):
         """Returns the old event selection."""
-
         return self._oldsel
 
-    def Veto(self):
-        """Prevents the change announced by this event from happening.
-
-        :note: It is in general a good idea to notify the user about the reasons
-         for vetoing the change because otherwise the applications behaviour (which
-         just refuses to do what the user wants) might be quite surprising.
+    def veto(self):
         """
+        Prevents the change announced by this event from happening.
 
+        Note:
+            It is in general a good idea to notify the user about the reasons
+            for vetoing the change because otherwise the applications behaviour
+            (which just refuses to do what the user wants) might be quite surprising.
+        """
         self._allowed = False
 
-    def Allow(self):
-        """This is the opposite of L{Veto}: it explicitly allows the event to be processed.
-        For most events it is not necessary to call this method as the events are
-        allowed anyhow but some are forbidden by default (this will be mentioned
-        in the corresponding event description).
+    def allow(self):
         """
+        This is the opposite of L{veto}: it explicitly allows the event to be processed.
 
+        For most events it is not necessary to call this method as the events
+        are allowed anyhow but some are forbidden by default
+        (this will be mentioned in the corresponding event description).
+        """
         self._allowed = True
 
-    def IsAllowed(self):
-        """Returns ``True`` if the change is allowed (L{Veto} hasn't been called) or
-        ``False`` otherwise (if it was).
-        """
-
+    def is_allowed(self):
+        """Returns ``True`` if change allowed, ``False`` if vetoed."""
         return self._allowed
 
 
@@ -275,88 +329,86 @@ class ImageNotebookEvent(wx.PyCommandEvent):
 
 
 class ImageInfo(object):
-    """This class holds all the information (caption, image, etc...) belonging to a
-    single tab in L{LabelBook}.
-    """
+    """Holds info (caption, image, etc.) for a single tab in L{LabelBook}."""
 
-    def __init__(self, strCaption="", imageIndex=-1):
+    def __init__(self, str_caption="", image_index=-1):
         """
         Default class constructor.
 
-        :param strCaption: the tab caption;
-        :param imageIndex: the tab image index based on the assigned (set)
-         `wx.ImageList` (if any).
+        Args:
+            str_caption: the tab caption;
+            image_index: the tab image index based on the assigned (set)
+                `wx.ImageList` (if any).
         """
-
         self._pos = wx.Point()
         self._size = wx.Size()
-        self._strCaption = strCaption
-        self._ImageIndex = imageIndex
+        self._strCaption = str_caption
+        self._ImageIndex = image_index
         self._captionRect = wx.Rect()
 
-    def SetCaption(self, value):
-        """Sets the tab caption.
-
-        :param value: the new tab caption.
+    def set_caption(self, value):
         """
+        Sets the tab caption.
 
+        Args:
+            value: the new tab caption.
+        """
         self._strCaption = value
 
-    def GetCaption(self):
+    def get_caption(self):
         """Returns the tab caption."""
-
         return self._strCaption
 
-    def SetPosition(self, value):
-        """Sets the tab position.
-
-        :param value: the new tab position, an instance of `wx.Point`.
+    def set_position(self, value):
         """
+        Sets the tab position.
 
+        Args:
+            value: the new tab position, an instance of `wx.Point`.
+        """
         self._pos = value
 
-    def GetPosition(self):
+    def get_position(self):
         """Returns the tab position."""
-
         return self._pos
 
-    def SetSize(self, value):
-        """Sets the tab size.
-
-        :param value:  the new tab size, an instance of `wx.Size`.
+    def set_size(self, value):
         """
+        Sets the tab size.
 
+        Args:
+            value:  the new tab size, an instance of `wx.Size`.
+        """
         self._size = value
 
-    def GetSize(self):
+    def get_size(self):
         """Returns the tab size."""
-
         return self._size
 
-    def SetImageIndex(self, value):
-        """Sets the tab image index.
-
-        :param value: an index into the image list..
+    def set_image_index(self, value):
         """
+        Sets the tab image index.
 
+        Args:
+            value: an index into the image list.
+        """
         self._ImageIndex = value
 
-    def GetImageIndex(self):
+    def get_image_index(self):
         """Returns the tab image index."""
-
         return self._ImageIndex
 
-    def SetTextRect(self, rect):
-        """Sets the client rectangle available for the tab text.
-
-        :param rect: the tab text client rectangle, an instance of `wx.Rect`.
+    def set_text_rect(self, rect):
         """
+        Sets the client rectangle available for the tab text.
 
+        Args:
+            rect: the tab text client rectangle, an instance of `wx.Rect`.
+        """
         self._captionRect = rect
 
-    def GetTextRect(self):
+    def get_text_rect(self):
         """Returns the client rectangle available for the tab text."""
-
         return self._captionRect
 
 
@@ -365,57 +417,97 @@ class ImageInfo(object):
 # ---------------------------------------------------------------------------- #
 
 
+def fix_text_size(dc, text, max_width):
+    """
+    Fixes the text, to fit `maxWidth` value.
+
+    If the text length exceeds `maxWidth` value this function truncates it
+    and appends two dots at the end.
+    ("Long Long Long Text" might become "Long Long...").
+
+    Args:
+        dc: an instance of `wx.DC`;
+        text: the text to fix/truncate;
+        max_width: the maximum allowed width for the text, in pixels.
+    """
+    return ArtManager.Get().TruncateText(dc, text, max_width)
+
+
 class ImageContainerBase(wx.Panel):
     """Base class for L{FlatImageBook} image container."""
 
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="ImageContainerBase",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
+        """
         self._nIndex = -1
         self._nImgSize = 16
         self._ImageList = None
-        self._nHoeveredImgIdx = -1
+        self._nHoveredImgIdx = -1
         self._bCollapsed = False
         self._tabAreaSize = (-1, -1)
         self._nPinButtonStatus = INB_PIN_NONE
@@ -425,177 +517,197 @@ class ImageContainerBase(wx.Panel):
         wx.Panel.__init__(
             self,
             parent,
-            id,
+            window_id,
             pos,
             size,
             style | wx.NO_BORDER | wx.NO_FULL_REPAINT_ON_RESIZE,
             name,
         )
 
-    def HasAGWFlag(self, flag):
-        """Tests for existance of flag in the style.
-
-        :param flag: a window style. This can be a combination of the following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
+    def has_agw_flag(self, flag):
         """
+        Tests for existence of flag in the style.
 
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        Args:
+            flag: a window style. This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+        """
+        style = self.GetParent().get_agw_window_style_flag()
         res = (style & flag and [True] or [False])[0]
         return res
 
-    def ClearFlag(self, flag):
-        """Removes flag from the style.
-
-        :param flag: a window style flag.
-
-        :see: L{HasAGWFlag} for a list of possible window style flags.
+    def clear_flag(self, flag):
         """
+        Removes flag from the style.
 
+        Args:
+            flag: a window style flag.
+
+        See:
+            L{has_agw_flag} for a list of possible window style flags.
+        """
         parent = self.GetParent()
-        agwStyle = parent.GetAGWWindowStyleFlag()
-        agwStyle &= ~(flag)
-        parent.SetAGWWindowStyleFlag(agwStyle)
+        agw_style = parent.get_agw_window_style_flag()
+        agw_style &= ~flag
+        parent.set_agw_window_style_flag(agw_style)
 
-    def AssignImageList(self, imglist):
-        """Assigns an image list to the L{ImageContainerBase}.
-
-        :param imglist: an instance of `wx.ImageList`.
+    def assign_image_list(self, imglist):
         """
+        Assigns an image list to the L{ImageContainerBase}.
 
+        Args:
+            imglist: an instance of `wx.ImageList`.
+        """
         if imglist and imglist.GetImageCount() != 0:
             self._nImgSize = imglist.GetBitmap(0).GetHeight()
 
         self._ImageList = imglist
         parent = self.GetParent()
-        agwStyle = parent.GetAGWWindowStyleFlag()
-        parent.SetAGWWindowStyleFlag(agwStyle)
+        agw_style = parent.get_agw_window_style_flag()
+        parent.set_agw_window_style_flag(agw_style)
 
-    def GetImageList(self):
+    def get_image_list(self):
         """Return the image list for L{ImageContainerBase}."""
-
         return self._ImageList
 
-    def GetImageSize(self):
+    def get_image_size(self):
         """Returns the image size inside the L{ImageContainerBase} image list."""
-
         return self._nImgSize
 
-    def FixTextSize(self, dc, text, maxWidth):
-        """Fixes the text, to fit `maxWidth` value. If the text length exceeds
-        `maxWidth` value this function truncates it and appends two dots at
-        the end. ("Long Long Long Text" might become "Long Long...").
-
-        :param dc: an instance of `wx.DC`;
-        :param text: the text to fix/truncate;
-        :param maxWidth: the maximum allowed width for the text, in pixels.
+    def can_do_bottom_style(self):
         """
+        Allows the parent to examine the children type.
 
-        return ArtManager.Get().TruncateText(dc, text, maxWidth)
-
-    def CanDoBottomStyle(self):
-        """Allows the parent to examine the children type. Some implementation
-        (such as L{LabelBook}), does not support top/bottom images, only left/right.
+        Some implementation (such as L{LabelBook}),
+        does not support top/bottom images, only left/right.
         """
-
         return False
 
-    def AddPage(self, caption, selected=False, imgIdx=-1):
-        """Adds a page to the container.
-
-        :param caption: specifies the text for the new tab;
-        :param selected: specifies whether the page should be selected;
-        :param imgIdx: specifies the optional image index for the new tab.
+    def add_page(self, caption, selected=False, img_idx=-1):
         """
+        Adds a page to the container.
 
-        self._pagesInfoVec.append(ImageInfo(caption, imgIdx))
+        Args:
+            caption: specifies the text for the new tab;
+            selected: specifies whether the page should be selected;
+            img_idx: specifies the optional image index for the new tab.
+        """
+        self._pagesInfoVec.append(ImageInfo(caption, img_idx))
         if selected or len(self._pagesInfoVec) == 1:
             self._nIndex = len(self._pagesInfoVec) - 1
 
         self.Refresh()
 
-    def InsertPage(self, page_idx, caption, selected=False, imgIdx=-1):
-        """Inserts a page into the container at the specified position.
-
-        :param page_idx: specifies the position for the new tab;
-        :param caption: specifies the text for the new tab;
-        :param selected: specifies whether the page should be selected;
-        :param imgIdx: specifies the optional image index for the new tab.
+    def insert_page(self, page_idx, caption, selected=False, img_idx=-1):
         """
+        Inserts a page into the container at the specified position.
 
-        self._pagesInfoVec.insert(page_idx, ImageInfo(caption, imgIdx))
+        Args:
+            page_idx: specifies the position for the new tab;
+            caption: specifies the text for the new tab;
+            selected: specifies whether the page should be selected;
+            img_idx: specifies the optional image index for the new tab.
+        """
+        self._pagesInfoVec.insert(page_idx, ImageInfo(caption, img_idx))
         if selected or len(self._pagesInfoVec) == 1:
             self._nIndex = len(self._pagesInfoVec) - 1
 
         self.Refresh()
 
-    def SetPageImage(self, page, imgIdx):
-        """Sets the image for the given page.
-
-        :param page: the index of the tab;
-        :param imgIdx: specifies the optional image index for the tab.
+    def set_page_image(self, page, img_idx):
         """
+        Sets the image for the given page.
 
-        imgInfo = self._pagesInfoVec[page]
-        imgInfo.SetImageIndex(imgIdx)
-
-    def SetPageText(self, page, text):
-        """Sets the tab caption for the given page.
-
-        :param page: the index of the tab;
-        :param text: the new tab caption.
+        Args:
+            page: the index of the tab;
+            img_idx: specifies the optional image index for the tab.
         """
+        img_info = self._pagesInfoVec[page]
+        img_info.SetImageIndex(img_idx)
 
-        imgInfo = self._pagesInfoVec[page]
-        imgInfo.SetCaption(text)
-
-    def GetPageImage(self, page):
-        """Returns the image index for the given page.
-
-        :param page: the index of the tab.
+    def set_page_text(self, page, text):
         """
+        Sets the tab caption for the given page.
 
-        imgInfo = self._pagesInfoVec[page]
-        return imgInfo.GetImageIndex()
-
-    def GetPageText(self, page):
-        """Returns the tab caption for the given page.
-
-        :param page: the index of the tab.
+        Args:
+            page: the index of the tab;
+            text: the new tab caption.
         """
+        img_info = self._pagesInfoVec[page]
+        img_info.SetCaption(text)
 
-        imgInfo = self._pagesInfoVec[page]
-        return imgInfo.GetCaption()
+    def get_page_image(self, page):
+        """
+        Returns the image index for the given page.
 
-    def ClearAll(self):
+        Args:
+            page: the index of the tab.
+        """
+        img_info = self._pagesInfoVec[page]
+        return img_info.GetImageIndex()
+
+    def get_page_text(self, page):
+        """
+        Returns the tab caption for the given page.
+
+        Args:
+            page: the index of the tab.
+        """
+        img_info = self._pagesInfoVec[page]
+        return img_info.GetCaption()
+
+    def clear_all(self):
         """Deletes all the pages in the container."""
-
         self._pagesInfoVec = []
         self._nIndex = wx.NOT_FOUND
 
-    def DoDeletePage(self, page):
-        """Does the actual page deletion.
-
-        :param page: the index of the tab.
+    def do_delete_page(self, page):
         """
+        Does the actual page deletion.
 
+        Args:
+            page: the index of the tab.
+        """
         # Remove the page from the vector
         book = self.GetParent()
         self._pagesInfoVec.pop(page)
@@ -604,8 +716,8 @@ class ImageContainerBase(wx.Panel):
             self._nIndex = self._nIndex - 1
 
         # The delete page was the last first on the array,
-        # but the book still has more pages, so we set the
-        # active page to be the first one (0)
+        # but the book still has more pages,
+        # so we set the active page to be the first one (0)
         if self._nIndex < 0 < len(self._pagesInfoVec):
             self._nIndex = 0
 
@@ -613,7 +725,7 @@ class ImageContainerBase(wx.Panel):
         if self._nIndex >= 0:
 
             book._bForceSelection = True
-            book.SetSelection(self._nIndex)
+            book.set_selection(self._nIndex)
             book._bForceSelection = False
 
         if not self._pagesInfoVec:
@@ -621,83 +733,88 @@ class ImageContainerBase(wx.Panel):
             dc = wx.ClientDC(self)
             dc.Clear()
 
-    def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.SizeEvent` event to be processed.
+    def on_size(self, event):
         """
+        Handles the ``wx.EVT_SIZE`` event for L{ImageContainerBase}.
 
+        Args:
+            event: a `wx.SizeEvent` event to be processed.
+        """
         self.Refresh()  # Call on paint
         event.Skip()
 
-    def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.EraseEvent` event to be processed.
-
-        :note: This method is intentionally empty to reduce flicker.
+    def on_erase_background(self, event):
         """
+        Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{ImageContainerBase}.
 
+        Args:
+            event: a `wx.EraseEvent` event to be processed.
+
+        Note:
+            This method is intentionally empty to reduce flicker.
+        """
         pass
 
     def HitTest(self, pt):
-        """Returns the index of the tab at the specified position or ``wx.NOT_FOUND``
-        if ``None``, plus the flag style of L{HitTest}.
-
-        :param pt: an instance of `wx.Point`, to test for hits.
-
-        :return: The index of the tab at the specified position plus the hit test
-         flag, which can be one of the following bits:
-
-         ====================== ======= ================================
-         HitTest Flags           Value  Description
-         ====================== ======= ================================
-         ``IMG_OVER_IMG``             0 The mouse is over the tab icon
-         ``IMG_OVER_PIN``             1 The mouse is over the pin button
-         ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west book border
-         ``IMG_NONE``                 3 Nowhere
-         ====================== ======= ================================
-
         """
+        Returns tab index at position or ``wx.NOT_FOUND``, plus L{HitTest} flag.
 
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        Args:
+            pt: an instance of `wx.Point`, to test for hits.
+
+        Returns:
+            The index of the tab at the specified position plus the hit test flag,
+                which can be one of the following bits:
+                ====================== ======= ================================
+                HitTest Flags           Value  Description
+                ====================== ======= ================================
+                ``IMG_OVER_IMG``             0 The mouse is over the tab icon
+                ``IMG_OVER_PIN``             1 The mouse is over the pin button
+                ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west
+                                                book border
+                ``IMG_NONE``                 3 Nowhere
+                ====================== ======= ================================
+        """
+        style = self.GetParent().get_agw_window_style_flag()
 
         if style & INB_USE_PIN_BUTTON:
             if self._pinBtnRect.Contains(pt):
                 return -1, IMG_OVER_PIN
 
-        for i in range(len(self._pagesInfoVec)):
+        for index in range(len(self._pagesInfoVec)):
 
-            if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
+            if self._pagesInfoVec[index].get_position() == wx.Point(-1, -1):
                 break
 
-            # For Web Hover style, we test the TextRect
-            if not self.HasAGWFlag(INB_WEB_HILITE):
-                buttonRect = wx.RectPS(
-                    self._pagesInfoVec[i].GetPosition(), self._pagesInfoVec[i].GetSize()
+            # For Web Hover style, we test the TextRect                                 # noqa: SC100
+            if not self.has_agw_flag(INB_WEB_HILITE):
+                button_rect = wx.Rect(
+                    self._pagesInfoVec[index].get_position(),
+                    self._pagesInfoVec[index].get_size(),
                 )
             else:
-                buttonRect = self._pagesInfoVec[i].GetTextRect()
+                button_rect = self._pagesInfoVec[index].get_text_rect()
 
-            if buttonRect.Contains(pt):
-                return i, IMG_OVER_IMG
+            if button_rect.Contains(pt):
+                return index, IMG_OVER_IMG
 
-        if self.PointOnSash(pt):
+        if self.point_on_sash(pt):
             return -1, IMG_OVER_EW_BORDER
         else:
             return -1, IMG_NONE
 
-    def PointOnSash(self, pt):
-        """Tests whether pt is located on the sash.
-
-        :param pt: an instance of `wx.Point`, to test for hits.
+    def point_on_sash(self, pt):
         """
+        Tests whether pt is located on the sash.
 
-        # Check if we are on a the sash border
-        cltRect = self.GetClientRect()
+        Args:
+            pt: an instance of `wx.Point`, to test for hits.
+        """
+        # Check if we are on a sash border
+        clt_rect = self.GetClientRect()
 
-        if self.HasAGWFlag(INB_LEFT) or self.HasAGWFlag(INB_TOP):
-            if pt.x > cltRect.x + cltRect.width - 4:
+        if self.has_agw_flag(INB_LEFT) or self.has_agw_flag(INB_TOP):
+            if pt.x > clt_rect.x + clt_rect.width - 4:
                 return True
 
         else:
@@ -706,79 +823,79 @@ class ImageContainerBase(wx.Panel):
 
         return False
 
-    def OnMouseLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_down(self, event):
         """
+        Handles the ``wx.EVT_LEFT_DOWN`` event for L{ImageContainerBase}.
 
-        newSelection = -1
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
         event.Skip()
 
         # Support for collapse/expand
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        style = self.GetParent().get_agw_window_style_flag()
         if style & INB_USE_PIN_BUTTON:
 
-            if self._pinBtnRect.Contains(event.GetPosition()):
+            if self._pinBtnRect.Contains(event.get_position()):
 
                 self._nPinButtonStatus = INB_PIN_PRESSED
                 dc = wx.ClientDC(self)
-                self.DrawPin(dc, self._pinBtnRect, not self._bCollapsed)
+                self.draw_pin(dc, self._pinBtnRect, not self._bCollapsed)
                 return
 
-        # Incase panel is collapsed, there is nothing
-        # to check
+        # In case panel is collapsed, there is nothing to check
         if self._bCollapsed:
             return
 
-        tabIdx, where = self.HitTest(event.GetPosition())
+        tab_idx, where = self.HitTest(event.get_position())
 
         if where == IMG_OVER_IMG:
-            self._nHoeveredImgIdx = -1
+            self._nHoveredImgIdx = -1
 
-        if tabIdx == -1:
+        if tab_idx == -1:
             return
 
-        self.GetParent().SetSelection(tabIdx)
+        self.GetParent().set_selection(tab_idx)
 
-    def OnMouseLeaveWindow(self, event):
-        """Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_leave_window(self, event):
         """
+        Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{ImageContainerBase}.
 
-        bRepaint = self._nHoeveredImgIdx != -1
-        self._nHoeveredImgIdx = -1
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        b_repaint = self._nHoveredImgIdx != -1
+        self._nHoveredImgIdx = -1
 
-        # Make sure the pin button status is NONE
-        # incase we were in pin button style
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        # Make sure the pin button status is NONE in case we were in pin button style
+        style = self.GetParent().get_agw_window_style_flag()
 
         if style & INB_USE_PIN_BUTTON:
 
             self._nPinButtonStatus = INB_PIN_NONE
             dc = wx.ClientDC(self)
-            self.DrawPin(dc, self._pinBtnRect, not self._bCollapsed)
+            self.draw_pin(dc, self._pinBtnRect, not self._bCollapsed)
 
         # Restore cursor
         wx.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
-        if bRepaint:
+        if b_repaint:
             self.Refresh()
 
-    def OnMouseLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_up(self, event):
         """
+        Handles the ``wx.EVT_LEFT_UP`` event for L{ImageContainerBase}.
 
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        style = self.GetParent().get_agw_window_style_flag()
 
         if style & INB_USE_PIN_BUTTON:
 
-            bIsLabelContainer = not self.CanDoBottomStyle()
+            b_is_label_container = not self.can_do_bottom_style()
 
-            if self._pinBtnRect.Contains(event.GetPosition()):
+            if self._pinBtnRect.Contains(event.get_position()):
 
                 self._nPinButtonStatus = INB_PIN_NONE
                 self._bCollapsed = not self._bCollapsed
@@ -786,9 +903,9 @@ class ImageContainerBase(wx.Panel):
                 if self._bCollapsed:
 
                     # Save the current tab area width
-                    self._tabAreaSize = self.GetSize()
+                    self._tabAreaSize = wx.Size(self.GetSize())
 
-                    if bIsLabelContainer:
+                    if b_is_label_container:
 
                         self.SetSizeHints(20, self._tabAreaSize.y)
 
@@ -801,7 +918,7 @@ class ImageContainerBase(wx.Panel):
 
                 else:
 
-                    if bIsLabelContainer:
+                    if b_is_label_container:
 
                         self.SetSizeHints(self._tabAreaSize.x, -1)
 
@@ -817,36 +934,37 @@ class ImageContainerBase(wx.Panel):
                 self.Refresh()
                 return
 
-    def OnMouseMove(self, event):
-        """Handles the ``wx.EVT_MOTION`` event for L{ImageContainerBase}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_move(self, event):
         """
+        Handles the ``wx.EVT_MOTION`` event for L{ImageContainerBase}.
 
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        style = self.GetParent().get_agw_window_style_flag()
         if style & INB_USE_PIN_BUTTON:
 
-            # Check to see if we are in the pin button rect
+            # Check to see if we are in the pin button rect                             # noqa: SC100
             if (
-                not self._pinBtnRect.Contains(event.GetPosition())
+                not self._pinBtnRect.Contains(event.get_position())
                 and self._nPinButtonStatus == INB_PIN_PRESSED
             ):
 
                 self._nPinButtonStatus = INB_PIN_NONE
                 dc = wx.ClientDC(self)
-                self.DrawPin(dc, self._pinBtnRect, not self._bCollapsed)
+                self.draw_pin(dc, self._pinBtnRect, not self._bCollapsed)
 
-        imgIdx, where = self.HitTest(event.GetPosition())
-        self._nHoeveredImgIdx = imgIdx
+        img_idx, where = self.HitTest(event.get_position())
+        self._nHoveredImgIdx = img_idx
 
         if not self._bCollapsed:
 
-            if 0 <= self._nHoeveredImgIdx < len(self._pagesInfoVec):
+            if 0 <= self._nHoveredImgIdx < len(self._pagesInfoVec):
 
                 # Change the cursor to be Hand
                 if (
-                    self.HasAGWFlag(INB_WEB_HILITE)
-                    and self._nHoeveredImgIdx != self._nIndex
+                    self.has_agw_flag(INB_WEB_HILITE)
+                    and self._nHoveredImgIdx != self._nIndex
                 ):
                     wx.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
 
@@ -854,34 +972,34 @@ class ImageContainerBase(wx.Panel):
 
                 # Restore the cursor only if we have the Web hover style set,
                 # and we are not currently hovering the sash
-                if self.HasAGWFlag(INB_WEB_HILITE) and not self.PointOnSash(
-                    event.GetPosition()
+                if self.has_agw_flag(INB_WEB_HILITE) and not self.point_on_sash(
+                    event.get_position()
                 ):
                     wx.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
-        # Dont display hover effect when hoevering the
-        # selected label
+        # Don't display hover effect when hovering the selected label
 
-        if self._nHoeveredImgIdx == self._nIndex:
-            self._nHoeveredImgIdx = -1
+        if self._nHoveredImgIdx == self._nIndex:
+            self._nHoveredImgIdx = -1
 
         self.Refresh()
 
-    def DrawPin(self, dc, rect, downPin):
-        """Draw a pin button, that allows collapsing of the image panel.
-
-        :param dc: an instance of `wx.DC`;
-        :param rect: the pin button client rectangle;
-        :param downPin: ``True`` if the pin button is facing downwards, ``False``
-         if it is facing leftwards.
+    def draw_pin(self, dc, rect, down_pin):
         """
+        Draw a pin button, that allows collapsing of the image panel.
 
+        Args:
+            dc: an instance of `wx.DC`;
+            rect: the pin button client rectangle;
+            down_pin: ``True`` if the pin button is facing downwards,
+                ``False`` if it is facing leftwards.
+        """
         # Set the bitmap according to the button status
 
-        if downPin:
-            pinBmp = wx.BitmapFromXPMData(pin_down_xpm)
+        if down_pin:
+            pin_bmp = wx.BitmapFromXPMData(pin_down_xpm)
         else:
-            pinBmp = wx.BitmapFromXPMData(pin_left_xpm)
+            pin_bmp = wx.BitmapFromXPMData(pin_left_xpm)
 
         xx = rect.x + 2
 
@@ -908,12 +1026,12 @@ class ImageContainerBase(wx.Panel):
             dc.DrawLine(xx, rect.y, xx, rect.y + 16)
 
         # Set the masking
-        pinBmp.SetMask(wx.Mask(pinBmp, wx.WHITE))
+        pin_bmp.SetMask(wx.Mask(pin_bmp, wx.WHITE))
 
         # Draw the new bitmap
-        dc.DrawBitmap(pinBmp, xx, rect.y, True)
+        dc.DrawBitmap(pin_bmp, xx, rect.y, True)
 
-        # Save the pin rect
+        # Save the pin rect                                                             # noqa: SC100
         self._pinBtnRect = rect
 
 
@@ -928,173 +1046,209 @@ class ImageContainer(ImageContainerBase):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="ImageContainer",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
-        ImageContainerBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
-
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
-        self.Bind(wx.EVT_LEFT_UP, self.OnMouseLeftUp)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeaveWindow)
-
-    def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` event for L{ImageContainer}.
-
-        :param event: a `wx.SizeEvent` event to be processed.
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
         """
+        ImageContainerBase.__init__(
+            self, parent, window_id, pos, size, style, agw_style, name
+        )
 
-        ImageContainerBase.OnSize(self, event)
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.on_erase_background)
+        self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_mouse_leave_window)
+
+    def on_size(self, event):
+        """
+        Handles the ``wx.EVT_SIZE`` event for L{ImageContainer}.
+
+        Args:
+            event: a `wx.SizeEvent` event to be processed.
+        """
+        ImageContainerBase.on_size(self, event)
         event.Skip()
 
-    def OnMouseLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` event for L{ImageContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_down(self, event):
         """
+        Handles the ``wx.EVT_LEFT_DOWN`` event for L{ImageContainer}.
 
-        ImageContainerBase.OnMouseLeftDown(self, event)
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        ImageContainerBase.on_mouse_left_down(self, event)
         event.Skip()
 
-    def OnMouseLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` event for L{ImageContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_up(self, event):
         """
+        Handles the ``wx.EVT_LEFT_UP`` event for L{ImageContainer}.
 
-        ImageContainerBase.OnMouseLeftUp(self, event)
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        ImageContainerBase.on_mouse_left_up(self, event)
         event.Skip()
 
-    def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{ImageContainer}.
-
-        :param event: a `wx.EraseEvent` event to be processed.
+    def on_erase_background(self, event):
         """
+        Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{ImageContainer}.
 
-        ImageContainerBase.OnEraseBackground(self, event)
-
-    def OnMouseMove(self, event):
-        """Handles the ``wx.EVT_MOTION`` event for L{ImageContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+        Args:
+            event: a `wx.EraseEvent` event to be processed.
         """
+        ImageContainerBase.on_erase_background(self, event)
 
-        ImageContainerBase.OnMouseMove(self, event)
+    def on_mouse_move(self, event):
+        """
+        Handles the ``wx.EVT_MOTION`` event for L{ImageContainer}.
+
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        ImageContainerBase.on_mouse_move(self, event)
         event.Skip()
 
-    def OnMouseLeaveWindow(self, event):
-        """Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{ImageContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_leave_window(self, event):
         """
+        Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{ImageContainer}.
 
-        ImageContainerBase.OnMouseLeaveWindow(self, event)
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        ImageContainerBase.on_mouse_leave_window(self, event)
         event.Skip()
 
-    def CanDoBottomStyle(self):
-        """Allows the parent to examine the children type. Some implementation
-        (such as L{LabelBook}), does not support top/bottom images, only left/right.
+    def can_do_bottom_style(self):
         """
+        Allows the parent to examine the children type.
 
+        Some implementation (such as L{LabelBook}),
+        does not support top/bottom images, only left/right.
+        """
         return True
 
-    def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{ImageContainer}.
-
-        :param event: a `wx.PaintEvent` event to be processed.
+    def on_paint(self, event):
         """
+        Handles the ``wx.EVT_PAINT`` event for L{ImageContainer}.
 
+        Args:
+            event: a `wx.PaintEvent` event to be processed.
+        """
         dc = wx.BufferedPaintDC(self)
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        style = self.GetParent().get_agw_window_style_flag()
 
-        backBrush = wx.WHITE_BRUSH
+        back_brush = wx.WHITE_BRUSH
         if style & INB_BORDER:
-            borderPen = wx.Pen(wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW))
+            border_pen = wx.Pen(wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW))
         else:
-            borderPen = wx.TRANSPARENT_PEN
+            border_pen = wx.TRANSPARENT_PEN
 
         size = self.GetSize()
 
         # Background
-        dc.SetBrush(backBrush)
+        dc.SetBrush(back_brush)
 
-        borderPen.SetWidth(1)
-        dc.SetPen(borderPen)
+        border_pen.SetWidth(1)
+        dc.SetPen(border_pen)
         dc.DrawRectangle(0, 0, size.x, size.y)
-        bUsePin = (style & INB_USE_PIN_BUTTON and [True] or [False])[0]
+        b_use_pin = (style & INB_USE_PIN_BUTTON and [True] or [False])[0]
 
-        if bUsePin:
+        if b_use_pin:
 
             # Draw the pin button
-            clientRect = self.GetClientRect()
-            pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
-            self.DrawPin(dc, pinRect, not self._bCollapsed)
+            client_rect = self.GetClientRect()
+            pin_rect = wx.Rect(
+                client_rect.GetX() + client_rect.GetWidth() - 20, 2, 20, 20
+            )
+            self.draw_pin(dc, pin_rect, not self._bCollapsed)
 
             if self._bCollapsed:
                 return
 
-        borderPen = wx.BLACK_PEN
-        borderPen.SetWidth(1)
-        dc.SetPen(borderPen)
+        border_pen = wx.BLACK_PEN
+        border_pen.SetWidth(1)
+        dc.SetPen(border_pen)
         dc.DrawLine(0, size.y, size.x, size.y)
         dc.DrawPoint(0, size.y)
 
-        clientSize = 0
-        bUseYcoord = style & INB_RIGHT or style & INB_LEFT
+        client_size = 0
+        b_use_ycoord = style & INB_RIGHT or style & INB_LEFT
 
-        if bUseYcoord:
-            clientSize = size.GetHeight()
+        if b_use_ycoord:
+            client_size = size.GetHeight()
         else:
-            clientSize = size.GetWidth()
+            client_size = size.GetWidth()
 
-        # We reserver 20 pixels for the 'pin' button
+        # We reserve 20 pixels for the 'pin' button
 
-        # The drawing of the images start position. This is
-        # depenedent of the style, especially when Pin button
-        # style is requested
+        # The drawing of the images start position.
+        # This is dependent of the style, especially when Pin button style is requested
 
-        if bUsePin:
+        if b_use_pin:
             if style & INB_TOP or style & INB_BOTTOM:
                 pos = (style & INB_BORDER and [0] or [1])[0]
             else:
@@ -1102,8 +1256,8 @@ class ImageContainer(ImageContainerBase):
         else:
             pos = (style & INB_BORDER and [0] or [1])[0]
 
-        nPadding = 4  # Pad text with 2 pixels on the left and right
-        nTextPaddingLeft = 2
+        n_padding = 4  # Pad text with 2 pixels on the left and right
+        n_text_padding_left = 2
 
         count = 0
 
@@ -1111,178 +1265,180 @@ class ImageContainer(ImageContainerBase):
 
             count = count + 1
 
-            # incase the 'fit button' style is applied, we set the rectangle width to the
-            # text width plus padding
-            # Incase the style IS applied, but the style is either LEFT or RIGHT
+            # in case the 'fit button' style is applied,
+            # we set the rectangle width to the text width plus padding
+            # In case the style IS applied, but the style is either LEFT or RIGHT
             # we ignore it
-            normalFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
-            dc.SetFont(normalFont)
+            normal_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            dc.SetFont(normal_font)
 
-            textWidth, textHeight = dc.GetTextExtent(self._pagesInfoVec[i].GetCaption())
+            text_width, text_height = dc.GetTextExtent(
+                self._pagesInfoVec[i].get_caption()
+            )
 
             # Restore font to be normal
-            normalFont.SetWeight(wx.FONTWEIGHT_NORMAL)
-            dc.SetFont(normalFont)
+            normal_font.SetWeight(wx.FONTWEIGHT_NORMAL)
+            dc.SetFont(normal_font)
 
-            # Default values for the surronounding rectangle
-            # around a button
-            rectWidth = (
+            # Default values for the surrounding rectangle around a button
+            rect_width = (
                 self._nImgSize * 2
-            )  # To avoid the recangle to 'touch' the borders
-            rectHeight = self._nImgSize * 2
+            )  # To avoid the rectangle to 'touch' the borders
+            rect_height = self._nImgSize * 2
 
-            # Incase the style requires non-fixed button (fit to text)
-            # recalc the rectangle width
+            # In case the style requires non-fixed button (fit to text)
+            # recalc the rectangle width                                                # noqa: SC100
             if (
                 style & INB_FIT_BUTTON
                 and not ((style & INB_LEFT) or (style & INB_RIGHT))
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and not self._pagesInfoVec[i].get_caption() == ""
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
 
-                rectWidth = (
-                    (textWidth + nPadding * 2) > rectWidth
-                    and [nPadding * 2 + textWidth]
-                    or [rectWidth]
+                rect_width = (
+                    (text_width + n_padding * 2) > rect_width
+                    and [n_padding * 2 + text_width]
+                    or [rect_width]
                 )[0]
 
                 # Make the width an even number
-                if rectWidth % 2 != 0:
-                    rectWidth += 1
+                if rect_width % 2 != 0:
+                    rect_width += 1
 
             # Check that we have enough space to draw the button
-            # If Pin button is used, consider its space as well (applicable for top/botton style)
-            # since in the left/right, its size is already considered in 'pos'
-            pinBtnSize = (bUsePin and [20] or [0])[0]
+            # If Pin button is used,
+            # consider its space as well (applicable for top/bottom style)
+            # since in the left/right, its size is already considered in 'pos'          # noqa: SC100
+            pin_btn_size = (b_use_pin and [20] or [0])[0]
 
-            if pos + rectWidth + pinBtnSize > clientSize:
+            if pos + rect_width + pin_btn_size > client_size:
                 break
 
             # Calculate the button rectangle
-            modRectWidth = (
+            mod_rect_width = (
                 (style & INB_LEFT or style & INB_RIGHT)
-                and [rectWidth - 2]
-                or [rectWidth]
+                and [rect_width - 2]
+                or [rect_width]
             )[0]
-            modRectHeight = (
+            mod_rect_height = (
                 (style & INB_LEFT or style & INB_RIGHT)
-                and [rectHeight]
-                or [rectHeight - 2]
+                and [rect_height]
+                or [rect_height - 2]
             )[0]
 
-            if bUseYcoord:
-                buttonRect = wx.Rect(1, pos, modRectWidth, modRectHeight)
+            if b_use_ycoord:
+                button_rect = wx.Rect(1, pos, mod_rect_width, mod_rect_height)
             else:
-                buttonRect = wx.Rect(pos, 1, modRectWidth, modRectHeight)
+                button_rect = wx.Rect(pos, 1, mod_rect_width, mod_rect_height)
 
             # Check if we need to draw a rectangle around the button
             if self._nIndex == i:
 
                 # Set the colours
-                penColour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION)
-                brushColour = ArtManager.Get().LightColour(
+                pen_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION)
+                brush_colour = ArtManager.Get().LightColour(
                     wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION), 75
                 )
 
-                dc.SetPen(wx.Pen(penColour))
-                dc.SetBrush(wx.Brush(brushColour))
+                dc.SetPen(wx.Pen(pen_colour))
+                dc.SetBrush(wx.Brush(brush_colour))
 
-                # Fix the surrounding of the rect if border is set
+                # Fix the surrounding of the rect if border is set                      # noqa: SC100
                 if style & INB_BORDER:
 
                     if style & INB_TOP or style & INB_BOTTOM:
-                        buttonRect = wx.Rect(
-                            buttonRect.x + 1,
-                            buttonRect.y,
-                            buttonRect.width - 1,
-                            buttonRect.height,
+                        button_rect = wx.Rect(
+                            button_rect.x + 1,
+                            button_rect.y,
+                            button_rect.width - 1,
+                            button_rect.height,
                         )
                     else:
-                        buttonRect = wx.Rect(
-                            buttonRect.x,
-                            buttonRect.y + 1,
-                            buttonRect.width,
-                            buttonRect.height - 1,
+                        button_rect = wx.Rect(
+                            button_rect.x,
+                            button_rect.y + 1,
+                            button_rect.width,
+                            button_rect.height - 1,
                         )
 
-                dc.DrawRectangle(buttonRect)
+                dc.DrawRectangle(button_rect)
 
-            if self._nHoeveredImgIdx == i:
+            if self._nHoveredImgIdx == i:
 
                 # Set the colours
-                penColour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION)
-                brushColour = ArtManager.Get().LightColour(
+                pen_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION)
+                brush_colour = ArtManager.Get().LightColour(
                     wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION), 90
                 )
 
-                dc.SetPen(wx.Pen(penColour))
-                dc.SetBrush(wx.Brush(brushColour))
+                dc.SetPen(wx.Pen(pen_colour))
+                dc.SetBrush(wx.Brush(brush_colour))
 
-                # Fix the surrounding of the rect if border is set
+                # Fix the surrounding of the rect if border is set                      # noqa: SC100
                 if style & INB_BORDER:
 
                     if style & INB_TOP or style & INB_BOTTOM:
-                        buttonRect = wx.Rect(
-                            buttonRect.x + 1,
-                            buttonRect.y,
-                            buttonRect.width - 1,
-                            buttonRect.height,
+                        button_rect = wx.Rect(
+                            button_rect.x + 1,
+                            button_rect.y,
+                            button_rect.width - 1,
+                            button_rect.height,
                         )
                     else:
-                        buttonRect = wx.Rect(
-                            buttonRect.x,
-                            buttonRect.y + 1,
-                            buttonRect.width,
-                            buttonRect.height - 1,
+                        button_rect = wx.Rect(
+                            button_rect.x,
+                            button_rect.y + 1,
+                            button_rect.width,
+                            button_rect.height - 1,
                         )
 
-                dc.DrawRectangle(buttonRect)
+                dc.DrawRectangle(button_rect)
 
-            if bUseYcoord:
-                rect = wx.Rect(0, pos, rectWidth, rectWidth)
+            if b_use_ycoord:
+                rect = wx.Rect(0, pos, rect_width, rect_width)
             else:
-                rect = wx.Rect(pos, 0, rectWidth, rectWidth)
+                rect = wx.Rect(pos, 0, rect_width, rect_width)
 
-            # Incase user set both flags:
-            # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
+            # In case user set both flags:
+            # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES                               # noqa: SC100
             # We override them to display both
 
             if style & INB_SHOW_ONLY_TEXT and style & INB_SHOW_ONLY_IMAGES:
 
                 style ^= INB_SHOW_ONLY_TEXT
                 style ^= INB_SHOW_ONLY_IMAGES
-                self.GetParent().SetAGWWindowStyleFlag(style)
+                self.GetParent().set_agw_window_style_flag(style)
 
             # Draw the caption and text
-            imgTopPadding = 10
+            img_top_padding = 10
             if (
                 not style & INB_SHOW_ONLY_TEXT
-                and self._pagesInfoVec[i].GetImageIndex() != -1
+                and self._pagesInfoVec[i].get_image_index() != -1
             ):
 
-                if bUseYcoord:
+                if b_use_ycoord:
 
-                    imgXcoord = self._nImgSize / 2
-                    imgYcoord = (
+                    img_xcoord = self._nImgSize / 2
+                    img_ycoord = (
                         style & INB_SHOW_ONLY_IMAGES
                         and [pos + self._nImgSize / 2]
-                        or [pos + imgTopPadding]
+                        or [pos + img_top_padding]
                     )[0]
 
                 else:
 
-                    imgXcoord = pos + (rectWidth / 2) - (self._nImgSize / 2)
-                    imgYcoord = (
+                    img_xcoord = pos + (rect_width / 2) - (self._nImgSize / 2)
+                    img_ycoord = (
                         style & INB_SHOW_ONLY_IMAGES
                         and [self._nImgSize / 2]
-                        or [imgTopPadding]
+                        or [img_top_padding]
                     )[0]
 
                 self._ImageList.Draw(
-                    self._pagesInfoVec[i].GetImageIndex(),
+                    self._pagesInfoVec[i].get_image_index(),
                     dc,
-                    imgXcoord,
-                    imgYcoord,
+                    img_xcoord,
+                    img_ycoord,
                     wx.IMAGELIST_DRAW_TRANSPARENT,
                     True,
                 )
@@ -1290,64 +1446,68 @@ class ImageContainer(ImageContainerBase):
             # Draw the text
             if (
                 not style & INB_SHOW_ONLY_IMAGES
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and not self._pagesInfoVec[i].get_caption() == ""
             ):
 
-                dc.SetFont(normalFont)
+                dc.SetFont(normal_font)
 
                 # Check if the text can fit the size of the rectangle,
                 # if not truncate it
-                fixedText = self._pagesInfoVec[i].GetCaption()
+                fixed_text = self._pagesInfoVec[i].get_caption()
                 if not style & INB_FIT_BUTTON or (
                     style & INB_LEFT or (style & INB_RIGHT)
                 ):
 
-                    fixedText = self.FixTextSize(
-                        dc, self._pagesInfoVec[i].GetCaption(), self._nImgSize * 2 - 4
+                    fixed_text = fix_text_size(
+                        dc, self._pagesInfoVec[i].get_caption(), self._nImgSize * 2 - 4
                     )
 
                     # Update the length of the text
-                    textWidth, textHeight = dc.GetTextExtent(fixedText)
+                    text_width, text_height = dc.GetTextExtent(fixed_text)
 
-                if bUseYcoord:
+                if b_use_ycoord:
 
-                    textOffsetX = (rectWidth - textWidth) / 2
-                    textOffsetY = (
+                    text_offset_x = (rect_width - text_width) / 2
+                    text_offset_y = (
                         not style & INB_SHOW_ONLY_TEXT
-                        and [pos + self._nImgSize + imgTopPadding + 3]
-                        or [pos + ((self._nImgSize * 2 - textHeight) / 2)]
+                        and [pos + self._nImgSize + img_top_padding + 3]
+                        or [pos + ((self._nImgSize * 2 - text_height) / 2)]
                     )[0]
 
                 else:
 
-                    textOffsetX = (rectWidth - textWidth) / 2 + pos + nTextPaddingLeft
-                    textOffsetY = (
+                    text_offset_x = (
+                        (rect_width - text_width) / 2 + pos + n_text_padding_left
+                    )
+                    text_offset_y = (
                         not style & INB_SHOW_ONLY_TEXT
-                        and [self._nImgSize + imgTopPadding + 3]
-                        or [((self._nImgSize * 2 - textHeight) / 2)]
+                        and [self._nImgSize + img_top_padding + 3]
+                        or [((self._nImgSize * 2 - text_height) / 2)]
                     )[0]
 
                 dc.SetTextForeground(
                     wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
                 )
-                dc.DrawText(fixedText, textOffsetX, textOffsetY)
+                dc.DrawText(fixed_text, text_offset_x, text_offset_y)
 
             # Update the page info
-            self._pagesInfoVec[i].SetPosition(buttonRect.GetPosition())
-            self._pagesInfoVec[i].SetSize(buttonRect.GetSize())
+            self._pagesInfoVec[i].set_position(button_rect.GetPosition())
+            self._pagesInfoVec[i].set_size(button_rect.GetSize())
 
-            pos += rectWidth
+            pos += rect_width
 
         # Update all buttons that can not fit into the screen as non-visible
         for ii in range(count, len(self._pagesInfoVec)):
-            self._pagesInfoVec[ii].SetPosition(wx.Point(-1, -1))
+            self._pagesInfoVec[ii].set_position(wx.Point(-1, -1))
 
         # Draw the pin button
-        if bUsePin:
+        if b_use_pin:
 
-            clientRect = self.GetClientRect()
-            pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
-            self.DrawPin(dc, pinRect, not self._bCollapsed)
+            client_rect = self.GetClientRect()
+            pin_rect = wx.Rect(
+                client_rect.GetX() + client_rect.GetWidth() - 20, 2, 20, 20
+            )
+            self.draw_pin(dc, pin_rect, not self._bCollapsed)
 
 
 # ---------------------------------------------------------------------------- #
@@ -1361,151 +1521,184 @@ class LabelContainer(ImageContainerBase):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="LabelContainer",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
-        ImageContainerBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
+        """
+        ImageContainerBase.__init__(
+            self, parent, window_id, pos, size, style, agw_style, name
+        )
         self._nTabAreaWidth = 100
         self._oldCursor = wx.NullCursor
         self._coloursMap = {}
         self._skin = wx.NullBitmap
         self._sashRect = wx.Rect()
 
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
-        self.Bind(wx.EVT_LEFT_UP, self.OnMouseLeftUp)
-        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeaveWindow)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
+        self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_mouse_leave_window)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.on_erase_background)
 
-    def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` event for L{LabelContainer}.
-
-        :param event: a `wx.SizeEvent` event to be processed.
+    def on_size(self, event):
         """
+        Handles the ``wx.EVT_SIZE`` event for L{LabelContainer}.
 
-        ImageContainerBase.OnSize(self, event)
+        Args:
+            event: a `wx.SizeEvent` event to be processed.
+        """
+        ImageContainerBase.on_size(self, event)
         event.Skip()
 
-    def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{LabelContainer}.
-
-        :param event: a `wx.EraseEvent` event to be processed.
+    def on_erase_background(self, event):
         """
+        Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{LabelContainer}.
 
-        ImageContainerBase.OnEraseBackground(self, event)
+        Args:
+            event: a `wx.EraseEvent` event to be processed.
+        """
+        ImageContainerBase.on_erase_background(self, event)
 
-    def GetTabAreaWidth(self):
+    def get_tab_area_width(self):
         """Returns the width of the tab area."""
-
         return self._nTabAreaWidth
 
-    def SetTabAreaWidth(self, width):
-        """Sets the width of the tab area.
-
-        :param width: the width of the tab area, in pixels.
+    def set_tab_area_width(self, width):
         """
+        Sets the width of the tab area.
 
+        Args:
+            width: the width of the tab area, in pixels.
+        """
         self._nTabAreaWidth = width
 
-    def CanDoBottomStyle(self):
-        """Allows the parent to examine the children type. Some implementation
-        (such as L{LabelBook}), does not support top/bottom images, only left/right.
+    def can_do_bottom_style(self):
         """
+        Allows the parent to examine the children type.
 
+        Some implementation (such as L{LabelBook}),
+        does not support top/bottom images, only left/right.
+        """
         return False
 
-    def SetBackgroundBitmap(self, bmp):
-        """Sets the background bitmap for the control.
-
-        :param bmp: a valid `wx.Bitmap` object.
+    def set_background_bitmap(self, bmp):
         """
+        Sets the background bitmap for the control.
 
+        Args:
+            bmp: a valid `wx.Bitmap` object.
+        """
         self._skin = bmp
 
-    def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{LabelContainer}.
-
-        :param event: a `wx.PaintEvent` event to be processed.
+    def on_paint(self, event):
         """
+        Handles the ``wx.EVT_PAINT`` event for L{LabelContainer}.
 
-        style = self.GetParent().GetAGWWindowStyleFlag()
+        Args:
+            event: a `wx.PaintEvent` event to be processed.
+        """
+        global i
+        style = self.GetParent().get_agw_window_style_flag()
 
         dc = wx.BufferedPaintDC(self)
-        backBrush = wx.Brush(self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR])
-        if self.HasAGWFlag(INB_BORDER):
-            borderPen = wx.Pen(self._coloursMap[INB_TABS_BORDER_COLOUR])
+        back_brush = wx.Brush(self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR])
+        if self.has_agw_flag(INB_BORDER):
+            border_pen = wx.Pen(self._coloursMap[INB_TABS_BORDER_COLOUR])
         else:
-            borderPen = wx.TRANSPARENT_PEN
+            border_pen = wx.TRANSPARENT_PEN
 
         size = self.GetSize()
 
         # Set the pen & brush
-        dc.SetBrush(backBrush)
-        dc.SetPen(borderPen)
+        dc.SetBrush(back_brush)
+        dc.SetPen(border_pen)
 
-        # Incase user set both flags, we override them to display both
-        # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
+        # In case user set both flags, we override them to display both
+        # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES                                   # noqa: SC100
         if style & INB_SHOW_ONLY_TEXT and style & INB_SHOW_ONLY_IMAGES:
 
             style ^= INB_SHOW_ONLY_TEXT
             style ^= INB_SHOW_ONLY_IMAGES
-            self.GetParent().SetAGWWindowStyleFlag(style)
+            self.GetParent().set_agw_window_style_flag(style)
 
-        if self.HasAGWFlag(INB_GRADIENT_BACKGROUND) and not self._skin.Ok():
+        if self.has_agw_flag(INB_GRADIENT_BACKGROUND) and not self._skin.Ok():
 
-            # Draw graident in the background area
-            startColour = self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR]
-            endColour = ArtManager.Get().LightColour(
+            # Draw gradient in the background area
+            start_colour = self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR]
+            end_colour = ArtManager.Get().LightColour(
                 self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR], 50
             )
             ArtManager.Get().PaintStraightGradientBox(
-                dc, wx.Rect(0, 0, size.x / 2, size.y), startColour, endColour, False
+                dc, wx.Rect(0, 0, size.x / 2, size.y), start_colour, end_colour, False
             )
             ArtManager.Get().PaintStraightGradientBox(
                 dc,
                 wx.Rect(size.x / 2, 0, size.x / 2, size.y),
-                endColour,
-                startColour,
+                end_colour,
+                start_colour,
                 False,
             )
 
@@ -1515,25 +1708,27 @@ class LabelContainer(ImageContainerBase):
             if self._skin.Ok():
 
                 dc.SetBrush(wx.TRANSPARENT_BRUSH)
-                self.DrawBackgroundBitmap(dc)
+                self.draw_background_bitmap(dc)
 
             dc.DrawRectangle(wx.Rect(0, 0, size.x, size.y))
 
         # Draw border
-        if self.HasAGWFlag(INB_BORDER) and self.HasAGWFlag(INB_GRADIENT_BACKGROUND):
+        if self.has_agw_flag(INB_BORDER) and self.has_agw_flag(INB_GRADIENT_BACKGROUND):
 
             # Just draw the border with transparent brush
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.DrawRectangle(wx.Rect(0, 0, size.x, size.y))
 
-        bUsePin = (self.HasAGWFlag(INB_USE_PIN_BUTTON) and [True] or [False])[0]
+        b_use_pin = (self.has_agw_flag(INB_USE_PIN_BUTTON) and [True] or [False])[0]
 
-        if bUsePin:
+        if b_use_pin:
 
             # Draw the pin button
-            clientRect = self.GetClientRect()
-            pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
-            self.DrawPin(dc, pinRect, not self._bCollapsed)
+            client_rect = self.GetClientRect()
+            pin_rect = wx.Rect(
+                client_rect.GetX() + client_rect.GetWidth() - 20, 2, 20, 20
+            )
+            self.draw_pin(dc, pin_rect, not self._bCollapsed)
 
             if self._bCollapsed:
                 return
@@ -1547,90 +1742,92 @@ class LabelContainer(ImageContainerBase):
 
         for i in range(len(self._pagesInfoVec)):
             count = count + 1
-            # Default values for the surronounding rectangle
-            # around a button
-            rectWidth = self._nTabAreaWidth
+            # Default values for the surrounding rectangle around a button
+            rect_width = self._nTabAreaWidth
 
-            if self.HasAGWFlag(INB_SHOW_ONLY_TEXT):
+            if self.has_agw_flag(INB_SHOW_ONLY_TEXT):
                 font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
                 font.SetPointSize(
-                    font.GetPointSize() * self.GetParent().GetFontSizeMultiple()
+                    font.GetPointSize() * self.GetParent().get_font_size_multiple()
                 )
-                if self.GetParent().GetFontBold():
+                if self.GetParent().get_font_bold():
                     font.SetWeight(wx.FONTWEIGHT_BOLD)
                 dc.SetFont(font)
-                w, h = dc.GetTextExtent(self._pagesInfoVec[i].GetCaption())
-                rectHeight = h * 2
+                w, h = dc.GetTextExtent(self._pagesInfoVec[i].get_caption())
+                rect_height = h * 2
             else:
-                rectHeight = self._nImgSize * 2
+                rect_height = self._nImgSize * 2
 
             # Check that we have enough space to draw the button
-            if posy + rectHeight > size.GetHeight():
+            if posy + rect_height > size.GetHeight():
                 break
 
             # Calculate the button rectangle
             posx = 0
 
-            buttonRect = wx.Rect(posx, posy, rectWidth, rectHeight)
-            indx = self._pagesInfoVec[i].GetImageIndex()
+            button_rect = wx.Rect(posx, posy, rect_width, rect_height)
+            indx = self._pagesInfoVec[i].get_image_index()
 
             if indx == -1:
                 bmp = wx.NullBitmap
             else:
                 bmp = self._ImageList.GetBitmap(indx)
 
-            self.DrawLabel(
+            self.draw_label(
                 dc,
-                buttonRect,
-                self._pagesInfoVec[i].GetCaption(),
+                button_rect,
+                self._pagesInfoVec[i].get_caption(),
                 bmp,
                 self._pagesInfoVec[i],
-                self.HasAGWFlag(INB_LEFT) or self.HasAGWFlag(INB_TOP),
+                self.has_agw_flag(INB_LEFT) or self.has_agw_flag(INB_TOP),
                 i,
                 self._nIndex == i,
-                self._nHoeveredImgIdx == i,
+                self._nHoveredImgIdx == i,
             )
 
-            posy += rectHeight
+            posy += rect_height
 
         # Update all buttons that can not fit into the screen as non-visible
         for ii in range(count, len(self._pagesInfoVec)):
-            self._pagesInfoVec[i].SetPosition(wx.Point(-1, -1))
+            self._pagesInfoVec[i].set_position(wx.Point(-1, -1))
 
-        if bUsePin:
+        if b_use_pin:
 
-            clientRect = self.GetClientRect()
-            pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
-            self.DrawPin(dc, pinRect, not self._bCollapsed)
+            client_rect = self.GetClientRect()
+            pin_rect = wx.Rect(
+                client_rect.GetX() + client_rect.GetWidth() - 20, 2, 20, 20
+            )
+            self.draw_pin(dc, pin_rect, not self._bCollapsed)
 
-    def DrawBackgroundBitmap(self, dc):
-        """Draws a bitmap as the background of the control.
-
-        :param dc: an instance of `wx.DC`.
+    def draw_background_bitmap(self, dc):
         """
+        Draws a bitmap as the background of the control.
 
-        clientRect = self.GetClientRect()
-        width = clientRect.GetWidth()
-        height = clientRect.GetHeight()
-        coveredY = coveredX = 0
+        Args:
+            dc: an instance of `wx.DC`.
+        """
+        client_rect = self.GetClientRect()
+        width = client_rect.GetWidth()
+        height = client_rect.GetHeight()
+        covered_y = covered_x = 0
         xstep = self._skin.GetWidth()
         ystep = self._skin.GetHeight()
-        bmpRect = wx.Rect(0, 0, xstep, ystep)
-        if bmpRect != clientRect:
+        bmp_rect = wx.Rect(0, 0, xstep, ystep)
+        if bmp_rect != client_rect:
 
             mem_dc = wx.MemoryDC()
             bmp = wx.EmptyBitmap(width, height)
             mem_dc.SelectObject(bmp)
 
-            while coveredY < height:
+            while covered_y < height:
 
-                while coveredX < width:
+                while covered_x < width:
 
-                    mem_dc.DrawBitmap(self._skin, coveredX, coveredY, True)
-                    coveredX += xstep
+                    mem_dc.DrawBitmap(self._skin, covered_x, covered_y, True)
+                    covered_x += xstep
 
-                coveredX = 0
-                coveredY += ystep
+                covered_x = 0
+                covered_y += ystep
 
             mem_dc.SelectObject(wx.NullBitmap)
             # self._skin = bmp
@@ -1640,15 +1837,16 @@ class LabelContainer(ImageContainerBase):
 
             dc.DrawBitmap(self._skin, 0, 0)
 
-    def OnMouseLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` event for L{LabelContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_up(self, event):
         """
+        Handles the ``wx.EVT_LEFT_UP`` event for L{LabelContainer}.
 
-        if self.HasAGWFlag(INB_NO_RESIZE):
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        if self.has_agw_flag(INB_NO_RESIZE):
 
-            ImageContainerBase.OnMouseLeftUp(self, event)
+            ImageContainerBase.on_mouse_left_up(self, event)
             return
 
         if self.HasCapture():
@@ -1659,7 +1857,7 @@ class LabelContainer(ImageContainerBase):
 
             # Remove sash
             ArtManager.Get().DrawDragSash(self._sashRect)
-            self.Resize(event)
+            self.resize(event)
 
             self._sashRect = wx.Rect()
             return
@@ -1672,47 +1870,49 @@ class LabelContainer(ImageContainerBase):
             wx.SetCursor(self._oldCursor)
             self._oldCursor = wx.NullCursor
 
-        ImageContainerBase.OnMouseLeftUp(self, event)
+        ImageContainerBase.on_mouse_left_up(self, event)
 
-    def Resize(self, event):
-        """Actually resizes the tab area.
-
-        :param event: an instance of `wx.SizeEvent`.
+    def resize(self, event):
         """
+        Actually resizes the tab area.
 
-        # Resize our size
+        Args:
+            event: an instance of `wx.SizeEvent`.
+        """
+        # resize our size
         self._tabAreaSize = self.GetSize()
-        newWidth = self._tabAreaSize.x
+        new_width = self._tabAreaSize.x
         x = event.GetX()
 
-        if self.HasAGWFlag(INB_BOTTOM) or self.HasAGWFlag(INB_RIGHT):
+        if self.has_agw_flag(INB_BOTTOM) or self.has_agw_flag(INB_RIGHT):
 
-            newWidth -= event.GetX()
+            new_width -= event.GetX()
 
         else:
 
-            newWidth = x
+            new_width = x
 
-        if newWidth < 100:  # Dont allow width to be lower than that
-            newWidth = 100
+        if new_width < 100:  # Don't allow width to be lower than that
+            new_width = 100
 
-        self.SetSizeHints(newWidth, self._tabAreaSize.y)
+        self.SetSizeHints(new_width, self._tabAreaSize.y)
 
         # Update the tab new area width
-        self._nTabAreaWidth = newWidth
+        self._nTabAreaWidth = new_width
         self.GetParent().Freeze()
         self.GetParent().GetSizer().Layout()
         self.GetParent().Thaw()
 
-    def OnMouseMove(self, event):
-        """Handles the ``wx.EVT_MOTION`` event for L{LabelContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_move(self, event):
         """
+        Handles the ``wx.EVT_MOTION`` event for L{LabelContainer}.
 
-        if self.HasAGWFlag(INB_NO_RESIZE):
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        if self.has_agw_flag(INB_NO_RESIZE):
 
-            ImageContainerBase.OnMouseMove(self, event)
+            ImageContainerBase.on_mouse_move(self, event)
             return
 
         # Remove old sash
@@ -1724,9 +1924,9 @@ class LabelContainer(ImageContainerBase):
             if not self._sashRect.IsEmpty():
 
                 # Progress sash, and redraw it
-                clientRect = self.GetClientRect()
+                client_rect = self.GetClientRect()
                 pt = self.ClientToScreen(wx.Point(event.GetX(), 0))
-                self._sashRect = wx.RectPS(pt, wx.Size(4, clientRect.height))
+                self._sashRect = wx.RectPS(pt, wx.Size(4, client_rect.height))
                 ArtManager.Get().DrawDragSash(self._sashRect)
 
             else:
@@ -1741,9 +1941,9 @@ class LabelContainer(ImageContainerBase):
             if self.HasCapture():
                 self.ReleaseMouse()
 
-            if self.PointOnSash(event.GetPosition()):
+            if self.point_on_sash(event.get_position()):
 
-                # Change cursor to EW cursor
+                # Change cursor to EW cursor                                            # noqa: SC100
                 self._oldCursor = self.GetCursor()
                 wx.SetCursor(wx.StockCursor(wx.CURSOR_SIZEWE))
 
@@ -1753,20 +1953,21 @@ class LabelContainer(ImageContainerBase):
                 self._oldCursor = wx.NullCursor
 
             self._sashRect = wx.Rect()
-            ImageContainerBase.OnMouseMove(self, event)
+            ImageContainerBase.on_mouse_move(self, event)
 
-    def OnMouseLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` event for L{LabelContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_left_down(self, event):
         """
+        Handles the ``wx.EVT_LEFT_DOWN`` event for L{LabelContainer}.
 
-        if self.HasAGWFlag(INB_NO_RESIZE):
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        if self.has_agw_flag(INB_NO_RESIZE):
 
-            ImageContainerBase.OnMouseLeftDown(self, event)
+            ImageContainerBase.on_mouse_left_down(self, event)
             return
 
-        imgIdx, where = self.HitTest(event.GetPosition())
+        img_idx, where = self.HitTest(event.get_position())
 
         if IMG_OVER_EW_BORDER == where and not self._bCollapsed:
 
@@ -1781,43 +1982,45 @@ class LabelContainer(ImageContainerBase):
                 self._oldCursor = self.GetCursor()
                 wx.SetCursor(wx.StockCursor(wx.CURSOR_SIZEWE))
 
-            clientRect = self.GetClientRect()
+            client_rect = self.GetClientRect()
             pt = self.ClientToScreen(wx.Point(event.GetX(), 0))
-            self._sashRect = wx.RectPS(pt, wx.Size(4, clientRect.height))
+            self._sashRect = wx.RectPS(pt, wx.Size(4, client_rect.height))
 
             ArtManager.Get().DrawDragSash(self._sashRect)
 
         else:
-            ImageContainerBase.OnMouseLeftDown(self, event)
+            ImageContainerBase.on_mouse_left_down(self, event)
 
-    def OnMouseLeaveWindow(self, event):
-        """Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{LabelContainer}.
-
-        :param event: a `wx.MouseEvent` event to be processed.
+    def on_mouse_leave_window(self, event):
         """
+        Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{LabelContainer}.
 
-        if self.HasAGWFlag(INB_NO_RESIZE):
+        Args:
+            event: a `wx.MouseEvent` event to be processed.
+        """
+        if self.has_agw_flag(INB_NO_RESIZE):
 
-            ImageContainerBase.OnMouseLeaveWindow(self, event)
+            ImageContainerBase.on_mouse_leave_window(self, event)
             return
 
         # If Sash is being dragged, ignore this event
         if not self.HasCapture():
-            ImageContainerBase.OnMouseLeaveWindow(self, event)
+            ImageContainerBase.on_mouse_leave_window(self, event)
 
-    def DrawRegularHover(self, dc, rect):
-        """Draws a rounded rectangle around the current tab.
-
-        :param dc: an instance of `wx.DC`;
-        :param rect: the current tab client rectangle.
+    def draw_regular_hover(self, dc, rect):
         """
+        Draws a rounded rectangle around the current tab.
 
+        Args:
+            dc: an instance of `wx.DC`;
+            rect: the current tab client rectangle.
+        """
         # The hovered tab with default border
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.SetPen(wx.Pen(wx.WHITE))
 
-        # We draw CCW
-        if self.HasAGWFlag(INB_RIGHT) or self.HasAGWFlag(INB_TOP):
+        # We draw CCW                                                                   # noqa: SC100
+        if self.has_agw_flag(INB_RIGHT) or self.has_agw_flag(INB_TOP):
 
             # Right images
             # Upper line
@@ -1828,7 +2031,7 @@ class LabelContainer(ImageContainerBase):
                 rect.x + rect.width, rect.y, rect.x + rect.width, rect.y + rect.height
             )
 
-            # Bottom diagnol - we change pen
+            # Bottom diagonal - we change pen
             dc.SetPen(wx.Pen(self._coloursMap[INB_TABS_BORDER_COLOUR]))
 
             # Bottom line
@@ -1845,7 +2048,7 @@ class LabelContainer(ImageContainerBase):
             # Left line
             dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
-            # Bottom diagnol, we change the pen
+            # Bottom diagonal, we change the pen
             dc.SetPen(wx.Pen(self._coloursMap[INB_TABS_BORDER_COLOUR]))
 
             # Bottom line
@@ -1853,63 +2056,68 @@ class LabelContainer(ImageContainerBase):
                 rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height
             )
 
-    def DrawWebHover(self, dc, caption, xCoord, yCoord):
-        """Draws a web style hover effect (cursor set to hand & text is underlined).
-
-        :param dc: an instance of `wx.DC`;
-        :param caption: the tab caption text;
-        :param xCoord: the x position of the tab caption;
-        :param yCoord: the y position of the tab caption.
+    def draw_web_hover(self, dc, caption, x_coord, y_coord):
         """
+        Draws a web style hover effect (cursor set to hand & text is underlined).
 
+        Args:
+            dc: an instance of `wx.DC`;
+            caption: the tab caption text;
+            x_coord: the x position of the tab caption;
+            y_coord: the y position of the tab caption.
+        """
         # Redraw the text with underlined font
-        underLinedFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        underLinedFont.SetPointSize(
-            underLinedFont.GetPointSize() * self.GetParent().GetFontSizeMultiple()
+        under_lined_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        under_lined_font.SetPointSize(
+            under_lined_font.GetPointSize() * self.GetParent().get_font_size_multiple()
         )
-        if self.GetParent().GetFontBold():
-            underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
-        underLinedFont.SetUnderlined(True)
-        dc.SetFont(underLinedFont)
-        dc.DrawText(caption, xCoord, yCoord)
+        if self.GetParent().get_font_bold():
+            under_lined_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        under_lined_font.SetUnderlined(True)
+        dc.SetFont(under_lined_font)
+        dc.DrawText(caption, x_coord, y_coord)
 
-    def SetColour(self, which, colour):
-        """Sets a colour for a parameter.
-
-        :param which: can be one of the following parameters:
-
-         ================================== ======= ==================================
-         Colour Key                          Value  Description
-         ================================== ======= ==================================
-         ``INB_TAB_AREA_BACKGROUND_COLOUR``     100 The tab area background colour
-         ``INB_ACTIVE_TAB_COLOUR``              101 The active tab background colour
-         ``INB_TABS_BORDER_COLOUR``             102 The tabs border colour
-         ``INB_TEXT_COLOUR``                    103 The tab caption text colour
-         ``INB_ACTIVE_TEXT_COLOUR``             104 The active tab caption text colour
-         ``INB_HILITE_TAB_COLOUR``              105 The tab caption highlight text colour
-         ================================== ======= ==================================
-
-        :param colour: a valid `wx.Colour` object.
+    def set_colour(self, which, colour):
         """
+        Sets a colour for a parameter.
 
+        Args:
+            which: can be one of the following parameters:
+                ================================== ======= =====================
+                Colour Key                          Value  Description
+                ================================== ======= =====================
+                ``INB_TAB_AREA_BACKGROUND_COLOUR``     100 The tab area
+                                                            background colour
+                ``INB_ACTIVE_TAB_COLOUR``              101 The active tab
+                                                            background colour
+                ``INB_TABS_BORDER_COLOUR``             102 The tabs border colour
+                ``INB_TEXT_COLOUR``                    103 The tab caption text colour
+                ``INB_ACTIVE_TEXT_COLOUR``             104 The active tab
+                                                            caption text colour
+                ``INB_HILITE_TAB_COLOUR``              105 The tab caption
+                                                            highlight text colour
+                ================================== ======= =====================
+            colour: a valid `wx.Colour` object.
+        """
         self._coloursMap[which] = colour
 
-    def GetColour(self, which):
-        """Returns a colour for a parameter.
-
-        :param which: the colour key.
-
-        :see: L{SetColour} for a list of valid colour keys.
+    def get_colour(self, which):
         """
+        Returns a colour for a parameter.
 
+        Args:
+            which: the colour key.
+
+        See:
+            L{set_colour} for a list of valid colour keys.
+        """
         if which not in self._coloursMap:
             return wx.Colour()
 
         return self._coloursMap[which]
 
-    def InitializeColours(self):
+    def initialize_colours(self):
         """Initializes the colours map to be used for this control."""
-
         # Initialize map colours
         self._coloursMap.update(
             {
@@ -1932,7 +2140,7 @@ class LabelContainer(ImageContainerBase):
         self._coloursMap.update({INB_TEXT_COLOUR: wx.WHITE})
         self._coloursMap.update({INB_ACTIVE_TEXT_COLOUR: wx.BLACK})
 
-        # dont allow bright colour one on the other
+        # don't allow bright colour one on the other
         if not ArtManager.Get().IsDark(
             self._coloursMap[INB_TAB_AREA_BACKGROUND_COLOUR]
         ) and not ArtManager.Get().IsDark(self._coloursMap[INB_TEXT_COLOUR]):
@@ -1941,73 +2149,77 @@ class LabelContainer(ImageContainerBase):
                 self._coloursMap[INB_TEXT_COLOUR], 100
             )
 
-    def DrawLabel(
-        self, dc, rect, text, bmp, imgInfo, orientationLeft, imgIdx, selected, hover
+    def draw_label(
+        self, dc, rect, text, bmp, img_info, orientation_left, img_idx, selected, hover
     ):
-        """Draws a label using the specified dc.
-
-        :param dc: an instance of `wx.DC`;
-        :param rect: the text client rectangle;
-        :param text: the actual text string;
-        :param bmp: a bitmap to be drawn next to the text;
-        :param imgInfo: an instance of L{ImageInfo};
-        :param orientationLeft: ``True`` if the book has the ``INB_RIGHT`` or ``INB_LEFT``
-         style set;
-        :param imgIdx: the tab image index;
-        :param selected: ``True`` if the tab is selected, ``False`` otherwise;
-        :param hover: ``True`` if the tab is being hovered with the mouse, ``False`` otherwise.
         """
+        Draws a label using the specified dc.
 
+        Args:
+            dc: an instance of `wx.DC`;
+            rect: the text client rectangle;
+            text: the actual text string;
+            bmp: a bitmap to be drawn next to the text;
+            img_info: an instance of L{ImageInfo};
+            orientation_left: ``True`` if the book has the ``INB_RIGHT`` or
+                ``INB_LEFT`` style set;
+            img_idx: the tab image index;
+            selected: ``True`` if the tab is selected, ``False`` otherwise;
+            hover: ``True`` if the tab is being hovered with the mouse,
+                ``False`` otherwise.
+        """
         dcsaver = DCSaver(dc)
-        nPadding = 6
+        n_padding = 6
 
-        if orientationLeft:
+        if orientation_left:
 
-            rect.x += nPadding
-            rect.width -= nPadding
+            rect.x += n_padding
+            rect.width -= n_padding
 
         else:
 
-            rect.width -= nPadding
+            rect.width -= n_padding
 
-        textRect = wx.Rect(*rect)
-        imgRect = wx.Rect(*rect)
+        text_rect = wx.Rect(*rect)
+        img_rect = wx.Rect(*rect)
 
         font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        font.SetPointSize(font.GetPointSize() * self.GetParent().GetFontSizeMultiple())
-        if self.GetParent().GetFontBold():
+        font.SetPointSize(
+            font.GetPointSize() * self.GetParent().get_font_size_multiple()
+        )
+        if self.GetParent().get_font_bold():
             font.SetWeight(wx.FONTWEIGHT_BOLD)
         dc.SetFont(font)
 
         # First we define the rectangle for the text
         w, h = dc.GetTextExtent(text)
 
-        # -------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Label layout:
-        # [ nPadding | Image | nPadding | Text | nPadding ]
-        # -------------------------------------------------------------------------
+        # [ n_padding | Image | n_padding | Text | n_padding ]
+        # ----------------------------------------------------------------------
 
         # Text bounding rectangle
-        textRect.x += nPadding
-        textRect.y = rect.y + (rect.height - h) / 2
-        textRect.width = rect.width - 2 * nPadding
+        text_rect.x += n_padding
+        text_rect.y = rect.y + (rect.height - h) / 2
+        text_rect.width = rect.width - 2 * n_padding
 
-        if bmp.Ok() and not self.HasAGWFlag(INB_SHOW_ONLY_TEXT):
-            textRect.x += bmp.GetWidth() + nPadding
-            textRect.width -= bmp.GetWidth() + nPadding
+        if bmp.Ok() and not self.has_agw_flag(INB_SHOW_ONLY_TEXT):
+            text_rect.x += bmp.GetWidth() + n_padding
+            text_rect.width -= bmp.GetWidth() + n_padding
 
-        textRect.height = h
+        text_rect.height = h
 
         # Truncate text if needed
-        caption = ArtManager.Get().TruncateText(dc, text, textRect.width)
+        caption = ArtManager.Get().TruncateText(dc, text, text_rect.width)
 
         # Image bounding rectangle
-        if bmp.Ok() and not self.HasAGWFlag(INB_SHOW_ONLY_TEXT):
+        if bmp.Ok() and not self.has_agw_flag(INB_SHOW_ONLY_TEXT):
 
-            imgRect.x += nPadding
-            imgRect.width = bmp.GetWidth()
-            imgRect.y = rect.y + (rect.height - bmp.GetHeight()) / 2
-            imgRect.height = bmp.GetHeight()
+            img_rect.x += n_padding
+            img_rect.width = bmp.GetWidth()
+            img_rect.y = rect.y + (rect.height - bmp.GetHeight()) / 2
+            img_rect.height = bmp.GetHeight()
 
         # Draw bounding rectangle
         if selected:
@@ -2015,26 +2227,26 @@ class LabelContainer(ImageContainerBase):
             # First we colour the tab
             dc.SetBrush(wx.Brush(self._coloursMap[INB_ACTIVE_TAB_COLOUR]))
 
-            if self.HasAGWFlag(INB_BORDER):
+            if self.has_agw_flag(INB_BORDER):
                 dc.SetPen(wx.Pen(self._coloursMap[INB_TABS_BORDER_COLOUR]))
             else:
                 dc.SetPen(wx.Pen(self._coloursMap[INB_ACTIVE_TAB_COLOUR]))
 
-            labelRect = wx.Rect(*rect)
+            label_rect = wx.Rect(*rect)
 
-            if orientationLeft:
-                labelRect.width += 3
+            if orientation_left:
+                label_rect.width += 3
             else:
-                labelRect.width += 3
-                labelRect.x -= 3
+                label_rect.width += 3
+                label_rect.x -= 3
 
-            dc.DrawRoundedRectangle(labelRect, 3)
+            dc.DrawRoundedRectangle(label_rect, 3)
 
-            if not orientationLeft and self.HasAGWFlag(INB_DRAW_SHADOW):
+            if not orientation_left and self.has_agw_flag(INB_DRAW_SHADOW):
                 dc.SetPen(wx.BLACK_PEN)
                 dc.DrawPoint(
-                    labelRect.x + labelRect.width - 1,
-                    labelRect.y + labelRect.height - 1,
+                    label_rect.x + label_rect.width - 1,
+                    label_rect.y + label_rect.height - 1,
                 )
 
         # Draw the text & bitmap
@@ -2045,47 +2257,47 @@ class LabelContainer(ImageContainerBase):
             else:
                 dc.SetTextForeground(self._coloursMap[INB_TEXT_COLOUR])
 
-            dc.DrawText(caption, textRect.x, textRect.y)
-            imgInfo.SetTextRect(textRect)
+            dc.DrawText(caption, text_rect.x, text_rect.y)
+            img_info.set_text_rect(text_rect)
 
         else:
 
-            imgInfo.SetTextRect(wx.Rect())
+            img_info.set_text_rect(wx.Rect())
 
-        if bmp.Ok() and not self.HasAGWFlag(INB_SHOW_ONLY_TEXT):
-            dc.DrawBitmap(bmp, imgRect.x, imgRect.y, True)
+        if bmp.Ok() and not self.has_agw_flag(INB_SHOW_ONLY_TEXT):
+            dc.DrawBitmap(bmp, img_rect.x, img_rect.y, True)
 
         # Drop shadow
-        if self.HasAGWFlag(INB_DRAW_SHADOW) and selected:
+        if self.has_agw_flag(INB_DRAW_SHADOW) and selected:
 
             sstyle = 0
-            if orientationLeft:
+            if orientation_left:
                 sstyle = BottomShadow
             else:
                 sstyle = BottomShadowFull | RightShadow
 
-            if self.HasAGWFlag(INB_WEB_HILITE):
+            if self.has_agw_flag(INB_WEB_HILITE):
 
                 # Always drop shadow for this style
                 ArtManager.Get().DrawBitmapShadow(dc, rect, sstyle)
 
             else:
 
-                if imgIdx + 1 != self._nHoeveredImgIdx:
+                if img_idx + 1 != self._nHoveredImgIdx:
 
                     ArtManager.Get().DrawBitmapShadow(dc, rect, sstyle)
 
         # Draw hover effect
         if hover:
 
-            if self.HasAGWFlag(INB_WEB_HILITE) and caption != "":
-                self.DrawWebHover(dc, caption, textRect.x, textRect.y)
+            if self.has_agw_flag(INB_WEB_HILITE) and caption != "":
+                self.draw_web_hover(dc, caption, text_rect.x, text_rect.y)
             else:
-                self.DrawRegularHover(dc, rect)
+                self.draw_regular_hover(dc, rect)
 
         # Update the page information bout position and size
-        imgInfo.SetPosition(rect.GetPosition())
-        imgInfo.SetSize(rect.GetSize())
+        img_info.set_position(rect.get_position())
+        img_info.set_size(rect.get_size())
 
 
 # ---------------------------------------------------------------------------- #
@@ -2099,47 +2311,71 @@ class FlatBookBase(wx.Panel):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="FlatBookBase",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
+        """
         self._pages = None
         self._bInitializing = True
         self._pages = None
@@ -2149,38 +2385,60 @@ class FlatBookBase(wx.Panel):
         self._fontBold = False
 
         style |= wx.TAB_TRAVERSAL
-        self._agwStyle = agwStyle
+        self._agwStyle = agw_style
 
-        wx.Panel.__init__(self, parent, id, pos, size, style, name)
+        wx.Panel.__init__(self, parent, window_id, pos, size, style, name)
         self._bInitializing = False
 
-    def SetAGWWindowStyleFlag(self, agwStyle):
-        """Sets the window style.
-
-        :param agwStyle: can be a combination of the following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
+    def set_agw_window_style_flag(self, agw_style):
         """
+        Sets the window style.
 
-        self._agwStyle = agwStyle
+        Args:
+            agw_style: can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+        """
+        self._agwStyle = agw_style
 
         # Check that we are not in initialization process
         if self._bInitializing:
@@ -2195,13 +2453,13 @@ class FlatBookBase(wx.Panel):
 
         self._mainSizer.Detach(self._pages)
 
-        # Create new sizer with the requested orientaion
-        className = self.GetName()
+        # Create new sizer with the requested orientation
+        class_name = self.GetName()
 
-        if className == "LabelBook":
+        if class_name == "LabelBook":
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+            if agw_style & INB_LEFT or agw_style & INB_RIGHT:
                 self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
             else:
                 self._mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -2211,56 +2469,61 @@ class FlatBookBase(wx.Panel):
         # Add the tab container and the separator
         self._mainSizer.Add(self._pages, 0, wx.EXPAND)
 
-        if className == "FlatImageBook":
+        if class_name == "FlatImageBook":
 
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+            if agw_style & INB_LEFT or agw_style & INB_RIGHT:
                 self._pages.SetSizeHints(self._pages._nImgSize * 2, -1)
             else:
                 self._pages.SetSizeHints(-1, self._pages._nImgSize * 2)
 
         # Attach the windows back to the sizer to the sizer
         if self.GetSelection() >= 0:
-            self.DoSetSelection(self._windows[self.GetSelection()])
+            self.do_set_selection(self._windows[self.GetSelection()])
 
-        if agwStyle & INB_FIT_LABELTEXT:
-            self.ResizeTabArea()
+        if agw_style & INB_FIT_LABELTEXT:
+            self.resize_tab_area()
 
         self._mainSizer.Layout()
         dummy = wx.SizeEvent()
         wx.PostEvent(self, dummy)
         self._pages.Refresh()
 
-    def GetAGWWindowStyleFlag(self):
-        """Returns the L{FlatBookBase} window style.
-
-        :see: L{SetAGWWindowStyleFlag} for a list of possible window style flags.
+    def get_agw_window_style_flag(self):
         """
+        Returns the L{FlatBookBase} window style.
 
+        See:
+            L{set_agw_window_style_flag} for a list of possible window style flags.
+        """
         return self._agwStyle
 
-    def HasAGWFlag(self, flag):
-        """Returns whether a flag is present in the L{FlatBookBase} style.
-
-        :param flag: one of the possible L{FlatBookBase} window styles.
-
-        :see: L{SetAGWWindowStyleFlag} for a list of possible window style flags.
+    def has_agw_flag(self, flag):
         """
+        Returns whether a flag is present in the L{FlatBookBase} style.
 
-        agwStyle = self.GetAGWWindowStyleFlag()
-        res = (agwStyle & flag and [True] or [False])[0]
+        Args:
+            flag: one of the possible L{FlatBookBase} window styles.
+
+        See:
+            L{set_agw_window_style_flag} for a list of possible window style flags.
+        """
+        agw_style = self.get_agw_window_style_flag()
+        res = (agw_style & flag and [True] or [False])[0]
         return res
 
-    def AddPage(self, page, text, select=False, imageId=-1):
-        """Adds a page to the book.
-
-        :param page: specifies the new page;
-        :param text: specifies the text for the new page;
-        :param select: specifies whether the page should be selected;
-        :param imageId: specifies the optional image index for the new page.
-
-        :note: The call to this function generates the page changing events.
+    def add_page(self, page, text, select=False, image_id=-1):
         """
+        Adds a page to the book.
 
+        Args:
+            page: specifies the new page;
+            text: specifies the text for the new page;
+            select: specifies whether the page should be selected;
+            image_id: specifies the optional image index for the new page.
+
+        Note:
+            The call to this function generates the page changing events.
+        """
         if not page:
             return
 
@@ -2269,26 +2532,28 @@ class FlatBookBase(wx.Panel):
         self._windows.append(page)
 
         if select or len(self._windows) == 1:
-            self.DoSetSelection(page)
+            self.do_set_selection(page)
         else:
             page.Hide()
 
-        self._pages.AddPage(text, select, imageId)
-        self.ResizeTabArea()
+        self._pages.add_page(text, select, image_id)
+        self.resize_tab_area()
         self.Refresh()
 
-    def InsertPage(self, page_idx, page, text, select=False, imageId=-1):
-        """Inserts a page into the book at the specified position.
-
-        :param page_idx: specifies the position for the new page;
-        :param page: specifies the new page;
-        :param text: specifies the text for the new page;
-        :param select: specifies whether the page should be selected;
-        :param imageId: specifies the optional image index for the new page.
-
-        :note: The call to this function generates the page changing events.
+    def insert_page(self, page_idx, page, text, select=False, image_id=-1):
         """
+        Inserts a page into the book at the specified position.
 
+        Args:
+            page_idx: specifies the position for the new page;
+            page: specifies the new page;
+            text: specifies the text for the new page;
+            select: specifies whether the page should be selected;
+            image_id: specifies the optional image index for the new page.
+
+        Note:
+            The call to this function generates the page changing events.
+        """
         if not page:
             return
 
@@ -2297,144 +2562,144 @@ class FlatBookBase(wx.Panel):
         self._windows.insert(page_idx, page)
 
         if select or len(self._windows) == 1:
-            self.DoSetSelection(page)
+            self.do_set_selection(page)
         else:
             page.Hide()
 
-        self._pages.InsertPage(page_idx, text, select, imageId)
-        self.ResizeTabArea()
+        self._pages.insert_page(page_idx, text, select, image_id)
+        self.resize_tab_area()
         self.Refresh()
 
-    def DeletePage(self, page):
-        """Deletes the specified page, and the associated window.
-
-        :param page: an integer specifying the page to be deleted.
-
-        :note: The call to this function generates the page changing events.
+    def delete_page(self, page):
         """
+        Deletes the specified page, and the associated window.
 
+        Args:
+            page: an integer specifying the page to be deleted.
+
+        Note:
+            The call to this function generates the page changing events.
+        """
         if page >= len(self._windows) or page < 0:
             return
 
         # Fire a closing event
         event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSING, self.GetId())
-        event.SetSelection(page)
+        event.set_selection(page)
         event.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(event)
 
         # The event handler allows it?
-        if not event.IsAllowed():
+        if not event.is_allowed():
             return False
 
         self.Freeze()
 
         # Delete the requested page
-        pageRemoved = self._windows[page]
+        page_removed = self._windows[page]
 
-        # If the page is the current window, remove it from the sizer
-        # as well
+        # If the page is the current window, remove it from the sizer as well
         if page == self.GetSelection():
-            self._mainSizer.Detach(pageRemoved)
+            self._mainSizer.Detach(page_removed)
 
         # Remove it from the array as well
         self._windows.pop(page)
 
-        # Now we can destroy it in wxWidgets use Destroy instead of delete
-        pageRemoved.Destroy()
+        # Now we can destroy it in wxWidgets use Destroy instead of delete              # noqa: SC100
+        page_removed.Destroy()
         self._mainSizer.Layout()
 
-        self._pages.DoDeletePage(page)
-        self.ResizeTabArea()
+        self._pages.do_delete_page(page)
+        self.resize_tab_area()
         self.Thaw()
 
         # Fire a closed event
-        closedEvent = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED, self.GetId())
-        closedEvent.SetSelection(page)
-        closedEvent.SetEventObject(self)
-        self.GetEventHandler().ProcessEvent(closedEvent)
+        closed_event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED, self.GetId())
+        closed_event.set_selection(page)
+        closed_event.SetEventObject(self)
+        self.GetEventHandler().ProcessEvent(closed_event)
 
-    def RemovePage(self, page):
-        """Deletes the specified page, without deleting the associated window.
-
-        :param page: an integer specifying the page to be removed.
-
-        :note: The call to this function generates the page changing events.
+    def remove_page(self, page):
         """
+        Deletes the specified page, without deleting the associated window.
 
+        Args:
+            page: an integer specifying the page to be removed.
+
+        Note:
+            The call to this function generates the page changing events.
+        """
         if page >= len(self._windows):
             return False
 
         # Fire a closing event
         event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSING, self.GetId())
-        event.SetSelection(page)
+        event.set_selection(page)
         event.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(event)
 
         # The event handler allows it?
-        if not event.IsAllowed():
+        if not event.is_allowed():
             return False
 
         self.Freeze()
 
         # Remove the requested page
-        pageRemoved = self._windows[page]
+        page_removed = self._windows[page]
 
-        # If the page is the current window, remove it from the sizer
-        # as well
+        # If the page is the current window, remove it from the size as well
         if page == self.GetSelection():
-            self._mainSizer.Detach(pageRemoved)
+            self._mainSizer.Detach(page_removed)
 
         # Remove it from the array as well
         self._windows.pop(page)
         self._mainSizer.Layout()
-        self.ResizeTabArea()
+        self.resize_tab_area()
         self.Thaw()
 
-        self._pages.DoDeletePage(page)
+        self._pages.do_delete_page(page)
 
         # Fire a closed event
-        closedEvent = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED, self.GetId())
-        closedEvent.SetSelection(page)
-        closedEvent.SetEventObject(self)
-        self.GetEventHandler().ProcessEvent(closedEvent)
+        closed_event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSED, self.GetId())
+        closed_event.set_selection(page)
+        closed_event.SetEventObject(self)
+        self.GetEventHandler().ProcessEvent(closed_event)
 
         return True
 
-    def ResizeTabArea(self):
+    def resize_tab_area(self):
         """Resizes the tab area if the control has the ``INB_FIT_LABELTEXT`` style set."""
+        agw_style = self.get_agw_window_style_flag()
 
-        agwStyle = self.GetAGWWindowStyleFlag()
-
-        if agwStyle & INB_FIT_LABELTEXT == 0:
+        if agw_style & INB_FIT_LABELTEXT == 0:
             return
 
-        if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+        if agw_style & INB_LEFT or agw_style & INB_RIGHT:
             dc = wx.MemoryDC()
             dc.SelectObject(wx.EmptyBitmap(1, 1))
             font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
             font.SetPointSize(font.GetPointSize() * self._fontSizeMultiple)
-            if self.GetFontBold():
+            if self.get_font_bold():
                 font.SetWeight(wx.FONTWEIGHT_BOLD)
             dc.SetFont(font)
-            maxW = 0
+            max_w = 0
 
             for page in range(self.GetPageCount()):
-                caption = self._pages.GetPageText(page)
+                caption = self._pages.get_page_text(page)
                 w, h = dc.GetTextExtent(caption)
-                maxW = max(maxW, w)
+                max_w = max(max_w, w)
 
-            maxW += 24  # TODO this is 6*4 6 is nPadding from drawlabel
+            max_w += 24  # TODO this is 6*4 6 is nPadding from drawlabel                 # noqa: SC100
 
-            if not agwStyle & INB_SHOW_ONLY_TEXT:
-                maxW += self._pages._nImgSize * 2
+            if not agw_style & INB_SHOW_ONLY_TEXT:
+                max_w += self._pages._nImgSize * 2
 
-            maxW = max(maxW, 100)
-            self._pages.SetSizeHints(maxW, -1)
-            self._pages._nTabAreaWidth = maxW
+            max_w = max(max_w, 100)
+            self._pages.SetSizeHints(max_w, -1)
+            self._pages._nTabAreaWidth = max_w
 
-    def DeleteAllPages(self):
+    def delete_all_pages(self):
         """Deletes all the pages in the book."""
-
         if not self._windows:
             return
 
@@ -2447,93 +2712,95 @@ class FlatBookBase(wx.Panel):
         self.Thaw()
 
         # remove old selection
-        self._pages.ClearAll()
+        self._pages.clear_all()
         self._pages.Refresh()
 
     def SetSelection(self, page):
-        """Changes the selection from currently visible/selected page to the page
-        given by page.
-
-        :param page: an integer specifying the page to be selected.
-
-        :note: The call to this function generates the page changing events.
         """
+        Changes the selection from currently visible/selected page to the page given by page.
 
+        Args:
+            page: an integer specifying the page to be selected.
+
+        Note:
+            The call to this function generates the page changing events.
+        """
         if page >= len(self._windows):
             return
 
         if page == self.GetSelection() and not self._bForceSelection:
             return
 
-        oldSelection = self.GetSelection()
+        old_selection = self.GetSelection()
 
         # Generate an event that indicates that an image is about to be selected
         event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CHANGING, self.GetId())
-        event.SetSelection(page)
-        event.SetOldSelection(oldSelection)
+        event.set_selection(page)
+        event.set_old_selection(old_selection)
         event.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(event)
 
         # The event handler allows it?
-        if not event.IsAllowed() and not self._bForceSelection:
+        if not event.is_allowed() and not self._bForceSelection:
             return
 
-        self.DoSetSelection(self._windows[page])
+        self.do_set_selection(self._windows[page])
         # Now we can update the new selection
         self._pages._nIndex = page
 
-        # Refresh calls the OnPaint of this class
+        # Refresh calls the on_paint of this class
         self._pages.Refresh()
 
         # Generate an event that indicates that an image was selected
-        eventChanged = ImageNotebookEvent(
+        event_changed = ImageNotebookEvent(
             wxEVT_IMAGENOTEBOOK_PAGE_CHANGED, self.GetId()
         )
-        eventChanged.SetEventObject(self)
-        eventChanged.SetOldSelection(oldSelection)
-        eventChanged.SetSelection(page)
-        self.GetEventHandler().ProcessEvent(eventChanged)
+        event_changed.SetEventObject(self)
+        event_changed.set_old_selection(old_selection)
+        event_changed.set_selection(page)
+        self.GetEventHandler().ProcessEvent(event_changed)
 
-    def AssignImageList(self, imglist):
-        """Assigns an image list to the control.
-
-        :param imglist: an instance of `wx.ImageList`.
+    def assign_image_list(self, imglist):
         """
+        Assigns an image list to the control.
 
-        self._pages.AssignImageList(imglist)
+        Args:
+            imglist: an instance of `wx.ImageList`.
+        """
+        self._pages.assign_image_list(imglist)
 
         # Force change
-        self.SetAGWWindowStyleFlag(self.GetAGWWindowStyleFlag())
+        self.set_agw_window_style_flag(self.get_agw_window_style_flag())
 
     def GetSelection(self):
         """Returns the current selection."""
-
         if self._pages:
             return self._pages._nIndex
         else:
             return -1
 
-    def DoSetSelection(self, window):
-        """Select the window by the provided pointer.
-
-        :param window: an instance of `wx.Window`.
+    def do_set_selection(self, window):
         """
+        Select the window by the provided pointer.
 
-        curSel = self.GetSelection()
-        agwStyle = self.GetAGWWindowStyleFlag()
+        Args:
+            window: an instance of `wx.Window`.
+        """
+        cur_sel = self.GetSelection()
+        agw_style = self.get_agw_window_style_flag()
         # Replace the window in the sizer
         self.Freeze()
 
         # Check if a new selection was made
-        bInsertFirst = agwStyle & INB_BOTTOM or agwStyle & INB_RIGHT
+        b_insert_first = agw_style & INB_BOTTOM or agw_style & INB_RIGHT
 
-        if curSel >= 0:
+        if cur_sel >= 0:
 
             # Remove the window from the main sizer
-            self._mainSizer.Detach(self._windows[curSel])
-            self._windows[curSel].Hide()
+            self._mainSizer.Detach(self._windows[cur_sel])
+            self._windows[cur_sel].Hide()
 
-        if bInsertFirst:
+        if b_insert_first:
             self._mainSizer.Insert(0, window, 1, wx.EXPAND)
         else:
             self._mainSizer.Add(window, 1, wx.EXPAND)
@@ -2542,86 +2809,88 @@ class FlatBookBase(wx.Panel):
         self._mainSizer.Layout()
         self.Thaw()
 
-    def GetImageList(self):
+    def get_image_list(self):
         """Returns the associated image list."""
-
-        return self._pages.GetImageList()
+        return self._pages.get_image_list()
 
     def GetPageCount(self):
         """Returns the number of pages in the book."""
-
         return len(self._windows)
 
-    def GetFontBold(self):
+    def get_font_bold(self):
         """Gets the font bold status."""
-
         return self._fontBold
 
-    def SetFontBold(self, bold):
+    def set_font_bold(self, bold):
         """
         Sets whether the page captions are bold or not.
 
-        :param bold: ``True`` or ``False``.
+        Args:
+            bold: ``True`` or ``False``.
         """
-
         self._fontBold = bold
 
-    def GetFontSizeMultiple(self):
+    def get_font_size_multiple(self):
         """Gets the font size multiple for the page captions."""
-
         return self._fontSizeMultiple
 
-    def SetFontSizeMultiple(self, multiple):
+    def set_font_size_multiple(self, multiple):
         """
         Sets the font size multiple for the page captions.
 
-        :param multiple: The multiple to be applied to the system font to get the our font size.
+        Args:
+            multiple: The multiple to be applied to the system font to get the
+                font size.
         """
-
         self._fontSizeMultiple = multiple
 
-    def SetPageImage(self, page, imageId):
-        """Sets the image index for the given page.
-
-        :param page: an integer specifying the page index;
-        :param image: an index into the image list.
+    def SetPageImage(self, page, image_id):
         """
+        Sets the image index for the given page.
 
-        self._pages.SetPageImage(page, imageId)
+        Args:
+            page: an integer specifying the page index;
+            image_id: an index into the image list.
+        """
+        self._pages.set_page_image(page, image_id)
         self._pages.Refresh()
 
     def SetPageText(self, page, text):
-        """Sets the text for the given page.
-
-        :param page: an integer specifying the page index;
-        :param text: the new tab label.
         """
+        Sets the text for the given page.
 
-        self._pages.SetPageText(page, text)
+        Args:
+            page: an integer specifying the page index;
+            text: the new tab label.
+        """
+        self._pages.set_page_text(page, text)
         self._pages.Refresh()
 
     def GetPageText(self, page):
-        """Returns the text for the given page.
-
-        :param page: an integer specifying the page index.
         """
+        Returns the text for the given page.
 
-        return self._pages.GetPageText(page)
+        Args:
+            page: an integer specifying the page index.
+        """
+        return self._pages.get_page_text(page)
 
     def GetPageImage(self, page):
-        """Returns the image index for the given page.
-
-        :param page: an integer specifying the page index.
         """
+        Returns the image index for the given page.
 
-        return self._pages.GetPageImage(page)
+        Args:
+            page: an integer specifying the page index.
+        """
+        return self._pages.get_page_image(page)
 
     def GetPage(self, page):
-        """Returns the window at the given page position.
-
-        :param page: an integer specifying the page to be returned.
         """
+        Returns the window at the given page position.
 
+        Args:
+            page: an integer specifying the page to be returned.
+        """
         if page >= len(self._windows):
             return
 
@@ -2629,60 +2898,66 @@ class FlatBookBase(wx.Panel):
 
     def GetCurrentPage(self):
         """Returns the currently selected notebook page or ``None``."""
-
         if self.GetSelection() < 0:
             return
 
         return self.GetPage(self.GetSelection())
 
-    def AdvanceSelection(self, forward=True):
-        """Cycles through the tabs.
-
-        :param forward: if ``True``, the selection is advanced in ascending order
-         (to the right), otherwise the selection is advanced in descending order.
-
-        :note: The call to this function generates the page changing events.
+    def advance_selection(self, forward=True):
         """
+        Cycles through the tabs.
 
-        nSel = self.GetSelection()
+        Args:
+            forward: if ``True``,
+                the selection is advanced in ascending order (to the right),
+                otherwise the selection is advanced in descending order.
 
-        if nSel < 0:
+        Note:
+            The call to this function generates the page changing events.
+        """
+        n_sel = self.GetSelection()
+
+        if n_sel < 0:
             return
 
-        nMax = self.GetPageCount() - 1
+        n_max = self.GetPageCount() - 1
 
         if forward:
-            newSelection = (nSel == nMax and [0] or [nSel + 1])[0]
+            new_selection = (n_sel == n_max and [0] or [n_sel + 1])[0]
         else:
-            newSelection = (nSel == 0 and [nMax] or [nSel - 1])[0]
+            new_selection = (n_sel == 0 and [n_max] or [n_sel - 1])[0]
 
-        self.SetSelection(newSelection)
+        self.SetSelection(new_selection)
 
-    def ChangeSelection(self, page):
-        """Changes the selection for the given page, returning the previous selection.
-
-        :param page: an integer specifying the page to be selected.
-
-        :note: The call to this function does not generate the page changing events.
+    def change_selection(self, page):
         """
+        Changes the selection for the given page, returning the previous selection.
 
+        Args:
+            page: an integer specifying the page to be selected.
+
+        Note:
+            The call to this function does not generate the page changing events.
+        """
         if page < 0 or page >= self.GetPageCount():
             return
 
-        oldPage = self.GetSelection()
-        self.DoSetSelection(page)
+        old_page = self.GetSelection()
+        self.do_set_selection(page)
 
-        return oldPage
+        return old_page
 
     CurrentPage = property(GetCurrentPage, doc="See `GetCurrentPage`")
     Page = property(GetPage, doc="See `GetPage`")
     PageCount = property(GetPageCount, doc="See `GetPageCount`")
     PageImage = property(
-        GetPageImage, SetPageImage, doc="See `GetPageImage, SetPageImage`"
+        GetPageImage, SetPageImage, doc="See `get_page_image, set_page_image`"
     )
-    PageText = property(GetPageText, SetPageText, doc="See `GetPageText, SetPageText`")
+    PageText = property(
+        GetPageText, SetPageText, doc="See `get_page_text, set_page_text`"
+    )
     Selection = property(
-        GetSelection, SetSelection, doc="See `GetSelection, SetSelection`"
+        GetSelection, SetSelection, doc="See `GetSelection, set_selection`"
     )
 
 
@@ -2692,62 +2967,92 @@ class FlatBookBase(wx.Panel):
 
 
 class FlatImageBook(FlatBookBase):
-    """Default implementation of the image book, it is like a `wx.Notebook`, except that
-    images are used to control the different pages. This container is usually used
-    for configuration dialogs etc.
+    """
+    Default implementation of the image book.
 
-    :note: Currently, this control works properly for images of size 32x32 and bigger.
+    It is like a `wx.Notebook`,
+    except that images are used to control the different pages.
+    This container is usually used for configuration dialogs etc.
+
+    Note:
+        Currently, this control works properly for images of size 32x32 and bigger.
     """
 
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="FlatImageBook",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
-        FlatBookBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
+        """
+        FlatBookBase.__init__(
+            self, parent, window_id, pos, size, style, agw_style, name
+        )
 
-        self._pages = self.CreateImageContainer()
+        self._pages = self.create_image_container()
 
-        if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+        if agw_style & INB_LEFT or agw_style & INB_RIGHT:
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
             self._mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -2757,17 +3062,18 @@ class FlatImageBook(FlatBookBase):
         # Add the tab container to the sizer
         self._mainSizer.Add(self._pages, 0, wx.EXPAND)
 
-        if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
-            self._pages.SetSizeHints(self._pages.GetImageSize() * 2, -1)
+        if agw_style & INB_LEFT or agw_style & INB_RIGHT:
+            self._pages.SetSizeHints(self._pages.get_image_size() * 2, -1)
         else:
-            self._pages.SetSizeHints(-1, self._pages.GetImageSize() * 2)
+            self._pages.SetSizeHints(-1, self._pages.get_image_size() * 2)
 
         self._mainSizer.Layout()
 
-    def CreateImageContainer(self):
+    def create_image_container(self):
         """Creates the image container class for L{FlatImageBook}."""
-
-        return ImageContainer(self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag())
+        return ImageContainer(
+            self, wx.ID_ANY, agw_style=self.get_agw_window_style_flag()
+        )
 
 
 # ---------------------------------------------------------------------------- #
@@ -2776,57 +3082,86 @@ class FlatImageBook(FlatBookBase):
 
 
 class LabelBook(FlatBookBase):
-    """An implementation of a notebook control - except that instead of having
-    tabs to show labels, it labels to the right or left (arranged horizontally).
+    """
+    An implementation of a notebook control.
+
+    Except that instead of having tabs to show labels,
+    it labels to the right or left (arranged horizontally).
     """
 
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        window_id=wx.ID_ANY,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="LabelBook",
     ):
-        """Default class constructor.
-
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.Panel` window style;
-        :param agwStyle: the AGW-specific window style. This can be a combination of the
-         following bits:
-
-         =========================== =========== ==================================================
-         Window Styles               Hex Value   Description
-         =========================== =========== ==================================================
-         ``INB_BOTTOM``                      0x1 Place labels below the page area. Available only for L{FlatImageBook}.
-         ``INB_LEFT``                        0x2 Place labels on the left side. Available only for L{FlatImageBook}.
-         ``INB_RIGHT``                       0x4 Place labels on the right side.
-         ``INB_TOP``                         0x8 Place labels above the page area.
-         ``INB_BORDER``                     0x10 Draws a border around L{LabelBook} or L{FlatImageBook}.
-         ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels and no images. Available only for L{LabelBook}.
-         ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images and no label texts. Available only for L{LabelBook}.
-         ``INB_FIT_BUTTON``                 0x80 Displays a pin button to show/hide the book control.
-         ``INB_DRAW_SHADOW``               0x100 Draw shadows below the book tabs. Available only for L{LabelBook}.
-         ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to show/hide the book control.
-         ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading on the tabs background. Available only for L{LabelBook}.
-         ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs behave like html hyperlinks. Available only for L{LabelBook}.
-         ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
-         ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
-         =========================== =========== ==================================================
-
-        :param name: the window name.
         """
+        Default class constructor.
 
-        FlatBookBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
+        Args:
+            parent: parent window. Must not be ``None``;
+            window_id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying `wx.Panel` window style;
+            agw_style: the AGW-specific window style.
+                This can be a combination of the following bits:
+                =========================== =========== ========================
+                Window Styles               Hex Value   Description
+                =========================== =========== ========================
+                ``INB_BOTTOM``                      0x1 Place labels below the
+                                                        page area. Available
+                                                        only for L{FlatImageBook}.
+                ``INB_LEFT``                        0x2 Place labels on the left side.
+                                                        Available only for
+                                                        L{FlatImageBook}.
+                ``INB_RIGHT``                       0x4 Place labels on the right side.
+                ``INB_TOP``                         0x8 Place labels above the
+                                                        page area.
+                ``INB_BORDER``                     0x10 Draws a border around
+                                                        L{LabelBook} or
+                                                        L{FlatImageBook}.
+                ``INB_SHOW_ONLY_TEXT``             0x20 Shows only text labels
+                                                        and no images.
+                                                        Available only for L{LabelBook}.
+                ``INB_SHOW_ONLY_IMAGES``           0x40 Shows only tab images
+                                                        and no label texts.
+                                                        Available only for L{LabelBook}.
+                ``INB_FIT_BUTTON``                 0x80 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_DRAW_SHADOW``               0x100 Draw shadows below the
+                                                        book tabs.
+                                                        Available only for L{LabelBook}.
+                ``INB_USE_PIN_BUTTON``            0x200 Displays a pin button to
+                                                        show/hide the book control.
+                ``INB_GRADIENT_BACKGROUND``       0x400 Draws a gradient shading
+                                                        on the tabs background.
+                                                        Available only for L{LabelBook}.
+                ``INB_WEB_HILITE``                0x800 On mouse hovering, tabs
+                                                        behave like html hyperlinks.
+                                                        Available only for L{LabelBook}.
+                ``INB_NO_RESIZE``                0x1000 Don't allow resizing of
+                                                        the tab area.
+                ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to
+                                                        the longest text (or
+                                                        text+image if you have images)
+                                                        in all the tabs.
+                =========================== =========== ========================
+            name: the window name.
+        """
+        FlatBookBase.__init__(
+            self, parent, window_id, pos, size, style, agw_style, name
+        )
 
-        self._pages = self.CreateImageContainer()
+        self._pages = self.create_image_container()
 
         # Label book specific initialization
         self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -2834,44 +3169,50 @@ class LabelBook(FlatBookBase):
 
         # Add the tab container to the sizer
         self._mainSizer.Add(self._pages, 0, wx.EXPAND)
-        self._pages.SetSizeHints(self._pages.GetTabAreaWidth(), -1)
+        self._pages.SetSizeHints(self._pages.get_tab_area_width(), -1)
 
         # Initialize the colours maps
-        self._pages.InitializeColours()
+        self._pages.initialize_colours()
 
-        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_SIZE, self.on_size)
 
-    def CreateImageContainer(self):
+    def create_image_container(self):
         """Creates the image container (LabelContainer) class for L{FlatImageBook}."""
+        return LabelContainer(
+            self, wx.ID_ANY, agw_style=self.get_agw_window_style_flag()
+        )
 
-        return LabelContainer(self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag())
-
-    def SetColour(self, which, colour):
-        """Sets the colour for the specified parameter.
-
-        :param which: the colour key;
-        :param colour: a valid `wx.Colour` instance.
-
-        :see: L{LabelContainer.SetColour} for a list of valid colour keys.
+    def set_colour(self, which, colour):
         """
+        Sets the colour for the specified parameter.
 
-        self._pages.SetColour(which, colour)
+        Args:
+            which: the colour key;
+            colour: a valid `wx.Colour` instance.
 
-    def GetColour(self, which):
-        """Returns the colour for the specified parameter.
-
-        :param which: the colour key.
-
-        :see: L{LabelContainer.SetColour} for a list of valid colour keys.
+        See:
+            L{LabelContainer.set_colour} for a list of valid colour keys.
         """
+        self._pages.set_colour(which, colour)
 
-        return self._pages.GetColour(which)
-
-    def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` event for L{LabelBook}.
-
-        :param event: a `wx.SizeEvent` event to be processed.
+    def get_colour(self, which):
         """
+        Returns the colour for the specified parameter.
 
+        Args:
+            which: the colour key.
+
+        See:
+            L{LabelContainer.set_colour} for a list of valid colour keys.
+        """
+        return self._pages.get_colour(which)
+
+    def on_size(self, event):
+        """
+        Handles the ``wx.EVT_SIZE`` event for L{LabelBook}.
+
+        Args:
+            event: a `wx.SizeEvent` event to be processed.
+        """
         self._pages.Refresh()
         event.Skip()

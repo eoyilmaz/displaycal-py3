@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
+import re
+import os
+import sys
 
-from DisplayCAL import (
-    colormath,
-    config,
-    ICCProfile as ICCP,
-    localization as lang,
-    wxenhancedplot as plot,
-    x3dom,
-)
+import traceback
+
 from DisplayCAL.config import (
     defaults,
     fs_enc,
@@ -15,10 +12,10 @@ from DisplayCAL.config import (
     get_data_path,
     get_display_profile,
     get_display_rects,
-    get_verified_path,
     getbitmap,
     getcfg,
     geticon,
+    get_verified_path,
     profile_ext,
     setcfg,
     writecfg,
@@ -31,19 +28,14 @@ from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
 from DisplayCAL.util_str import strtr, universal_newlines, wrap
 from DisplayCAL.worker import (
-    check_set_argyll_bin,
     Error,
+    UnloggedError,
+    check_set_argyll_bin,
     get_argyll_util,
     make_argyll_compatible_path,
     show_result_dialog,
-    UnloggedError,
 )
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
-from DisplayCAL.wxfixes import (
-    GenBitmapButton as BitmapButton,
-    set_maxsize,
-    wx_Panel,
-)
 from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
 from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile
 from DisplayCAL.wxwindows import (
@@ -58,11 +50,13 @@ from DisplayCAL.wxwindows import (
     SimpleBook,
     TwoWaySplitter,
 )
-
-import os
-import re
-import sys
-import traceback
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel, set_maxsize
+from DisplayCAL import colormath
+from DisplayCAL import config
+from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import localization as lang
+from DisplayCAL import ICCProfile as ICCP
+from DisplayCAL import x3dom
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"

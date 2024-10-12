@@ -3,12 +3,17 @@ certifi
 comtypes; sys_platform=='win32'
 dbus-python; sys_platform=='linux'
 distro
+future
 numpy
 Pillow
+protobuf
 PyChromecast
+pygobject
 pywin32; sys_platform=='win32'
+qtpy
 Send2Trash
 #wexpect; sys_platform=='win32'
 wmi; sys_platform=='win32'
 wxPython>=4.1.1
 zeroconf
+zlib

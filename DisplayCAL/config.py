@@ -332,6 +332,19 @@ def getbitmap(name, display_missing_icon=True, scale=True, use_mask=False):
 
 
 def create_bitmap(name, display_missing_icon, scale, use_mask):
+    """
+    Create a bitmap with the specified name and dimensions.
+
+    Args:
+        name (str): The name of the bitmap.
+        display_missing_icon (bool): Whether to display a missing icon if the
+            bitmap is not found.
+        scale (bool): Whether to scale the bitmap.
+        use_mask (bool): Whether to use a mask for the bitmap.
+
+    Returns:
+        wx.Bitmap: The created bitmap.
+    """
     parts = name.split("/")
     w = 16
     h = 16
@@ -360,7 +373,18 @@ def create_bitmap(name, display_missing_icon, scale, use_mask):
 
 
 def create_empty_bitmap(w, h, use_mask):
-    if wx.VERSION < (3,):
+    """
+    Create an empty bitmap with the specified dimensions.
+
+    Args:
+        w (int): Width of the bitmap.
+        h (int): Height of the bitmap.
+        use_mask (bool): Whether to use a mask for the bitmap.
+
+    Returns:
+        wx.Bitmap: The created empty bitmap.
+    """
+    if wx.VERSION[0] < 3:
         use_mask = True
     if use_mask and sys.platform == "win32":
         bmp = wx.EmptyBitmap(w, h)
@@ -371,6 +395,21 @@ def create_empty_bitmap(w, h, use_mask):
 
 
 def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
+    """
+    Load a bitmap from the specified parts and dimensions.
+
+    Args:
+        parts (list): A list of parts representing the path to the bitmap.
+        ow (int): Original width of the bitmap.
+        oh (int): Original height of the bitmap.
+        w (int): New width of the bitmap.
+        h (int): New height of the bitmap.
+        scale (float): Scale factor for the bitmap.
+        use_mask (bool): Whether to use a mask for the bitmap.
+
+    Returns:
+        wx.Bitmap: The loaded bitmap.
+    """
     if parts[-1].startswith(appname):
         parts[-1] = parts[-1].lower()
     oname = parts[-1]
@@ -562,13 +601,15 @@ def get_bitmap_as_icon(size, name, scale=True):
     """
     Like geticon, but return a wx.Icon instance.
 
+    Get a bitmap as an icon with the specified size and name.
+
     Args:
         size (int): The size of the icon.
         name (str): The name of the icon.
         scale (bool): Whether to scale the icon.
 
     Returns:
-        wx.Icon: The icon instance.
+        wx.Icon: The (created) icon (instance).
     """
     from DisplayCAL.wxaddons import wx
 

@@ -583,7 +583,7 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
             if not bmp.IsOk():
                 path = None
     if not path:
-        print("Warning: Missing bitmap '%s'" % name)
+        print(f"Warning: Missing bitmap '{name}'")
         img = wx.Image(w, h)
         img.SetMaskColour(0, 0, 0)
         img.InitAlpha()
@@ -1987,7 +1987,8 @@ def makecfgdir(which="user", worker=None):
                 os.makedirs(confighome)
             except Exception as exception:
                 print(
-                    f"Warning - could not create configuration directory '{confighome}': {exception}"  # noqa: B950
+                    "Warning - could not create configuration directory "
+                    f"'{confighome}': {exception}"
                 )
                 return False
     elif not os.path.exists(config_sys):
@@ -2008,7 +2009,8 @@ def makecfgdir(which="user", worker=None):
                     raise result
         except Exception as exception:
             print(
-                f"Warning - could not create configuration directory '{config_sys}': {exception}"  # noqa: B950
+                "Warning - could not create configuration directory "
+                f"'{config_sys}': {exception}"
             )
             return False
     return True
@@ -2081,7 +2083,11 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     # This won't raise an exception if the file does not exist,
     # only if it can't be parsed
     except Exception:
-        print(f"Warning - could not parse configuration files:\n{cfgfiles}")
+        print(
+            "Warning - could not parse configuration files:\n%s".format(
+                "\n".join(cfgfiles)
+            )
+        )
         # Fix Python 2.7 ConfigParser option values being lists instead of
         # strings in case of a ParsingError. http://bugs.python.org/issue24142
         all_sections = [configparser.DEFAULTSECT]
@@ -2334,9 +2340,8 @@ def writecfg(which="user", worker=None, module=None, options=(), cfg=cfg):
                 optionlines = lines[1:]
             # Sorting works as long as config has only one section
             lines = lines[:1] + sorted(optionlines)
-            cfgfile = open(cfgfilename, "wb")
-            cfgfile.write((os.linesep.join(lines) + os.linesep).encode())
-            cfgfile.close()
+            with open(cfgfilename, "wb") as cfgfile:
+                cfgfile.write((os.linesep.join(lines) + os.linesep).encode())
         except Exception as exception:
             print(
                 "Warning - could not write user configuration file "
@@ -2356,12 +2361,11 @@ def writecfg(which="user", worker=None, module=None, options=(), cfg=cfg):
             if getcfg("argyll.dir"):
                 cfgfile.write(
                     (
-                        "%s%s"
-                        % (
+                        "%s%s".format(
                             os.linesep.join(
                                 [
                                     "[Default]",
-                                    "%s = %s" % ("argyll.dir", getcfg("argyll.dir")),
+                                    f"argyll.dir = {getcfg('argyll.dir')}",
                                 ]
                             ),
                             os.linesep,
@@ -2385,7 +2389,8 @@ def writecfg(which="user", worker=None, module=None, options=(), cfg=cfg):
                     raise result
         except Exception as exception:
             print(
-                f"Warning - could not write system-wide configuration file '{cfgfilename2}': {exception}"  # noqa: B950
+                "Warning - could not write system-wide configuration file "
+                f"'{cfgfilename2}': {exception}"
             )
             return False
     return True

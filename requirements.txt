@@ -1,4 +1,4 @@
-build #mamba python-build
+build #conda python-build
 certifi
 comtypes; sys_platform=='win32'
 dbus-python; sys_platform=='linux'
@@ -12,8 +12,7 @@ pygobject
 pywin32; sys_platform=='win32'
 qtpy
 Send2Trash
-#wexpect; sys_platform=='win32'
 wmi; sys_platform=='win32'
-wxPython>=4.1.1
+wxPython>=4.2.2
 zeroconf
 zlib

@@ -41,6 +41,7 @@ from DisplayCAL import (
     xh_floatspin,
     xh_hstretchstatbmp,
 )
+# import wexpect
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
@@ -514,7 +515,7 @@ def app_update_confirm(
         #       we don't have access to displaycal.net to update the ArgylCMS
         #       version. So, this mechanism should be updated to use some
         #       other way of getting newer app versions...
-        newversion = "3.2.0"
+        newversion = "3.3.0"
     else:
         newversion_desc = appname
     newversion_desc += f" {newversion}"

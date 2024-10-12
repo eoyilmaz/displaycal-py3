@@ -157,7 +157,12 @@ def main():
                 )
         if result is None:
             print("No filename given.")
-        if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty() and "--batch" not in sys.argv[1:]:
+        if (
+            sys.stdout
+            and hasattr(sys.stdout, "isatty")
+            and sys.stdout.isatty()
+            and "--batch" not in sys.argv[1:]
+        ):
             input("Press RETURN to exit")
         sys.exit(int(not result))
     else:
@@ -264,9 +269,11 @@ def vrmlfile2x3dfile(
     if worker:
         worker.clear_cmd_output()
         worker.start(
-            lambda result: show_result_dialog(result, wx.GetApp().GetTopWindow())
-            if isinstance(result, Exception)
-            else result and view and launch_file(finalpath),
+            lambda result: (
+                show_result_dialog(result, wx.GetApp().GetTopWindow())
+                if isinstance(result, Exception)
+                else result and view and launch_file(finalpath)
+            ),
             x3dom.vrmlfile2x3dfile,
             wargs=(vrmlpath, x3dpath, html, embed, force, cache, worker),
             progress_title=lang.getstr("vrml_to_x3d_converter"),

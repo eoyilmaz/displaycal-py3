@@ -121,7 +121,9 @@ class ScriptingClientFrame(SimpleTerminal):
             with open(self.historyfilename, "wb") as historyfile:
                 for command in self.history:
                     if command:
-                        historyfile.write(safe_str(command, "UTF-8") + os.linesep)
+                        historyfile.write(
+                            (safe_str(command, "UTF-8") + os.linesep).encode("utf-8")
+                        )
         except EnvironmentError as exception:
             print("Warning - couldn't write history file:", exception)
         self.listening = False
@@ -292,7 +294,7 @@ class ScriptingClientFrame(SimpleTerminal):
 
     def get_response(self):
         try:
-            return "< " + "\n< ".join(self.conn.get_single_response().splitlines())
+            return b"< " + b"\n< ".join(self.conn.get_single_response().splitlines())
         except socket.error as exception:
             return exception
 

@@ -18,7 +18,7 @@ def vc90crt_find_files():
         processorArchitecture=arch,
         name=name,
         publicKeyToken="1fc8b3b9a1e18e3b",
-        version=[9, 0, 21022, 8],
+        version=[9, 0, 30729, 9625],
     ).find_files()
 
 

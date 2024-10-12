@@ -1,20 +1,80 @@
 # -*- coding: utf-8 -*-
 
+# stdlib
+import codecs
 from binascii import hexlify
+import atexit
+import ctypes
+import datetime
+
+import getpass
+import http.client
+import math
+import mimetypes
+import os
+import pipes
+from io import BytesIO
+from pathlib import Path
+
+import distro
+import platform
+import re
+import socket
+import shutil
+import string
+import struct
+import subprocess as sp
+import sys
+import tempfile
+import textwrap
+import threading
+import traceback
+import urllib.request
+import urllib.parse
+import urllib.error
+import urllib.request
+import urllib.error
+import urllib.parse
+import urllib.parse
+import warnings
+import zipfile
+import zlib
 from collections import UserString
-from DisplayCAL import (
-    audio,
-    CGATS,
-    colord,
-    colormath,
-    config,
-    defaultpaths,
-    ICCProfile as ICCP,
-    imfile,
-    localization as lang,
-    madvr,
-    wexpect,
-)
+from hashlib import md5, sha256
+from threading import currentThread
+from time import sleep, strftime, time
+
+from send2trash import send2trash
+
+if sys.platform == "darwin":
+    from platform import mac_ver
+    from _thread import start_new_thread
+elif sys.platform == "win32":
+    from ctypes import windll
+    import winreg
+else:
+    import grp
+
+# 3rd party
+if sys.platform == "win32":
+    from win32com.shell import shell as win32com_shell
+    import pythoncom
+    import win32api
+    import win32con
+    import win32event
+    import pywintypes
+    import winerror
+
+# custom
+from DisplayCAL import CGATS
+from DisplayCAL import ICCProfile as ICCP
+from DisplayCAL import audio
+from DisplayCAL import colormath
+from DisplayCAL import config
+from DisplayCAL import defaultpaths
+from DisplayCAL import imfile
+from DisplayCAL import localization as lang
+from DisplayCAL import wexpect
 from DisplayCAL.argyll_cgats import (
     add_dispcal_options_to_cal,
     add_options_to_ti3,
@@ -33,69 +93,63 @@ from DisplayCAL.argyll_instruments import (
     instruments as all_instruments,
 )
 from DisplayCAL.argyll_names import (
-    altnames as argyll_altnames,
-    intents,
     names as argyll_names,
-    observers,
+    altnames as argyll_altnames,
     optional as argyll_optional,
     viewconds,
+    intents,
+    observers,
 )
-from DisplayCAL.colormath import eeColor_to_VidRGB, VidRGB_to_eeColor
+from DisplayCAL.colormath import VidRGB_to_eeColor, eeColor_to_VidRGB
 from DisplayCAL.config import (
-    appbasename,
     autostart,
     autostart_home,
+    script_ext,
     defaults,
     enc,
     exe,
-    exe_ext,
     exedir,
+    exe_ext,
     fs_enc,
+    getcfg,
+    geticon,
     get_data_path,
     get_total_patches,
     get_verified_path,
-    getcfg,
-    geticon,
-    is_ccxx_testchart,
     isapp,
     isexe,
+    is_ccxx_testchart,
     logdir,
     profile_ext,
     pydir,
-    script_ext,
     setcfg,
     setcfg_cond,
     split_display_name,
     writecfg,
+    appbasename,
 )
 from DisplayCAL.debughelpers import (
-    DownloadError,
     Error,
-    handle_error,
+    DownloadError,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
     UntracedError,
     Warn,
+    handle_error,
 )
 from DisplayCAL.defaultpaths import (
-    appdata,
     cache,
-    iccprofiles_display_home,
     iccprofiles_home,
+    iccprofiles_display_home,
+    appdata,
 )
-from DisplayCAL.edid import get_edid, WMIError
-from DisplayCAL.log import DummyLogger, get_file_logger, log, LogFile
-from DisplayCAL.meta import (
-    DOMAIN,
-    name as appname,
-    version,
-    VERSION,
-    VERSION_BASE,
-)
+from DisplayCAL.edid import WMIError, get_edid
+from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
+from DisplayCAL import madvr
+from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version
 from DisplayCAL.multiprocess import cpu_count, pool_slice
-from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.options import (
     always_fail_download,
     debug,
@@ -106,10 +160,12 @@ from DisplayCAL.options import (
     test_require_sensor_cal,
     verbose,
 )
+
+from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.patterngenerators import (
     PrismaPatternGeneratorClient,
-    ResolveCMPatternGeneratorServer,
     ResolveLSPatternGeneratorServer,
+    ResolveCMPatternGeneratorServer,
     WebWinHTTPPatternGeneratorServer,
 )
 from DisplayCAL.util_decimal import stripzeros
@@ -125,6 +181,41 @@ from DisplayCAL.util_io import (
     TarFileProper,
 )
 from DisplayCAL.util_list import intlist, natsort
+
+if sys.platform == "darwin":
+    from DisplayCAL.util_mac import (
+        mac_app_activate,
+        mac_terminal_do_script,
+        mac_terminal_set_colors,
+        osascript,
+        get_machine_attributes,
+        get_model_id,
+    )
+elif sys.platform == "win32":
+    from DisplayCAL import util_win
+    from DisplayCAL.util_win import run_as_admin, shell_exec, win_ver
+
+    try:
+        import wmi
+    except Exception as exception:
+        print("Error - could not import WMI:", exception)
+        wmi = None
+else:
+    # Linux
+    from DisplayCAL.defaultpaths import xdg_data_home
+
+    try:
+        from DisplayCAL.util_dbus import (
+            DBusObject,
+            DBusException,
+            BUSTYPE_SESSION,
+            dbus_session,
+            dbus_system,
+        )
+    except ImportError:
+        dbus_session = None
+        dbus_system = None
+from DisplayCAL import colord
 from DisplayCAL.util_os import (
     dlopen,
     expanduseru,
@@ -139,131 +230,54 @@ from DisplayCAL.util_os import (
     safe_glob,
     which,
 )
+
+if sys.platform not in ("darwin", "win32"):
+    from DisplayCAL.util_os import getgroups
+if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
+    from DisplayCAL.util_os import win64_disable_file_system_redirection
+
 from DisplayCAL.util_str import (
     make_filename_safe,
-    safe_asciize,
     safe_basestring,
+    safe_asciize,
     safe_str,
     strtr,
     universal_newlines,
 )
 from DisplayCAL.worker_base import (
+    MP_Xicclu,
+    WorkerBase,
+    Xicclu,
     _mp_generate_B2A_clut,
     _mp_xicclu,
     check_argyll_bin,
     get_argyll_util,
     get_argyll_utilname,
     get_argyll_version_string as base_get_argyll_version_string,
-    MP_Xicclu,
     parse_argyll_version_string,
     printcmdline,
-    WorkerBase,
-    Xicclu,
 )
 from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
-from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxUntetheredFrame import UntetheredFrame
 from DisplayCAL.wxwindows import (
     ConfirmDialog,
     HtmlInfoDialog,
     InfoDialog,
     ProgressDialog,
-    show_result_dialog,
     SimpleTerminal,
+    show_result_dialog,
 )
-from hashlib import md5, sha256
-from io import BytesIO
-from pathlib import Path
-from send2trash import send2trash
-from threading import currentThread
-from time import sleep, strftime, time
-
-import atexit
-import codecs
-import ctypes
-import datetime
-import distro
-import getpass
-import http.client
-import math
-import mimetypes
-import os
-import pipes
-import platform
-import re
-import shutil
-import socket
-import string
-import struct
-import subprocess as sp
-import sys
-import tempfile
-import textwrap
-import threading
-import traceback
-import urllib.error
-import urllib.parse
-import urllib.request
-import warnings
-# import wexpect
-import wx.lib.delayedresult as delayedresult
-import zipfile
-import zlib
+from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
+from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
+from DisplayCAL.wxUntetheredFrame import UntetheredFrame
 
 RDSMM = None
-
-if sys.platform == "darwin":
-    from _thread import start_new_thread
-    from DisplayCAL.util_mac import (
-        get_machine_attributes,
-        get_model_id,
-        mac_app_activate,
-        mac_terminal_do_script,
-        mac_terminal_set_colors,
-        osascript,
-    )
-    from platform import mac_ver
-elif sys.platform == "win32":
-    from ctypes import windll
-    from DisplayCAL import util_win
-    from DisplayCAL.util_win import run_as_admin, shell_exec, win_ver
-    from win32com.shell import shell as win32com_shell
-    import pythoncom
-    import pywintypes
-    import win32api
-    import win32con
-    import win32event
-    import winerror
-    import winreg
-    try:
-        import wmi
-    except Exception as exception:
-        print("Error - could not import WMI:", exception)
-        wmi = None
-else:
-    # Linux
-    from DisplayCAL.defaultpaths import xdg_data_home
-    from DisplayCAL.util_os import getgroups
-    import grp
+if sys.platform not in ("darwin", "win32"):
     try:
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning)
-    try:
-        from DisplayCAL.util_dbus import (
-            BUSTYPE_SESSION,
-            dbus_session,
-            dbus_system,
-            DBusException,
-            DBusObject,
-        )
-    except ImportError:
-        dbus_session = None
-        dbus_system = None
+import wx.lib.delayedresult as delayedresult
 
-if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
-    from DisplayCAL.util_os import win64_disable_file_system_redirection
 
 INST_CAL_MSGS = [
     "Do a reflective white calibration",
@@ -1685,7 +1699,6 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
 
 
 class EvalFalse(object):
-
     """Evaluate to False in boolean comparisons"""
 
     def __init__(self, wrapped_object):
@@ -1848,7 +1861,9 @@ class Producer(object):
         except Exception as exception:
             if debug:
                 messages = traceback.format_exception(exception)
-                print("[D] Worker raised an unhandled exception: \n" + "\n".join(messages))
+                print(
+                    "[D] Worker raised an unhandled exception: \n" + "\n".join(messages)
+                )
             raise
         if not self.continue_next and self.worker._progress_wnd:
             if hasattr(
@@ -5482,12 +5497,9 @@ END_DATA
                         if argyll_version_string != self.argyll_version_string:
                             self.set_argyll_version_from_string(argyll_version_string)
                         print(f"ArgyllCMS {self.argyll_version_string}")
-                        defaults[
-                            "copyright"
-                        ] = "No copyright. Created with %s %s and Argyll CMS %s" % (
-                            appname,
-                            version,
-                            argyll_version_string,
+                        defaults["copyright"] = (
+                            f"No copyright. Created with {appname} {version} and "
+                            f"Argyll CMS {argyll_version_string}"
                         )
 
                         if self.argyll_version > [1, 0, 4]:
@@ -5940,7 +5952,10 @@ END_DATA
         # If dry_run is explicitly set to False, ignore dry_run config value
         dry_run = dry_run is not False and (dry_run or getcfg("dry_run"))
         if not capture_output:
-            capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
+            capture_output = False
+            if sys.stdout and hasattr(sys.stdout, "isatty") and not sys.stdout.isatty():
+                capture_output = True
+
         self.clear_cmd_output()
         if None in [cmd, args]:
             if verbose >= 1 and not silent:
@@ -6595,7 +6610,7 @@ BEGIN_DATA
                     if os.path.exists(path):
                         pythonpath[i] = win32api.GetShortPathName(path)
                 # Write out .wait.py file
-                scriptfilename =  f"{waitfilename}.py"
+                scriptfilename = f"{waitfilename}.py"
                 with open(scriptfilename, "w", encoding="utf-8") as scriptfile:
                     scriptfile.write(pythonscript)
                 scriptfilename = win32api.GetShortPathName(scriptfilename)
@@ -6618,7 +6633,7 @@ BEGIN_DATA
                 with open(waitfilename, "w") as waitfile:
                     waitfile.write(f"#!/usr/bin/env python3\n{pythonscript}")
                 os.chmod(waitfilename, 0o755)
-                args[index] += '%s ./%s' % (
+                args[index] += "%s ./%s" % (
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
                 )
@@ -6962,7 +6977,9 @@ BEGIN_DATA
                     stderr = tempfile.SpooledTemporaryFile()
                 if capture_output:
                     stdout = tempfile.SpooledTemporaryFile()
-                elif sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                elif (
+                    sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+                ):
                     stdout = sys.stdout
                 else:
                     stdout = sp.PIPE
@@ -6976,9 +6993,9 @@ BEGIN_DATA
                 data_encoding = self.pty_encoding
                 kwargs = dict(timeout=20, cwd=working_dir, env=os.environ)
                 if sys.platform == "win32":
-                    # FIX: stdio cp1252 vs utf-8 issue under Windows 10/11+
+                    # FIX: stdio cp1252 vs utf-8 (cp65001) issue under Windows 10/11+
                     # os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
-                    kwargs["codepage"] = 65001 # windll.kernel32.GetACP()
+                    kwargs["codepage"] = windll.kernel32.GetACP() #1252  # 65001 if capture_output else 1252
                     # As Windows' console always hard wraps at the
                     # rightmost column, increase the buffer width
                     kwargs["columns"] = 160
@@ -6998,7 +7015,11 @@ BEGIN_DATA
                     )
                 if log_output:
                     linebuffered_logfiles = []
-                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                    if (
+                        sys.stdout
+                        and hasattr(sys.stdout, "isatty")
+                        and sys.stdout.isatty()
+                    ):
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -7065,8 +7086,6 @@ BEGIN_DATA
                             raise Error(lang.getstr("windows.version.unsupported"))
 
                         try:
-                            # print(f"cmdline: {cmdline}")
-                            # print(f"kwargs : {kwargs}")
                             self.subprocess = wexpect.spawn(
                                 cmdline[0], cmdline[1:], **kwargs
                             )
@@ -7202,7 +7221,9 @@ BEGIN_DATA
                                 ):
                                     # Restore madTPG OSD and fullscreen
                                     self.madtpg_restore_settings(False)
-                                self.log(f"{appname}: Sending buffer: {self.send_buffer}")
+                                self.log(
+                                    f"{appname}: Sending buffer: {self.send_buffer}"
+                                )
                                 self._safe_send(self.send_buffer)
                                 self.send_buffer = None
                         if not self.subprocess.isalive():
@@ -11179,7 +11200,11 @@ usage: spotread [-options] [logfile]
                 ):
                     # Smooth existing B2A tables
                     linebuffered_logfiles = []
-                    if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                    if (
+                        sys.stdout
+                        and hasattr(sys.stdout, "isatty")
+                        and sys.stdout.isatty()
+                    ):
                         linebuffered_logfiles.append(print)
                     else:
                         linebuffered_logfiles.append(log)
@@ -13123,12 +13148,12 @@ usage: spotread [-options] [logfile]
         if not os.path.exists(f"{in_out_file}.ti3"):
             return (
                 Error(
-                    lang.getstr("error.measurement.file_missing",  f"{in_out_file}.ti3")
+                    lang.getstr("error.measurement.file_missing", f"{in_out_file}.ti3")
                 ),
                 None,
             )
         if not os.path.isfile(f"{in_out_file}.ti3"):
-            return Error(lang.getstr("file_notfile",  f"{in_out_file}.ti3")), None
+            return Error(lang.getstr("file_notfile", f"{in_out_file}.ti3")), None
 
         cmd = get_argyll_util("colprof")
         args = ["-v", f"-q{getcfg('profile.quality')}", f"-a{getcfg('profile.type')}"]
@@ -13493,7 +13518,7 @@ usage: spotread [-options] [logfile]
             luminance = getcfg("calibration.luminance", False)
             self.log(f"{appname}: luminance: {luminance}")
             if luminance is not None:
-                args.append("-b{luminance}")
+                args.append(f"-b{luminance}")
             if getcfg("trc"):
                 args.append("-" + getcfg("trc.type") + str(getcfg("trc")))
                 args.append("-f%s" % getcfg("calibration.black_output_offset"))
@@ -13945,7 +13970,7 @@ usage: spotread [-options] [logfile]
                         # avoid profile install issues
                         profile_tmp_path = os.path.join(
                             tmp_dir,
-                            safe_asciize(profile_name).decode("utf-8", "ignore")
+                            safe_asciize(profile_name).decode("utf-8", "ignore"),
                         )
                     else:
                         profile_tmp_path = os.path.join(tmp_dir, profile_name)
@@ -14540,7 +14565,7 @@ usage: spotread [-options] [logfile]
         self.terminal.cgats = cgats
 
     def setup_inout(self, basename=None):
-        """Setup in/outfile basename and session logfile"""
+        """Setup in/outfile basename and session logfile."""
         dirname = self.create_tempdir()
         if not dirname or isinstance(dirname, Exception):
             return dirname
@@ -15019,7 +15044,7 @@ usage: spotread [-options] [logfile]
                     src = os.path.splitext(os.path.basename(src))[0]
                 else:
                     if mods:
-                        src += " " + "".join([f"[{mod.upper()}]"  for mod in mods])
+                        src += " " + "".join([f"[{mod.upper()}]" for mod in mods])
                     src_path = get_data_path(f"ref/{src}.gam")
                 if not src_path:
                     continue
@@ -15070,6 +15095,7 @@ usage: spotread [-options] [logfile]
                     filename = tmpfilename
 
                 try:
+
                     def tweak_vrml(vrml):
                         # Set viewpoint further away
                         vrml = re.sub(
@@ -15092,7 +15118,9 @@ usage: spotread [-options] [logfile]
                             )
                         # Add range to axes
                         vrml = re.sub(
-                            rb'(string\s*\[")(\+?)(L\*)("\])', rb'\1\3", b"\2\0$\4', vrml
+                            rb'(string\s*\[")(\+?)(L\*)("\])',
+                            rb'\1\3", b"\2\0$\4',
+                            vrml,
                         )
                         vrml = re.sub(
                             rb'(string\s*\[")([+\-]?)(a\*)("\])',
@@ -15178,7 +15206,9 @@ usage: spotread [-options] [logfile]
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
-        capture_output = not sys.stdout or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty()
+        capture_output = False
+        if sys.stdout and hasattr(sys.stdout, "isatty") and not sys.stdout.isatty():
+            capture_output = True
         cmd, args = self.prepare_dispcal()
         if not isinstance(cmd, Exception):
             print(f"cmd: {cmd}")
@@ -15989,9 +16019,13 @@ BEGIN_DATA
                 ofile.write(b"\n")
                 ofile.write(b"NUMBER_OF_FIELDS ")
                 if include_sample_name:
-                    ofile.write(bytes(str(2 + len(icolor) + len(color_rep)), "utf-8") + b"\n")
+                    ofile.write(
+                        bytes(str(2 + len(icolor) + len(color_rep)), "utf-8") + b"\n"
+                    )
                 else:
-                    ofile.write(bytes(str(1 + len(icolor) + len(color_rep)), "utf-8") + b"\n")
+                    ofile.write(
+                        bytes(str(1 + len(icolor) + len(color_rep)), "utf-8") + b"\n"
+                    )
                 ofile.write(b"BEGIN_DATA_FORMAT\n")
                 ofile.write(b"SAMPLE_ID ")
                 if include_sample_name:
@@ -16000,7 +16034,9 @@ BEGIN_DATA
                     ofile.write(olabel + b" " + ilabel + b"\n")
                 ofile.write(b"END_DATA_FORMAT\n")
                 ofile.write(b"\n")
-                ofile.write(b"NUMBER_OF_SETS " + bytes(str(len(odata)), "utf-8") + b"\n")
+                ofile.write(
+                    b"NUMBER_OF_SETS " + bytes(str(len(odata)), "utf-8") + b"\n"
+                )
                 ofile.write(b"BEGIN_DATA\n")
             if pcs == "x":
                 # Need to scale XYZ coming from xicclu, Lab is already scaled
@@ -16210,8 +16246,10 @@ BEGIN_DATA
                 # add required fields to DATA_FORMAT if not yet present
                 if (
                     not bytes(required[0], "utf-8") in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[1], "utf-8") in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[2], "utf-8") in list(ti3v.DATA_FORMAT.values())
+                    and not bytes(required[1], "utf-8")
+                    in list(ti3v.DATA_FORMAT.values())
+                    and not bytes(required[2], "utf-8")
+                    in list(ti3v.DATA_FORMAT.values())
                 ):
                     ti3v.DATA_FORMAT.add_data(required)
                 ti1out.write(b'KEYWORD "COLOR_REP"\n')
@@ -16254,7 +16292,11 @@ BEGIN_DATA
                 )
                 ti1out.write(cie_.encode("utf-8"))
             else:
-                cie_ = b"%s %s %s\n" % (bytes(str(i + 1), "utf-8"), b" ".join(device), b" ".join(cie))
+                cie_ = b"%s %s %s\n" % (
+                    bytes(str(i + 1), "utf-8"),
+                    b" ".join(device),
+                    b" ".join(cie),
+                )
                 ti1out.write(cie_)
             if i > len(wp) - 1:  # don't include whitepoint patches in ti3
                 # set device values in ti3
@@ -16262,7 +16304,9 @@ BEGIN_DATA
                     # Assuming 0..100, 4 decimal digits is
                     # enough for roughly 19 bits integer
                     # device values
-                    ti3v.DATA[i - len(wp)][v.decode("utf-8")] = round(float(device[n]), 4)
+                    ti3v.DATA[i - len(wp)][v.decode("utf-8")] = round(
+                        float(device[n]), 4
+                    )
                 # set PCS values in ti3
                 for n, v in enumerate(cie):
                     ti3v.DATA[i - len(wp)][required[n]] = float(v)
@@ -16378,7 +16422,7 @@ BEGIN_DATA
             uri = response.geturl()
             filename = Path(Path(uri).name)
             actualhash = sha256()
-            if hashes and False:  # skip this for now
+            if hashes and False:  # skip this for now
                 # Read max. 64 KB hashes
                 hashesdata = hashes.read(1024 * 64)
                 hashes.close()
@@ -16782,7 +16826,7 @@ BEGIN_DATA
             if getcfg("extra_args.dispread").strip():
                 args += parse_argument_string(getcfg("extra_args.dispread"))
         result = self.add_measurement_features(
-            args,
+            quote_args(args) if sys.platform == "win32" else args,
             cmd == get_argyll_util("dispread"),
             allow_nondefault_observer=is_ccxx_testchart(),
             allow_video_levels=allow_video_levels,
@@ -17121,22 +17165,18 @@ BEGIN_DATA
             and hasattr(self.patterngenerator, "conn")
         )
         if use_patterngenerator or self.use_madnet_tpg or self._use_patternwindow:
-            # sometimes the data is not fully received
+            # sometimes the data is not fully received
             if self.partial_data != "":
-                # combine the partial data with the currently received one
+                # combine the partial data with the currently received one
                 self.log(f"Combining previous data of: {self.partial_data}")
                 self.log(f"with                      : {txt}")
                 txt = self.partial_data + txt
                 self.log(f"to                        : {txt}")
 
-            rgb = re.search(
-                r"Current RGB(?:\s+\d+){3}((?:\s+\d+(?:\.\d+)){3})", txt
-            )
+            rgb = re.search(r"Current RGB(?:\s+\d+){3}((?:\s+\d+(?:\.\d+)){3})", txt)
             # Check if the data is partial
             if "Current RGB" in txt and rgb is None:
-                self.log(
-                    f"Data is not fully received, storing partial data: {txt}"
-                )
+                self.log(f"Data is not fully received, storing partial data: {txt}")
                 self.partial_data = txt
 
             if rgb:

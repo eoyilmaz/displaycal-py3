@@ -169,6 +169,8 @@ class ResumeFromSleepTrigger(_Trigger):
 
 class ExecAction(_Dict2XML):
     def __init__(self, cmd, args=None):
+        # Filter any None values
+        args = [arg for arg in args if arg is not None]
         _Dict2XML.__init__(
             self,
             command=cmd,

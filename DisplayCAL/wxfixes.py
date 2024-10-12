@@ -1352,7 +1352,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         tw, th = dc.GetTextExtent(label)
         if sys.platform != "win32" and not self.up:
             dx = dy = self.labelDelta
-        dc.DrawText(label, (width - tw) / 2 + dx, (height - th) / 2 + dy)
+        dc.DrawText(label, int((width - tw) / 2) + dx, int((height - th) / 2) + dy)
 
     def Enable(self, enable=True):
         if enable != self.Enabled:
@@ -1738,14 +1738,14 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
         if sys.platform != "win32" and not self.up:
             dx = dy = self.labelDelta
 
-        pos_x = (width - bw - sw - tw) / 2 + dx  # adjust for bitmap and text to centre
+        pos_x = int((width - bw - sw - tw) / 2) + dx  # adjust for bitmap and text to centre
         if bmp is not None:
             dc.DrawBitmap(
-                bmp, pos_x, (height - bh) / 2 + dy, hasMask
+                bmp, pos_x, int((height - bh) / 2) + dy, hasMask
             )  # draw bitmap if available
             pos_x = pos_x + sw  # extra spacing from bitmap
 
-        dc.DrawText(label, pos_x + dx + bw, (height - th) / 2 + dy)  # draw the text
+        dc.DrawText(label, pos_x + dx + bw, int((height - th) / 2) + dy)  # draw the text
 
 
 class ThemedGenBitmapTextButton(ThemedGenButton, GenBitmapTextButton):

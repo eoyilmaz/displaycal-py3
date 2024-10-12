@@ -1,99 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-from DisplayCAL import (
-    audio,
-    config,
-    demjson_compat as demjson,
-    floatspin,
-    ICCProfile as ICCP,
-    localization as lang,
-    util_str,
-)
-from DisplayCAL.config import (
-    appbasename,
-    confighome,
-    defaults,
-    get_data_path,
-    get_default_dpi,
-    get_verified_path,
-    getbitmap,
-    getcfg,
-    geticon,
-    hascfg,
-    logdir,
-    pyname,
-    set_default_app_dpi,
-    setcfg,
-)
-from DisplayCAL.debughelpers import (
-    DownloadError,
-    Error,
-    getevtobjname,
-    getevttype,
-    handle_error,
-    Info,
-    UnloggedError,
-    UnloggedInfo,
-    UnloggedWarning,
-    Warn,
-)
-from DisplayCAL.lib.agw import labelbook, pygauge
-from DisplayCAL.lib.agw.fourwaysplitter import (
-    _TOLERANCE,
-    FLAG_CHANGED,
-    FLAG_PRESSED,
-    FourWaySplitter,
-    FourWaySplitterEvent,
-    NOWHERE,
-)
-from DisplayCAL.lib.agw.gradientbutton import CLICK, GradientButton, HOVER
-from DisplayCAL.log import log as log_
-from DisplayCAL.meta import name as appname
-from DisplayCAL.network import get_network_addr, ScriptingClientSocket
-from DisplayCAL.options import debug
-from DisplayCAL.util_io import StringIOu as StringIO
-from DisplayCAL.util_os import get_program_file, launch_file, waccess
-from DisplayCAL.util_str import box, safe_str, wrap
-from DisplayCAL.util_xml import dict2xml
-from DisplayCAL.wexpect import split_command_line
-from DisplayCAL.wxaddons import (
-    BetterTimer,
-    BetterWindowDisabler,
-    CustomEvent,
-    EVT_BETTERTIMER,
-    FileDrop as _FileDrop,
-    gamma_encode,
-    get_parent_frame,
-    get_platform_window_decoration_size,
-    wx,
-)
-from DisplayCAL.wxfixes import (
-    adjust_font_size_for_gcdc,
-    GenBitmapButton,
-    GenButton,
-    get_bitmap_disabled,
-    get_dc_font_size,
-    get_dialogs,
-    get_gcdc_font_size,
-    GTKMenuItemGetFixedLabel,
-    platebtn,
-    PlateButton,
-    set_bitmap_labels,
-    set_maxsize,
-    ThemedGenButton,
-    wx_Panel,
-)
-from html.parser import HTMLParser
-from time import gmtime, sleep, strftime, time
-# from wexpect import split_command_line
-from wx._core import wxAssertionError
-from wx.lib import fancytext
-from wx.lib.agw import hyperlink
-from wx.lib.statbmp import GenStaticBitmap
 
-import errno
+from datetime import datetime
 import html
+from html.parser import HTMLParser
+
+htmlparser = HTMLParser()
+from time import gmtime, sleep, strftime, time
+import errno
 import math
 import os
 import re
@@ -106,10 +20,105 @@ import tarfile
 import textwrap
 import threading
 import warnings
-import wx.html
-import wx.lib.filebrowsebutton as filebrowse
 import xml.parsers.expat
 import zipfile
+
+from DisplayCAL import demjson_compat as demjson
+
+from DisplayCAL import ICCProfile as ICCP
+from DisplayCAL import audio
+from DisplayCAL import config
+from DisplayCAL.config import (
+    defaults,
+    getbitmap,
+    getcfg,
+    geticon,
+    get_data_path,
+    get_default_dpi,
+    get_verified_path,
+    hascfg,
+    pyname,
+    setcfg,
+    confighome,
+    appbasename,
+    logdir,
+    set_default_app_dpi,
+)
+from DisplayCAL.debughelpers import (
+    Error,
+    DownloadError,
+    Info,
+    UnloggedError,
+    UnloggedInfo,
+    UnloggedWarning,
+    Warn,
+    getevtobjname,
+    getevttype,
+    handle_error,
+)
+from DisplayCAL.log import log as log_
+from DisplayCAL.meta import name as appname
+from DisplayCAL.options import debug
+from DisplayCAL.network import ScriptingClientSocket, get_network_addr
+from DisplayCAL.util_io import StringIOu as StringIO
+from DisplayCAL.util_os import get_program_file, launch_file, waccess
+from DisplayCAL.util_str import box, safe_str, wrap
+from DisplayCAL.util_xml import dict2xml
+from DisplayCAL.wxaddons import (
+    CustomEvent,
+    FileDrop as _FileDrop,
+    gamma_encode,
+    get_parent_frame,
+    get_platform_window_decoration_size,
+    wx,
+    BetterWindowDisabler,
+    BetterTimer,
+    EVT_BETTERTIMER,
+)
+from DisplayCAL.wexpect import split_command_line
+# from wexpect import split_command_line
+from DisplayCAL.wxfixes import (
+    GenBitmapButton,
+    GenButton,
+    GTKMenuItemGetFixedLabel,
+    PlateButton,
+    ThemedGenButton,
+    adjust_font_size_for_gcdc,
+    get_bitmap_disabled,
+    get_dc_font_size,
+    get_gcdc_font_size,
+    platebtn,
+    set_bitmap_labels,
+    wx_Panel,
+    get_dialogs,
+    set_maxsize,
+)
+from DisplayCAL.lib.agw import labelbook, pygauge
+from DisplayCAL.lib.agw.gradientbutton import GradientButton, CLICK, HOVER
+from DisplayCAL.lib.agw.fourwaysplitter import (
+    _TOLERANCE,
+    FLAG_CHANGED,
+    FLAG_PRESSED,
+    NOWHERE,
+    FourWaySplitter,
+    FourWaySplitterEvent,
+)
+from DisplayCAL import localization as lang
+from DisplayCAL import util_str
+from DisplayCAL import floatspin
+
+try:
+    from wx.lib.agw import aui
+    from wx.lib.agw.aui import AuiDefaultTabArt
+except ImportError:
+    from wx import aui
+    from wx.aui import PyAuiTabArt as AuiDefaultTabArt
+import wx.lib.filebrowsebutton as filebrowse
+from wx.lib.agw import hyperlink
+from wx.lib import fancytext
+from wx.lib.statbmp import GenStaticBitmap
+import wx.html
+from wx._core import wxAssertionError
 
 taskbar = None
 if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
@@ -118,14 +127,6 @@ if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
     except Exception as exception:
         print(exception)
 
-try:
-    from wx.lib.agw import aui
-    from wx.lib.agw.aui import AuiDefaultTabArt
-except ImportError:
-    from wx import aui
-    from wx.aui import PyAuiTabArt as AuiDefaultTabArt
-
-htmlparser = HTMLParser()
 
 numpad_keycodes = [
     wx.WXK_NUMPAD0,
@@ -4010,7 +4011,7 @@ class BorderGradientButton(GradientButton):
             elif self._mouseAction == HOVER and not get_dialogs(True):
                 bitmap = self._bitmapfocus # self._bitmaphover
             else:
-                bitmap = self._bitmapfocus # self._bitmap
+                bitmap = self._bitmapfocus # self._bitmap
         else:
             bitmap = self._bitmapfocus # self._bitmapdisabled
         if bitmap:
@@ -7464,7 +7465,7 @@ class TooltipWindow(InvincibleFrame):
                 cls = BetterStaticFancyText
             else:
                 cls = wx.StaticText
-            # We need to initialize the label with something,
+            # We need to initialize the label with something,
             # so initialize it with with "dummy text",
             # and it will be replaced later on...
             col = cls(self.panel, -1, "dummy text")

@@ -20,7 +20,11 @@ def getmanifest(manifest_template_path):
     manifest = ManifestFromXMLFile(manifest_template_path)
     manifest.description = description
     manifest.name = name
-    manifest.version = version_tuple
+    # Windows 10+ requires a 4 part version number listed in the manifest file
+    version = list(version_tuple)
+    if len(version) < 4:
+        version.append(0)
+    manifest.version = tuple(version)
     return manifest
 
 

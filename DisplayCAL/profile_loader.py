@@ -90,7 +90,6 @@ if sys.platform == "win32":
     import math
     import pywintypes
     import re
-    import struct
     import subprocess as sp
     import traceback
     import warnings
@@ -114,7 +113,7 @@ if sys.platform == "win32":
         if sys.getwindowsversion() >= (6,):
             from DisplayCAL import taskscheduler
 
-            taskname = appname + " Profile Loader Launcher"
+            taskname = f"{appname} Profile Loader Launcher"
 
             try:
                 ts = taskscheduler.TaskScheduler()
@@ -2461,9 +2460,9 @@ class ProfileLoader(object):
             try:
                 display = winreg.QueryValueEx(subkey, "SetId")[0]
                 value_name = "Timestamp"
-                timestamp = struct.unpack(
-                    "<Q", winreg.QueryValueEx(subkey, "Timestamp")[0].rjust(8, "0")
-                )
+                # winreg.QueryValuesEx will directly return the int value,
+                # so no need to convert the binary data as in Python2
+                timestamp = winreg.QueryValueEx(subkey, "Timestamp")[0]
             except WindowsError as exception:
                 warnings.warn(
                     r"Registry access failed: %s: %s (HKLM\%s\%s)"
@@ -2776,13 +2775,13 @@ class ProfileLoader(object):
                                 )
                             )
                         # Fall back to linear calibration
-                        tagData = "vcgt"
-                        tagData += "\0" * 4  # Reserved
-                        tagData += "\0\0\0\x01"  # Formula type
+                        tagData = b"vcgt"
+                        tagData += b"\0" * 4  # Reserved
+                        tagData += b"\0\0\0\x01"  # Formula type
                         for channel in range(3):
-                            tagData += "\0\x01\0\0"  # Gamma 1.0
-                            tagData += "\0" * 4  # Min 0.0
-                            tagData += "\0\x01\0\0"  # Max 1.0
+                            tagData += b"\0\x01\0\0"  # Gamma 1.0
+                            tagData += b"\0" * 4  # Min 0.0
+                            tagData += b"\0\x01\0\0"  # Max 1.0
                         vcgt = ICCP.VideoCardGammaFormulaType(tagData, "vcgt")
                         vcgt_values = vcgt.get_values()[:3]
                         if self._reset_gamma_ramps:

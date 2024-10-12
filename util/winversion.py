@@ -24,12 +24,12 @@ def mktempver(
         "prodvers": str(version_tuple),
         "CompanyName": DOMAIN,
         "FileDescription": description_,
-        "FileVersion": version,
+        "FileVersion": f"{version}",
         "InternalName": name_,
-        "LegalCopyright": "© " + author,
-        "OriginalFilename": name_ + ".exe",
+        "LegalCopyright": f"© {author}",
+        "OriginalFilename": f"{name_}.exe",
         "ProductName": name_,
-        "ProductVersion": version,
+        "ProductVersion": f"{version}",
     }
     version_template.close()
     tempdir = tempfile.mkdtemp()

@@ -106,7 +106,7 @@ else:
         PySMALL_RECTType,
         SetConsoleOutputCP,
         SetConsoleTitle,
-        STD_INPUT_HANDLE
+        STD_INPUT_HANDLE,
     )
     from win32process import (
         CreateProcess,
@@ -176,7 +176,6 @@ class ExceptionPexpect(Exception):
         return str(self.value)
 
     def get_trace(self):
-
         """This returns an abbreviated stack trace with lines that only concern
         the caller. In other words, the stack trace inside the Pexpect module
         is not included."""
@@ -188,7 +187,6 @@ class ExceptionPexpect(Exception):
         return "".join(tblist)
 
     def __filter_not_pexpect(self, trace_list_item):
-
         """This returns True if list item 0 the string 'pexpect.py' in it."""
 
         if trace_list_item[0].find("pexpect.py") == -1:
@@ -395,113 +393,113 @@ def spawn(
 class spawn_unix(object):
     """This is the main class interface for Pexpect. Use this class to start and control child applications.
 
-        The command parameter may be a string that
-        includes a command and any arguments to the command. For example::
+    The command parameter may be a string that
+    includes a command and any arguments to the command. For example::
 
-            child = pexpect.spawn('/usr/bin/ftp')
-            child = pexpect.spawn('/usr/bin/ssh user@example.com')
-            child = pexpect.spawn('ls -latr /tmp')
+        child = pexpect.spawn('/usr/bin/ftp')
+        child = pexpect.spawn('/usr/bin/ssh user@example.com')
+        child = pexpect.spawn('ls -latr /tmp')
 
-        You may also construct it with a list of arguments like so::
+    You may also construct it with a list of arguments like so::
 
-            child = pexpect.spawn('/usr/bin/ftp', [])
-            child = pexpect.spawn('/usr/bin/ssh', ['user@example.com'])
-            child = pexpect.spawn('ls', ['-latr', '/tmp'])
+        child = pexpect.spawn('/usr/bin/ftp', [])
+        child = pexpect.spawn('/usr/bin/ssh', ['user@example.com'])
+        child = pexpect.spawn('ls', ['-latr', '/tmp'])
 
-        After this the child application will be created and will be ready to
-        talk to. For normal use, see expect() and send() and sendline().
+    After this the child application will be created and will be ready to
+    talk to. For normal use, see expect() and send() and sendline().
 
-        Remember that Pexpect does NOT interpret shell meta characters such as
-        redirect, pipe, or wild cards (>, |, or *). This is a common mistake.
-        If you want to run a command and pipe it through another command then
-        you must also start a shell. For example::
+    Remember that Pexpect does NOT interpret shell meta characters such as
+    redirect, pipe, or wild cards (>, |, or *). This is a common mistake.
+    If you want to run a command and pipe it through another command then
+    you must also start a shell. For example::
 
-            child = pexpect.spawn('/bin/bash -c "ls -l | grep LOG > log_list.txt"')
-            child.expect(pexpect.EOF)
+        child = pexpect.spawn('/bin/bash -c "ls -l | grep LOG > log_list.txt"')
+        child.expect(pexpect.EOF)
 
-        The second form of spawn (where you pass a list of arguments) is useful
-        in situations where you wish to spawn a command and pass it its own
-        argument list. This can make syntax more clear. For example, the
-        following is equivalent to the previous example::
+    The second form of spawn (where you pass a list of arguments) is useful
+    in situations where you wish to spawn a command and pass it its own
+    argument list. This can make syntax more clear. For example, the
+    following is equivalent to the previous example::
 
-            shell_cmd = 'ls -l | grep LOG > log_list.txt'
-            child = pexpect.spawn('/bin/bash', ['-c', shell_cmd])
-            child.expect(pexpect.EOF)
+        shell_cmd = 'ls -l | grep LOG > log_list.txt'
+        child = pexpect.spawn('/bin/bash', ['-c', shell_cmd])
+        child.expect(pexpect.EOF)
 
-        The maxread attribute sets the read buffer size. This is maximum number
-        of bytes that Pexpect will try to read from a TTY at one time. Setting
-        the maxread size to 1 will turn off buffering. Setting the maxread
-        value higher may help performance in cases where large amounts of
-        output are read back from the child. This feature is useful in
-        conjunction with searchwindowsize.
+    The maxread attribute sets the read buffer size. This is maximum number
+    of bytes that Pexpect will try to read from a TTY at one time. Setting
+    the maxread size to 1 will turn off buffering. Setting the maxread
+    value higher may help performance in cases where large amounts of
+    output are read back from the child. This feature is useful in
+    conjunction with searchwindowsize.
 
-        The searchwindowsize attribute sets the how far back in the incomming
-        seach buffer Pexpect will search for pattern matches. Every time
-        Pexpect reads some data from the child it will append the data to the
-        incomming buffer. The default is to search from the beginning of the
-        imcomming buffer each time new data is read from the child. But this is
-        very inefficient if you are running a command that generates a large
-        amount of data where you want to match The searchwindowsize does not
-        effect the size of the incomming data buffer. You will still have
-        access to the full buffer after expect() returns.
+    The searchwindowsize attribute sets the how far back in the incomming
+    seach buffer Pexpect will search for pattern matches. Every time
+    Pexpect reads some data from the child it will append the data to the
+    incomming buffer. The default is to search from the beginning of the
+    imcomming buffer each time new data is read from the child. But this is
+    very inefficient if you are running a command that generates a large
+    amount of data where you want to match The searchwindowsize does not
+    effect the size of the incomming data buffer. You will still have
+    access to the full buffer after expect() returns.
 
-        The logfile member turns on or off logging. All input and output will
-        be copied to the given file object. Set logfile to None to stop
-        logging. This is the default. Set logfile to sys.stdout to echo
-        everything to standard output. The logfile is flushed after each write.
+    The logfile member turns on or off logging. All input and output will
+    be copied to the given file object. Set logfile to None to stop
+    logging. This is the default. Set logfile to sys.stdout to echo
+    everything to standard output. The logfile is flushed after each write.
 
-        Example log input and output to a file::
+    Example log input and output to a file::
 
-            child = pexpect.spawn('some_command')
-            fout = file('mylog.txt','w')
-            child.logfile = fout
+        child = pexpect.spawn('some_command')
+        fout = file('mylog.txt','w')
+        child.logfile = fout
 
-        Example log to stdout::
+    Example log to stdout::
 
-            child = pexpect.spawn('some_command')
-            child.logfile = sys.stdout
+        child = pexpect.spawn('some_command')
+        child.logfile = sys.stdout
 
-        The logfile_read and logfile_send members can be used to separately log
-        the input from the child and output sent to the child. Sometimes you
-        don't want to see everything you write to the child. You only want to
-        log what the child sends back. For example::
+    The logfile_read and logfile_send members can be used to separately log
+    the input from the child and output sent to the child. Sometimes you
+    don't want to see everything you write to the child. You only want to
+    log what the child sends back. For example::
 
-            child = pexpect.spawn('some_command')
-            child.logfile_read = sys.stdout
+        child = pexpect.spawn('some_command')
+        child.logfile_read = sys.stdout
 
-        To separately log output sent to the child use logfile_send::
+    To separately log output sent to the child use logfile_send::
 
-            self.logfile_send = fout
+        self.logfile_send = fout
 
-        The delaybeforesend helps overcome a weird behavior that many users
-        were experiencing. The typical problem was that a user would expect() a
-        "Password:" prompt and then immediately call sendline() to send the
-        password. The user would then see that their password was echoed back
-        to them. Passwords don't normally echo. The problem is caused by the
-        fact that most applications print out the "Password" prompt and then
-        turn off stdin echo, but if you send your password before the
-        application turned off echo, then you get your password echoed.
-        Normally this wouldn't be a problem when interacting with a human at a
-        real keyboard. If you introduce a slight delay just before writing then
-        this seems to clear up the problem. This was such a common problem for
-        many users that I decided that the default pexpect behavior should be
-        to sleep just before writing to the child application. 1/20th of a
-        second (50 ms) seems to be enough to clear up the problem. You can set
-        delaybeforesend to 0 to return to the old behavior. Most Linux machines
-        don't like this to be below 0.03. I don't know why.
+    The delaybeforesend helps overcome a weird behavior that many users
+    were experiencing. The typical problem was that a user would expect() a
+    "Password:" prompt and then immediately call sendline() to send the
+    password. The user would then see that their password was echoed back
+    to them. Passwords don't normally echo. The problem is caused by the
+    fact that most applications print out the "Password" prompt and then
+    turn off stdin echo, but if you send your password before the
+    application turned off echo, then you get your password echoed.
+    Normally this wouldn't be a problem when interacting with a human at a
+    real keyboard. If you introduce a slight delay just before writing then
+    this seems to clear up the problem. This was such a common problem for
+    many users that I decided that the default pexpect behavior should be
+    to sleep just before writing to the child application. 1/20th of a
+    second (50 ms) seems to be enough to clear up the problem. You can set
+    delaybeforesend to 0 to return to the old behavior. Most Linux machines
+    don't like this to be below 0.03. I don't know why.
 
-        Note that spawn is clever about finding commands on your path.
-        It uses the same logic that "which" uses to find executables.
+    Note that spawn is clever about finding commands on your path.
+    It uses the same logic that "which" uses to find executables.
 
-        If you wish to get the exit status of the child you must call the
-        close() method. The exit or signal status of the child will be stored
-        in self.exitstatus or self.signalstatus. If the child exited normally
-        then exitstatus will store the exit return code and signalstatus will
-        be None. If the child was terminated abnormally with a signal then a
-        signalstatus will store the signal value and exitstatus will be None.
-        If you need more detail you can also read the self.status member which
-        stores the status returned by os.waitpid. You can interpret this using
-        os.WIFEXITED/os.WEXITSTATUS or os.WIFSIGNALED/os.TERMSIG.
+    If you wish to get the exit status of the child you must call the
+    close() method. The exit or signal status of the child will be stored
+    in self.exitstatus or self.signalstatus. If the child exited normally
+    then exitstatus will store the exit return code and signalstatus will
+    be None. If the child was terminated abnormally with a signal then a
+    signalstatus will store the signal value and exitstatus will be None.
+    If you need more detail you can also read the self.status member which
+    stores the status returned by os.waitpid. You can interpret this using
+    os.WIFEXITED/os.WEXITSTATUS or os.WIFSIGNALED/os.TERMSIG.
 
 
     """
@@ -729,7 +727,6 @@ class spawn_unix(object):
         self.closed = False
 
     def __fork_pty(self):
-
         """This implements a substitute for the forkpty system call. This
         should be more portable than the pty.fork() function. Specifically,
         this should work on Solaris.
@@ -767,7 +764,6 @@ class spawn_unix(object):
         return pid, parent_fd
 
     def __pty_make_controlling_tty(self, tty_fd):
-
         """This makes the pseudo-terminal the controlling tty. This should be
         more portable than the pty.fork() function. Specifically, this should
         work on Solaris."""
@@ -807,12 +803,10 @@ class spawn_unix(object):
             os.close(fd)
 
     def fileno(self):  # File-like object.
-
         """This returns the file descriptor of the pty for the child."""
         return self.child_fd
 
     def close(self, force=True):  # File-like object.
-
         """This closes the connection with the child application. Note that
         calling close() more than once is valid. This emulates standard Python
         behavior with files. Set force to True if you want to make sure that
@@ -834,19 +828,16 @@ class spawn_unix(object):
             # self.pid = None
 
     def flush(self):  # File-like object.
-
         """This does nothing. It is here to support the interface for a
         File-like object."""
         pass
 
     def isatty(self):  # File-like object.
-
         """This returns True if the file descriptor is open and connected to a
         tty(-like) device, else False."""
         return os.isatty(self.child_fd)
 
     def waitnoecho(self, timeout=-1):
-
         """This waits until the terminal ECHO flag is set False. This returns
         True if the echo mode is off. This returns False if the ECHO flag was
         not set False before the timeout. This can be used to detect when the
@@ -877,7 +868,6 @@ class spawn_unix(object):
             time.sleep(0.1)
 
     def getecho(self):
-
         """This returns the terminal echo mode. This returns True if echo is
         on or False if echo is off. Child applications that are expecting you
         to enter a password often set ECHO False. See waitnoecho()."""
@@ -887,7 +877,6 @@ class spawn_unix(object):
         return False
 
     def setecho(self, state):
-
         """This sets the terminal echo mode on or off. Note that anything the
         child sent before the echo will be lost, so you should be sure that
         your input buffer is empty before you call setecho(). For example, the
@@ -927,7 +916,6 @@ class spawn_unix(object):
         termios.tcsetattr(self.child_fd, termios.TCSANOW, attr)
 
     def read_nonblocking(self, size=1, timeout=-1):
-
         """This reads at most size characters from the child application. It
         includes a timeout. If the read does not complete within the timeout
         period then a TIMEOUT exception is raised. If the end of file is read
@@ -1518,9 +1506,9 @@ class spawn_unix(object):
             while True:  # Keep reading until exception or return.
                 index = searcher.search(incoming, freshlen, searchwindowsize)
                 if index >= 0:
-                    self.buffer = incoming[searcher.end:]
+                    self.buffer = incoming[searcher.end :]
                     self.before = incoming[: searcher.start]
-                    self.after = incoming[searcher.start: searcher.end]
+                    self.after = incoming[searcher.start : searcher.end]
                     self.match = searcher.match
                     self.match_index = index
                     return self.match_index
@@ -2069,6 +2057,7 @@ class Wtty(object):
             or windll.kernel32.GetOEMCP()
         )
         log(f"Code page: {self.codepage}")
+        log(f"hasattr(sys, 'frozen'): {hasattr(sys, 'frozen')}")
         self.columns = columns
         if isinstance(cwd, bytes):
             cwd = cwd.decode("utf-8")
@@ -2134,13 +2123,13 @@ class Wtty(object):
     def startChild(self, args, env):
         si = GetStartupInfo()
         si.dwFlags = STARTF_USESHOWWINDOW
-        si.wShowWindow = SW_HIDE # SW_SHOW
+        si.wShowWindow = SW_HIDE
         # Determine the directory of wexpect.py or, if we are running 'frozen'
         # (eg. py2exe deployment), of the packed executable
         dirname = os.path.dirname(
             sys.executable
             if getattr(sys, "frozen", False)
-            else os.path.abspath(__file__ + "/..")
+            else os.path.abspath(os.path.dirname(__file__))
         )
         if getattr(sys, "frozen", False):
             logdir = appname
@@ -2168,15 +2157,20 @@ class Wtty(object):
         # py2exe: The python executable can be included via setup script by
         # adding it to 'data_files'
         commandLine = '"%s" %s "%s"' % (
-            os.path.join(dirname, "python.exe")
-            if getattr(sys, "frozen", False)
-            else os.path.join(os.path.dirname(sys.executable), "python.exe"),
+            (
+                os.path.join(dirname, "python.exe")
+                if getattr(sys, "frozen", False)
+                else os.path.join(os.path.dirname(sys.executable), "python.exe")
+            ),
             " ".join(pyargs),
-            "import sys; sys.path = %s + sys.path;"
+            "import sys;%ssys.path = %s + sys.path;"
             "args = %s; from DisplayCAL import wexpect;"
-            # "args = %s; import wexpect;"
             "wexpect.ConsoleReader(wexpect.join_args(args), %i, %i, cp=%s, c=%s, r=%s, logdir=%r)"
             % (
+                # this fixes running Argyll commands through py2exe frozen python
+                "setattr(sys, 'frozen', '%s'); ".format(
+                    getattr(sys, "frozen")
+                ) if hasattr(sys, "frozen") else "",
                 ("%r" % spath).replace('"', r"\""),
                 ("%r" % args).replace('"', r"\""),
                 pid,
@@ -2190,15 +2184,7 @@ class Wtty(object):
 
         log(commandLine)
         self.__oproc, _, self.conpid, self.__otid = CreateProcess(
-            None,
-            commandLine,
-            None,
-            None,
-            False,
-            CREATE_NEW_CONSOLE,
-            env,
-            self.cwd,
-            si
+            None, commandLine, None, None, False, CREATE_NEW_CONSOLE, env, self.cwd, si
         )
 
     def switchTo(self, attached=True):
@@ -2341,12 +2327,12 @@ class Wtty(object):
 
         s = "\r\n".join([line.rstrip(" ") for line in "".join(strlist).split("\r\n")])
         try:
-            return s #.encode("cp%i" % self.codepage, "replace")
+            return s  # .encode("cp%i" % self.codepage, "replace")
         except LookupError:
-            return s #.encode(
+            return s  # .encode(
             #    getattr(sys.stdout, "encoding", None) or sys.getdefaultencoding(),
             #    "replace",
-            #)
+            # )
 
     def readConsoleToCursor(self):
         """Reads from the current read position to the current cursor
@@ -2388,7 +2374,7 @@ class Wtty(object):
         rawlist = []
         while raw:
             rawlist.append(raw[: consinfo["Size"].X])
-            raw = raw[consinfo["Size"].X:]
+            raw = raw[consinfo["Size"].X :]
         raw = "".join(rawlist)
         s = self.parseData(raw)
         for i, line in enumerate(reversed(rawlist)):
@@ -2419,7 +2405,7 @@ class Wtty(object):
                 # log('raw: %r' % raw)
                 if raw.startswith(buf):
                     # Line has grown
-                    rawslice = raw[len(buf):]
+                    rawslice = raw[len(buf) :]
                     # Update last read bytes so line breaks can be detected in parseData
                     lastRead = self.lastRead
                     self.lastRead = len(rawslice)
@@ -2636,18 +2622,20 @@ class ConsoleReader(object):
 
                 si = GetStartupInfo()
                 # We do not actually need stdio inherited - Wtty reads from the console.
-                # Python 3.x sets STARTF_USESTDHANDLES flag but the stdio handles do not correspond to console.
+                # Python 3.x sets STARTF_USESTDHANDLES flag but the stdio handles do not
+                # correspond to console.
                 # That causes Argyll to not write anything to console for us.
                 si.dwFlags = STARTF_USESHOWWINDOW
                 si.wShowWindow = SW_HIDE
-                #si.wShowWindow = SW_SHOW
+                # si.wShowWindow = SW_SHOW
                 self.__childProcess, _, childPid, self.__tid = CreateProcess(
                     None,
                     path,
                     None,
                     None,
                     False,
-                    # The console has been created in the script that launches this class, and reconfigured from here.
+                    # The console has been created in the script that launches this
+                    # class, and reconfigured from here.
                     CREATE_NEW_PROCESS_GROUP,
                     None,
                     None,
@@ -2851,7 +2839,6 @@ class searcher_string(object):
 
 
 class searcher_re(object):
-
     """This is regular expression string search helper for the
     spawn.expect_any() method.
 
@@ -2997,20 +2984,18 @@ def log(e, suffix="", logdir=None):
                     except Exception:
                         pass
         try:
-            fout = open(logfile, "a")
+            with open(logfile, "a", encoding="utf-8") as fout:
+                ts = time.time()
+                fout.write(
+                    "%s,%s %s\n"
+                    % (
+                        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts)),
+                        ("%3f" % (ts - int(ts)))[2:5],
+                        e,
+                    )
+                )
         except Exception:
             pass
-        else:
-            ts = time.time()
-            fout.write(
-                "%s,%s %s\n"
-                % (
-                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts)),
-                    ("%3f" % (ts - int(ts)))[2:5],
-                    e,
-                )
-            )
-            fout.close()
 
 
 def excepthook(etype, value, tb):

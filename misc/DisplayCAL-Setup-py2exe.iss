@@ -14,6 +14,8 @@ AppPublisherURL=%(AppPublisherURL)s
 AppReadmeFile={app}\README.html
 AppSupportURL=%(AppSupportURL)s
 AppUpdatesURL=%(AppUpdatesURL)s
+ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64
 DefaultDirName={pf}\%(AppName)s
 DefaultGroupName=%(AppName)s
 LicenseFile=..\LICENSE.txt
@@ -32,56 +34,56 @@ UninstallDisplayName=%(AppName)s
 UninstallDisplayIcon={app}\%(AppName)s.exe
 AlwaysShowComponentsList=false
 ShowLanguageDialog=auto
-MinVersion=0,5.1.2600
-SignTool=sign.cmd
-SignedUninstaller=yes
+MinVersion=0,6.1.2600
+;SignTool=sign.cmd
+;SignedUninstaller=yes
 
 [Languages]
-Name: english; MessagesFile: ..\misc\InnoSetup\v5\Default.isl; 
-Name: french; MessagesFile: ..\misc\InnoSetup\v5\Languages\French.isl; 
-Name: german; MessagesFile: ..\misc\InnoSetup\v5\Languages\German.isl; 
-Name: italian; MessagesFile: ..\misc\InnoSetup\v5\Languages\Italian.isl; 
-Name: spanish; MessagesFile: ..\misc\InnoSetup\v5\Languages\Spanish.isl; 
+Name: english; MessagesFile: ..\misc\InnoSetup\v5\Default.isl;
+Name: french; MessagesFile: ..\misc\InnoSetup\v5\Languages\French.isl;
+Name: german; MessagesFile: ..\misc\InnoSetup\v5\Languages\German.isl;
+Name: italian; MessagesFile: ..\misc\InnoSetup\v5\Languages\Italian.isl;
+Name: spanish; MessagesFile: ..\misc\InnoSetup\v5\Languages\Spanish.isl;
 
 [Tasks]
 Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
 Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
-Name: calibrationloadinghandledbydisplaycal; Description: {cm:CalibrationLoadingHandledByDisplayCAL}; Flags: exclusive; GroupDescription: {cm:CalibrationLoading}; 
-Name: calibrationloadinghandledbyos; Description: {cm:CalibrationLoadingHandledByOS}; Flags: exclusive unchecked; GroupDescription: {cm:CalibrationLoading}; MinVersion: 0,6.1.7600; 
+Name: calibrationloadinghandledbydisplaycal; Description: {cm:CalibrationLoadingHandledByDisplayCAL}; Flags: exclusive; GroupDescription: {cm:CalibrationLoading};
+Name: calibrationloadinghandledbyos; Description: {cm:CalibrationLoadingHandledByOS}; Flags: exclusive unchecked; GroupDescription: {cm:CalibrationLoading}; MinVersion: 0,6.1.7600;
 
 [Files]
-Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\*; DestDir: {app}; Flags: recursesubdirs replacesameversion; Excludes: \%(AppName)s.exe,\README.html,\README-fr.html; 
-Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\%(AppName)s.exe; DestDir: {app}; Flags: replacesameversion; 
-Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\README.html; DestDir: {app}; Flags: isreadme; 
+Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\*; DestDir: {app}; Flags: recursesubdirs replacesameversion; Excludes: \%(AppName)s.exe,\README.html,\README-fr.html;
+Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\%(AppName)s.exe; DestDir: {app}; Flags: replacesameversion;
+Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\README.html; DestDir: {app}; Flags: isreadme;
 Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\README-fr.html; DestDir: {app}; Flags: isreadme; Languages: french
-Source: ..\..\ccss\*.ccss; DestDir: {commonappdata}\ArgyllCMS; Flags: replacesameversion; 
+Source: ..\..\ccss\*.ccss; DestDir: {commonappdata}\ArgyllCMS; Flags: replacesameversion;
 
 [Icons]
 Name: {group}\%(AppName)s; Filename: {app}\%(AppName)s.exe; IconFilename: {app}\%(AppName)s.exe
-Name: "{group}\%(AppName)s Profile Loader"; Filename: {app}\%(AppName)s-apply-profiles.exe; IconFilename: {app}\%(AppName)s-apply-profiles.exe; 
-Name: "{group}\3DLUT Maker"; Filename: {app}\%(AppName)s-3DLUT-maker.exe; IconFilename: {app}\%(AppName)s-3DLUT-maker.exe; 
-Name: "{group}\Curve Viewer"; Filename: {app}\%(AppName)s-curve-viewer.exe; IconFilename: {app}\%(AppName)s-curve-viewer.exe; 
-Name: "{group}\Profile Info"; Filename: {app}\%(AppName)s-profile-info.exe; IconFilename: {app}\%(AppName)s-profile-info.exe; 
-Name: "{group}\Synthetic Profile Creator"; Filename: {app}\%(AppName)s-synthprofile.exe; IconFilename: {app}\%(AppName)s-synthprofile.exe; 
-Name: "{group}\Scripting Client"; Filename: {app}\%(AppName)s-scripting-client.exe; IconFilename: {app}\%(AppName)s-scripting-client.exe; 
-Name: "{group}\Testchart Editor"; Filename: {app}\%(AppName)s-testchart-editor.exe; IconFilename: {app}\%(AppName)s-testchart-editor.exe; 
-Name: "{group}\VRML to X3D converter"; Filename: {app}\%(AppName)s-VRML-to-X3D-converter.exe; IconFilename: {app}\%(AppName)s-VRML-to-X3D-converter.exe; 
-Name: {group}\{cm:UninstallProgram,%(AppName)s}; Filename: {uninstallexe}; IconFilename: {app}\theme\icons\%(AppName)s-uninstall.ico; Tasks: ; Languages: 
+Name: "{group}\%(AppName)s Profile Loader"; Filename: {app}\%(AppName)s-apply-profiles.exe; IconFilename: {app}\%(AppName)s-apply-profiles.exe;
+Name: "{group}\3DLUT Maker"; Filename: {app}\%(AppName)s-3DLUT-maker.exe; IconFilename: {app}\%(AppName)s-3DLUT-maker.exe;
+Name: "{group}\Curve Viewer"; Filename: {app}\%(AppName)s-curve-viewer.exe; IconFilename: {app}\%(AppName)s-curve-viewer.exe;
+Name: "{group}\Profile Info"; Filename: {app}\%(AppName)s-profile-info.exe; IconFilename: {app}\%(AppName)s-profile-info.exe;
+Name: "{group}\Synthetic Profile Creator"; Filename: {app}\%(AppName)s-synthprofile.exe; IconFilename: {app}\%(AppName)s-synthprofile.exe;
+Name: "{group}\Scripting Client"; Filename: {app}\%(AppName)s-scripting-client.exe; IconFilename: {app}\%(AppName)s-scripting-client.exe;
+Name: "{group}\Testchart Editor"; Filename: {app}\%(AppName)s-testchart-editor.exe; IconFilename: {app}\%(AppName)s-testchart-editor.exe;
+Name: "{group}\VRML to X3D converter"; Filename: {app}\%(AppName)s-VRML-to-X3D-converter.exe; IconFilename: {app}\%(AppName)s-VRML-to-X3D-converter.exe;
+Name: {group}\{cm:UninstallProgram,%(AppName)s}; Filename: {uninstallexe}; IconFilename: {app}\theme\icons\%(AppName)s-uninstall.ico; Tasks: ; Languages:
 Name: {commondesktop}\%(AppName)s; Filename: {app}\%(AppName)s.exe; Tasks: desktopicon; IconFilename: {app}\%(AppName)s.exe
 Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\%(AppName)s; Filename: {app}\%(AppName)s.exe; Tasks: quicklaunchicon; IconFilename: {app}\%(AppName)s.exe
 Name: {group}\LICENSE; Filename: {app}\LICENSE.txt
-Name: {group}\README (EN); Filename: {app}\README.html; Tasks: ; Languages: 
+Name: {group}\README (EN); Filename: {app}\README.html; Tasks: ; Languages:
 Name: {group}\README (FR); Filename: {app}\README-fr.html; Tasks: ; Languages: french
-Name: "{commonstartup}\%(AppName)s Profile Loader"; Filename: {app}\%(AppName)s-apply-profiles.exe; OnlyBelowVersion: 0,6.0; Tasks: calibrationloadinghandledbydisplaycal; 
+Name: "{commonstartup}\%(AppName)s Profile Loader"; Filename: {app}\%(AppName)s-apply-profiles.exe; OnlyBelowVersion: 0,6.0; Tasks: calibrationloadinghandledbydisplaycal;
 
 [Run]
 Filename: {app}\%(AppName)s.exe; Description: {cm:LaunchProgram,%(AppName)s}; Flags: nowait postinstall skipifsilent;
-MinVersion: 0,6.1.7600; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s import util_win; None if not util_win.calibration_management_isenabled() else util_win.disable_calibration_management();"""; Flags: RunHidden RunAsCurrentUser; Description: {cm:CalibrationLoadingHandledByDisplayCAL}; Tasks: calibrationloadinghandledbydisplaycal; 
+MinVersion: 0,6.1.7600; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s import util_win; None if not util_win.calibration_management_isenabled() else util_win.disable_calibration_management();"""; Flags: RunHidden RunAsCurrentUser; Description: {cm:CalibrationLoadingHandledByDisplayCAL}; Tasks: calibrationloadinghandledbydisplaycal;
 MinVersion: 0,6.0; Filename: schtasks.exe; parameters: "/Delete /TN ""%(AppName)s Profile Loader Launcher"" /F"; Flags: RunHidden RunAsCurrentUser;
 MinVersion: 0,6.0; Filename: schtasks.exe; parameters: "/Delete /TN ""%(AppName)s Profile Loader Launcher - Daily Restart"" /F"; Flags: RunHidden RunAsCurrentUser;
-MinVersion: 0,6.0; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s.util_str import safe_unicode; from %(AppName)s.profile_loader import setup_profile_loader_task; setup_profile_loader_task(safe_unicode(r'{app}\%(AppName)s-apply-profiles.exe'), safe_unicode(r'{app}'), safe_unicode(r'{app}'))"""; Flags: RunHidden RunAsCurrentUser; Tasks: calibrationloadinghandledbydisplaycal; 
-Filename: {app}\%(AppName)s-apply-profiles.exe; Flags: nowait runasoriginaluser; Tasks: calibrationloadinghandledbydisplaycal; 
-MinVersion: 0,6.1.7600; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s import util_win; None if util_win.calibration_management_isenabled() else util_win.enable_calibration_management();"""; Flags: RunHidden RunAsCurrentUser; Description: {cm:CalibrationLoadingHandledByOS}; Tasks: calibrationloadinghandledbyos; 
+MinVersion: 0,6.0; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s.util_str import safe_unicode; from %(AppName)s.profile_loader import setup_profile_loader_task; setup_profile_loader_task(safe_unicode(r'{app}\%(AppName)s-apply-profiles.exe'), safe_unicode(r'{app}'), safe_unicode(r'{app}'))"""; Flags: RunHidden RunAsCurrentUser; Tasks: calibrationloadinghandledbydisplaycal;
+Filename: {app}\%(AppName)s-apply-profiles.exe; Flags: nowait runasoriginaluser; Tasks: calibrationloadinghandledbydisplaycal;
+MinVersion: 0,6.1.7600; Filename: {app}\lib\python.exe; Parameters: "-S -c ""import sys; sys.path.insert(0, '\\'.join(sys.executable.replace('/', '\\').split('\\')[:-1]) + '\\library.zip'); from %(AppName)s import util_win; None if util_win.calibration_management_isenabled() else util_win.enable_calibration_management();"""; Flags: RunHidden RunAsCurrentUser; Description: {cm:CalibrationLoadingHandledByOS}; Tasks: calibrationloadinghandledbyos;
 
 [InstallDelete]
 Type: files; Name: "{commonstartup}\dispcalGUI Profile Loader.lnk"

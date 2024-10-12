@@ -5,6 +5,7 @@ import io
 import pathlib
 import os
 import shutil
+import tempfile
 from typing import Tuple, Dict
 
 import pytest
@@ -22,6 +23,7 @@ from DisplayCAL.worker import (
     check_ti3_criteria1,
 )
 
+from DisplayCAL.worker_base import get_argyll_util
 from tests.data.display_data import DisplayData
 
 
@@ -97,7 +99,7 @@ def test_worker_instrument_supports_css_1():
     assert result == expected_result
 
 
-@pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")
+# @pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")
 def test_generate_b2a_from_inverse_table(data_files, argyll):
     """Test Worker.generate_B2A_from_inverse_table() method"""
     worker = Worker()
@@ -513,3 +515,27 @@ def test_prepare_colprof_for_271(monkeypatch, data_path):
     # This should not raise the:
     # TypeError: startswith first arg must be bytes or a tuple of bytes, not str
     worker.prepare_colprof()
+
+
+def test_prepare_dispcal_1():
+    """Worker.prepare_dispcal() return value should be quoted properly."""
+    worker = Worker()
+    return_val = worker.prepare_dispcal()
+    expected_result = [
+        '-v2',
+        '-d0',
+        '-c1',
+        '-yl',
+        '-p0.5,0.5,1.0',
+        '-ql',
+        '-t',
+        '-g2.2',
+        '-f1.0',
+        '-k0.0',
+        '/var/folders/8l/xy1__ym94nn35x86xyg56xq80000gn/T/DisplayCAL-2fdjtyql/'
+    ]
+    assert return_val[0] == get_argyll_util("dispcal")
+    assert isinstance(return_val[1], list)
+    assert return_val[1][:-1] == expected_result[:-1]  # don't check the final part
+    assert tempfile.gettempdir() in return_val[1][-1]  # this should be in a temp path
+    

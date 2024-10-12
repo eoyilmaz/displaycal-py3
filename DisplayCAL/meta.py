@@ -73,7 +73,7 @@ version_short = re.sub(r"(?:\.0){1,2}$", "", version)
 version_tuple = VERSION  # only ints allowed and must be exactly 3 values
 
 wx_minversion = (2, 8, 11)
-wx_recversion = (4, 1, 1)
+wx_recversion = (4, 2, 2)
 
 
 def get_latest_changelog_entry(readme):

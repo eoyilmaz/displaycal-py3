@@ -126,7 +126,7 @@ class ScriptingClientSocket(socket.socket):
 
     def __init__(self):
         socket.socket.__init__(self)
-        self.recv_buffer = ""
+        self.recv_buffer = b""
 
     def disconnect(self):
         try:
@@ -141,16 +141,16 @@ class ScriptingClientSocket(socket.socket):
     def get_single_response(self):
         # Buffer received data until EOT (response end marker) and return
         # single response (additional data will still be in the buffer)
-        while "\4" not in self.recv_buffer:
+        while b"\4" not in self.recv_buffer:
             incoming = self.recv(4096)
-            if incoming == "":
+            if incoming == b"":
                 raise socket.error(lang.getstr("connection.broken"))
             self.recv_buffer += incoming
-        end = self.recv_buffer.find("\4")
+        end = self.recv_buffer.find(b"\4")
         single_response = self.recv_buffer[:end]
         self.recv_buffer = self.recv_buffer[end + 1:]
-        return str(single_response)
+        return single_response
 
     def send_command(self, command):
         # Automatically append newline (command end marker)
-        self.sendall(safe_str(command, "utf-8") + "\n")
+        self.sendall((safe_str(command, "utf-8") + "\n").encode("utf-8"))

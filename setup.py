@@ -33,7 +33,7 @@ def create_appdmg(zeroinstall=False):
         srcdir = "0install"
     else:
         dmgname = name + "-" + version
-        srcdir = f"py2app.{get_platform()}-py{sys.version[:3]}"
+        srcdir = f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}"
 
     retcode = subprocess.call(
         [
@@ -745,29 +745,31 @@ def setup():
 
         for tmpl_type in tmpl_types:
             inno_template_path = Path(pydir, "misc", f"{name}-Setup-{tmpl_type}.iss")
-            inno_template = open(inno_template_path, "r")
-            inno_script = inno_template.read() % {
-                "AppCopyright": "© %s %s" % (strftime("%Y"), author),
-                "AppName": name,
-                "AppVerName": version,
-                "AppPublisher": author,
-                "AppPublisherURL": f"https://{DOMAIN}/",
-                "AppSupportURL": f"https://{DOMAIN}/",
-                "AppUpdatesURL": f"https://{DOMAIN}/",
-                "VersionInfoVersion": ".".join(map(str, version_tuple)),
-                "VersionInfoTextVersion": version,
-                "AppVersion": version,
-                "Platform": get_platform(),
-                "PythonVersion": sys.version[:3],
-                "URL": f"https://{DOMAIN}/",
-                "HTTPURL": f"http://{DOMAIN}/",
-            }
-            inno_template.close()
+            with open(inno_template_path, "r") as inno_template:
+                print(f"inno_template_path: {inno_template_path}")
+                template = inno_template.read()
+                # print(template)
+                inno_script = template % {
+                    "AppCopyright": f"© {strftime('%Y')} {author}",
+                    "AppName": name,
+                    "AppVerName": version,
+                    "AppPublisher": author,
+                    "AppPublisherURL": f"https://{DOMAIN}/",
+                    "AppSupportURL": f"https://{DOMAIN}/",
+                    "AppUpdatesURL": f"https://{DOMAIN}/",
+                    "VersionInfoVersion": ".".join(map(str, version_tuple)),
+                    "VersionInfoTextVersion": version,
+                    "AppVersion": version,
+                    "Platform": get_platform(),
+                    "PythonVersion": f"{sys.version_info[0]}.{sys.version_info[1]}",
+                    "URL": f"https://{DOMAIN}/",
+                    "HTTPURL": f"http://{DOMAIN}/",
+                }
             inno_path = Path(
                 "dist",
                 inno_template_path.name.replace(
                     bdist_cmd,
-                    "%s.%s-py%s" % (bdist_cmd, get_platform(), sys.version[:3]),
+                    f"{bdist_cmd}.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
                 ),
             )
 
@@ -777,9 +779,8 @@ def setup():
                 if not dist_path.exists():
                     os.makedirs(dist_path)
 
-                inno_file = open(inno_path, "wb")
-                inno_file.write(inno_script.encode("MBCS", "replace"))
-                inno_file.close()
+                with open(inno_path, "wb") as inno_file:
+                    inno_file.write(inno_script.encode("MBCS", "replace"))
 
         sys.argv.remove("inno")
 
@@ -788,7 +789,7 @@ def setup():
 
     if "finalize_msi" in sys.argv[1:]:
         db = msilib.OpenDatabase(
-            rf"dist\{name}-{msiversion}.win32-py{sys.version[:3]}.msi",
+            rf"dist\{name}-{msiversion}.win32-py{sys.version_info[0]}.{sys.version_info[1]}.msi",
             msilib.MSIDBOPEN_TRANSACT,
         )
         view = db.OpenView("SELECT Value FROM Property WHERE Property = 'ProductCode'")
@@ -1107,10 +1108,10 @@ def setup():
                 sys.executable,
                 Path(pydir, "pyinstaller", "pyinstaller.py"),
                 "--workpath",
-                Path(pydir, "build", f"pyi.{get_platform()}-{sys.version[:3]}"),
+                Path(pydir, "build", f"pyi.{get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}"),
                 "--distpath",
-                Path(pydir, "dist", f"pyi.{get_platform()}-{sys.version[:3]}"),
-                Path(pydir, "misc", "%s.pyi.spec" % name),
+                Path(pydir, "dist", f"pyi.{get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}"),
+                Path(pydir, "misc", f"{name}.pyi.spec"),
             ]
         )
 
@@ -1559,7 +1560,7 @@ def setup():
             Path(
                 pydir,
                 "dist",
-                f"py2app.{get_platform()}-py{sys.version[:3]}",
+                f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
                 f"{name}-{version}",
             ),
             version_dir,

@@ -27,11 +27,14 @@ jobs:
         wx-version:
           - "4.1.1"
           - "4.2.1"
+          - "4.2.2"
         exclude:
           - python-version: "3.11"
             wx-version: "4.1.1"
           - python-version: "3.12"
             wx-version: "4.1.1"
+          - python-version: "3.12"
+            wx-version: "4.2.1"
 
     steps:
     - uses: actions/checkout@v4
@@ -78,13 +81,13 @@ jobs:
         python3 -m pip install --upgrade pip
         pip install wheel
 
-    - name: Install wxPython wheels ${{ matrix.wx-version }}
+    - name: Install wxPython ${{ matrix.wx-version }}
       run: |
-        pip install https://wxpython.p5k.org/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
+        pip install wxPython==${{ matrix.wx-version }}
 
     - name: Install Python dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements-tests.txt
         pip install -r requirements-dev.txt
 
     - name: Compile C-Extensions
@@ -151,13 +154,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
 
-    - name: Install wxPython wheels
+    - name: Install wxPython
       run: |
         pip install -U wxPython
 
     - name: Install Python dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements-tests.txt
         pip install -r requirements-dev.txt
 
     - name: Compile C-Extensions

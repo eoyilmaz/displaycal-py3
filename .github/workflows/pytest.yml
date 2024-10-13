@@ -4,6 +4,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, unlabeled]
     branches:
       - develop
+  push:
+    branches:
+      - develop
 
 jobs:
   build:
@@ -13,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     strategy:
-      fail-fast: False
+      fail-fast: true
       matrix:
         python-version:
           - "3.8"
@@ -99,7 +102,9 @@ jobs:
       run: |
         sudo chmod a+rw /etc/udev/rules.d
         python3 -m build
-        pip install dist/DisplayCAL-*.whl
+        ls -l dist/
+        wheel_file=$(ls dist/DisplayCAL-*.whl)
+        pip install $wheel_file
 
     - name: Test with pytest
       run: |
@@ -109,5 +114,77 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report-${{ env.py_version }}-${{ matrix.wx-version }}
+        path: htmlcov
+        retention-days: 10
+
+  windows:
+    name: Test with Python ${{ matrix.python-version }} on Windows
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set Environment Variables
+      run: |
+        $py_version = "${{ matrix.python-version }}" -replace '\.', ''
+        echo "py_version=$py_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        if ("${{ matrix.python-version }}" -eq "3.8") {
+          echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } elseif ("${{ matrix.python-version }}" -eq "3.9") {
+          echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } elseif ("${{ matrix.python-version }}" -eq "3.10") {
+          echo "add_dir_str=cpython-310" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } elseif ("${{ matrix.python-version }}" -eq "3.11") {
+          echo "add_dir_str=cpython-311" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } elseif ("${{ matrix.python-version }}" -eq "3.12") {
+          echo "add_dir_str=cpython-312" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        }
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Update pip
+      run: |
+        python -m pip install --upgrade pip
+        pip install wheel
+
+    - name: Install wxPython
+      run: |
+        pip install -U wxPython
+
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements-tests.txt
+        pip install -r requirements-dev.txt
+
+    - name: Compile C-Extensions
+      run: |
+        python -m build
+        ls -l dist/
+        $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
+        pip install $wheel_file.FullName
+        $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
+        $PYDIR = Split-Path $PYPATH
+        Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
+
+    - name: Test with pytest
+      run: |
+        python -m pytest --verbose --cov=. --cov-report html
+
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report-${{ env.py_version }}-windows
         path: htmlcov
         retention-days: 10

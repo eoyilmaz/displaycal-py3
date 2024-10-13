@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Audio wrapper module
+Audio wrapper module.
 
-Can use SDL, pyglet, pyo or wx.
-pyglet or SDL will be used by default if available.
+Can use SDL, pyglet, pyo or wx. pyglet or SDL will be used by default if available.
 pyglet can only be used if version >= 1.2.2 is available.
 pyo is still buggy under Linux and has a few quirks under Windows.
-wx doesn't support fading, changing volume, multiple concurrent sounds, and
-only supports wav format.
+wx doesn't support fading, changing volume, multiple concurrent sounds,
+and only supports wav format.
 
 Example:
 sound = Sound("test.wav", loop=True)

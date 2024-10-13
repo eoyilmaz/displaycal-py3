@@ -23,11 +23,15 @@ the wrapper script in the root directory of the source tar.gz/zip
 """
 import codecs
 import ctypes.util
+import codecs
+import ctypes.util
 from configparser import ConfigParser
 from distutils.command.install import install
 import distutils.core
+import distutils.core
 from distutils.util import change_root, get_platform
 from fnmatch import fnmatch
+import functools
 import functools
 import os
 import platform

@@ -1,7 +1,16 @@
 __pycache__/
 .DS_Store
-.venv*/
 .vscode/
+/DisplayCAL/__version__.py
+/build/
+/dist/
+/venv/
+.venv*/
+/INSTALLED_FILES
+/MANIFEST.in
+MANIFEST.in
+/VERSION
+__pycache__/
 *.blend1
 /.coverage
 /.idea/
@@ -21,6 +30,9 @@ __pycache__/
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-311-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-312-darwin.so
+cacert.pem
+*.code-workspace
+main.py
 /DisplayCAL/ref/*.log
 /dist/
 /INSTALLED_FILES

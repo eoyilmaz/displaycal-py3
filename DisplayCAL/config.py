@@ -90,6 +90,9 @@ else:
     pydir = os.path.dirname(
         exe if isexe else os.path.abspath(os.path.dirname(__file__))
     )
+    pydir = os.path.dirname(
+        exe if isexe else os.path.abspath(os.path.dirname(__file__))
+    )
 
 # TODO: Modifying ``data_dirs`` here was not an elegant solution,                       # noqa: SC100
 # and it is not solving the problem either.

@@ -8,6 +8,7 @@ from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writ
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
+# from wexpect import split_command_line
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxfixes import GenBitmapButton
 from DisplayCAL.wxwindows import BaseApp, numpad_keycodes, SimpleTerminal

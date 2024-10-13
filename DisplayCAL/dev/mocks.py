@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import contextlib
 from types import ModuleType
-from typing import Any, Callable, Dict, Generator, List, Tuple, Type, overload
+from typing import Any, Dict, Generator, List, Tuple, Type, overload
 
 from _pytest.monkeypatch import MonkeyPatch
-from mypy_extensions import KwArg, VarArg
 
 Call = Tuple[Tuple[Any, ...], Dict[str, Any]]
 CallList = List[Call]
@@ -20,39 +19,38 @@ CallList = List[Call]
 
 @overload
 @contextlib.contextmanager
-def _mp_call(
+def _mp_call(  # noqa: E704
     monkeypatch: MonkeyPatch,
     mock_class: Type[Any] | ModuleType,
     method: str,
     return_value: Any,
     as_property: bool,
-) -> CallList:
-    ...
+) -> Generator[CallList, None, None]: ...
 
 
 @overload
 @contextlib.contextmanager
-def _mp_call(
+def _mp_call(  # noqa: E704
     monkeypatch: MonkeyPatch,
     mock_class: str,
     method: Any,  # return value in this case
     return_value: bool,  # as_property in this case
-) -> CallList:
-    ...
+) -> Generator[CallList, None, None]: ...
 
 
+@contextlib.contextmanager
 def _mp_call(
     monkeypatch: MonkeyPatch,
     mock_class: Type[Any] | ModuleType | str,
     method: str | Any,
     return_value: Any,
     as_property: bool = False,
-) -> CallList:
+) -> Generator[CallList, None, None]:
     """
     Mock a method in a class and record the calls to it.
 
-    If the given return_value is an Exception, it will be raised. If not, the
-    value will be returned from the mocked function/method.
+    If the given return_value is an Exception, it will be raised.
+    If not, the value will be returned from the mocked function/method.
     """
     calls: CallList = []
 
@@ -60,8 +58,8 @@ def _mp_call(
         """Mock the function call."""
         calls.append((a, k))
         if isinstance(return_value, Exception):
-            # bug in pylint https://www.logilab.org/ticket/3207
-            raise return_value  # pylint: disable-msg=raising-bad-type
+            # bug in pylint https://www.logilab.org/ticket/3207                         # noqa: SC100
+            raise return_value  # pylint: disable-msg=raising-bad-type                  # noqa: SC100
         if callable(return_value):
             # Handle the case that a function was passed
             return return_value(*a, **k)
@@ -69,9 +67,7 @@ def _mp_call(
 
     # first case handles class + method, second one mock as str
     if as_property or (isinstance(mock_class, str) and return_value):
-        callback: Callable[[VarArg(Any), KwArg(Any)], Any] | property = property(
-            func_call
-        )
+        callback = property(func_call)
     else:
         callback = func_call
 
@@ -80,11 +76,14 @@ def _mp_call(
         monkeypatch.setattr(mock_class, callback)
     else:
         monkeypatch.setattr(mock_class, method, callback)
-    return calls
+    try:
+        yield calls
+    finally:
+        monkeypatch.undo()
 
 
 @contextlib.contextmanager
-def check_call(  # pylint: disable=too-many-arguments
+def check_call(  # pylint: disable=too-many-arguments                                   # noqa: SC100
     mock_class: Type[Any] | ModuleType,
     method: str,
     return_value: Any = None,
@@ -111,9 +110,9 @@ def check_call(  # pylint: disable=too-many-arguments
         "call_args and call_kwargs must be None or have a value " "(list/dict if empty)"
     )
     monkeypatch = MonkeyPatch()
-    calls = _mp_call(monkeypatch, mock_class, method, return_value, as_property)
+    with _mp_call(monkeypatch, mock_class, method, return_value, as_property) as calls:
     try:
-        yield calls
+            yield calls
     finally:
         m_name = f"{mock_class.__name__}.{method}"
         monkeypatch.undo()
@@ -123,7 +122,7 @@ def check_call(  # pylint: disable=too-many-arguments
 # Duplicate the code because overloading is a mess due to this bug:
 # https://github.com/python/mypy/issues/11373
 @contextlib.contextmanager
-def check_call_str(  # pylint: disable=too-many-arguments
+def check_call_str(  # pylint: disable=too-many-arguments                               # noqa: SC100
     mock_class: str,
     return_value: Any = None,
     call_args_list: List[Tuple[Any, ...]] | None = None,
@@ -142,8 +141,8 @@ def check_call_str(  # pylint: disable=too-many-arguments
         "call_args and call_kwargs must be None or have a value " "(list/dict if empty)"
     )
     monkeypatch = MonkeyPatch()
-    calls = _mp_call(monkeypatch, mock_class, return_value, as_property)
-    yield calls
+    with _mp_call(monkeypatch, mock_class, return_value, as_property) as calls:
+        yield calls
     m_name = mock_class
     monkeypatch.undo()
     assert_calls(call_count, call_args_list, call_kwargs_list, calls, m_name)

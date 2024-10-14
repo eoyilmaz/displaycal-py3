@@ -1,32 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-DisplayCAL - display calibration and characterization powered by ArgyllCMS
+DisplayCAL - display calibration and characterization powered by ArgyllCMS.
 
 Copyright (C) 2008, 2009 Florian Hoech
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation; either version 3 of the License, or (at your
-option) any later version.
+This program is free software;
+you can redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation;
+either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along
-with this program; if not, see <http://www.gnu.org/licenses/>
+You should have received a copy of the GNU General Public License along with
+this program; if not, see <http://www.gnu.org/licenses/>
 """
 
-
-import sys
-
 # Standard modules
-
-from io import StringIO, BytesIO
 import datetime
-
-from decimal import Decimal
 import json as json_module
 import math
 import os
@@ -35,61 +28,91 @@ import re
 import shutil
 import socket
 import subprocess as sp
+import sys
 import threading
 import traceback
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
+import webbrowser  # Import the webbrowser module for platform-independent results      # noqa: SC100
 import zipfile
-
-from send2trash import send2trash
-
-from DisplayCAL.util_dict import dict_sort
-
-if sys.platform == "win32":
-    import winreg
+from decimal import Decimal
 from hashlib import md5
+from io import BytesIO, StringIO
 from time import localtime, sleep, strftime, strptime, struct_time
 from zlib import crc32
 
-# Import the useful webbrowser module for platform-independent results
-import webbrowser
+# import wexpect                                                                        # noqa: SC100
 
-# Set no delay time to open the web page
-webbrowser.PROCESS_CREATION_DELAY = 0
-APP_IS_UPTODATE = True
-
-# Config
-from DisplayCAL import config
+# Custom modules
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    audio,
+    ccmx,
+    colord,
+    colormath,
+    config,
+    floatspin,
+    localization as lang,
+    madvr,
+    pyi_md5pickuphelper,
+    report,
+    util_x,
+    wexpect,
+    wxenhancedplot as plot,
+    xh_bitmapctrls,
+    xh_fancytext,
+    xh_filebrowsebutton,
+    xh_floatspin,
+    xh_hstretchstatbmp,
+)
+from DisplayCAL.argyll_cgats import (
+    cal_to_fake_profile,
+    can_update_cal,
+    extract_cal_from_profile,
+    ti3_to_ti1,
+    verify_ti1_rgb_xyz,
+)
+from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL.argyll_names import viewconds
+from DisplayCAL.colormath import (
+    CIEDCCT2xyY,
+    XYZ2CCT,
+    XYZ2Lab,
+    XYZ2xyY,
+    planckianCT2xyY,
+    xyY2CCT,
+)
 from DisplayCAL.config import (
     appbasename,
     autostart,
     autostart_home,
     build,
-    script_ext,
     defaults,
     enc,
     exe,
     exe_ext,
     fs_enc,
-    getbitmap,
-    geticon,
     get_ccxx_testchart,
     get_current_profile,
-    get_display_profile,
     get_data_path,
-    getcfg,
+    get_display_profile,
     get_total_patches,
     get_verified_path,
+    getbitmap,
+    getcfg,
+    geticon,
     hascfg,
+    initcfg,
     is_ccxx_testchart,
     is_profile,
-    initcfg,
     isapp,
     isexe,
     profile_ext,
     pydir,
     resfiles,
+    script_ext,
     setcfg,
     setcfg_cond,
     writecfg,
@@ -115,6 +138,7 @@ elif sys.platform == "darwin":
 from DisplayCAL import wexpect
 
 # import wexpect
+from DisplayCAL.argyll import get_argyll_latest_version
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
@@ -138,18 +162,18 @@ from DisplayCAL.debughelpers import (
     getevttype,
     handle_error,
 )
-from DisplayCAL.edid import pnpidcache, get_manufacturer_name
+from DisplayCAL.edid import get_manufacturer_name, pnpidcache
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
+    DOMAIN,
     VERSION,
     VERSION_BASE,
     author,
     development_home_page,
+    get_latest_changelog_entry,
     name as appname,
-    DOMAIN,
     version,
     version_short,
-    get_latest_changelog_entry,
 )
 from DisplayCAL.options import (
     debug,
@@ -159,17 +183,8 @@ from DisplayCAL.options import (
     verbose,
 )
 from DisplayCAL.patterngenerators import WebWinHTTPPatternGeneratorServer
-
-try:
-    from DisplayCAL.chromecast_patterngenerator import (
-        ChromeCastPatternGenerator as CCPG,
-    )
-except ImportError:
-    from types import NoneType
-
-    CCPG = NoneType
-
 from DisplayCAL.util_decimal import float2dec, stripzeros
+from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import LineCache, TarFileProper
 from DisplayCAL.util_list import index_fallback_ignorecase, intlist, natsort
 from DisplayCAL.util_os import (
@@ -192,15 +207,16 @@ from DisplayCAL.util_str import (
     universal_newlines,
     wrap,
 )
-from DisplayCAL import util_x
 from DisplayCAL.worker import (
     Error,
+    FilteredStream,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
     Warn,
     Worker,
+    _applycal_bug_workaround,
     check_argyll_bin,
     check_create_dir,
     check_file_isfile,
@@ -221,66 +237,45 @@ from DisplayCAL.worker import (
     parse_argument_string,
     set_argyll_bin,
     show_result_dialog,
-    FilteredStream,
-    _applycal_bug_workaround,
 )
-from DisplayCAL.argyll import get_argyll_latest_version
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-
-try:
-    from DisplayCAL.wxLUTViewer import LUTFrame
-except ImportError:
-    LUTFrame = None
-
-from DisplayCAL.wxMeasureFrame import MeasureFrame
-
-try:
-    from DisplayCAL.wxCCXXPlot import CCXXPlot
-except ImportError:
-    CCXXPlot = None
-
 from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxMeasureFrame import get_default_size
-
-try:
-    from DisplayCAL.wxProfileInfo import ProfileInfoFrame
-except ImportError:
-    ProfileInfoFrame = None
-
+from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wxMeasureFrame import MeasureFrame, get_default_size
 from DisplayCAL.wxReportFrame import ReportFrame
 from DisplayCAL.wxSynthICCFrame import SynthICCFrame
 from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxVisualWhitepointEditor import VisualWhitepointEditor
 from DisplayCAL.wxaddons import (
-    wx,
     BetterWindowDisabler,
     CustomEvent,
     CustomGridCellEvent,
     IdFactory,
     PopupMenu,
+    wx,
 )
 from DisplayCAL.wxfixes import (
-    ThemedGenButton,
     BitmapWithThemedButton,
-    set_bitmap_labels,
-    TempXmlResource,
-    wx_Panel,
     PlateButton,
+    TempXmlResource,
+    ThemedGenButton,
     get_bitmap_disabled,
+    set_bitmap_labels,
     set_maxsize,
+    wx_Panel,
 )
 from DisplayCAL.wxwindows import (
     AboutDialog,
     AuiBetterTabArt,
+    AutocompleteComboBox,
     BaseApp,
     BaseFrame,
     BetterStaticFancyText,
-    BorderGradientButton,
     BitmapBackgroundPanel,
     BitmapBackgroundPanelText,
+    BorderGradientButton,
     ConfirmDialog,
-    CustomGrid,
     CustomCellBoolRenderer,
+    CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
     FlatShadedButton,
@@ -291,33 +286,63 @@ from DisplayCAL.wxwindows import (
     ProgressDialog,
     TabButton,
     TooltipWindow,
-    get_gradient_panel,
     get_dialogs,
-    AutocompleteComboBox,
+    get_gradient_panel,
 )
-from DisplayCAL import floatspin
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import xh_fancytext
-from DisplayCAL import xh_filebrowsebutton
-from DisplayCAL import xh_floatspin
-from DisplayCAL import xh_hstretchstatbmp
-from DisplayCAL import xh_bitmapctrls
 
-# wxPython
-try:
-    # Only wx.lib.aui.AuiNotebook looks reasonable across _all_ platforms.
-    # Other tabbed book controls like wx.Notebook or wx.aui.AuiNotebook are
-    # impossible to get to look right under GTK because there's no way to
-    # set the correct background color for the pages.
-    from wx.lib.agw import aui
-except ImportError:
-    # Fall back to wx.aui under ancient wxPython versions
-    from wx import aui
+from send2trash import send2trash
 
+# wxPython                                                                              # noqa: SC100
 from wx import xrc
 from wx.lib import delayedresult, platebtn
 from wx.lib.art import flagart
 from wx.lib.scrolledpanel import ScrolledPanel
+
+if sys.platform == "win32":
+    from DisplayCAL import util_win
+    import winreg
+elif sys.platform == "darwin":
+    from DisplayCAL import util_mac
+
+try:
+    from DisplayCAL.chromecast_patterngenerator import (
+        ChromeCastPatternGenerator as CCPG,
+    )
+except ImportError:
+    from types import NoneType
+
+    CCPG = NoneType
+
+try:
+    from DisplayCAL.wxCCXXPlot import CCXXPlot
+except ImportError:
+    CCXXPlot = None
+
+try:
+    from DisplayCAL.wxLUTViewer import LUTFrame
+except ImportError:
+    LUTFrame = None
+
+try:
+    from DisplayCAL.wxProfileInfo import ProfileInfoFrame
+except ImportError:
+    ProfileInfoFrame = None
+
+# wxPython                                                                              # noqa: SC100
+try:
+    # Only wx.lib.aui.AuiNotebook looks reasonable across _all_ platforms.              # noqa: SC100
+    # Other tabbed book controls like wx.Notebook or wx.aui.AuiNotebook are             # noqa: SC100
+    # impossible to get to look right under GTK because there's no way to set           # noqa: SC100
+    # the correct background color for the pages.
+    from wx.lib.agw import aui
+except ImportError:
+    # Fall back to wx.aui under ancient wxPython versions                               # noqa: SC100
+    from wx import aui
+
+# Set no delay time to open the web page
+webbrowser.PROCESS_CREATION_DELAY = 0
+
+APP_IS_UPTODATE = True
 
 
 def show_ccxx_error_dialog(exception, path, parent):
@@ -821,7 +846,9 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     col.i = 0
     dlg_list_ctrl.SetColumnWidth(int(col), int(75 * scale))  # Type
     dlg_list_ctrl.SetColumnWidth(int(col), int(415 * scale))  # Desc
-    dlg_list_ctrl.SetColumnWidth(int(col), int(150 * scale))  # Display manufactuer & model
+    dlg_list_ctrl.SetColumnWidth(
+        int(col), int(150 * scale)
+    )  # Display manufactuer & model
     # dlg_list_ctrl.SetColumnWidth(int(col), int(225 * scale))  # Instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(90 * scale))  # Ref. instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(150 * scale))  # Spectral res

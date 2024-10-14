@@ -42,8 +42,6 @@ from io import BytesIO, StringIO
 from time import localtime, sleep, strftime, strptime, struct_time
 from zlib import crc32
 
-# import wexpect                                                                        # noqa: SC100
-
 # Custom modules
 from DisplayCAL import (
     CGATS,
@@ -67,6 +65,7 @@ from DisplayCAL import (
     xh_floatspin,
     xh_hstretchstatbmp,
 )
+from DisplayCAL.argyll import get_argyll_latest_version
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
@@ -116,45 +115,6 @@ from DisplayCAL.config import (
     setcfg,
     setcfg_cond,
     writecfg,
-)
-
-# Custom modules
-
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import audio
-from DisplayCAL import ccmx
-from DisplayCAL import colord
-from DisplayCAL import colormath
-from DisplayCAL import localization as lang
-from DisplayCAL import madvr
-from DisplayCAL import pyi_md5pickuphelper
-from DisplayCAL import report
-
-if sys.platform == "win32":
-    from DisplayCAL import util_win
-elif sys.platform == "darwin":
-    from DisplayCAL import util_mac
-from DisplayCAL import wexpect
-
-# import wexpect
-from DisplayCAL.argyll import get_argyll_latest_version
-from DisplayCAL.argyll_cgats import (
-    cal_to_fake_profile,
-    can_update_cal,
-    ti3_to_ti1,
-    extract_cal_from_profile,
-    verify_ti1_rgb_xyz,
-)
-from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-from DisplayCAL.argyll_names import viewconds
-from DisplayCAL.colormath import (
-    CIEDCCT2xyY,
-    planckianCT2xyY,
-    xyY2CCT,
-    XYZ2CCT,
-    XYZ2Lab,
-    XYZ2xyY,
 )
 from DisplayCAL.debughelpers import (
     ResourceError,

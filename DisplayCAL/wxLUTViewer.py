@@ -5,8 +5,13 @@ import os
 import re
 import sys
 
-import numpy
-
+from DisplayCAL import (
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    localization as lang,
+    wxenhancedplot as plot,
+)
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
@@ -14,12 +19,14 @@ from DisplayCAL.config import (
     get_data_path,
     get_display_profile,
     get_display_rects,
+    get_verified_path,
     getcfg,
     geticon,
-    get_verified_path,
     setcfg,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import (
+    name as appname,
+)
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
@@ -30,8 +37,12 @@ from DisplayCAL.worker import (
     make_argyll_compatible_path,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
+from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import (
+    GenBitmapButton as BitmapButton,
+    wx_Panel,
+)
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -42,11 +53,8 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     TooltipWindow,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel
-from DisplayCAL import colormath, config
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
+
+import numpy
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"

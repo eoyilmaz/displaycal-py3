@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-
-"""
-Set ICC profiles and load calibration curves for all configured display devices
-
-"""
+"""Set ICC profiles and load calibration curves for all configured display devices."""
 
 import os
 import sys
 import threading
 import time
 
+from DisplayCAL import config
+from DisplayCAL.config import appbasename, confighome, getcfg, setcfg
 from DisplayCAL.meta import (
     VERSION,
     VERSION_BASE,
@@ -17,33 +15,19 @@ from DisplayCAL.meta import (
     version,
     version_short,
 )
-from DisplayCAL import config
-from DisplayCAL.config import appbasename, confighome, getcfg, setcfg
 from DisplayCAL.options import debug, test, verbose
 
 if sys.platform == "win32":
-    import errno
-    import ctypes
-    import math
-    import re
-    import subprocess as sp
-    import traceback
-    import warnings
-    import winerror
-    import winreg
-
-    import pywintypes
-    import win32api
-    import win32event
-    import win32gui
-    import win32process
-    import win32ts
-
+    from DisplayCAL import (
+        ICCProfile as ICCP,
+        madvr,
+    )
     from DisplayCAL.colord import device_id_from_edid
     from DisplayCAL.colormath import smooth_avg
     from DisplayCAL.config import (
         autostart,
         autostart_home,
+        enc,
         exe,
         exedir,
         get_data_path,
@@ -52,12 +36,10 @@ if sys.platform == "win32":
         geticon,
         iccprofiles,
         pydir,
-        enc,
     )
-    from DisplayCAL.debughelpers import Error, UnloggedError, handle_error
+    from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
     from DisplayCAL.edid import get_edid
     from DisplayCAL.meta import DOMAIN
-
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
     from DisplayCAL.util_list import natsort_key_factory
     from DisplayCAL.util_os import (
@@ -71,10 +53,8 @@ if sys.platform == "win32":
     )
     from DisplayCAL.util_str import safe_asciize
     from DisplayCAL.util_win import (
-        DISPLAY_DEVICE_ACTIVE,
-        MONITORINFOF_PRIMARY,
-        USE_REGISTRY,
         calibration_management_isenabled,
+        DISPLAY_DEVICE_ACTIVE,
         enable_per_user_profiles,
         get_active_display_device,
         get_active_display_devices,
@@ -85,26 +65,42 @@ if sys.platform == "win32":
         get_process_filename,
         get_real_display_devices_info,
         get_windows_error,
+        MONITORINFOF_PRIMARY,
         per_user_profiles_isenabled,
         run_as_admin,
+        USE_REGISTRY,
         win_ver,
     )
     from DisplayCAL.wxaddons import CustomGridCellEvent
-    from DisplayCAL.wxfixes import ThemedGenButton, set_bitmap_labels
+    from DisplayCAL.wxfixes import set_bitmap_labels, ThemedGenButton
     from DisplayCAL.wxwindows import (
         BaseApp,
         BaseFrame,
         ConfirmDialog,
         CustomCellBoolRenderer,
         CustomGrid,
+        get_dialogs,
         InfoDialog,
+        show_result_dialog,
         TaskBarNotification,
         wx,
-        show_result_dialog,
-        get_dialogs,
     )
-    from DisplayCAL import ICCProfile as ICCP
-    from DisplayCAL import madvr
+
+    import ctypes
+    import errno
+    import math
+    import pywintypes
+    import re
+    import subprocess as sp
+    import traceback
+    import warnings
+    import win32api
+    import win32event
+    import win32gui
+    import win32process
+    import win32ts
+    import winerror
+    import winreg
 
     if islink(exe):
         try:
@@ -1520,7 +1516,7 @@ class ProfileLoader(object):
                     menu_items.append(
                         ("menuitem.quit", self.pl.exit, wx.ITEM_NORMAL, None, None)
                     )
-                    for (label, method, kind, option, oxform) in menu_items:
+                    for label, method, kind, option, oxform in menu_items:
                         if label == "-":
                             menu.AppendSeparator()
                         else:
@@ -3360,7 +3356,7 @@ class ProfileLoader(object):
                     print("Enumerating processes failed:", exception)
                 else:
                     skip = False
-                    for (session_id, pid, basename, user_security_id) in processes:
+                    for session_id, pid, basename, user_security_id in processes:
                         name_lower = basename.lower()
                         if name_lower != "madhcctrl.exe":
                             # Add all processes except madVR Home Cinema Control

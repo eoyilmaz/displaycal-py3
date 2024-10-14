@@ -791,7 +791,7 @@ def get_instrument_name():
     return ""
 
 
-def get_measureframe_dimensions(dimensions_measureframe=None, percent=10) -> str:
+def get_measureframe_dimensions(dimensions_measureframe=None, percent=10):
     """Return measurement area size adjusted for percentage of screen area.
 
     Args:
@@ -799,7 +799,7 @@ def get_measureframe_dimensions(dimensions_measureframe=None, percent=10) -> str
         percent (int): The percentage of screen area.
 
     Returns:
-        str: The coma separated measurement frame size.
+        str: The adjusted dimensions of the measure frame.
     """
     if not dimensions_measureframe:
         dimensions_measureframe = getcfg("dimensions.measureframe")

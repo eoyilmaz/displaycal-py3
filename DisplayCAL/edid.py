@@ -209,8 +209,7 @@ def get_edid(display_no=0, display_name=None, device=None):
 
 
 def get_edid_windows(display_no, device):
-    """
-    Get EDID for a Windows display.
+    """Get EDID for a Windows display.
 
     Args:
         display_no (int): The display number (zero-based).
@@ -253,8 +252,7 @@ def get_edid_windows(display_no, device):
 
 
 def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
-    """
-    Get EDID using WMI for Windows Vista/Win7.
+    """Get EDID using WMI for Windows Vista/Win7.
 
     Args:
         id (str): The device ID.
@@ -369,8 +367,7 @@ def get_edid_windows_registry(id, device):
 
 
 def get_edid_darwin(display_name):
-    """
-    Get EDID via ioreg on macOS.
+    """Get EDID via ioreg on macOS.
 
     Args:
         display_name (str): The display name.
@@ -381,24 +378,27 @@ def get_edid_darwin(display_name):
     p = sp.Popen(["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=sp.PIPE)
     stdout, stderr = p.communicate()
 
-    if stdout:
-        for edid in [
-            binascii.unhexlify(edid_hex)
-            for edid_hex in re.findall(
-                r'"IODisplayEDID"\s*=\s*<([0-9A-Fa-f]*)>', stdout.decode()
-            )
-        ]:
-            if edid and len(edid) >= 128:
-                parsed_edid = parse_edid(edid)
-                if (
-                    parsed_edid.get("monitor_name", parsed_edid.get("ascii"))
-                    == display_name
-                ):
-                    # On Mac OS X, you need to specify a display name because
-                    # the order is unknown
-                    return parsed_edid
-
+    if not stdout:
         return {}
+
+    for edid in [
+        binascii.unhexlify(edid_hex)
+        for edid_hex in re.findall(
+            r'"IODisplayEDID"\s*=\s*<([0-9A-Fa-f]*)>', stdout.decode()
+        )
+    ]:
+        if not edid or len(edid) < 128:
+            continue
+        parsed_edid = parse_edid(edid)
+        if (
+            parsed_edid.get("monitor_name", parsed_edid.get("ascii"))
+            == display_name
+        ):
+            # On Mac OS X, you need to specify a display name because
+            # the order is unknown
+            return parsed_edid
+
+    return {}
 
 
 def get_edid_rdsmm(display_no):
@@ -487,8 +487,7 @@ def load_pnpidcache():
 
 
 def get_pnpid_paths():
-    """
-    Get the list of possible paths for the pnp.ids file.
+    """Get the list of possible paths for the pnp.ids file.
 
     Returns:
         list: List of possible paths.
@@ -500,13 +499,15 @@ def get_pnpid_paths():
         "/usr/share/libgnome-desktop/pnp.ids",
     ]  # fallback gnome-desktop
     if sys.platform in ("darwin", "win32"):
-        paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
+        # fallback
+        paths.append(os.path.join(config.pydir, "pnp.ids"))
+        # fallback for tests
+        paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
     return paths
 
 
 def parse_pnpid_file(pnp_ids, path):
-    """
-    Parse the pnp.ids file and populate the pnpidcache.
+    """Parse the pnp.ids file and populate the pnpidcache.
 
     Args:
         pnp_ids (file): The pnp.ids file.
@@ -796,8 +797,7 @@ def parse_edid_chromaticity_coordinates(edid):
 
 
 def parse_edid_descriptor_blocks(edid):
-    """
-    Parse the descriptor blocks from the EDID data.
+    """Parse the descriptor blocks from the EDID data.
 
     Args:
         edid (bytes): The raw EDID data.

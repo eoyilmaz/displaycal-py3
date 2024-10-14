@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from binascii import hexlify
 import atexit
 import math
 import os
@@ -13,26 +11,27 @@ import sys
 import tempfile
 import textwrap
 import traceback
+from binascii import hexlify
 
-
-if sys.platform == "win32":
-    import win32api
-
-
-from DisplayCAL import CGATS
-from DisplayCAL import config
-from DisplayCAL import colormath
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import localization as lang
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    localization as lang,
+)
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version
 from DisplayCAL.colormath import (
-    VidRGB_to_eeColor,
     VidRGB_to_cLUT65,
+    VidRGB_to_eeColor,
     eeColor_to_VidRGB,
 )
 from DisplayCAL.config import (
-    # exe_ext, fs_enc, get_data_path, getcfg,
-    profile_ext
+    # exe_ext,
+    # fs_enc,
+    # get_data_path,
+    # getcfg,
+    profile_ext,
 )
 from DisplayCAL.debughelpers import (
     Error,
@@ -48,6 +47,9 @@ from DisplayCAL.multiprocess import mp, pool_slice
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
+
+if sys.platform == "win32":
+    import win32api
 
 
 def _mp_xicclu(

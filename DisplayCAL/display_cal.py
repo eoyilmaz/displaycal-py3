@@ -3712,7 +3712,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # background. Replace with ThemedGenButton which does not have
             # that issue
             subst = BorderGradientButton(
-                btn.Parent, bitmap=geticon(16, "start"), label=btn.Label, name=btn.Name
+                parent=btn.Parent,
+                bitmap=geticon(16, "start"),
+                label=btn.Label,
+                name=btn.Name,
             )
             subst.SetBackgroundColour(btn.Parent.BackgroundColour)
             if sys.platform == "win32":

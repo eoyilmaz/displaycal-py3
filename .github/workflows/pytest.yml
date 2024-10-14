@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version:
           - "3.8"
@@ -122,7 +122,7 @@ jobs:
     runs-on: windows-latest
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version:
           - "3.8"
@@ -159,14 +159,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
 
-    - name: Install wxPython
-      run: |
-        pip install -U wxPython
+    # - name: Install wxPython
+    #   run: |
+    #     pip install -U wxPython
 
     - name: Install Python dependencies
       run: |
-        pip install -r requirements-tests.txt
-        pip install -r requirements-dev.txt
+        pip install -r requirements-tests.txt -r requirements-dev.txt
 
     - name: Compile C-Extensions
       run: |
@@ -174,9 +173,9 @@ jobs:
         ls -l dist/
         $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
         pip install $wheel_file.FullName
-        $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
-        $PYDIR = Split-Path $PYPATH
-        Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
+        # $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
+        # $PYDIR = Split-Path $PYPATH
+        # Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
 
     - name: Test with pytest
       run: |

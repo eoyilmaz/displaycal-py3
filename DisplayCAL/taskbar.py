@@ -10,6 +10,7 @@ TBPF_NORMAL = 0x2
 TBPF_ERROR = 0x4
 TBPF_PAUSED = 0x8
 
+
 # Define the ITaskbarList3 interface
 class ITaskbarList3(ctypes.Structure):
     _fields_ = [
@@ -18,6 +19,7 @@ class ITaskbarList3(ctypes.Structure):
         # Add other methods if needed
     ]
 
+
 # Load the Shell32.dll and get the ITaskbarList3 interface
 shell32 = ctypes.windll.shell32
 
@@ -25,6 +27,7 @@ ITaskbarList3_ptr = ctypes.POINTER(ITaskbarList3)
 CoCreateInstance = ctypes.windll.ole32.CoCreateInstance
 CLSID_TaskbarList = ctypes.c_char_p(b"{56FDF344-FD6D-11d0-958A-006097C9A090}")
 IID_ITaskbarList3 = ctypes.c_char_p(b"{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}")
+
 
 class Taskbar(object):
     def __init__(self, frame, maxv=100):
@@ -39,7 +42,7 @@ class Taskbar(object):
             None,
             1,  # CLSCTX_INPROC_SERVER
             ctypes.byref(IID_ITaskbarList3),
-            ctypes.byref(taskbar)
+            ctypes.byref(taskbar),
         )
         if hr != 0:
             raise ctypes.WinError(hr)

@@ -895,6 +895,7 @@ class ArtManager(wx.EvtHandler):
 
     def Initialize(self) -> None:
         """Initialize the bitmaps and colours."""
+
         # create wxBitmaps from the xpm's                                               # noqa: SC100
         def ensure_strings(xpm_data: list[str] | list[bytes]) -> list[str]:
             return [

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
+
 import os
 import pathlib
 import shutil
 import subprocess
 import sys
 import tarfile
-
-import pytest
 import tempfile
 
 import DisplayCAL
@@ -14,10 +13,12 @@ from DisplayCAL import RealDisplaySizeMM
 from DisplayCAL.config import setcfg
 from DisplayCAL.argyll import get_argyll_latest_version
 
+import pytest
+
 
 @pytest.fixture(scope="module")
 def data_files():
-    """generates data file list"""
+    """Generate data file list."""
     #  test/data
     extensions = ["*.txt", "*.tsv", "*.lin", "*.cal", "*.ti1", "*.ti3", "*.icc"]
 
@@ -64,7 +65,7 @@ def argyll():
         "linux": f"https://www.argyllcms.com/Argyll_V{argyll_version}_linux_x86_64_bin.tgz",
     }
 
-    # first look in to ~/local/bin/ArgyllCMS
+    # first look in to ~/local/bin/ArgyllCMS                                            # noqa: SC100
     home = pathlib.Path().home()
     argyll_search_paths = [
         home / ".local" / "bin" / "Argyll" / "bin",
@@ -82,7 +83,7 @@ def argyll():
         yield argyll_path
         return
 
-    # apparently argyll has not been found
+    # apparently argyll has not been found                                              # noqa: SC100
     # download from source
     url = argyll_download_url[sys.platform]
 
@@ -90,7 +91,7 @@ def argyll():
     # store current working directory
     current_working_directory = os.getcwd()
 
-    # change dir to argyll temp path
+    # change dir to argyll temp path                                                    # noqa: SC100
     os.chdir(argyll_temp_path)
 
     tar_file_name = "Argyll.tgz"

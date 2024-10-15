@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-import sys
+
+import platform
+
 from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.colord import device_id_from_edid
 from DisplayCAL.dev.mocks import check_call
 from DisplayCAL.edid import get_edid
-from tests.data.display_data import DisplayData
+
 import pytest
+
+from tests.data.display_data import DisplayData
 
 
 def test_device_id_from_edid_1():

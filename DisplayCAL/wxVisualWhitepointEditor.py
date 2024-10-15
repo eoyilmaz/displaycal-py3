@@ -1,46 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-Visual whitepoint editor
+Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
 
 License: wxPython license
 """
 
-
 import colorsys
 import os
 import re
 import sys
 import threading
-from math import pi, sin, cos, sqrt, atan2
-
-if sys.platform == "darwin":
-    from platform import mac_ver
-
+from math import atan2, cos, pi, sin, sqrt
 from time import sleep
 
-from DisplayCAL.wxfixes import wx
-from wx.lib.agw import aui
-from wx.lib.intctrl import IntCtrl
-
+from DisplayCAL import (
+    ICCProfile as ICCP,
+    localization as lang,
+)
 from DisplayCAL.config import (
     defaults,
     fs_enc,
-    getbitmap,
-    getcfg,
     get_argyll_display_number,
     get_default_dpi,
     get_display_name,
     get_icon_bundle,
+    getbitmap,
+    getcfg,
     geticon,
     initcfg,
     profile_ext,
     setcfg,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import (
+    name as appname,
+)
 from DisplayCAL.util_list import intlist
-from DisplayCAL.util_str import wrap, safe_asciize
+from DisplayCAL.util_str import safe_asciize, wrap
 from DisplayCAL.worker import (
     Error,
     UnloggedError,
@@ -50,25 +47,29 @@ from DisplayCAL.worker import (
     show_result_dialog,
 )
 from DisplayCAL.wxfixes import (
-    wx_Panel,
     GenBitmapButton as BitmapButton,
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
+    wx,
+    wx_Panel,
 )
 from DisplayCAL.wxwindows import (
     FlatShadedButton,
     HStretchStaticBitmap,
     TaskBarNotification,
 )
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
+
+from wx.lib.agw import aui
+from wx.lib.intctrl import IntCtrl
+
+if sys.platform == "darwin":
+    from platform import mac_ver
 
 try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM
 except ImportError:
     RDSMM = None
-
 
 # Use non-native mini frames on all platforms
 aui.framemanager.AuiManager_UseNativeMiniframes = (

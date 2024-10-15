@@ -1,26 +1,30 @@
 # -*- coding: utf-8 -*-
 
-from time import gmtime, strftime
 import math
 import os
+from time import gmtime, strftime
 
-from DisplayCAL.config import get_data_path, initcfg, getcfg, geticon, hascfg, setcfg
-from DisplayCAL.meta import name as appname
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    config,
+    localization as lang,
+    worker,
+    xh_bitmapctrls,
+    xh_fancytext,
+    xh_filebrowsebutton,
+    xh_hstretchstatbmp,
+)
+from DisplayCAL.config import get_data_path, getcfg, geticon, hascfg, initcfg, setcfg
+from DisplayCAL.meta import (
+    name as appname,
+)
+from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import worker
-from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
 from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL import xh_fancytext
-from DisplayCAL import xh_filebrowsebutton
-from DisplayCAL import xh_hstretchstatbmp
-from DisplayCAL import xh_bitmapctrls
+from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
 
 from wx import xrc
 

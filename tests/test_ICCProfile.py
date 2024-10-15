@@ -7,17 +7,17 @@ from time import strftime
 
 from DisplayCAL import ICCProfile, colormath
 from DisplayCAL.ICCProfile import (
-    cmms,
-    dateTimeNumber,
     DictType,
-    hexrepr,
     ICCProfileTag,
     MultiLocalizedUnicodeType,
-    s15Fixed16Number_tohex,
     Text,
-    uInt8Number_tohex,
+    cmms,
+    dateTimeNumber,
+    hexrepr,
+    s15Fixed16Number_tohex,
     uInt16Number_tohex,
     uInt32Number_tohex,
+    uInt8Number_tohex,
 )
 
 
@@ -29,6 +29,9 @@ def test_iccprofile_from_rgb_space():
     assert icc is not None
     result = icc.get_info()
     assert isinstance(result, list)
+
+    # Add debugging information
+    print("Result:", result)
 
     expected_result = [
         ["Size", "0 Bytes (0.00 KiB)"],
@@ -103,6 +106,9 @@ def test_iccprofile_from_rgb_space():
         "Checksum",
         "0x{}".format(binascii.hexlify(icc.ID).upper().decode()),
     ]
+
+    # Add debugging information
+    print("Expected Result:", expected_result)
 
     assert result == expected_result
 

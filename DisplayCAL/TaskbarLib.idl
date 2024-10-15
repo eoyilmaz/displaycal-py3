@@ -1,0 +1,184 @@
+/*
+The Microsoft Interface Definition Language file needed by taskbar.py.
+This file must be compiled by midl.exe provided in Windows SDK.
+The compile command may look like this:
+
+~$ midl.exe /tlb TaskbarLib.tlb TaskbarLib.idl
+
+Reference: https://www.neowin.net/forum/topic/716968-using-apis-in-a-objectaction-format/?do=findComment&comment=590434472
+*/
+
+[
+// Anything unique will do, reuse the uuid and version shown in the forum post.
+   uuid(683BF642-E9CA-4124-BE43-67065B2FA653),
+   version(1.0),
+]
+// Library name should be consistent with `comtypes.gen.XXX` found at taskbar.py.
+library TaskbarLib
+{
+// Copied from Windows Kits\10\Include\10.0.22621.0\um\ShObjIdl_core.idl,
+//  can copy from older SDKs as long as interface `ITaskbarList3` is present.
+
+//-------------------------------------------------------------------------
+//
+// ITaskbarList interface
+//
+//
+// [Member functions]
+//
+// ITaskbarList::HrInit()
+//   This function must be called first to validate use of other members.
+//
+// ITaskbarList::AddTab(hwnd)
+//   This function adds a tab for hwnd to the taskbar.
+//
+// ITaskbarList::DeleteTab(hwnd)
+//   This function deletes a tab for hwnd from the taskbar.
+//
+// ITaskbarList::ActivateTab(hwnd)
+//   This function activates the tab associated with hwnd on the taskbar.
+//
+// ITaskbarList::SetActivateAlt(hwnd)
+//   This function marks hwnd in the taskbar as the active tab
+//
+//-------------------------------------------------------------------------
+[
+    uuid(56FDF342-FD6D-11d0-958A-006097C9A090),
+    object,
+]
+interface ITaskbarList : IUnknown
+{
+    HRESULT HrInit();
+
+    HRESULT AddTab([in] HWND hwnd);
+
+    HRESULT DeleteTab([in] HWND hwnd);
+
+    HRESULT ActivateTab([in] HWND hwnd);
+
+    HRESULT SetActiveAlt([in] HWND hwnd);
+}
+
+[
+    uuid(602D4995-B13A-429b-A66E-1935E44F4317),
+    object,
+]
+interface ITaskbarList2 : ITaskbarList
+{
+    HRESULT MarkFullscreenWindow(
+        [in] HWND hwnd,
+        [in] BOOL fFullscreen);
+}
+
+cpp_quote("#ifdef MIDL_PASS")
+typedef IUnknown* HIMAGELIST;
+cpp_quote("#endif")
+
+typedef [v1_enum] enum THUMBBUTTONFLAGS
+{
+    THBF_ENABLED        =   0x00000000,
+    THBF_DISABLED       =   0x00000001,
+    THBF_DISMISSONCLICK =   0x00000002,
+    THBF_NOBACKGROUND   =   0x00000004,
+    THBF_HIDDEN         =   0x00000008,
+    THBF_NONINTERACTIVE =   0x00000010,
+} THUMBBUTTONFLAGS;
+cpp_quote("DEFINE_ENUM_FLAG_OPERATORS(THUMBBUTTONFLAGS)")
+
+typedef [v1_enum] enum THUMBBUTTONMASK
+{
+    THB_BITMAP          =   0x00000001,
+    THB_ICON            =   0x00000002,
+    THB_TOOLTIP         =   0x00000004,
+    THB_FLAGS           =   0x00000008,
+} THUMBBUTTONMASK;
+cpp_quote("DEFINE_ENUM_FLAG_OPERATORS(THUMBBUTTONMASK)")
+
+cpp_quote("#include <pshpack8.h>")
+
+typedef struct THUMBBUTTON
+{
+    THUMBBUTTONMASK  dwMask;
+    UINT    iId;
+    UINT    iBitmap;
+    HICON   hIcon;
+    WCHAR   szTip[260];
+    THUMBBUTTONFLAGS  dwFlags;
+} THUMBBUTTON, *LPTHUMBBUTTON;
+
+cpp_quote("#include <poppack.h>")
+
+cpp_quote("#define THBN_CLICKED        0x1800")
+
+[
+    uuid(ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf),
+    object,
+]
+interface ITaskbarList3 : ITaskbarList2
+{
+    // Flags for Setting Taskbar Progress state
+    typedef [v1_enum] enum TBPFLAG
+    {
+        TBPF_NOPROGRESS     = 0x00000000,
+        TBPF_INDETERMINATE  = 0x00000001,
+        TBPF_NORMAL         = 0x00000002,
+        TBPF_ERROR          = 0x00000004,
+        TBPF_PAUSED         = 0x00000008,
+    } TBPFLAG;
+    cpp_quote("DEFINE_ENUM_FLAG_OPERATORS(TBPFLAG)")
+
+    HRESULT SetProgressValue(
+        [in] HWND hwnd,
+        [in] ULONGLONG ullCompleted,
+        [in] ULONGLONG ullTotal);
+
+    HRESULT SetProgressState(
+        [in] HWND hwnd,
+        [in] TBPFLAG tbpFlags);
+
+    HRESULT RegisterTab(
+        [in] HWND hwndTab,
+        [in] HWND hwndMDI);
+
+    HRESULT UnregisterTab(
+        [in] HWND hwndTab);
+
+    HRESULT SetTabOrder(
+        [in] HWND hwndTab,
+        [in] HWND hwndInsertBefore);
+
+    HRESULT SetTabActive(
+        [in] HWND hwndTab,
+        [in] HWND hwndMDI,
+        [in] DWORD dwReserved);
+
+    HRESULT ThumbBarAddButtons(
+        [in] HWND hwnd,
+        [in] UINT cButtons,
+        [in, size_is(cButtons)] LPTHUMBBUTTON pButton);
+
+    HRESULT ThumbBarUpdateButtons(
+        [in] HWND hwnd,
+        [in] UINT cButtons,
+        [in, size_is(cButtons)] LPTHUMBBUTTON pButton);
+
+    HRESULT ThumbBarSetImageList(
+        [in] HWND hwnd,
+        [in] HIMAGELIST himl);
+
+    HRESULT SetOverlayIcon(
+        [in] HWND hwnd,
+        [in] HICON hIcon,
+        [in, unique, string] LPCWSTR pszDescription);
+
+    HRESULT SetThumbnailTooltip(
+        [in] HWND hwnd,
+        [in, unique, string] LPCWSTR pszTip);
+
+    HRESULT SetThumbnailClip(
+        [in] HWND hwnd,
+        [in] RECT *prcClip);
+}
+// Can also be found at ShObjIdl_core.idl, not needed by us.
+//[ uuid(56FDF344-FD6D-11d0-958A-006097C9A090) ] coclass TaskbarList { interface ITaskbarList3; }
+};

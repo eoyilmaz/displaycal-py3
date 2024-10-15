@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains Windows Taskbar related functionality.
 
-Unfortunatelly the newly implemented `ctypes` interface is not working. From what I
+Unfortunately the newly implemented `ctypes` interface is not working. From what I
 learned during my research is that the `comtypes` interface is able to support the
 `IUnkwown*` (or "early-binding") interfaces. That may not be the main reason. But, if
 it was working before let's not break it and keep the old code.
@@ -68,8 +68,9 @@ Here is the code for future reference:
                 self.taskbar.contents.SetProgressState(hwnd, state)
 
 """
-import comtypes.gen.TaskbarLib as tbl
 import comtypes.client as cc
+cc.GetModule("TaskbarLib.tlb")
+import comtypes.gen.TaskbarLib as tbl
 
 
 TBPF_NOPROGRESS = 0

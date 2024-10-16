@@ -209,7 +209,6 @@ from DisplayCAL.worker import (
     check_ti3_criteria1,
     check_ti3_criteria2,
     get_arg,
-    get_argyll_latest_version,
     get_argyll_util,
     get_argyll_version,
     get_cfg_option_from_args,
@@ -225,6 +224,7 @@ from DisplayCAL.worker import (
     FilteredStream,
     _applycal_bug_workaround,
 )
+from DisplayCAL.argyll import get_argyll_latest_version
 from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
 
 try:

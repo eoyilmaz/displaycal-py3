@@ -1,3 +1,8 @@
+"""This module contains resources and constants for the FlatMenu library in DisplayCAL.
+
+It defines various styles, states, and images used in the FlatMenu and related controls.
+"""
+
 import wx
 
 # Overall menu styles
@@ -31,8 +36,7 @@ FM_OPT_IS_LCD = 1
 FM_OPT_MINIBAR = 2
 """Use this if you plan to use the toolbar only."""
 FM_OPT_SHOW_CUSTOMIZE = 4
-"""
-Show "customize link" in the `More` menu, you will need to write your own handler.
+"""Show "customize link" in the `More` menu, you will need to write your own handler.
 
 See demo.
 """
@@ -226,9 +230,9 @@ menu_right_arrow_xpm: list[str] = [
     "````````````````",
 ]
 
-# ----------------------------------
+# --------------------------------------------------------------------------------------
 # Shadow images
-# ----------------------------------
+# --------------------------------------------------------------------------------------
 
 shadow_right_xpm: list[str] = [
     "5 5 1 1",
@@ -240,8 +244,8 @@ shadow_right_xpm: list[str] = [
     "     ",
 ]
 
-# shadow_right.xpm 5x5                                                                  # noqa: SC100
-shadow_right_alpha = [
+# shadow_right.xpm 5x5
+shadow_right_alpha: list[int] = [
     168,
     145,
     115,
@@ -284,7 +288,7 @@ shadow_right_top_xpm: list[str] = [
     "     ",
 ]
 
-shadow_right_top_alpha = [
+shadow_right_top_alpha: list[int] = [
     40,
     35,
     28,
@@ -337,8 +341,8 @@ shadow_right_top_alpha = [
     46,
 ]
 
-# shadow_bottom.xpm 5x5                                                                 # noqa: SC100
-shadow_bottom_alpha = [
+# shadow_bottom.xpm 5x5
+shadow_bottom_alpha: list[int] = [
     184,
     184,
     184,
@@ -376,7 +380,7 @@ shadow_bottom_left_xpm: list[str] = [
     "          ",
 ]
 
-shadow_bottom_left_alpha = [
+shadow_bottom_left_alpha: list[int] = [
     22,
     44,
     73,
@@ -439,7 +443,7 @@ shadow_center_xpm: list[str] = [
     "     ",
 ]
 
-shadow_center_alpha = [
+shadow_center_alpha: list[int] = [
     161,
     139,
     110,
@@ -500,9 +504,9 @@ arrow_down_xpm: list[str] = [
     "                ",
 ]
 
-# ---------------------------------------------
+# --------------------------------------------------------------------------------------
 # Pin images
-# ---------------------------------------------
+# --------------------------------------------------------------------------------------
 pin_left_xpm: list[str] = [
     "    16    16        8            1",
     "` c #ffffff",
@@ -625,13 +629,23 @@ menu_down_arrow_xpm: list[str] = [
 ]
 
 
-def getMenuUpArrowBitmap():
+def getMenuUpArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu up arrow with a white mask.
+
+    Returns:
+        A wx.Bitmap object.
+    """
     bmp = wx.Bitmap(menu_up_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp
 
 
-def getMenuDownArrowBitmap():
+def getMenuDownArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu down arrow with a white mask.
+
+    Returns:
+        A wx.Bitmap object.
+    """
     bmp = wx.Bitmap(menu_down_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp

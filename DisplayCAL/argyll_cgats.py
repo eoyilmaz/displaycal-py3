@@ -71,7 +71,6 @@ def cal_to_fake_profile(cal):
 
     cal must refer to a valid Argyll CAL file and can be a CGATS instance
     or a filename.
-
     """
     vcgt, cal = cal_to_vcgt(cal, True)
     if not vcgt:
@@ -95,7 +94,6 @@ def cal_to_vcgt(cal, return_cgats=False):
 
     cal must refer to a valid Argyll CAL file and can be a CGATS instance
     or a filename.
-
     """
     if not isinstance(cal, CGATS.CGATS):
         try:
@@ -180,7 +178,6 @@ def extract_cal_from_profile(
     profile, out_cal_path=None, raise_on_missing_cal=True, prefer_cal=False
 ):
     """Extract calibration from 'targ' tag in profile or vcgt as fallback"""
-
     white = False
 
     # Check if calibration is included in TI3
@@ -284,7 +281,6 @@ def extract_cal_from_ti3(ti3):
     """Extract and return the CAL section of a TI3.
 
     ti3 can be a file object or a string holding the data.
-
     """
     if isinstance(ti3, CGATS.CGATS):
         ti3 = bytes(ti3)
@@ -315,7 +311,6 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
 
     Try to 'fix it' (add information needed to make the resulting .cal file
     'updateable') and optionally copy it to target_filename.
-
     """
     from DisplayCAL.worker import get_options_from_profile
 
@@ -433,7 +428,6 @@ def extract_device_gray_primaries(
     """Extract gray or primaries into new TI3
 
     Return extracted ti3, extracted RGB to XYZ mapping and remaining RGB to XYZ
-
     """
     filename = ti3.filename
     ti3 = ti3.queryi1("DATA")
@@ -536,7 +530,6 @@ def ti3_to_ti1(ti3_data):
     """Create and return TI1 data converted from TI3.
 
     ti3_data can be a file object, a list of strings or a string holding the data.
-
     """
     ti3 = CGATS.CGATS(ti3_data)
     if not ti3:
@@ -558,7 +551,7 @@ def ti3_to_ti1(ti3_data):
 
 
 def vcgt_to_cal(profile):
-    """Return a CAL (CGATS instance) from vcgt"""
+    """Return a CAL (CGATS instance) from vcgt."""
     cgats = CGATS.CGATS(file_identifier=b"CAL")
     context = cgats.add_data({"DESCRIPTOR": b"Argyll Device Calibration State"})
     context.add_data({"ORIGINATOR": b"vcgt"})
@@ -630,6 +623,5 @@ def verify_ti1_rgb_xyz(cgats):
     Verify if a CGATS instance has a TI1 section with all required fields
     for RGB devices. Return the TI1 section as CGATS instance on success,
     None on failure.
-
     """
     return verify_cgats(cgats, ("RGB_R", "RGB_B", "RGB_G", "XYZ_X", "XYZ_Y", "XYZ_Z"))

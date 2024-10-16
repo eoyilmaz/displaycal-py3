@@ -10,8 +10,8 @@ flake8-pep3101
 flake8-spellcheck
 matplotlib
 ppdir
-py2app; sys_platform=='darwin'
-py2exe; sys_platform=='win32'
+py2app; sys_platform == "darwin"
+py2exe; sys_platform == "win32"
 pyglet
 pytest
 pytest-cov

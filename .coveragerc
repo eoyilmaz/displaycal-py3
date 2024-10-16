@@ -1,2 +1,2 @@
 [run]
-omit = ./venv/*,*tests*,*__init__.py,*.pyw
+omit = *__init__.py,*.pyw,./venv/*,*tests*

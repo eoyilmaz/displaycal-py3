@@ -1,11 +1,11 @@
 build
 certifi
-dbus-python; sys_platform=='linux'
+dbus-python; sys_platform == "linux"
 distro
 numpy
-Pillow
+pillow
 PyChromecast
 Send2Trash
-wxPython>=4.2.2;python_version>="3.12"
-wxPython>=4.1.1;python_version<"3.12"
+wxPython >= 4.2.2; python_version >= "3.12"
+wxPython >= 4.1.1; python_version < "3.12"
 zeroconf

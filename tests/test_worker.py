@@ -25,10 +25,8 @@ from DisplayCAL.worker import (
     check_profile_isfile,
     check_file_isfile,
     check_ti3_criteria1,
-    get_argyll_latest_version,
 )
-
-from DisplayCAL.worker_base import get_argyll_util
+from DisplayCAL.argyll import get_argyll_latest_version, get_argyll_util
 from tests.data.display_data import DisplayData
 
 

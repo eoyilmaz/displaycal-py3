@@ -11,7 +11,7 @@ import tempfile
 
 import DisplayCAL
 from DisplayCAL.config import setcfg
-from DisplayCAL.worker import get_argyll_latest_version
+from DisplayCAL.argyll import get_argyll_latest_version
 
 
 @pytest.fixture(scope="module")

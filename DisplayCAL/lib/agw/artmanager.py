@@ -35,9 +35,9 @@ from DisplayCAL.lib.agw.fmresources import (
 
 import wx
 
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
 # Class DCSaver
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
 
 # Constants
 GWL_EXSTYLE = -20
@@ -57,22 +57,22 @@ class DCSaver(object):
         """Initialize the default class constructor.
 
         Args:
-            pdc: an instance of :class:`wx.DC`.
+            pdc (wx.DC): an instance of :class:`wx.DC`.
         """
         self._pdc: wx.DC = pdc
         self._pen: wx.Pen = pdc.GetPen()
         self._brush: wx.Brush = pdc.GetBrush()
 
     def __del__(self) -> None:
-        """While destructing, restores the dc pen and brush."""
+        """While destructing, restore the dc pen and brush."""
         if self._pdc:
             self._pdc.SetPen(self._pen)
             self._pdc.SetBrush(self._brush)
 
 
-# ---------------------------------------------------------------------------- #
-# Class RendererBase                                                                    # noqa: SC100
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
+# Class RendererBase
+# ------------------------------------------------------------------------------------ #
 
 
 class RendererBase(object):
@@ -88,7 +88,7 @@ class RendererBase(object):
     def DrawButtonBorders(
         self, dc: wx.DC, rect: wx.Rect, penColour: wx.Colour, brushColour: wx.Colour
     ) -> None:
-        """Draws borders for buttons.
+        """Draw borders for buttons.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -117,8 +117,7 @@ class RendererBase(object):
         baseColour: wx.Colour,
         flipSide: bool,
     ) -> None:
-        """
-        Draws the area below a bitmap and the bitmap itself using a gradient shading.
+        """Draw the area below a bitmap and the bitmap itself using a gradient shading.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -161,8 +160,7 @@ class RendererBase(object):
         penColour: wx.Colour,
         bitmapBorderUpperLeftPen: wx.Colour,
     ) -> None:
-        """
-        Draws borders for a bitmap.
+        """Draw borders for a bitmap.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -256,8 +254,7 @@ class RendererBase(object):
         )
 
     def DrawToolBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """
-        Draws the toolbar background according to the active theme.
+        """Draw the toolbar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -271,8 +268,7 @@ class RendererBase(object):
         )
 
     def DrawMenuBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """
-        Draws the menu bar background according to the active theme.
+        """Draw the menu bar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -286,9 +282,9 @@ class RendererBase(object):
         )
 
 
-# ---------------------------------------------------------------------------- #
-# Class RendererXP                                                                      # noqa: SC100
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
+# Class RendererXP
+# ------------------------------------------------------------------------------------ #
 
 
 class RendererXP(RendererBase):
@@ -305,7 +301,7 @@ class RendererXP(RendererBase):
         state: int,
         input: None | bool | wx.Colour = None,
     ) -> None:
-        """Draws a button using the XP theme.
+        """Draw a button using the XP theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -321,7 +317,7 @@ class RendererXP(RendererBase):
     def DrawButtonTheme(
         self, dc: wx.DC, rect: wx.Rect, state: int, useLightColours: None | bool
     ) -> None:
-        """Draws a button using the XP theme.
+        """Draw a button using the XP theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -347,7 +343,7 @@ class RendererXP(RendererBase):
     def DrawButtonColour(
         self, dc: wx.DC, rect: wx.Rect, state: int, colour: wx.Colour
     ) -> None:
-        """Draws a button using the XP theme.
+        """Draw a button using the XP theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -370,7 +366,7 @@ class RendererXP(RendererBase):
         self.DrawButtonBorders(dc, rect, penColour, brushColour)
 
     def DrawMenuBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """Draws the menu bar background according to the active theme.
+        """Draw the menu bar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -401,7 +397,7 @@ class RendererXP(RendererBase):
         del dcsaver
 
     def DrawToolBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """Draws the toolbar background according to the active theme.
+        """Draw the toolbar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -441,9 +437,9 @@ class RendererXP(RendererBase):
         return wx.BLACK
 
 
-# ---------------------------------------------------------------------------- #
-# Class RendererMSOffice2007                                                            # noqa: SC100
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
+# Class RendererMSOffice2007
+# ------------------------------------------------------------------------------------ #
 
 
 class RendererMSOffice2007(RendererBase):
@@ -458,14 +454,14 @@ class RendererMSOffice2007(RendererBase):
 
         Args:
             state (int): one of the following bits:
-                ==================== ======= ==========================
+                ==================== ======= ===========================================
                 Item State            Value  Description
-                ==================== ======= ==========================
+                ==================== ======= ===========================================
                 ``ControlPressed``         0 The item is pressed
                 ``ControlFocus``           1 The item is focused
                 ``ControlDisabled``        2 The item is disabled
                 ``ControlNormal``          3 Normal state
-                ==================== ======= ==========================
+                ==================== ======= ===========================================
 
         Returns:
             A tuple containing the gradient percentages.
@@ -554,7 +550,7 @@ class RendererMSOffice2007(RendererBase):
         # Keep old pen and brush
         dcsaver = DCSaver(dc)
 
-        # Define the rounded rectangle base on the given rect                           # noqa: SC100
+        # Define the rounded rectangle base on the given rect
         # we need an array of 9 points for it
         baseColour: wx.Colour = colour
 
@@ -616,7 +612,7 @@ class RendererMSOffice2007(RendererBase):
         dc.SetPen(wx.Pen(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)))
         dc.DrawRectangle(rect)
 
-        # Define the rounded rectangle base on the given rect                           # noqa: SC100
+        # Define the rounded rectangle base on the given rect
         # we need an array of 9 points for it
         regPts: list[wx.Point] = [wx.Point() for _ in range(9)]
         radius = 2
@@ -696,7 +692,7 @@ class RendererMSOffice2007(RendererBase):
 
         radius = 2
 
-        # Define the rounded rectangle base on the given rect                           # noqa: SC100
+        # Define the rounded rectangle base on the given rect
         # we need an array of 9 points for it
         regPts: list[wx.Point] = [wx.Point() for _ in range(9)]
 
@@ -762,9 +758,9 @@ class RendererMSOffice2007(RendererBase):
         return wx.BLACK
 
 
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
 # Class ArtManager
-# ---------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------ #
 
 
 class ArtManager(wx.EvtHandler):
@@ -803,8 +799,8 @@ class ArtManager(wx.EvtHandler):
             amount (int): the actual transparency value (between 0 and 255).
 
         Raises:
-            Exception: if the `amount` parameter is lower than ``0`` or greater
-                than ``255``.
+            Exception: if the `amount` parameter is lower than ``0`` or greater than
+                ``255``.
         """
         if self._transparency == amount:
             return
@@ -828,8 +824,8 @@ class ArtManager(wx.EvtHandler):
         """Convert the given image to a bitmap, optionally overlaying an alpha channel.
 
         Args:
-            xpm (list[str] | bytes): a list of strings formatted as XPM or a
-                bytes object.
+            xpm (list[str] | bytes): a list of strings formatted as XPM or a bytes
+                object.
             alpha (None | list[int]): a list of alpha values (integers),
                 the same size as the xpm bitmap.
 
@@ -858,7 +854,7 @@ class ArtManager(wx.EvtHandler):
             if isinstance(xpm, bytes):
                 img = wx.ImageFromStream(io.BytesIO(xpm))
             else:
-                # Ensure xpm is a list of strings before joining                        # noqa: SC100
+                # Ensure xpm is a list of strings before joining
                 if isinstance(xpm, list):
                     xpm_data: bytes = "\n".join(xpm).encode("utf-8")
                 else:
@@ -870,8 +866,7 @@ class ArtManager(wx.EvtHandler):
 
     def Initialize(self) -> None:
         """Initialize the bitmaps and colours."""
-
-        # create wxBitmaps from the xpm's                                               # noqa: SC100
+        # create wxBitmaps from the xpm's
         def ensure_strings(xpm_data: list[str] | list[bytes]) -> list[str]:
             return [
                 (
@@ -933,7 +928,7 @@ class ArtManager(wx.EvtHandler):
 
     @classmethod
     def Get(cls: Type["ArtManager"]) -> "ArtManager":
-        """Accessor to the unique art manager object.
+        """Access the unique art manager object.
 
         Returns:
             An instance of :class:`ArtManager`.
@@ -942,7 +937,7 @@ class ArtManager(wx.EvtHandler):
             cls._instance: "ArtManager" = cls()
             cls._instance.Initialize()
 
-            # Initialize the renderers                                                  # noqa: SC100
+            # Initialize the renderers
             if StyleXP not in cls._renderers:
                 cls._renderers[StyleXP] = RendererXP()
             if Style2007 not in cls._renderers:
@@ -952,7 +947,7 @@ class ArtManager(wx.EvtHandler):
 
     @classmethod
     def Free(cls: Type["ArtManager"]) -> None:
-        """Destructor for the unique art manager object."""
+        """Destruct the unique art manager object."""
         if hasattr(cls, "_instance"):
             del cls._instance
 
@@ -960,8 +955,8 @@ class ArtManager(wx.EvtHandler):
         """Handle the ``wx.EVT_SYS_COLOUR_CHANGED`` event for :class:`ArtManager`.
 
         Args:
-            event (wx.SysColourChangedEvent): a :class:`SysColourChangedEvent`
-                event to be processed.
+            event (wx.SysColourChangedEvent): a :class:`SysColourChangedEvent` event to
+                be processed.
         """
         # reinitialise the colour map
         self.InitColours()
@@ -996,7 +991,8 @@ class ArtManager(wx.EvtHandler):
         return wx.Colour(int(r), int(g), int(b), int(a))
 
     def DarkColour(self, colour: wx.Colour, percent: int) -> wx.Colour:
-        """Like :meth:`~ArtManager.LightColour`, but creates a darker colour by `percent`.
+        """
+        Like :meth:`~ArtManager.LightColour`, but create a darker colour by `percent`.
 
         Args:
             colour (wx.Colour): the input colour to be darkened,
@@ -1088,22 +1084,21 @@ class ArtManager(wx.EvtHandler):
         rr = wx.Rect(0, 0, rect.width, rect.height)
         self.PaintStraightGradientBox(memDC, rr, startColour, endColour, vertical)
 
-        # Convert the region to a black and white bitmap with the white pixels
-        # being inside the region we draw the bitmap over the gradient coloured
-        # rectangle, with mask set to white,
-        # this will cause our region to be coloured with the gradient,
-        # while area outside the region will be painted with black.
+        # Convert the region to a black and white bitmap with the white pixels being
+        # inside the region we draw the bitmap over the gradient coloured rectangle,
+        # with mask set to white, this will cause our region to be coloured with the
+        # gradient, while area outside the region will be painted with black.
         # then we simply draw the bitmap to the dc with mask set to black
         tmpRegion = wx.Region(rect.x, rect.y, rect.width, rect.height)
         tmpRegion.Offset(-rect.x, -rect.y)
         regionBmp: wx.Bitmap = tmpRegion.ConvertToBitmap()
         regionBmp.SetMask(wx.Mask(regionBmp, wx.WHITE))
 
-        # The function ConvertToBitmap() return a rectangle bitmap which is
-        # shorter by 1 pixel on the height and width (this is correct behavior,         # noqa: SC100
+        # The function ConvertToBitmap() return a rectangle bitmap which is shorter by 1
+        # pixel on the height and width (this is correct behavior,
         # since DrawLine does not include the second point as part of the line)
-        # we fix this issue by drawing our own line at the bottom and left side
-        # of the rectangle
+        # we fix this issue by drawing our own line at the bottom and left side of the
+        # rectangle
         memDC.SetPen(wx.BLACK_PEN)
         memDC.DrawBitmap(regionBmp, 0, 0, True)
         memDC.DrawLine(0, rr.height - 1, rr.width, rr.height - 1)
@@ -1124,16 +1119,16 @@ class ArtManager(wx.EvtHandler):
     ) -> None:
         """Paint rectangle with gradient colouring.
 
-        The gradient lines are diagonal and may start from the upper left corner
-        or from the upper right corner.
+        The gradient lines are diagonal and may start from the upper left corner or from
+        the upper right corner.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
             rect (wx.Rect): the rectangle to be filled with gradient shading.
             startColour (wx.Colour): the first colour of the gradient shading.
             endColour (wx.Colour): the second colour of the gradient shading.
-            startAtUpperLeft (bool): ``True`` to start the gradient lines at the
-                upper left corner of the rectangle,
+            startAtUpperLeft (bool): ``True`` to start the gradient lines at the upper
+                left corner of the rectangle,
                 ``False`` to start at the upper right corner.
             trimToSquare (bool): ``True`` to trim the gradient lines in a square.
         """
@@ -1262,8 +1257,8 @@ class ArtManager(wx.EvtHandler):
             sizeX (int): the width of the gradient.
             sizeY (int): the height of the gradient.
             proportion (float): the proportion of the gradient.
-            startAtUpperLeft (bool): ``True`` to start the gradient lines at the
-                upper left corner of the rectangle,
+            startAtUpperLeft (bool): ``True`` to start the gradient lines at the upper
+                left corner of the rectangle,
                 ``False`` to start at the upper right corner.
         """
         rf: float = 0
@@ -1312,8 +1307,8 @@ class ArtManager(wx.EvtHandler):
             sizeX (int): the width of the gradient.
             sizeY (int): the height of the gradient.
             proportion (float): the proportion of the gradient.
-            startAtUpperLeft (bool): ``True`` to start the gradient lines at the
-                upper left corner of the rectangle,
+            startAtUpperLeft (bool): ``True`` to start the gradient lines at the upper
+                left corner of the rectangle,
                 ``False`` to start at the upper right corner.
         """
         rf: float = rstep * size / 2
@@ -1355,8 +1350,8 @@ class ArtManager(wx.EvtHandler):
             sizeX (int): the width of the gradient.
             sizeY (int): the height of the gradient.
             proportion (float): the proportion of the gradient.
-            startAtUpperLeft (bool): ``True`` to start the gradient lines at the
-                upper left corner of the rectangle,
+            startAtUpperLeft (bool): ``True`` to start the gradient lines at the upper
+                left corner of the rectangle,
                 ``False`` to start at the upper right corner.
             lower (bool): ``True`` to draw the lower triangle,
                 ``False`` to draw the upper triangle.
@@ -1501,8 +1496,8 @@ class ArtManager(wx.EvtHandler):
                 an instance of :class:`wx.Colour`.
             secondColour (wx.Colour): the second colour to be mixed,
                 an instance of :class:`wx.Colour`.
-            percent (int): the relative percentage of `firstColour` with
-                respect to `secondColour`.
+            percent (int): the relative percentage of `firstColour` with respect to
+                `secondColour`.
 
         Returns:
             An instance of :class:`wx.Colour`.
@@ -1625,7 +1620,7 @@ class ArtManager(wx.EvtHandler):
         state: int,
         useLightColours: bool = True,
     ) -> None:
-        """Draws a button using the appropriate theme.
+        """Draw a button using the appropriate theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -1652,7 +1647,7 @@ class ArtManager(wx.EvtHandler):
     def DrawButtonColour(
         self, dc: wx.DC, rect: wx.Rect, theme: int, state: int, colour: wx.Colour
     ) -> None:
-        """Draws a button using the appropriate theme.
+        """Draw a button using the appropriate theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -1668,8 +1663,8 @@ class ArtManager(wx.EvtHandler):
         """Use internally.
 
         Returns:
-            A boolean indicating whether the system supports transparency of
-                toplevel windows.
+            A boolean indicating whether the system supports transparency of toplevel
+                windows.
         """
         if wx.Platform == "__WXMSW__":
             version: str = wx.GetOsDescription()
@@ -1704,6 +1699,7 @@ class ArtManager(wx.EvtHandler):
 
             if not hasattr(self, "_winlib"):
                 import ctypes
+                from ctypes import WinDLL
 
                 self._winlib: WinDLL = ctypes.windll.user32
 
@@ -1712,7 +1708,7 @@ class ArtManager(wx.EvtHandler):
             if exstyle == 0:
                 return
 
-            # Set the WS_EX_LAYERED style                                               # noqa: SC100
+            # Set the WS_EX_LAYERED style
             exstyle |= WS_EX_LAYERED
             self._winlib.SetWindowLongA(hwnd, GWL_EXSTYLE, exstyle)
 
@@ -1727,24 +1723,24 @@ class ArtManager(wx.EvtHandler):
         self, dc: wx.DC, rect: wx.Rect, where: int = BottomShadow | RightShadow
     ) -> None:
         """
-        Draws a shadow using background bitmap.
+        Draw a shadow using background bitmap.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
             rect (wx.Rect): the bitmap's client rectangle.
             where (int): where to draw the shadow.
                 This can be any combination of the following bits:
-                ========================== ======= =============================
+                ========================== ======= =====================================
                 Shadow Settings             Value  Description
-                ========================== ======= =============================
+                ========================== ======= =====================================
                 ``RightShadow``                  1 Right side shadow
                 ``BottomShadow``                 2 Not full bottom shadow
                 ``BottomShadowFull``             4 Full bottom shadow
-                ========================== ======= =============================
+                ========================== ======= =====================================
         """
         shadowSize = 5
 
-        # the rect must be at least 5x5 pixels                                          # noqa: SC100
+        # the rect must be at least 5x5 pixels
         if rect.height < 2 * shadowSize or rect.width < 2 * shadowSize:
             return
 
@@ -1799,14 +1795,14 @@ class ArtManager(wx.EvtHandler):
             hwnd: int = wnd.GetHandle()
 
             if not hasattr(self, "_winlib"):
-                    try:
-                        import win32api
+                try:
+                    import win32api
 
-                        self._winlib = win32api.LoadLibrary("user32")
-                    except ImportError:
-                        import ctypes
+                    self._winlib = win32api.LoadLibrary("user32")
+                except ImportError:
+                    import ctypes
 
-                        self._winlib = ctypes.windll.user32
+                    self._winlib = ctypes.windll.user32
 
             import win32con
 
@@ -1848,22 +1844,22 @@ class ArtManager(wx.EvtHandler):
             bitmap (wx.Bitmap): the bitmap associated with the button.
             text (str): the button label.
             style (int): the button style. This can be one of the following bits:
-                ============================== ======= =========================
+                ============================== ======= =================================
                 Button style                    Value  Description
-                ============================== ======= =========================
+                ============================== ======= =================================
                 ``BU_EXT_XP_STYLE``               1    A button with a XP style
-                ``BU_EXT_2007_STYLE``             2    A button with a MS Office
-                                                        2007 style
+                ``BU_EXT_2007_STYLE``             2    A button with a MS Office 2007
+                                                        style
                 ``BU_EXT_LEFT_ALIGN_STYLE``       4    A left-aligned button
                 ``BU_EXT_CENTER_ALIGN_STYLE``     8    A center-aligned button
                 ``BU_EXT_RIGHT_ALIGN_STYLE``      16   A right-aligned button
                 ``BU_EXT_RIGHT_TO_LEFT_STYLE``    32   A button suitable for
                                                         right-to-left languages
-                ============================== ======= =========================
+                ============================== ======= =================================
 
         Returns:
-            A tuple containing the top left `x` and `y` coordinates of the
-                bitmap drawing.
+            A tuple containing the top left `x` and `y` coordinates of the bitmap
+                drawing.
         """
         alignmentBuffer: int = self.GetAlignBuffer()
 
@@ -1904,8 +1900,8 @@ class ArtManager(wx.EvtHandler):
                 else:
                     startLocationX = maxWidth - fixedTextWidth
 
-        # it is very important to validate that the start location is not less
-        # than the alignment buffer
+        # it is very important to validate that the start location is not less than the
+        # alignment buffer
         if startLocationX < alignmentBuffer:
             startLocationX = alignmentBuffer
 
@@ -1916,8 +1912,8 @@ class ArtManager(wx.EvtHandler):
     ) -> tuple[float, float, str | None]:
         """Return the top left `x` and `y` coordinates of the text drawing.
 
-        In case the text is too long,
-        the text is being fixed (the text is cut and a '...' mark is added in the end).
+        In case the text is too long, the text is being fixed
+        (the text is cut and a '...' mark is added in the end).
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -1931,8 +1927,8 @@ class ArtManager(wx.EvtHandler):
                 plus the truncated version of the input `text`.
 
         See:
-            :meth:`~ArtManager.GetBitmapStartLocation` for a list of valid
-                button styles.
+            :meth:`~ArtManager.GetBitmapStartLocation` for a list of valid button
+                styles.
         """
         alignmentBuffer: int = self.GetAlignBuffer()
 
@@ -1965,8 +1961,8 @@ class ArtManager(wx.EvtHandler):
                     (maxWidth - fixedTextWidth) / 2 + bitmapOffset + alignmentBuffer
                 )
 
-        # it is very important to validate that the start location is not less
-        # than the alignment buffer
+        # it is very important to validate that the start location is not less than the
+        # alignment buffer
         if startLocationX < alignmentBuffer:
             startLocationX = alignmentBuffer
 
@@ -2002,8 +1998,8 @@ class ArtManager(wx.EvtHandler):
             style (int): the button style.
 
         See:
-            :meth:`~ArtManager.GetBitmapStartLocation` for a list of valid
-                button styles.
+            :meth:`~ArtManager.GetBitmapStartLocation` for a list of valid button
+                styles.
         """
         # enable colours
         if enable:
@@ -2042,8 +2038,8 @@ class ArtManager(wx.EvtHandler):
         if fixedText is None:
             fixedText: None | str = ""
 
-        # after all the calculations are finished, it is time to draw the text
-        # underline the first letter that is marked with a '&'
+        # after all the calculations are finished, it is time to draw the text underline
+        # the first letter that is marked with a '&'
         if location == -1 or font.GetUnderlined() or location >= len(fixedText):
             # draw the text
             dc.DrawText(fixedText, startLocationX, startLocationY)
@@ -2066,7 +2062,7 @@ class ArtManager(wx.EvtHandler):
                 w1 = dc.GetTextExtent(before)[0]
                 dc.DrawText(underlineLetter, startLocationX + w1, startLocationY)
 
-                # Draw the underline ourselves since using the Underline in GTK,        # noqa: SC100
+                # Draw the underline ourselves since using the Underline in GTK,
                 # causes the line to be too close to the letter
                 uderlineLetterW, uderlineLetterH = dc.GetTextExtent(underlineLetter)
 
@@ -2172,8 +2168,8 @@ class ArtManager(wx.EvtHandler):
             label (str): a string containing an ampersand.
 
         Returns:
-            A tuple containing the mnemonic index of the label and the label
-                stripped of the ampersand mnemonic.
+            A tuple containing the mnemonic index of the label and the label stripped of
+                the ampersand mnemonic.
         """
         indexAccel = 0
         while True:
@@ -2266,8 +2262,8 @@ class ArtManager(wx.EvtHandler):
         """Return ``True`` if the menu bar should be painted with vertical gradient.
 
         Returns:
-            A boolean indicating whether the menu bar should be painted with
-                vertical gradient.
+            A boolean indicating whether the menu bar should be painted with vertical
+                gradient.
         """
         return self._verticalGradient
 
@@ -2306,7 +2302,7 @@ class ArtManager(wx.EvtHandler):
         return self._menuBgFactor
 
     def DrawDragSash(self, rect: wx.Rect) -> None:
-        """Draws resize sash.
+        """Draw resize sash.
 
         Args:
             rect (wx.Rect): the sash client rectangle.
@@ -2344,8 +2340,8 @@ class ArtManager(wx.EvtHandler):
         # all drawing action on the memory DC will go to the Bitmap now
         memDC.SelectObject(bmp)
 
-        # Blit (in this case copy) the actual screen on the memory DC and thus          # noqa: SC100
-        # the Bitmap
+        # Blit (in this case copy)
+        # the actual screen on the memory DC and thus the Bitmap
         memDC.Blit(
             0,  # Copy to this X coordinate
             0,  # Copy to this Y coordinate
@@ -2356,12 +2352,11 @@ class ArtManager(wx.EvtHandler):
             rect.y,  # What's the Y offset in the original DC?
         )
 
-        # Select the Bitmap out of the memory DC by selecting a new
-        # uninitialized Bitmap
+        # Select the Bitmap out of the memory DC by selecting a new uninitialized Bitmap
         memDC.SelectObject(wx.NullBitmap)
 
     def DrawToolBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """Draws the toolbar background according to the active theme.
+        """Draw the toolbar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -2373,7 +2368,7 @@ class ArtManager(wx.EvtHandler):
         renderer.DrawToolBarBg(dc, rect)
 
     def DrawMenuBarBg(self, dc: wx.DC, rect: wx.Rect) -> None:
-        """Draws the menu bar background according to the active theme.
+        """Draw the menu bar background according to the active theme.
 
         Args:
             dc (wx.DC): an instance of :class:`wx.DC`.
@@ -2458,7 +2453,7 @@ class ArtManager(wx.EvtHandler):
         return self._raiseTB
 
     def SetRaiseToolbar(self, rais: bool) -> None:
-        """Enables/disables toolbar shadow drop.
+        """Enable/disable toolbar shadow drop.
 
         Args:
             rais (bool): ``True`` to drop a shadow below a toolbar, ``False`` otherwise.

@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-
-from binascii import hexlify
 import atexit
 import math
 import os
-import shlex
 import re
+import shlex
 import shutil
 import struct
 import subprocess as sp
@@ -14,18 +12,23 @@ import sys
 import tempfile
 import textwrap
 import traceback
+from binascii import hexlify
 
-if sys.platform == "win32":
-    import win32api
-
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    localization as lang,
+)
 from DisplayCAL.argyll_names import (
-    names as argyll_names,
     altnames as argyll_altnames,
+    names as argyll_names,
     optional as argyll_optional,
 )
 from DisplayCAL.colormath import (
-    VidRGB_to_eeColor,
     VidRGB_to_cLUT65,
+    VidRGB_to_eeColor,
     cLUT65_to_VidRGB,
     eeColor_to_VidRGB,
 )
@@ -44,11 +47,9 @@ from DisplayCAL.multiprocess import mp, pool_slice
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import getenvu, quote_args, which
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
-from DisplayCAL import CGATS
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import localization as lang
+
+if sys.platform == "win32":
+    import win32api
 
 
 def _mp_xicclu(

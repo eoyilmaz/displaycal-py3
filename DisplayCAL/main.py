@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from time import sleep
 import atexit
 import errno
 import glob
@@ -9,9 +7,48 @@ import logging
 import os
 import platform
 import socket
-import sys
 import subprocess as sp
+import sys
 import threading
+from time import sleep
+
+from DisplayCAL.config import (
+    appbasename,
+    autostart_home,
+    confighome,
+    datahome,
+    enc,
+    exe,
+    exe_ext,
+    exedir,
+    exename,
+    fs_enc,
+    get_data_path,
+    getcfg,
+    initcfg,
+    isapp,
+    isexe,
+    logdir,
+    pydir,
+    pyname,
+    pypath,
+    resfiles,
+    runtype,
+)
+from DisplayCAL.debughelpers import ResourceError, handle_error
+from DisplayCAL.log import log
+from DisplayCAL.meta import (
+    VERSION,
+    VERSION_BASE,
+    VERSION_STRING,
+    build,
+    name as appname,
+    py_maxversion,
+    py_minversion,
+)
+from DisplayCAL.multiprocess import mp
+from DisplayCAL.options import debug, verbose
+from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
 
 import distro
 
@@ -19,8 +56,9 @@ if sys.platform == "darwin":
     from platform import mac_ver
     import posix
 
-# Python version check
-from DisplayCAL.meta import py_minversion, py_maxversion
+if sys.platform == "win32":
+    from DisplayCAL.util_win import win_ver
+    import ctypes
 
 pyver = sys.version_info[:2]
 if pyver < py_minversion or pyver > py_maxversion:
@@ -32,46 +70,6 @@ if pyver < py_minversion or pyver > py_maxversion:
             sys.version.split()[0],
         )
     )
-
-from DisplayCAL.config import (
-    autostart_home,
-    confighome,
-    datahome,
-    enc,
-    exe,
-    exe_ext,
-    exedir,
-    exename,
-    get_data_path,
-    getcfg,
-    fs_enc,
-    initcfg,
-    isapp,
-    isexe,
-    logdir,
-    pydir,
-    pyname,
-    pypath,
-    resfiles,
-    runtype,
-    appbasename,
-)
-from DisplayCAL.debughelpers import ResourceError, handle_error
-from DisplayCAL.log import log
-from DisplayCAL.meta import (
-    VERSION,
-    VERSION_BASE,
-    VERSION_STRING,
-    build,
-    name as appname,
-)
-from DisplayCAL.multiprocess import mp
-from DisplayCAL.options import debug, verbose
-from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
-
-if sys.platform == "win32":
-    from DisplayCAL.util_win import win_ver
-    import ctypes
 
 
 def _excepthook(etype, value, tb):
@@ -299,7 +297,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                             else:
                                 pyexe_lower = appname_lower + exe_ext
                             incoming = None
-                            for (sid, pid2, basename, usid) in processes:
+                            for sid, pid2, basename, usid in processes:
                                 basename_lower = basename.lower()
                                 if (
                                     (

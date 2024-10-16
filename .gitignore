@@ -1,7 +1,10 @@
+__pycache__/
+.DS_Store
+.venv*/
+.vscode/
 *.blend1
 *.code-workspace
 /.coverage
-__pycache__/
 /.pytest_cache/
 /.venv/
 /build/
@@ -10,25 +13,22 @@ __pycache__/
 /DisplayCAL.egg-info/requires.txt
 /DisplayCAL.egg-info/SOURCES.txt
 /DisplayCAL.egg-info/top_level.txt
-/DisplayCAL/lib64/python38/*.so
-/DisplayCAL/lib64/python39/*.so
+/DisplayCAL/__version__.py
 /DisplayCAL/lib64/python310/*.so
 /DisplayCAL/lib64/python311/*.pyd
+/DisplayCAL/lib64/python38/*.so
+/DisplayCAL/lib64/python39/*.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-311-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-312-darwin.so
 /DisplayCAL/ref/*.log
-/DisplayCAL/__version__.py
 /dist/
-.DS_Store
 /INSTALLED_FILES
 /MANIFEST.in
 /tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.png
 /tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.smooth.png
 /venv/
-.venv*/
 /VERSION
-.vscode/
 cacert.pem
 main.py
 MANIFEST.in

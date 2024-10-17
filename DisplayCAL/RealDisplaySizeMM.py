@@ -1,36 +1,38 @@
 # -*- coding: utf-8 -*-
 
 import os
-import platform
 import re
+import subprocess
 import sys
+from typing import List
 
+from DisplayCAL import argyll
 from DisplayCAL.util_dbus import DBusObject, DBusException, BUSTYPE_SESSION
 from DisplayCAL.util_x import get_display as _get_x_display
 
-if sys.platform == "darwin":
-    # Mac OS X has universal binaries in three flavors:
-    # - i386 & PPC
-    # - i386 & x86_64
-    # - i386 & ARM
-    if platform.architecture()[0].startswith("64"):
-        # TODO: Intel vs ARM (Apple Silicon) distinction
-        from DisplayCAL.lib64.RealDisplaySizeMM import *
-else:
-    # elif sys.platform == "win32":
-    # Windows have separate files
-    if sys.version_info[:2] == (3, 8):
-        from DisplayCAL.lib64.python38.RealDisplaySizeMM import *
-    elif sys.version_info[:2] == (3, 9):
-        from DisplayCAL.lib64.python39.RealDisplaySizeMM import *
-    elif sys.version_info[:2] == (3, 10):
-        from DisplayCAL.lib64.python310.RealDisplaySizeMM import *
-    elif sys.version_info[:2] == (3, 11):
-        from DisplayCAL.lib64.python311.RealDisplaySizeMM import *
-    elif sys.version_info[:2] == (3, 12):
-        from DisplayCAL.lib64.python312.RealDisplaySizeMM import *
-    elif sys.version_info[:2] == (3, 13):
-        from DisplayCAL.lib64.python313.RealDisplaySizeMM import *
+# if sys.platform == "darwin":
+#     # Mac OS X has universal binaries in three flavors:
+#     # - i386 & PPC
+#     # - i386 & x86_64
+#     # - i386 & ARM
+#     if platform.architecture()[0].startswith("64"):
+#         # TODO: Intel vs ARM (Apple Silicon) distinction
+#         from DisplayCAL.lib64.RealDisplaySizeMM import *
+# else:
+#     # elif sys.platform == "win32":
+#     # Windows have separate files
+#     if sys.version_info[:2] == (3, 8):
+#         from DisplayCAL.lib64.python38.RealDisplaySizeMM import *
+#     elif sys.version_info[:2] == (3, 9):
+#         from DisplayCAL.lib64.python39.RealDisplaySizeMM import *
+#     elif sys.version_info[:2] == (3, 10):
+#         from DisplayCAL.lib64.python310.RealDisplaySizeMM import *
+#     elif sys.version_info[:2] == (3, 11):
+#         from DisplayCAL.lib64.python311.RealDisplaySizeMM import *
+#     elif sys.version_info[:2] == (3, 12):
+#         from DisplayCAL.lib64.python312.RealDisplaySizeMM import *
+#     elif sys.version_info[:2] == (3, 13):
+#         from DisplayCAL.lib64.python313.RealDisplaySizeMM import *
 
 # TODO: For Linux use the ``xrandr`` command output which supplies everything.
 #
@@ -46,9 +48,9 @@ else:
 
 _displays = None
 
-_GetXRandROutputXID = GetXRandROutputXID
-_RealDisplaySizeMM = RealDisplaySizeMM
-_enumerate_displays = enumerate_displays
+# _GetXRandROutputXID = GetXRandROutputXID
+# _RealDisplaySizeMM = RealDisplaySizeMM
+# _enumerate_displays = enumerate_displays
 
 
 def GetXRandROutputXID(display_no=0):
@@ -78,6 +80,136 @@ def RealDisplaySizeMM(display_no=0):
     if display := get_display(display_no):
         return display.get("size_mm", (0, 0))
     return 0, 0
+
+
+class Display(object):
+    """Store information about display."""
+
+    def __init__(self):
+        self.name = None
+        """Display name."""
+        self.description = None  # USED
+        """Description of display or URL."""
+
+        self.xrandr_name = None  # Generated from self.description
+
+        self.pos = (0, 0)  # USED
+        """Displays offset in pixel."""
+        # self.sx = None
+        # """Displays offset in pixels (X)."""
+        # self.sy = None
+        # """Displays offset in pixels (Y)."""
+
+        self.size = (0, 0)  # USED
+        """Displays width and height in pixels."""
+
+        # WINDOWS / NT
+        self.monid = None
+        """Monitor ID."""
+        self.prim = None
+        """ NZ if primary display monitor."""
+
+        # APPLE
+        self.ddid = None
+
+        # UNIX
+        self.screen = None
+        """X11 (possibly virtual) Screen."""
+        self.uscreen = None
+        """Underlying Xinerama/XRandr screen."""
+        self.rscreen = None
+        """Underlying RAMDAC screen (user override)."""
+        self.icc_atom = None
+        """ICC profile root/output atom for this display."""
+        self.edid = None
+        """128, 256 or 384 bytes of monitor EDID, NULL if none."""
+        self.edid_len = None
+        """128, 256 or 384."""
+
+        # Xrandr stuff - output is connected 1:1 to a display
+        self.crtc = None
+        """Associated crtc."""
+        self.output = None
+        """Associated output."""
+        self.icc_out_atom = None
+        """ICC profile atom for this output."""
+
+    def from_dispwin_data(self, display_info_line):
+        """Parse from dispwin display list data.
+
+        Args:
+            display_info_line (str): The dispwin data line.
+        """
+        display_id, description = list(map(str.strip, display_info_line.split("=")))
+        description = description[1:-1]
+        self.monid = int(display_id)
+        parts = description.split(",")
+        display_name = parts[0].replace("'", "")
+        x = int(parts[1].strip().split(" ")[-1])
+        y = int(parts[2])
+        self.pos = (x, y)
+        width = int(parts[3].strip()[len("width "):])
+        height = int(parts[4].strip().replace("'", "")[len("height "):].split(" ")[0])
+        self.name = display_name
+        self.description = description
+        self.size = (width, height)
+
+    def to_dict(self):
+        """Return a dictionary.
+
+        Returns:
+            dict: The display data as dictionary, matching the previous implementation.
+        """
+        display_dict = {}
+        if self.monid is not None:
+            display_dict["monid"] = self.monid
+        if self.description is not None:
+            display_dict["description"] = self.description
+        if self.name is not None:
+            display_dict["name"] = self.name
+        if self.pos is not None:
+            display_dict["pos"] = self.pos
+        if self.size is not None:
+            display_dict["size"] = self.size
+
+        return display_dict
+
+
+def _enumerate_displays() -> List[dict]:
+    """Generate display information data from ArgyllCMS's dispwin.
+
+    Returns:
+        List[dict]: A list of dictionary containing display data.
+    """
+    displays = []
+    dispwin_path = argyll.get_argyll_util("dispwin")
+    if dispwin_path is None:
+        return []
+    p = subprocess.Popen(
+        [dispwin_path, "-v", "-d0"],
+        stdout=subprocess.PIPE
+    )
+    output, error = p.communicate()
+
+    # now parse output
+    output = output.decode("utf-8")
+    # find the display list section
+    display_list_start = -1
+    display_list_end = -1
+    lines = output.split("\n")
+    for i, line in enumerate(lines):
+        if "-d n" in line:
+            display_list_start = i + 1
+        if "-dweb[:port]" in line:
+            display_list_end = i
+
+    for i in range(display_list_start, display_list_end):
+        display = Display()
+        display_info_line = lines[i].strip()
+        display.from_dispwin_data(display_info_line)
+        displays.append(display.to_dict())
+
+    return displays
 
 
 def enumerate_displays():

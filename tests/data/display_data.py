@@ -74,6 +74,71 @@ class DisplayData:
         "year_of_manufacture": 2017,
     }
 
+    DISPWIN_OUTPUT_1 = b"""Test display patch window, Set Video LUTs, Install profiles, Version 3.3.0
+Author: Graeme W. Gill, licensed under the AGPL Version 3
+Diagnostic: -d parameter '0' is out of range
+usage: dispwin [options] [calfile]
+ -v                   Verbose mode
+ -d n                 Choose the display from the following list (default 1)
+    1 = 'Built-in Retina Display, at 0, 0, width 1728, height 1117 (Primary Display)'
+ -dweb[:port]         Display via web server at port (default 8080)
+ -dcc[:n]             Display via n'th ChromeCast (default 1, ? for list)
+ -d dummy             Display via dummy (non-existant, invisible) display
+ -P ho,vo,ss[,vs]     Position test window and scale it
+ -F                   Fill whole screen with black background
+ -E                   Video encode output as (16-235)/255 "TV" levels
+ -i                   Run forever with random values
+ -G filename          Display RGB colors from CGATS (ie .ti1) file
+ -C r.rr,g.gg,b.bb    Add this RGB color to list to be displayed
+ -m                   Manually cycle through values
+ -Y msec              patch delay in msec (default 2000)
+ -f                   Test grey ramp fade
+ -r                   Test just Video LUT loading & Beeps
+ -n                   Test native output (rather than through Video LUT and C.M.)
+ -s filename          Save the currently loaded Video LUT to 'filename'
+ -c                   Load a linear display calibration
+ -V                   Verify that calfile/profile cal. is currently loaded in LUT
+ -I                   Install profile for display and use its calibration
+ -U                   Un-install profile for display
+ -S d                 Specify the install/uninstall scope for OS X [nlu] or X11/Vista [lu]
+                      d is one of: n = network, l = local system, u = user (default)
+ -L                   Load installed profile & calibration
+ -D [level]           Print debug diagnostics to stderr
+ calfile              Load calibration (.cal or .icc) into Video LUT"""
+
+    DISPWIN_OUTPUT_2 = b"""Test display patch window, Set Video LUTs, Install profiles, Version 3.3.0
+Author: Graeme W. Gill, licensed under the AGPL Version 3
+Diagnostic: -d parameter '0' is out of range
+usage: dispwin [options] [calfile]
+ -v                   Verbose mode
+ -d n                 Choose the display from the following list (default 1)
+    1 = 'Built-in Retina Display, at 0, 0, width 1728, height 1117 (Primary Display)'
+    2 = 'DELL U2720Q, at 1728, -575, width 3008, height 1692'
+ -dweb[:port]         Display via web server at port (default 8080)
+ -dcc[:n]             Display via n'th ChromeCast (default 1, ? for list)
+ -d dummy             Display via dummy (non-existant, invisible) display
+ -P ho,vo,ss[,vs]     Position test window and scale it
+ -F                   Fill whole screen with black background
+ -E                   Video encode output as (16-235)/255 "TV" levels
+ -i                   Run forever with random values
+ -G filename          Display RGB colors from CGATS (ie .ti1) file
+ -C r.rr,g.gg,b.bb    Add this RGB color to list to be displayed
+ -m                   Manually cycle through values
+ -Y msec              patch delay in msec (default 2000)
+ -f                   Test grey ramp fade
+ -r                   Test just Video LUT loading & Beeps
+ -n                   Test native output (rather than through Video LUT and C.M.)
+ -s filename          Save the currently loaded Video LUT to 'filename'
+ -c                   Load a linear display calibration
+ -V                   Verify that calfile/profile cal. is currently loaded in LUT
+ -I                   Install profile for display and use its calibration
+ -U                   Un-install profile for display
+ -S d                 Specify the install/uninstall scope for OS X [nlu] or X11/Vista [lu]
+                      d is one of: n = network, l = local system, u = user (default)
+ -L                   Load installed profile & calibration
+ -D [level]           Print debug diagnostics to stderr
+ calfile              Load calibration (.cal or .icc) into Video LUT"""
+
     @classmethod
     def CFG_DATA(self, name, fallback=True, raw=False, cfg=None):
         return {
@@ -313,3 +378,13 @@ class DisplayData:
     def enumerate_displays() -> List[Dict]:
         """Return the display data itself."""
         return [DisplayData.DISPLAY_DATA_1]
+
+    @staticmethod
+    def dispwin_output_1(*args, **kwargs) -> bytes:
+        """Return dispwin output."""
+        return DisplayData.DISPWIN_OUTPUT_1
+
+    @staticmethod
+    def dispwin_output_2(*args, **kwargs) -> bytes:
+        """Return dispwin output."""
+        return DisplayData.DISPWIN_OUTPUT_2

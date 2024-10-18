@@ -7,50 +7,12 @@ import sys
 from typing import List
 
 from DisplayCAL import argyll
+from DisplayCAL import localization as lang
 from DisplayCAL.util_dbus import DBusObject, DBusException, BUSTYPE_SESSION
 from DisplayCAL.util_x import get_display as _get_x_display
 
-# if sys.platform == "darwin":
-#     # Mac OS X has universal binaries in three flavors:
-#     # - i386 & PPC
-#     # - i386 & x86_64
-#     # - i386 & ARM
-#     if platform.architecture()[0].startswith("64"):
-#         # TODO: Intel vs ARM (Apple Silicon) distinction
-#         from DisplayCAL.lib64.RealDisplaySizeMM import *
-# else:
-#     # elif sys.platform == "win32":
-#     # Windows have separate files
-#     if sys.version_info[:2] == (3, 8):
-#         from DisplayCAL.lib64.python38.RealDisplaySizeMM import *
-#     elif sys.version_info[:2] == (3, 9):
-#         from DisplayCAL.lib64.python39.RealDisplaySizeMM import *
-#     elif sys.version_info[:2] == (3, 10):
-#         from DisplayCAL.lib64.python310.RealDisplaySizeMM import *
-#     elif sys.version_info[:2] == (3, 11):
-#         from DisplayCAL.lib64.python311.RealDisplaySizeMM import *
-#     elif sys.version_info[:2] == (3, 12):
-#         from DisplayCAL.lib64.python312.RealDisplaySizeMM import *
-#     elif sys.version_info[:2] == (3, 13):
-#         from DisplayCAL.lib64.python313.RealDisplaySizeMM import *
-
-# TODO: For Linux use the ``xrandr`` command output which supplies everything.
-#
-# ``xrandr --verbose`` gives all the info we need, including EDID which needs to
-# be decoded:
-#
-# ```python
-# import codecs
-# edid = codecs.decode(xrandr_edid_data, "hex")
-# ```
-#
-
 
 _displays = None
-
-# _GetXRandROutputXID = GetXRandROutputXID
-# _RealDisplaySizeMM = RealDisplaySizeMM
-# _enumerate_displays = enumerate_displays
 
 
 def GetXRandROutputXID(display_no=0):
@@ -140,18 +102,33 @@ class Display(object):
         Args:
             display_info_line (str): The dispwin data line.
         """
-        display_id, description = list(map(str.strip, display_info_line.split("=")))
-        description = description[1:-1]
-        self.monid = int(display_id)
-        parts = description.split(",")
-        display_name = parts[0].replace("'", "")
-        x = int(parts[1].strip().split(" ")[-1])
-        y = int(parts[2])
+        display_info_line = display_info_line.strip()
+        description_data = re.findall(
+            r"[\s\d]+= '(?P<description>.*)'",
+            display_info_line
+        )
+        dispwin_error_message = lang.getstr(
+            "error.generic", (
+            -1, "dispwin returns no usable data while enumerating displays.")
+        )
+        if not description_data:
+            raise ValueError(dispwin_error_message)
+        self.description = description_data[0]
+        match = re.match(
+            r"[\s]*(?P<id>\d) = '(?P<name>.*), at (?P<x>\d+), (?P<y>[-\d]+), "
+            r"width (?P<width>\d+), height (?P<height>\d+).*'",
+            display_info_line
+        )
+        if not match:
+            raise ValueError(dispwin_error_message)
+        groups_dict = match.groupdict()
+        self.monid = int(groups_dict["id"])
+        self.name = groups_dict["name"]
+        x = int(groups_dict["x"])
+        y = int(groups_dict["y"])
         self.pos = (x, y)
-        width = int(parts[3].strip()[len("width "):])
-        height = int(parts[4].strip().replace("'", "")[len("height "):].split(" ")[0])
-        self.name = display_name
-        self.description = description
+        width = int(groups_dict["width"])
+        height = int(groups_dict["height"])
         self.size = (width, height)
 
     def to_dict(self):
@@ -175,6 +152,23 @@ class Display(object):
         return display_dict
 
 
+def get_dispwin_output():
+    """Return Argyll dispwin output.
+
+    Returns:
+        str: The dispwin output.
+    """
+    dispwin_path = argyll.get_argyll_util("dispwin")
+    if dispwin_path is None:
+        return ""
+    p = subprocess.Popen(
+        [dispwin_path, "-v", "-d0"],
+        stdout=subprocess.PIPE
+    )
+    output, _ = p.communicate()
+    return output.decode("utf-8")
+
+
 def _enumerate_displays() -> List[dict]:
     """Generate display information data from ArgyllCMS's dispwin.
 
@@ -182,32 +176,16 @@ def _enumerate_displays() -> List[dict]:
         List[dict]: A list of dictionary containing display data.
     """
     displays = []
-    dispwin_path = argyll.get_argyll_util("dispwin")
-    if dispwin_path is None:
-        return []
-    p = subprocess.Popen(
-        [dispwin_path, "-v", "-d0"],
-        stdout=subprocess.PIPE
-    )
-    output, error = p.communicate()
-
-    # now parse output
-    output = output.decode("utf-8")
-    # find the display list section
-    display_list_start = -1
-    display_list_end = -1
-    lines = output.split("\n")
-    for i, line in enumerate(lines):
-        if "-d n" in line:
-            display_list_start = i + 1
+    has_display = False
+    for line in get_dispwin_output().split("\n"):
         if "-dweb[:port]" in line:
-            display_list_end = i
-
-    for i in range(display_list_start, display_list_end):
-        display = Display()
-        display_info_line = lines[i].strip()
-        display.from_dispwin_data(display_info_line)
-        displays.append(display.to_dict())
+            break
+        if has_display:
+            display = Display()
+            display.from_dispwin_data(line)
+            displays.append(display.to_dict())
+        if "-d n" in line:
+            has_display = True
 
     return displays
 

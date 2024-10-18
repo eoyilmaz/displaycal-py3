@@ -651,18 +651,16 @@ def setup():
     if not is_rpm_build or doc_layout.startswith("deb"):
         data_files += get_data(doc, "doc", excludes=["LICENSE.txt"])
     if data_files:
-        if doc_layout.startswith("deb"):
-            data_files.append((doc, [os.path.join(pydir, "..", "dist", "copyright")]))
-            data_files.append(
-                (
-                    os.path.join(os.path.dirname(data), "doc-base"),
-                    [os.path.join(pydir, "..", "misc", appname.lower() + "-readme")],
-                )
+        data_files.append((doc, [os.path.join(pydir, "..", "dist", "copyright")]))
+        data_files.append(
+            (
+                os.path.join(os.path.dirname(data), "doc-base"),
+                [os.path.join(pydir, "..", "misc", appname.lower() + "-readme")],
             )
-        else:
-            data_files.append(
-                (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
-            )
+        )
+        data_files.append(
+            (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+        )
 
     # metainfo / appdata.xml
     data_files.append(

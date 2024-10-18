@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Make sure __version__.py is current
-./setup.py
+#../setup.py
 
-appname=`python3 -c "from DisplayCAL import meta;print meta.name"`
-version=`python3 -c "from DisplayCAL import meta;print meta.version"`
+appname=`python3 -c "from DisplayCAL import meta;print(meta.name)"`
+version=`python3 -c "from DisplayCAL import meta;print(meta.version)"`
 
 # OpenSUSE build service
 obs_home_repo=home:$USER/$appname

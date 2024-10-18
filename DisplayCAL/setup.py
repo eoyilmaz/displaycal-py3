@@ -200,11 +200,6 @@ def add_lib_excludes(key, excludebits):
 
     for exclude in ("32", "64"):
         for pycompat in ("38", "39", "310", "311", "312", "313"):
-            if key == "win32" and (
-                pycompat == str(sys.version_info[0]) + str(sys.version_info[1])
-                or exclude == excludebits[0]
-            ):
-                continue
             config["excludes"][key].extend(
                 [
                     f"{name}.lib{exclude}.python{pycompat}",
@@ -925,38 +920,7 @@ def setup():
                 "-framework Python",
                 "-framework IOKit",
             ]
-            if not help and (
-                "build" in sys.argv[1:]
-                or "build_ext" in sys.argv[1:]
-                or (
-                    ("install" in sys.argv[1:] or "install_lib" in sys.argv[1:])
-                    and "--skip-build" not in sys.argv[1:]
-                )
-            ):
-                p = sp.Popen(
-                    [
-                        sys.executable,
-                        "-c",
-                        f"""import os
-from distutils.core import setup, Extension
 
-setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sources}, define_macros={macros}, extra_link_args={link_args})])""",
-                    ]
-                    + sys.argv[1:],
-                    stdout=sp.PIPE,
-                    stderr=sp.STDOUT,
-                )
-                lines = []
-                while True:
-                    o = p.stdout.readline()
-                    if o == "" and p.poll() is not None:
-                        break
-                    if o[0:4] == "gcc ":
-                        lines.append(o)
-                    print(o.rstrip())
-                if len(lines):
-                    os.environ["MACOSX_DEPLOYMENT_TARGET"] = "10.5"
-                    sp.call(lines[-1], shell=True)  # fix the library
     else:
         macros = [("UNIX", None)]
         libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
@@ -966,14 +930,7 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
     else:
         extname = f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}.RealDisplaySizeMM"
 
-    RealDisplaySizeMM = Extension(
-        extname,
-        sources=sources,
-        define_macros=macros,
-        libraries=libraries,
-        extra_link_args=link_args,
-    )
-    ext_modules = [RealDisplaySizeMM]
+    ext_modules = []
 
     requires = []
     if not setuptools or sys.platform != "win32":
@@ -986,24 +943,6 @@ setup(ext_modules=[Extension("{name}.lib{bits}.RealDisplaySizeMM", sources={sour
         requires.append("pywin32 (>= 213.0)")
 
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
-    if sdist:
-        # For source distributions we want all libraries
-        for pycompat in ("38", "39", "310", "311", "312", "313"):
-            packages.extend([f"{name}.lib{bits}", f"{name}.lib{bits}.python{pycompat}"])
-    elif sys.platform == "darwin":
-        # On Mac OS X we only want the universal binaries
-        packages.append(f"{name}.lib{bits}")
-    elif sys.platform == "win32":
-        # On Windows we want separate libraries
-        packages.extend(
-            [
-                f"{name}.lib{bits}",
-                f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}",
-            ]
-        )
-    else:
-        # On Linux the libraries will be built on build step
-        pass
 
     attrs = {
         "author": author_ascii,

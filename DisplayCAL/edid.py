@@ -32,8 +32,6 @@ elif sys.platform == "darwin":
     import subprocess as sp
 
 from DisplayCAL import config
-from DisplayCAL.config import enc
-from DisplayCAL.log import log
 from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
 
 if sys.platform == "win32":
@@ -216,6 +214,15 @@ def get_edid(display_no=0, display_name=None, device=None):
                 return parsed_edid
         return {}
     elif RDSMM:
+        # TODO: For Linux use the ``xrandr`` command output which supplies everything.
+        #
+        # ``xrandr --verbose`` gives all the info we need, including EDID which needs to
+        # be decoded:
+        #
+        # ```python
+        # import codecs
+        # edid = codecs.decode(xrandr_edid_data, "hex")
+        # ```
         display = RDSMM.get_display(display_no)
         if display:
             edid = display.get("edid")

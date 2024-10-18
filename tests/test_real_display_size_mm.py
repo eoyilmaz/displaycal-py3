@@ -74,7 +74,7 @@ def patch_argyll_util(monkeypatch):
 
 
 def test_real_display_size_mm():
-    """Test DisplayCAL.RealDisplaySizeMM.RealDisplaySizeMM() function."""
+    """Test RealDisplaySizeMM() function."""
     RealDisplaySizeMM._displays = None
     assert RealDisplaySizeMM._displays is None
     with check_call(
@@ -88,7 +88,7 @@ def test_real_display_size_mm():
 
 
 def test_xrandr_output_x_id_1():
-    """Test DisplayCAL.RealDisplaySizeMM.GetXRandROutputXID() function."""
+    """Test GetXRandROutputXID() function."""
     RealDisplaySizeMM._displays = None
     assert RealDisplaySizeMM._displays is None
     with check_call(
@@ -100,7 +100,7 @@ def test_xrandr_output_x_id_1():
 
 
 def test_enumerate_displays():
-    """Test DisplayCAL.RealDisplaySizeMM.enumerate_displays() function."""
+    """Test enumerate_displays() function."""
     RealDisplaySizeMM._displays = None
     assert RealDisplaySizeMM._displays is None
     with check_call(
@@ -137,7 +137,7 @@ def test__enumerate_displays_dispwin_path_is_none(monkeypatch):
 
 
 def test__enumerate_displays_uses_argyll_dispwin(patch_subprocess, patch_argyll_util):
-    """DisplayCAL.RealDisplaySizeMM._enumerate_displays() uses dispwin."""
+    """_enumerate_displays() uses dispwin."""
     PatchedSubprocess = patch_subprocess
     PatchedSubprocess.output = DisplayData.DISPWIN_OUTPUT_1
     PatchedArgyll = patch_argyll_util
@@ -152,10 +152,8 @@ def test__enumerate_displays_uses_argyll_dispwin(patch_subprocess, patch_argyll_
 
 
 def test__enumerate_displays_uses_argyll_dispwin_output_1(patch_subprocess, patch_argyll_util):
-    """DisplayCAL.RealDisplaySizeMM._enumerate_displays() uses dispwin."""
-    PatchedSubprocess = patch_subprocess
-    PatchedSubprocess.output = DisplayData.DISPWIN_OUTPUT_1
-    PatchedArgyll = patch_argyll_util
+    """_enumerate_displays() uses dispwin."""
+    patch_subprocess.output = DisplayData.DISPWIN_OUTPUT_1
     result = RealDisplaySizeMM._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 1
@@ -166,10 +164,8 @@ def test__enumerate_displays_uses_argyll_dispwin_output_1(patch_subprocess, patc
 
 
 def test__enumerate_displays_uses_argyll_dispwin_output_2(patch_subprocess, patch_argyll_util):
-    """DisplayCAL.RealDisplaySizeMM._enumerate_displays() uses dispwin."""
-    PatchedSubprocess = patch_subprocess
-    PatchedSubprocess.output = DisplayData.DISPWIN_OUTPUT_2
-    PatchedArgyll = patch_argyll_util
+    """_enumerate_displays() uses dispwin."""
+    patch_subprocess.output = DisplayData.DISPWIN_OUTPUT_2
     result = RealDisplaySizeMM._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 2
@@ -181,6 +177,43 @@ def test__enumerate_displays_uses_argyll_dispwin_output_2(patch_subprocess, patc
     assert result[1]["name"] == "DELL U2720Q"
     assert result[1]["size"] == (3008, 1692)
     assert result[1]["pos"] == (1728, -575)
+
+
+def test__enumerate_displays_without_a_proper_dispwin_output_missing_lines(patch_subprocess, patch_argyll_util):
+    """_enumerate_displays() return empty list when dispwin returns no usable data."""
+    patch_subprocess.output = DisplayData.DISPWIN_OUTPUT_3
+    result = RealDisplaySizeMM._enumerate_displays()
+    assert isinstance(result, list)
+    assert len(result) == 0
+
+
+def test__enumerate_displays_without_a_proper_dispwin_output_with_wrong_formatted_data(patch_subprocess, patch_argyll_util):
+    """_enumerate_displays() return empty list when dispwin returns no usable data."""
+    from DisplayCAL import localization as lang
+    lang.init()
+    patch_subprocess.output = DisplayData.DISPWIN_OUTPUT_4
+    with pytest.raises(ValueError) as cm:
+        result = RealDisplaySizeMM._enumerate_displays()
+    assert str(cm.value) == (
+        'An internal error occurred.\n'
+        'Error code: -1\n'
+        'Error message: dispwin returns no usable data while enumerating displays.'
+    )
+
+
+def test__enumerate_displays_without_a_proper_dispwin_output_with_partial_match(patch_subprocess, patch_argyll_util):
+    """_enumerate_displays() return empty list when dispwin returns no usable data."""
+    from DisplayCAL import localization as lang
+    lang.init()
+    patch_subprocess.output = DisplayData.DISPWIN_OUTPUT_5
+    with pytest.raises(ValueError) as cm:
+        result = RealDisplaySizeMM._enumerate_displays()
+    assert str(cm.value) == (
+        'An internal error occurred.\n'
+        'Error code: -1\n'
+        'Error message: dispwin returns no usable data while enumerating displays.'
+    )
+
 
 
 def test_get_display():

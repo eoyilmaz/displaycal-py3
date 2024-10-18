@@ -7,7 +7,7 @@ Build-Depends: debhelper, dh-python, doc-base, python2.7-dev, python, libxineram
 
 Package: ${DEBPACKAGE}
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, ${misc:Depends}, python-wxgtk3.0 (>= 3.0) | python-wxgtk2.8 (>= ${WX_MINVERSION}), python-numpy (>= 1.0), python-psutil, python-gi, libsdl2-mixer-2.0-0, libxss1
+Depends: ${shlibs:Depends}, ${python:Depends}, ${misc:Depends}, python-wxgtk3.0 (>= 3.0) | python-wxgtk2.8 (>= ${WX_MINVERSION}), python-numpy (>= 2.0), python-psutil, python-gi, libsdl2-mixer-2.0-0, libxss1
 Conflicts: dispcalgui, dispcalgui-0install, ${DEBPACKAGE}-0install
 Replaces: dispcalgui, dispcalgui-0install, ${DEBPACKAGE}-0install
 Recommends: argyll

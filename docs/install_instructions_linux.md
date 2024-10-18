@@ -28,11 +28,24 @@ To install DisplayCAL there are some prerequisites:
 Please install these from your package manager. 
 
 ```shell
-# Debian installs
+# Debian installs (Debian, Ubuntu etc.)
 apt-get install build-essential dbus libglib2.0-dev pkg-config libgtk-3-dev libxxf86vm-dev python3-dev python3-venv
 
-# Fedora core installs
+# Fedora core installs (Fedora, Rocky, CentOS etc.)
 dnf install gcc glibc-devel dbus pkgconf gtk3-devel libXxf86vm-devel python3-devel python3-virtualenv
+
+# OpenSuse
+zypper install gcc12 gcc12-c++ git-core glibc-devel dbus-1 pkgconf gtk3-devel libXxf86vm-devel make python3-devel python3-virtualenv
+```
+
+Because Python 3 is generally build with gcc 12 it is better to update your alternatives
+to use the 12th version of gcc/g++.
+
+```shell
+sudo update-alternatives --config gcc
+# select gcc-12
+sudo update-alternatives --config g++
+# select g++-12
 ```
 
 > [!NOTE]

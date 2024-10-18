@@ -17,7 +17,7 @@
 #
 
 
-%define numpy_version 1.0
+%define numpy_version 2.0
 %define py_minversion ${PY_MINVERSION}
 %define py_maxversion ${PY_MAXVERSION}
 %define wx_minversion ${WX_MINVERSION}
@@ -34,7 +34,7 @@
 %endif
 %endif
 
-%define __python /usr/bin/python2
+%define __python /usr/bin/python3
 
 %global debug_package %{nil}
 
@@ -98,7 +98,7 @@ Requires:       argyllcms
 Requires:       numpy >= %{numpy_version}
 Requires:       SDL2_mixer
 Requires:       wxPython >= %{wx_minversion}
-Requires:       python2-psutil
+Requires:       python3-psutil
 Requires:       dbus-python
 %else
 %if 0%{?fedora_version} > 0
@@ -107,14 +107,14 @@ BuildRequires:  libX11-devel
 BuildRequires:  libXinerama-devel
 BuildRequires:  libXrandr-devel
 BuildRequires:  libXxf86vm-devel
-BuildRequires:  python2-devel
+BuildRequires:  python3-devel
 BuildRequires:  udev
 Requires:       argyllcms
 Requires:       numpy >= %{numpy_version}
 Requires:       SDL2_mixer
 Requires:       wxPython >= %{wx_minversion}
-Requires:       python2-psutil
-Requires:       python2-gobject
+Requires:       python3-psutil
+Requires:       python3-gobject
 %else
 # Mageia
 %define mageia_version 6
@@ -180,8 +180,8 @@ bits = platform.architecture()[0][:2]
 mod = os.path.join(change_root('$RPM_BUILD_ROOT', get_python_lib(True)), '%{name}')
 for py in (glob.glob(os.path.join(mod, '*.py')),
 		   glob.glob(os.path.join(mod, 'lib', '*.py')),
-		   glob.glob(os.path.join(mod, 'lib', 'agw', '*.py')), 
-		   glob.glob(os.path.join(mod, 'lib' + bits, '*.py')), 
+		   glob.glob(os.path.join(mod, 'lib', 'agw', '*.py')),
+		   glob.glob(os.path.join(mod, 'lib' + bits, '*.py')),
 		   glob.glob(os.path.join(mod, 'lib' + bits, 'python%s%s' % sys.version_info[:2], '*.py'))):
 	byte_compile(py, optimize=0, force=1, prefix='$RPM_BUILD_ROOT')
 	if (int('0%{?fedora_version}') > 0 or int('0%{?rhel_version}') > 0 or
@@ -207,9 +207,9 @@ done
 # as well as mark files as executable where needed
 %{__python} -c "import os
 f = open('INSTALLED_FILES')
-paths = [chr(0x22) + path.replace('$RPM_BUILD_ROOT', '').strip() + chr(0x22) for path in 
+paths = [chr(0x22) + path.replace('$RPM_BUILD_ROOT', '').strip() + chr(0x22) for path in
 		 filter(lambda path: not '/doc/' in path and not '/etc/' in path and
-				not '/man/' in path, 
+				not '/man/' in path,
 				f.readlines())]
 f.close()
 executables = ['Argyll'] + os.listdir('scripts')

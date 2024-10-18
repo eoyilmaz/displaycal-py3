@@ -5,11 +5,11 @@ _pkgname=${PACKAGE}
 pkgver=${VERSION}
 pkgrel=1
 pkgdesc="${SUMMARY}"
-arch=('i686' 'x86_64')
+arch=('i686' 'x86_64' 'aarch64')
 url="${URL}"
 license=('GPL3')
 makedepends=('libx11' 'libxinerama' 'libxrandr' 'libxxf86vm' 'iptables-nft')
-depends=('python2>=${PY_MINVERSION}' 'wxpython>=${WX_MINVERSION}' 'blas' 'python2-numpy' 'sdl2_mixer' 'desktop-file-utils' 'hicolor-icon-theme' 'python2-gobject' 'python2-psutil' 'xdg-utils')
+depends=('python3>=${PY_MINVERSION}' 'wxpython>=${WX_MINVERSION}' 'blas' 'python3-numpy' 'sdl2_mixer' 'desktop-file-utils' 'hicolor-icon-theme' 'python3-gobject' 'python3-psutil' 'xdg-utils')
 optdepends=('argyllcms: calibration & profiling support')
 conflicts=('dispcalgui' 'dispcalgui-0install' '${APPNAME_LOWER}-0install')
 install=${pkgname}.install
@@ -36,7 +36,7 @@ package() {
 	cd "${srcdir}/${_pkgname}-${pkgver}"
 
 	python2 setup.py install --root="${pkgdir}" --optimize=1 --skip-instrument-configuration-files --skip-postinstall
-    
+
     # udev/hotplug
     mkdir -p "${pkgdir}/usr/share/${_pkgname}/usb"
     # USB and serial instruments using udev, where udev already creates /dev/bus/usb/00X/00X devices

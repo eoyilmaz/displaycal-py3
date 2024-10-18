@@ -1327,7 +1327,7 @@ def get_pattern_geometry():
 
 
 def get_python_and_pythonpath():
-    """Return (system) python and pythonpath"""
+    """Return (system) python and pythonpath."""
     # Determine the path of python, and python module search paths
     # If we are running 'frozen', expect python.exe in the same directory
     # as the packed executable.
@@ -1356,11 +1356,10 @@ def get_python_and_pythonpath():
         else:
             paths = os.defpath.split(os.pathsep)
             python = (
-                which("python3.7", paths)
-                or which("python3.6", paths)
-                or "/usr/bin/env python"
+                which("python3", paths)
+                or "/app/bin/python3"
             )
-    return (python, pythonpath)
+    return python, pythonpath
 
 
 def get_arg(argmatch, args, whole=False):

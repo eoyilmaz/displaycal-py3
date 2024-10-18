@@ -3,19 +3,19 @@
 # Make sure __version__.py is current
 ./setup.py
 
-appname=`python2 -c "from DisplayCAL import meta;print meta.name"`
-version=`python2 -c "from DisplayCAL import meta;print meta.version"`
+appname=`python3 -c "from DisplayCAL import meta;print meta.name"`
+version=`python3 -c "from DisplayCAL import meta;print meta.version"`
 
 # OpenSUSE build service
-obs_home_repo=home:fhoech/$appname
+obs_home_repo=home:$USER/$appname
 obs_m_cm_repo=multimedia:color_management/$appname
-for obs_repo in "$obs_home_repo" "$obs_m_cm_repo"; do 
+for obs_repo in "$obs_home_repo" "$obs_m_cm_repo"; do
   pushd "../obs/$obs_repo"
   osc update
   osc service localrun || (
-    wget -O DisplayCAL-$version.tar.gz http://displaycal.net/download/DisplayCAL-$version.tar.gz
+    wget -O DisplayCAL-$version.tar.gz https://github.com/eoyilmaz/displaycal-py3/releases/download/$version/DisplayCAL-$version.tar.gz
     for filename in "appimage.yml" "DisplayCAL.dsc" "DisplayCAL.spec" "debian.changelog" "DisplayCAL.changes" "PKGBUILD" ; do
-      wget -O $filename http://displaycal.net/dist/$filename
+      wget -O $filename https://github.com/eoyilmaz/displaycal-py3/raw/refs/heads/develop/misc/$filename
     done
   )
   # Remove previous version

@@ -1,12 +1,16 @@
-build
+build  # conda python-build
 certifi
-comtypes; sys_platform=='win32'
-dbus-python; sys_platform=='linux'
+comtypes; sys_platform == "win32"
+dbus-python; sys_platform == "linux"
 distro
+future
 numpy
-Pillow
+pillow
+protobuf
 PyChromecast
-pywin32; sys_platform=='win32'
+pywin32; sys_platform == "win32"
+QtPy
 Send2Trash
-wxPython>=4.2.2
+WMI; sys_platform == "win32"
+wxPython >= 4.2.2
 zeroconf

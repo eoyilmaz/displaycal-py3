@@ -1,3 +1,8 @@
+"""This module contains resources and constants for the FlatMenu library in DisplayCAL.
+
+It defines various styles, states, and images used in the FlatMenu and related controls.
+"""
+
 import wx
 
 # Overall menu styles
@@ -27,13 +32,16 @@ ControlNormal = 3
 
 # FlatMenu styles
 FM_OPT_IS_LCD = 1
-""" Use this style if your computer uses a LCD screen. """
+"""Use this style if your computer uses a LCD screen."""
 FM_OPT_MINIBAR = 2
-""" Use this if you plan to use the toolbar only. """
+"""Use this if you plan to use the toolbar only."""
 FM_OPT_SHOW_CUSTOMIZE = 4
-""" Show "customize link" in the `More` menu, you will need to write your own handler. See demo. """
+"""Show "customize link" in the `More` menu, you will need to write your own handler.
+
+See demo.
+"""
 FM_OPT_SHOW_TOOLBAR = 8
-""" Set this option is you are planning to use the toolbar. """
+"""Set this option is you are planning to use the toolbar."""
 
 # Control status
 ControlStatusNoFocus = 0
@@ -91,6 +99,7 @@ INB_GRADIENT_BACKGROUND = 1024
 INB_WEB_HILITE = 2048
 INB_NO_RESIZE = 4096
 INB_FIT_LABELTEXT = 8192
+INB_BOLD_TAB_SELECTION = 16384
 
 INB_DEFAULT_STYLE = INB_BORDER | INB_TOP | INB_USE_PIN_BUTTON
 
@@ -120,7 +129,7 @@ rgbSelectInner = wx.Colour(230, 250, 250)
 rgbSelectTop = wx.Colour(210, 240, 250)
 rgbSelectBottom = wx.Colour(185, 215, 250)
 
-check_mark_xpm = [
+check_mark_xpm: list[str] = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -156,7 +165,7 @@ check_mark_xpm = [
     "mmmmmmmmmmmmmmmm",
 ]
 
-radio_item_xpm = [
+radio_item_xpm: list[str] = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -193,7 +202,7 @@ radio_item_xpm = [
 ]
 
 
-menu_right_arrow_xpm = [
+menu_right_arrow_xpm: list[str] = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -221,14 +230,22 @@ menu_right_arrow_xpm = [
     "````````````````",
 ]
 
-# ----------------------------------
+# --------------------------------------------------------------------------------------
 # Shadow images
-# ----------------------------------
+# --------------------------------------------------------------------------------------
 
-shadow_right_xpm = ["5 5 1 1", "  c Black", "     ", "     ", "     ", "     ", "     "]
+shadow_right_xpm: list[str] = [
+    "5 5 1 1",
+    "  c Black",
+    "     ",
+    "     ",
+    "     ",
+    "     ",
+    "     ",
+]
 
 # shadow_right.xpm 5x5
-shadow_right_alpha = [
+shadow_right_alpha: list[int] = [
     168,
     145,
     115,
@@ -256,7 +273,7 @@ shadow_right_alpha = [
     46,
 ]
 
-shadow_right_top_xpm = [
+shadow_right_top_xpm: list[str] = [
     "5 10 1 1",
     "  c Black",
     "     ",
@@ -271,7 +288,7 @@ shadow_right_top_xpm = [
     "     ",
 ]
 
-shadow_right_top_alpha = [
+shadow_right_top_alpha: list[int] = [
     40,
     35,
     28,
@@ -324,8 +341,8 @@ shadow_right_top_alpha = [
     46,
 ]
 
-# shadow_buttom.xpm 5x5
-shadow_bottom_alpha = [
+# shadow_bottom.xpm 5x5
+shadow_bottom_alpha: list[int] = [
     184,
     184,
     184,
@@ -353,7 +370,7 @@ shadow_bottom_alpha = [
     76,
 ]
 
-shadow_bottom_left_xpm = [
+shadow_bottom_left_xpm: list[str] = [
     "10 5 1 1",
     "  c Black",
     "          ",
@@ -363,7 +380,7 @@ shadow_bottom_left_xpm = [
     "          ",
 ]
 
-shadow_bottom_left_alpha = [
+shadow_bottom_left_alpha: list[int] = [
     22,
     44,
     73,
@@ -416,7 +433,7 @@ shadow_bottom_left_alpha = [
     76,
 ]
 
-shadow_center_xpm = [
+shadow_center_xpm: list[str] = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -426,7 +443,7 @@ shadow_center_xpm = [
     "     ",
 ]
 
-shadow_center_alpha = [
+shadow_center_alpha: list[int] = [
     161,
     139,
     110,
@@ -454,7 +471,7 @@ shadow_center_alpha = [
     18,
 ]
 
-shadow_bottom_xpm = [
+shadow_bottom_xpm: list[str] = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -464,7 +481,7 @@ shadow_bottom_xpm = [
     "     ",
 ]
 
-arrow_down_xpm = [
+arrow_down_xpm: list[str] = [
     "16 16 3 1",
     ". c Black",
     "X c #FFFFFF",
@@ -487,10 +504,10 @@ arrow_down_xpm = [
     "                ",
 ]
 
-# ---------------------------------------------
+# --------------------------------------------------------------------------------------
 # Pin images
-# ---------------------------------------------
-pin_left_xpm = [
+# --------------------------------------------------------------------------------------
+pin_left_xpm: list[str] = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -518,7 +535,7 @@ pin_left_xpm = [
     "````````````````",
 ]
 
-pin_down_xpm = [
+pin_down_xpm: list[str] = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -547,7 +564,7 @@ pin_down_xpm = [
 ]
 
 
-arrow_up = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
+arrow_up = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
 \x00\x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x80\x00\x00\x00\x12\x0b\x00\x00\x12\
 \x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\
 \x00w\xfcM\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
@@ -557,7 +574,7 @@ arrow_up = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00
 """"""""""""""""""""""""""""""""""""'
 
 
-arrow_down = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00\
+arrow_down = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00\
 \x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x12\x0b\x00\x00\x12\x0b\
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\x00w\
 \xfcM\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
@@ -566,7 +583,7 @@ arrow_down = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x
 """""\x10\x00\x00\x12""""\x00\x00\x00\x02""""""""""""\x11\x11\x11\x12""""\x00\x00\x00\x02\
 """"""""""""""""""""""""""""""""""'
 
-menu_up_arrow_xpm = [
+menu_up_arrow_xpm: list[str] = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -589,7 +606,7 @@ menu_up_arrow_xpm = [
 ]
 
 
-menu_down_arrow_xpm = [
+menu_down_arrow_xpm: list[str] = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -612,13 +629,23 @@ menu_down_arrow_xpm = [
 ]
 
 
-def getMenuUpArrowBitmap():
-    bmp = wx.BitmapFromXPMData(menu_up_arrow_xpm)
+def getMenuUpArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu up arrow with a white mask.
+
+    Returns:
+        A wx.Bitmap object.
+    """
+    bmp = wx.Bitmap(menu_up_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp
 
 
-def getMenuDownArrowBitmap():
-    bmp = wx.BitmapFromXPMData(menu_down_arrow_xpm)
+def getMenuDownArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu down arrow with a white mask.
+
+    Returns:
+        A wx.Bitmap object.
+    """
+    bmp = wx.Bitmap(menu_down_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp

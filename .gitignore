@@ -1,33 +1,34 @@
-.DS_Store
-/.venv/
-.vscode/
-/DisplayCAL/__version__.py
-/build/
-/dist/
-/venv/
-.venv*/
-/INSTALLED_FILES
-/MANIFEST.in
-MANIFEST.in
-/VERSION
 __pycache__/
+.DS_Store
+.venv*/
+.vscode/
+*.blend1
+*.code-workspace
+/.coverage
 /.pytest_cache/
-/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.png
-/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.smooth.png
-/DisplayCAL.egg-info/top_level.txt
+/.venv/
+/build/
+/DisplayCAL.egg-info/dependency_links.txt
+/DisplayCAL.egg-info/PKG-INFO
 /DisplayCAL.egg-info/requires.txt
 /DisplayCAL.egg-info/SOURCES.txt
-/DisplayCAL.egg-info/PKG-INFO
-/DisplayCAL.egg-info/dependency_links.txt
-*.blend1
-/.coverage
-/DisplayCAL/ref/*.log
+/DisplayCAL.egg-info/top_level.txt
+/DisplayCAL/__version__.py
+/DisplayCAL/lib64/python310/*.so
+/DisplayCAL/lib64/python311/*.pyd
 /DisplayCAL/lib64/python38/*.so
 /DisplayCAL/lib64/python39/*.so
-/DisplayCAL/lib64/python310/*.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-310-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-311-darwin.so
 /DisplayCAL/lib64/RealDisplaySizeMM.cpython-312-darwin.so
+/DisplayCAL/ref/*.log
+/dist/
+/INSTALLED_FILES
+/MANIFEST.in
+/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.png
+/tests/data/icc/Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.B2A1.post.CLUT.smooth.png
+/venv/
+/VERSION
 cacert.pem
-*.code-workspace
 main.py
+MANIFEST.in

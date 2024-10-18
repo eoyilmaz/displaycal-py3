@@ -14,8 +14,8 @@ if sys.platform not in ("darwin", "win32"):
 
 elif sys.platform == "win32":
     try:
-        from win32com.shell.shell import SHGetSpecialFolderPath
-        from win32com.shell.shellcon import (
+        from win32comext.shell.shell import SHGetSpecialFolderPath
+        from win32comext.shell.shellcon import (
             CSIDL_APPDATA,
             CSIDL_COMMON_APPDATA,
             CSIDL_COMMON_STARTUP,

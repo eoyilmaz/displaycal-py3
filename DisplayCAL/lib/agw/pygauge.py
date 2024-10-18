@@ -1,66 +1,127 @@
-# --------------------------------------------------------------------------------- #
-# PYGAUGE wxPython IMPLEMENTATION
+# ---------------------------------------------------------------------------- #
+# PYGAUGE wxPython IMPLEMENTATION                                                       # noqa: SC100
 #
 # Mark Reed, @ 28 Jul 2010
-# Latest Revision: 02 Aug 2010, 09.00 GMT
+# Latest Revision: 27 Dec 2012, 21.00 GMT
 #
 # TODO List
 #
-# 1. Indeterminate mode (see wx.Gauge)
+# 1. Indeterminate mode (see wx.Gauge)                                                  # noqa: SC100
 # 2. Vertical bar
 # 3. Bitmap support (bar, background)
 # 4. UpdateFunction - Pass a function to PyGauge which will be called every X
 #    milliseconds and the value will be updated to the returned value.
-# 5. Currently the full gradient is drawn from 0 to value. Perhaps the gradient
-#    should be drawn from 0 to range and clipped at 0 to value.
+# 5. Currently the full gradient is drawn from 0 to value.
+#    Perhaps the gradient should be drawn from 0 to range and clipped at 0 to value.
 # 6. Add a label?
 #
-# For All Kind Of Problems, Requests Of Enhancements And Bug Reports, Please
-# Write To The:
+# For All Kind Of Problems, Requests Of Enhancements And Bug Reports,
+# Please Write To The:
 #
 # wxPython Mailing List!!!
 #
+# Tags:        phoenix-port, unittest, documented, py3-port
+#
 # End Of Comments
-# --------------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 
 """
-PyGauge is a generic `wx.Gauge` implementation.
+:class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
 
 
 Description
 ===========
 
-PyGauge supports the determinate mode functions as `wx.Gauge` and adds an L{Update} function
-which takes a value and a time parameter. The `value` is added to the current value over
-a period of `time` milliseconds.
+:class:`PyGauge` supports the determinate mode functions as :class:`Gauge` and
+adds an :meth:`~PyGauge.Update` function which takes a value and a time parameter.
+The `value` is added to the current value over a period of `time` milliseconds.
+
+
+Usage
+=====
+
+Usage example::
+
+    import wx
+    import wx.lib.agw.pygauge as PG
+
+    class MyFrame(wx.Frame):
+
+        def __init__(self, parent):
+
+            wx.Frame.__init__(self, parent, -1, "PyGauge Demo")
+
+            panel = wx.Panel(self)
+
+            gauge1 = PG.PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge1.SetValue(80)
+            gauge1.SetBackgroundColour(wx.WHITE)
+            gauge1.SetBorderColor(wx.BLACK)
+
+            gauge2 = PG.PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge2.SetValue([20, 80])
+            gauge2.SetBarColor([wx.Colour(162, 255, 178), wx.Colour(159, 176, 255)])
+            gauge2.SetBackgroundColour(wx.WHITE)
+            gauge2.SetBorderColor(wx.BLACK)
+            gauge2.SetBorderPadding(2)
+            gauge2.Update([30, 0], 2000)
+
+            gauge3 = PG.PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge3.SetValue(50)
+            gauge3.SetBarColor(wx.GREEN)
+            gauge3.SetBackgroundColour(wx.WHITE)
+            gauge3.SetBorderColor(wx.BLACK)
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(gauge1, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+            sizer.Add(gauge2, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+            sizer.Add(gauge3, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+
+            panel.SetSizer(sizer)
+            sizer.Layout()
+
+
+    # our normal wxApp-derived class, as usual
+
+    app = wx.App(0)
+
+    frame = MyFrame(None)
+    app.SetTopWindow(frame)
+    frame.Show()
+
+    app.MainLoop()
 
 
 Supported Platforms
 ===================
 
-PyGauge has been tested on the following platforms:
-  * Windows (Windows XP);
+:class:`PyGauge` has been tested on the following platforms:
+  * Windows (Windows XP, Windows 7);
 
 
 License And Version
 ===================
 
-PyGauge is distributed under the wxPython license.
-PyGauge has been kindly contributed to the AGW library by Mark Reed.
+:class:`PyGauge` is distributed under the wxPython license.
 
-Latest Revision: Andrea Gavana @ 02 Aug 2010, 09.00 GMT
+:class:`PyGauge` has been kindly contributed to the AGW library by Mark Reed.
+
+Latest Revision: Andrea Gavana @ 27 Dec 2012, 21.00 GMT
 
 Version 0.1
+
 """
 
 import wx
 import copy
 
 
-class PyGauge(wx.PyWindow):
+class PyGauge(wx.Window):
     """
-    This class provides a visual alternative for `wx.Gauge`. It currently
-    only support determinate mode (see L{PyGauge.SetValue} and L{PyGauge.SetRange})
+    This class provides a visual alternative for :class:`Gauge`.
+
+    It currently only support determinate mode (see :meth:`PyGauge.SetValue()
+    <PyGauge.SetValue>` and :meth:`PyGauge.SetRange() <PyGauge.SetRange>`).
     """
 
     def __init__(
@@ -72,18 +133,22 @@ class PyGauge(wx.PyWindow):
         size=(-1, 30),
         style=0,
     ):
-        """Default class constructor.
+        """
+        Default class constructor.
 
-        :param parent: parent window. Must not be ``None``;
-        :param id: window identifier. A value of -1 indicates a default value;
-        :param pos: the control position. A value of (-1, -1) indicates a default position,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param size: the control size. A value of (-1, -1) indicates a default size,
-         chosen by either the windowing system or wxPython, depending on platform;
-        :param style: the underlying `wx.PyWindow` window style.
+        Args:
+            parent: parent window. Must not be ``None``;
+            id: window identifier. A value of -1 indicates a default value;
+            pos: the control position. A value of (-1, -1) indicates a default position,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            size: the control size. A value of (-1, -1) indicates a default size,
+                chosen by either the windowing system or wxPython,
+                depending on platform;
+            style: the underlying :class:`wx.Window` window style.
         """
 
-        wx.PyWindow.__init__(self, parent, id, pos, size, style)
+        wx.Window.__init__(self, parent, id, pos, size, style)
 
         self._size = size
 
@@ -96,28 +161,39 @@ class PyGauge(wx.PyWindow):
         self._value = [0]
         self._valueSorted = [0]
 
+        self._timerId = wx.NewIdRef()
         self._timer = None
+
+        self._drawIndicatorText = False
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_TIMER, self.OnTimer)
 
     def DoGetBestSize(self):
-        """Overridden base class virtual. Determines the best size of the
-        button based on the label and bezel size.
+        """
+        Gets the size which best suits :class:`PyGauge`.
+
+        For a control, it would be the minimal size which doesn't truncate the control,
+        for a panel - the same size as it would have after a call to `Fit()`.
+
+        Note:
+            Overridden from :class:`wx.Window`.
         """
 
         return wx.Size(self._size[0], self._size[1])
 
     def GetBorderColour(self):
-        """Returns the L{PyGauge} border colour."""
+        """Returns the :class:`PyGauge` border colour."""
 
         return self._border_colour
 
     def SetBorderColour(self, colour):
-        """Sets the L{PyGauge} border colour.
+        """
+        Sets the :class:`PyGauge` border colour.
 
-        :param colour: an instance of `wx.Colour`.
+        Args:
+            colour: an instance of :class:`wx.Colour`.
         """
 
         self._border_colour = colour
@@ -126,17 +202,19 @@ class PyGauge(wx.PyWindow):
     GetBorderColor = GetBorderColour
 
     def GetBarColour(self):
-        """Returns the L{PyGauge} main bar colour."""
+        """Returns the :class:`PyGauge` main bar colour."""
 
         return self._barColour[0]
 
     def SetBarColour(self, colour):
-        """Sets the L{PyGauge} main bar colour.
+        """
+        Sets the :class:`PyGauge` main bar colour.
 
-        :param colour: an instance of `wx.Colour`.
+        Args:
+            colour: an instance of :class:`wx.Colour`.
         """
 
-        if not isinstance(colour, list):
+        if type(colour) != type([]):
             self._barColour = [colour]
         else:
             self._barColour = list(colour)
@@ -158,12 +236,15 @@ class PyGauge(wx.PyWindow):
         """
         Sets the bar gradient.
 
-        :param gradient: a tuple containing the gradient start and end colours.
+        Args:
+            gradient: a tuple containing the gradient start and end colours.
 
-        :note: This overrides the bar colour previously set with L{SetBarColour}.
+        Note:
+            This overrides the bar colour previously set with
+                :meth:`PyGauge.SetBarColour`.
         """
 
-        if not isinstance(gradient, list):
+        if type(gradient) != type([]):
             self._barGradient = [gradient]
         else:
             self._barGradient = list(gradient)
@@ -179,7 +260,8 @@ class PyGauge(wx.PyWindow):
         """
         Sets the border padding.
 
-        :param padding: pixels between the border and the progress bar.
+        Args:
+            padding: pixels between the border and the progress bar.
         """
 
         self._border_padding = padding
@@ -191,10 +273,12 @@ class PyGauge(wx.PyWindow):
 
     def SetRange(self, range):
         """
-        Sets the range of the gauge. The gauge length is its
-        value as a proportion of the range.
+        Sets the range of the gauge.
 
-        :param range: The maximum value of the gauge.
+        The gauge length is its value as a proportion of the range.
+
+        Args:
+            range: The maximum value of the gauge.
         """
 
         if range <= 0:
@@ -208,12 +292,14 @@ class PyGauge(wx.PyWindow):
         return self._value[0]
 
     def SetValue(self, value):
-        """Sets the current position of the gauge.
+        """
+        Sets the current position of the gauge.
 
-        :param value: an integer specifying the current position of the gauge.
+        Args:
+            value: an integer specifying the current position of the gauge.
         """
 
-        if not isinstance(value, list):
+        if type(value) != type([]):
             self._value = [value]
         else:
             self._value = list(value)
@@ -225,19 +311,24 @@ class PyGauge(wx.PyWindow):
                 raise Exception("ERROR:\n Gauge value must be between 0 and its range.")
 
     def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` event for L{PyGauge}.
+        """
+        Handles the ``wx.EVT_ERASE_BACKGROUND`` event for :class:`PyGauge`.
 
-        :param event: a `wx.EraseEvent` event to be processed.
+        Args:
+            event: a :class:`EraseEvent` event to be processed.
 
-        :note: This method is intentionally empty to reduce flicker.
+        Note:
+            This method is intentionally empty to reduce flicker.
         """
 
         pass
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{PyGauge}.
+        """
+        Handles the ``wx.EVT_PAINT`` event for :class:`PyGauge`.
 
-        :param event: a `wx.PaintEvent` event to be processed.
+        Args:
+            event: a :class:`PaintEvent` event to be processed.
         """
 
         dc = wx.BufferedPaintDC(self)
@@ -272,15 +363,113 @@ class PyGauge(wx.PyWindow):
                 r.width = int(w)
                 dc.DrawRectangle(r)
 
-    def OnTimer(self, event):
-        """Handles the ``wx.EVT_TIMER`` event for L{PyGauge}.
+        if self._drawIndicatorText:
+            dc.SetFont(self._drawIndicatorText_font)
+            dc.SetTextForeground(self._drawIndicatorText_colour)
+            drawValue = self._valueSorted[i]
 
-        :param event: a `wx.TimerEvent` event to be processed.
+            if self._drawIndicatorText_drawPercent:
+                drawValue = (float(self._valueSorted[i]) * 100) / self._range
+
+            drawString = self._drawIndicatorText_formatString.format(drawValue)
+            rect = self.GetClientRect()
+            (textWidth, textHeight, descent, extraLeading) = dc.GetFullTextExtent(
+                drawString
+            )
+            textYPos = (rect.height - textHeight) // 2
+
+            if textHeight > rect.height:
+                textYPos = 0 - descent + extraLeading
+
+            textXPos = (rect.width - textWidth) // 2
+
+            if textWidth > rect.width:
+                textXPos = 0
+
+            dc.DrawText(drawString, textXPos, textYPos)
+
+    def SetDrawValue(
+        self, draw=True, drawPercent=True, font=None, colour=wx.BLACK, formatString=None
+    ):
+        """
+        Sets whether percentage or current value should be drawn on the gauge for precise indication.
+
+        Args:
+            bool draw: a boolean value, which if ``True`` tells to start drawing
+                value or percentage. If set to ``False`` nothing will be drawn
+                and other parameters will be ignored;
+            bool drawPercent: a boolean value which indicates that a percent
+                should be drawn instead of value passed in :meth:`SetValue`;
+            wx.Font font: a font with which indication should be drawn,
+                if ``None``, then ``wx.NORMAL_FONT`` will be used.
+                Usually text would be displayed centered in the control,
+                but if the text font is too large to be displayed
+                (either in width or height) the corresponding coordinate will be
+                set to zero;
+            wx.Colour colour: the colour with which indication should be drawn,
+                if ``None`` then ``wx.BLACK`` will be used;
+            string formatString: a string specifying format of the indication
+                (should have one and only one number placeholder).
+                If set to ``None``, will use ``{:.0f}`` format string for values
+                and ``{:.0f}%`` format string for percentages. As described in
+                http://docs.python.org/library/string.html#format-specification-mini-language.
+
+        Note:
+            formatString will override addition of percent sign (after value)
+                even if `drawPercent` is ``True``.
+
+        .. versionadded:: 0.9.7
         """
 
-        if self._timer and self._timer.Id == event.GetId():
+        if not draw:
+            # Will not draw anything unless this is True
+            self._drawIndicatorText = False
+            return
+
+        self._drawIndicatorText = True
+        self._drawIndicatorText_drawPercent = drawPercent
+
+        if font is None or not isinstance(font, wx.Font):
+            self._drawIndicatorText_font = wx.NORMAL_FONT
+        else:
+            self._drawIndicatorText_font = font
+
+        if colour is None or not isinstance(colour, wx.Colour):
+            self._drawIndicatorText_colour = wx.BLACK
+        else:
+            self._drawIndicatorText_colour = colour
+
+        if formatString is not None:
+            error_occurred = True
+            try:
+                # This is to test if format string is valid. If not, it will be replaced with default one.
+                formatString.format(12.345)
+                error_occurred = False
+            except Exception as e:
+                print(("We have exception: %s" % e))
+
+            if error_occurred:
+                formatString = None
+
+        # Here formatString is either valid formatting string, or None in case of error or None passed
+        if formatString is None:
+            if self._drawIndicatorText_drawPercent:
+                self._drawIndicatorText_formatString = "{:.0f}%"
+            else:
+                self._drawIndicatorText_formatString = "{:.0f}"
+        else:
+            self._drawIndicatorText_formatString = formatString
+
+    def OnTimer(self, event):
+        """
+        Handles the ``wx.EVT_TIMER`` event for :class:`PyGauge`.
+
+        :param `event`: a :class:`TimerEvent` event to be processed.
+        """
+
+        if self._timerId == event.GetId():
             stop_timer = True
-            for i, _v in enumerate(self._value):
+            for i, v in enumerate(self._value):
                 self._value[i] += self._update_step[i]
 
                 if self._update_step[i] > 0:
@@ -302,14 +491,18 @@ class PyGauge(wx.PyWindow):
             self.Refresh()
 
     def Update(self, value, time=0):
-        """Update the gauge by adding `value` to it over `time` milliseconds. The `time` parameter
-        **must** be a multiple of 50 milliseconds.
+        """
+        Update the gauge by adding `value` to it over `time` milliseconds.
 
-        :param value: The value to be added to the gauge;
-        :param time: The length of time in milliseconds that it will take to move the gauge.
+        The `time` parameter **must** be a multiple of 50 milliseconds.
+
+        Args:
+            value: The value to be added to the gauge;
+            time: The length of time in milliseconds that it will take to move
+                the gauge.
         """
 
-        if not isinstance(value, list):
+        if type(value) != type([]):
             value = [value]
 
         if len(value) != len(self._value):
@@ -324,12 +517,12 @@ class PyGauge(wx.PyWindow):
                 )
 
             self._update_value.append(value[i] + v)
-            self._update_step.append(float(value[i]) / (time / 50))
+            self._update_step.append(float(value[i]) / (time / 50.0))
 
-        # print self._update_
+        # print(self._update_)
 
         if not self._timer:
-            self._timer = wx.Timer(self)
+            self._timer = wx.Timer(self, self._timerId)
 
         self._timer.Start(100)
 
@@ -337,14 +530,64 @@ class PyGauge(wx.PyWindow):
         """Internal method which sorts things so we draw the longest bar first."""
 
         if self.GetBarGradient():
-            tmp = sorted(zip(self._value, self._barGradient))
+            tmp = sorted(zip(self._value, self._barGradient), key=lambda x: x[0])
             tmp.reverse()
             a, b = list(zip(*tmp))
             self._valueSorted = list(a)
             self._barGradientSorted = list(b)
         else:
-            tmp = sorted(zip(self._value, self._barColour))
+            tmp = sorted(zip(self._value, self._barColour), key=lambda x: x[0])
             tmp.reverse()
             a, b = list(zip(*tmp))
             self._valueSorted = list(a)
             self._barColourSorted = list(b)
+
+
+if __name__ == "__main__":
+
+    import wx
+
+    class MyFrame(wx.Frame):
+
+        def __init__(self, parent):
+
+            wx.Frame.__init__(self, parent, -1, "PyGauge Demo")
+
+            panel = wx.Panel(self)
+
+            gauge1 = PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge1.SetValue(80)
+            gauge1.SetBackgroundColour(wx.WHITE)
+            gauge1.SetBorderColor(wx.BLACK)
+
+            gauge2 = PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge2.SetValue([20, 80])
+            gauge2.SetBarColor([wx.Colour(162, 255, 178), wx.Colour(159, 176, 255)])
+            gauge2.SetBackgroundColour(wx.WHITE)
+            gauge2.SetBorderColor(wx.BLACK)
+            gauge2.SetBorderPadding(2)
+            gauge2.Update([30, 0], 2000)
+
+            gauge3 = PyGauge(panel, -1, size=(100, 25), style=wx.GA_HORIZONTAL)
+            gauge3.SetValue(50)
+            gauge3.SetBarColor(wx.GREEN)
+            gauge3.SetBackgroundColour(wx.WHITE)
+            gauge3.SetBorderColor(wx.BLACK)
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(gauge1, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+            sizer.Add(gauge2, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+            sizer.Add(gauge3, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+
+            panel.SetSizer(sizer)
+            sizer.Layout()
+
+    # our normal wxApp-derived class, as usual
+
+    app = wx.App(0)
+
+    frame = MyFrame(None)
+    app.SetTopWindow(frame)
+    frame.Show()
+
+    app.MainLoop()

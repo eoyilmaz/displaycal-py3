@@ -139,3 +139,56 @@ def random_icc_profile():
 
     # clean the file
     os.remove(icc_profile_path)
+
+
+@pytest.fixture(scope="function")
+def patch_subprocess(monkeypatch):
+    """Patch subprocess.
+
+    Yields:
+        Any: The patched subprocess class.
+    """
+
+    class Process:
+        def __init__(self, output=None):
+            self.output = output
+
+        def communicate(self):
+            return self.output, None
+
+    class PatchedSubprocess:
+        passed_args = []
+        passed_kwargs = {}
+        STDOUT = None
+        PIPE = None
+        output = {}
+
+        @classmethod
+        def Popen(cls, *args, **kwargs):
+            cls.passed_args += args
+            cls.passed_kwargs.update(kwargs)
+            process = Process(output=cls.output.get("".join(*args)))
+            return process
+
+    yield PatchedSubprocess
+
+
+@pytest.fixture(scope="function")
+def patch_argyll_util(monkeypatch):
+    """Patch argyll.
+
+    Yields:
+        Any: The patched argyll class.
+    """
+
+    class PatchedArgyll:
+        passed_util_name = []
+
+        @classmethod
+        def get_argyll_util(cls, util_name):
+            cls.passed_util_name.append(util_name)
+            return "dispwin"
+
+    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.argyll", PatchedArgyll)
+
+    yield PatchedArgyll

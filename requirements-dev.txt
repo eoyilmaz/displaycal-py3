@@ -20,3 +20,5 @@ pytest-xdist
 snowballstemmer
 twine
 wheel
+Send2Trash
+DisplayCAL

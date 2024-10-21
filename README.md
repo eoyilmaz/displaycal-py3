@@ -24,7 +24,7 @@ Thanks to all the efforts put by the community DisplayCAL is now working with Py
 Installation Instructions
 =========================
 
-Follow the instructions depending on you OS:
+Follow the instructions depending on your OS:
 
 - [Windows](docs/install_instructions_windows.md)
 - [MacOS](docs/install_instructions_macos.md)

@@ -95,14 +95,12 @@ jobs:
         pip install -r requirements-tests.txt
         pip install -r requirements-dev.txt
 
-    - name: Compile C-Extensions
+    - name: Build DisplayCAL
       run: |
         sudo chmod a+rw /etc/udev/rules.d
         python3 -m build
         pip install dist/DisplayCAL-*.whl
-        export PYPATH=`which python`
-        export PYDIR=`dirname $PYPATH`
-        cp $PYDIR/../lib/python${{ matrix.python-version }}/site-packages/DisplayCAL/lib64/python${{ env.py_version }}/RealDisplaySizeMM.*.so ./DisplayCAL/lib64/python${{ env.py_version }}/
+
     - name: Test with pytest
       run: |
         python -m pytest --verbose --cov=. --cov-report html

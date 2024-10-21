@@ -7,7 +7,7 @@ import pytest
 from DisplayCAL import config, RealDisplaySizeMM
 from DisplayCAL.dev.mocks import check_call
 from tests.data.display_data import DisplayData
-from DisplayCAL.edid import parse_edid, parse_manufacturer_id
+from DisplayCAL.edid import get_edid, parse_edid, parse_manufacturer_id
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="Not working as expected on MacOS")
@@ -119,6 +119,196 @@ def test_get_edid_2():
 #         b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 #         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"
 #     )
+
+
+@pytest.mark.parametrize(
+    "xrandr_data_file_name,dispwin_data_file_name,getcfg_displays_output,display_no,expected_result",
+    [
+        [
+            "xrandr_output_1.txt",
+            "dispwin_output_1.txt",
+            ["DP-4 @ 0, 0, 2560x1440 [PRIMARY]"],
+            0,
+            {
+                "edid": b"00ffffffffffff005a633a7a0f010101311e0104b53c22783bb091ab524ea0260f5054bfef80e1c0d100d1c0b300a9408180810081c0565e00a0a0a029503020350055502100001a000000ff005738553230343930303130340a000000fd00184b0f5a1e000a202020202020000000fc00565032373638610a2020202020017b020322f155901f05145a5904131e1d0f0e07061211161503020123097f0783010000023a801871382d40582c450055502100001e011d8018711c1620582c250055502100009e023a80d072382d40102c458055502100001e011d007251d01e206e28550055502100001e584d00b8a1381440f82c4b0055502100001e000000d2",
+                "hash": "aee2b726b409d9d54ed5924ad309781d",
+                "header": b"00ffffff",
+                "manufacturer_id": "YSF",
+                "product_id": 26214,
+                "serial_32": 808478310,
+                "week_of_manufacture": 53,
+                "year_of_manufacture": 2087,
+                "edid_version": 54,
+                "edid_revision": 51,
+                "max_h_size_cm": 97,
+                "max_v_size_cm": 55,
+                "gamma": 1.97,
+                "features": 48,
+                "red_x": 0.1923828125,
+                "red_y": 0.189453125,
+                "green_x": 0.1923828125,
+                "green_y": 0.189453125,
+                "blue_x": 0.19140625,
+                "blue_y": 0.2021484375,
+                "white_x": 0.19140625,
+                "white_y": 0.19140625,
+                "ext_flag": 50,
+                "checksum": 48,
+                "checksum_valid": False,
+            },
+        ],
+        [
+            "xrandr_output_2.txt",
+            "dispwin_output_2.txt",
+            ["DP-4 @ 0, 0, 2560x1440 [PRIMARY]", "DP-2 @ 2160, 0, 3840x2160"],
+            0,
+            {
+                "edid": b"00ffffffffffff005a633a7a0f010101311e0104b53c22783bb091ab524ea0260f5054bfef80e1c0d100d1c0b300a9408180810081c0565e00a0a0a029503020350055502100001a000000ff005738553230343930303130340a000000fd00184b0f5a1e000a202020202020000000fc00565032373638610a2020202020017b020322f155901f05145a5904131e1d0f0e07061211161503020123097f0783010000023a801871382d40582c450055502100001e011d8018711c1620582c250055502100009e023a80d072382d40102c458055502100001e011d007251d01e206e28550055502100001e584d00b8a1381440f82c4b0055502100001e000000d2",
+                "hash": "aee2b726b409d9d54ed5924ad309781d",
+                "header": b"00ffffff",
+                "manufacturer_id": "YSF",
+                "product_id": 26214,
+                "serial_32": 808478310,
+                "week_of_manufacture": 53,
+                "year_of_manufacture": 2087,
+                "edid_version": 54,
+                "edid_revision": 51,
+                "max_h_size_cm": 97,
+                "max_v_size_cm": 55,
+                "gamma": 1.97,
+                "features": 48,
+                "red_x": 0.1923828125,
+                "red_y": 0.189453125,
+                "green_x": 0.1923828125,
+                "green_y": 0.189453125,
+                "blue_x": 0.19140625,
+                "blue_y": 0.2021484375,
+                "white_x": 0.19140625,
+                "white_y": 0.19140625,
+                "ext_flag": 50,
+                "checksum": 48,
+                "checksum_valid": False,
+            },
+        ],
+        [
+            "xrandr_output_2.txt",
+            "dispwin_output_2.txt",
+            ["DP-4 @ 0, 0, 2560x1440 [PRIMARY]", "DP-2 @ 2160, 0, 3840x2160"],
+            1,
+            {
+                "edid": b"00ffffffffffff004c2d4d0c46584d30231a0104b53d23783a5fb1a2574fa2280f5054bfef80714f810081c08180a9c0b300950001014dd000a0f0703e80302035005f592100001a000000fd00384b1e873c000a202020202020000000fc00553238453539300a2020202020000000ff00485450483930303130330a2020016602030ef041102309070783010000023a801871382d40582c45005f592100001e565e00a0a0a02950302035005f592100001a04740030f2705a80b0588a005f592100001e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000052",
+                "hash": "ce204468c25bc6df152fba3b1237c286",
+                "header": b"00ffffff",
+                "manufacturer_id": "YSF",
+                "product_id": 26214,
+                "serial_32": 808478310,
+                "week_of_manufacture": 52,
+                "year_of_manufacture": 2089,
+                "edid_version": 50,
+                "edid_revision": 100,
+                "max_h_size_cm": 100,
+                "max_v_size_cm": 48,
+                "gamma": 1.99,
+                "features": 52,
+                "red_x": 0.21875,
+                "red_y": 0.2060546875,
+                "green_x": 0.3916015625,
+                "green_y": 0.201171875,
+                "blue_x": 0.1875,
+                "blue_y": 0.1982421875,
+                "white_x": 0.2001953125,
+                "white_y": 0.1923828125,
+                "ext_flag": 50,
+                "checksum": 48,
+                "checksum_valid": False,
+            },
+        ],
+        [
+            "xrandr_output_3.txt",
+            "dispwin_output_3.txt",
+            ["HDMI-A-0 @ 0, 0, 3840x2160 [PRIMARY]"],
+            0,
+            {
+                "edid": b"00ffffffffffff0004725805436e60721a1b0103805e35782aa191a9544d9c260f5054bfef80714f8140818081c081009500b300d1c04dd000a0f0703e8030203500ad113200001a565e00a0a0a029502f203500ad113200001a000000fd00323c1e8c3c000a202020202020000000fc00416365722045543433304b0a200129020341f1506101600304121305141f100706026b5f23090707830100006b030c002000383c2000200167d85dc401788000e305e001e40f050000e6060701606045023a801871382d40582c4500ad113200001e011d007251d01e206e285500ad113200001e8c0ad08a20e02d10103e9600ad1132000018000000000000000088",
+                "hash": "2f78783c69d1a435d655b34dc64c2b51",
+                "header": b"00ffffff",
+                "manufacturer_id": "YSF",
+                "product_id": 26214,
+                "serial_32": 808478310,
+                "week_of_manufacture": 48,
+                "year_of_manufacture": 2042,
+                "edid_version": 55,
+                "edid_revision": 50,
+                "max_h_size_cm": 56,
+                "max_v_size_cm": 48,
+                "gamma": 1.53,
+                "features": 52,
+                "red_x": 0.39453125,
+                "red_y": 0.2138671875,
+                "green_x": 0.1875,
+                "green_y": 0.2177734375,
+                "blue_x": 0.1953125,
+                "blue_y": 0.1943359375,
+                "white_x": 0.3798828125,
+                "white_y": 0.193359375,
+                "ext_flag": 50,
+                "checksum": 48,
+                "checksum_valid": False,
+            },
+        ],
+    ],
+)
+def test_get_edid_4(
+    monkeypatch,
+    patch_subprocess,
+    patch_argyll_util,
+    data_files,
+    xrandr_data_file_name,
+    dispwin_data_file_name,
+    getcfg_displays_output,
+    display_no,
+    expected_result,
+):
+    """DisplayCAL.edid.get_edid() gets the EDID data from xrandr --verbose command."""
+    monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
+    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
+    monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
+    from DisplayCAL import RealDisplaySizeMM
+
+    # reset displays
+    RealDisplaySizeMM._displays = None
+
+    # patch xrandr
+    with open(data_files[xrandr_data_file_name], "rb") as xrandr_data_file:
+        xrandr_data = xrandr_data_file.read()
+    patch_subprocess.output["xrandr--verbose"] = xrandr_data
+
+    # patch dispwin
+    with open(data_files[dispwin_data_file_name], "rb") as dispwin_data_file:
+        dispwin_data = dispwin_data_file.read()
+    patch_subprocess.output["dispwin-v-d0"] = dispwin_data
+
+    # patch RealDisplaySizeMM.getcfg("displays")
+    from DisplayCAL.config import getcfg
+
+    orig_getcfg = getcfg
+
+    def patched_getcfg(config_value):
+        if config_value == "displays":
+            return getcfg_displays_output + [
+                "Web @ localhost",
+                "madVR",
+                "Prisma",
+                "Resolve",
+                "Untethered",
+            ]
+        else:
+            return orig_getcfg(config_value)
+
+    monkeypatch.setattr("DisplayCAL.config.getcfg", patched_getcfg)
+
+    result = get_edid(display_no=display_no)
+    assert result == expected_result
 
 
 def test_parse_edid_1():

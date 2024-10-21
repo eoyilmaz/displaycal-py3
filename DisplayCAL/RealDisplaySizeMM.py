@@ -104,20 +104,19 @@ class Display(object):
         """
         display_info_line = display_info_line.strip()
         description_data = re.findall(
-            r"[\s\d]+= '(?P<description>.*)'",
-            display_info_line
+            rb"[\s\d]+= '(?P<description>.*)'", display_info_line
         )
         dispwin_error_message = lang.getstr(
-            "error.generic", (
-            -1, "dispwin returns no usable data while enumerating displays.")
+            "error.generic",
+            (-1, "dispwin returns no usable data while enumerating displays."),
         )
         if not description_data:
             raise ValueError(dispwin_error_message)
         self.description = description_data[0]
         match = re.match(
-            r"[\s]*(?P<id>\d) = '(?P<name>.*), at (?P<x>\d+), (?P<y>[-\d]+), "
-            r"width (?P<width>\d+), height (?P<height>\d+).*'",
-            display_info_line
+            rb"[\s]*(?P<id>\d) = '(?P<name>.*), at (?P<x>\d+), (?P<y>[-\d]+), "
+            rb"width (?P<width>\d+), height (?P<height>\d+).*'",
+            display_info_line,
         )
         if not match:
             raise ValueError(dispwin_error_message)
@@ -152,21 +151,32 @@ class Display(object):
         return display_dict
 
 
-def get_dispwin_output():
+def get_dispwin_output() -> bytes:
     """Return Argyll dispwin output.
 
     Returns:
-        str: The dispwin output.
+        bytes: The dispwin output.
     """
     dispwin_path = argyll.get_argyll_util("dispwin")
     if dispwin_path is None:
-        return ""
+        return b""
+
+    if sys.platform == "win32":
+        startupinfo = sp.STARTUPINFO()
+        startupinfo.dwFlags |= sp.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = sp.SW_HIDE
+    else:
+        startupinfo = None
+
     p = subprocess.Popen(
         [dispwin_path, "-v", "-d0"],
-        stdout=subprocess.PIPE
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        startupinfo=startupinfo,
     )
     output, _ = p.communicate()
-    return output.decode("utf-8")
+    return output
 
 
 def _enumerate_displays() -> List[dict]:
@@ -177,14 +187,15 @@ def _enumerate_displays() -> List[dict]:
     """
     displays = []
     has_display = False
-    for line in get_dispwin_output().split("\n"):
-        if "-dweb[:port]" in line:
+    dispwin_output = get_dispwin_output()
+    for line in dispwin_output.split(b"\n"):
+        if b"-dweb[:port]" in line:
             break
         if has_display:
             display = Display()
             display.from_dispwin_data(line)
             displays.append(display.to_dict())
-        if "-d n" in line:
+        if b"-d n" in line:
             has_display = True
 
     return displays
@@ -229,6 +240,7 @@ def get_display(display_no=0):
 
     if is_virtual_display(display_no):
         return
+
     try:
         argyll_display = getcfg("displays")[display_no]
     except IndexError:

@@ -175,12 +175,11 @@ def get_argyll_version_string(name, paths=None):
     except Exception as exception:
         print(exception)
         return argyll_version_string.decode("utf-8")
-    for line in (p.communicate(timeout=30)[0] or "").splitlines():
-        if isinstance(line, bytes):
-            line = line.strip()
-            if b"version" in line.lower():
-                argyll_version_string = line[line.lower().find(b"version") + 8:]
-                break
+    for line in (p.communicate(timeout=30)[0] or b"").splitlines():
+        line = line.strip()
+        if b"version" in line.lower():
+            argyll_version_string = line[line.lower().find(b"version") + 8:]
+            break
     return argyll_version_string.decode("utf-8")
 
 

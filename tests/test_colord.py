@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from DisplayCAL import RealDisplaySizeMM, config
+from DisplayCAL.colord import device_id_from_edid
 from DisplayCAL.dev.mocks import check_call
 from DisplayCAL.edid import get_edid
 from tests.data.display_data import DisplayData
@@ -9,7 +10,6 @@ import pytest
 
 def test_device_id_from_edid_1():
     """Testing DisplayCAL.colord.device_id_from_edid() function."""
-    from DisplayCAL.colord import device_id_from_edid
 
     edid = {
         "edid": b"00ffffffffffff005a633a7a0f010101311e0104b53c22783bb091ab524ea0260f505"

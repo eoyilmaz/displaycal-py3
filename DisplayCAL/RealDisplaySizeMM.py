@@ -158,6 +158,7 @@ def get_dispwin_output() -> bytes:
         bytes: The dispwin output.
     """
     dispwin_path = argyll.get_argyll_util("dispwin")
+    print(f"dispwin_path: {dispwin_path}")
     if dispwin_path is None:
         return b""
 
@@ -248,9 +249,10 @@ def get_display(display_no=0):
         return
 
     try:
-        print(f'getcfg("displays"): {getcfg("displays")}')
+        getcfg_displays = getcfg("displays")
+        print(f'getcfg("displays"): {getcfg_displays}')
         print(f"display_no        : {display_no}")
-        argyll_display = getcfg("displays")[display_no]
+        argyll_display = getcfg_displays[display_no]
         print(f"argyll_display (1): {argyll_display}")
     except IndexError:
         return

@@ -33,6 +33,7 @@ elif sys.platform == "darwin":
 
 from DisplayCAL import config
 from DisplayCAL import RealDisplaySizeMM as RDSMM
+from DisplayCAL.util_os import which
 from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
 
 if sys.platform == "win32":
@@ -214,7 +215,7 @@ def get_edid(display_no=0, display_name=None, device=None):
         if not display:
             return {}
 
-        p = subprocess.Popen(["xrandr", "--verbose"], stdout=subprocess.PIPE)
+        p = subprocess.Popen([which("xrandr"), "--verbose"], stdout=subprocess.PIPE)
         stdout, stderr = p.communicate()
 
         if not stdout:

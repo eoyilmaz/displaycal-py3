@@ -260,6 +260,7 @@ def test_get_edid_4(
     monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
     monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
     monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
+    monkeypatch.setattr("DisplayCAL.edid.which", lambda x: "xrandr")
 
     # patch xrandr
     with open(data_files[xrandr_data_file_name], "rb") as xrandr_data_file:

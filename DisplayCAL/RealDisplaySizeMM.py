@@ -251,15 +251,20 @@ def get_display(display_no=0):
         print(f'getcfg("displays"): {getcfg("displays")}')
         print(f"display_no        : {display_no}")
         argyll_display = getcfg("displays")[display_no]
-        print(f"argyll_display    : {argyll_display}")
+        print(f"argyll_display (1): {argyll_display}")
     except IndexError:
         return
     else:
         if argyll_display.endswith(" [PRIMARY]"):
             argyll_display = " ".join(argyll_display.split(" ")[:-1])
+        print(f"argyll_display (2): {argyll_display}")
         for display in _displays:
-            if desc := display["description"]:
+            desc = display["description"]
+            print(f"desc              : {desc}")
+            if desc:
                 geometry = b"".join(desc.split(b"@ ")[-1:])
+                print(f"geometry          : {geometry}")
+                print(f'argyll_display.endswith((b"@ " + geometry).decode("utf-8")): {argyll_display.endswith((b"@ " + geometry).decode("utf-8"))}')
                 if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
                     return display
 

@@ -165,9 +165,9 @@ def get_dispwin_output() -> bytes:
         return b""
 
     if sys.platform == "win32":
-        startupinfo = sp.STARTUPINFO()
-        startupinfo.dwFlags |= sp.STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = sp.SW_HIDE
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
     else:
         startupinfo = None
 

@@ -939,6 +939,7 @@ def setup():
         # requires.append(
         #     "wxPython (>= {})".format(".".join(str(n) for n in wx_minversion))
         # )
+        pass
     if sys.platform == "win32":
         requires.append("pywin32 (>= 213.0)")
 

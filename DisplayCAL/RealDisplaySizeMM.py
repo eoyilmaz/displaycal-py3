@@ -235,8 +235,10 @@ def enumerate_displays():
 
 
 def get_display(display_no=0):
+    print(f"_displays (1): {_displays}")
     if _displays is None:
         enumerate_displays()
+    print(f"_displays (2): {_displays}")
     # Translate from Argyll display index to enumerated display index
     # using the coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
@@ -247,7 +249,7 @@ def get_display(display_no=0):
 
     try:
         print(f'getcfg("displays"): {getcfg("displays")}')
-        print(f"display_no        : {display_no}")
+            print(f"display_no        : {display_no}")
         argyll_display = getcfg("displays")[display_no]
         print(f"argyll_display    : {argyll_display}")
     except IndexError:

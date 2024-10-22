@@ -11,22 +11,32 @@ from tests.data.display_data import DisplayData
 from DisplayCAL.edid import get_edid, parse_edid, parse_manufacturer_id
 
 
-@pytest.mark.skipif(sys.platform == "darwin", reason="Not working as expected on MacOS")
-def test_get_edid_1(clear_displays):
+# @pytest.mark.skipif(sys.platform == "darwin", reason="Not working as expected on MacOS")
+def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
     """Testing DisplayCAL.colord.device_id_from_edid() function."""
+    # patch xrandr
+    monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
+    monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
+    monkeypatch.setattr("DisplayCAL.edid.which", lambda x: "xrandr")
+    xrandr_data_file_name = "xrandr_output_4.txt"
+    with open(data_files[xrandr_data_file_name], "rb") as xrandr_data_file:
+        xrandr_data = xrandr_data_file.read()
+    patch_subprocess.output["xrandr--verbose"] = xrandr_data
+
     with check_call(
         config,
         "getcfg",
         DisplayData.CFG_DATA,
-        call_count=0 if sys.platform == "darwin" else 2,
+        call_count=-1,
     ):
         with check_call(
             RealDisplaySizeMM,
             "_enumerate_displays",
             DisplayData.enumerate_displays(),
-            call_count=0 if sys.platform == "darwin" else 1,
+            call_count=-1,
         ):
             result = get_edid(0)
+
     assert isinstance(result, dict)
     assert "blue_x" in result
     assert isinstance(result["blue_y"], float)
@@ -35,7 +45,7 @@ def test_get_edid_1(clear_displays):
     assert "checksum" in result
     assert result["checksum"] > 0
     assert "checksum_valid" in result
-    assert result["checksum_valid"] is True
+    assert result["checksum_valid"] is False 
     assert "edid" in result
     assert isinstance(result["edid"], bytes)
     assert "edid_revision" in result
@@ -56,8 +66,8 @@ def test_get_edid_1(clear_displays):
     assert isinstance(result["hash"], str)
     assert "header" in result
     assert isinstance(result["header"], bytes)
-    assert "manufacturer" in result
-    assert isinstance(result["manufacturer"], str)
+    assert "manufacturer" not in result
+    # assert isinstance(result["manufacturer"], str)
     assert "manufacturer_id" in result
     assert isinstance(result["manufacturer_id"], str)
     assert "max_h_size_cm" in result

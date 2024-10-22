@@ -286,10 +286,10 @@ def get_manufacturer_name(manufacturer_id):
             "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
             "/usr/share/libgnome-desktop/pnp.ids",
         ]  # fallback gnome-desktop
-        if sys.platform in ("darwin", "win32"):
-            paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
-            # fallback for tests
-            paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
+        # if sys.platform in ("darwin", "win32"):
+        paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
+        # fallback for tests
+        paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
         for path in paths:
             if os.path.isfile(path):
                 try:

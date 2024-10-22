@@ -114,7 +114,7 @@ class Display(object):
             raise ValueError(dispwin_error_message)
         self.description = description_data[0]
         match = re.match(
-            rb"[\s]*(?P<id>\d) = '(?P<name>.*), at (?P<x>\d+), (?P<y>[-\d]+), "
+            rb"[\s]*(?P<id>\d) = '(?P<name>.*) at (?P<x>\d+), (?P<y>[-\d]+), "
             rb"width (?P<width>\d+), height (?P<height>\d+).*'",
             display_info_line,
         )
@@ -123,6 +123,9 @@ class Display(object):
         groups_dict = match.groupdict()
         self.monid = int(groups_dict["id"])
         self.name = groups_dict["name"]
+        # fix the name ending with "," for ArgyllCMS<3.3.0
+        if self.name.endswith(b","):
+            self.name = self.name[:-1]
         x = int(groups_dict["x"])
         y = int(groups_dict["y"])
         self.pos = (x, y)
@@ -192,13 +195,13 @@ def _enumerate_displays() -> List[dict]:
     has_display = False
     dispwin_output = get_dispwin_output()
     for line in dispwin_output.split(b"\n"):
-        if b"-dweb[:port]" in line:
+        if has_display and b"-dweb[:port]" in line:
             break
-        if has_display:
+        if has_display and b"=" in line:
             display = Display()
             display.from_dispwin_data(line)
             displays.append(display.to_dict())
-        if b"-d n" in line:
+        if not has_display and b"-d n" in line:
             has_display = True
 
     return displays

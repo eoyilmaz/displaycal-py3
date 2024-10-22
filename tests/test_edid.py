@@ -45,7 +45,7 @@ def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
     assert "checksum" in result
     assert result["checksum"] > 0
     assert "checksum_valid" in result
-    assert result["checksum_valid"] is False 
+    assert result["checksum_valid"] is False
     assert "edid" in result
     assert isinstance(result["edid"], bytes)
     assert "edid_revision" in result
@@ -90,8 +90,6 @@ def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
     assert isinstance(result["white_y"], float)
     assert "year_of_manufacture" in result
     assert isinstance(result["year_of_manufacture"], int)
-
-
 
 
 # def test_get_edid_3(clear_displays):

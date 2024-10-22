@@ -149,21 +149,22 @@ def test__enumerate_displays_without_a_proper_dispwin_output_missing_lines(
     assert len(result) == 0
 
 
-def test__enumerate_displays_without_a_proper_dispwin_output_with_wrong_formatted_data(
+def test__enumerate_displays_with_argyll_3_1_style_output(
     patch_subprocess_on_rdsmm, patch_argyll_util
 ):
-    """_enumerate_displays() return empty list when dispwin returns no usable data."""
+    """_enumerate_displays() can enumerate ArgyllCMS 3.1.0 dispwin output format."""
     from DisplayCAL import localization as lang
 
     lang.init()
-    patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_4
-    with pytest.raises(ValueError) as cm:
-        result = RealDisplaySizeMM._enumerate_displays()
-    assert str(cm.value) == (
-        "An internal error occurred.\n"
-        "Error code: -1\n"
-        "Error message: dispwin returns no usable data while enumerating displays."
+    patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_6
+    result = RealDisplaySizeMM._enumerate_displays()
+    assert result[0]["name"] == b"Monitor 1, Output Virtual-1"
+    assert (
+        result[0]["description"]
+        == b"Monitor 1, Output Virtual-1 at 0, 0, width 1920, height 1080"
     )
+    assert result[0]["size"] == (1920, 1080)
+    assert result[0]["pos"] == (0, 0)
 
 
 def test__enumerate_displays_without_a_proper_dispwin_output_with_partial_match(

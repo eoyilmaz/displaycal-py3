@@ -210,6 +210,7 @@ def enumerate_displays():
     """Enumerate and return a list of displays."""
     global _displays
     print("calling _enumerate_displays (before)")
+    print(f"_enumerate_displays: {_enumerate_displays}")
     _displays = _enumerate_displays()
     print("calling _enumerate_displays (after)")
     for display in _displays:

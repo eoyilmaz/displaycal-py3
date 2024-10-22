@@ -212,6 +212,7 @@ def get_edid(display_no=0, display_name=None, device=None):
         return {}
     else:
         display = RDSMM.get_display(display_no)
+        print(f"display (3)       : {display}")
         if not display:
             return {}
 

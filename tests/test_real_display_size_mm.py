@@ -243,7 +243,7 @@ def test_get_dispwin_output_dispwin_path_is_none_returns_empty_bytes(
     monkeypatch.setattr(
         "DisplayCAL.RealDisplaySizeMM.argyll.get_argyll_util", patched_get_argyll_util
     )
-    assert RealDisplaySizeMM.get_dispwin_output() is b""
+    assert RealDisplaySizeMM.get_dispwin_output() == b""
 
 
 def test_get_dispwin_output_returns_dispwin_output_as_bytes(

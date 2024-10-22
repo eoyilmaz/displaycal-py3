@@ -936,10 +936,9 @@ def setup():
     if not setuptools or sys.platform != "win32":
         # wxPython windows installer doesn't add egg-info entry, so
         # a dependency check from pkg_resources would always fail
-        # requires.append(
-        #     "wxPython (>= {})".format(".".join(str(n) for n in wx_minversion))
-        # )
-        pass
+        requires.append(
+            "wxPython (>= {})".format(".".join(str(n) for n in wx_minversion))
+        )
     if sys.platform == "win32":
         requires.append("pywin32 (>= 213.0)")
 

@@ -8,5 +8,5 @@ Pillow
 PyChromecast
 pywin32; sys_platform=='win32'
 Send2Trash
-# wxPython>=4.2.2
+wxPython>=4.2.2
 zeroconf

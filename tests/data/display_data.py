@@ -473,6 +473,7 @@ usage: dispwin [options] [calfile]
     @staticmethod
     def enumerate_displays() -> List[Dict]:
         """Return the display data itself."""
+        print("DsiplayData.enumerate_displays is getting called!")
         return [DisplayData.DISPLAY_DATA_1]
 
     @staticmethod

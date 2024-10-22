@@ -6,6 +6,6 @@ numpy
 Pillow
 PyChromecast
 Send2Trash
-wxPython>=4.2.2;python_version>="3.12"
-wxPython>=4.1.1;python_version<"3.12"
+# wxPython>=4.2.2;python_version>="3.12"
+# wxPython>=4.1.1;python_version<"3.12"
 zeroconf

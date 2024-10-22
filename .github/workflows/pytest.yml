@@ -86,9 +86,10 @@ jobs:
         python3 -m pip install --upgrade pip
         pip install wheel
 
-    - name: Install wxPython ${{ matrix.wx-version }}
-      run: |
-        pip install wxPython==${{ matrix.wx-version }}
+    # Disabling temporarily
+    # - name: Install wxPython ${{ matrix.wx-version }}
+    #   run: |
+    #     pip install wxPython==${{ matrix.wx-version }}
 
     - name: Install Python dependencies
       run: |

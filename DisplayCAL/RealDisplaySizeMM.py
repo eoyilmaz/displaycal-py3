@@ -249,7 +249,7 @@ def get_display(display_no=0):
 
     try:
         print(f'getcfg("displays"): {getcfg("displays")}')
-            print(f"display_no        : {display_no}")
+        print(f"display_no        : {display_no}")
         argyll_display = getcfg("displays")[display_no]
         print(f"argyll_display    : {argyll_display}")
     except IndexError:

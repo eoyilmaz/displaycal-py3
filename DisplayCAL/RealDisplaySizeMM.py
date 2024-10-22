@@ -158,7 +158,6 @@ def get_dispwin_output() -> bytes:
         bytes: The dispwin output.
     """
     dispwin_path = argyll.get_argyll_util("dispwin")
-    print(f"dispwin_path: {dispwin_path}")
     if dispwin_path is None:
         return b""
 
@@ -192,7 +191,6 @@ def _enumerate_displays() -> List[dict]:
     displays = []
     has_display = False
     dispwin_output = get_dispwin_output()
-    print(f"dispwin_output: {dispwin_output}")
     for line in dispwin_output.split(b"\n"):
         if b"-dweb[:port]" in line:
             break
@@ -209,14 +207,9 @@ def _enumerate_displays() -> List[dict]:
 def enumerate_displays():
     """Enumerate and return a list of displays."""
     global _displays
-    print("calling _enumerate_displays (before)")
-    print(f"_enumerate_displays: {_enumerate_displays}")
     _displays = _enumerate_displays()
-    print(f"_displays: {_displays}")
-    print("calling _enumerate_displays (after)")
     for display in _displays:
         desc = display["description"]
-        print(f"desc (1): {desc}")
         if not desc:
             continue
         match = re.findall(
@@ -241,44 +234,32 @@ def enumerate_displays():
                 if xrandr_name:
                     display["xrandr_name"] = xrandr_name.group(1)
         desc = b"%s @ %s, %s, %sx%s" % match[0]
-        print(f"desc (2): {desc}")
         display["description"] = desc
     return _displays
 
 
 def get_display(display_no=0):
-    print(f"_displays (1): {_displays}")
-    print(f"_displays is None: {_displays is None}")
     if _displays is None:
         enumerate_displays()
-    print(f"_displays (2): {_displays}")
     # Translate from Argyll display index to enumerated display index
     # using the coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
 
     if is_virtual_display(display_no):
-        print("This is a virtual display!")
         return
 
     try:
         getcfg_displays = getcfg("displays")
-        print(f'getcfg("displays"): {getcfg_displays}')
-        print(f"display_no        : {display_no}")
         argyll_display = getcfg_displays[display_no]
-        print(f"argyll_display (1): {argyll_display}")
     except IndexError:
         return
     else:
         if argyll_display.endswith(" [PRIMARY]"):
             argyll_display = " ".join(argyll_display.split(" ")[:-1])
-        print(f"argyll_display (2): {argyll_display}")
         for display in _displays:
             desc = display["description"]
-            print(f"desc              : {desc}")
             if desc:
                 geometry = b"".join(desc.split(b"@ ")[-1:])
-                print(f"geometry          : {geometry}")
-                print(f'argyll_display.endswith((b"@ " + geometry).decode("utf-8")): {argyll_display.endswith((b"@ " + geometry).decode("utf-8"))}')
                 if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
                     return display
 

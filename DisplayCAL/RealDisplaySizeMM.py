@@ -192,6 +192,7 @@ def _enumerate_displays() -> List[dict]:
     displays = []
     has_display = False
     dispwin_output = get_dispwin_output()
+    print(f"dispwin_output: {dispwin_output}")
     for line in dispwin_output.split(b"\n"):
         if b"-dweb[:port]" in line:
             break
@@ -211,27 +212,33 @@ def enumerate_displays():
     _displays = _enumerate_displays()
     for display in _displays:
         desc = display["description"]
-        if desc:
-            match = re.findall(
-                rb"(.+?),? at (-?\d+), (-?\d+), width (\d+), height (\d+)", desc
-            )
-            if len(match):
-                if sys.platform not in ("darwin", "win32"):
-                    if (
-                        os.getenv("XDG_SESSION_TYPE") == "wayland"
-                        and "pos" in display
-                        and "size" in display
-                    ):
-                        x, y, w, h = display["pos"] + display["size"]
-                        wayland_display = get_wayland_display(x, y, w, h)
-                        if wayland_display:
-                            display.update(wayland_display)
-                    else:
-                        xrandr_name = re.search(rb", Output (.+)", match[0][0])
-                        if xrandr_name:
-                            display["xrandr_name"] = xrandr_name.group(1)
-                desc = b"%s @ %s, %s, %sx%s" % match[0]
-                display["description"] = desc
+        print(f"desc (1): {desc}")
+        if not desc:
+            continue
+        match = re.findall(
+            rb"(.+?),? at (-?\d+), (-?\d+), width (\d+), height (\d+)", desc
+        )
+        if not len(match):
+            continue
+
+        # update xrandr_name from description
+        if sys.platform not in ("darwin", "win32"):
+            if (
+                os.getenv("XDG_SESSION_TYPE") == "wayland"
+                and "pos" in display
+                and "size" in display
+            ):
+                x, y, w, h = display["pos"] + display["size"]
+                wayland_display = get_wayland_display(x, y, w, h)
+                if wayland_display:
+                    display.update(wayland_display)
+            else:
+                xrandr_name = re.search(rb", Output (.+)", match[0][0])
+                if xrandr_name:
+                    display["xrandr_name"] = xrandr_name.group(1)
+        desc = b"%s @ %s, %s, %sx%s" % match[0]
+        print(f"desc (2): {desc}")
+        display["description"] = desc
     return _displays
 
 

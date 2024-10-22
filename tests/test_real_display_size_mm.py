@@ -18,13 +18,6 @@ except ImportError:
 
 
 @pytest.fixture(scope="function")
-def clear_displays():
-    """Clear RealDisplaySizeMM._displays."""
-    RealDisplaySizeMM._displays = None
-    assert RealDisplaySizeMM._displays is None
-
-
-@pytest.fixture(scope="function")
 def patch_subprocess_on_rdsmm(monkeypatch, patch_subprocess):
     """Patch DisplayCAL.RealDisplaySizeMM.subprocess to return whatever we want."""
     monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)

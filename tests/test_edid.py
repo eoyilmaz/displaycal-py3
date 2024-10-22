@@ -5,18 +5,15 @@ import sys
 import pytest
 
 from DisplayCAL import config, RealDisplaySizeMM
+from DisplayCAL.config import getcfg
 from DisplayCAL.dev.mocks import check_call
 from tests.data.display_data import DisplayData
 from DisplayCAL.edid import get_edid, parse_edid, parse_manufacturer_id
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="Not working as expected on MacOS")
-def test_get_edid_1():
+def test_get_edid_1(clear_displays):
     """Testing DisplayCAL.colord.device_id_from_edid() function."""
-    from DisplayCAL.edid import get_edid
-
-    RealDisplaySizeMM._displays = None
-    assert RealDisplaySizeMM._displays is None
     with check_call(
         config,
         "getcfg",
@@ -85,21 +82,10 @@ def test_get_edid_1():
     assert isinstance(result["year_of_manufacture"], int)
 
 
-def test_get_edid_2():
-    """Testing DisplayCAL.colord.device_id_from_edid() function."""
-    from DisplayCAL.edid import parse_edid
-
-    edid = DisplayData.DISPLAY_DATA_2["edid"]
-    result = parse_edid(edid)
-
-    assert result == DisplayData.DISPLAY_DATA_2
 
 
-# def test_get_edid_3():
+# def test_get_edid_3(clear_displays):
 #     """Testing DisplayCAL.colord.device_id_from_edid() function."""
-#     from DisplayCAL import RealDisplaySizeMM as RDSMM
-#     from DisplayCAL import config
-#
 #     config.initcfg()
 #     display = RDSMM.get_display(0)
 #     edid = display.get("edid")
@@ -262,6 +248,7 @@ def test_get_edid_4(
     monkeypatch,
     patch_subprocess,
     patch_argyll_util,
+    clear_displays,
     data_files,
     xrandr_data_file_name,
     dispwin_data_file_name,
@@ -273,10 +260,6 @@ def test_get_edid_4(
     monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
     monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
     monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
-    from DisplayCAL import RealDisplaySizeMM
-
-    # reset displays
-    RealDisplaySizeMM._displays = None
 
     # patch xrandr
     with open(data_files[xrandr_data_file_name], "rb") as xrandr_data_file:
@@ -289,8 +272,6 @@ def test_get_edid_4(
     patch_subprocess.output["dispwin-v-d0"] = dispwin_data
 
     # patch RealDisplaySizeMM.getcfg("displays")
-    from DisplayCAL.config import getcfg
-
     orig_getcfg = getcfg
 
     def patched_getcfg(config_value):
@@ -643,6 +624,13 @@ def test_parse_edid_5():
         "year_of_manufacture": 2021,
     }
     assert result == expected_result
+
+
+def test_parse_edid_6():
+    """parse_edid() with test data."""
+    edid = DisplayData.DISPLAY_DATA_2["edid"]
+    result = parse_edid(edid)
+    assert result == DisplayData.DISPLAY_DATA_2
 
 
 def test_parse_manufacturer_id_1():

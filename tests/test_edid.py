@@ -259,6 +259,7 @@ def test_get_edid_4(
     """DisplayCAL.edid.get_edid() gets the EDID data from xrandr --verbose command."""
     monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
     monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
+    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.sys.platform", "linux")
     monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
     monkeypatch.setattr("DisplayCAL.edid.which", lambda x: "xrandr")
 

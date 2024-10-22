@@ -209,7 +209,9 @@ def _enumerate_displays() -> List[dict]:
 def enumerate_displays():
     """Enumerate and return a list of displays."""
     global _displays
+    print("calling _enumerate_displays (before)")
     _displays = _enumerate_displays()
+    print("calling _enumerate_displays (after)")
     for display in _displays:
         desc = display["description"]
         print(f"desc (1): {desc}")
@@ -244,6 +246,7 @@ def enumerate_displays():
 
 def get_display(display_no=0):
     print(f"_displays (1): {_displays}")
+    print(f"_displays is None: {_displays is None}")
     if _displays is None:
         enumerate_displays()
     print(f"_displays (2): {_displays}")

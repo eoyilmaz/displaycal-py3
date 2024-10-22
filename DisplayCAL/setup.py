@@ -194,23 +194,6 @@ config = {
 }
 
 
-def add_lib_excludes(key, excludebits):
-    for exclude in excludebits:
-        config["excludes"][key].extend([f"{name}.lib{exclude}", f"lib{exclude}"])
-
-    for exclude in ("32", "64"):
-        for pycompat in ("38", "39", "310", "311", "312", "313"):
-            config["excludes"][key].extend(
-                [
-                    f"{name}.lib{exclude}.python{pycompat}",
-                    f"{name}.lib{exclude}.python{pycompat}.RealDisplaySizeMM",
-                ]
-            )
-
-
-add_lib_excludes("darwin", ["64" if bits == "32" else "32"])
-add_lib_excludes("win32", ["64" if bits == "32" else "32"])
-
 msiversion = ".".join(
     (
         str(version_tuple[0]),
@@ -901,7 +884,7 @@ def setup():
             )
         )
 
-    sources = [os.path.join(name, "RealDisplaySizeMM.c")]
+    sources = []
     if sys.platform == "win32":
         macros = [("NT", None)]
         libraries = ["user32", "gdi32"]
@@ -925,10 +908,6 @@ def setup():
         macros = [("UNIX", None)]
         libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
         link_args = None
-    if sys.platform == "darwin":
-        extname = f"{name}.lib{bits}.RealDisplaySizeMM"
-    else:
-        extname = f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}.RealDisplaySizeMM"
 
     ext_modules = []
 
@@ -1005,7 +984,7 @@ def setup():
                 for script, desc in scripts
             ]
         }
-        attrs["exclude_package_data"] = {name: ["RealDisplaySizeMM.c"]}
+        attrs["exclude_package_data"] = {name: []}
         attrs["include_package_data"] = (
             sys.platform in ("darwin", "win32") and not do_py2app
         )

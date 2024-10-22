@@ -168,6 +168,9 @@ def get_dispwin_output() -> bytes:
     else:
         startupinfo = None
 
+    # the invalid value of "-d0" is intentional,
+    # we just want to get the information we want and close the dispwin,
+    # if we don't supply "-d0" it will start showing color patches.
     p = subprocess.Popen(
         [dispwin_path, "-v", "-d0"],
         stdin=subprocess.PIPE,

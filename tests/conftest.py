@@ -10,6 +10,7 @@ import pytest
 import tempfile
 
 import DisplayCAL
+from DisplayCAL import RealDisplaySizeMM
 from DisplayCAL.config import setcfg
 from DisplayCAL.argyll import get_argyll_latest_version
 
@@ -192,3 +193,10 @@ def patch_argyll_util(monkeypatch):
     monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.argyll", PatchedArgyll)
 
     yield PatchedArgyll
+
+
+@pytest.fixture(scope="function")
+def clear_displays():
+    """Clear RealDisplaySizeMM._displays."""
+    RealDisplaySizeMM._displays = None
+    assert RealDisplaySizeMM._displays is None

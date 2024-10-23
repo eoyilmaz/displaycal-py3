@@ -662,7 +662,7 @@ def setup():
         from DisplayCAL import localization as lang
 
         scripts = get_scripts()
-        provides = [f"<python2>{name}</python2>"]
+        provides = [f"<python3>{name}</python3>"]
 
         for script, desc in scripts:
             provides.append(f"<binary>{script}</binary>")
@@ -727,9 +727,6 @@ def setup():
     if bdist_pyi:
         i = sys.argv.index("bdist_pyi")
         sys.argv = sys.argv[:i] + sys.argv[i + 1 :]
-
-        if "build_ext" not in sys.argv[1:i]:
-            sys.argv.insert(i, "build_ext")
 
         if "-F" in sys.argv[1:]:
             sys.argv.remove("-F")

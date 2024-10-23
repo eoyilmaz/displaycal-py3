@@ -112,10 +112,12 @@ def check_call(  # pylint: disable=too-many-arguments
     )
     monkeypatch = MonkeyPatch()
     calls = _mp_call(monkeypatch, mock_class, method, return_value, as_property)
-    yield calls
-    m_name = f"{mock_class.__name__}.{method}"
-    assert_calls(call_count, call_args_list, call_kwargs_list, calls, m_name)
-    monkeypatch.undo()
+    try:
+        yield calls
+    finally:
+        m_name = f"{mock_class.__name__}.{method}"
+        monkeypatch.undo()
+        assert_calls(call_count, call_args_list, call_kwargs_list, calls, m_name)
 
 
 # Duplicate the code because overloading is a mess due to this bug:
@@ -143,8 +145,8 @@ def check_call_str(  # pylint: disable=too-many-arguments
     calls = _mp_call(monkeypatch, mock_class, return_value, as_property)
     yield calls
     m_name = mock_class
-    assert_calls(call_count, call_args_list, call_kwargs_list, calls, m_name)
     monkeypatch.undo()
+    assert_calls(call_count, call_args_list, call_kwargs_list, calls, m_name)
 
 
 def assert_calls(

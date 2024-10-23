@@ -243,7 +243,7 @@
   Install ArgyllCMS instrument drivers...
 "argyll.instrument.drivers.install.confirm": |-
   You only need to install the ArgyllCMS specific drivers if you have a measurement instrument that is not a ColorMunki Display, i1 Display Pro, Huey, ColorHug, specbos, spectraval or K-10.
-  
+
   Do you want to proceed?
 "argyll.instrument.drivers.install.failure": |-
   Installation of ArgyllCMS instrument drivers failed.
@@ -253,7 +253,7 @@
   Uninstall ArgyllCMS instrument drivers...
 "argyll.instrument.drivers.uninstall.confirm": |-
   Note: Uninstallation doesn't affect instrument drivers that are currently in use, but just removes the driver from Windows' Driver Store. If you want to switch back to an installed vendor-supplied driver for your instrument, you'll have to use Windows' Device Manager to manually switch to the vendor driver. To do that, right click on the instrument and select “Update Driver Software...”, then choose “Browse my computer for driver software”, “Let me pick from a list of device drivers on my computer” and finally select the vendor driver for your instrument from the list.
-  
+
   Do you want to proceed?
 "argyll.instrument.drivers.uninstall.failure": |-
   Uninstallation of ArgyllCMS instrument drivers failed.
@@ -664,7 +664,7 @@
   Not all colorimeter corrections could be imported from %s. %i of %i entries had to be skipped.
 "colorimeter_correction.import.success": |-
   Colorimeter corrections and/or measurement modes have been successfully imported from the following softwares:
-  
+
   %s
 "colorimeter_correction.info": |-
   Colorimeter correction information
@@ -888,9 +888,9 @@
   Connection
 "display.levels_issue_detected": |-
   The measured luminance difference between RGB level 0 and 16 is below 0.02 cd/m², indicating clipping. Likely either the display device's input- and/or black level setting is incorrect, and/or the output levels configuration of the graphics driver is wrong.
-  
+
   If your display device has a setting for input levels, please set it to full range RGB (0-255). If your display device doesn't have such a setting, set your graphics driver to output limited range (16-235) instead. Select “Retry” after making either change.
-  
+
   If neither your display nor graphics driver has a range setting, you can also fix the output levels using the video card gamma table by clicking “Continue”, but note that this is the least preferable solution.
 "display.manufacturer": |-
   Display device manufacturer
@@ -1007,7 +1007,7 @@
 "donation_message": |-
   If you would like to support the development of, technical assistance with, and continued availability of DisplayCAL and ArgyllCMS, please consider a financial contribution. As DisplayCAL wouldn't be useful without ArgyllCMS, all contributions received for DisplayCAL will be split between both projects.
   For light personal non-commercial use, a one-time contribution may be appropriate. If you're using DisplayCAL professionally, an annual or monthly contribution would make a great deal of difference in ensuring that both projects continue to be available.
-  
+
   Thanks to all contributors!
 "download": |-
   Download
@@ -1102,8 +1102,8 @@
 "error.file_type_unsupported": |-
   Unsupported filetype.
 "error.generic": |-
-  An internal error occured.
-  
+  An internal error occurred.
+
   Error code: %s
   Error message: %s
 "error.luminance.invalid": |-
@@ -1174,7 +1174,7 @@
   The integrity of %s cannot be verified because it doesn't have an entry in the checksum file.
 "file.hash.verification.fail": |-
   Checksum verification failed for %s:
-  
+
   Expected %s
   Actual %s
 "file.invalid": |-
@@ -1404,49 +1404,49 @@
   In
 "info.3dlut_settings": |-
   A <font weight='bold'>3D LUT</font> (LUT = Look Up Table) or ICC device link profile can be used by 3D LUT or ICC device link capable applications for full <font weight='bold'>display color correction</font>.
-  
+
   <font weight='bold'>Creating several (additional) 3D LUTs from an existing profile</font>
   With the desired profile selected under “Settings”, uncheck the “Create 3D LUT after profiling” checkbox.
-  
+
   <font weight='bold'>Choosing the right source colorspace and tone response curve</font>
   For 3D LUTs and ICC device link profiles, the source colorspace and tone response curve need to be set in advance and become a fixed part of the overall color transformation (unlike ICC device profiles which are linked dynamically on-the-fly). As an example, HD video material is usually mastered according to the Rec. 709 standard with either a pure power gamma of around 2.2-2.4 (relative with black output offset of 100%) or Rec. 1886 tone response curve (absolute with black output offset 0%). A split between Rec. 1886-like and pure power is also possible by setting black output offset to a value between 0% and 100%.
-  
+
   <font weight='bold'>“Absolute” vs. “relative” gamma</font>
   To accomodate a non-zero black level of a real display, the tone response curve needs to be offset and scaled accordingly.
   “Absolute” gamma results in an actual output at 50% input which doesn't match that of an idealized power curve (unless the black level is zero).
   “Relative” gamma results in an actual output at 50% input which matches that of an idealized power curve.
-  
+
   <font weight='bold'>Rendering intent</font>
   If you have calibrated to a different whitepoint than the one mandated by the source colorspace, and want to use that for the 3D LUT instead, select “Relative colorimetric”. Otherwise, select “Absolute colorimetric with white point scaling” (white point scaling will prevent clipping in absolute colorimetric mode that could happen if the source colorspace whitepoint is outside of the display gamut). You also have the option to use a non-colorimetric rendering intent that may compress or expand the source colorspace to fit within the display gamut (not recommended when colorimetric accuracy is required).
 "info.calibration_settings": |-
   <font weight='bold'>Calibration</font> is done by <font weight='bold'>interactively adjusting the display</font> to meet the chosen whitepoint and/or luminance as well as optionally creating <font weight='bold'>1D LUT calibration curves</font> (LUT = Look Up Table) to meet the chosen tone response curve and ensure gray balance. Note that if during calibration you only want to adjust the display and skip the generation of 1D LUT curves, you need to set the tone response curve to “As measured”. 1D LUT calibration can <font weight='bold'>not</font> be used for full display color correction, you need to create a <font weight='bold'>ICC device profile</font> or <font weight='bold'>3D LUT</font> and use them with applications that support them for that purpose. 1D LUT calibration complements profiling and 3D LUT calibration though.
 "info.display_instrument": |-
   <font weight='bold'>Disable any and all dynamic picture settings of your display</font> if applicable. This can include functions such as dynamic contrast, dimming, automatic brightness and similar features.
-  
+
   Make sure light does not shine directly onto the screen of your display.
-  
+
   If your display is an <font weight='bold'>OLED</font> or <font weight='bold'>Plasma</font> TV, or other type with variable light output depending on picture content, enable <font weight='bold'>white level drift compensation</font>.
-  
+
   If your instrument is a <font weight='bold'>spectrometer</font> and you use it in contact mode on a display with stable black level, you may want to enable <font weight='bold'>instrument black level drift compensation</font>.
-  
+
   If your instrument is a <font weight='bold'>colorimeter</font>, you should use a <font weight='bold'>measurement mode</font> or <font weight='bold'>correction</font> suitable for your display or display technology type. Note that some instruments (e.g. K-10, Spyder4/5/X) may offer a selection of measurement modes already tuned for specific display types.
 "info.display_instrument.warmup": |-
   You should let the display <font weight='bold'>warm up</font> for at least <font weight='bold'>30 minutes</font> before commencing measurements. If you use your instrument in contact mode, it is a good idea to leave it on the display during that time as well.
 "info.display_tech": |-
   <font weight='bold'>LCD White LED</font> (WLED with normal color gamut and sRGB coverage up to 100%) is the most common LCD backlight technology. Displays in this category include most laptops, notebooks, allround/office and non-HDR gaming monitors from 2010 and newer as well as Apple iMac/MacBook from 2009 to mid 2015.
-  
+
   <font weight='bold'>LCD PFS Phosphor WLED</font> has a wide color gamut in two common variants with P3 or Adobe RGB coverage around 90-99% (according to manufacturer data). Common displays in the P3 gamut category include Apple iMac 4K/5K Retina (late 2015 and newer), MacBook Pro Retina (late 2016 and newer) as well as some HDR-capable desktop monitors. The Adobe RGB gamut category includes professional displays like EIZO CG2730, HP DreamColor Z24x G2 or NEC PA271Q.
-  
+
   <font weight='bold'>LCD Quantum Dot LED</font> has a wide color gamut with near-full P3 coverage, commonly used in Samsung QLED TVs.
-  
+
   <font weight='bold'>WOLED</font> has a wide color gamut with high P3 coverage, commonly used in LG OLED TVs.
-  
+
   <font weight='bold'>RGB OLED/AMOLED</font> has a wide color gamut with near-full Adobe RGB and/or P3 coverage, used in some professional monitors and laptops as well as high quality smartphones.
-  
+
   <font weight='bold'>LCD GB-r-LED</font> (also known as GB-LED) has a wide color gamut with Adobe RGB coverage around 99% (according to manufacturer data). Common displays in this category include Dell U2413, EIZO CG247/CG277 and NEC PA242W/PA272W.
-  
+
   <font weight='bold'>LCD RGB LED</font> has a wide color gamut with near-full Adobe RGB coverage. Common displays in this category include Samsung XL20/XL24/XL30 and HP DreamColor LP2480zx.
-  
+
   <font weight='bold'>LCD CCFL</font> and <font weight='bold'>LCD CCFL Wide Gamut</font> are older backlight technologies commonly used in displays from 2009 and earlier.
 "info.display_tech.linklabel.displayspecifications.com": |-
   Find your monitor/TV and corresponding technology at displayspecifications.com
@@ -1456,16 +1456,16 @@
   Show information about common display technologies
 "info.mr_settings": |-
   You can <font weight='bold'>verify the accuracy</font> of an ICC profile or 3D LUT via a measurement report that contains detailed statistics about the color errors of the measured patches.
-  
+
   When verifying a 3D LUT, make sure to use the same settings as the 3D LUT was created with.
-  
+
   <font weight='bold'>Tip:</font> To create a self check report instead of a measurement report, hold the ALT key on your keyboard.
 "info.profile_settings": |-
   <font weight='bold'>Profiling</font> is the process of <font weight='bold'>characterizing</font> the display and recording its response in a <font weight='bold'>ICC device profile</font>. The ICC device profile can be used by applications that support ICC color management for full <font weight='bold'>display color correction</font>, and/or it can be used to create a <font weight='bold'>3D LUT</font> (LUT = Look Up Table) which serves the same purpose for applications that support 3D LUTs.
-  
+
   The amount of patches measured influences the attainable accuracy of the resulting profile. For a reasonable quality 3x3 matrix and curves based profile, a few dozen patches can be enough if the display has good additive color mixing properties and linearity. Some professional displays fall into that category. If the highest possible accuracy is desired, a LUT-based profile from around several hundred up to several thousand patches is recommended. The <font weight='bold'>“Auto-optimized”</font> testchart setting automatically takes into account the non-linearities and actual response of the display, and should be used for best quality results. With this, you can adjust a slider to choose a compromise between resulting profile accuracy and measurement as well as computation time.
 "infoframe.default_text": |-
-  
+
 "infoframe.title": |-
   Log
 "infoframe.toggle": |-
@@ -1553,12 +1553,12 @@
 "macos.bugs.cal.warning": |-
   Applications using the Apple CMM (color management module), like macOS Preview and QuickLook, do not support calibration black point hue correction.
   Applications that use their own color management are not affected (like Adobe Creative Suite using Adobe ACE, or open source graphics applications using littleCMS like GIMP or Krita, or applications employing 3D LUTs for color management).
-  
+
   Do you want to disable calibration black point hue correction?
 "macos.bugs.profile.warning": |-
   Applications using the Apple CMM (color management module), like macOS Preview and QuickLook, do not support display profile types other than single curve + matrix with black point compensation.
   Applications that use their own color management are not affected (like Adobe Creative Suite using Adobe ACE, or open source graphics applications using littleCMS like GIMP or Krita, or applications employing 3D LUTs for color management).
-  
+
   Do you want to set the profile type to single curve + matrix and enable black point compensation?
 "madhcnet.outdated": |-
   The installed version of %s found at %s is outdated. Please update to the latest madVR version (at least %i.%i.%i.%i).
@@ -1771,7 +1771,7 @@
   Shaw & Fairchild 1997 2°
 "oem.import.auto": |-
   If your colorimeter came with a software CD for Windows, please insert it now (abort any possibly automatic software installation).
-  
+
   If you don't have a CD and the required files cannot be found otherwise, they will be downloaded from the Web.
 "oem.import.auto.download_selection": |-
   A preselection was made based on the detected instrument(s). Please select the file(s) to download.
@@ -1919,7 +1919,7 @@
   Profile name
 "profile.name.placeholders": |-
   You may use the following placeholders in the profile name:
-  
+
   %a	Abbreviated weekday name
   %A	Full weekday name
   %b	Abbreviated month name
@@ -1973,7 +1973,7 @@
   The resolution of the profile's PCS to device tables is too low.
 "profile.share.enter_info": |-
   You may share your profile with other users via the OpenSUSE “ICC Profile Taxi” service.
-  
+
   Please provide a meaningful description and enter display device properties below. Read display device settings from your display device's OSD and only enter settings applicable to your display device which have changed from defaults.
   Example: For most display devices, these are the name of the chosen preset, brightness, contrast, color temperature and/or whitepoint RGB gains, as well as gamma. On laptops and notebooks, usually only the brightness. If you have changed additional settings while calibrating your display device, enter them too if possible.
 "profile.share.meta_missing": |-
@@ -2050,9 +2050,9 @@
   Automatically fix profile associations
 "profile_loader.fix_profile_associations_warning": |-
   As long as the profile loader is running, it can take care of profile associations when you change the display configuration.
-  
+
   Before you proceed, please make sure the profile associations shown above are correct. If they aren't, follow these steps:
-  
+
   1. Open Windows display settings.
   2. Activate all connected displays (extended desktop).
   3. Open profile associations.
@@ -2564,22 +2564,22 @@
   Warning: Values below the display profile blackpoint will be clipped!
 "warning.suspicious_delta_e": |-
   Warning: Suspicious measurements have been found. Please note this check assumes an sRGB-like display device. If your display device differs from this assumption (e.g. if it has a very wide gamut or a tone response too far from sRGB), then errors found are probably not meaningful.
-  
+
   One or all of the following criteria matched:
-  
+
   • Consecutive patches with different RGB numbers, but suspiciously low ΔE*00 of the measurements against each other.
   • RGB gray with increasing RGB numbers towards the previous patch, but declining lightness (L*).
   • RGB gray with decreasing RGB numbers towards the previous patch, but rising lightness (L*).
   • Unusually high ΔE*00 and ΔL*00 or ΔH*00 or ΔC*00 of measurements to the sRGB equivalent of the RGB numbers.
-  
+
   This could hint at measurement errors. Values that are considered problematic (which does not have to be true!) are highlighted in red. Check the measurements carefully and mark the ones you want to accept. You can also edit the RGB and XYZ values.
 "warning.suspicious_delta_e.info": |-
   Explanation of the Δ columns:
-  
+
   ΔE*00 XYZ A/B: ΔE*00 of measured values towards measured values of the previous patch. If this value is missing, it wasn't a factor while checking. If it is present, then it is assumed to be too low.
-  
+
   0.5 ΔE*00 RGB A/B: ΔE*00 of the sRGB equivalent of the RGB numbers towards the sRGB equivalent of the RGB numbers of the previous patch (with a factor of 0.5). If this value is present, it represents the comparison (minimal) value during checking for assumed too low ΔE*00 XYZ A/B. It serves as a very rough orientation.
-  
+
   ΔE*00 RGB-XYZ: ΔE*00 of measured values towards the sRGB equivalent of the RGB numbers.
   ΔL*00 RGB-XYZ: ΔL*00 of measured values towards the sRGB equivalent of the RGB numbers.
   ΔC*00 RGB-XYZ: ΔC*00 of measured values towards the sRGB equivalent of the RGB numbers.

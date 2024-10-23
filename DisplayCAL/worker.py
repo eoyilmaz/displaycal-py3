@@ -46,7 +46,6 @@ if sys.platform == "darwin":
     from _thread import start_new_thread
 elif sys.platform == "win32":
     from ctypes import windll
-    import winreg
 else:
     import grp
 
@@ -70,6 +69,13 @@ from DisplayCAL import defaultpaths
 from DisplayCAL import imfile
 from DisplayCAL import localization as lang
 from DisplayCAL import wexpect
+from DisplayCAL.argyll import (
+    check_argyll_bin,
+    get_argyll_util,
+    get_argyll_utilname,
+    get_argyll_version_string as base_get_argyll_version_string,
+    parse_argyll_version_string,
+)
 from DisplayCAL.argyll_cgats import (
     add_dispcal_options_to_cal,
     add_options_to_ti3,
@@ -112,9 +118,7 @@ from DisplayCAL.config import (
     get_total_patches,
     get_verified_path,
     isapp,
-    isexe,
     is_ccxx_testchart,
-    logdir,
     profile_ext,
     pydir,
     setcfg,
@@ -183,7 +187,6 @@ if sys.platform == "darwin":
         mac_terminal_do_script,
         mac_terminal_set_colors,
         osascript,
-        get_machine_attributes,
         get_model_id,
     )
 elif sys.platform == "win32":
@@ -213,8 +216,6 @@ else:
 from DisplayCAL import colord
 from DisplayCAL.util_os import (
     dlopen,
-    expanduseru,
-    fname_ext,
     getenvu,
     is_superuser,
     launch_file,
@@ -245,11 +246,6 @@ from DisplayCAL.worker_base import (
     Xicclu,
     _mp_generate_B2A_clut,
     _mp_xicclu,
-    check_argyll_bin,
-    get_argyll_util,
-    get_argyll_utilname,
-    get_argyll_version_string as base_get_argyll_version_string,
-    parse_argyll_version_string,
     printcmdline,
 )
 from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
@@ -1097,34 +1093,32 @@ def _applycal_bug_workaround(profile):
                 trc_tag[:] = [interp(i / 255.0) for i in range(256)]
 
 
-def get_argyll_latest_version():
-    """Return the latest ArgyllCMS version from argyllcms.com.
+def get_argyll_version(name, silent=False, paths=None):
+    """Determine version of a certain Argyll utility.
+
+    Args:
+        name (str): The name of the Argyll utility.
+        silent (bool): Silently check Argyll version. Default is False.
+        paths (Union[list, None]): Paths to look for Argyll executables.
 
     Returns:
-        str: The latest version number. Returns
+        str: The Argyll utility version.
     """
-    argyll_domain = config.defaults.get("argyll.domain", "")
-    try:
-        changelog = re.search(
-            r"(?<=Version ).{5}",
-            urllib.request.urlopen(f"{argyll_domain}/log.txt")
-            .read(150)
-            .decode("utf-8"),
-        )
-    except urllib.error.URLError as e:
-        # no internet connection
-        # return the default version
-        return config.defaults.get("argyll.version")
-    return changelog.group()
-
-
-def get_argyll_version(name, silent=False, paths=None):
-    """Determine version of a certain Argyll utility."""
     argyll_version_string = get_argyll_version_string(name, silent, paths)
     return parse_argyll_version_string(argyll_version_string)
 
 
 def get_argyll_version_string(name, silent=False, paths=None):
+    """Return the version of the requested Argyll utility.
+
+    Args:
+        name (str): The name of the Argyll utility.
+        silent (bool): Silently check Argyll version. Default is False.
+        paths (Union[list, None]): Paths to look for Argyll executables.
+
+    Returns:
+        str: The Argyll utility version.
+    """
     argyll_version_string = "0.0.0"
     if (silent and check_argyll_bin(paths)) or (
         not silent and check_set_argyll_bin(paths)
@@ -1581,7 +1575,7 @@ def make_argyll_compatible_path(path):
 
 
 def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=()):
-    """Set the directory containing the Argyll CMS binary executables"""
+    """Set the directory containing the Argyll CMS binary executables."""
     if parent and not parent.IsShownOnScreen():
         parent = None  # do not center on parent if not visible
     # Check if Argyll version on PATH is newer than configured Argyll version
@@ -1713,7 +1707,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
 
 
 class EvalFalse(object):
-    """Evaluate to False in boolean comparisons"""
+    """Evaluate to False in boolean comparisons."""
 
     def __init__(self, wrapped_object):
         self._wrapped_object = wrapped_object
@@ -1893,7 +1887,7 @@ class Producer(object):
 
 
 class StringWithLengthOverride(UserString):
-    """Allow defined behavior in comparisons and when evaluating length"""
+    """Allow defined behavior in comparisons and when evaluating length."""
 
     def __init__(self, seq, length=None):
         UserString.__init__(self, seq)
@@ -1966,7 +1960,7 @@ class Sudo(object):
         return result
 
     def _terminate(self):
-        """Terminate running sudo subprocess"""
+        """Terminate running sudo subprocess."""
         self.subprocess.sendcontrol("C")
         self._expect_timeout([wexpect.EOF], 10)
         if self.subprocess.after is wexpect.TIMEOUT:

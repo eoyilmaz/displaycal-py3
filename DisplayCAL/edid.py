@@ -7,8 +7,9 @@ import os
 import re
 import string
 import struct
+import subprocess
 import sys
-import warnings
+
 
 if sys.platform == "win32":
     from threading import _MainThread, currentThread
@@ -29,21 +30,14 @@ if sys.platform == "win32":
     import win32api
 elif sys.platform == "darwin":
     import binascii
-    import subprocess as sp
 
 from DisplayCAL import config
-from DisplayCAL.config import enc
-from DisplayCAL.log import log
+from DisplayCAL import RealDisplaySizeMM as RDSMM
+from DisplayCAL.util_os import which
 from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
 
 if sys.platform == "win32":
     from DisplayCAL import util_win
-elif sys.platform != "darwin":
-    try:
-        from DisplayCAL import RealDisplaySizeMM as RDSMM
-    except ImportError as exception:
-        warnings.warn(str(exception), Warning)
-        RDSMM = None
 
 HEADER = (0, 8)
 MANUFACTURER_ID = (8, 10)
@@ -92,7 +86,6 @@ def get_edid(display_no=0, display_name=None, device=None):
 
     On Mac OS X, you need to specify a display name.
     On all other platforms, you need to specify a display number (zero-based).
-
     """
     edid = None
     if sys.platform == "win32":
@@ -194,7 +187,9 @@ def get_edid(display_no=0, display_name=None, device=None):
             raise WMIError("No WMI connection")
     elif sys.platform == "darwin":
         # Get EDID via ioreg
-        p = sp.Popen(["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=sp.PIPE)
+        p = subprocess.Popen(
+            ["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=subprocess.PIPE
+        )
         stdout, stderr = p.communicate()
         if not stdout:
             return {}
@@ -215,10 +210,38 @@ def get_edid(display_no=0, display_name=None, device=None):
                 # because the order is unknown
                 return parsed_edid
         return {}
-    elif RDSMM:
+    else:
         display = RDSMM.get_display(display_no)
-        if display:
-            edid = display.get("edid")
+        if not display:
+            return {}
+
+        p = subprocess.Popen([which("xrandr"), "--verbose"], stdout=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        if not stdout:
+            return {}
+
+        found_display = False
+        found_edid = False
+        edid_data = []
+        for line in stdout.splitlines():
+            if found_edid:
+                if line.startswith(b"\t\t"):
+                    # extract the edid data
+                    edid_data.append(line.strip())
+                else:
+                    # read all data, exit
+                    break
+            if found_display:
+                # try to find EDID
+                if b"EDID" in line:
+                    found_edid = True
+            # try to find the display
+            if (display["name"] + b" connected") in line:
+                found_display = True
+
+        edid = b"".join(edid_data)
+
     if edid and len(edid) >= 128:
         return parse_edid(edid)
     return {}
@@ -262,10 +285,10 @@ def get_manufacturer_name(manufacturer_id):
             "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
             "/usr/share/libgnome-desktop/pnp.ids",
         ]  # fallback gnome-desktop
-        if sys.platform in ("darwin", "win32"):
-            paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
-            # fallback for tests
-            paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
+        # if sys.platform in ("darwin", "win32"):
+        paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
+        # fallback for tests
+        paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
         for path in paths:
             if os.path.isfile(path):
                 try:

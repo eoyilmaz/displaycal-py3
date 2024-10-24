@@ -6,7 +6,8 @@
 import random
 
 from six import BytesIO
-from typeing import Callable, Dict, List, Tuple, Type, Union
+
+from typing import Callable, Dict, List, Tuple, Type, Union
 
 from DisplayCAL.lib.agw.fmresources import (
     BU_EXT_LEFT_ALIGN_STYLE,
@@ -68,16 +69,14 @@ if wx.Platform == "__WXMSW__":
 
 class DCSaver(object):
     """Construct a DC saver.
-    
+
     The dc is copied as-is.
+
+    Args:
+        pdc (wx.DC): An instance of :class:`wx.DC`.
     """
 
     def __init__(self, pdc: wx.DC):
-        """Default class constructor.
-
-        Args:
-            pdc (wx.DC): An instance of :class:`wx.DC`.
-        """
         self._pdc = pdc
         self._pen = pdc.GetPen()
         self._brush = pdc.GetBrush()
@@ -97,7 +96,6 @@ class DCSaver(object):
 class RendererBase(object):
     """Base class for all theme renderers."""
 
-
     def DrawButtonBorders(
         self, dc: wx.DC, rect: wx.Rect, penColour: wx.Colour, brushColour: wx.Colour
     ) -> None:
@@ -110,7 +108,7 @@ class RendererBase(object):
             brushColour (wx.Colour): a valid :class:`wx.Colour` for the brush.
         """
         # Keep old pen and brush
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         # Set new pen and brush
         dc.SetPen(wx.Pen(penColour))
@@ -179,7 +177,7 @@ class RendererBase(object):
                 upper left border.
         """
         # Keep old pen and brush
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         # lower right side
         dc.SetPen(wx.Pen(penColour))
@@ -297,7 +295,6 @@ class RendererXP(RendererBase):
     """Xp-Style renderer."""
 
     def __init__(self) -> None:
-        """Default class constructor."""
         RendererBase.__init__(self)
 
     def DrawButton(
@@ -385,7 +382,7 @@ class RendererXP(RendererBase):
         artMgr = ArtManager.Get()
         vertical = artMgr.GetMBVerticalGradient()
 
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         # fill with gradient
         startColour = artMgr.GetMenuBarFaceColour()
@@ -416,7 +413,7 @@ class RendererXP(RendererBase):
         # For office style, we simple draw a rectangle with a gradient colouring
         vertical = artMgr.GetMBVerticalGradient()
 
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         # fill with gradient
         startColour = artMgr.GetMenuBarFaceColour()
@@ -447,7 +444,6 @@ class RendererMSOffice2007(RendererBase):
     """Windows MS Office 2007 style."""
 
     def __init__(self) -> None:
-        """Default class constructor."""
         RendererBase.__init__(self)
 
     def GetColoursAccordingToState(self, state: int) -> Tuple[int, int, int, int]:
@@ -551,7 +547,7 @@ class RendererMSOffice2007(RendererBase):
         artMgr = ArtManager.Get()
 
         # Keep old pen and brush
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         # Define the rounded rectangle base on the given rect
         # we need an array of 9 points for it
@@ -604,7 +600,7 @@ class RendererMSOffice2007(RendererBase):
             rect (wx.Rect): the menu bar's client rectangle.
         """
         # Keep old pen and brush
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
         artMgr = ArtManager.Get()
         baseColour = artMgr.GetMenuBarFaceColour()
 
@@ -678,7 +674,7 @@ class RendererMSOffice2007(RendererBase):
             return
 
         # Keep old pen and brush
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         baseColour = artMgr.GetMenuBarFaceColour()
         baseColour = artMgr.LightColour(baseColour, 20)
@@ -758,9 +754,7 @@ class RendererMSOffice2007(RendererBase):
 
 
 class ArtManager(wx.EvtHandler):
-    """This class provides various art utilities, such as creating shadow, providing
-    lighter / darker colours for a given colour, etc...
-    """
+    """This class provides utilities for creating shadows and adjusting colors."""
 
     _alignmentBuffer = 7
     _menuTheme: int = StyleXP
@@ -775,9 +769,7 @@ class ArtManager(wx.EvtHandler):
     _bitmaps: Dict[str, wx.Bitmap] = {}
     _transparency = 255
 
-    def __init__(self):
-        """Default class constructor."""
-
+    def __init__(self) -> None:
         wx.EvtHandler.__init__(self)
         self._menuBarBgColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)
 
@@ -1002,7 +994,7 @@ class ArtManager(wx.EvtHandler):
             vertical (bool): ``True`` for gradient colouring in the vertical direction,
                 ``False`` for horizontal shading.
         """
-        dcsaver = DCSaver(dc)
+        _ = DCSaver(dc)
 
         if vertical:
             high = rect.GetHeight() - 1
@@ -1138,7 +1130,7 @@ class ArtManager(wx.EvtHandler):
     def _calculate_sizes(
         self, rect: wx.Rect, trimToSquare: bool
     ) -> Tuple[int, int, int, float]:
-        """calculate the sizes for the gradient drawing.
+        """Calculate the sizes for the gradient drawing.
 
         Args:
             rect (wx.Rect): The rectangle to be filled with gradient shading.
@@ -1368,17 +1360,25 @@ class ArtManager(wx.EvtHandler):
                     dc.DrawLine(xTo, rect.y, rect.x + sizeX, rect.y + i)
                     dc.DrawPoint(rect.x + sizeX, rect.y + i)
 
-    def PaintCrescentGradientBox(self, dc, rect, startColour, endColour, concave=True):
-        """Paint a region with gradient colouring. The gradient is in crescent shape
-        which fits the 2007 style.
+    def PaintCrescentGradientBox(
+        self,
+        dc: wx.DC,
+        rect: wx.Rect,
+        startColour: wx.Colour,
+        endColour: wx.Colour,
+        concave: bool = True,
+    ) -> None:
+        """Paint a region with gradient colouring.
 
-        :param `dc`: an instance of :class:`wx.DC`;
-        :param wx.Rect `rect`: the rectangle to be filled with gradient shading;
-        :param wx.Colour `startColour`: the first colour of the gradient shading;
-        :param wx.Colour `endColour`: the second colour of the gradient shading;
-        :param bool `concave`: ``True`` for a concave effect, ``False`` for a convex one.
+        The gradient is in crescent shape which fits the 2007 style.
+
+        Args:
+            dc (wx.DC): A :class:`wx.DC` instance.
+            rect (wx.Rect): The rectangle to be filled with gradient shading.
+            startColour (wx.Colour): The first colour of the gradient shading.
+            endColour (wx.Colour): The second colour of the gradient shading.
+            concave (bool): ``True`` for a concave effect, ``False`` for a convex one.
         """
-
         diagonalRectWidth = rect.GetWidth() / 4
         spare = rect.width - 4 * diagonalRectWidth
         leftRect = wx.Rect(rect.x, rect.y, diagonalRectWidth, rect.GetHeight())
@@ -1432,7 +1432,7 @@ class ArtManager(wx.EvtHandler):
     def HighlightBackgroundColour(self) -> wx.Colour:
         """Return the background colour of a control when it is in focus.
 
-        Return:
+        Returns:
             wx.Colour: An instance of :class:`wx.Colour`.
         """
         return self.LightColour(self.FrameColour(), 60)
@@ -1448,7 +1448,7 @@ class ArtManager(wx.EvtHandler):
             percent (int): The relative percentage of `firstColour` with respect to
                 `secondColour`.
 
-        Return:
+        Returns:
             wx.Colour: An instance of :class:`wx.Colour`.
         """
         # calculate gradient coefficients
@@ -1781,11 +1781,13 @@ class ArtManager(wx.EvtHandler):
                 Button style                    Value  Description
                 ============================== ======= ================================
                 ``BU_EXT_XP_STYLE``               1    A button with a XP style
-                ``BU_EXT_2007_STYLE``             2    A button with a MS Office 2007 style
+                ``BU_EXT_2007_STYLE``             2    A button with a MS Office 2007
+                                                       style
                 ``BU_EXT_LEFT_ALIGN_STYLE``       4    A left-aligned button
                 ``BU_EXT_CENTER_ALIGN_STYLE``     8    A center-aligned button
                 ``BU_EXT_RIGHT_ALIGN_STYLE``      16   A right-aligned button
-                ``BU_EXT_RIGHT_TO_LEFT_STYLE``    32   A button suitable for right-to-left languages
+                ``BU_EXT_RIGHT_TO_LEFT_STYLE``    32   A button suitable for
+                                                       right-to-left languages
                 ============================== ======= ================================
 
 
@@ -1815,7 +1817,7 @@ class ArtManager(wx.EvtHandler):
                 )  # the alignment is for both sides
 
                 # get the truncated text. The text may stay as is, it is not a must that
-                # is will be trancated
+                # is will be truncated
                 fixedText = self.TruncateText(dc, text, maxWidth)
 
                 # get the fixed text dimensions
@@ -1834,7 +1836,7 @@ class ArtManager(wx.EvtHandler):
                 )  # the alignment is for both sides
 
                 # get the truncated text. The text may stay as is, it is not a must that
-                # is will be trancated
+                # is will be truncated
                 fixedText = self.TruncateText(dc, text, maxWidth)
 
                 # get the fixed text dimensions

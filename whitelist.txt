@@ -30,5 +30,7 @@ unittest
 Vec
 WS
 wx
+wxBU
+XP
 xpm
 xpm's

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module contains resources and constants for the FlatMenu library in DisplayCAL.
 
 It defines various styles, states, and images used in the FlatMenu and related controls.
@@ -129,7 +130,7 @@ rgbSelectInner = wx.Colour(230, 250, 250)
 rgbSelectTop = wx.Colour(210, 240, 250)
 rgbSelectBottom = wx.Colour(185, 215, 250)
 
-check_mark_xpm: list[str] = [
+check_mark_xpm = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -165,7 +166,7 @@ check_mark_xpm: list[str] = [
     "mmmmmmmmmmmmmmmm",
 ]
 
-radio_item_xpm: list[str] = [
+radio_item_xpm = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -202,7 +203,7 @@ radio_item_xpm: list[str] = [
 ]
 
 
-menu_right_arrow_xpm: list[str] = [
+menu_right_arrow_xpm = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -230,11 +231,11 @@ menu_right_arrow_xpm: list[str] = [
     "````````````````",
 ]
 
-# --------------------------------------------------------------------------------------
+# ----------------------------------
 # Shadow images
-# --------------------------------------------------------------------------------------
+# ----------------------------------
 
-shadow_right_xpm: list[str] = [
+shadow_right_xpm = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -245,7 +246,7 @@ shadow_right_xpm: list[str] = [
 ]
 
 # shadow_right.xpm 5x5
-shadow_right_alpha: list[int] = [
+shadow_right_alpha = [
     168,
     145,
     115,
@@ -273,7 +274,7 @@ shadow_right_alpha: list[int] = [
     46,
 ]
 
-shadow_right_top_xpm: list[str] = [
+shadow_right_top_xpm = [
     "5 10 1 1",
     "  c Black",
     "     ",
@@ -288,7 +289,7 @@ shadow_right_top_xpm: list[str] = [
     "     ",
 ]
 
-shadow_right_top_alpha: list[int] = [
+shadow_right_top_alpha = [
     40,
     35,
     28,
@@ -342,7 +343,7 @@ shadow_right_top_alpha: list[int] = [
 ]
 
 # shadow_bottom.xpm 5x5
-shadow_bottom_alpha: list[int] = [
+shadow_bottom_alpha = [
     184,
     184,
     184,
@@ -370,7 +371,7 @@ shadow_bottom_alpha: list[int] = [
     76,
 ]
 
-shadow_bottom_left_xpm: list[str] = [
+shadow_bottom_left_xpm = [
     "10 5 1 1",
     "  c Black",
     "          ",
@@ -380,7 +381,7 @@ shadow_bottom_left_xpm: list[str] = [
     "          ",
 ]
 
-shadow_bottom_left_alpha: list[int] = [
+shadow_bottom_left_alpha = [
     22,
     44,
     73,
@@ -433,7 +434,7 @@ shadow_bottom_left_alpha: list[int] = [
     76,
 ]
 
-shadow_center_xpm: list[str] = [
+shadow_center_xpm = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -443,7 +444,7 @@ shadow_center_xpm: list[str] = [
     "     ",
 ]
 
-shadow_center_alpha: list[int] = [
+shadow_center_alpha = [
     161,
     139,
     110,
@@ -471,7 +472,7 @@ shadow_center_alpha: list[int] = [
     18,
 ]
 
-shadow_bottom_xpm: list[str] = [
+shadow_bottom_xpm = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -481,7 +482,7 @@ shadow_bottom_xpm: list[str] = [
     "     ",
 ]
 
-arrow_down_xpm: list[str] = [
+arrow_down_xpm = [
     "16 16 3 1",
     ". c Black",
     "X c #FFFFFF",
@@ -504,10 +505,10 @@ arrow_down_xpm: list[str] = [
     "                ",
 ]
 
-# --------------------------------------------------------------------------------------
+# ---------------------------------------------
 # Pin images
-# --------------------------------------------------------------------------------------
-pin_left_xpm: list[str] = [
+# ---------------------------------------------
+pin_left_xpm = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -535,7 +536,7 @@ pin_left_xpm: list[str] = [
     "````````````````",
 ]
 
-pin_down_xpm: list[str] = [
+pin_down_xpm = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -583,7 +584,7 @@ arrow_down = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\
 """""\x10\x00\x00\x12""""\x00\x00\x00\x02""""""""""""\x11\x11\x11\x12""""\x00\x00\x00\x02\
 """"""""""""""""""""""""""""""""""'
 
-menu_up_arrow_xpm: list[str] = [
+menu_up_arrow_xpm = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -606,7 +607,7 @@ menu_up_arrow_xpm: list[str] = [
 ]
 
 
-menu_down_arrow_xpm: list[str] = [
+menu_down_arrow_xpm = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -633,7 +634,7 @@ def getMenuUpArrowBitmap() -> wx.Bitmap:
     """Return a wx.Bitmap object representing a menu up arrow with a white mask.
 
     Returns:
-        A wx.Bitmap object.
+        wx.Bitmap: A wx.Bitmap object.
     """
     bmp = wx.Bitmap(menu_up_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
@@ -644,7 +645,7 @@ def getMenuDownArrowBitmap() -> wx.Bitmap:
     """Return a wx.Bitmap object representing a menu down arrow with a white mask.
 
     Returns:
-        A wx.Bitmap object.
+        wx.Bitmap: A wx.Bitmap object.
     """
     bmp = wx.Bitmap(menu_down_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))

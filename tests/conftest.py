@@ -65,7 +65,7 @@ def argyll():
         "linux": f"https://www.argyllcms.com/Argyll_V{argyll_version}_linux_x86_64_bin.tgz",
     }
 
-    # first look in to ~/local/bin/ArgyllCMS                                            # noqa: SC100
+    # first look in to ~/local/bin/ArgyllCMS
     home = pathlib.Path().home()
     argyll_search_paths = [
         home / ".local" / "bin" / "Argyll" / "bin",
@@ -83,7 +83,7 @@ def argyll():
         yield argyll_path
         return
 
-    # apparently argyll has not been found                                              # noqa: SC100
+    # apparently argyll has not been found
     # download from source
     url = argyll_download_url[sys.platform]
 
@@ -91,7 +91,7 @@ def argyll():
     # store current working directory
     current_working_directory = os.getcwd()
 
-    # change dir to argyll temp path                                                    # noqa: SC100
+    # change dir to argyll temp path
     os.chdir(argyll_temp_path)
 
     tar_file_name = "Argyll.tgz"

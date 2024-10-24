@@ -34,7 +34,7 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
-import webbrowser  # Import the webbrowser module for platform-independent results      # noqa: SC100
+import webbrowser  # Import the webbrowser module for platform-independent results
 import zipfile
 from decimal import Decimal
 from hashlib import md5
@@ -252,7 +252,7 @@ from DisplayCAL.wxwindows import (
 
 from send2trash import send2trash
 
-# wxPython                                                                              # noqa: SC100
+# wxPython
 from wx import xrc
 from wx.lib import delayedresult, platebtn
 from wx.lib.art import flagart
@@ -288,15 +288,15 @@ try:
 except ImportError:
     ProfileInfoFrame = None
 
-# wxPython                                                                              # noqa: SC100
+# wxPython
 try:
-    # Only wx.lib.aui.AuiNotebook looks reasonable across _all_ platforms.              # noqa: SC100
-    # Other tabbed book controls like wx.Notebook or wx.aui.AuiNotebook are             # noqa: SC100
-    # impossible to get to look right under GTK because there's no way to set           # noqa: SC100
+    # Only wx.lib.aui.AuiNotebook looks reasonable across _all_ platforms.
+    # Other tabbed book controls like wx.Notebook or wx.aui.AuiNotebook are
+    # impossible to get to look right under GTK because there's no way to set
     # the correct background color for the pages.
     from wx.lib.agw import aui
 except ImportError:
-    # Fall back to wx.aui under ancient wxPython versions                               # noqa: SC100
+    # Fall back to wx.aui under ancient wxPython versions
     from wx import aui
 
 # Set no delay time to open the web page

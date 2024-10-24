@@ -173,7 +173,7 @@ else:
         """
         paths = _listdir(path, *args, **kwargs)
         if isinstance(path, str):
-            # Undecodable filenames will still be string objects.                       # noqa: SC100
+            # Undecodable filenames will still be string objects.
             # Ignore them.
             paths = [path for path in paths if isinstance(path, str)]
         return paths
@@ -247,24 +247,24 @@ def find_library(pattern, arch=None):
         except Exception:
             pass
         else:
-            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,                 # noqa: SC100
-            # version 1 (SYSV), dynamically linked, interpreter                         # noqa: SC100
-            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,                         # noqa: SC100
-            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8,                   # noqa: SC100
+            # /usr/bin/python3.7: ELF 64-bit LSB shared object, x86-64,
+            # version 1 (SYSV), dynamically linked, interpreter
+            # /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
+            # BuildID[sha1]=41a1f0d4da3afee8f22d1947cc13a9f33f59f2b8,
             # stripped
             parts = file_stdout.split(",")
             if len(parts) > 1:
                 arch = parts[1].strip()
 
     for line in stdout.decode().splitlines():
-        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1                                # noqa: SC100
+        # libxyz.so (libc6,x86_64) => /lib64/libxyz.so.1
         parts = line.split("=>", 1)
         candidate = parts[0].split(None, 1)
         if len(parts) < 2 or len(candidate) < 2:
             continue
         info = candidate[1].strip("( )").split(",")
         if arch and len(info) > 1 and info[1].strip() != arch:
-            # Skip libs for wrong arch                                                  # noqa: SC100
+            # Skip libs for wrong arch
             continue
         filename = candidate[0]
         if fnmatch.fnmatch(filename, pattern):
@@ -588,8 +588,8 @@ def launch_file(filepath):
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":
-        # for win32, we could use os.startfile,                                         # noqa: SC100
-        # but then we'd not be able to return exitcode (does it matter?)                # noqa: SC100
+        # for win32, we could use os.startfile,
+        # but then we'd not be able to return exitcode (does it matter?)
         retcode = sp.call(f'start "" "{filepath}"', **kwargs)
     elif which("xdg-open"):
         retcode = sp.call(["xdg-open", filepath], **kwargs)
@@ -843,7 +843,7 @@ def readlink(path):
 
     # This wouldn't return true if the file didn't exist
     if not islink(path):
-        # Mimic POSIX error                                                             # noqa: SC100
+        # Mimic POSIX error
         raise OSError(22, "Invalid argument", path)
 
     # Open the file correctly depending on the string type.
@@ -852,11 +852,11 @@ def readlink(path):
     else:
         createfilefn = win32file.CreateFile
 
-    # Create a PySECURITY_ATTRIBUTES object                                             # noqa: SC100
+    # Create a PySECURITY_ATTRIBUTES object
     security_attributes = win32security.SECURITY_ATTRIBUTES()
 
-    # FILE_FLAG_OPEN_REPARSE_POINT alone is not enough if 'path' is a symbolic          # noqa: SC100
-    # link to a directory or a NTFS junction.                                           # noqa: SC100
+    # FILE_FLAG_OPEN_REPARSE_POINT alone is not enough if 'path' is a symbolic
+    # link to a directory or a NTFS junction.
     # We need to set FILE_FLAG_BACKUP_SEMANTICS as well. See
     # https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilea
     # Now use this security_attributes object in the CreateFileW call
@@ -878,7 +878,7 @@ def readlink(path):
     else:
         handle = int(str(handle))
 
-    # MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16384 = (16 * 1024)                            # noqa: SC100
+    # MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16384 = (16 * 1024)
     buf = win32file.DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, None, 16 * 1024)
     # Above will return an ugly string (byte array), so we'll need to parse it.
 
@@ -977,9 +977,9 @@ def safe_iglob(pathname):
         for name in safe_glob1(os.curdir, basename):
             yield name
         return
-    # `os.path.split()` returns the argument itself as a dirname if it is a             # noqa: SC100
-    # drive or UNC path.                                                                # noqa: SC100
-    # Prevent an infinite recursion if a drive or UNC path contains magic               # noqa: SC100
+    # `os.path.split()` returns the argument itself as a dirname if it is a
+    # drive or UNC path.
+    # Prevent an infinite recursion if a drive or UNC path contains magic
     # characters (i.e. r'\\?\C:').
     if dirname != pathname and glob.has_magic(dirname):
         dirs = safe_iglob(dirname)
@@ -1047,7 +1047,7 @@ def safe_shell_filter(names, pat):
         _cache[pat] = re_pat = re.compile(res)
     match = re_pat.match
     if os.path is posixpath:
-        # normcase on posix is NOP. Optimize it away from the loop.                     # noqa: SC100
+        # normcase on posix is NOP. Optimize it away from the loop.
         for name in names:
             if match(name):
                 result.append(name)

@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------- #
-# PYGAUGE wxPython IMPLEMENTATION                                                       # noqa: SC100
+# PYGAUGE wxPython IMPLEMENTATION
 #
 # Mark Reed, @ 28 Jul 2010
 # Latest Revision: 27 Dec 2012, 21.00 GMT
 #
 # TODO List
 #
-# 1. Indeterminate mode (see wx.Gauge)                                                  # noqa: SC100
+# 1. Indeterminate mode (see wx.Gauge)
 # 2. Vertical bar
 # 3. Bitmap support (bar, background)
 # 4. UpdateFunction - Pass a function to PyGauge which will be called every X

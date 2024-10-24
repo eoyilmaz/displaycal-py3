@@ -77,7 +77,7 @@ pyfile = (
     or os.path.join(os.path.dirname(__file__), "main.py")
 )
 pypath = exe if isexe else os.path.abspath(pyfile)
-# Mac OS X: isapp should only be true for standalone, not 0install                      # noqa: SC100
+# Mac OS X: isapp should only be true for standalone, not 0install
 isapp = (
     sys.platform == "darwin"
     and exe.split(os.path.sep)[-3:-1] == ["Contents", "MacOS"]
@@ -92,23 +92,23 @@ else:
         exe if isexe else os.path.abspath(os.path.dirname(__file__))
     )
 
-# TODO: Modifying ``data_dirs`` here was not an elegant solution,                       # noqa: SC100
+# TODO: Modifying ``data_dirs`` here was not an elegant solution,
 #       and it is not solving the problem either.
 data_dirs = [
-    # venv/share/DisplayCAL                                                             # noqa: SC100
+    # venv/share/DisplayCAL
     os.path.join(os.path.dirname(os.path.dirname(pypath)), "share", "DisplayCAL"),
-    # venv/lib/python3.x/site-packages/DisplayCAL                                       # noqa: SC100
+    # venv/lib/python3.x/site-packages/DisplayCAL
     pydir,
-    # venv/share                                                                        # noqa: SC100
+    # venv/share
     os.path.join(os.path.dirname(pydir), "share"),
-    # venv/lib/python3.x/site-packages/DisplayCAL-*.egg/share/DisplayCAL                # noqa: SC100
+    # venv/lib/python3.x/site-packages/DisplayCAL-*.egg/share/DisplayCAL
     os.path.join(os.path.dirname(pydir), "share", "DisplayCAL"),
 ]
 
 
 extra_data_dirs = []
-# Search directories on PATH for data directories so Argyll reference files can         # noqa: SC100
-# be found automatically if Argyll directory not explicitly configured                  # noqa: SC100
+# Search directories on PATH for data directories so Argyll reference files can
+# be found automatically if Argyll directory not explicitly configured
 for dir_ in getenvu("PATH", "").split(os.pathsep):
     dir_parent = os.path.dirname(dir_)
     if os.path.isdir(os.path.join(dir_parent, "ref")):
@@ -122,12 +122,12 @@ if os.path.isdir(os.path.join(appdata, "dispcalGUI")):
 datahome = os.path.join(appdata, appbasename)
 if sys.platform == "win32":
     if pydir.lower().startswith(exedir.lower()) and pydir != exedir:
-        # We are installed in a subfolder of the executable directory                   # noqa: SC100
-        # (e.g. C:\Python26\Lib\site-packages\DisplayCAL)                               # noqa: SC100
+        # We are installed in a subfolder of the executable directory
+        # (e.g. C:\Python26\Lib\site-packages\DisplayCAL)
         # we need to add the executable directory to the data directories so
-        # files in subfolders of the executable directory which are not in              # noqa: SC100
+        # files in subfolders of the executable directory which are not in
         # Lib\site-packages\DisplayCAL can be found
-        # (e.g. Scripts\displaycal-apply-profiles)                                      # noqa: SC100
+        # (e.g. Scripts\displaycal-apply-profiles)
         data_dirs.append(exedir)
     script_ext = ".cmd"
     scale_adjustment_factor = 1.0
@@ -216,7 +216,7 @@ non_argyll_displays = uncalibratable_displays + ("Resolve$",)
 # Is the device directly connected or e.g. driven via network?
 # (note that madVR can technically be both, but the endpoint is always directly
 # connected to a display so we have videoLUT access via madVR's API.
-# Only devices which don't support that are considered 'untethered' in this context)    # noqa: SC100
+# Only devices which don't support that are considered 'untethered' in this context)
 untethered_displays = non_argyll_displays + (
     "Web$",
     "Chromecast ",
@@ -413,7 +413,7 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
         parts[-1] = parts[-1].lower()
     oname = parts[-1]
     if "#" in oname:
-        # Hex format, RRGGBB or RRGGBBAA                                                # noqa: SC100
+        # Hex format, RRGGBB or RRGGBBAA
         oname, color = oname.split("#", 1)
         parts[-1] = oname
     else:
@@ -434,11 +434,11 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
                 elif i == 1:
                     if scale < 1.75 or scale == 2:
                         continue
-                    # HighDPI support. Try @4x version                                  # noqa: SC100
+                    # HighDPI support. Try @4x version
                     parts[-2] = "%ix%i" % (ow, oh)
                     parts[-1] = name4x
                 elif i == 2:
-                    # HighDPI support. Try @2x version                                  # noqa: SC100
+                    # HighDPI support. Try @2x version
                     parts[-2] = "%ix%i" % (ow, oh)
                     parts[-1] = name2x
                 elif i == 3:
@@ -455,10 +455,10 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
                 elif i == 1:
                     if scale < 1.75 or scale == 2:
                         continue
-                    # HighDPI support. Try @4x version                                  # noqa: SC100
+                    # HighDPI support. Try @4x version
                     parts[-1] = name4x
                 elif i == 2:
-                    # HighDPI support. Try @2x version                                  # noqa: SC100
+                    # HighDPI support. Try @2x version
                     parts[-1] = name2x
                 else:
                     # Try original size
@@ -483,14 +483,14 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
         if scale > 1 and i:
             rescale = False
             if i in (1, 2):
-                # HighDPI support. 4x/2x version, determine scaled size                 # noqa: SC100
+                # HighDPI support. 4x/2x version, determine scaled size
                 w, h = [int(round(v / (2 * (3 - i)) * scale)) for v in bmp.Size]
                 rescale = True
             elif len(size) == 2:
                 # HighDPI support. Icon
                 rescale = True
             if rescale and (bmp.Size[0] != w or bmp.Size[1] != h):
-                # HighDPI support. Rescale                                              # noqa: SC100
+                # HighDPI support. Rescale
                 img = bmp.ConvertToImage()
                 if not hasattr(wx, "IMAGE_QUALITY_BILINEAR") or oname == "list-add":
                     # In case bilinear is not supported,
@@ -564,7 +564,7 @@ def load_bitmap(parts, ow, oh, w, h, scale, use_mask):
                     alpha = 1.0
                 img = img.AdjustChannels(R, G, B, alpha)
             if color:
-                # Hex format, RRGGBB or RRGGBBAA                                        # noqa: SC100
+                # Hex format, RRGGBB or RRGGBBAA
                 R = int(color[0:2], 16) / 255.0
                 G = int(color[2:4], 16) / 255.0
                 B = int(color[4:6], 16) / 255.0
@@ -610,7 +610,7 @@ def get_bitmap_as_icon(size, name, scale=True):
 
     icon = wx.EmptyIcon()
     if sys.platform == "darwin" and wx.VERSION >= (2, 9) and size > 128:
-        # FIXME: wxMac 2.9 doesn't support icon sizes above 128                         # noqa: SC100
+        # FIXME: wxMac 2.9 doesn't support icon sizes above 128
         size = 128
     bmp = geticon(size, name, scale)
     icon.CopyFromBitmap(bmp)
@@ -764,7 +764,7 @@ def get_icon_bundle(sizes, name):
 
     iconbundle = wx.IconBundle()
     if not sizes:
-        # Assume ICO format                                                             # noqa: SC100
+        # Assume ICO format
         pth = get_data_path(f"theme/icons/{name}.ico")
         if pth:
             ico = wx.Icon(pth)
@@ -849,9 +849,9 @@ def get_data_path(relpath, rex=None):
             and not os.path.exists(curpath)
         ):
             # Work-around distribution-specific differences for location of
-            # Argyll reference files                                                    # noqa: SC100
-            # Fedora and Ubuntu: /usr/share/color/argyll/ref                            # noqa: SC100
-            # openSUSE: /usr/share/color/argyll                                         # noqa: SC100
+            # Argyll reference files
+            # Fedora and Ubuntu: /usr/share/color/argyll/ref
+            # openSUSE: /usr/share/color/argyll
             pth = relpath.split("/", 1)[-1]
             if pth != "ref":
                 curpath = os.path.join(dir_, pth)
@@ -991,9 +991,9 @@ valid_ranges = {
     "app.port": [1, 65535],
     "gamma": [0.000001, 10],
     "trc": [0.000001, 10],
-    # Argyll dispcal uses 20% of ambient (in lux, fixed steradiant of 3.1415) as        # noqa: SC100
-    # adapting luminance, but we assume it already *is* the adapting luminance.         # noqa: SC100
-    # To correct for this, scale so that dispcal gets the correct value.                # noqa: SC100
+    # Argyll dispcal uses 20% of ambient (in lux, fixed steradiant of 3.1415) as
+    # adapting luminance, but we assume it already *is* the adapting luminance.
+    # To correct for this, scale so that dispcal gets the correct value.
     "calibration.ambient_viewcond_adjust.lux": [0.0, sys.maxsize / 5.0],
     "calibration.black_luminance": [0.000001, 10],
     "calibration.black_output_offset": [0, 1],
@@ -1031,7 +1031,7 @@ valid_values = {
     "3dlut.bitdepth.input": [8, 10, 12, 14, 16],
     "3dlut.bitdepth.output": [8, 10, 12, 14, 16],
     "3dlut.encoding.input": list(video_encodings),
-    # collink: xvYCC output encoding is not supported                                   # noqa: SC100
+    # collink: xvYCC output encoding is not supported
     "3dlut.encoding.output": [v for v in video_encodings if v not in ("T", "x", "X")],
     "3dlut.format": [
         "3dl",
@@ -1063,11 +1063,11 @@ valid_values = {
     "colorimeter_correction.observer": observers,
     "colorimeter_correction.observer.reference": observers,
     "colorimeter_correction.type": ["matrix", "spectral"],
-    # Measurement modes as supported by Argyll -y parameter                             # noqa: SC100
+    # Measurement modes as supported by Argyll -y parameter
     # 'l' = 'n' (non-refresh-type display, e.g. LCD)
     # 'c' = 'r' (refresh-type display, e.g. CRT)
     # We map 'l' and 'c' to "n" and "r" in
-    # worker.Worker.add_measurement_features if using Argyll >= 1.5                     # noqa: SC100
+    # worker.Worker.add_measurement_features if using Argyll >= 1.5
     # See http://www.argyllcms.com/doc/instruments.html for description of
     # per-instrument supported modes
     "measurement_mode": [None, "auto"] + list(string.digits[1:] + string.ascii_letters),
@@ -1099,7 +1099,7 @@ valid_values = {
     "profile_loader.tray_icon_animation_quality": [0, 1, 2],
     "synthprofile.black_point_compensation": [0, 1],
     "synthprofile.trc_gamma_type": ["g", "G"],
-    # Q = Argyll >= 1.1.0                                                               # noqa: SC100
+    # Q = Argyll >= 1.1.0
     "tc_algo": ["", "t", "r", "R", "q", "Q", "i", "I"],
     "tc_vrml_use_D50": [0, 1],
     "tc_vrml_cie_colorspace": [
@@ -1360,7 +1360,7 @@ defaults = {
     "position.synthiccframe.y": 50,
     "position.tcgen.x": 50,
     "position.tcgen.y": 50,
-    # Force black point compensation due to OS X bugs with non BPC profiles             # noqa: SC100
+    # Force black point compensation due to OS X bugs with non BPC profiles
     "profile.black_point_compensation": 0 if sys.platform != "darwin" else 1,
     "profile.black_point_correction": 0.0,
     "profile.create_gamut_views": 1,
@@ -1391,8 +1391,8 @@ defaults = {
     "profile.b2a.hires.size": -1,
     "profile.b2a.hires.smooth": 1,
     "profile.save_path": storage,  # directory
-    # Force profile type to single shaper + matrix due to OS X bugs with cLUT           # noqa: SC100
-    # profiles and matrix profiles with individual shaper curves                        # noqa: SC100
+    # Force profile type to single shaper + matrix due to OS X bugs with cLUT
+    # profiles and matrix profiles with individual shaper curves
     "profile.type": "X" if sys.platform != "darwin" else "S",
     "profile.update": 0,
     "profile_loader.buggy_video_drivers": ";".join(["*"]),
@@ -1512,7 +1512,7 @@ defaults = {
     "tc_white_patches": 4,
     "tc.show": 0,
     # Profile type forced to matrix due to OS X bugs with cLUT profiles.
-    # Set smallest testchart.                                                           # noqa: SC100
+    # Set smallest testchart.
     "testchart.auto_optimize": 4 if sys.platform != "darwin" else 1,
     "testchart.file": "auto",
     "testchart.file.backup": "auto",
@@ -1558,10 +1558,10 @@ if lcode:
 testchart_defaults = {
     "s": {
         None: "auto"
-    },  # shaper + matrix                                                               # noqa: SC100
+    },  # shaper + matrix
     "l": {
         None: "auto"
-    },  # lut                                                                           # noqa: SC100
+    },  # lut
     "g": {None: "auto"},  # gamma + matrix
 }
 
@@ -1636,7 +1636,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                     print(f"Invalid config value for {name}: {value}", end=" ")
                 value = None
             elif name == "copyright":
-                # Make sure DisplayCAL and Argyll version are up-to-date                # noqa: SC100
+                # Make sure DisplayCAL and Argyll version are up-to-date
                 pattern = re.compile(
                     r"(%s(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*" % appname, re.I
                 )
@@ -1662,7 +1662,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                 # Map n and r measurement modes to canonical l and c
                 # the inverse mapping happens per-instrument in
                 # Worker.add_measurement_features().
-                # That way we can have compatibility with old and current Argyll CMS    # noqa: SC100
+                # That way we can have compatibility with old and current Argyll CMS
                 value = {"n": "l", "r": "c"}.get(value, value)
     if value is None:
         if hasdef and fallback:
@@ -1682,12 +1682,12 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
         and (name != "testchart.file" or value != "auto")
         and (not os.path.isabs(value) or not os.path.exists(value))
     ):
-        # colorimeter_correction_matrix_file is special because it's not (only) a path  # noqa: SC100
+        # colorimeter_correction_matrix_file is special because it's not (only) a path
         if debug:
             print(f"{name} does not exist: {value}", end=" ")
-        # Normalize path (important, this turns altsep into sep under Windows)          # noqa: SC100
+        # Normalize path (important, this turns altsep into sep under Windows)
         value = os.path.normpath(value)
-        # Check if this is a relative path covered by data_dirs                         # noqa: SC100
+        # Check if this is a relative path covered by data_dirs
         if (
             value.split(os.path.sep)[-3:-2] == [appname] or not os.path.isabs(value)
         ) and (
@@ -1777,7 +1777,7 @@ def get_standard_profiles(paths_only=False):
     if not standard_profiles:
         from DisplayCAL import ICCProfile as ICCP
 
-        # Reference profiles (Argyll + DisplayCAL)                                      # noqa: SC100
+        # Reference profiles (Argyll + DisplayCAL)
         ref_icc = get_data_path("ref", r"\.ic[cm]$") or []
         # Other profiles installed on the system
         other_icc = []
@@ -2033,7 +2033,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
         # Set default preset
         setcfg("calibration.file", defaults["calibration.file"], cfg=cfg)
 
-    # Read cfg                                                                          # noqa: SC100
+    # Read cfg
     cfgnames = [appbasename]
     if module:
         cfgnames.append(cfgbasename)
@@ -2065,7 +2065,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
                         msg = "Reloading"
                     else:
                         msg = "Loading"
-                    # logger.debug(msg, cfgfile)                                        # noqa: SC100
+                    # logger.debug(msg, cfgfile)
                     print(msg, cfgfile)
                 # Make user config take precedence
                 break
@@ -2103,7 +2103,7 @@ dpiset = False
 
 def set_default_app_dpi():
     """Set application DPI."""
-    # Only call this after creating the wx.App object!                                  # noqa: SC100
+    # Only call this after creating the wx.App object!
     global dpiset
     if not dpiset and not getcfg("app.dpi", False):
         # HighDPI support
@@ -2118,7 +2118,7 @@ def set_default_app_dpi():
             from DisplayCAL.util_os import which
 
             txt_scale = None
-            # XDG_CURRENT_DESKTOP delimiter is colon (':')                              # noqa: SC100
+            # XDG_CURRENT_DESKTOP delimiter is colon (':')
             desktop = os.getenv("XDG_CURRENT_DESKTOP", "").split(":")
             if "gtk2" in wx.PlatformInfo:
                 txt_scale = get_hidpi_scaling_factor()
@@ -2164,7 +2164,7 @@ def get_hidpi_scaling_factor():
             p = sp.Popen(
                 ["xrdb", "-query"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
             )
-            # Format: 'Xft.dpi:        192'                                             # noqa: SC100
+            # Format: 'Xft.dpi:        192'
             stdout, stderr = p.communicate()
             for line in stdout.splitlines():
                 line = line.decode()
@@ -2176,19 +2176,19 @@ def get_hidpi_scaling_factor():
                     except ValueError:
                         pass
         factor = None
-        # XDG_CURRENT_DESKTOP delimiter is colon (':')                                  # noqa: SC100
+        # XDG_CURRENT_DESKTOP delimiter is colon (':')
         desktop = os.getenv("XDG_CURRENT_DESKTOP", "").split(":")
         if desktop[0] == "KDE":
             # Two env-vars exist: QT_SCALE_FACTOR and QT_SCREEN_SCALE_FACTORS.
             # According to documentation[1], the latter is 'mainly useful for debugging'
-            # that's not how it is used by KDE though.                                  # noqa: SC100
-            # Changing display scaling via KDE settings GUI only sets                   # noqa: SC100
+            # that's not how it is used by KDE though.
+            # Changing display scaling via KDE settings GUI only sets
             # QT_SCREEN_SCALE_FACTORS. We are thus currently ignoring QT_SCALE_FACTOR.
             # [1] https://doc.qt.io/qt-5/highdpi.html
             # QT_SCREEN_SCALE_FACTORS delimiter is semicolon (';')
-            # Format: Mapping of XrandR display names to scale factor                   # noqa: SC100
+            # Format: Mapping of XrandR display names to scale factor
             # e.g. 'VGA-1=1.5;VGA-2=2.0;'
-            # or just list of scale factors e.g. '1.5;2.0;'                             # noqa: SC100
+            # or just list of scale factors e.g. '1.5;2.0;'
             screen_scale_factors = os.getenv("QT_SCREEN_SCALE_FACTORS", "").split(";")
             if screen_scale_factors:
                 from DisplayCAL.wxaddons import wx
@@ -2204,7 +2204,7 @@ def get_hidpi_scaling_factor():
                     if top:
                         tmp = False
                     else:
-                        # Create temp frame if no topwindow                             # noqa: SC100
+                        # Create temp frame if no topwindow
                         top = wx.Frame(None)
                         # Move to main window location (and thus screen)
                         x, y = (
@@ -2214,7 +2214,7 @@ def get_hidpi_scaling_factor():
                         if None not in (x, y):
                             top.SetSaneGeometry(x, y)
                         tmp = True
-                    # Get wx display                                                    # noqa: SC100
+                    # Get wx display
                     wx_display = top.GetDisplay()
                     if tmp:
                         # No longer need our temp frame
@@ -2254,7 +2254,7 @@ def get_hidpi_scaling_factor():
                 stdout=sp.PIPE,
                 stderr=sp.PIPE,
             )
-            # Format: 'unint32 1'                                                       # noqa: SC100
+            # Format: 'unint32 1'
             stdout, stderr = p.communicate()
             split = stdout.split()
             if split:
@@ -2353,7 +2353,7 @@ def writecfg(which="user", worker=None, module=None, options=(), cfg=cfg):
             )
             return False
     else:
-        # system-wide config - only stores essentials ie. Argyll directory              # noqa: SC100
+        # system-wide config - only stores essentials ie. Argyll directory
         cfgfilename1 = os.path.join(confighome, f"{cfgbasename}.local.ini")
         cfgfilename2 = os.path.join(config_sys, f"{cfgbasename}.ini")
         if sys.platform == "win32":
@@ -2379,7 +2379,7 @@ def writecfg(which="user", worker=None, module=None, options=(), cfg=cfg):
             cfgfile.close()
             if sys.platform != "win32":
                 # on Linux and OS X, we write the file to the user's config dir
-                # then 'su mv' it to the system-wide config dir                         # noqa: SC100
+                # then 'su mv' it to the system-wide config dir
                 result = worker.exec_cmd(
                     "mv",
                     ["-f", cfgfilename1, cfgfilename2],

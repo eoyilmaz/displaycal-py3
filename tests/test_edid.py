@@ -97,29 +97,6 @@ def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
     assert isinstance(result["year_of_manufacture"], int)
 
 
-# def test_get_edid_3(clear_displays):
-#     """Testing DisplayCAL.colord.device_id_from_edid() function."""
-#     config.initcfg()
-#     display = RDSMM.get_display(0)
-#     edid = display.get("edid")
-#     assert isinstance(edid, str)
-#     edid = edid.encode("utf-8")
-#
-#     # assert len(edid) == 256                                                         # noqa: SC100
-#     assert edid == (                                                                  # noqa: SC100
-#         b"\x00\xff\xff\xff\xff\xff\xff\x00\x10\xac\xe0@L405\x05\x1b\x01\x04\xb57\x1fx:U"  # noqa: SC100
-#         b"\xc5\xafO3\xb8%\x0bPT\xa5K\x00qO\xa9@\x81\x80\xd1\xc0\x01\x01\x01\x01\x01\x01"  # noqa: SC100
-#         b"\x01\x01V^\x00\xa0\xa0\xa0)P0 5\x00)7!\x00\x00\x1a\x00\x00\x00\xff\x00"     # noqa: SC100
-#         b"TYPR371U504L\n\x00\x00\x00\xfc\x00DELL UP2516D\n\x00\x00\x00\xfd\x002K\x1eX"  # noqa: SC100,B950
-#         b"\x19\x01\n      \x01,\x02\x03\x1c\xf1O\x90\x05\x04\x03\x02\x07\x16\x01\x06"  # noqa: SC100,B950
-#         b"\x11\x12\x15\x13\x14\x1f#\t\x1f\x07\x83\x01\x00\x00\x02:\x80\x18q8-@X,E"    # noqa: SC100
-#         b"\x00)7!\x00\x00\x1e~9\x00\xa0\x808\x1f@0 :\x00)7!\x00\x00\x1a\x01\x1d\x00rQ"  # noqa: SC100,B950
-#         b"\xd0\x1e n(U\x00)7!\x00\x00\x1e\xbf\x16\x00\xa0\x808\x13@0 :\x00)7!\x00\x00"  # noqa: SC100,B950
-#         b"\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"  # noqa: SC100
-#         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x86"                                   # noqa: SC100
-#     )
-
-
 @pytest.mark.parametrize(
     "xrandr_data_file_name,dispwin_data_file_name,getcfg_displays_output,display_no,expected_result",
     [

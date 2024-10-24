@@ -110,12 +110,12 @@ if sys.platform == "win32":
     import pythoncom
     import threading
 
-    # Use registry as fallback for Win2k/XP/2003                                        # noqa: SC100
+    # Use registry as fallback for Win2k/XP/2003
     import winreg
 
     wmi = None
     if sys.getwindowsversion() >= (6,):
-        # Use WMI for Vista/Win7                                                        # noqa: SC100
+        # Use WMI for Vista/Win7
         try:
             import wmi
         except Exception:
@@ -232,7 +232,7 @@ def get_edid_windows(display_no, device):
     edid = None
 
     if not device:
-        # The ordering will work as long as Argyll continues using EnumDisplayMonitors  # noqa: SC100
+        # The ordering will work as long as Argyll continues using EnumDisplayMonitors
         monitors = util_win.get_real_display_devices_info()
         moninfo = monitors[display_no]
         device = util_win.get_active_display_device(moninfo["Device"])
@@ -288,7 +288,7 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
             try:
                 edid = msmonitor.WmiGetMonitorRawEEdidV1Block(0)
             except Exception:
-                # No EDID entry                                                         # noqa: SC100
+                # No EDID entry
                 pass
             else:
                 edid = "".join(chr(i) for i in edid[0])
@@ -366,7 +366,7 @@ def get_edid_windows_registry(id, device):
             try:
                 edid = winreg.QueryValueEx(devparms, "EDID")[0]
             except WindowsError:
-                # No EDID entry                                                         # noqa: SC100
+                # No EDID entry
                 pass
             else:
                 return edid
@@ -584,9 +584,9 @@ def get_pnpid_paths():
         list: List of possible paths.
     """
     paths = [
-        "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",  # systemd                          # noqa: SC100
-        "/usr/share/hwdata/pnp.ids",  # hwdata, e.g. Red Hat                            # noqa: SC100
-        "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian                             # noqa: SC100
+        "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",  # systemd
+        "/usr/share/hwdata/pnp.ids",  # hwdata, e.g. Red Hat
+        "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
         "/usr/share/libgnome-desktop/pnp.ids",
     ]  # fallback gnome-desktop
     if sys.platform in ("darwin", "win32"):
@@ -709,7 +709,7 @@ def edid_parse_string(desc):
     Returns:
         bytes: The parsed string.
     """
-    # Return value should match colord's cd_edid_parse_string in cd-edid.c              # noqa: SC100
+    # Return value should match colord's cd_edid_parse_string in cd-edid.c
     # Remember: In C, NULL terminates a string, so do the same here
     # Replace newline with NULL
     desc = desc[:13].replace(b"\n", b"\x00").replace(b"\r", b"\x00")
@@ -774,7 +774,7 @@ def fix_edid_encoding(edid):
     """
     # this is probably encoded/decoded in a wrong way and contains 2-bytes characters
     #
-    # b"\xc2" and b"\xc3" are codepoints                                                # noqa: SC100
+    # b"\xc2" and b"\xc3" are codepoints
     # they can only appear if the byte data is decoded with latin-1 and encoded
     # back with utf-8.
     # This apparently is a wrong conversion.
@@ -935,8 +935,8 @@ def parse_color_point_data(block):
     """
     result = {}
     for i in (5, 10):
-        # 2nd white point index in range 1...255                                        # noqa: SC100
-        # 3rd white point index in range 2...255                                        # noqa: SC100
+        # 2nd white point index in range 1...255
+        # 3rd white point index in range 2...255
         # 0 = do not use
         if block[i] > i / 5:
             white_x = edid_decode_fraction(

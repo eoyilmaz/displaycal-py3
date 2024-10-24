@@ -255,7 +255,7 @@ def get_display(display_no=0):
     if _displays is None:
         return None
 
-    # Translate from Argyll display index to enumerated display index using the         # noqa: SC100
+    # Translate from Argyll display index to enumerated display index using the
     # coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
 
@@ -286,14 +286,14 @@ def get_wayland_display(x, y, w, h):
     Given x, y, width and height of display geometry, find matching Wayland display.
     """
     # Note that we apparently CANNOT use width and height because the reported
-    # values from Argyll code and Mutter can be slightly different,                     # noqa: SC100
-    # e.g. 3660x1941 from Mutter vs 3656x1941 from Argyll when HiDPI is enabled.        # noqa: SC100
-    # The xrandr output is also interesting in that case:                               # noqa: SC100
-    # $ xrandr                                                                          # noqa: SC100
+    # values from Argyll code and Mutter can be slightly different,
+    # e.g. 3660x1941 from Mutter vs 3656x1941 from Argyll when HiDPI is enabled.
+    # The xrandr output is also interesting in that case:
+    # $ xrandr
     # Screen 0: minimum 320 x 200, current 3660 x 1941, maximum 8192 x 8192
-    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm  # noqa: SC100,B950
-    #   3656x1941     59.96*+                                                           # noqa: SC100
-    # Note the apparent mismatch between first and 2nd/3rd line.                        # noqa: SC100
+    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950
+    #   3656x1941     59.96*+
+    # Note the apparent mismatch between first and 2nd/3rd line.
     # Look for active display at x, y instead.
     # Currently, only support for GNOME 3 / Mutter
     try:
@@ -318,10 +318,10 @@ def get_wayland_display(x, y, w, h):
 def find_matching_output(res, x, y):
     """Find the matching output in the resources."""
     crtcs = res[1]
-    # Look for matching CRTC                                                            # noqa: SC100
+    # Look for matching CRTC
     for crtc in crtcs:
         if crtc[2:4] == (x, y) and crtc[6] != -1:
-            # Found our CRTC                                                            # noqa: SC100
+            # Found our CRTC
             crtc_id = crtc[0]
             # Look for matching output
             outputs = res[2]

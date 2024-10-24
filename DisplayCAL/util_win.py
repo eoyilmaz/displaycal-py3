@@ -49,19 +49,19 @@ except WindowsError:
     psapi = None
 
 
-# Access registry directly instead of Wcs* functions that leak handles                  # noqa: SC100
+# Access registry directly instead of Wcs* functions that leak handles
 USE_REGISTRY = True
 
 
 # DISPLAY_DEVICE structure, StateFlags member
 # http://msdn.microsoft.com/en-us/library/dd183569%28v=vs.85%29.aspx
 
-# wingdi.h                                                                              # noqa: SC100
+# wingdi.h
 
 # Flags for parent devices
 DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = 0x1
 DISPLAY_DEVICE_MIRRORING_DRIVER = 0x8
-# Represents a pseudo device used to mirror application drawing for remoting or         # noqa: SC100
+# Represents a pseudo device used to mirror application drawing for remoting or
 # other purposes.
 # An invisible pseudo monitor is associated with this device.
 # For example, NetMeeting uses it.
@@ -83,17 +83,17 @@ DISPLAY_DEVICE_REMOTE = 0x4000000
 # Flags for child devices
 DISPLAY_DEVICE_ACTIVE = 0x1
 # DISPLAY_DEVICE_ACTIVE specifies whether a monitor is presented as being "on"
-# by the respective GDI view.                                                           # noqa: SC100
+# by the respective GDI view.
 # Windows Vista:
 # EnumDisplayDevices will only enumerate monitors that can be presented as being "on."
 DISPLAY_DEVICE_ATTACHED = 0x2
 
 
-# MONITORINFO structure, dwFlags member                                                 # noqa: SC100
+# MONITORINFO structure, dwFlags member
 # https://msdn.microsoft.com/de-de/library/windows/desktop/dd145065(v=vs.85).aspx
 MONITORINFOF_PRIMARY = 0x1
 
-# Icm.h                                                                                 # noqa: SC100
+# Icm.h
 CLASS_MONITOR = struct.unpack("!L", b"mntr")[0]
 CLASS_PRINTER = struct.unpack("!L", b"prtr")[0]
 CLASS_SCANNER = struct.unpack("!L", b"scnr")[0]
@@ -152,7 +152,7 @@ def calibration_management_isenabled():
         bool: True if calibration is enabled, False otherwise.
     """
     if sys.getwindowsversion() < (6, 1):
-        # Windows XP and Vista don't have calibration management                        # noqa: SC100
+        # Windows XP and Vista don't have calibration management
         return False
     if False:
         # Using registry - NEVER
@@ -244,7 +244,7 @@ def enable_per_user_profiles(enable=True, display_no=0, devicekey=None):
             profiles state.
     """
     if sys.getwindowsversion() < (6,):
-        # Windows XP doesn't have per-user profiles                                     # noqa: SC100
+        # Windows XP doesn't have per-user profiles
         raise NotImplementedError(
             "Per-user profiles are only available in Windows Vista, 7 or later"
         )
@@ -260,7 +260,7 @@ def enable_per_user_profiles(enable=True, display_no=0, devicekey=None):
                 )
         else:
             # Using ctypes - this leaks registry key handles internally in
-            # WcsSetUsePerUserProfiles since Windows 10 1903                            # noqa: SC100
+            # WcsSetUsePerUserProfiles since Windows 10 1903
             mscms = _get_mscms_windll()
             if not mscms:
                 return False
@@ -373,7 +373,7 @@ def get_display_device(
     Returns:
         DisplayDevice: The display device.
     """
-    # The ordering will work as long as Argyll continues using EnumDisplayMonitors      # noqa: SC100
+    # The ordering will work as long as Argyll continues using EnumDisplayMonitors
     monitors = get_real_display_devices_info()
     moninfo = monitors[display_no]
     if use_active_display_device:
@@ -406,7 +406,7 @@ def get_process_filename(pid, handle=0):
         if sys.getwindowsversion() >= (6,):
             dwSize = win32con.MAX_PATH
             while True:
-                dwFlags = 0  # The name should use the Win32 path format                # noqa: SC100
+                dwFlags = 0  # The name should use the Win32 path format
                 lpdwSize = DWORD(dwSize)
                 lpExeName = ctypes.create_unicode_buffer("", lpdwSize.value + 1)
                 success = QueryFullProcessImageNameW(
@@ -512,7 +512,7 @@ def get_real_display_devices_info():
     Returns:
         list: List of monitor info.
     """
-    # See Argyll source spectro/dispwin.c MonitorEnumProc, get_displays                 # noqa: SC100
+    # See Argyll source spectro/dispwin.c MonitorEnumProc, get_displays
     monitors = []
     for monitor in win32api.EnumDisplayMonitors(None, None):
         try:
@@ -555,7 +555,7 @@ def per_user_profiles_isenabled(display_no=0, devicekey=None):
         WindowsError: If an error occurs while querying the registry.
     """
     if sys.getwindowsversion() < (6,):
-        # Windows XP doesn't have per-user profiles                                     # noqa: SC100
+        # Windows XP doesn't have per-user profiles
         return False
     if not devicekey:
         device = get_display_device(display_no)
@@ -572,7 +572,7 @@ def per_user_profiles_isenabled(display_no=0, devicekey=None):
                     raise
         else:
             # Using ctypes - this leaks registry key handles internally in
-            # WcsGetUsePerUserProfiles since Windows 10 1903                            # noqa: SC100
+            # WcsGetUsePerUserProfiles since Windows 10 1903
             mscms = _get_mscms_windll()
             pbool = ctypes.pointer(ctypes.c_bool())
             if not mscms or not mscms.WcsGetUsePerUserProfiles(
@@ -753,9 +753,9 @@ class MSCMS(UnloadableWinDLL):
         self._icm32_handle = None
         UnloadableWinDLL.__init__(self, "mscms.dll")
         if bootstrap_icm32:
-            # Need to load & unload icm32 once before unloading of mscms                # noqa: SC100
+            # Need to load & unload icm32 once before unloading of mscms
             # can work in every situation
-            # (some calls to mscms methods pull in icm32,                               # noqa: SC100
+            # (some calls to mscms methods pull in icm32,
             # if we haven't loaded/unloaded it before, we won't be able to unload then)
             self._icm32_handle = ctypes.WinDLL("icm32")._handle
             _free_library(self._icm32_handle)
@@ -768,7 +768,7 @@ class MSCMS(UnloadableWinDLL):
             mscms = self._windll
             if (
                 mscms
-            ):  # Ensure mscms is not None                                              # noqa: SC100
+            ):  # Ensure mscms is not None
                 mscms.WcsGetDefaultColorProfileSize.restype = ctypes.c_bool
                 mscms.WcsGetDefaultColorProfile.restype = ctypes.c_bool
                 mscms.WcsAssociateColorProfileWithDevice.restype = ctypes.c_bool
@@ -782,7 +782,7 @@ class MSCMS(UnloadableWinDLL):
         """
         if self._windll:
             if self._icm32_handle:
-                # Need to free icm32 first, otherwise mscms won't unload                # noqa: SC100
+                # Need to free icm32 first, otherwise mscms won't unload
                 try:
                     _free_library(self._icm32_handle)
                 except WindowsError as exception:

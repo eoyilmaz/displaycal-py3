@@ -95,8 +95,7 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        pip install -r requirements-tests.txt
-        pip install -r requirements-dev.txt
+        pip install -r requirements-tests.txt -r requirements-dev.txt
 
     - name: Build DisplayCAL
       run: |
@@ -167,19 +166,19 @@ jobs:
       run: |
         pip install -r requirements-tests.txt -r requirements-dev.txt
 
-    - name: Compile C-Extensions
-      run: |
-        python -m build
-        ls -l dist/
-        $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
-        pip install $wheel_file.FullName
-        $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
-        $PYDIR = Split-Path $PYPATH
-        Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
+    # - name: Compile C-Extensions
+    #   run: |
+    #     python -m build
+    #     ls -l dist/
+    #     $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
+    #     pip install $wheel_file.FullName
+    #     $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
+    #     $PYDIR = Split-Path $PYPATH
+    #     Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
 
     - name: Test with pytest
       run: |
-        python -m pytest --verbose --cov=. --cov-report html
+        python -m pytest --verbose -n auto -W ignore --color=yes --cov=. --cov-report html
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v4

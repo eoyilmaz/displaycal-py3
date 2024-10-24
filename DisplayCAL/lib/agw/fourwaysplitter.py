@@ -139,6 +139,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 
 Version 0.5
 """
+from typing import Union
 
 import wx
 
@@ -188,18 +189,18 @@ class FourWaySplitterEvent(wx.CommandEvent):
     """This event class adds a sash index accessor to :class:`SplitterEvent`.
 
     The same event type IDs and event binders are used as with :class:`SplitterEvent`.
+
+    Args:
+        evtType (int): the event type;
+        splitter (Union[None, FourWaySplitter]): The associated :class:`FourWaySplitter`
+            window.
     """
 
     def __init__(
-        self, evtType: int = wx.wxEVT_NULL, splitter: "None | FourWaySplitter" = None
+        self,
+        evtType: int = wx.wxEVT_NULL,
+        splitter: Union[None, "FourWaySplitter"] = None,
     ) -> None:
-        """Construct the default class.
-
-        Args:
-            evtType (int): the event type;
-            splitter ("None | FourWaySplitter"): the associated :class:`FourWaySplitter`
-                window.
-        """
         wx.CommandEvent.__init__(self, evtType)
 
         if splitter:
@@ -1162,14 +1163,12 @@ if __name__ == "__main__":
         MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.
 
         It initializes a frame with a FourWaySplitter containing four colored panels.
+
+        Args:
+            parent (wx.Window | None): The parent window for this frame.
         """
 
         def __init__(self, parent: wx.Window | None) -> None:
-            """Initialize the MyFrame with a FourWaySplitter and four colored panels.
-
-            Args:
-                parent (wx.Window | None): The parent window for this frame.
-            """
             wx.Frame.__init__(self, parent, -1, "FourWaySplitter Demo")
 
             splitter = FourWaySplitter(self, -1, agwStyle=wx.SP_LIVE_UPDATE)

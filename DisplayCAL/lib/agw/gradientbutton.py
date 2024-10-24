@@ -129,6 +129,8 @@ Latest Revision: Andrea Gavana @ 27 Dec 2012, 21.00 GMT
 Version 0.3
 """
 
+from typing import Union
+
 import wx
 
 
@@ -139,46 +141,61 @@ CLICK = 2
 
 
 class GradientButtonEvent(wx.PyCommandEvent):
-    """Event sent from :class:`GradientButton` when the button is activated."""
+    """Event sent from :class:`GradientButton` when the button is activated.
+
+    Args:
+        eventType (int): the event type;
+        eventId (int): the event identifier.
+    """
 
     def __init__(self, eventType: int, eventId: int) -> None:
-        """Construct the default class.
-
-        Args:
-            eventType (int): the event type;
-            eventId (int): the event identifier.
-        """
         wx.PyCommandEvent.__init__(self, eventType, eventId)
-        self.isDown: bool = False
-        self.theButton: None | GradientButton = None
+        self.isDown = False
+        self.theButton: Union[None, GradientButton] = None
 
     def SetButtonObj(self, btn: "GradientButton") -> None:
         """Set the event object for the event.
 
         Args:
-            btn ('GradientButton'): the button object,
-                an instance of :class:`GradientButton`.
+            btn ('GradientButton'): The button object.
         """
         self.theButton = btn
 
-    def GetButtonObj(self) -> "None | GradientButton":
+    def GetButtonObj(self) -> Union[None, "GradientButton"]:
         """Return the object associated with this event.
 
         Returns:
-            None | GradientButton: The button object associated with this event,
+            Union[None, GradientButton]: The button object associated with this event,
                 or None if no button is associated.
         """
         return self.theButton
 
 
 class GradientButton(wx.Control):
-    """This is the main class implementation of :class:`GradientButton`."""
+    """This is the main class implementation of :class:`GradientButton`.
+
+    Args:
+        parent ('GradientButton'): The :class:`GradientButton` parent;
+        id (int): Window identifier. A value of -1 indicates a default value.
+        bitmap (None | wx.Bitmap): The button bitmap (if any);
+        label (str): The button text label;
+        pos (wx.Point): The control position.
+            A value of (-1, -1) indicates a default position, chosen by either the
+            windowing system or wxPython, depending on platform;
+        size (wx.Size): The control size.
+            A value of (-1, -1) indicates a default size, chosen by either the
+            windowing system or wxPython, depending on platform;
+        style (int): The button style (unused);
+        align (int): Text/bitmap alignment. wx.CENTER or wx.LEFT;
+        validator (wx.Validator): The validator associated to the button;
+        name (str): the button name.
+    """
 
     def __init__(
         self,
         parent: "GradientButton",
         id: int = wx.ID_ANY,
-        bitmap: None | wx.Bitmap = None,
+        bitmap: Union[None, wx.Bitmap] = None,
         label: str = "",
         pos: wx.Point = wx.DefaultPosition,
         size: wx.Size = wx.DefaultSize,
@@ -187,24 +204,6 @@ class GradientButton(wx.Control):
         validator: wx.Validator = wx.DefaultValidator,
         name: str = "gradientbutton",
     ) -> None:
-        """Construct the default class.
-
-        Args:
-            parent ('GradientButton'): The :class:`GradientButton` parent;
-            id (int): Window identifier. A value of -1 indicates a default value.
-            bitmap (None | wx.Bitmap): The button bitmap (if any);
-            label (str): The button text label;
-            pos (wx.Point): The control position.
-                A value of (-1, -1) indicates a default position, chosen by either the
-                windowing system or wxPython, depending on platform;
-            size (wx.Size): The control size.
-                A value of (-1, -1) indicates a default size, chosen by either the
-                windowing system or wxPython, depending on platform;
-            style (int): The button style (unused);
-            align (int): Text/bitmap alignment. wx.CENTER or wx.LEFT;
-            validator (wx.Validator): The validator associated to the button;
-            name (str): the button name.
-        """
         super().__init__(parent, id, pos, size, style, validator, name)
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -222,7 +221,7 @@ class GradientButton(wx.Control):
 
         self._mouseAction = None
         self._hasFocus = False
-        self._alignment: int = align
+        self._alignment = align
         self.SetBitmapLabel(bitmap)
 
         self.SetLabel(label)
@@ -231,38 +230,43 @@ class GradientButton(wx.Control):
 
         self.SetBaseColours()
 
-    def SetBitmapLabel(self, bitmap: wx.Bitmap | None) -> None:
+    def SetBitmapLabel(self, bitmap: Union[None, wx.Bitmap]) -> None:
         """Set the bitmap label for the button.
 
         Args:
-            bitmap (wx.Bitmap | None): the bitmap label to set,
-                an instance of :class:`wx.Bitmap`.
+            bitmap (Union[Non, wx.Bitmap]): the bitmap label to set,.
         """
-        self._bitmap: wx.Bitmap | None = bitmap
+        self._bitmap = bitmap
         self.Refresh()
 
     def SetBaseColours(
-        self, startcolour: wx.Colour = wx.BLACK, foregroundcolour: wx.Colour = wx.WHITE
+        self,
+        startcolour: Union[None, wx.Colour] = None,
+        foregroundcolour: Union[None, wx.Colour] = None, 
     ) -> None:
         """Set the bottom, top, pressed and foreground colour.
 
         Args:
-            startcolour (wx.Colour): based colour to be used for bottom, top and pressed
-            foregroundcolour (wx.Colour): colour used for the text
+            startcolour (wx.Colour): based colour to be used for bottom, top and
+                pressed.
+            foregroundcolour (wx.Colour): colour used for the text.
         """
-        self._bottomStartColour: wx.Colour = startcolour
-        rgba: tuple[int, int, int, int] = (
+        if startcolour is None:
+            startcolour = wx.BLACK
+        if foregroundcolour is None:
+            foregroundcolour = wx.WHITE
+
+        self._bottomStartColour = startcolour
+        rgba = (
             self._bottomStartColour.Red(),
             self._bottomStartColour.Green(),
             self._bottomStartColour.Blue(),
             self._bottomStartColour.Alpha(),
         )
-        self._bottomEndColour: wx.Colour = self.LightColour(self._bottomStartColour, 20)
-        self._topStartColour: wx.Colour = self.LightColour(self._bottomStartColour, 40)
-        self._topEndColour: wx.Colour = self.LightColour(self._bottomStartColour, 25)
-        self._pressedTopColour: wx.Colour = self.LightColour(
-            self._bottomStartColour, 20
-        )
+        self._bottomEndColour = self.LightColour(self._bottomStartColour, 20)
+        self._topStartColour = self.LightColour(self._bottomStartColour, 40)
+        self._topEndColour = self.LightColour(self._bottomStartColour, 25)
+        self._pressedTopColour = self.LightColour(self._bottomStartColour, 20)
         self._pressedBottomColour = wx.Colour(*rgba)
         self.SetForegroundColour(foregroundcolour)
 
@@ -279,18 +283,18 @@ class GradientButton(wx.Control):
         Returns:
             wx.Colour: The lightened colour.
         """
-        end_colour: wx.Colour = wx.WHITE
-        rd: int = end_colour.Red() - colour.Red()
-        gd: int = end_colour.Green() - colour.Green()
-        bd: int = end_colour.Blue() - colour.Blue()
+        end_colour = wx.WHITE
+        rd = end_colour.Red() - colour.Red()
+        gd = end_colour.Green() - colour.Green()
+        bd = end_colour.Blue() - colour.Blue()
         high = 100
 
         # We take the percent way of the colour from colour -. white
-        i: int = percent
-        r: float = colour.Red() + ((i * rd * 100) / high) / 100
-        g: float = colour.Green() + ((i * gd * 100) / high) / 100
-        b: float = colour.Blue() + ((i * bd * 100) / high) / 100
-        a: float = colour.Alpha()
+        i = percent
+        r = colour.Red() + ((i * rd * 100) / high) / 100
+        g = colour.Green() + ((i * gd * 100) / high) / 100
+        b = colour.Blue() + ((i * bd * 100) / high) / 100
+        a = colour.Alpha()
 
         return wx.Colour(int(r), int(g), int(b), int(a))
 

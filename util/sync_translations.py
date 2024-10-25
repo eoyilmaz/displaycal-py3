@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from io import StringIO, BytesIO
-import codecs
+from io import BytesIO
 import os
 import re
 import sys
-import textwrap
-
-import ppdir
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, root)

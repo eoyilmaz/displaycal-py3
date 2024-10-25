@@ -34,7 +34,6 @@ import os
 import platform
 import re
 import shutil
-import subprocess as sp
 import sys
 from time import strftime
 
@@ -1260,7 +1259,7 @@ def setup():
                     print(attrname, getattr(cmd, attrname))
         if debug > 1:
             try:
-                from ppdir import ppdir
+                from util.ppdir import ppdir
             except ImportError:
                 pass
             else:

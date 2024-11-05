@@ -1310,13 +1310,38 @@ class LUT3DMixin(object):
 
     def lut3d_update_trc_controls(self):
         self.lut3d_update_trc_control()
+
+        #FIXME: for whatever reason, profiling resets some controls on the 3D-lut page. Perhaps a wx issue?
+        #! FOR NOW, use this hacky fix
+
+        # Save user's selected TRC gamma and black output offset type before updating controls
+        current_gamma_type = self.lut3d_trc_gamma_type_ctrl.GetSelection()
+        current_black_output_offset = self.lut3d_trc_black_output_offset_ctrl.GetValue()
+
         self.lut3d_trc_gamma_ctrl.SetValue(str(self.getcfg("3dlut.trc_gamma")))
         self.lut3d_trc_gamma_type_ctrl.SetSelection(
             self.trc_gamma_types_ba[self.getcfg("3dlut.trc_gamma_type")]
         )
+
+        # HACK If the profiling forced a reset, restore user's selection
+        if self.lut3d_trc_gamma_type_ctrl.GetSelection() != current_gamma_type:
+            self.lut3d_trc_gamma_type_ctrl.SetSelection(current_gamma_type)
+            self.setcfg("3dlut.apply_trc", current_gamma_type)
+
         outoffset = int(self.getcfg("3dlut.trc_output_offset") * 100)
         self.lut3d_trc_black_output_offset_ctrl.SetValue(outoffset)
         self.lut3d_trc_black_output_offset_intctrl.SetValue(outoffset)
+        
+        
+        # HACK If profiling forced a reset, restore user's selection
+        if self.lut3d_trc_black_output_offset_ctrl.GetValue() != current_black_output_offset:
+            #FIXME: likely broken for some configurations
+            if current_black_output_offset != 0:
+                self.setcfg("3dlut.trc", "custom")
+            self.lut3d_trc_black_output_offset_ctrl.SetValue(current_black_output_offset)
+            self.lut3d_trc_black_output_offset_intctrl.SetValue(current_black_output_offset)
+            self.setcfg("3dlut.apply_black_offset", float(current_black_output_offset / 100))
+
         target_peak = self.getcfg("3dlut.hdr_peak_luminance")
         maxmll = self.getcfg("3dlut.hdr_maxmll")
         # Don't allow maxmll < target peak. Technically this restriction does

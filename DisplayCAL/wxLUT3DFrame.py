@@ -273,6 +273,16 @@ class LUT3DMixin(object):
         v = self.lut3d_hdr_hue_ctrl.GetValue() / 100.0
         if v != self.getcfg("3dlut.hdr_hue"):
             self.lut3d_set_option("3dlut.hdr_hue", v)
+    
+    def set_custom_gamma(self):
+        '''
+        used to handle situations where custom gamma
+        is set by the blackoffset changing or user input
+        '''
+        self.lut3d_set_option("3dlut.trc", "customgamma")
+        self.lut3d_trc_ctrl.SetSelection(5)
+        self.lut3d_update_trc_controls()
+        self.lut3d_show_trc_controls()
 
     def lut3d_trc_black_output_offset_ctrl_handler(self, event):
         if event.GetId() == self.lut3d_trc_black_output_offset_intctrl.GetId():
@@ -286,7 +296,12 @@ class LUT3DMixin(object):
         v = self.lut3d_trc_black_output_offset_ctrl.GetValue() / 100.0
         if v != self.getcfg("3dlut.trc_output_offset"):
             self.lut3d_set_option("3dlut.trc_output_offset", v)
-            self.lut3d_update_trc_control()
+            #HACK to make sure user configuration is updated even if 'custom'
+            # is set by the offset setting instead of user input
+            if v > 0 and self.getcfg("3dlut.trc_gamma_type") == "b":
+                self.set_custom_gamma()
+            else:
+                self.lut3d_update_trc_control()
         # self.lut3d_show_trc_controls()
 
     def lut3d_trc_gamma_ctrl_handler(self, event):
@@ -335,14 +350,11 @@ class LUT3DMixin(object):
             self.lut3d_set_option("3dlut.trc_output_offset", 0.0)
             trc = "hlg"
         else:
-            trc = "customgamma"
-            # Have to use CallAfter, otherwise only part of the text will
-            # be selected (wxPython bug?)
-            wx.CallAfter(self.lut3d_trc_gamma_ctrl.SetFocus)
-            wx.CallLater(1, self.lut3d_trc_gamma_ctrl.SelectAll)
+            #FIXME: this is not reached when custom is set by program configuration instead of user
+            self.set_custom_gamma()
+            return
         self.lut3d_set_option("3dlut.trc", trc)
-        if trc != "customgamma":
-            self.lut3d_update_trc_controls()
+        self.lut3d_update_trc_controls()
         self.lut3d_show_trc_controls()
         self.Thaw()
 

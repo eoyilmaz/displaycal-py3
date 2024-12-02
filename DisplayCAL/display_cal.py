@@ -5240,7 +5240,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.trc_textctrl.SetValue(str(trc))
             self.trc_type_ctrl.SetSelection(1)
         else:
-            if trc:
+            if trc == '':
                 if (
                     trc == 2.2
                     and getcfg("trc.type") == "g"

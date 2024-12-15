@@ -1343,6 +1343,10 @@ class LUTFrame(BaseFrame):
         elif profile.connectionColorSpace == b"RGB":
             direction = "f"
         elif "B2A0" in profile.tags:
+            index = self.direction_select.GetSelection()
+            if index == -1:  # Fix for #31
+                index = 0
+                self.direction_select.SetSelection(index)
             direction = {0: "b", 1: "if", 2: "f", 3: "ib"}.get(
                 self.direction_select.GetSelection()
             )

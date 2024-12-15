@@ -12785,6 +12785,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             if defaultFile:
                 dlg.reference_ti3.SetPath(os.path.join(defaultDir, defaultFile))
+                wx.CallAfter(dlg.reference_ti3.setupControl)
             dlg.reference_ti3.changeCallback = check_last_ccxx_ti3
             dlg.reference_ti3.SetMaxFontSize(11)
             dlg.reference_ti3_droptarget = FileDrop(dlg)
@@ -12909,6 +12910,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             if defaultFile:
                 dlg.colorimeter_ti3.SetPath(os.path.join(defaultDir, defaultFile))
+                wx.CallAfter(dlg.colorimeter_ti3.setupControl)
             dlg.colorimeter_ti3.changeCallback = check_last_ccxx_ti3
             dlg.colorimeter_ti3.SetMaxFontSize(11)
             dlg.colorimeter_ti3_droptarget = FileDrop(dlg)

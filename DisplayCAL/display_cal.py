@@ -12700,7 +12700,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if debug or verbose >= 2:
                             print("cgats_observer =", cgats_observer)
                         if (
-                            cgats_instrument != instrument
+                            cgats_instrument.decode("utf-8") != instrument
                             or cgats_measurement_mode != measurement_mode
                             or cgats_observer.decode("utf-8") != observer
                         ):

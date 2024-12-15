@@ -12668,6 +12668,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 cgats_measurement_mode += "V"
                             if (
                                 instrument_features.get("highres_mode")
+                                and cgats.queryv1("SPECTRAL_BANDS") is not None
                                 and cgats.queryv1("SPECTRAL_BANDS") > 36
                             ):
                                 cgats_measurement_mode += "H"

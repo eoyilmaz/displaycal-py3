@@ -50,7 +50,7 @@ Create a virtual environment:
 ```shell
 cd ~
 python -m venv venv-displaycal
-source venv-diplaycal/bin/activate
+source venv-displaycal/bin/activate
 pip install displaycal
 ```
 

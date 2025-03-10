@@ -6,6 +6,9 @@ import shutil
 import sys
 import traceback
 
+if sys.platform == "win32":
+    import win32api
+
 from DisplayCAL import (
     ICCProfile as ICCP,
     colormath,
@@ -60,9 +63,6 @@ from DisplayCAL.wxwindows import (
 )
 
 from wx import xrc
-
-if sys.platform == "win32":
-    import win32api
 
 
 class LUT3DMixin(object):

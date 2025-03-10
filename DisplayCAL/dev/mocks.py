@@ -26,7 +26,7 @@ def _mp_call(
     method: str,
     return_value: Any,
     as_property: bool,
-) -> Generator[CallList, None, None]:
+) -> CallList:
     ...
 
 
@@ -37,18 +37,17 @@ def _mp_call(
     mock_class: str,
     method: Any,  # return value in this case
     return_value: bool,  # as_property in this case
-) -> Generator[CallList, None, None]:
+) -> CallList:
     ...
 
 
-@contextlib.contextmanager
 def _mp_call(
     monkeypatch: MonkeyPatch,
     mock_class: Type[Any] | ModuleType | str,
     method: str | Any,
     return_value: Any,
     as_property: bool = False,
-) -> Generator[CallList, None, None]:
+) -> CallList:
     """Mock a method in a class and record the calls to it.
 
     If the given return_value is an Exception, it will be raised.
@@ -78,10 +77,7 @@ def _mp_call(
         monkeypatch.setattr(mock_class, callback)
     else:
         monkeypatch.setattr(mock_class, method, callback)
-    try:
-        yield calls
-    finally:
-        monkeypatch.undo()
+    return calls
 
 
 @contextlib.contextmanager

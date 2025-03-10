@@ -1,10 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [
-    "pywin32; sys_platform == 'win32'",
-    "setuptools",
-    "wxPython >= 4.2.2",
-]
+requires = ["setuptools"]
 
 [project]
 authors = [
@@ -13,54 +9,23 @@ authors = [
     {name = "Patrick Zwerschke", email = "patrick@p5k.org"},
 ]
 classifiers = [
-    # Maturity of this project. Common values are
-    #   3 - Alpha
-    #   4 - Beta
-    #   5 - Production/Stable
     "Development Status :: 5 - Production/Stable",
-
     "Environment :: MacOS X",
     "Environment :: Win32 (MS Windows)",
     "Environment :: X11 Applications",
-
-    # Who the project is intended for
     "Intended Audience :: End Users/Desktop",
-
-    # License
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-
     "Operating System :: OS Independent",
-
-    # Supported Python versions.
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-
     "Topic :: Multimedia :: Graphics",
 ]
-dependencies = [
-    "build",
-    "certifi",
-    "comtypes; sys_platform == 'win32'",
-    "dbus-python; sys_platform == 'linux'",
-    "distro",
-    "future",
-    "numpy",
-    "pillow",
-    "protobuf",
-    "PyChromecast",
-    "pywin32; sys_platform == 'win32'",
-    "QtPy",
-    "Send2Trash",
-    "WMI; sys_platform == 'win32'",
-    "wxPython >= 4.2.2",
-    "zeroconf",
-]
 description = "Display calibration and profiling with a focus on accuracy and versatility"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 maintainers = [
     {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
 ]
@@ -68,50 +33,86 @@ name = "DispayCAL"
 readme = "README.md"
 requires-python = ">= 3.8"
 
-[project.optional-dependencies]
-dev = [
-    "black",
-    "coverage",
-    "darglint",
-    "flake8",
-    "flake8-bugbear",
-    "flake8-docstrings",
-    "flake8-import-order",
-    "flake8-mutable",
-    "flake8-pep3101",
-    "flake8-spellcheck",
-    "matplotlib",
-    "ppdir",
-    "py2app; sys_platform == 'darwin'",
-    "py2exe; sys_platform == 'win32'",
-    "pyglet",
-    "pytest",
-    "pytest-cov",
-    "pytest-github-actions-annotate-failures",
-    "pytest-xdist",
-    "snowballstemmer",
-    "twine",
-    "wheel",
-]
-tests = [
-    "build",
-    "certifi",
-    "dbus-python; sys_platform == 'linux'",
-    "distro",
-    "numpy",
-    "pillow",
-    "PyChromecast",
-    "Send2Trash",
-    "wxPython >= 4.2.2; python_version >= '3.12'",
-    "wxPython >= 4.1.1; python_version < '3.12'",
-    "zeroconf",
+[project.urls]
+"Home Page" = "https://displaycal.net/"
+GitHub = "https://github.com/eoyilmaz/displaycal-py3"
+Repository = "https://github.com/eoyilmaz/displaycal-py3.git"
+Download = "https://github.com/eoyilmaz/displaycal-py3/releases/"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["./"]
+
+[tool.setuptools.package-data]
+DisplayCAL = ["VERSION", "py.typed"]
+
+[tool.setuptools.exclude-package-data]
+DisplayCAL = [
+    "docs",
+    "man",
+    "misc",
+    "screenshots",
+    "test_dir",
+    "tests",
+    "theme",
+    "util"
 ]
 
-[project.urls]
-Homepage = "https://displaycal.net/"
-Download = "https://github.com/eoyilmaz/displaycal-py3/releases/download/3.9.14/DisplayCAL-3.9.14.tar.gz"
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies.test = { file = ["requirements-dev.txt"] }
+version = { file = ["VERSION"] }
+
+[tool.black]
+
+[tool.flake8]
+exclude = [
+    ".github",
+    "__pycache__",
+    ".coverage",
+    ".DS_Store",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "build",
+    "DisplayCAL.egg-info",
+    "dist",
+    "docs",
+    "misc",
+    "screenshots",
+    "test_dir",
+    "tests",
+    "theme",
+    "util",
+]
+extend-select = ["B950"]
+ignore = ["D107", "E203", "E501", "E701", "SC200", "W503"]
+max-complexity = 12
+max-line-length = 80
 
 [tool.pytest.ini_options]
 pythonpath = [
     ".",
 ]
+
+[tool.tox]
+requires = ["tox>=4.23.2"]
+env_list = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+[tool.tox.env_run_base]
+description = "run the tests with pytest"
+package = "wheel"
+wheel_build_env = ".pkg"
+deps = [
+    "pytest>=6",
+    "pytest-cov",
+    "pytest-xdist",
+]
+commands = [
+    ["pytest"],
+]
+
+[tool.mypy]

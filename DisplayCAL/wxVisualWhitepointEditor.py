@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Visual whitepoint editor.
+"""Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
 
@@ -165,11 +164,9 @@ def AngleFromPoint(pt, center):
     y = -1 * (pt.y - center.y)
     x = pt.x - center.x
     if x == 0 and y == 0:
-
         return 0.0
 
     else:
-
         return atan2(y, x)
 
 
@@ -391,7 +388,6 @@ class AuiManager_LRDocking(aui.AuiManager):
             return False, target
 
         if part.type == aui.AuiDockUIPart.typeDockSizer:
-
             if len(part.dock.panes) != 1:
                 return False, target
 
@@ -438,7 +434,6 @@ class AuiManager_LRDocking(aui.AuiManager):
                 insert_dock_row = True
 
         elif direction == aui.AUI_DOCK_CENTER:
-
             # "new row pixels" will be set to the default, but
             # must never exceed 20% of the window size
             new_row_pixels_x = s(20)
@@ -472,7 +467,6 @@ class AuiManager_LRDocking(aui.AuiManager):
             insert_row = aui.GetMaxRow(panes, insert_dir, insert_layer) + 1
 
         if insert_dock_row:
-
             panes = aui.DoInsertDockRow(panes, insert_dir, insert_layer, insert_row)
             drop.Dock().Direction(insert_dir).Layer(insert_layer).Row(
                 insert_row
@@ -484,12 +478,10 @@ class AuiManager_LRDocking(aui.AuiManager):
         # direction of the dock itself, and perpendicular to the dock
 
         if part.orientation == wx.VERTICAL:
-
             offset = pt.y - part.rect.y
             size = part.rect.GetHeight()
 
         else:
-
             offset = pt.x - part.rect.x
             size = part.rect.GetWidth()
 
@@ -498,7 +490,6 @@ class AuiManager_LRDocking(aui.AuiManager):
         # if we are in the top/left part of the pane,
         # insert the pane before the pane being hovered over
         if offset <= size / 2:
-
             drop_position = part.pane.dock_pos
             panes = aui.DoInsertPane(
                 panes,
@@ -511,7 +502,6 @@ class AuiManager_LRDocking(aui.AuiManager):
         # if we are in the bottom/right part of the pane,
         # insert the pane before the pane being hovered over
         if offset > size / 2:
-
             drop_position = part.pane.dock_pos + 1
             panes = aui.DoInsertPane(
                 panes,
@@ -557,49 +547,40 @@ class Colour(object):
         hue = float(self.h)
 
         if self.h > 300 or self.h <= 60:
-
             self.r = maxVal
 
             if self.h > 300:
-
                 self.g = int(round(minVal))
                 hue = (hue - 360.0) / 60.0
                 self.b = int(round(-(hue * delta - minVal)))
 
             else:
-
                 self.b = int(round(minVal))
                 hue = hue / 60.0
                 self.g = int(round(hue * delta + minVal))
 
         elif 60 < self.h < 180:
-
             self.g = int(round(maxVal))
 
             if self.h < 120:
-
                 self.b = int(round(minVal))
                 hue = (hue / 60.0 - 2.0) * delta
                 self.r = int(round(minVal - hue))
 
             else:
-
                 self.r = int(round(minVal))
                 hue = (hue / 60.0 - 2.0) * delta
                 self.b = int(round(minVal + hue))
 
         else:
-
             self.b = int(round(maxVal))
 
             if self.h < 240:
-
                 self.r = int(round(minVal))
                 hue = (hue / 60.0 - 4.0) * delta
                 self.g = int(round(minVal - hue))
 
             else:
-
                 self.g = int(round(minVal))
                 hue = (hue / 60.0 - 4.0) * delta
                 self.r = int(round(minVal + hue))
@@ -614,33 +595,26 @@ class Colour(object):
         self.v = int(round(maxVal))
 
         if abs(delta) < 1e-6:
-
             self.h = self.s = 0
 
         else:
-
             temp = delta / maxVal
             self.s = int(round(temp * 255.0))
 
             if self.r == int(round(maxVal)):
-
                 temp = float(self.g - self.b) / delta
 
             elif self.g == int(round(maxVal)):
-
                 temp = 2.0 + (float(self.b - self.r) / delta)
 
             else:
-
                 temp = 4.0 + (float(self.r - self.g) / delta)
 
             temp *= 60
             if temp < 0:
-
                 temp += 360
 
             elif temp >= 360.0:
-
                 temp = 0
 
             self.h = int(round(temp))
@@ -1565,7 +1539,7 @@ class ProfileManager(object):
         self._profiles = {}
         self._srgb_profile = ICCP.ICCProfile.from_named_rgb_space("sRGB")
         self._srgb_profile.setDescription(
-            appname + " Visual Whitepoint Editor " "Temporary Profile"
+            f"{appname} Visual Whitepoint Editor Temporary Profile"
         )
         self._srgb_profile.calculateID()
         self._window = window
@@ -1897,9 +1871,7 @@ class VisualWhitepointEditor(wx.Frame):
         )
         self.zoomnormalbutton.BackgroundColour = self.mainPanel.BackgroundColour
         self.Bind(wx.EVT_BUTTON, self.zoomnormal_handler, self.zoomnormalbutton)
-        self.zoomnormalbutton.SetToolTipString(
-            lang.getstr("measureframe." "zoomnormal")
-        )
+        self.zoomnormalbutton.SetToolTipString(lang.getstr("measureframe.zoomnormal"))
         self.area_x_slider = HSlider(
             self.mainPanel, int(round(x * 1000)), 0, 1000, self.area_handler
         )
@@ -2002,8 +1974,9 @@ class VisualWhitepointEditor(wx.Frame):
             else:
                 minClientSize = self.WindowToClientSize(self.MinSize)
             w, h = self.newColourPanel.Size
-            self.ClientSize = mainPanelSize[0] + w + s(26), max(
-                minClientSize[1], h + s(26)
+            self.ClientSize = (
+                mainPanelSize[0] + w + s(26),
+                max(minClientSize[1], h + s(26)),
             )
             if sys.platform not in ("win32", "darwin"):
                 correction = s(40)
@@ -2367,7 +2340,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         originalVal = getattr(self._colour, attribute)
         if colourVal != originalVal and self._initOver:
-
             if colourVal < 0:
                 colourVal = 0
             if colourVal > maxVal:

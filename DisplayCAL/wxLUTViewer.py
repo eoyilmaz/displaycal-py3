@@ -5,6 +5,8 @@ import os
 import re
 import sys
 
+import numpy
+
 from DisplayCAL import (
     ICCProfile as ICCP,
     colormath,
@@ -53,8 +55,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     TooltipWindow,
 )
-
-import numpy
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"

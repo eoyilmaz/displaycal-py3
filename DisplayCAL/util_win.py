@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
+"""This module provides utility functions for interacting with Windows-specific
+features, such as display devices, process management, and color management.
 """
-util_win.py.
 
-This module provides utility functions for interacting with Windows-specific features,
-such as display devices, process management, and color management.
-"""
 import ctypes
+from ctypes import POINTER, byref, sizeof, windll, wintypes
+from ctypes.wintypes import DWORD, HANDLE, LPWSTR
+import _ctypes
 import platform
 import struct
 import sys
-from ctypes import POINTER, byref, sizeof, windll, wintypes
-from ctypes.wintypes import DWORD, HANDLE, LPWSTR
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
-from DisplayCAL.util_os import quote_args
-from DisplayCAL.win_structs import UNICODE_STRING
-
-import _ctypes
 
 import pywintypes
 
@@ -28,8 +24,15 @@ import win32con
 import win32process
 
 import winerror
-
 import winreg
+
+from DisplayCAL.util_os import quote_args
+from DisplayCAL.win_structs import UNICODE_STRING
+
+
+if TYPE_CHECKING:
+    from _win32typing import PyDISPLAY_DEVICE
+
 
 if not hasattr(ctypes, "c_bool"):
     # Python 2.5
@@ -61,17 +64,22 @@ USE_REGISTRY = True
 # Flags for parent devices
 DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = 0x1
 DISPLAY_DEVICE_MIRRORING_DRIVER = 0x8
-# Represents a pseudo device used to mirror application drawing for remoting or
-# other purposes.
-# An invisible pseudo monitor is associated with this device.
-# For example, NetMeeting uses it.
-# Note that GetSystemMetrics (SM_MONITORS) only accounts for visible display monitors.
+"""Represents a pseudo device used to mirror application drawing for remoting or
+other purposes.
+
+An invisible pseudo monitor is associated with this device.
+
+For example, NetMeeting uses it.
+Note that GetSystemMetrics (SM_MONITORS) only accounts for visible display monitors.
+"""
 DISPLAY_DEVICE_MODESPRUNED = (
     0x8000000  # The device has more display modes than its output devices support.
 )
-DISPLAY_DEVICE_PRIMARY_DEVICE = 0x4  # The primary desktop is on the device.
-# For a system with a single display card, this is always set.
-# For a system with multiple display cards, only one device can have this set.
+DISPLAY_DEVICE_PRIMARY_DEVICE = 0x4
+"""The primary desktop is on the device.
+For a system with a single display card, this is always set.
+For a system with multiple display cards, only one device can have this set.
+"""
 DISPLAY_DEVICE_REMOVABLE = (
     0x20  # The device is removable; it cannot be the primary display.
 )
@@ -82,10 +90,12 @@ DISPLAY_DEVICE_REMOTE = 0x4000000
 
 # Flags for child devices
 DISPLAY_DEVICE_ACTIVE = 0x1
-# DISPLAY_DEVICE_ACTIVE specifies whether a monitor is presented as being "on"
-# by the respective GDI view.
-# Windows Vista:
-# EnumDisplayDevices will only enumerate monitors that can be presented as being "on."
+"""DISPLAY_DEVICE_ACTIVE specifies whether a monitor is presented as being "on"
+by the respective GDI view.
+
+Windows Vista:
+EnumDisplayDevices will only enumerate monitors that can be presented as being "on."
+"""
 DISPLAY_DEVICE_ATTACHED = 0x2
 
 
@@ -122,15 +132,14 @@ def _get_icm_display_device_key(devicekey):
     return winreg.CreateKey(winreg.HKEY_CURRENT_USER, subkey)
 
 
-class MSCMSLoader:
+class MSCMSLoader(object):
     """Loader class for MSCMS."""
 
     _windll = None
 
     @classmethod
     def get_mscms_windll(cls):
-        """
-        Get the MSCMS windll instance.
+        """Get the MSCMS windll instance.
 
         Returns:
             MSCMS: The MSCMS windll instance.
@@ -144,9 +153,8 @@ def _get_mscms_windll():
     return MSCMSLoader.get_mscms_windll()
 
 
-def calibration_management_isenabled():
-    """
-    Check if calibration is enabled under Windows 7.
+def calibration_management_isenabled() -> bool:
+    """Check if calibration is enabled under Windows 7.
 
     Returns:
         bool: True if calibration is enabled, False otherwise.
@@ -176,9 +184,8 @@ def disable_calibration_management():
     enable_calibration_management(False)
 
 
-def disable_per_user_profiles(display_no=0):
-    """
-    Disable per user profiles under Vista/Windows 7.
+def disable_per_user_profiles(display_no: int = 0) -> None:
+    """Disable per user profiles under Vista/Windows 7.
 
     Args:
         display_no (int): The display number.
@@ -186,20 +193,19 @@ def disable_per_user_profiles(display_no=0):
     enable_per_user_profiles(False, display_no)
 
 
-def enable_calibration_management(enable=True):
-    """
-    Enable calibration loading under Windows 7.
+def enable_calibration_management(enable: bool = True) -> bool:
+    """Enable calibration loading under Windows 7.
 
     Args:
         enable (bool): Whether to enable calibration management.
-
-    Returns:
-        bool: True if successful, False otherwise.
 
     Raises:
         NotImplementedError: If the OS version is less than Windows 7.
         get_windows_error: If an error occurs while setting the calibration
             management state.
+
+    Returns:
+        bool: True if successful, False otherwise.
     """
     if sys.getwindowsversion() < (6, 1):
         raise NotImplementedError(
@@ -226,22 +232,23 @@ def enable_calibration_management(enable=True):
         return True
 
 
-def enable_per_user_profiles(enable=True, display_no=0, devicekey=None):
-    """
-    Enable per user profiles under Vista/Windows 7.
+def enable_per_user_profiles(
+    enable: bool = True, display_no: int = 0, devicekey: str = None
+) -> bool:
+    """Enable per user profiles under Vista/Windows 7.
 
     Args:
         enable (bool): Whether to enable per user profiles.
         display_no (int): The display number.
         devicekey (str): The device key.
 
-    Returns:
-        bool: True if successful, False otherwise.
-
     Raises:
         NotImplementedError: If the OS version is less than Windows Vista.
         get_windows_error: If an error occurs while setting the per user
             profiles state.
+
+    Returns:
+        bool: True if successful, False otherwise.
     """
     if sys.getwindowsversion() < (6,):
         # Windows XP doesn't have per-user profiles
@@ -271,9 +278,8 @@ def enable_per_user_profiles(enable=True, display_no=0, devicekey=None):
         return True
 
 
-def get_display_devices(devicename):
-    r"""
-    Get all display devices of an output (there can be several).
+def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
+    r"""Get all display devices of an output (there can be several).
 
     Example usage:
         get_display_devices('\\\\.\\DISPLAY1')
@@ -283,7 +289,7 @@ def get_display_devices(devicename):
         devicename (str): The device name.
 
     Returns:
-        list: List of display devices.
+        List[PyDISPLAY_DEVICE]: List of display devices.
     """
     devices = []
     n = 0
@@ -296,16 +302,17 @@ def get_display_devices(devicename):
     return devices
 
 
-def get_first_display_device(devicename, exception_cls=pywintypes.error):
-    """
-    Get the first display of device <devicename>.
+def get_first_display_device(
+    devicename: str, exception_cls: Exception = pywintypes.error
+) -> "PyDISPLAY_DEVICE":
+    """Get the first display of device <devicename>.
 
     Args:
         devicename (str): The device name.
         exception_cls (Exception): The exception class to catch.
 
     Returns:
-        DisplayDevice: The first display device.
+        PyDISPLAY_DEVICE: The first display device.
     """
     try:
         return win32api.EnumDisplayDevices(devicename, 0)
@@ -313,9 +320,10 @@ def get_first_display_device(devicename, exception_cls=pywintypes.error):
         pass
 
 
-def get_active_display_device(devicename, devices=None):
-    r"""
-    Get active display device of an output (there can only be one per output).
+def get_active_display_device(
+    devicename: str, devices: Optional[List["PyDISPLAY_DEVICE"]] = None
+) -> "PyDISPLAY_DEVICE":
+    r"""Get active display device of an output (there can only be one per output).
 
     Return value: display device object or None.
 
@@ -325,10 +333,10 @@ def get_active_display_device(devicename, devices=None):
 
     Args:
         devicename (str): The device name.
-        devices (list): List of devices.
+        devices (Optional[List[PyDISPLAY_DEVICE]]): List of devices.
 
     Returns:
-        DisplayDevice: The active display device (display device object) or None.
+        PyDISPLAY_DEVICE: The active display device (display device object) or None.
     """
     if not devices:
         devices = get_display_devices(devicename)
@@ -339,15 +347,16 @@ def get_active_display_device(devicename, devices=None):
             return device
 
 
-def get_active_display_devices(attrname=None):
-    """
-    Return active display devices.
+def get_active_display_devices(
+    attrname: Optional[str] = None,
+) -> List["PyDISPLAY_DEVICE"]:
+    """Return active display devices.
 
     Args:
-        attrname (str): The attribute name to get from the display device.
+        attrname (Optional[str]): The attribute name to get from the display device.
 
     Returns:
-        list: List of active display devices.
+        List[PyDISPLAY_DEVICE]: List of active display devices.
     """
     devices = []
     for moninfo in get_real_display_devices_info():
@@ -360,10 +369,11 @@ def get_active_display_devices(attrname=None):
 
 
 def get_display_device(
-    display_no=0, use_active_display_device=False, exception_cls=pywintypes.error
-):
-    """
-    Get the display device for a given display number.
+    display_no: int = 0,
+    use_active_display_device: bool = False,
+    exception_cls: Exception = pywintypes.error,
+) -> "PyDISPLAY_DEVICE":
+    """Get the display device for a given display number.
 
     Args:
         display_no (int): The display number.
@@ -382,19 +392,18 @@ def get_display_device(
         return get_first_display_device(moninfo["Device"], exception_cls)
 
 
-def get_process_filename(pid, handle=0):
-    """
-    Get the filename of a process.
+def get_process_filename(pid: int, handle: int = 0) -> str:
+    """Get the filename of a process.
 
     Args:
         pid (int): The process ID.
         handle (int): The process handle.
 
-    Returns:
-        str: The filename of the process.
-
     Raises:
         WinError: If an error occurs while querying the process filename.
+
+    Returns:
+        str: The filename of the process.
     """
     if sys.getwindowsversion() >= (6,):
         flags = PROCESS_QUERY_LIMITED_INFORMATION
@@ -431,22 +440,24 @@ def get_process_filename(pid, handle=0):
     return filename
 
 
-def get_file_info(filename):
-    """
-    Get exe/dll file information.
+def get_file_info(filename: str) -> Dict:
+    """Get exe/dll file information.
 
     Args:
         filename (str): The filename.
 
     Returns:
-        dict: The file information.
+        Dict: The file information.
     """
     info = {"FileInfo": None, "StringFileInfo": {}, "FileVersion": None}
 
     finfo = win32api.GetFileVersionInfo(filename, "\\")
     info["FileInfo"] = finfo
-    info["FileVersion"] = (
-        f"{finfo['FileVersionMS'] // 65536}.{finfo['FileVersionMS'] % 65536}.{finfo['FileVersionLS'] // 65536}.{finfo['FileVersionLS'] % 65536}"  # noqa: B950
+    info["FileVersion"] = "{:d}.{:d}.{:d}.{:d}".format(
+        finfo["FileVersionMS"] / 65536,
+        finfo["FileVersionMS"] % 65536,
+        finfo["FileVersionLS"] / 65536,
+        finfo["FileVersionLS"] % 65536,
     )
     for lcid, codepage in win32api.GetFileVersionInfo(
         filename, "\\VarFileInfo\\Translation"
@@ -475,22 +486,20 @@ def get_file_info(filename):
     return info
 
 
-def get_pids():
-    """
-    Get PIDs of all running processes.
-
-    Returns:
-        list: List of PIDs.
+def get_pids() -> List[int]:
+    """Get PIDs of all running processes.
 
     Raises:
         ImportError: If the psapi module is not available.
         get_windows_error: If an error occurs while enumerating processes.
+
+    Returns:
+        List[int]: List of PIDs.
     """
     if psapi is None:
         raise ImportError(
             "psapi module is not available. Please ensure it is installed and accessible."  # noqa: B950
         )
-
     pids_count = 1024
     while True:
         pids = (DWORD * pids_count)()
@@ -505,12 +514,11 @@ def get_pids():
         return [_f for _f in pids[:count] if _f]
 
 
-def get_real_display_devices_info():
-    """
-    Return info for real (non-virtual) devices.
+def get_real_display_devices_info() -> List[Dict]:
+    """Return info for real (non-virtual) devices.
 
     Returns:
-        list: List of monitor info.
+        List[Dict]: List of monitor info.
     """
     # See Argyll source spectro/dispwin.c MonitorEnumProc, get_displays
     monitors = []
@@ -527,9 +535,8 @@ def get_real_display_devices_info():
     return monitors
 
 
-def get_windows_error(errorcode):
-    """
-    Get a Windows error message.
+def get_windows_error(errorcode: int) -> ctypes.WinError:
+    """Get a Windows error message.
 
     Args:
         errorcode (int): The error code.
@@ -540,19 +547,20 @@ def get_windows_error(errorcode):
     return ctypes.WinError(errorcode)
 
 
-def per_user_profiles_isenabled(display_no=0, devicekey=None):
-    """
-    Check if per user profiles is enabled under Vista/Windows 7.
+def per_user_profiles_isenabled(
+    display_no: int = 0, devicekey: Optional[str] = None
+) -> bool:
+    """Check if per user profiles is enabled under Vista/Windows 7.
 
     Args:
         display_no (int): The display number.
         devicekey (str): The device key.
 
-    Returns:
-        bool: True if per user profiles is enabled, False otherwise.
-
     Raises:
         WindowsError: If an error occurs while querying the registry.
+
+    Returns:
+        bool: True if per user profiles is enabled, False otherwise.
     """
     if sys.getwindowsversion() < (6,):
         # Windows XP doesn't have per-user profiles
@@ -583,38 +591,41 @@ def per_user_profiles_isenabled(display_no=0, devicekey=None):
 
 
 def run_as_admin(
-    cmd, args, close_process=True, async_=False, wait_for_idle=False, show=True
-):
-    """
-    Run command with elevated privileges.
+    cmd: str,
+    args: List[Any],
+    close_process: bool = True,
+    async_: bool = False,
+    wait_for_idle: bool = False,
+    show: bool = True,
+) -> Dict:
+    """Run command with elevated privileges.
 
     This is a wrapper around ShellExecuteEx.
 
     Args:
         cmd (str): The command to run.
-        args (list): The arguments for the command.
+        args (List[Any]): The arguments for the command.
         close_process (bool): Whether to close the process after execution.
         async_ (bool): Whether to run the command asynchronously.
         wait_for_idle (bool): Whether to wait for the process to be idle.
         show (bool): Whether to show the command window.
 
     Returns:
-        dict: A dictionary with hInstApp and hProcess members.
+        Dict: A dictionary with hInstApp and hProcess members.
     """
     return shell_exec(cmd, args, "runas", close_process, async_, wait_for_idle, show)
 
 
 def shell_exec(
-    filename,
-    args,
-    operation="open",
-    close_process=True,
-    async_=False,
-    wait_for_idle=False,
-    show=True,
-):
-    """
-    Run command.
+    filename: str,
+    args: List[Any],
+    operation: str = "open",
+    close_process: bool = True,
+    async_: bool = False,
+    wait_for_idle: bool = False,
+    show: bool = True,
+) -> Dict:
+    """Run command.
 
     This is a wrapper around ShellExecuteEx.
 
@@ -628,7 +639,7 @@ def shell_exec(
         show (bool): Whether to show the command window.
 
     Returns:
-        dict: A dictionary with hInstApp and hProcess members.
+        Dict: A dictionary with hInstApp and hProcess members.
     """
     flags = SEE_MASK_FLAG_NO_UI
     if not close_process:
@@ -647,12 +658,12 @@ def shell_exec(
     )
 
 
-def win_ver():
-    """
-    Get Windows version info.
+def win_ver() -> Tuple[str, int, str, str]:
+    """Get Windows version info.
 
     Returns:
-        tuple: A tuple containing the product name, CSD version, release, and build.
+        Tuple[str, int, str, str]: A tuple containing the product name, CSD
+            version, release, and build.
     """
     csd = sys.getwindowsversion()[-1]
     # Use the registry to get product name, e.g. 'Windows 7 Ultimate'.
@@ -703,9 +714,8 @@ class UnloadableWinDLL(object):
         self._windll = None
         self.load()
 
-    def __getattr__(self, name):
-        """
-        Get an attribute from the loaded DLL.
+    def __getattr__(self, name: str) -> Any:
+        """Get an attribute from the loaded DLL.
 
         Args:
             name (str): The name of the attribute.
@@ -716,9 +726,8 @@ class UnloadableWinDLL(object):
         self.load()
         return getattr(self._windll, name)
 
-    def __bool__(self):
-        """
-        Check if the DLL is loaded.
+    def __bool__(self) -> bool:
+        """Check if the DLL is loaded.
 
         Returns:
             bool: True if the DLL is loaded, False otherwise.
@@ -726,7 +735,7 @@ class UnloadableWinDLL(object):
         self.load()
         return bool(self._windll)
 
-    def load(self):
+    def load(self) -> None:
         """Load the DLL."""
         if not self._windll:
             if USE_NTDLL_LDR:
@@ -738,7 +747,7 @@ class UnloadableWinDLL(object):
                 windll = ctypes.WinDLL(self.dllname)
             self._windll = windll
 
-    def unload(self):
+    def unload(self) -> None:
         """Unload the DLL."""
         if self._windll:
             handle = self._windll._handle
@@ -749,32 +758,30 @@ class UnloadableWinDLL(object):
 class MSCMS(UnloadableWinDLL):
     """MSCMS wrapper (optionally) allowing unloading."""
 
-    def __init__(self, bootstrap_icm32=False):
+    def __init__(self, bootstrap_icm32=False) -> None:
         self._icm32_handle = None
         UnloadableWinDLL.__init__(self, "mscms.dll")
         if bootstrap_icm32:
-            # Need to load & unload icm32 once before unloading of mscms
-            # can work in every situation
-            # (some calls to mscms methods pull in icm32,
-            # if we haven't loaded/unloaded it before, we won't be able to unload then)
+            # Need to load & unload icm32 once before unloading of mscms can
+            # work in every situation (some calls to mscms methods pull in
+            # icm32, if we haven't loaded/unloaded it before, we won't be able
+            # to unload then)
             self._icm32_handle = ctypes.WinDLL("icm32")._handle
             _free_library(self._icm32_handle)
 
-    def load(self):
+    def load(self) -> None:
         """Load the MSCMS DLL."""
         mscms = self._windll
         UnloadableWinDLL.load(self)
         if self._windll is not mscms:
             mscms = self._windll
-            if (
-                mscms
-            ):  # Ensure mscms is not None
+            if mscms:  # Ensure mscms is not None
                 mscms.WcsGetDefaultColorProfileSize.restype = ctypes.c_bool
                 mscms.WcsGetDefaultColorProfile.restype = ctypes.c_bool
                 mscms.WcsAssociateColorProfileWithDevice.restype = ctypes.c_bool
                 mscms.WcsDisassociateColorProfileFromDevice.restype = ctypes.c_bool
 
-    def unload(self):
+    def unload(self) -> None:
         """Unload the MSCMS DLL.
 
         Raises:

@@ -17,6 +17,7 @@ import subprocess as sp
 import sys
 import tempfile
 import time
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 from DisplayCAL.encoding import get_encodings
 
@@ -157,8 +158,7 @@ if sys.platform == "win32":
 else:
 
     def listdir(path, *args, **kwargs):
-        """
-        List directory contents.
+        """List directory contents.
 
         This function lists the contents of the specified directory,
         filtering out undecodable filenames if the path is a string.
@@ -181,18 +181,17 @@ else:
     os.listdir = listdir
 
 
-def quote_args(args):
-    """
-    Quote commandline arguments where needed.
+def quote_args(args: List[str]) -> List[str]:
+    """Quote commandline arguments where needed.
 
     It quotes all arguments that contain spaces or any of the characters
     ^!$%&()[]{}=;'+,`~
 
     Args:
-        args: (list of str): List of commandline arguments to be quoted.
+        args: (List[str]): List of commandline arguments to be quoted.
 
     Returns:
-        list of str: List of quoted commandline arguments.
+        List[str]: List of quoted commandline arguments.
     """
     args_out = []
     for arg in args:
@@ -202,13 +201,12 @@ def quote_args(args):
     return args_out
 
 
-def dlopen(name, handle=None):
-    """
-    Load a shared library.
+def dlopen(name: str, handle: Optional[int] = None):
+    """Load a shared library.
 
     Args:
         name (str): The name of the shared library.
-        handle (int, optional): The handle of the shared library. Defaults to None.
+        handle (Optional[int]): The handle of the shared library. Defaults to None.
 
     Returns:
         ctypes.CDLL: The loaded shared library.
@@ -219,15 +217,14 @@ def dlopen(name, handle=None):
         pass
 
 
-def find_library(pattern, arch=None):
-    """
-    Use ldconfig cache to find installed library.
+def find_library(pattern: str, arch: Optional[str] = None) -> str:
+    """Use ldconfig cache to find installed library.
 
     Can use fnmatch-style pattern matching.
 
     Args:
         pattern (str): The pattern to match the library name.
-        arch (str, optional): The architecture of the library. Defaults to None.
+        arch (Optional[str]): The architecture of the library. Defaults to None.
 
     Returns:
         str: The path to the library if found, otherwise None.
@@ -272,9 +269,8 @@ def find_library(pattern, arch=None):
             return path
 
 
-def expanduseru(path):
-    """
-    Unicode version of os.path.expanduser.
+def expanduseru(path: str) -> str:
+    """Unicode version of os.path.expanduser.
 
     Args:
         path (str): The path to expand.
@@ -285,9 +281,8 @@ def expanduseru(path):
     return str(pathlib.Path(path).expanduser())
 
 
-def expandvarsu(path):
-    """
-    Unicode version of os.path.expandvars.
+def expandvarsu(path: str) -> str:
+    """Unicode version of os.path.expandvars.
 
     Args:
         path (str): The path to expand.
@@ -300,9 +295,8 @@ def expandvarsu(path):
     return os.path.expandvars(path)
 
 
-def _expandvarsu_win32(path):
-    """
-    Expand environment variables in a path for Windows.
+def _expandvarsu_win32(path: str) -> str:
+    """Expand environment variables in a path for Windows.
 
     Args:
         path (str): The path to expand.
@@ -398,22 +392,20 @@ def _handle_dollar_sign(path, index, res):
     return res
 
 
-def fname_ext(path):
-    """
-    Get filename and extension.
+def fname_ext(path: str) -> Tuple[str, str]:
+    """Get filename and extension.
 
     Args:
         path (str): The path to the file.
 
     Returns:
-        tuple: A tuple containing the filename and extension.
+        Tuple[str, str]: A tuple containing the filename and extension.
     """
     return os.path.splitext(os.path.basename(path))
 
 
-def get_program_file(name, foldername):
-    """
-    Get path to program file.
+def get_program_file(name: str, foldername: str) -> str:
+    """Get path to program file.
 
     Args:
         name (str): The name of the program.
@@ -433,15 +425,13 @@ def get_program_file(name, foldername):
     return which(name + exe_ext, paths=paths)
 
 
-def getenvu(name, default=None):
-    """
-    Unicode version of os.getenv.
+def getenvu(name: str, default: Optional[str] = None) -> str:
+    """Unicode version of os.getenv.
 
     Args:
         name (str): The name of the environment variable.
-        default (str, optional):
-            The default value if the environment variable is not found.
-            Defaults to None.
+        default (Optional[str]): The default value if the environment variable
+            is not found. Defaults to None.
 
     Returns:
         str: The value of the environment variable.
@@ -460,19 +450,18 @@ def getenvu(name, default=None):
         return var if isinstance(var, str) else var.encode(fs_enc)
 
 
-def getgroups(username=None, names_only=False):
-    """
-    Return a list of groups that user is member of.
+def getgroups(username: Optional[str] = None, names_only: bool = False) -> List[str]:
+    """Return a list of groups that user is member of.
 
     Or groups of current process if username not given.
 
     Args:
-        username (str, optional): The username. Defaults to None.
+        username (Optional[str]): The username. Defaults to None.
         names_only (bool, optional): Whether to return only the group names.
             Defaults to False.
 
     Returns:
-        list: A list of groups.
+        List[str]: A list of groups.
     """
     if sys.platform == "win32":
         return _getgroups_win32(username, names_only)
@@ -480,7 +469,22 @@ def getgroups(username=None, names_only=False):
         return _getgroups_unix(username, names_only)
 
 
-def _getgroups_win32(username=None, names_only=False):
+def _getgroups_win32(
+    username: Optional[str] = None, names_only: bool = False
+) -> List[str]:
+    """Return a list of groups that user is member of under Windows.
+
+    Or groups of current process if username not given.
+
+    Args:
+        username (Optional[str]): The username. Defaults to None.
+        names_only (bool, optional): Whether to return only the group names.
+            Defaults to False.
+
+    Returns:
+        List[str]: A list of groups.
+    """
+    # TODO: This one doesn't discern groups from group names...
     if username is None:
         username = getenvu("USERNAME")
 
@@ -511,25 +515,34 @@ def _getgroups_win32(username=None, names_only=False):
     return groups if names_only else groups
 
 
-if sys.platform != "win32":
+def _getgroups_unix(username: Optional[str] = None, names_only: bool = False):
+    """Return a list of groups that user is member of under Unix.
 
-    def _getgroups_unix(username=None, names_only=False):
-        groups = []
+    Or groups of current process if username not given.
 
-        if username is None:
-            groups = [grp.getgrgid(g).gr_name for g in os.getgroups()]
-        else:
-            all_groups = grp.getgrall()
-            groups = [g.gr_name for g in all_groups if username in g.gr_mem]
-            gid = pwd.getpwnam(username).pw_gid
-            groups.append(grp.getgrgid(gid).gr_name)
+    Args:
+        username (Optional[str]): The username. Defaults to None.
+        names_only (bool, optional): Whether to return only the group names.
+            Defaults to False.
 
-        return groups
-
-
-def islink(path):
+    Returns:
+        List[str]: A list of groups.
     """
-    Cross-platform islink implementation.
+
+    groups = []
+    if username is None:
+        groups = [grp.getgrgid(g) for g in os.getgroups()]
+    else:
+        groups = [g for g in grp.getgrall() if username in g.gr_mem]
+        gid = pwd.getpwnam(username).pw_gid
+        groups.append(grp.getgrgid(gid))
+    if names_only:
+        groups = [g.gr_name for g in groups]
+    return groups
+
+
+def islink(path: str) -> bool:
+    """Cross-platform islink implementation.
 
     Supports Windows NT symbolic links and reparse points.
 
@@ -548,9 +561,8 @@ def islink(path):
     )
 
 
-def is_superuser():
-    """
-    Check if the current user is a superuser.
+def is_superuser() -> bool:
+    """Check if the current user is a superuser.
 
     Returns:
         bool: True if the user is a superuser, otherwise False.
@@ -567,9 +579,8 @@ def is_superuser():
         return os.geteuid() == 0
 
 
-def launch_file(filepath):
-    """
-    Open a file with its assigned default app.
+def launch_file(filepath: str) -> int:
+    """Open a file with its assigned default app.
 
     Return tuple(returncode, stdout, stderr) or None if functionality not available.
 
@@ -596,16 +607,15 @@ def launch_file(filepath):
     return retcode
 
 
-def listdir_re(path, rex=None):
-    """
-    Filter directory contents through a regular expression.
+def listdir_re(path, rex: Optional[str] = None) -> List[str]:
+    """Filter directory contents through a regular expression.
 
     Args:
         path (str): The path to the directory.
-        rex (str, optional): The regular expression pattern. Defaults to None.
+        rex (Optional[str]): The regular expression pattern. Defaults to None.
 
     Returns:
-        list: A list of files matching the regular expression.
+        List[str]: A list of files matching the regular expression.
     """
     files = os.listdir(path)
     if rex:
@@ -614,13 +624,12 @@ def listdir_re(path, rex=None):
     return files
 
 
-def make_win32_compatible_long_path(path, maxpath=259):
-    """
-    Make a path compatible with Windows long path limitations.
+def make_win32_compatible_long_path(path: str, maxpath: int = 259) -> str:
+    """Make a path compatible with Windows long path limitations.
 
     Args:
         path (str): The path to make compatible.
-        maxpath (int, optional): The maximum path length. Defaults to 259.
+        maxpath (int): The maximum path length. Defaults to 259.
 
     Returns:
         str: The compatible path.
@@ -635,21 +644,21 @@ def make_win32_compatible_long_path(path, maxpath=259):
     return path
 
 
-def mkstemp_bypath(path, dir=None, text=False):
-    """
-    Wrap around mkstemp.
+def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
+    """Wrap mkstemp.
 
-    Uses filename and extension from path as prefix and suffix for the temporary file.
+    Uses filename and extension from path as prefix and suffix for the temporary
+    file.
 
     Args:
         path (str): The path to use for generating the temporary file name.
-        dir (str, optional): The directory in which to create the temporary file.
-                         Defaults to None.
-        text (bool, optional): Whether to open the file in text mode. Defaults to False.
+        dir (Optional[str]): The directory in which to create the temporary file.
+            Defaults to None.
+        text (bool): Whether to open the file in text mode. Defaults to False.
 
     Returns:
-        tuple:
-            A tuple containing the file descriptor and the path of the temporary file.
+        Tuple[str, str]: A tuple containing the file descriptor and the path of
+            the temporary file.
     """
     fname, ext = fname_ext(path)
     if not dir:
@@ -657,28 +666,25 @@ def mkstemp_bypath(path, dir=None, text=False):
     return tempfile.mkstemp(ext, fname + "-", dir, text)
 
 
-#
-# This is from Python2.7 version of tempfile
-#
-if sys.platform != "win32":
+def _set_cloexec(fd):
+    """This is from Python2.7 version of tempfile."""
+    if sys.platform == "win32":
+        return None
+
     import fcntl as _fcntl
 
-
-def _set_cloexec(fd):
-    if sys.platform != "win32":
-        try:
-            flags = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
-        except IOError:
-            pass
-        else:
-            # flags read successfully, modify
-            flags |= _fcntl.FD_CLOEXEC
-            _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
+    try:
+        flags = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
+    except IOError:
+        pass
+    else:
+        # flags read successfully, modify
+        flags |= _fcntl.FD_CLOEXEC
+        _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
 
 
-def mksfile(filename):
-    """
-    Create a file safely and return (fd, abspath).
+def mksfile(filename: str) -> Tuple[int, str]:
+    """Create a file safely and return (fd, abspath).
 
     If filename already exists, add '(n)' as suffix before extension
     (will try up to os.TMP_MAX or 10000 for n).
@@ -686,24 +692,21 @@ def mksfile(filename):
     Args:
         filename (str): The name of the file to be created.
 
-    Returns:
-        tuple: A tuple containing the file descriptor and the absolute path of
-            the created file.
-
     Raises:
         IOError: If no usable temporary file name is found.
         OSError: If an OS error occurs during file creation.
-    """
-    flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
-    if hasattr(os, "O_BINARY"):
-        flags |= os.O_BINARY
 
+    Returns:
+        Tuple[int, str]: A tuple containing the file descriptor and the absolute
+            path of the created file.
+    """
+    flags = tempfile._bin_openflags
     fname, ext = os.path.splitext(filename)
     for seq in range(tempfile.TMP_MAX):
         if not seq:
             pth = filename
         else:
-            pth = f"{fname}({seq}){ext}"
+            pth = f"{fname}({seq:d}){ext}"
         try:
             fd = os.open(pth, flags, 0o600)
             _set_cloexec(fd)
@@ -716,9 +719,8 @@ def mksfile(filename):
     raise IOError(errno.EEXIST, "No usable temporary file name found")
 
 
-def movefile(src, dst, overwrite=True):
-    """
-    Move a file to another location.
+def movefile(src: str, dst: str, overwrite: bool = True) -> None:
+    """Move a file to another location.
 
     dst can be a directory in which case a file with the same basename as src
     will be created in it.
@@ -728,8 +730,8 @@ def movefile(src, dst, overwrite=True):
     Args:
         src (str): The source path.
         dst (str): The destination path.
-        overwrite (bool, optional): Whether to overwrite existing files.
-            Defaults to True.
+        overwrite (bool): Whether to overwrite existing files. Defaults to
+            True.
     """
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
@@ -738,9 +740,8 @@ def movefile(src, dst, overwrite=True):
     shutil.move(src, dst)
 
 
-def putenvu(name, value):
-    """
-    Unicode version of os.putenv (also correctly updates os.environ).
+def putenvu(name: str, value: str) -> None:
+    """Unicode version of os.putenv (also correctly updates os.environ).
 
     Args:
         name (str): The name of the environment variable.
@@ -753,8 +754,7 @@ def putenvu(name, value):
 
 
 def parse_reparse_buffer(buf):
-    """
-    Implement the below in Python:.
+    """Implement the below in Python:.
 
     typedef struct _REPARSE_DATA_BUFFER {
         ULONG  ReparseTag;
@@ -823,20 +823,19 @@ def parse_reparse_buffer(buf):
     return data
 
 
-def readlink(path):
-    """
-    Cross-platform implementation of readlink.
+def readlink(path: str):
+    """Cross-platform implementation of readlink.
 
     Supports Windows NT symbolic links and reparse points.
 
     Args:
         path (str): The path to the symbolic link or reparse point.
 
-    Returns:
-        str: The target path of the symbolic link or reparse point.
-
     Raises:
         OSError: If the path is not a symbolic link or reparse point.
+
+    Returns:
+        str: The target path of the symbolic link or reparse point.
     """
     if sys.platform != "win32":
         return os.readlink(path)
@@ -901,9 +900,8 @@ def readlink(path):
     return rpath
 
 
-def relpath(path, start):
-    """
-    Return a relative version of a path.
+def relpath(path: str, start: str) -> str:
+    """Return a relative version of a path.
 
     Args:
         path (str): The path to convert.
@@ -922,16 +920,15 @@ def relpath(path, start):
         return os.path.sep.join([".."] * (len(start) - len(path)))
 
 
-def safe_glob(pathname):
-    """
-    Return a list of paths matching a pathname pattern.
+def safe_glob(pathname: str) -> List[str]:
+    """Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la fnmatch.
     However, unlike fnmatch, filenames starting with a dot are special cases
     that are not matched by '*' and '?' patterns.
 
-    Like fnmatch.glob,
-    but suppresses re.compile errors by escaping uncompilable path components.
+    Like fnmatch.glob, but suppresses re.compile errors by escaping
+    uncompilable path components.
 
     See https://bugs.python.org/issue738361
 
@@ -939,21 +936,20 @@ def safe_glob(pathname):
         pathname (str): The pathname pattern.
 
     Returns:
-        list: A list of paths matching the pattern.
+        List[str]: A list of paths matching the pattern.
     """
     return list(safe_iglob(pathname))
 
 
-def safe_iglob(pathname):
-    """
-    Return an iterator which yields the paths matching a pathname pattern.
+def safe_iglob(pathname: str) -> Iterator[str]:
+    """Return an iterator which yields the paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la fnmatch.
     However, unlike fnmatch, filenames starting with a dot are special cases
     that are not matched by '*' and '?' patterns.
 
-    Like fnmatch.iglob,
-    but suppresses re.compile errors by escaping uncompilable path components.
+    Like fnmatch.iglob, but suppresses re.compile errors by escaping
+    uncompilable path components.
 
     See https://bugs.python.org/issue738361
 
@@ -995,8 +991,7 @@ def safe_iglob(pathname):
 
 
 def safe_glob1(dirname, pattern):
-    """
-    Return the subset of the list NAMES that match PAT.
+    """Return the subset of the list NAMES that match PAT.
 
     Args:
         dirname (str): The directory name.
@@ -1019,11 +1014,10 @@ def safe_glob1(dirname, pattern):
 
 
 def safe_shell_filter(names, pat):
-    """
-    Return the subset of the list NAMES that match PAT.
+    """Return the subset of the list NAMES that match PAT.
 
-    Like fnmatch.filter,
-    but suppresses re.compile errors by escaping uncompilable path components.
+    Like fnmatch.filter, but suppresses re.compile errors by escaping
+    uncompilable path components.
 
     See https://bugs.python.org/issue738361
 
@@ -1058,12 +1052,11 @@ def safe_shell_filter(names, pat):
     return result
 
 
-def safe_translate(pat):
-    """
-    Translate a shell PATTERN to a regular expression.
+def safe_translate(pat: str) -> str:
+    """Translate a shell PATTERN to a regular expression.
 
-    Like fnmatch.translate,
-    but suppresses re.compile errors by escaping uncompilable path components.
+    Like fnmatch.translate, but suppresses re.compile errors by escaping
+    uncompilable path components.
 
     See https://bugs.python.org/issue738361
 
@@ -1087,9 +1080,8 @@ def safe_translate(pat):
     return re.escape(os.path.sep).join(components)
 
 
-def waccess(path, mode):
-    """
-    Test access to path.
+def waccess(path: str, mode: int) -> bool:
+    """Test access to path.
 
     Args:
         path (str): The path to test.
@@ -1122,16 +1114,15 @@ def waccess(path, mode):
     return True
 
 
-def which(executable, paths=None):
-    """
-    Return the full path of executable.
+def which(executable: str, paths: Optional[List[str]] = None) -> Union[None, str]:
+    """Return the full path of executable.
 
     Args:
         executable (str): The name of the executable.
-        paths (list, optional): The list of paths to search. Defaults to None.
+        paths (Optional[List[str]]): The list of paths to search. Defaults to None.
 
     Returns:
-        str: The full path of the executable if found, otherwise None.
+        Union[None, str]: The full path of the executable if found, otherwise None.
     """
     if not paths:
         paths = getenvu("PATH", os.defpath).split(os.pathsep)
@@ -1148,30 +1139,28 @@ def which(executable, paths=None):
 
 
 def whereis(
-    names,
-    bin=True,
-    bin_paths=None,
-    man=True,
-    man_paths=None,
-    src=True,
-    src_paths=None,
-    unusual=False,
-    list_paths=False,
+    names: List[str],
+    bin: bool = True,
+    bin_paths: Optional[List[str]] = None,
+    man: bool = True,
+    man_paths: Optional[List[str]] = None,
+    src: bool = True,
+    src_paths: Optional[List[str]] = None,
+    unusual: bool = False,
+    list_paths: bool = False,
 ):
-    """
-    Wrap around whereis.
+    """Wrap whereis.
 
     Args:
-        names (list): The names to search for.
-        bin (bool, optional): Whether to search for binaries. Defaults to True.
-        bin_paths (list, optional): The list of binary paths. Defaults to None.
-        man (bool, optional): Whether to search for man pages. Defaults to True.
-        man_paths (list, optional): The list of man paths. Defaults to None.
-        src (bool, optional): Whether to search for source files. Defaults to True.
-        src_paths (list, optional): The list of source paths. Defaults to None.
-        unusual (bool, optional): Whether to search for unusual files.
-            Defaults to False.
-        list_paths (bool, optional): Whether to list paths. Defaults to False.
+        names (List[str]): The names to search for.
+        bin (bool): Whether to search for binaries. Defaults to True.
+        bin_paths (Optional[List[str]]): The list of binary paths. Defaults to None.
+        man (bool): Whether to search for man pages. Defaults to True.
+        man_paths (Optional[List[str]]): The list of man paths. Defaults to None.
+        src (bool): Whether to search for source files. Defaults to True.
+        src_paths (Optional[List[str]]): The list of source paths. Defaults to None.
+        unusual (bool): Whether to search for unusual files. Defaults to False.
+        list_paths (bool): Whether to list paths. Defaults to False.
 
     Returns:
         dict: The results of the whereis command.
@@ -1183,23 +1172,30 @@ def whereis(
 
 
 def build_whereis_args(
-    bin, bin_paths, man, man_paths, src, src_paths, unusual, list_paths
-):
+    bin: bool,
+    bin_paths: List[str],
+    man: bool,
+    man_paths: List[str],
+    src: bool,
+    src_paths: List[str],
+    unusual: bool,
+    list_paths: List[str],
+) -> List[str]:
     """
     Build arguments for the whereis command.
 
     Args:
         bin (bool): Whether to search for binaries.
-        bin_paths (list): The list of binary paths.
+        bin_paths (List[str]): The list of binary paths.
         man (bool): Whether to search for man pages.
-        man_paths (list): The list of man paths.
+        man_paths (List[str]): The list of man paths.
         src (bool): Whether to search for source files.
-        src_paths (list): The list of source paths.
+        src_paths (List[str]): The list of source paths.
         unusual (bool): Whether to search for unusual files.
         list_paths (bool): Whether to list paths.
 
     Returns:
-        list: The list of arguments for the whereis command.
+        List[str]: The list of arguments for the whereis command.
     """
     args = []
     if bin:
@@ -1226,16 +1222,15 @@ def build_whereis_args(
     return args
 
 
-def execute_whereis(names, args):
-    """
-    Execute the whereis command with the given arguments.
+def execute_whereis(names: List[str], args: List[Any]) -> Dict:
+    """Execute the whereis command with the given arguments.
 
     Args:
-        names (list): The names to search for.
-        args (list): The list of arguments for the whereis command.
+        names (List[str]): The names to search for.
+        args (List[Any]): The list of arguments for the whereis command.
 
     Returns:
-        dict: The results of the whereis command.
+        Dict: The results of the whereis command.
     """
     if isinstance(names, str):
         names = [names]
@@ -1244,15 +1239,14 @@ def execute_whereis(names, args):
     return parse_whereis_output(stdout)
 
 
-def parse_whereis_output(stdout):
-    """
-    Parse the output of the whereis command.
+def parse_whereis_output(stdout: bytes) -> Dict:
+    """Parse the output of the whereis command.
 
     Args:
         stdout (bytes): The output of the whereis command.
 
     Returns:
-        dict: The parsed results of the whereis command.
+        Dict: The parsed results of the whereis command.
     """
     result = {}
     for line in stdout.decode().strip().splitlines():
@@ -1263,7 +1257,13 @@ def parse_whereis_output(stdout):
 
 
 class FileLock(object):
-    """A context manager for file locking."""
+    """A context manager for file locking.
+
+    Args:
+        file_ (file): The file to lock.
+        exclusive (bool): Whether to acquire an exclusive lock. Defaults to False.
+        blocking (bool): Whether to block until the lock is acquired. Defaults to False.
+    """
 
     if sys.platform == "win32":
         _exception_cls = pywintypes.error
@@ -1271,24 +1271,13 @@ class FileLock(object):
         _exception_cls = IOError
 
     def __init__(self, file_, exclusive=False, blocking=False):
-        """
-        Initialize the FileLock.
-
-        Args:
-            file_ (file): The file to lock.
-            exclusive (bool, optional): Whether to acquire an exclusive lock.
-                Defaults to False.
-            blocking (bool, optional): Whether to block until the lock is acquired.
-                Defaults to False.
-        """
         self._file = file_
         self.exclusive = exclusive
         self.blocking = blocking
         self.lock()
 
     def __enter__(self):
-        """
-        Enter the context manager.
+        """Enter the context manager.
 
         Returns:
             FileLock: The FileLock instance.
@@ -1335,14 +1324,13 @@ class FileLock(object):
         self._call(fn, args, UnlockingError)
 
     @staticmethod
-    def _call(fn, args, exception_cls):
-        """
-        Call the function with the given arguments.
+    def _call(fn: Callable, args: Any, exception_cls: Type):
+        """Call the function with the given arguments.
 
         Args:
-            fn (callable): The function to call.
-            args (tuple): The arguments to pass to the function.
-            exception_cls (type): The exception class to raise.
+            fn (Callable): The function to call.
+            args (Tuple[Any]): The arguments to pass to the function.
+            exception_cls (Type): The exception class to raise.
 
         Raises:
             exception_cls: If the function call fails.
@@ -1374,8 +1362,7 @@ class UnlockingError(Error):
 if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
 
     class win64_disable_file_system_redirection:
-        r"""
-        Disable Windows File System Redirection.
+        r"""Disable Windows File System Redirection.
 
         When a 32 bit program runs on a 64 bit Windows the paths to C:\Windows\System32
         automatically get redirected to the 32 bit version (C:\Windows\SysWow64),

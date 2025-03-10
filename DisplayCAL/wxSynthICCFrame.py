@@ -28,9 +28,7 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import log
-from DisplayCAL.meta import (
-    name as appname,
-)
+from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files

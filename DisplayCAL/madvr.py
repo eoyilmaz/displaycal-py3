@@ -3,7 +3,6 @@
 # See developers/interfaces/madTPG.h in the madVR package
 
 
-from configparser import RawConfigParser
 from io import StringIO
 from binascii import unhexlify
 from time import sleep, time
@@ -29,6 +28,7 @@ from DisplayCAL import colormath
 from DisplayCAL import cubeiterator as ci
 from DisplayCAL import localization as lang
 from DisplayCAL import worker_base
+from DisplayCAL.config import CaseSensitiveConfigParser
 from DisplayCAL.imfile import tiff_get_header
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.network import get_network_addr, get_valid_host
@@ -1582,8 +1582,7 @@ class MadTPG_Net(MadTPGBase):
                 "[Default]\n"
                 + "\n".join(params.decode("UTF-16-LE").strip().split("\t"))
             )
-            cfg = RawConfigParser()
-            cfg.optionxform = str
+            cfg = CaseSensitiveConfigParser()
             # cfg.readfp(io)
             cfg.read_file(io)
             params = dict(cfg.items("Default"))

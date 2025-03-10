@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import List
+from typing import Dict, List, Union
 
 from DisplayCAL import argyll
 from DisplayCAL import localization as lang
@@ -16,8 +16,7 @@ _displays = None
 
 
 def GetXRandROutputXID(display_no=0):
-    """
-    Return the XRandR output X11 ID of a given display.
+    """Return the XRandR output X11 ID of a given display.
 
     Args:
         display_no (int): Display number.
@@ -32,8 +31,7 @@ def GetXRandROutputXID(display_no=0):
 
 
 def RealDisplaySizeMM(display_no=0):
-    """
-    Return the size (in mm) of a given display.
+    """Return the size (in mm) of a given display.
 
     Args:
         display_no (int): Display number.
@@ -247,41 +245,50 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no=0):
+def get_display(display_no:int=0) -> Union[None, Dict]:
+    """Return display data for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        Dict: The display data.
+    """
     if _displays is None:
         enumerate_displays()
 
     # Ensure _displays is not None after calling enumerate_displays
     if _displays is None:
-        return None
+        return
 
     # Translate from Argyll display index to enumerated display index using the
     # coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
 
     if is_virtual_display(display_no):
-        return None
+        return
 
-    try:
-        getcfg_displays = getcfg("displays")
-        argyll_display = getcfg_displays[display_no]
-    except IndexError:
-        return None
-    else:
-        if argyll_display.endswith(" [PRIMARY]"):
-            argyll_display = " ".join(argyll_display.split(" ")[:-1])
-        for display in _displays:
-            desc = display.get("description")
-            if desc:
-                geometry = b"".join(desc.split(b"@ ")[-1:])
-                if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
-                    return display
-    return None
+
+    getcfg_displays = getcfg("displays")
+    if len(getcfg_displays) < display_no:
+        return
+
+    argyll_display = getcfg_displays[display_no]
+
+    if argyll_display.endswith(" [PRIMARY]"):
+        argyll_display = " ".join(argyll_display.split(" ")[:-1])
+
+    for display in _displays:
+        desc = display.get("description")
+        if not desc:
+            continue
+        geometry = b"".join(desc.split(b"@ ")[-1:])
+        if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
+            return display
 
 
 def get_wayland_display(x, y, w, h):
-    """
-    Find matching Wayland display.
+    """Find matching Wayland display.
 
     Given x, y, width and height of display geometry, find matching Wayland display.
     """
@@ -304,50 +311,49 @@ def get_wayland_display(x, y, w, h):
         )
         res = iface.get_resources()
     except DBusException:
-        return None
+        return
+    
+    if not res or len(res) < 2:
+        return
 
     # See
     # https://github.com/GNOME/mutter/blob/master/src/org.gnome.Mutter.DisplayConfig.xml
-    output_storage = find_matching_output(res, x, y)
-    if output_storage is not None:
-        return create_wayland_display_dict(output_storage)
-
-    return None
-
-
-def find_matching_output(res, x, y):
-    """Find the matching output in the resources."""
+    output_storage = None
+    found = False
     crtcs = res[1]
     # Look for matching CRTC
     for crtc in crtcs:
-        if crtc[2:4] == (x, y) and crtc[6] != -1:
-            # Found our CRTC
-            crtc_id = crtc[0]
-            # Look for matching output
-            outputs = res[2]
-            for output in outputs:
-                if output[2] == crtc_id:
-                    # Found our output
-                    return output
-    return None
+        if len(crtc) < 7 or crtc[2:4] != (x, y) or crtc[6] == -1:
+            continue
 
+        # Found our CRTC
+        crtc_id = crtc[0]
+        # Look for matching output
+        outputs = res[2]
+        for output in outputs:
+            if len(output) < 2:
+                continue
+            if output[2] == crtc_id:
+                # Found our output
+                found = True
+                output_storage = output
+                break
+        if found:
+            break
 
-def create_wayland_display_dict(output_storage):
-    """Create a dictionary with Wayland display information."""
-    properties = output_storage[7]
-    wayland_display = {"xrandr_name": output_storage[4]}
+    if found and output_storage is not None and len(output_storage) > 7:
+        properties = output_storage[7]
+        wayland_display = {"xrandr_name": output_storage[4]}
+        raw_edid = properties.get("edid", ())
+        edid = b"".join(v.to_bytes(1, "big") for v in raw_edid)
 
-    raw_edid = properties.get("edid", ())
-    edid = b"".join(v.to_bytes(1, "big") for v in raw_edid)
-    if edid:
-        wayland_display["edid"] = edid
-
-    w_mm = properties.get("width-mm")
-    h_mm = properties.get("height-mm")
-    if w_mm and h_mm:
-        wayland_display["size_mm"] = (w_mm, h_mm)
-
-    return wayland_display
+        if edid:
+            wayland_display["edid"] = edid
+        w_mm = properties.get("width-mm")
+        h_mm = properties.get("height-mm")
+        if w_mm and h_mm:
+            wayland_display["size_mm"] = (w_mm, h_mm)
+        return wayland_display
 
 
 def get_x_display(display_no=0):

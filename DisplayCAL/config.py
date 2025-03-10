@@ -9,10 +9,27 @@ import re
 import string
 import sys
 from decimal import Decimal
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, TYPE_CHECKING, Union
+
+if sys.platform == "win32":
+    import winreg
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
+
+if sys.platform == "win32":
+    from DisplayCAL.defaultpaths import commonprogramfiles
+elif sys.platform == "darwin":
+    from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
+else:
+    from DisplayCAL.defaultpaths import (
+        xdg_config_dir_default,
+        xdg_config_home,
+        xdg_data_dirs,
+        xdg_data_home,
+        xdg_data_home_default,
+    )
+
 from DisplayCAL.defaultpaths import (  # noqa: F401
     appdata,
     autostart,  # don't remove this, imported by other modules
@@ -41,20 +58,9 @@ from DisplayCAL.util_os import (
     which,
 )
 from DisplayCAL.util_str import create_replace_function, strtr
-from DisplayCAL.wxaddons import wx
 
-if sys.platform == "win32":
-    from DisplayCAL.defaultpaths import commonprogramfiles
-elif sys.platform == "darwin":
-    from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
-else:
-    from DisplayCAL.defaultpaths import (
-        xdg_config_dir_default,
-        xdg_config_home,
-        xdg_data_dirs,
-        xdg_data_home,
-        xdg_data_home_default,
-    )
+if TYPE_CHECKING:
+    from DisplayCAL.wxaddons import wx
 
 configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
 
@@ -313,7 +319,7 @@ def getbitmap(
     display_missing_icon: bool = True,
     scale: bool = True,
     use_mask: bool = False,
-) -> wx.Bitmap:
+) -> "wx.Bitmap":
     """Create (if necessary) and return a named bitmap.
 
     Args:
@@ -337,7 +343,7 @@ def getbitmap(
 
 def create_bitmap(
     name: str, display_missing_icon: bool, scale: bool, use_mask: bool
-) -> wx.Bitmap:
+) -> "wx.Bitmap":
     """Create a bitmap with the specified name and dimensions.
 
     Args:
@@ -379,7 +385,7 @@ def create_bitmap(
         )
 
 
-def create_empty_bitmap(w: int, h: int, use_mask: bool) -> wx.Bitmap:
+def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
     """Create an empty bitmap with the specified dimensions.
 
     Args:
@@ -390,6 +396,8 @@ def create_empty_bitmap(w: int, h: int, use_mask: bool) -> wx.Bitmap:
     Returns:
         wx.Bitmap: The created empty bitmap.
     """
+    from DisplayCAL.wxaddons import wx
+
     if wx.VERSION[0] < 3:
         use_mask = True
     if use_mask and sys.platform == "win32":
@@ -410,7 +418,7 @@ def load_bitmap(
     scale: float,
     use_mask: bool,
     display_missing_icon: bool = True,
-) -> wx.Bitmap:
+) -> "wx.Bitmap":
     """Load a bitmap from the specified parts and dimensions.
 
     Args:
@@ -428,6 +436,8 @@ def load_bitmap(
     Returns:
         wx.Bitmap: The loaded bitmap.
     """
+    from DisplayCAL.wxaddons import wx
+
     if parts[-1].startswith(appname):
         parts[-1] = parts[-1].lower()
     oname = parts[-1]
@@ -620,7 +630,7 @@ def load_bitmap(
     return bmp
 
 
-def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> wx.Icon:
+def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> "wx.Icon":
     """Return a wx.Icon instance.
 
     This is like geticon, but returns a wx.Icon instance instead of a wx.Bitmap
@@ -636,6 +646,8 @@ def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> wx.Icon:
     Returns:
         wx.Icon: The (created) icon (instance).
     """
+    from DisplayCAL.wxaddons import wx
+
     icon = wx.EmptyIcon()
     if sys.platform == "darwin" and wx.VERSION >= (2, 9) and size > 128:
         # FIXME: wxMac 2.9 doesn't support icon sizes above 128
@@ -780,6 +792,8 @@ def get_icon_bundle(sizes, name):
     Returns:
         wx.IconBundle: The icon bundle.
     """
+    from DisplayCAL.wxaddons import wx
+
     iconbundle = wx.IconBundle()
     if not sizes:
         # Assume ICO format

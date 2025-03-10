@@ -8,12 +8,12 @@ import sys
 import tarfile
 import tempfile
 
+import pytest
+
 import DisplayCAL
 from DisplayCAL import RealDisplaySizeMM
 from DisplayCAL.config import setcfg
 from DisplayCAL.argyll import get_argyll_latest_version
-
-import pytest
 
 
 @pytest.fixture(scope="module")

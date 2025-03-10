@@ -2,12 +2,12 @@
 
 import platform
 
+import pytest
+
 from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.colord import device_id_from_edid
 from DisplayCAL.dev.mocks import check_call
 from DisplayCAL.edid import get_edid
-
-import pytest
 
 from tests.data.display_data import DisplayData
 

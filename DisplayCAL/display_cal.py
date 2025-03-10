@@ -808,7 +808,7 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     dlg_list_ctrl.SetColumnWidth(int(col), int(415 * scale))  # Desc
     dlg_list_ctrl.SetColumnWidth(
         int(col), int(150 * scale)
-    )  # Display manufactuer & model
+    )  # Display manufacturer & model
     # dlg_list_ctrl.SetColumnWidth(int(col), int(225 * scale))  # Instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(90 * scale))  # Ref. instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(150 * scale))  # Spectral res

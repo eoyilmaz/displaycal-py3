@@ -129,7 +129,7 @@ Latest Revision: Andrea Gavana @ 27 Dec 2012, 21.00 GMT
 Version 0.3
 """
 
-from typing import Union
+from typing import Optional, Union
 
 import wx
 
@@ -175,16 +175,16 @@ class GradientButton(wx.Control):
     """This is the main class implementation of :class:`GradientButton`.
 
     Args:
-        parent ('GradientButton'): The :class:`GradientButton` parent;
+        parent (GradientButton): The :class:`GradientButton` parent.
         id (int): Window identifier. A value of -1 indicates a default value.
-        bitmap (None | wx.Bitmap): The button bitmap (if any);
+        bitmap (Optional[wx.Bitmap]): The button bitmap (if any).
         label (str): The button text label;
         pos (wx.Point): The control position.
             A value of (-1, -1) indicates a default position, chosen by either the
-            windowing system or wxPython, depending on platform;
+            windowing system or wxPython, depending on platform.
         size (wx.Size): The control size.
             A value of (-1, -1) indicates a default size, chosen by either the
-            windowing system or wxPython, depending on platform;
+            windowing system or wxPython, depending on platform.
         style (int): The button style (unused);
         align (int): Text/bitmap alignment. wx.CENTER or wx.LEFT;
         validator (wx.Validator): The validator associated to the button;
@@ -195,7 +195,7 @@ class GradientButton(wx.Control):
         self,
         parent: "GradientButton",
         id: int = wx.ID_ANY,
-        bitmap: Union[None, wx.Bitmap] = None,
+        bitmap: Optional[wx.Bitmap] = None,
         label: str = "",
         pos: wx.Point = wx.DefaultPosition,
         size: wx.Size = wx.DefaultSize,
@@ -330,8 +330,8 @@ class GradientButton(wx.Control):
         if not self.IsEnabled() or not self.HasCapture():
             return
 
-        pos: wx.Point = event.GetPosition()
-        rect: wx.Rect = self.GetClientRect()
+        pos = event.GetPosition()
+        rect = self.GetClientRect()
 
         if self.HasCapture():
             self.ReleaseMouse()
@@ -418,13 +418,13 @@ class GradientButton(wx.Control):
             event (wx.PaintEvent): a :class:`PaintEvent` event to be processed.
         """
         dc = wx.BufferedPaintDC(self)
-        gc: wx.GraphicsContext = wx.GraphicsContext.Create(dc)
+        gc = wx.GraphicsContext.Create(dc)
         dc.SetBackground(wx.Brush(self.GetParent().GetBackgroundColour()))
         dc.Clear()
 
-        clientRect: wx.Rect = self.GetClientRect()
+        clientRect = self.GetClientRect()
         gradientRect = wx.Rect(*clientRect)
-        capture: wx.Window = wx.Window.GetCapture()
+        capture = wx.Window.GetCapture()
 
         x, y, width, height = clientRect
 
@@ -433,20 +433,20 @@ class GradientButton(wx.Control):
         )
         if capture != self:
             if self._mouseAction == HOVER:
-                topStart: wx.Colour = self.LightColour(self._topStartColour, 10)
-                topEnd: wx.Colour = self.LightColour(self._topEndColour, 10)
+                topStart = self.LightColour(self._topStartColour, 10)
+                topEnd = self.LightColour(self._topEndColour, 10)
             else:
                 topStart, topEnd = self._topStartColour, self._topEndColour
 
             rc1 = wx.Rect(x, y, width, height // 2)
-            path1: wx.GraphicsPath = self.GetPath(gc, rc1, 8)
-            br1: wx.GraphicsBrush = gc.CreateLinearGradientBrush(
+            path1 = self.GetPath(gc, rc1, 8)
+            br1 = gc.CreateLinearGradientBrush(
                 x, y, x, y + height / 2, topStart, topEnd
             )
             gc.SetBrush(br1)
             gc.FillPath(path1)  # draw main
 
-            path4: wx.GraphicsPath = gc.CreatePath()
+            path4 = gc.CreatePath()
             path4.AddRectangle(x, y + height / 2 - 8, width, 8)
             path4.CloseSubpath()
             gc.SetBrush(br1)
@@ -464,14 +464,14 @@ class GradientButton(wx.Control):
 
         if capture != self:
             if self._mouseAction == HOVER:
-                bottomStart: wx.Colour = self.LightColour(self._bottomStartColour, 10)
-                bottomEnd: wx.Colour = self.LightColour(self._bottomEndColour, 10)
+                bottomStart = self.LightColour(self._bottomStartColour, 10)
+                bottomEnd = self.LightColour(self._bottomEndColour, 10)
             else:
                 bottomStart, bottomEnd = self._bottomStartColour, self._bottomEndColour
 
             rc3 = wx.Rect(x, y + height // 2, width, height // 2)
-            path3: wx.GraphicsPath = self.GetPath(gc, rc3, 8)
-            br3: wx.GraphicsBrush = gc.CreateLinearGradientBrush(
+            path3 = self.GetPath(gc, rc3, 8)
+            br3 = gc.CreateLinearGradientBrush(
                 x, y + height / 2, x, y + height, bottomStart, bottomEnd
             )
             gc.SetBrush(br3)
@@ -488,7 +488,7 @@ class GradientButton(wx.Control):
             rc2 = wx.Rect(
                 x + 1, gradientRect.height // 2, gradientRect.width, gradientRect.height
             )
-            path2: wx.GraphicsPath = self.GetPath(gc, rc2, 8)
+            path2 = self.GetPath(gc, rc2, 8)
             gc.SetPen(wx.Pen(self._pressedBottomColour))
             gc.SetBrush(wx.Brush(self._pressedBottomColour))
             gc.FillPath(path2)
@@ -496,30 +496,28 @@ class GradientButton(wx.Control):
 
         # Create a ClientDC to get the text extent
         client_dc = wx.ClientDC(self)
-        font: wx.Font = self.GetFont()
+        font = self.GetFont()
         client_dc.SetFont(font)
-        label: str = self.GetLabel()
+        label = self.GetLabel()
         tw, th = client_dc.GetTextExtent(label)
 
         if self._bitmap:
-            bw: int = self._bitmap.GetWidth()
-            bh: int = self._bitmap.GetHeight()
+            bw = self._bitmap.GetWidth()
+            bh = self._bitmap.GetHeight()
         else:
             bw = bh = 0
 
         # Set default values for pos_x and pos_y
-        pos_x: float = 0
+        pos_x: float = 0.0
         pos_y: float = (height - th) / 2 + shadowOffset
 
         if self._alignment == wx.CENTER:
-            pos_x = (
-                width - bw - tw
-            ) / 2 + shadowOffset  # adjust for bitmap and text to centre
+            # adjust for bitmap and text to centre
+            pos_x = (width - bw - tw) / 2 + shadowOffset
             pos_y = (height - bh) / 2 + shadowOffset
             if self._bitmap:
-                gc.DrawBitmap(
-                    self._bitmap, pos_x, pos_y, bw, bh
-                )  # draw bitmap if available
+                # draw bitmap if available
+                gc.DrawBitmap(self._bitmap, pos_x, pos_y, bw, bh)
                 pos_x += bw + 2  # extra spacing from bitmap
         elif self._alignment == wx.LEFT:
             pos_x = 3  # adjust for bitmap and text to left
@@ -538,23 +536,23 @@ class GradientButton(wx.Control):
         Args:
             gc (wx.GraphicsContext): an instance of :class:`GraphicsContext`;
             rc (wx.Rect): a client rectangle;
-            r (int): the radious of the rounded part of the rectangle.
+            r (int): the radius of the rounded part of the rectangle.
 
         Returns:
             wx.GraphicsPath: A rounded rectangle path.
         """
         x, y, w, h = rc
-        path: wx.GraphicsPath = gc.CreatePath()
+        path = gc.CreatePath()
         path.AddRoundedRectangle(x, y, w, h, r)
         path.CloseSubpath()
         return path
 
-    def SetInitialSize(self, size: None | wx.Size = None) -> None:
+    def SetInitialSize(self, size: Optional[wx.Size] = None) -> None:
         """
         Given the current font and bezel width settings, calculate and set a good size.
 
         Args:
-            size (None | wx.Size): an instance of :class:`wx.Size`.
+            size (Optional[wx.Size]): an instance of :class:`wx.Size`.
         """
         if size is None:
             size = wx.DefaultSize
@@ -735,7 +733,7 @@ class GradientButton(wx.Control):
         Returns:
             :class:`wx.Size`: The best size for the button.
         """
-        label: str = self.GetLabel()
+        label = self.GetLabel()
         if not label:
             return wx.Size(112, 48)
 
@@ -743,20 +741,20 @@ class GradientButton(wx.Control):
         dc.SetFont(self.GetFont())
         retWidth, retHeight = dc.GetTextExtent(label)
 
-        bmpWidth: int = 0
-        bmpHeight: int = 0
+        bmpWidth = 0
+        bmpHeight = 0
         constant = 15
         if self._bitmap:
             bmpWidth, bmpHeight = self._bitmap.GetWidth() + 10, self._bitmap.GetHeight()
             retWidth += bmpWidth
-            retHeight: int = max(bmpHeight, retHeight)
+            retHeight = max(bmpHeight, retHeight)
             constant = 15
 
         return wx.Size(retWidth + constant, retHeight + constant)
 
     def SetDefault(self) -> None:
         """Set the default button."""
-        tlw: wx.Window = wx.GetTopLevelParent(self)
+        tlw = wx.GetTopLevelParent(self)
         if isinstance(tlw, (wx.Dialog, wx.Frame)) and hasattr(tlw, "SetDefaultItem"):
             tlw.SetDefaultItem(self)
         else:

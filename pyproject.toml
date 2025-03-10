@@ -39,8 +39,27 @@ GitHub = "https://github.com/eoyilmaz/displaycal-py3"
 Repository = "https://github.com/eoyilmaz/displaycal-py3.git"
 Download = "https://github.com/eoyilmaz/displaycal-py3/releases/"
 
+[tool.distutils.bdist_rpm]
+doc-files = "LICENSE.txt README.html screenshots/ theme/"
+fix-python = 1
+packager = "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>"
+post-install = "util/rpm_postinstall.sh"
+post-uninstall = "util/rpm_postuninstall.sh"
+release = 1
+# keep_temp = 1
+
+[tool.distutils.bdist_wheel]
+universal = 0
+
+[tool.distutils.install]
+record = "INSTALLED_FILES"
+
+[tool.bdist_wininst]
+bitmap = "misc/media/install-py.bmp"
+install_script = "util/DisplayCAL_postinstall.py"
+
 [tool.setuptools]
-include-package-data = true
+include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["./"]
@@ -66,6 +85,7 @@ optional-dependencies.test = { file = ["requirements-dev.txt"] }
 version = { file = ["VERSION"] }
 
 [tool.black]
+line-length = 88
 
 [tool.flake8]
 exclude = [
@@ -78,20 +98,29 @@ exclude = [
     ".venv",
     ".vscode",
     "build",
+    "cacert.pem",
     "DisplayCAL.egg-info",
+    "DisplayCAL/ref",
     "dist",
     "docs",
+    "INSTALLED_FILES",
+    "MANIFEST.in",
     "misc",
     "screenshots",
     "test_dir",
     "tests",
+    "tests/data/icc",
     "theme",
     "util",
+    "VERSION",
 ]
 extend-select = ["B950"]
 ignore = ["D107", "E203", "E501", "E701", "SC200", "W503"]
 max-complexity = 12
 max-line-length = 80
+per-file-ignores = [
+    "DisplayCAL/lib/agw/fmresources.py: B950"
+]
 
 [tool.pytest.ini_options]
 pythonpath = [

@@ -11,7 +11,12 @@ import sys
 import tempfile
 import textwrap
 import traceback
+
 from binascii import hexlify
+
+if sys.platform == "win32":
+    import win32api
+
 
 from DisplayCAL import (
     CGATS,
@@ -47,9 +52,6 @@ from DisplayCAL.multiprocess import mp, pool_slice
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
-
-if sys.platform == "win32":
-    import win32api
 
 
 def _mp_xicclu(

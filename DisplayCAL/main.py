@@ -8,9 +8,24 @@ import os
 import platform
 import socket
 import subprocess as sp
-import sys
 import threading
+import sys
 from time import sleep
+
+
+# Python version check
+from DisplayCAL.meta import py_maxversion, py_minversion
+
+pyver = sys.version_info[:2]
+if pyver < py_minversion or pyver > py_maxversion:
+    raise RuntimeError(
+        "Need Python version >= %s <= %s, got %s"
+        % (
+            ".".join(str(n) for n in py_minversion),
+            ".".join(str(n) for n in py_maxversion),
+            sys.version.split()[0],
+        )
+    )
 
 from DisplayCAL.config import (
     appbasename,
@@ -43,8 +58,6 @@ from DisplayCAL.meta import (
     VERSION_STRING,
     build,
     name as appname,
-    py_maxversion,
-    py_minversion,
 )
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug, verbose
@@ -52,24 +65,12 @@ from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
 
 import distro
 
-if sys.platform == "darwin":
-    from platform import mac_ver
-    import posix
-
 if sys.platform == "win32":
     from DisplayCAL.util_win import win_ver
     import ctypes
-
-pyver = sys.version_info[:2]
-if pyver < py_minversion or pyver > py_maxversion:
-    raise RuntimeError(
-        "Need Python version >= %s <= %s, got %s"
-        % (
-            ".".join(str(n) for n in py_minversion),
-            ".".join(str(n) for n in py_maxversion),
-            sys.version.split()[0],
-        )
-    )
+elif sys.platform == "darwin":
+    from platform import mac_ver
+    import posix
 
 
 def _excepthook(etype, value, tb):
@@ -333,7 +334,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                                     lockfilename,
                                                 )
                                         print(
-                                            "Closing existing instance " "with PID",
+                                            "Closing existing instance with PID",
                                             pid2,
                                         )
                                         startupinfo = sp.STARTUPINFO()
@@ -490,9 +491,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                 os.makedirs(datahome)
             except Exception:
                 handle_error(
-                    UserWarning(
-                        "Warning - could not create " "directory '%s'" % datahome
-                    )
+                    UserWarning(f"Warning - could not create directory '{datahome}'")
                 )
         elif sys.platform == "darwin":
             # Check & fix permissions if necessary

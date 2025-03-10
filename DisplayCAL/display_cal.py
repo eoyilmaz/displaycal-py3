@@ -122,7 +122,7 @@ from DisplayCAL.debughelpers import (
     getevttype,
     handle_error,
 )
-from DisplayCAL.edid import get_manufacturer_name, pnpidcache
+from DisplayCAL.edid import get_manufacturer_name, PNP_ID_CACHE
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
     DOMAIN,
@@ -13549,11 +13549,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 dlg.sizer3.Add(boxsizer, 1, flag=wx.TOP | wx.EXPAND, border=12)
                 if sys.platform not in ("darwin", "win32"):
                     boxsizer.Add((1, 8))
-                if not pnpidcache:
+                if not PNP_ID_CACHE:
                     # Populate pnpidcache
                     get_manufacturer_name("???")
                 dlg.manufacturer_txt_ctrl = wx.Choice(
-                    dlg, -1, choices=natsort(list(pnpidcache.values())), size=(400, -1)
+                    dlg, -1, choices=natsort(list(PNP_ID_CACHE.values())), size=(400, -1)
                 )
                 manufacturer_selection = self.worker.get_display_edid().get(
                     "manufacturer", ""
@@ -13815,10 +13815,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
             manufacturer_id = None
             if manufacturer:
-                if not pnpidcache:
+                if not PNP_ID_CACHE:
                     # Populate pnpidcache
                     get_manufacturer_name("???")
-                manufacturers = dict([name, id_] for id_, name in pnpidcache.items())
+                manufacturers = dict([name, id_] for id_, name in PNP_ID_CACHE.items())
                 manufacturer_id = manufacturers.get(manufacturer)
             if debug:
                 print(f"manufacturer_id: {manufacturer_id}")

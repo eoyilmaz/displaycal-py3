@@ -1,97 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-edid.py.
-
-This module provides functionality for retrieving and parsing EDID
+"""This module provides functionality for retrieving and parsing EDID
 (Extended Display Identification Data) from various operating systems.
+
 It includes methods for fetching EDID data from Windows, macOS,
 and other platforms, as well as parsing the EDID data into a structured format.
-
-Functions:
-    get_edid(display_no=0, display_name=None, device=None):
-        Get and parse EDID. Return dict.
-
-    get_edid_windows(display_no, device):
-        Get EDID for a Windows display.
-
-    get_edid_windows_wmi(id, wmi_connection, not_main_thread):
-        Get EDID using WMI for Windows Vista/Win7.
-
-    get_edid_windows_registry(id, device):
-        Get EDID using the Windows registry for Win2k/XP/2003.
-
-    get_edid_darwin(display_name):
-        Get EDID via ioreg on macOS.
-
-    get_edid_rdsmm(display_no):
-        Get EDID using RealDisplaySizeMM module.
-
-    parse_manufacturer_id(block):
-        Parse the manufacturer id and return decoded string.
-
-    get_manufacturer_name(manufacturer_id):
-        Try and get a nice descriptive string for our manufacturer id.
-
-    load_pnpidcache():
-        Load the pnpidcache from various possible locations.
-
-    get_pnpid_paths():
-        Get the list of possible paths for the pnp.ids file.
-
-    parse_pnpid_file(pnp_ids, path):
-        Parse the pnp.ids file and populate the pnpidcache.
-
-    parse_hwdb_line(line):
-        Parse a line from the hwdb file.
-
-    parse_pnpid_line(line):
-        Parse a line from the pnp.ids file.
-
-    edid_get_bit(value, bit):
-        Get the bit value at the specified position.
-
-    edid_get_bits(value, begin, end):
-        Get the bits from the specified range.
-
-    edid_decode_fraction(high, low):
-        Decode a fraction from high and low bits.
-
-    edid_parse_string(desc):
-        Parse a string from EDID data.
-
-    parse_edid(edid):
-        Parse raw EDID data (binary string) and return dict.
-
-    fix_edid_encoding(edid):
-        Fix the encoding of EDID data.
-
-    ensure_bytes(edid):
-        Ensure that the EDID data is in bytes.
-
-    parse_edid_header(edid):
-        Parse the EDID header.
-
-    parse_edid_basic_display_parameters(edid):
-        Parse the basic display parameters from the EDID data.
-
-    parse_edid_chromaticity_coordinates(edid):
-        Parse the chromaticity coordinates from the EDID data.
-
-    parse_edid_descriptor_blocks(edid):
-        Parse the descriptor blocks from the EDID data.
-
-    parse_color_point_data(block):
-        Parse the color point data from the EDID data.
-
-    parse_edid_extension_blocks(edid):
-        Parse the extension blocks from the EDID data.
-
-Classes:
-    WMIError:
-        Custom exception for WMI errors.
 """
-import binascii
-import codecs
+
 import math
 import os
 import re
@@ -101,13 +15,13 @@ import subprocess
 import sys
 
 from hashlib import md5
+from typing import Dict, List, Optional, Union
 
 from DisplayCAL import config
 from DisplayCAL.util_str import safe_str
 
 if sys.platform == "win32":
     from DisplayCAL import util_win
-    import pythoncom
     import threading
 
     # Use registry as fallback for Win2k/XP/2003
@@ -116,6 +30,8 @@ if sys.platform == "win32":
     wmi = None
     if sys.getwindowsversion() >= (6,):
         # Use WMI for Vista/Win7
+        import pythoncom
+
         try:
             import wmi
         except Exception:
@@ -132,9 +48,6 @@ from DisplayCAL import config
 from DisplayCAL import RealDisplaySizeMM as RDSMM
 from DisplayCAL.util_os import which
 from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
-
-if sys.platform == "win32":
-    from DisplayCAL import util_win
 
 HEADER = (0, 8)
 MANUFACTURER_ID = (8, 10)
@@ -171,12 +84,11 @@ CHECKSUM = 127
 BLOCK_DI_EXT = b"\x40"
 TRC = (81, 127)
 
-pnpidcache = {}
+PNP_ID_CACHE = {}
 
 
 def combine_hi_8lo(hi, lo):
-    """
-    Combine two 8-bit values into a single 16-bit value.
+    """Combine two 8-bit values into a single 16-bit value.
 
     Args:
         hi (int): The high byte.
@@ -188,19 +100,22 @@ def combine_hi_8lo(hi, lo):
     return hi << 8 | lo
 
 
-def get_edid(display_no=0, display_name=None, device=None):
-    """
-    Get and parse EDID. Return dict.
+def get_edid(
+    display_no: int = 0,
+    display_name: Optional[str] = None,
+    device: Optional[str] = None,
+) -> Dict:
+    """Get and parse EDID. Return dict.
 
     On Mac OS X, you need to specify a display name.
     On all other platforms, you need to specify a display number (zero-based).
     Args:
         display_no (int): The display number (zero-based).
-        display_name (str): The display name (for Mac OS X).
-        device (str): The device identifier.
+        display_name (Optional[str]): The display name (for Mac OS X).
+        device (Optional[str]): The device identifier.
 
     Returns:
-        dict: Parsed EDID data.
+        Dict: Parsed EDID data.
     """
     edid = None
     if sys.platform == "win32":
@@ -208,7 +123,7 @@ def get_edid(display_no=0, display_name=None, device=None):
     elif sys.platform == "darwin":
         edid = get_edid_darwin(display_name)
     elif RDSMM:
-        edid = get_edid_rdsmm(display_no)
+        edid = get_edid_from_xrandr(display_no)
 
     if edid and len(edid) >= 128:
         return parse_edid(edid)
@@ -240,9 +155,9 @@ def get_edid_windows(display_no, device):
     if not device:
         return None
 
-    id = device.DeviceID.split("\\")[1]
+    id_ = device.DeviceID.split("\\")[1]
     wmi_connection = None
-    not_main_thread = not isinstance(threading.current_thread(), threading.Thread)
+    not_main_thread = not (threading.current_thread() is treading.main_thread())
 
     if wmi:
         if not_main_thread:
@@ -250,9 +165,9 @@ def get_edid_windows(display_no, device):
         wmi_connection = wmi.WMI(namespace="WMI")
 
     if wmi_connection:
-        return get_edid_windows_wmi(id, wmi_connection, not_main_thread)
+        return get_edid_windows_wmi(id_, wmi_connection, not_main_thread)
     elif sys.getwindowsversion() < (6,):
-        return get_edid_windows_registry(id, device)
+        return get_edid_windows_registry(id_, device)
     else:
         raise WMIError("No WMI connection")
 
@@ -301,8 +216,7 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
 
 
 def get_edid_windows_registry(id, device):
-    """
-    Get EDID using the Windows registry for Win2k/XP/2003.
+    """Get EDID using the Windows registry for Win2k/XP/2003.
 
     Args:
         id (str): The device ID.
@@ -345,87 +259,51 @@ def get_edid_windows_registry(id, device):
             # No Driver entry
             continue
 
-        if test == driver:
-            # Found our display device
-            try:
-                devparms = winreg.OpenKey(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    "\\".join([subkey, hkname, "Device Parameters"]),
-                )
-            except WindowsError:
-                # No Device Parameters (registry error?)
-                print(
-                    "Windows registry error: Key",
-                    "\\".join(
-                        ["HKEY_LOCAL_MACHINE", subkey, hkname, "Device Parameters"]
-                    ),
-                    "does not exist.",
-                )
-                continue
+        if test != driver:
+            continue
 
-            try:
-                edid = winreg.QueryValueEx(devparms, "EDID")[0]
-            except WindowsError:
-                # No EDID entry
-                pass
-            else:
-                return edid
+        # Found our display device
+        try:
+            devparms = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                "\\".join([subkey, hkname, "Device Parameters"]),
+            )
+        except WindowsError:
+            # No Device Parameters (registry error?)
+            print(
+                "Windows registry error: Key",
+                "\\".join(["HKEY_LOCAL_MACHINE", subkey, hkname, "Device Parameters"]),
+                "does not exist.",
+            )
+            continue
+
+        try:
+            edid = winreg.QueryValueEx(devparms, "EDID")[0]
+        except WindowsError:
+            # No EDID entry
+            pass
+        else:
+            return edid
 
     return edid
 
 
-def get_edid_darwin(display_name):
+def get_edid_darwin(display_name: str) -> Union[None, bytes]:
     """Get EDID via ioreg on macOS.
 
     Args:
         display_name (str): The display name.
 
     Returns:
-        dict: Parsed EDID data.
+        Union[None, bytes]: Parsed EDID data or None.
     """
+    # Get EDID via ioreg
     p = subprocess.Popen(
-            ["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=subprocess.PIPE
-        )
+        ["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=subprocess.PIPE
+    )
     stdout, stderr = p.communicate()
-
     if not stdout:
-        return {}
-    else:
-        display = RDSMM.get_display(display_no)
-        if not display:
-            return {}
-
-        p = subprocess.Popen([which("xrandr"), "--verbose"], stdout=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-
-        if not stdout:
-            return {}
-
-        found_display = False
-        found_edid = False
-        edid_data = []
-        for line in stdout.splitlines():
-            if found_edid:
-                if line.startswith(b"\t\t"):
-                    # extract the edid data
-                    edid_data.append(line.strip())
-                else:
-                    # read all data, exit
-                    break
-            if found_display:
-                # try to find EDID
-                if b"EDID" in line:
-                    found_edid = True
-            # try to find the display
-            if (display["name"] + b" connected") in line:
-                found_display = True
-
-        edid = b"".join(edid_data)
-
-    if edid and len(edid) >= 128:
-        return parse_edid(edid)
-    return {}
-
+        return None
     for edid in [
         binascii.unhexlify(edid_hex)
         for edid_hex in re.findall(
@@ -435,20 +313,15 @@ def get_edid_darwin(display_name):
         if not edid or len(edid) < 128:
             continue
         parsed_edid = parse_edid(edid)
-        if (
-            parsed_edid.get("monitor_name", parsed_edid.get("ascii"))
-            == display_name
-        ):
-            # On Mac OS X, you need to specify a display name because
-            # the order is unknown
-            return parsed_edid
-
-    return {}
+        if parsed_edid.get("monitor_name", parsed_edid.get("ascii")) == display_name:
+            # On Mac OS X, you need to specify a display name
+            # because the order is unknown
+            return edid
+    return None
 
 
-def get_edid_rdsmm(display_no):
-    """
-    Get EDID using RealDisplaySizeMM module.
+def get_edid_from_xrandr(display_no):
+    """Get EDID using `xrandr` utility.
 
     Args:
         display_no (int): The display number (zero-based).
@@ -456,21 +329,42 @@ def get_edid_rdsmm(display_no):
     Returns:
         bytes: The EDID data.
     """
-    if RDSMM is None:
-        warnings.warn(
-            "RealDisplaySizeMM module is not available.", Warning, stacklevel=2
-        )
+    display = RDSMM.get_display(display_no)
+    if not display:
         return None
 
-    display = RDSMM.get_display(display_no)
-    if display:
-        return display.get("edid")
-    return None
+    p = subprocess.Popen([which("xrandr"), "--verbose"], stdout=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+
+    if not stdout:
+        return None
+
+    found_display = False
+    found_edid = False
+    edid_data = []
+    for line in stdout.splitlines():
+        if found_edid:
+            if line.startswith(b"\t\t"):
+                # extract the edid data
+                edid_data.append(line.strip())
+            else:
+                # read all data, exit
+                break
+        if found_display:
+            # try to find EDID
+            if b"EDID" in line:
+                found_edid = True
+        # try to find the display
+        if (display["name"] + b" connected") in line:
+            found_display = True
+
+    edid = b"".join(edid_data)
+
+    return edid
 
 
-def parse_manufacturer_id(block):
-    """
-    Parse the manufacturer id and return decoded string.
+def parse_manufacturer_id(block: bytes) -> str:
+    """Parse the manufacturer id and return decoded string.
 
     The range is always ASCII charcode 64 to 95.
 
@@ -487,9 +381,8 @@ def parse_manufacturer_id(block):
     return "".join(manufacturer_id).strip()
 
 
-def get_manufacturer_name(manufacturer_id):
-    """
-    Try and get a nice descriptive string for our manufacturer id.
+def get_manufacturer_name(manufacturer_id: str) -> str:
+    """Try and get a nice descriptive string for our manufacturer id.
 
     This uses either hwdb or pnp.ids which will be looked for in several places.
     If it can't find the file, it returns None.
@@ -513,71 +406,31 @@ def get_manufacturer_name(manufacturer_id):
     Returns:
         str: The descriptive manufacturer name.
     """
-    if not pnpidcache:
-        paths = [
-            "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",  # systemd
-            "/usr/share/hwdata/pnp.ids",  # hwdata, e.g. Red Hat
-            "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
-            "/usr/share/libgnome-desktop/pnp.ids",
-        ]  # fallback gnome-desktop
-        # if sys.platform in ("darwin", "win32"):
-        paths.append(os.path.join(config.pydir, "pnp.ids"))  # fallback
-        # fallback for tests
-        paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
-        for path in paths:
-            if os.path.isfile(path):
-                try:
-                    pnp_ids = codecs.open(path, "r", "UTF-8", "replace")
-                except IOError:
-                    pass
-                else:
-                    id, name = None, None
-                    try:
-                        for line in pnp_ids:
-                            if path.endswith("hwdb"):
-                                if line.strip().startswith("acpi:"):
-                                    id = line.split(":")[1][:3]
-                                    continue
-                                elif line.strip().startswith("ID_VENDOR_FROM_DATABASE"):
-                                    name = line.split("=", 1)[1].strip()
-                                else:
-                                    continue
-                                if not id or not name or id in pnpidcache:
-                                    continue
-                            else:
-                                try:
-                                    # Strip leading/trailing whitespace
-                                    # (non-breaking spaces too)
-                                    id, name = line.strip(
-                                        string.whitespace + "\u00a0"
-                                    ).split(None, 1)
-                                except ValueError:
-                                    continue
-                            pnpidcache[id] = name
-                    except OSError:
-                        continue
-                    finally:
-                        pnp_ids.close()
-                    break
-    return pnpidcache.get(manufacturer_id)
-        load_pnpidcache()
-    return pnpidcache.get(manufacturer_id)
+    if not PNP_ID_CACHE:
+        load_pnp_id_cache()
+
+    return PNP_ID_CACHE.get(manufacturer_id)
 
 
-def load_pnpidcache():
-    """Load the pnpidcache from various possible locations."""
-    paths = get_pnpid_paths()
-    for path in paths:
-        if os.path.isfile(path):
-            try:
-                with codecs.open(path, "r", "UTF-8", "replace") as pnp_ids:
-                    parse_pnpid_file(pnp_ids, path)
-                break
-            except IOError:
-                continue
+def load_pnp_id_cache() -> None:
+    """Load the `PNP_ID_CACHE` content from various possible locations."""
+    for path in get_pnp_id_paths():
+        if not os.path.isfile(path):
+            continue
+
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as pnp_ids:
+                lines = pnp_ids.readlines()
+        except (IOError, OSError):
+            continue
+
+        if path.endswith("hwdb"):
+            parse_hwdb_data(lines)
+        else:
+            parse_pnpid_data(lines)
 
 
-def get_pnpid_paths():
+def get_pnp_id_paths():
     """Get the list of possible paths for the pnp.ids file.
 
     Returns:
@@ -589,71 +442,56 @@ def get_pnpid_paths():
         "/usr/share/misc/pnp.ids",  # pnputils, e.g. Debian
         "/usr/share/libgnome-desktop/pnp.ids",
     ]  # fallback gnome-desktop
-    if sys.platform in ("darwin", "win32"):
-        # fallback
-        paths.append(os.path.join(config.pydir, "pnp.ids"))
-        # fallback for tests
-        paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
+    # if sys.platform in ("darwin", "win32"):
+    # fallback
+    paths.append(os.path.join(config.pydir, "pnp.ids"))
+    # fallback for tests
+    paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
     return paths
 
 
-def parse_pnpid_file(pnp_ids, path):
-    """Parse the pnp.ids file and populate the pnpidcache.
+def parse_hwdb_data(lines: List[str]) -> None:
+    """Parse a from the hwdb file data.
 
     Args:
-        pnp_ids (file): The pnp.ids file.
-        path (str): The path to the pnp.ids file.
+        line (str): The line to parse.
+
+    Returns:
+        Tuple[str, str]: The parsed ID and name.
     """
-    id, name = None, None
-    for line in pnp_ids:
-        if path.endswith("hwdb"):
-            id, name = parse_hwdb_line(line)
+    id_, name = None, None
+    for line in lines:
+        if line.strip().startswith("acpi:"):
+            id_ = line.split(":")[1][:3]
+            continue
+        elif line.strip().startswith("ID_VENDOR_FROM_DATABASE"):
+            name = line.split("=", 1)[1].strip()
         else:
-            id, name = parse_pnpid_line(line)
-        if id and name and id not in pnpidcache:
-            pnpidcache[id] = name
+            continue
+        if id_ and name and id_ not in PNP_ID_CACHE:
+            PNP_ID_CACHE[id_] = name
 
 
-def parse_hwdb_line(line):
-    """
-    Parse a line from the hwdb file.
-
-    Args:
-        line (str): The line to parse.
-
-    Returns:
-        tuple: The parsed ID and name.
-    """
-    id, name = None, None
-    if line.strip().startswith("acpi:"):
-        id = line.split(":")[1][:3]
-    elif line.strip().startswith("ID_VENDOR_FROM_DATABASE"):
-        name = line.split("=", 1)[1].strip()
-    return id, name
-
-
-def parse_pnpid_line(line):
-    """
-    Parse a line from the pnp.ids file.
+def parse_pnpid_data(lines: List[str]) -> None:
+    """Parse data from the pnp.ids file content.
 
     Args:
-        line (str): The line to parse.
-
-    Returns:
-        tuple: The parsed ID and name.
+        lines (List[str]): The data to parse.
     """
-    try:
-        # Strip leading/trailing whitespace
-        # (non-breaking spaces too)
-        id, name = line.strip(string.whitespace + "\u00a0").split(None, 1)
-    except ValueError:
-        id, name = None, None
-    return id, name
+    id_, name = None, None
+    for line in lines:
+        try:
+            # Strip leading/trailing whitespace
+            # (non-breaking spaces too)
+            id_, name = line.strip(string.whitespace + "\u00a0").split(None, 1)
+        except ValueError:
+            id_, name = None, None
+        if id_ and name and id_ not in PNP_ID_CACHE:
+            PNP_ID_CACHE[id_] = name
 
 
 def edid_get_bit(value, bit):
-    """
-    Get the bit value at the specified position.
+    """Get the bit value at the specified position.
 
     Args:
         value (int): The value to extract the bit from.
@@ -666,8 +504,7 @@ def edid_get_bit(value, bit):
 
 
 def edid_get_bits(value, begin, end):
-    """
-    Get the bits from the specified range.
+    """Get the bits from the specified range.
 
     Args:
         value (int): The value to extract the bits from.
@@ -682,8 +519,7 @@ def edid_get_bits(value, begin, end):
 
 
 def edid_decode_fraction(high, low):
-    """
-    Decode a fraction from high and low bits.
+    """Decode a fraction from high and low bits.
 
     Args:
         high (int): The high bits.
@@ -700,8 +536,7 @@ def edid_decode_fraction(high, low):
 
 
 def edid_parse_string(desc):
-    """
-    Parse a string from EDID data.
+    """Parse a string from EDID data.
 
     Args:
         desc (bytes): The description to parse.
@@ -732,15 +567,13 @@ def edid_parse_string(desc):
 
     # Only use string if max 4 replaced chars
     if non_printable_count <= 4:
-
         # Replace any NULL chars with dashes to make a printable string
         desc = desc.replace(b"\x00", b"-")
         return bytes(desc)
 
 
 def parse_edid(edid):
-    """
-    Parse raw EDID data (binary string) and return dict.
+    """Parse raw EDID data (binary string) and return dict.
 
     Args:
         edid (bytes): The raw EDID data.
@@ -763,8 +596,7 @@ def parse_edid(edid):
 
 
 def fix_edid_encoding(edid):
-    """
-    Fix the encoding of EDID data.
+    """Fix the encoding of EDID data.
 
     Args:
         edid (bytes): The EDID data to fix.
@@ -784,8 +616,7 @@ def fix_edid_encoding(edid):
 
 
 def ensure_bytes(edid):
-    """
-    Ensure that the EDID data is in bytes.
+    """Ensure that the EDID data is in bytes.
 
     Args:
         edid (bytes or str): The EDID data.
@@ -823,8 +654,7 @@ def parse_edid_header(edid):
 
 
 def parse_edid_basic_display_parameters(edid):
-    """
-    Parse the basic display parameters from the EDID data.
+    """Parse the basic display parameters from the EDID data.
 
     Args:
         edid (bytes): The raw EDID data.
@@ -849,8 +679,7 @@ def parse_edid_basic_display_parameters(edid):
 
 
 def parse_edid_chromaticity_coordinates(edid):
-    """
-    Parse the chromaticity coordinates from the EDID data.
+    """Parse the chromaticity coordinates from the EDID data.
 
     Args:
         edid (bytes): The raw EDID data.
@@ -924,8 +753,7 @@ def parse_edid_descriptor_blocks(edid):
 
 
 def parse_color_point_data(block):
-    """
-    Parse the color point data from the EDID data.
+    """Parse the color point data from the EDID data.
 
     Args:
         block (bytes): The block containing the color point data.
@@ -938,30 +766,27 @@ def parse_color_point_data(block):
         # 2nd white point index in range 1...255
         # 3rd white point index in range 2...255
         # 0 = do not use
-        if block[i] > i / 5:
-            white_x = edid_decode_fraction(
-                block[i + 2], edid_get_bits(block[i + 1], 2, 3)
-            )
-            result["white_x_" + str(block[i])] = white_x
-            if "white_x" not in result:
-                result["white_x"] = white_x
-            white_y = edid_decode_fraction(
-                block[i + 3], edid_get_bits(block[i + 1], 0, 1)
-            )
-            result["white_y_" + str(block[i])] = white_y
-            if "white_y" not in result:
-                result["white_y"] = white_y
-            if block[i + 4] != "\xff":
-                gamma = block[i + 4] / 100.0 + 1
-                result["gamma_" + str(block[i])] = gamma
-                if "gamma" not in result:
-                    result["gamma"] = gamma
+        if block[i] <= i / 5:
+            continue
+
+        white_x = edid_decode_fraction(block[i + 2], edid_get_bits(block[i + 1], 2, 3))
+        result[f"white_x_{block[i]}"] = white_x
+        if "white_x" not in result:
+            result["white_x"] = white_x
+        white_y = edid_decode_fraction(block[i + 3], edid_get_bits(block[i + 1], 0, 1))
+        result[f"white_y_{block[i]}"] = white_y
+        if "white_y" not in result:
+            result["white_y"] = white_y
+        if block[i + 4] != "\xff":
+            gamma = block[i + 4] / 100.0 + 1
+            result[f"gamma_{block[i]}"] = gamma
+            if "gamma" not in result:
+                result["gamma"] = gamma
     return result
 
 
 def parse_edid_extension_blocks(edid):
-    """
-    Parse the extension blocks from the EDID data.
+    """Parse the extension blocks from the EDID data.
 
     Args:
         edid (bytes): The raw EDID data.

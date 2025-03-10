@@ -8,6 +8,9 @@ import shutil
 import sys
 import time
 
+if sys.platform == "win32":
+    import win32file
+
 from DisplayCAL import (
     CGATS,
     ICCProfile as ICCP,
@@ -54,9 +57,7 @@ from DisplayCAL.worker import (
 )
 from DisplayCAL.wxMeasureFrame import get_default_size
 from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
-from DisplayCAL.wxfixes import (
-    GenBitmapButton as BitmapButton,
-)
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -67,10 +68,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     get_gradient_panel,
 )
-
-if sys.platform == "win32":
-    import win32file
-
 
 def swap_dict_keys_values(mydict):
     return dict([(v, k) for (k, v) in mydict.items()])

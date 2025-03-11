@@ -169,6 +169,8 @@ jobs:
       run: |
         $py_version = "${{ matrix.python-version }}" -replace '\.', ''
         echo "py_version=$py_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
+        echo "ScriptsPath=$ScriptsPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         if ("${{ matrix.python-version }}" -eq "3.8") {
           echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         } elseif ("${{ matrix.python-version }}" -eq "3.9") {
@@ -194,7 +196,7 @@ jobs:
     - name: Fix user Scripts missing from PATH
       run: |
         $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
-        echo "ScriptsPath=$ScriptsPath"
+        echo "ScriptsPath=$ScriptsPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         Add-Content $env:GITHUB_PATH $ScriptsPath
 
     - name: Install wxPython ${{ matrix.wx-version }}
@@ -207,7 +209,7 @@ jobs:
 
     - name: Fix pywin32
       run: |
-        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
+        dir ${{ env.ScriptsPath }}
         python ${{ env.ScriptsPath }}\pywin32_postinstall.py -install
 
     - name: Build DisplayCAL

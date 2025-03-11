@@ -42,7 +42,7 @@ import subprocess as sp
 import sys
 import tempfile
 
-from win32 import pywintypes
+from win32.lib import pywintypes
 import winerror
 
 from DisplayCAL.meta import name as appname

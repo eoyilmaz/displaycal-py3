@@ -32,7 +32,7 @@ import time
 if sys.platform == "win32":
     try:
         import win32api
-        from win32 import pywintypes
+        from win32.lib import pywintypes
     except ImportError:
         win32api = None
 

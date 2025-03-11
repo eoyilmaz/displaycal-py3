@@ -56,7 +56,7 @@ if sys.platform == "win32":
     import win32api
     from win32 import win32con
     import win32event
-    from win32 import pywintypes
+    from win32.lib import pywintypes
     from win32 import winerror
 
 # custom

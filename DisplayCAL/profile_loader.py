@@ -26,7 +26,7 @@ from DisplayCAL.options import debug, test, verbose
 if sys.platform == "win32":
     import ctypes
     import errno
-    from win32 import pywintypes
+    from win32.lib import pywintypes
     import win32api
     import win32event
     import win32gui

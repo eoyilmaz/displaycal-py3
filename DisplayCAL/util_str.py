@@ -10,7 +10,7 @@ from functools import reduce
 
 env_errors = (EnvironmentError,)
 if sys.platform == "win32":
-    from win32 import pywintypes
+    from win32.lib import pywintypes
 
     env_errors = env_errors + (pywintypes.error, pywintypes.com_error)
 

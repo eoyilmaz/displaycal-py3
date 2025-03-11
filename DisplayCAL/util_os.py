@@ -22,7 +22,6 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Type, U
 from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
-    from winioctlcon import FSCTL_GET_REPARSE_POINT
     import msvcrt
     import pywintypes
     from win32 import win32api
@@ -30,6 +29,7 @@ if sys.platform == "win32":
     from win32 import win32file
     from win32 import win32security
     from win32.win32file import GetFileAttributes
+    from win32.winioctlcon import FSCTL_GET_REPARSE_POINT
     import winerror
 
 if sys.platform != "win32":

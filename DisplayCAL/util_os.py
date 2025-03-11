@@ -23,7 +23,7 @@ from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
     import msvcrt
-    from win32 import pywintypes
+    from win32api import pywintypes
     from win32 import win32api
     from win32 import win32con
     from win32 import win32file

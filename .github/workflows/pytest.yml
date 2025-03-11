@@ -42,6 +42,10 @@ jobs:
             python-version: "3.13"
           - wx-version: "4.2.2"
             python-version: "3.8"
+          - wx-version: "4.2.2"
+            python-version: "3.9"
+          - wx-version: "4.2.2"
+            python-version: "3.10"
 
     steps:
 
@@ -152,6 +156,10 @@ jobs:
             python-version: "3.13"
           - wx-version: "4.2.2"
             python-version: "3.8"
+          - wx-version: "4.2.2"
+            python-version: "3.9"
+          - wx-version: "4.2.2"
+            python-version: "3.10"
 
     steps:
     - uses: actions/checkout@v4

@@ -25,13 +25,19 @@ if sys.platform == "win32":
     import msvcrt
     try:
         import pywintypes
-    except ImportError:
-        import site
+    except ImportError as e:
+        print(str(e))
         import sys
-        site_packages = site.getsitepackages()
-        if site_packages not in sys.path:
-            sys.path.append(site.getsitepackages())
-        from win32.lib import pywintypes
+        import site
+        site_packages_path = site.getsitepackages()
+        if site_packages_path not in sys.path:
+            print(f"site_packages_path not in sys.path: {site_packages_path}")
+            sys.path.append(site_packages_path)
+        try:
+            from win32.lib import pywintypes
+        except ImportError as e:
+            print(str(e))
+            from win32api import pywintypes
 
     from win32 import win32api
     from win32 import win32con

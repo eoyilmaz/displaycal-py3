@@ -100,7 +100,6 @@ DisplayCAL = [
     "docs",
     "man",
     "misc",
-    "screenshots",
     "test_dir",
     "tests",
     "theme",

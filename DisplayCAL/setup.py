@@ -1549,6 +1549,7 @@ def setup():
             manifest_in.append("global-exclude .svn/*")
         manifest_in.append("global-exclude *~")
         manifest_in.append("global-exclude *.backup")
+        manifest_in.append("global-exclude */__pycache__/*")
         manifest_in.append("global-exclude *.bak")
         if not dry_run:
             manifest = open("MANIFEST.in", "w")

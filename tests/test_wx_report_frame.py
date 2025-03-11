@@ -11,8 +11,8 @@ def test_update_estimated_measurement_time_1(argyll):
     TypeError.
     """
     from DisplayCAL.config import initcfg
-    from DisplayCAL.wxfixes import wx
     from DisplayCAL.wxReportFrame import ReportFrame
+    import wx
 
     initcfg()
     app = wx.GetApp() or wx.App()

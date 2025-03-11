@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from DisplayCAL.wxfixes import wx
-from DisplayCAL.log import safe_print
-
+import wx
 import wx.xrc as xrc
+from DisplayCAL.log import safe_print
 
 try:
     from DisplayCAL.wxwindows import HStretchStaticBitmap

@@ -4,7 +4,7 @@
 It defines various styles, states, and images used in the FlatMenu and related controls.
 """
 
-from DisplayCAL.wxfixes import wx
+import wx
 
 # Overall menu styles
 StyleDefault = 0

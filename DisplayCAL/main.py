@@ -278,7 +278,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                     pid = None
                 if not incoming:
                     if sys.platform == "win32":
-                        from win32.lib import pywintypes
+                        import pywintypes
                         import win32ts
 
                         try:

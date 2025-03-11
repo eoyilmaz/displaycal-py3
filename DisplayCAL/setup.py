@@ -1045,7 +1045,7 @@ def setup():
         attrs["setup_requires"] = ["py2app"]
 
     if do_py2exe:
-        from DisplayCAL.wxfixes import wx
+        import wx
         from winmanifest_util import getmanifestxml
 
         if platform.architecture()[0] == "64bit":
@@ -1582,7 +1582,7 @@ def setup():
         if dry_run or help:
             return
 
-            from DisplayCAL.wxfixes import wx
+            import wx
 
             if wx.VERSION >= (4,):
                 # Fix wxPython 4 dylibs being included in wrong location

@@ -5,7 +5,6 @@
 
 import random
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-from DisplayCAL.wxfixes import wx
 
 from six import BytesIO
 
@@ -36,6 +35,8 @@ from DisplayCAL.lib.agw.fmresources import (
     shadow_right_top_xpm,
     shadow_right_xpm,
 )
+
+import wx
 
 # ------------------------------------------------------------------------------------ #
 # Class DCSaver

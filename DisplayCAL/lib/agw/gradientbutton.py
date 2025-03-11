@@ -131,7 +131,7 @@ Version 0.3
 
 from typing import Optional, Union
 
-from DisplayCAL.wxfixes import wx
+import wx
 
 
 HOVER = 1

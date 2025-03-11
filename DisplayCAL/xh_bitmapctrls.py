@@ -2,12 +2,12 @@
 
 import os
 
+import wx
+import wx.xrc as xrc
 
 from DisplayCAL.config import getbitmap
 from DisplayCAL.log import safe_print
-from DisplayCAL.wxfixes import wx
 
-import wx.xrc as xrc
 
 class BitmapButton(xrc.XmlResourceHandler):
     def __init__(self):

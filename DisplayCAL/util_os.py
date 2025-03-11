@@ -23,29 +23,7 @@ from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
     import msvcrt
-    try:
-        import pywintypes
-    except ImportError as e:
-        print(str(e))
-        import glob
-        import sys
-        import site
-        import os
-        site_packages_path = site.getsitepackages()
-        for path in site_packages_path:
-            for f in glob.glob(path):
-                print(os.path.join(path, f))
-            if path not in sys.path:
-                print(f"path not in sys.path: {path}")
-                sys.path.append(path)
-            else:
-                print(f"path in sys.path: {path}")
-        try:
-            from win32.lib import pywintypes
-        except ImportError as e:
-            print(str(e))
-            from win32api import pywintypes
-
+    import pywintypes
     from win32 import win32api
     from win32 import win32con
     from win32 import win32file

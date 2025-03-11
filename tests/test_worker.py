@@ -552,7 +552,7 @@ def test_prepare_dispcal_1():
 )
 def test_get_argyll_version_string_returns_a_proper_value():
     """get_argyll_version_string() returns a proper value."""
-    from DisplayCAL.wxfixes import wx
+    import wx
 
     config.initcfg()
     app = wx.GetApp() or wx.App()

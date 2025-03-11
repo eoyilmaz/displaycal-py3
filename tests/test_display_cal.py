@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Tuple
 
 import pytest
-from DisplayCAL.wxfixes import wx
+import wx
 from wx import AppConsole, Button
 
 from DisplayCAL import display_cal, CGATS, config

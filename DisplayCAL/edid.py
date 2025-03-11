@@ -39,7 +39,7 @@ if sys.platform == "win32":
     else:
         # Use registry as fallback for Win2k/XP/2003
         import winreg
-    from win32.lib import pywintypes
+    import pywintypes
     import win32api
 elif sys.platform == "darwin":
     import binascii

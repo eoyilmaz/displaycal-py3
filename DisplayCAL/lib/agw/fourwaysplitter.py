@@ -141,7 +141,7 @@ Version 0.5
 """
 from typing import List, Optional, Tuple, Union
 
-from DisplayCAL.wxfixes import wx
+import wx
 
 _RENDER_VER = (2, 6, 1, 1)
 
@@ -1154,7 +1154,7 @@ class FourWaySplitter(wx.Panel):
 
 
 if __name__ == "__main__":
-    from DisplayCAL.wxfixes import wx
+    import wx
 
     class MyFrame(wx.Frame):
         """MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.

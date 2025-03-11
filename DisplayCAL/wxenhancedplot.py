@@ -110,8 +110,12 @@ Zooming controls with mouse (when enabled):
 
 import functools
 import string as _string
-from DisplayCAL.wxfixes import wx, get_dc_font_scale
+
 import numpy as np
+
+import wx
+
+from DisplayCAL.wxfixes import get_dc_font_scale
 
 
 def convert_to_list_of_tuples(iterable):

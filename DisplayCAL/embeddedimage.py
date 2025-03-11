@@ -14,7 +14,7 @@
 
 import base64
 import io
-from DisplayCAL.wxfixes import wx
+import wx
 
 try:
     b64decode = base64.b64decode

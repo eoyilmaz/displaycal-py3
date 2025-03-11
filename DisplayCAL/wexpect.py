@@ -89,7 +89,7 @@ if sys.platform != "win32":
 else:
     from io import StringIO
     from ctypes import windll
-    from win32.lib import pywintypes
+    import pywintypes
     from win32com.shell.shellcon import CSIDL_APPDATA
     from win32com.shell.shell import SHGetSpecialFolderPath
     from win32console import (

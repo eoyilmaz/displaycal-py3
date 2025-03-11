@@ -32,7 +32,7 @@ import time
 if sys.platform == "win32":
     try:
         import win32api
-        from win32.lib import pywintypes
+        import pywintypes
     except ImportError:
         win32api = None
 
@@ -211,7 +211,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                 _server = None
     elif lib == "wx":
         try:
-            from DisplayCAL.wxfixes import wx
+            import wx
 
             _lib = "wx"
         except ImportError:

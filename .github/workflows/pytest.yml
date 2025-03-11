@@ -91,6 +91,10 @@ jobs:
         python3 -m pip install --upgrade pip
         pip install wheel
 
+    - name: Patch requirements.txt for wxPython
+      run: |
+        sed -i "s/wxPython >= 4.2.2/wxPython >= ${{ matrix.wx-version }}/g" pyproject.toml
+
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
         pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl

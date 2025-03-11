@@ -34,6 +34,8 @@ if sys.platform == "win32":
             if path not in sys.path:
                 print(f"path not in sys.path: {path}")
                 sys.path.append(path)
+            else:
+                print(f"path in sys.path: {path}")
         try:
             from win32.lib import pywintypes
         except ImportError as e:

@@ -31,7 +31,7 @@ build:
 install:
 	@printf "\n\033[36m--- $@: Installing displaycal to virtualenv at '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
-	pip install ./dist/DisplayCAL-$(VERSION)-*.whl --force-reinstall;
+	pip install ./dist/displaycal-$(VERSION)-*.whl --force-reinstall;
 
 launch:
 	@printf "\n\033[36m--- $@: Launching DisplayCAL ---\033[0m\n"
@@ -41,6 +41,9 @@ launch:
 clean: FORCE
 	@printf "\n\033[36m--- $@: Clean ---\033[0m\n"
 	-rm -rf .pytest_cache
+	-rm -rf .coverage
+	-rm -rf .ruff_cache
+	-rm -rf .tox
 	-rm -rf $(VIRTUALENV_DIR)
 	-rm -rf dist
 	-rm -rf build
@@ -50,7 +53,7 @@ clean-all: clean
 	-rm -f INSTALLED_FILES
 	-rm -f setuptools-*.egg
 	-rm -f use-distutils
-	-rm -rf dist
+	-rm -f main.py
 	-rm MANIFEST.in
 	-rm VERSION
 	-rm -Rf DisplayCAL.egg-info

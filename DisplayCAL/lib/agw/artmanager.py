@@ -5,7 +5,7 @@
 
 import random
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-import wx
+from DisplayCAL.wxfixes import wx
 
 from six import BytesIO
 

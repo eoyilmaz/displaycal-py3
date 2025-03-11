@@ -222,7 +222,7 @@ def ensureMinimal(minVersion, optionsRequired=False):
         if _EM_DEBUG:  # We'll do it this way just for the test code below
             raise VersionError("Requested version of wxPython not found")
 
-        import wx
+        from DisplayCAL.wxfixes import wx
         import webbrowser
 
         versions = "\n".join(["      " + ver for ver in getInstalled()])

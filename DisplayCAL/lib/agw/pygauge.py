@@ -115,7 +115,7 @@ Version 0.1
 import copy
 
 
-import wx
+from DisplayCAL.wxfixes import wx
 
 
 class PyGauge(wx.Window):
@@ -531,7 +531,7 @@ class PyGauge(wx.Window):
 
 
 if __name__ == "__main__":
-    import wx
+    from DisplayCAL.wxfixes import wx
 
     class MyFrame(wx.Frame):
         def __init__(self, parent):

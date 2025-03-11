@@ -24,6 +24,8 @@ else:
             wxversion.select(["4.0", "3.0", "%i.%i.%i" % wx_minversion[:3]])
         except wxversion.VersionError:
             pass
+
+from wx import __version__ as wx_version
 import wx
 
 if wx.VERSION < wx_minversion:

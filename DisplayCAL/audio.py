@@ -211,7 +211,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                 _server = None
     elif lib == "wx":
         try:
-            import wx
+            from DisplayCAL.wxfixes import wx
 
             _lib = "wx"
         except ImportError:
@@ -532,7 +532,7 @@ class _Sound(object):
 
 
 if __name__ == "__main__":
-    import wx
+    from DisplayCAL.wxfixes import wx
     from DisplayCAL.config import get_data_path
 
     sound = Sound(get_data_path("theme/engine_hum_loop.wav"), True)

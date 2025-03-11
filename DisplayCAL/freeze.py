@@ -523,7 +523,7 @@ def build_py2exe():
             ]
         )
 
-    import wx
+    from DisplayCAL.wxfixes import wx
     from winmanifest_util import getmanifestxml
 
     if platform.architecture()[0] == "64bit":

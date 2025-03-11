@@ -185,7 +185,7 @@ or no range::
 import re
 import locale
 from math import ceil, floor
-import wx
+from DisplayCAL.wxfixes import wx
 
 # Set The Styles For The Underline wx.TextCtrl
 FS_READONLY = 1

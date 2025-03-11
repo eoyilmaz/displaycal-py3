@@ -168,6 +168,8 @@ jobs:
       run: |
         $py_version = "${{ matrix.python-version }}" -replace '\.', ''
         echo "py_version=$py_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
+        echo "ScriptsPath=$ScriptsPath"
         if ("${{ matrix.python-version }}" -eq "3.8") {
           echo "add_dir_str=${{ matrix.python-version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         } elseif ("${{ matrix.python-version }}" -eq "3.9") {
@@ -179,7 +181,6 @@ jobs:
         } elseif ("${{ matrix.python-version }}" -eq "3.12") {
           echo "add_dir_str=cpython-312" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         }
-        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -197,9 +198,10 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        echo $ScriptsPath
         pip install -r requirements-tests.txt -r requirements-dev.txt
-        python "${{ env.ScriptsPath }}\pywin32_postinstall.py" -install
+
+    - name: Fix pywin32
+        python ${{ env.ScriptsPath }}\pywin32_postinstall.py -install
 
     - name: Build DisplayCAL
       run: |

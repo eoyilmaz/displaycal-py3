@@ -102,10 +102,9 @@ jobs:
         sudo chmod a+rw /etc/udev/rules.d
         python3 -m build
         ls -l dist/
-        #wheel_file=$(ls dist/DisplayCAL-*.whl)
-        #echo wheel_file=$wheel_file
-        #pip install $wheel_file
-        pip install dist/DisplayCAL-*.whl
+        wheel_file=$(ls dist/DisplayCAL-*.whl)
+        echo wheel_file=$wheel_file
+        pip install $wheel_file
 
     - name: Test with pytest
       run: |

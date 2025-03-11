@@ -1,5 +1,0 @@
-python -m build
-twine check dist/DisplayCAL-*.whl
-twine check dist/DisplayCAL-*.tar.gz
-twine upload dist/DisplayCAL-*.whl
-twine upload dist/DisplayCAL-*.tar.gz

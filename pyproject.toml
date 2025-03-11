@@ -30,7 +30,7 @@ license = { file = "LICENSE.txt" }
 maintainers = [
     {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
 ]
-name = "DispayCAL"
+name = "DisplayCAL"
 readme = "README.md"
 requires-python = ">= 3.8"
 
@@ -66,7 +66,34 @@ include-package-data = false
 where = ["./"]
 
 [tool.setuptools.package-data]
-DisplayCAL = ["VERSION", "py.typed"]
+DisplayCAL = [
+    "beep.wav",
+    "cacert.pem",
+    "camera_shutter.wav",
+    "ColorLookupTable.fx",
+    "dev/**",
+    "DisplayCAL.iss",
+    "lang/**",
+    "lib/**",
+    "LICENSE.txt",
+    "linear.cal",
+    "misc/**",
+    "pnp.ids",
+    "presets/**",
+    "py.typed",
+    "README.html",
+    "README.md",
+    "ref/**",
+    "report/**",
+    "screenshots/**",
+    "test.cal",
+    "theme/**",
+    "ti1/**",
+    "util/**",
+    "VERSION_BASE",
+    "VERSION",
+    "x3d-viewer/**",
+]
 
 [tool.setuptools.exclude-package-data]
 DisplayCAL = [

@@ -204,7 +204,7 @@ __version__ = "0.6"
 # --------------------------------------------------------------------------------------
 
 from enum import IntFlag
-from typing import Union
+from typing import Dict, List, Tuple, Union
 
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
 from DisplayCAL.lib.agw.fmresources import (
@@ -562,7 +562,7 @@ class ImageContainerBase(wx.Panel):
         self._bCollapsed = False
         self._tabAreaSize: wx.Size = wx.Size(-1, -1)
         self._nPinButtonStatus: int = INB_PIN_NONE
-        self._pagesInfoVec: list[ImageInfo] = []
+        self._pagesInfoVec: List[ImageInfo] = []
         self._pinBtnRect: wx.Rect = wx.Rect()
 
         wx.Panel.__init__(
@@ -846,7 +846,7 @@ class ImageContainerBase(wx.Panel):
         """
         pass
 
-    def HitTest(self, pt: wx.Point) -> tuple[int, int]:
+    def HitTest(self, pt: wx.Point) -> Tuple[int, int]:
         """Return the index of the tab at the specified position or NOT_FOUND if None.
 
         plus the flag style of :meth:`~ImageContainerBase.HitTest`.
@@ -1524,7 +1524,7 @@ class ImageContainer(ImageContainerBase):
         style: ImageBookStyle,
         padding: int,
         imgTopPadding: int,
-    ) -> tuple[int, int]:
+    ) -> Tuple[int, int]:
         if style & (ImageBookStyle.INB_RIGHT | ImageBookStyle.INB_LEFT):
             imgXcoord: int = self._nImgSize // 2
             imgYcoord: int = buttonRect.y + (
@@ -1562,7 +1562,7 @@ class ImageContainer(ImageContainerBase):
         textPaddingLeft: int,
         imgTopPadding: int,
         index: int,
-    ) -> tuple[int, int]:
+    ) -> Tuple[int, int]:
         textWidth, textHeight = dc.GetTextExtent(
             self._get_fixed_text(
                 dc, self._pagesInfoVec[index].GetCaption(), style, padding
@@ -1675,7 +1675,7 @@ class LabelContainer(ImageContainerBase):
         ImageContainerBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
         self._nTabAreaWidth = 100
         self._oldCursor: wx.Cursor = wx.NullCursor
-        self._coloursMap: dict[int, wx.Colour] = {}
+        self._coloursMap: Dict[int, wx.Colour] = {}
         self._skin: wx.Bitmap = wx.NullBitmap
         self._sashRect = wx.Rect()
 
@@ -2613,7 +2613,7 @@ class FlatBookBase(wx.Panel):
         self._pages = None
         self._bInitializing = True
         self._bForceSelection = False
-        self._windows: list[wx.Window] = []
+        self._windows: List[wx.Window] = []
         self._fontSizeMultiple = 1.0
         self._fontBold = False
 

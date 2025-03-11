@@ -27,10 +27,14 @@ if sys.platform == "win32":
         import pywintypes
     except ImportError as e:
         print(str(e))
+        import glob
         import sys
         import site
+        import os
         site_packages_path = site.getsitepackages()
         for path in site_packages_path:
+            for f in glob.glob(path):
+                print(os.path.join(path, f))
             if path not in sys.path:
                 print(f"path not in sys.path: {path}")
                 sys.path.append(path)

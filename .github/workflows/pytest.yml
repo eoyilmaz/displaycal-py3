@@ -197,7 +197,8 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install -r requirements-tests.txt -r requirements-dev.txt
-        pywin32_postinstall.py -install
+        ${{env.pythonLocation}}\Scripts\pywin32_postinstall.py -install
+        python pywin32_postinstall -install
 
     - name: Build DisplayCAL
       run: |

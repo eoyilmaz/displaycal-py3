@@ -41,9 +41,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.meta import (
-    name as appname,
-)
+from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
 from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
 from DisplayCAL.worker import (

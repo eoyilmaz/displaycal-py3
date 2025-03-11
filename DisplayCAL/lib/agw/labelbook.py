@@ -206,6 +206,8 @@ __version__ = "0.6"
 from enum import IntFlag
 from typing import Dict, List, Tuple, Union
 
+import wx
+
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
 from DisplayCAL.lib.agw.fmresources import (
     BottomShadow,
@@ -227,8 +229,6 @@ from DisplayCAL.lib.agw.fmresources import (
     pin_down_xpm,
     pin_left_xpm,
 )
-
-import wx
 
 
 class ImageBookStyle(IntFlag):

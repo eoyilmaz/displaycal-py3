@@ -32,9 +32,7 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
-from DisplayCAL.meta import (
-    name as appname,
-)
+from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import safe_asciize, wrap
 from DisplayCAL.worker import (

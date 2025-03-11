@@ -16,9 +16,7 @@ from DisplayCAL import (
     xh_hstretchstatbmp,
 )
 from DisplayCAL.config import get_data_path, getcfg, geticon, hascfg, initcfg, setcfg
-from DisplayCAL.meta import (
-    name as appname,
-)
+from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog

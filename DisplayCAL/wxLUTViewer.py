@@ -26,9 +26,7 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
-from DisplayCAL.meta import (
-    name as appname,
-)
+from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess

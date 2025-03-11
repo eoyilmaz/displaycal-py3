@@ -33,10 +33,7 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
-from DisplayCAL.meta import (
-    name as appname,
-    version,
-)
+from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
 from DisplayCAL.util_os import islink, readlink, safe_glob, waccess

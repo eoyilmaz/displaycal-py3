@@ -4,6 +4,15 @@ import math
 import os
 import sys
 
+from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL.config import getcfg
+from DisplayCAL.debughelpers import UnloggedError
+from DisplayCAL.meta import name as appname
+from DisplayCAL.util_str import make_filename_safe
+from DisplayCAL.worker_base import get_argyll_util
+from DisplayCAL.wxaddons import wx
+from DisplayCAL.wxLUTViewer import LUTCanvas
+from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
 from DisplayCAL import (
     CGATS,
     ICCProfile as ICCP,
@@ -12,17 +21,6 @@ from DisplayCAL import (
     localization as lang,
     wxenhancedplot as plot,
 )
-from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-from DisplayCAL.config import getcfg
-from DisplayCAL.debughelpers import UnloggedError
-from DisplayCAL.meta import (
-    name as appname,
-)
-from DisplayCAL.util_str import make_filename_safe
-from DisplayCAL.worker_base import get_argyll_util
-from DisplayCAL.wxLUTViewer import LUTCanvas
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
 
 BGCOLOUR = "#101010"
 FGCOLOUR = "#999999"

@@ -29,7 +29,7 @@ if sys.platform == "win32":
     import win32file
     import win32security
     from win32.win32file import GetFileAttributes
-    from win32.winioctlcon import FSCTL_GET_REPARSE_POINT
+    from winioctlcon import FSCTL_GET_REPARSE_POINT
     import winerror
 
 if sys.platform != "win32":

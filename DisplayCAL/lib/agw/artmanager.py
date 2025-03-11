@@ -522,7 +522,7 @@ class RendererMSOffice2007(RendererBase):
             self.DrawButtonColour(dc, rect, state, input_)
 
     def DrawButtonTheme(
-        self, dc: wx.DC, rect: wx.Rect, state: int, useLightColours: Union[None | bool]
+        self, dc: wx.DC, rect: wx.Rect, state: int, useLightColours: Union[None, bool]
     ) -> None:
         """Draw a button using the MS Office 2007 theme.
 
@@ -530,7 +530,7 @@ class RendererMSOffice2007(RendererBase):
             dc (wx.DC): an instance of :class:`wx.DC`.
             rect (wx.Rect): the button's client rectangle.
             state (int): the button state.
-            useLightColours (Union[None | bool]): `True` to use light colours,
+            useLightColours (Union[None, bool]): `True` to use light colours,
                 ``False`` otherwise.
         """
         self.DrawButtonColour(

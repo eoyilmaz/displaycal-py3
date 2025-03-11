@@ -9,7 +9,7 @@ import sys
 import time
 
 if sys.platform == "win32":
-    import win32file
+    from win32 import win32file
 
 from DisplayCAL import (
     CGATS,

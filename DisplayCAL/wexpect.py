@@ -142,7 +142,7 @@ else:
         ShowWindow,
     )
     import win32api
-    import win32file
+    from win32 import win32file
     import winerror
 
 

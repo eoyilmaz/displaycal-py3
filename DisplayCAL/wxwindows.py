@@ -945,7 +945,7 @@ class BaseFrame(wx.Frame):
         """wxPython Phoenix FindWindowByName descends into the parent windows,
         we don't want that
         """
-        for child in self.GetAllChildren():
+        for child in list(self.GetAllChildren()):
             if hasattr(child, "Name") and child.Name == name:
                 return child
 
@@ -1225,7 +1225,7 @@ class BaseFrame(wx.Frame):
                     else:
                         response.append(demjson.encode(win.message.Label))
                 # Ordering in tab order
-                for child in win.GetAllChildren():
+                for child in list(win.GetAllChildren()):
                     if (
                         child
                         and isinstance(child, (FlatShadedButton, GenButton, wx.Button))
@@ -1348,7 +1348,7 @@ class BaseFrame(wx.Frame):
         # same parent frame. Re-implement our own version.
         focus = self.FindFocus()
         if focus:
-            children = self.GetAllChildren()
+            children = list(self.GetAllChildren())
             if focus in children:
                 start = i = children.index(focus)
                 while True:
@@ -1700,7 +1700,7 @@ class BaseFrame(wx.Frame):
                 win = self.get_top_window()
             if win:
                 # Ordering in tab order
-                for child in win.GetAllChildren():
+                for child in list(win.GetAllChildren()):
                     if is_scripting_allowed(win, child):
                         uielements.append(
                             format_ui_element(child, responseformats[conn])
@@ -2187,7 +2187,7 @@ class BaseFrame(wx.Frame):
                 self.SetMenuBar(menubar)
 
         # Controls and labels
-        for child in self.GetAllChildren():
+        for child in list(self.GetAllChildren()):
             if isinstance(
                 child,
                 (
@@ -2343,7 +2343,7 @@ class BaseFrame(wx.Frame):
         if not parent:
             parent = self
         scale = getcfg("app.dpi") / get_default_dpi()
-        for child in parent.GetAllChildren():
+        for child in list(parent.GetAllChildren()):
             if debug:
                 print(child.__class__, child.Name)
             if isinstance(
@@ -7897,7 +7897,7 @@ def get_widget(win, id_name_label):
             id_name_label = int(id_name_label)
         except ValueError:
             pass
-        for child in win.GetAllChildren():
+        for child in list(win.GetAllChildren()):
             if is_scripting_allowed(win, child) and (
                 child.Id == id_name_label
                 or child.Name == id_name_label

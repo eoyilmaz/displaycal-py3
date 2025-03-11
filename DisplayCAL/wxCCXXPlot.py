@@ -457,7 +457,7 @@ class CCXXPlot(wx.Frame):
 
         if self.is_ccss:
             self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
-            for child in self.GetAllChildren():
+            for child in list(self.GetAllChildren()):
                 child.Bind(wx.EVT_KEY_DOWN, self.key_handler)
                 child.Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
 

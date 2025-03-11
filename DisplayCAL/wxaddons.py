@@ -98,7 +98,7 @@ def GetAllChildren(self, skip=None):
     """Get children of window and its subwindows"""
     if not isinstance(skip, (list, tuple)):
         skip = [skip]
-    children = [child for child in self.GetChildren() if child not in skip]
+    children = [child for child in list(self.GetChildren()) if child not in skip]
     allchildren = []
     for child in children:
         allchildren.append(child)

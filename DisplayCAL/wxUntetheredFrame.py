@@ -216,7 +216,7 @@ class UntetheredFrame(BaseFrame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, self)
 
         # Final initialization steps
-        for child in self.GetAllChildren():
+        for child in list(self.GetAllChildren()):
             if (
                 sys.platform == "win32"
                 and sys.getwindowsversion() >= (6,)

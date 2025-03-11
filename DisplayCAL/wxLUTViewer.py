@@ -1032,7 +1032,7 @@ class LUTFrame(BaseFrame):
         self.Bind(wx.EVT_MOVE, self.OnMove)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
         for child in children:

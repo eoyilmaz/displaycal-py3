@@ -546,7 +546,7 @@ def GTKMenuItemGetFixedLabel(label):
 if not hasattr(wx.Sizer, "GetItemIndex"):
 
     def GetItemIndex(self, item):
-        for i, child in enumerate(self.GetChildren()):
+        for i, child in enumerate(list(self.GetChildren())):
             if child.GetWindow() is item:
                 return i
         return -1

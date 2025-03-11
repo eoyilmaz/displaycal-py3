@@ -1405,7 +1405,7 @@ class ProfileInfoFrame(LUTFrame):
         self.display_no = -1
         self.display_rects = get_display_rects()
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
         for child in children:

@@ -1147,7 +1147,7 @@ class TestchartEditor(BaseFrame):
 
         self.tc_size_handler()
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         for child in children:
             if hasattr(child, "SetFont"):

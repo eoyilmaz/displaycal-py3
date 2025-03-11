@@ -774,6 +774,8 @@ def get_display_rects() -> List[Tuple[int, int, int, int]]:
     Returns:
         List[Tuple[int, int, int, int]]: A list of wx.Rect objects representing the display coordinates and sizes.
     """
+    from DisplayCAL.wxaddons import wx
+
     display_rects = []
     for _i, display in enumerate(getcfg("displays")):
         match = re.search(r"@ (-?\d+), (-?\d+), (\d+)x(\d+)", display)

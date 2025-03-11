@@ -93,7 +93,7 @@ jobs:
 
     - name: Patch requirements.txt for wxPython
       run: |
-        sed -i "s/wxPython >= 4.2.2/wxPython >= ${{ matrix.wx-version }}/g" pyproject.toml
+        sed -i "s/requirements.txt/requirements-tests.txt/g" pyproject.toml
 
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |

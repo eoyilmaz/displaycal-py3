@@ -201,6 +201,7 @@ jobs:
         pip install -r requirements-tests.txt -r requirements-dev.txt
 
     - name: Fix pywin32
+      run: |
         python ${{ env.ScriptsPath }}\pywin32_postinstall.py -install
 
     - name: Build DisplayCAL

@@ -215,7 +215,7 @@ jobs:
     - name: Build DisplayCAL
       run: |
         python -m build
-        dir dist
+        dir
         $wheel_file = Get-ChildItem dist\*.whl
         echo "wheel_file=$wheel_file"
         pip install $wheel_file

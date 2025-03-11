@@ -22,7 +22,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Type, U
 from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
-    from win32.win32file import GetFileAttributes
+    from win32file import GetFileAttributes
     from winioctlcon import FSCTL_GET_REPARSE_POINT
     import msvcrt
     import pywintypes

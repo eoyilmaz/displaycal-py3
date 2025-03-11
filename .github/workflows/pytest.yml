@@ -26,20 +26,22 @@ jobs:
           - "3.12"
           - "3.13"
         wx-version:
-          - "4.1.1"
+          - "4.2.0"
           - "4.2.1"
           - "4.2.2"
         exclude:
-          - python-version: "3.11"
-            wx-version: "4.1.1"
-          - python-version: "3.12"
-            wx-version: "4.1.1"
-          - python-version: "3.12"
-            wx-version: "4.2.1"
-          - python-version: "3.13"
-            wx-version: "4.1.1"
-          - python-version: "3.13"
-            wx-version: "4.2.1"
+          - wx-version: "4.2.0"
+            python-version: "3.11"
+          - wx-version: "4.2.0"
+            python-version: "3.12"
+          - wx-version: "4.2.0"
+            python-version: "3.13"
+          - wx-version: "4.2.1"
+            python-version: "3.12"
+          - wx-version: "4.2.1"
+            python-version: "3.13"
+          - wx-version: "4.2.2"
+            python-version: "3.8"
 
     steps:
 
@@ -91,7 +93,7 @@ jobs:
 
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
-        pip install wxPython==${{ matrix.wx-version }}
+        pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
 
     - name: Install Python dependencies
       run: |
@@ -130,20 +132,22 @@ jobs:
           - "3.10"
           - "3.11"
         wx-version:
-          - "4.1.1"
+          - "4.2.0"
           - "4.2.1"
           - "4.2.2"
         exclude:
-          - python-version: "3.11"
-            wx-version: "4.1.1"
-          - python-version: "3.12"
-            wx-version: "4.1.1"
-          - python-version: "3.12"
-            wx-version: "4.2.1"
-          - python-version: "3.13"
-            wx-version: "4.1.1"
-          - python-version: "3.13"
-            wx-version: "4.2.1"
+          - wx-version: "4.2.0"
+            python-version: "3.11"
+          - wx-version: "4.2.0"
+            python-version: "3.12"
+          - wx-version: "4.2.0"
+            python-version: "3.13"
+          - wx-version: "4.2.1"
+            python-version: "3.12"
+          - wx-version: "4.2.1"
+            python-version: "3.13"
+          - wx-version: "4.2.2"
+            python-version: "3.8"
 
     steps:
     - uses: actions/checkout@v4

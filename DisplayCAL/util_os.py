@@ -30,9 +30,10 @@ if sys.platform == "win32":
         import sys
         import site
         site_packages_path = site.getsitepackages()
-        if site_packages_path not in sys.path:
-            print(f"site_packages_path not in sys.path: {site_packages_path}")
-            sys.path.append(site_packages_path)
+        for path in site_packages_path:
+            if path not in sys.path:
+                print(f"path not in sys.path: {path}")
+                sys.path.append(path)
         try:
             from win32.lib import pywintypes
         except ImportError as e:

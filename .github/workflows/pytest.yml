@@ -49,9 +49,8 @@ jobs:
             python-version: "3.10"
 
     steps:
-
     - uses: actions/checkout@v4
-
+  
     - name: Set Environment Variables
       run: |
         echo "py_version=$(echo ${{ matrix.python-version }} | tr -d .)" >> $GITHUB_ENV
@@ -163,8 +162,9 @@ jobs:
             python-version: "3.10"
 
     steps:
-    - name: Set Environment Variables
     - uses: actions/checkout@v4
+
+    - name: Set Environment Variables
       run: |
         $py_version = "${{ matrix.python-version }}" -replace '\.', ''
         echo "py_version=$py_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

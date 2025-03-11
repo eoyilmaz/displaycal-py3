@@ -2,13 +2,13 @@
 from typing import Tuple
 
 import pytest
-import wx
 from _pytest.fixtures import SubRequest
 
 from DisplayCAL import RealDisplaySizeMM
 from DisplayCAL.dev.mocks import check_call, check_call_str
-from DisplayCAL.wxMeasureFrame import get_default_size
 from tests.data.display_data import DisplayData
+from DisplayCAL.wxfixes import wx
+from DisplayCAL.wxMeasureFrame import get_default_size
 
 
 @pytest.fixture(

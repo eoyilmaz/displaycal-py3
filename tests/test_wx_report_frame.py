@@ -12,7 +12,7 @@ def test_update_estimated_measurement_time_1(argyll):
     """
     from DisplayCAL.config import initcfg
     from DisplayCAL.wxReportFrame import ReportFrame
-    import wx
+    from DisplayCAL.wxfixes import wx
 
     initcfg()
     app = wx.GetApp() or wx.App()

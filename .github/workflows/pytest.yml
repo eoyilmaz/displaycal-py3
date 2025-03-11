@@ -196,9 +196,10 @@ jobs:
 
     - name: Install Python dependencies
       run: |
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
+        echo $ScriptsPath
         pip install -r requirements-tests.txt -r requirements-dev.txt
-        # ${{env.pythonLocation}}\Scripts\pywin32_postinstall.py -install
-        python pywin32_postinstall -install
+        ${{env.ScriptsPath}}\pywin32_postinstall.py -install
 
     - name: Build DisplayCAL
       run: |

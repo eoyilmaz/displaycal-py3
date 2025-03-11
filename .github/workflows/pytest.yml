@@ -9,8 +9,8 @@ on:
       - develop
 
 jobs:
-  build:
-    name: Test with Python ${{ matrix.python-version }} and wxPython ${{ matrix.wx-version }}
+  linux:
+    name: Linux + Python ${{ matrix.python-version }} + wxPython ${{ matrix.wx-version }}
     env:
       DISPLAY: :0
     runs-on: ubuntu-22.04
@@ -118,7 +118,7 @@ jobs:
         retention-days: 10
 
   windows:
-    name: Test with Python ${{ matrix.python-version }} on Windows
+    name: Windows + Python ${{ matrix.python-version }} + wxPython ${{ matrix.wx-version }}
     runs-on: windows-latest
 
     strategy:
@@ -129,6 +129,21 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
+        wx-version:
+          - "4.1.1"
+          - "4.2.1"
+          - "4.2.2"
+        exclude:
+          - python-version: "3.11"
+            wx-version: "4.1.1"
+          - python-version: "3.12"
+            wx-version: "4.1.1"
+          - python-version: "3.12"
+            wx-version: "4.2.1"
+          - python-version: "3.13"
+            wx-version: "4.1.1"
+          - python-version: "3.13"
+            wx-version: "4.2.1"
 
     steps:
     - uses: actions/checkout@v4
@@ -159,23 +174,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
 
-    # - name: Install wxPython
-    #   run: |
-    #     pip install -U wxPython
+    - name: Install wxPython ${{ matrix.wx-version }}
+      run: |
+        pip install wxPython==${{ matrix.wx-version }}
 
     - name: Install Python dependencies
       run: |
         pip install -r requirements-tests.txt -r requirements-dev.txt
 
-    # - name: Compile C-Extensions
-    #   run: |
-    #     python -m build
-    #     ls -l dist/
-    #     $wheel_file = Get-ChildItem -Path dist -Filter DisplayCAL-*.whl
-    #     pip install $wheel_file.FullName
-    #     $PYPATH = Get-Command python | Select-Object -ExpandProperty Source
-    #     $PYDIR = Split-Path $PYPATH
-    #     Copy-Item -Path "$PYDIR\Lib\site-packages\DisplayCAL\lib64\python${{ env.py_version }}\RealDisplaySizeMM.*.pyd" -Destination "./DisplayCAL/lib64/python${{ env.py_version }}/"
+    - name: Build DisplayCAL
+      run: |
+        python -m build
+        dir dist
+        $wheel_file = Get-ChildItem dist\*.whl
+        echo "wheel_file=$wheel_file"
+        pip install $wheel_file
 
     - name: Test with pytest
       run: |

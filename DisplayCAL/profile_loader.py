@@ -26,7 +26,17 @@ from DisplayCAL.options import debug, test, verbose
 if sys.platform == "win32":
     import ctypes
     import errno
-    from win32.lib import pywintypes
+
+    try:
+        import pywintypes
+    except ImportError:
+        import site
+        import sys
+        site_packages = site.getsitepackages()
+        if site_packages not in sys.path:
+            sys.path.append(site.getsitepackages())
+        from win32.lib import pywintypes
+
     import win32api
     import win32event
     import win32gui

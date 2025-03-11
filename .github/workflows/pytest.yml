@@ -191,6 +191,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
 
+    - name: Fix user Scripts missing from PATH
+      run: |
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
+        echo "ScriptsPath=$ScriptsPath"
+        Add-Content $env:GITHUB_PATH $ScriptsPath
+
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
         pip install wxPython==${{ matrix.wx-version }}
@@ -201,10 +207,8 @@ jobs:
 
     - name: Fix pywin32
       run: |
-        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
-        echo "ScriptsPath=$ScriptsPath"
-        Add-Content $env:GITHUB_PATH $ScriptsPath
-        pywin32_postinstall.py -install
+        # pywin32_postinstall.py -install
+        python -m win32.scripts.pywin32_postinstall -install
 
     - name: Build DisplayCAL
       run: |

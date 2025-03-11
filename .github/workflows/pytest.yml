@@ -193,7 +193,7 @@ jobs:
 
     - name: Fix user Scripts missing from PATH
       run: |
-        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
         echo "ScriptsPath=$ScriptsPath"
         Add-Content $env:GITHUB_PATH $ScriptsPath
 
@@ -207,8 +207,8 @@ jobs:
 
     - name: Fix pywin32
       run: |
-        # pywin32_postinstall.py -install
-        python -m win32.scripts.pywin32_postinstall -install
+        $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
+        python ${{ env.ScriptsPath }}\pywin32_postinstall.py -install
 
     - name: Build DisplayCAL
       run: |

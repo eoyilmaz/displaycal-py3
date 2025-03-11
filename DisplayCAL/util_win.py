@@ -13,7 +13,7 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 
-import pywintypes
+from win32 import pywintypes
 
 import win32api
 

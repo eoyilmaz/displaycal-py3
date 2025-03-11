@@ -54,10 +54,10 @@ if sys.platform == "win32":
     from win32com.shell import shell as win32com_shell
     import pythoncom
     import win32api
-    import win32con
+    from win32 import win32con
     import win32event
-    import pywintypes
-    import winerror
+    from win32 import pywintypes
+    from win32 import winerror
 
 # custom
 from DisplayCAL import CGATS

@@ -122,7 +122,7 @@ def argyll():
 
     def cleanup():
         # cleanup the test
-        shutil.rmtree(argyll_temp_path)
+        shutil.rmtree(argyll_temp_path, ignore_errors=True)
         os.chdir(current_working_directory)
 
     argyll_path = pathlib.Path(argyll_temp_path) / f"Argyll_V{argyll_version}" / "bin"
@@ -177,7 +177,10 @@ def patch_subprocess(monkeypatch):
         STDOUT = None
         PIPE = None
         output = {}
+        wShowWindow = None
         STARTUPINFO = subprocess.STARTUPINFO if sys.platform == "win32" else None
+        STARTF_USESHOWWINDOW = subprocess.STARTF_USESHOWWINDOW if sys.platform == "win32" else None
+        SW_HIDE = subprocess.SW_HIDE if sys.platform == "win32" else None
 
         @classmethod
         def Popen(cls, *args, **kwargs):

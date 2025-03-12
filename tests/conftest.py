@@ -101,12 +101,12 @@ def argyll():
     if not os.path.exists(argyll_package_file_name):
         print(f"Downloading: {argyll_package_file_name}")
         worker = Worker()
-        download_path = worker.download(url)
+        download_path = worker.download(url, download_dir=argyll_temp_path)
         print(f"Downloaded to: {download_path}")
         if os.path.exists(download_path):
             shutil.move(
                 download_path,
-                os.path.join(argyll_temp_path, argyll_package_file_name)
+                argyll_package_file_name
             )
     else:
         print(f"Package file already exists: {argyll_package_file_name}")
@@ -177,7 +177,7 @@ def patch_subprocess(monkeypatch):
         STDOUT = None
         PIPE = None
         output = {}
-        STARTUPINFO = subprocess.STARTUPINFO() if sys.platform == "win32" else None
+        STARTUPINFO = subprocess.STARTUPINFO if sys.platform == "win32" else None
 
         @classmethod
         def Popen(cls, *args, **kwargs):

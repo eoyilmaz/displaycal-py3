@@ -123,7 +123,7 @@ jobs:
     - name: Archive code coverage results
       uses: actions/upload-artifact@v4
       with:
-        name: code-coverage-report-${{ env.py_version }}-${{ matrix.wx-version }}
+        name: code-coverage-report-${{ env.py_version }}-${{ matrix.wx-version }}-linux
         path: htmlcov
         retention-days: 10
 
@@ -225,6 +225,6 @@ jobs:
     - name: Archive code coverage results
       uses: actions/upload-artifact@v4
       with:
-        name: code-coverage-report-${{ env.py_version }}-windows
+        name: code-coverage-report-${{ env.py_version }}-${{ matrix.wx-version }}-windows
         path: htmlcov
         retention-days: 10

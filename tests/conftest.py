@@ -177,6 +177,7 @@ def patch_subprocess(monkeypatch):
         STDOUT = None
         PIPE = None
         output = {}
+        STARTUPINFO = subprocess.STARTUPINFO() if sys.platform == "win32" else None
 
         @classmethod
         def Popen(cls, *args, **kwargs):

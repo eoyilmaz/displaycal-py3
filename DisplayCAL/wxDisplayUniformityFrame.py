@@ -4,7 +4,6 @@ Interactive display calibration UI
 
 """
 
-
 from time import sleep, strftime
 import os
 import re

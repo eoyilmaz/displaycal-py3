@@ -1003,7 +1003,7 @@ def runtimeconfig(pyfile):
 
 
 class CaseSensitiveConfigParser(configparser.RawConfigParser):
-    def optionxform(self, optionstr : str) -> str:
+    def optionxform(self, optionstr: str) -> str:
         return optionstr
 
 
@@ -1971,7 +1971,7 @@ def get_verified_path(cfg_item_name, path=None):
     return defaultDir, defaultFile
 
 
-def is_ccxx_testchart(testchart : Optional[str] = None) -> bool:
+def is_ccxx_testchart(testchart: Optional[str] = None) -> bool:
     """Check whether the testchart is the default chart for CCMX/CCSS creation.
 
     Args:
@@ -2339,7 +2339,9 @@ def setcfg_cond(condition, name, value, set_if_backup_exists=False, restore=True
     return changed
 
 
-def writecfg(which : str ="user", worker=None, module=None, options=(), cfg=cfg) -> bool:
+def writecfg(
+    which: str = "user", worker=None, module=None, options=(), cfg=cfg
+) -> bool:
     """Write configuration file.
 
     Args:

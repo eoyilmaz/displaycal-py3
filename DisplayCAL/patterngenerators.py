@@ -253,8 +253,9 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             thread = threading.Thread(
                 target=self._cast_receive_handler,
                 name=(
-                    "PrismaPatternGeneratorClient.BroadcastHandler"
-                    "[{}:{}]".format(self.broadcast_ip, port)
+                    "PrismaPatternGeneratorClient.BroadcastHandler[{}:{}]".format(
+                        self.broadcast_ip, port
+                    )
                 ),
                 args=(sock, self.broadcast_ip, port),
             )
@@ -556,8 +557,9 @@ class WebWinHTTPPatternGeneratorServer(TCPServer, object):
 
     def handle_error(self, request, client_address):
         print(
-            "Exception happened during processing of request from "
-            "{}:{}:".format(client_address, sys.exc_info()[1])
+            "Exception happened during processing of request from {}:{}:".format(
+                client_address, sys.exc_info()[1]
+            )
         )
 
     @property

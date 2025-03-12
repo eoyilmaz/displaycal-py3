@@ -532,7 +532,7 @@ class _Sound(object):
 
 
 if __name__ == "__main__":
-    from DisplayCAL.wxfixes import wx
+    import wx
     from DisplayCAL.config import get_data_path
 
     sound = Sound(get_data_path("theme/engine_hum_loop.wav"), True)

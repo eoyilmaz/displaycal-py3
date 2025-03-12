@@ -242,7 +242,7 @@ class GradientButton(wx.Control):
     def SetBaseColours(
         self,
         startcolour: Union[None, wx.Colour] = None,
-        foregroundcolour: Union[None, wx.Colour] = None, 
+        foregroundcolour: Union[None, wx.Colour] = None,
     ) -> None:
         """Set the bottom, top, pressed and foreground colour.
 
@@ -453,7 +453,6 @@ class GradientButton(wx.Control):
             gc.FillPath(path4)
 
         else:
-
             rc1 = wx.Rect(x, y, width, height)
             path1 = self.GetPath(gc, rc1, 8)
             gc.SetPen(wx.Pen(self._pressedTopColour))

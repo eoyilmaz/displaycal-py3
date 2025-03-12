@@ -465,8 +465,8 @@ class RendererMSOffice2007(RendererBase):
          ==================== ======= ==========================
 
         Returns:
-            Tuple[int, int, int, int]: A tuple containing the gradient
-                percentages.
+            Tuple[int, int, int, int, bool, bool]: A tuple containing the
+                gradient percentages.
         """
         # switch according to the status
         if state == ControlFocus:
@@ -474,30 +474,40 @@ class RendererMSOffice2007(RendererBase):
             upperBoxBottomPercent = 50
             lowerBoxTopPercent = 40
             lowerBoxBottomPercent = 90
+            concaveUpperBox = True
+            concaveLowerBox = True
 
         elif state == ControlPressed:
             upperBoxTopPercent = 75
             upperBoxBottomPercent = 90
             lowerBoxTopPercent = 90
             lowerBoxBottomPercent = 40
+            concaveUpperBox = True
+            concaveLowerBox = True
 
         elif state == ControlDisabled:
             upperBoxTopPercent = 100
             upperBoxBottomPercent = 100
             lowerBoxTopPercent = 70
             lowerBoxBottomPercent = 70
+            concaveUpperBox = True
+            concaveLowerBox = True
 
         else:
             upperBoxTopPercent = 90
             upperBoxBottomPercent = 50
             lowerBoxTopPercent = 30
             lowerBoxBottomPercent = 75
+            concaveUpperBox = True
+            concaveLowerBox = True
 
         return (
             upperBoxTopPercent,
             upperBoxBottomPercent,
             lowerBoxTopPercent,
             lowerBoxBottomPercent,
+            concaveUpperBox,
+            concaveLowerBox,
         )
 
     def DrawButton(
@@ -536,9 +546,6 @@ class RendererMSOffice2007(RendererBase):
         self.DrawButtonColour(
             dc, rect, state, ArtManager.Get().GetThemeBaseColour(useLightColours)
         )
-        self.DrawButtonColour(
-            dc, rect, state, ArtManager.Get().GetThemeBaseColour(useLightColours)
-        )
 
     def DrawButtonColour(self, dc, rect, state, colour):
         """Draw a button using the MS Office 2007 theme.
@@ -571,6 +578,8 @@ class RendererMSOffice2007(RendererBase):
             upperBoxBottomPercent,
             lowerBoxTopPercent,
             lowerBoxBottomPercent,
+            concaveUpperBox,
+            concaveLowerBox,
         ) = self.GetColoursAccordingToState(state)
 
         topStartColour = artMgr.LightColour(baseColour, upperBoxTopPercent)
@@ -628,9 +637,9 @@ class RendererMSOffice2007(RendererBase):
         factor = artMgr.GetMenuBgFactor()
 
         leftPt1 = wx.Point(rect.x, rect.y + (rect.height / factor))
-        rightPt1 = wx.Point(rect.x + rect.width, rect.y + (rect.height / factor))
-
         leftPt2 = wx.Point(rect.x, rect.y + (rect.height / factor) * (factor - 1))
+
+        rightPt1 = wx.Point(rect.x + rect.width, rect.y + (rect.height / factor))
         rightPt2 = wx.Point(
             rect.x + rect.width, rect.y + (rect.height / factor) * (factor - 1)
         )
@@ -760,7 +769,7 @@ class ArtManager(wx.EvtHandler):
     _alignmentBuffer = 7
     _menuTheme: int = StyleXP
     _verticalGradient = False
-    _renderers: Dict[int, RendererBase] = {}
+    _renderers: Dict[int, RendererBase] = {StyleXP: None, Style2007: None}
     _bmpShadowEnabled = False
     _ms2007sunken = False
     _drowMBBorder = True

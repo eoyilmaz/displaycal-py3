@@ -222,9 +222,7 @@ class MeasureFrame(InvincibleFrame):
         self.hsizer.Add(
             self.zoomnormalbutton, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10
         )
-        self.zoomnormalbutton.SetToolTipString(
-            lang.getstr("measureframe." "zoomnormal")
-        )
+        self.zoomnormalbutton.SetToolTipString(lang.getstr("measureframe.zoomnormal"))
 
         self.hsizer.Add((8, 0))
 

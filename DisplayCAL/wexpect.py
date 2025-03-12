@@ -142,7 +142,7 @@ else:
         ShowWindow,
     )
     import win32api
-    from win32 import win32file
+    import win32file
     import winerror
 
 
@@ -172,7 +172,6 @@ class ExceptionPexpect(Exception):
         self.value = value
 
     def __str__(self):
-
         return str(self.value)
 
     def get_trace(self):
@@ -1377,7 +1376,7 @@ class spawn_unix(object):
 
     def expect(self, pattern, timeout=-1, searchwindowsize=None):
         """Seek through the stream until a pattern is matched.
-        
+
         The pattern is overloaded and may take several types. The pattern can be a
         StringType, EOF, a compiled re, or a list of any of those types. Strings will be
         compiled to re types.
@@ -1847,7 +1846,7 @@ class spawn_windows(spawn_unix):
         self.command = command_with_path
         self.args[0] = self.command
 
-        self.name = f'<{" ".join(self.args)}>'
+        self.name = f"<{' '.join(self.args)}>"
 
         # assert self.pid is None, 'The pid member should be None.'
         # assert self.command is not None, 'The command member should not be None.'

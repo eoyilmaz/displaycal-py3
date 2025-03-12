@@ -1,4 +1,3 @@
-black
 coverage
 darglint
 flake8
@@ -17,6 +16,7 @@ pytest
 pytest-cov
 pytest-github-actions-annotate-failures
 pytest-xdist
+ruff
 snowballstemmer
 twine
 wheel

@@ -245,7 +245,7 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no:int=0) -> Union[None, Dict]:
+def get_display(display_no: int = 0) -> Union[None, Dict]:
     """Return display data for a given display number.
 
     Args:
@@ -267,7 +267,6 @@ def get_display(display_no:int=0) -> Union[None, Dict]:
 
     if is_virtual_display(display_no):
         return
-
 
     getcfg_displays = getcfg("displays")
     if len(getcfg_displays) < display_no:
@@ -312,7 +311,7 @@ def get_wayland_display(x, y, w, h):
         res = iface.get_resources()
     except DBusException:
         return
-    
+
     if not res or len(res) < 2:
         return
 

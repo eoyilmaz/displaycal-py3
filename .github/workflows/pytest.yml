@@ -49,7 +49,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-  
+
     - name: Set Environment Variables
       run: |
         echo "py_version=$(echo ${{ matrix.python-version }} | tr -d .)" >> $GITHUB_ENV
@@ -216,7 +216,6 @@ jobs:
     - name: Build DisplayCAL
       run: |
         python -m build
-        dir
         $wheel_file = Get-ChildItem dist\*.whl
         echo "wheel_file=$wheel_file"
         pip install $wheel_file

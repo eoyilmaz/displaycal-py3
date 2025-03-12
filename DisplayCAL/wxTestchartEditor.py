@@ -67,6 +67,7 @@ from DisplayCAL.wxwindows import (
     get_gradient_panel,
 )
 
+
 def swap_dict_keys_values(mydict):
     return dict([(v, k) for (k, v) in mydict.items()])
 
@@ -141,7 +142,7 @@ class TestchartEditor(BaseFrame):
             ".txt": self.ti1_drop_handler,
         }
 
-        scale = getcfg("app.dpi") / DisplayCAL.common.get_default_dpi()
+        scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale < 1:
             scale = 1
 
@@ -3237,7 +3238,7 @@ END_DATA"""
                 except Exception as exception:
                     handle_error(
                         UserWarning(
-                            "Warning - 3D file could not be " "saved: " + str(exception)
+                            f"Warning - 3D file could not be saved: {exception}"
                         ),
                         parent=self,
                     )

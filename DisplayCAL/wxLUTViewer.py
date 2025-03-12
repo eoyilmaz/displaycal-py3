@@ -2266,7 +2266,6 @@ class LUTFrame(BaseFrame):
         fType = None
         dlg1 = None
         while fType not in extensions:
-
             if dlg1:  # FileDialog exists: Check for extension
                 InfoDialog(
                     self,

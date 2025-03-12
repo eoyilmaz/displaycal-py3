@@ -373,8 +373,7 @@ class H3DLUT(object):
         if len(data) == self.lutFileOffset + self.lutCompressedSize + 1552:
             # Calibration appendended
             self.LUTDATA += data[
-                self.lutFileOffset
-                + self.lutCompressedSize : self.lutFileOffset
+                self.lutFileOffset + self.lutCompressedSize : self.lutFileOffset
                 + self.lutCompressedSize
                 + 1552
             ]
@@ -1484,7 +1483,7 @@ class MadTPG_Net(MadTPGBase):
                     if not component_:
                         # not a madvr component so ignore completely
                         continue
-                    pid_host = f'{client.get("processId", "?")}:{client.get("computerName", "")}'
+                    pid_host = f"{client.get('processId', '?')}:{client.get('computerName', '')}"
                     formatted_client = f"[{component_} {pid_host}]"
                     if component_ != b"madTPG":
                         continue

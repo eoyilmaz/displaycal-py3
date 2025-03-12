@@ -31,7 +31,6 @@ class NTSTATUS(ctypes.c_long):
 
 
 class UNICODE_STRING(ctypes.Structure):
-
     _fields_ = [
         ("Length", wintypes.USHORT),
         ("MaximumLength", wintypes.USHORT),

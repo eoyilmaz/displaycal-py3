@@ -321,7 +321,7 @@ class CGATS(dict):
                 raw_line = raw_line.replace(b"1.#IND00", b"NaN")
 
                 # strip control chars and leading/trailing whitespace
-                line = re.sub(b"[^\x09\x20-\x7E\x80-\xFF]", b"", raw_line.strip())
+                line = re.sub(b"[^\x09\x20-\x7e\x80-\xff]", b"", raw_line.strip())
 
                 if b"#" in line or b'"' in line:
                     # Deal with comments and quotes
@@ -1827,7 +1827,6 @@ Transform {
         items = [self] + [self[key] for key in self]
         for item in items:
             if isinstance(item, (dict, list, tuple)):
-
                 if not get_first:
                     n = len(result)
 

@@ -21,6 +21,7 @@ uninstall (setup.py uninstall --record=INSTALLED_FILES), otherwise use
 the wrapper script in the root directory of the source tar.gz/zip
 
 """
+
 import codecs
 import ctypes.util
 from configparser import ConfigParser

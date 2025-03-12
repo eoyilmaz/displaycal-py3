@@ -598,7 +598,7 @@ def verify_cgats(cgats, required, ignore_unknown=True):
     """
     cgats_1 = cgats.queryi1(required)
     if not cgats_1 or not cgats_1.parent or not cgats_1.parent.parent:
-        raise CGATS.CGATSKeyError(f'Missing required fields: {", ".join(required)}')
+        raise CGATS.CGATSKeyError(f"Missing required fields: {', '.join(required)}")
     cgats_1 = cgats_1.parent.parent
     if not cgats_1.queryv1("NUMBER_OF_SETS"):
         raise CGATS.CGATSInvalidError("Missing NUMBER_OF_SETS")

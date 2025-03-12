@@ -58,7 +58,6 @@ def escape(xml):
 
 
 class ETreeDict(dict):
-
     # Roughly follow "Converting Between XML and JSON"
     # https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 

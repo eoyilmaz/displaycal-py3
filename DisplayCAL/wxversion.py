@@ -308,7 +308,6 @@ def _find_installed(removeExisting=False):
     installed = []
     toRemove = []
     for pth in sys.path:
-
         # empty means to look in the current dir
         if not pth:
             pth = "."

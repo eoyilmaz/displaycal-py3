@@ -1852,7 +1852,7 @@ def RGB2xyY(R, G, B, rgb_space=None, scale=1.0, eotf=None):
     """Convert RGB to xyY"""
     return XYZ2xyY(
         *RGB2XYZ(R, G, B, rgb_space, scale, eotf),
-        whitepoint=RGB2XYZ(1, 1, 1, rgb_space, scale, eotf)
+        whitepoint=RGB2XYZ(1, 1, 1, rgb_space, scale, eotf),
     )
 
 
@@ -2869,7 +2869,6 @@ def linmin(cp, xi, di, ftol, func, fdata):
 
     # While not bracketed
     while xf > bf:
-
         logging.debug("linmin: Not bracketed because xf %f > bf %f" % (xf, bf))
         logging.debug("        ax = %f, xx = %f, bx = %f" % (ax, xx, bx))
 
@@ -2885,7 +2884,6 @@ def linmin(cp, xi, di, ftol, func, fdata):
         ulim = xx + 100.0 * (bx - xx)  # Extrapolation limit
 
         if (xx - ux) * (ux - bx) > 0.0:  # u is between x and b
-
             for i in range(di):  # Evaluate u
                 xt[i] = cp[i] + ux * xi[i]
             uf = func(fdata, xt)
@@ -3145,7 +3143,6 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
 
         # Loop over all directions in the set
         for i in range(di):
-
             logging.debug("Looping over direction %d" % i)
 
             for j in range(di):  # Extract this direction to make search vector
@@ -3201,7 +3198,6 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
         lretv = func(fdata, xpt)
 
         if lretv < pretv:  # If extrapolation is an improvement
-
             t1 = pretv - retv - del_
             t2 = pretv - lretv
             t = 2.0 * (pretv - 2.0 * retv + lretv) * t1 * t1 - del_ * t2 * t2

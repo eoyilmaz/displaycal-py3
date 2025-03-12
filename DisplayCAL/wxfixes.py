@@ -296,7 +296,6 @@ if "gtk3" in wx.PlatformInfo:
     DataViewListCtrl = dataview.DataViewListCtrl
 
     class ListCtrl(DataViewListCtrl):
-
         # Implement ListCtrl as DataViewListCtrl
         # Works around header rendering ugliness with GTK3
 
@@ -360,7 +359,7 @@ if "gtk3" in wx.PlatformInfo:
                 self.SelectRow(row)
             else:
                 raise NotImplementedError(
-                    "SetItemState is only implemented for " "selecting a single row"
+                    "SetItemState is only implemented for selecting a single row"
                 )
 
         def GetNextItem(
@@ -374,7 +373,7 @@ if "gtk3" in wx.PlatformInfo:
                 return self.GetSelectedRow()
             else:
                 raise NotImplementedError(
-                    "GetNextItem is only implemented for " "returning the selected row"
+                    "GetNextItem is only implemented for returning the selected row"
                 )
 
         def GetItemCount(self):
@@ -390,7 +389,7 @@ if "gtk3" in wx.PlatformInfo:
                     return 0
             else:
                 raise NotImplementedError(
-                    "GetItemState is only implemented to " "check if a row is selected"
+                    "GetItemState is only implemented to check if a row is selected"
                 )
 
         def Select(self, row, on=1):
@@ -402,7 +401,6 @@ if "gtk3" in wx.PlatformInfo:
     wx.ListCtrl = ListCtrl
 
     class SpinCtrl(wx._SpinCtrl):
-
         _spinwidth = 0
 
         def __init__(
@@ -519,7 +517,6 @@ def FindMenuItem(self, label):
     """Replacement for wx.Menu.FindItem"""
     label = GTKMenuItemGetFixedLabel(label)
     for menuitem in self.GetMenuItems():
-
         try:
             fixed_label = GTKMenuItemGetFixedLabel(menuitem.Label)
         except AttributeError:
@@ -718,7 +715,6 @@ wx._BoxSizer = wx.BoxSizer
 
 
 class BoxSizer(wx._BoxSizer):
-
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
 
@@ -1613,7 +1609,6 @@ if not hasattr(PlateButton, "_SetState"):
 
 
 class TempXmlResource(object):
-
     _temp = None
 
     def __init__(self, xmlpath):

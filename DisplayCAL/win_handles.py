@@ -22,7 +22,6 @@ SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
 class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
-
     _fields_ = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
@@ -43,7 +42,6 @@ PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
 class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
-
     _fields_ = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),

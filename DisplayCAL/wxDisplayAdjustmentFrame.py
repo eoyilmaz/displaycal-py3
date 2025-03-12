@@ -147,7 +147,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
-
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
                 break
             if i in self.GetParent().disabled_pages:
@@ -199,7 +198,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         bUsePin = (style & INB_USE_PIN_BUTTON and [True] or [False])[0]
 
         if bUsePin:
-
             # Draw the pin button
             clientRect = self.GetClientRect()
             pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
@@ -272,7 +270,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 and not self._pagesInfoVec[i].GetCaption() == ""
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
-
                 rectWidth = (
                     (textWidth + nPadding * 2) > rectWidth
                     and [nPadding * 2 + textWidth]
@@ -318,7 +315,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             # We override them to display both
 
             if style & INB_SHOW_ONLY_TEXT and style & INB_SHOW_ONLY_IMAGES:
-
                 style ^= INB_SHOW_ONLY_TEXT
                 style ^= INB_SHOW_ONLY_IMAGES
                 self.GetParent().SetAGWWindowStyleFlag(style)
@@ -329,16 +325,13 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 not style & INB_SHOW_ONLY_TEXT
                 and self._pagesInfoVec[i].GetImageIndex() != -1
             ):
-
                 if bUseYcoord:
-
                     imgXcoord = 0
                     imgYcoord = (
                         style & INB_SHOW_ONLY_IMAGES and [pos] or [pos + imgTopPadding]
                     )[0] + (8 * (count - 1))
 
                 else:
-
                     imgXcoord = pos + (rectWidth / 2) - (self._nImgSize / 2)
                     imgYcoord = (
                         style & INB_SHOW_ONLY_IMAGES
@@ -370,7 +363,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 not style & INB_SHOW_ONLY_IMAGES
                 and not self._pagesInfoVec[i].GetCaption() == ""
             ):
-
                 dc.SetFont(normalFont)
 
                 # Check if the text can fit the size of the rectangle,
@@ -379,7 +371,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 if not style & INB_FIT_BUTTON or (
                     style & INB_LEFT or (style & INB_RIGHT)
                 ):
-
                     fixedText = self.FixTextSize(
                         dc, self._pagesInfoVec[i].GetCaption(), self._nImgSize * 2 - 4
                     )
@@ -388,7 +379,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                     textWidth, textHeight = dc.GetTextExtent(fixedText)
 
                 if bUseYcoord:
-
                     textOffsetX = (rectWidth - textWidth) / 2
                     textOffsetY = (
                         not style & INB_SHOW_ONLY_TEXT
@@ -397,7 +387,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                     )[0]
 
                 else:
-
                     textOffsetX = (rectWidth - textWidth) / 2 + pos + nTextPaddingLeft
                     textOffsetY = (
                         not style & INB_SHOW_ONLY_TEXT
@@ -420,7 +409,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         # Draw the pin button
         if bUsePin:
-
             clientRect = self.GetClientRect()
             pinRect = wx.Rect(clientRect.GetX() + clientRect.GetWidth() - 20, 2, 20, 20)
             self.DrawPin(dc, pinRect, not self._bCollapsed)
@@ -1403,7 +1391,7 @@ class DisplayAdjustmentFrame(windowcls):
                     elif round(l_diff, 2) < 0:
                         sign = "-"
                     else:
-                        sign = "\u00B1"  # plusminus
+                        sign = "\u00b1"  # plusminus
                     label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
                         lang.getstr(lstr),
                         compare_br[1],
@@ -1439,7 +1427,7 @@ class DisplayAdjustmentFrame(windowcls):
                 elif round(l_diff, 2) < 0:
                     sign = "-"
                 else:
-                    sign = "\u00B1"  # plusminus
+                    sign = "\u00b1"  # plusminus
                 label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
                     lang.getstr("target"),
                     target_bl[1],

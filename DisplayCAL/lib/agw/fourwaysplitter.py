@@ -139,6 +139,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 
 Version 0.5
 """
+
 from typing import List, Optional, Tuple, Union
 
 import wx
@@ -207,7 +208,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
             self.SetEventObject(splitter)
             self.SetId(splitter.GetId())
 
-        self.sashIdx= -1
+        self.sashIdx = -1
         self.sashPos: Union[int, wx.Point] = -1
         self.isAllowed = True
 
@@ -649,7 +650,6 @@ class FourWaySplitter(wx.Panel):
                 win3.Show()
 
         else:
-
             if self._expanded < len(self._windows):
                 for ii, win in enumerate(self._windows):
                     if ii == self._expanded:
@@ -734,7 +734,9 @@ class FourWaySplitter(wx.Panel):
 
         self._fver = (
             height > bar_size
-            and [(10000 * self._splity + (height - bar_size - 1)) // (height - bar_size)]
+            and [
+                (10000 * self._splity + (height - bar_size - 1)) // (height - bar_size)
+            ]
             or [0]
         )[0]
 
@@ -788,7 +790,6 @@ class FourWaySplitter(wx.Panel):
         self._flags &= ~FLAG_PRESSED
 
         if flgs & FLAG_PRESSED:
-
             if not self.GetAGWWindowStyleFlag() & wx.SP_LIVE_UPDATE:
                 self.DrawTrackSplitter(self._splitx, self._splity)
                 self.DrawSplitter(wx.ClientDC(self))
@@ -854,7 +855,6 @@ class FourWaySplitter(wx.Panel):
 
         # Moving split
         if self._flags & FLAG_PRESSED:
-
             oldsplitx = self._splitx
             oldsplity = self._splity
 
@@ -1055,7 +1055,6 @@ class FourWaySplitter(wx.Panel):
             dc.SetLogicalFunction(wx.COPY)
 
         elif self._mode == wx.HORIZONTAL:
-
             x1 = 2
             y1 = y
             x2 = w - 2
@@ -1074,7 +1073,6 @@ class FourWaySplitter(wx.Panel):
             dc.SetLogicalFunction(wx.COPY)
 
         elif self._mode == wx.BOTH:
-
             x1 = 2
             x2 = w - 2
             y1 = y

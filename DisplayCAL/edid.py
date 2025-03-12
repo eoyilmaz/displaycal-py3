@@ -122,7 +122,7 @@ def get_edid(
         edid = get_edid_windows(display_no, device)
     elif sys.platform == "darwin":
         edid = get_edid_darwin(display_name)
-    elif RDSMM:
+    else:
         edid = get_edid_from_xrandr(display_no)
 
     if edid and len(edid) >= 128:
@@ -584,8 +584,6 @@ def parse_edid(edid):
     if len(edid) not in [128, 256, 384]:
         edid = fix_edid_encoding(edid)
 
-    edid = ensure_bytes(edid)
-
     result = parse_edid_header(edid)
     result.update(parse_edid_basic_display_parameters(edid))
     result.update(parse_edid_chromaticity_coordinates(edid))
@@ -612,20 +610,6 @@ def fix_edid_encoding(edid):
     # This apparently is a wrong conversion.
     if b"\xc2" in edid or b"\xc3" in edid:
         edid = edid.decode("utf-8").encode("latin-1")
-    return edid
-
-
-def ensure_bytes(edid):
-    """Ensure that the EDID data is in bytes.
-
-    Args:
-        edid (bytes or str): The EDID data.
-
-    Returns:
-        bytes: The EDID data as bytes.
-    """
-    if isinstance(edid, str):
-        edid = edid.encode("latin-1")
     return edid
 
 

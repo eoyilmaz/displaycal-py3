@@ -9264,7 +9264,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         oprof,
         self_check_report=False,
     ):
-
         self.Show()
 
         if not isinstance(result, Exception) and result:
@@ -10844,9 +10843,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         calibration = "calibration-%s.ti3" % serial
                         path = os.path.join(config.get_argyll_data_dir(), calibration)
                         if not os.path.isfile(path):
-                            print(
-                                "Retrieving factory calibration for " "ColorHug", serial
-                            )
+                            print("Retrieving factory calibration for ColorHug", serial)
                             url = (
                                 "https://raw.githubusercontent.com/hughski"
                                 "/colorhug-calibration/master/data/" + calibration
@@ -13553,7 +13550,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     # Populate pnpidcache
                     get_manufacturer_name("???")
                 dlg.manufacturer_txt_ctrl = wx.Choice(
-                    dlg, -1, choices=natsort(list(PNP_ID_CACHE.values())), size=(400, -1)
+                    dlg,
+                    -1,
+                    choices=natsort(list(PNP_ID_CACHE.values())),
+                    size=(400, -1),
                 )
                 manufacturer_selection = self.worker.get_display_edid().get(
                     "manufacturer", ""
@@ -15923,7 +15923,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "%nn	" + lang.getstr("computer.name"),
             "%dn	" + lang.getstr("display"),
             "%dns	" + lang.getstr("display_short"),
-            "%dnw	" + lang.getstr("display") + " (" + lang.getstr("windows_only") + ")",
+            "%dnw	"
+            + lang.getstr("display")
+            + " ("
+            + lang.getstr("windows_only")
+            + ")",
             "%dnws	"
             + lang.getstr("display_short")
             + " ("
@@ -17742,7 +17746,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         "profile.unsupported",
                         (
                             profile.profileClass.decode("utf-8"),
-                            profile.colorSpace.decode("utf-8")
+                            profile.colorSpace.decode("utf-8"),
                         ),
                     )
                     + "\n"
@@ -17765,9 +17769,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     InfoDialog(
                         self,
-                        msg=lang.getstr("profile.no_targ")
-                        + "\n"
-                        + path,
+                        msg=lang.getstr("profile.no_targ") + "\n" + path,
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )
@@ -17841,9 +17843,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if display_index is not None:
                     # Found it
                     display_match = True
-                    if config.get_display_name(
-                        None, False
-                    ) != config.get_display_name(display_index, False):
+                    if config.get_display_name(None, False) != config.get_display_name(
+                        display_index, False
+                    ):
                         # Only need to update if currently selected display
                         # does not match found one
                         setcfg("display.number", display_index + 1)
@@ -17860,19 +17862,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         setcfg("3dlut.tab.enable.backup", 1)
             # Get and set the instrument
             instrument_id = (
-                profile.tags.get("meta", {})
-                .get("MEASUREMENT_device", {})
-                .get("value")
+                profile.tags.get("meta", {}).get("MEASUREMENT_device", {}).get("value")
             )
             if instrument_id:
                 for i, instrument in enumerate(self.worker.instruments):
                     if instrument.lower() == instrument_id:
                         # Found it
                         instrument_match = True
-                        if (
-                            self.worker.get_instrument_name().lower()
-                            == instrument_id
-                        ):
+                        if self.worker.get_instrument_name().lower() == instrument_id:
                             # No need to update anything
                             break
                         setcfg("comport.number", i + 1)
@@ -17889,9 +17886,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             except (IOError, CGATS.CGATSError):
                 InfoDialog(
                     self,
-                    msg="{}\n{}".format(
-                        lang.getstr("calibration.file.invalid"), path
-                    ),
+                    msg="{}\n{}".format(lang.getstr("calibration.file.invalid"), path),
                     ok=lang.getstr("ok"),
                     bitmap=geticon(32, "dialog-error"),
                 )
@@ -17902,9 +17897,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 print("[D] options_dispcal:", options_dispcal)
             if debug:
                 print("[D] options_colprof:", options_colprof)
-            ccxxsetting = getcfg("colorimeter_correction_matrix_file").split(
-                ":", 1
-            )[0]
+            ccxxsetting = getcfg("colorimeter_correction_matrix_file").split(":", 1)[0]
             ccmx = None
             # Check if TRC was set
             trc = False
@@ -18262,9 +18255,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         elif backup is not None:
                             setcfg("measure.override_" + keyword.lower(), backup)
                             cfgvalue = getcfg("measure.%s.backup" % keyword.lower())
-                            setcfg(
-                                "measure.override_%s.backup" % keyword.lower(), None
-                            )
+                            setcfg("measure.override_%s.backup" % keyword.lower(), None)
                             setcfg("measure.%s.backup" % keyword.lower(), None)
                     elif cfgvalue is not None:
                         if keyword == "AUTO_OPTIMIZE" and cfgvalue:
@@ -18293,9 +18284,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                     gamma_type = "b"
                                 setcfg("3dlut.trc_gamma_type", gamma_type)
                                 # Sync measurement report settings
-                                setcfg(
-                                    "measurement_report.trc_gamma_type", gamma_type
-                                )
+                                setcfg("measurement_report.trc_gamma_type", gamma_type)
                                 setcfg("measurement_report.apply_black_offset", 0)
                                 setcfg("measurement_report.apply_trc", 1)
                         elif keyword == "3DLUT_GAMUT_MAPPING_MODE":
@@ -18316,23 +18305,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if cfgvalue is not None:
                         cfgvalue = str(cfgvalue)
                         if cfgname.endswith("profile") and (
-                            not os.path.isabs(cfgvalue)
-                            or not os.path.isfile(cfgvalue)
+                            not os.path.isabs(cfgvalue) or not os.path.isfile(cfgvalue)
                         ):
                             if os.path.basename(os.path.dirname(cfgvalue)) == "ref":
                                 # Fall back to ref file if not absolute
                                 # path or not found
                                 cfgvalue = (
-                                    get_data_path(
-                                        "ref/" + os.path.basename(cfgvalue)
-                                    )
+                                    get_data_path("ref/" + os.path.basename(cfgvalue))
                                     or cfgvalue
                                 )
                             elif not os.path.dirname(cfgvalue):
                                 # Use profile dir
-                                cfgvalue = os.path.join(
-                                    os.path.dirname(path), cfgvalue
-                                )
+                                cfgvalue = os.path.join(os.path.dirname(path), cfgvalue)
                         setcfg(cfgname, cfgvalue)
                         if keyword == "SIMULATION_PROFILE":
                             # Only HDR 3D LUTs will have this set
@@ -18509,9 +18493,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if value != "DISPLAY":
                         InfoDialog(
                             self,
-                            msg=lang.getstr("calibration.file.invalid")
-                            + "\n"
-                            + path,
+                            msg=lang.getstr("calibration.file.invalid") + "\n" + path,
                             ok=lang.getstr("ok"),
                             bitmap=geticon(32, "dialog-error"),
                         )
@@ -18547,8 +18529,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         setcfg("3dlut.whitepoint.x", round(x, 4))
                         setcfg("3dlut.whitepoint.y", round(y, 4))
                         self.worker.options_dispcal.append(
-                            "-w%s,%s"
-                            % (getcfg("whitepoint.x"), getcfg("whitepoint.y"))
+                            "-w%s,%s" % (getcfg("whitepoint.x"), getcfg("whitepoint.y"))
                         )
                         settings.append(lang.getstr("whitepoint"))
                     setcfg("calibration.luminance", stripzeros(round(Y * 100, 3)))
@@ -18592,15 +18573,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 elif line[0] == "BLACK_POINT_CORRECTION":
                     if stripzeros(value) >= 0:
                         black_point_correction = True
-                        setcfg(
-                            "calibration.black_point_correction", stripzeros(value)
-                        )
+                        setcfg("calibration.black_point_correction", stripzeros(value))
                         self.worker.options_dispcal.append(
                             "-k%s" % getcfg("calibration.black_point_correction")
                         )
-                    settings.append(
-                        lang.getstr("calibration.black_point_correction")
-                    )
+                    settings.append(lang.getstr("calibration.black_point_correction"))
                 elif line[0] == "TARGET_BLACK_BRIGHTNESS":
                     setcfg("calibration.black_luminance", stripzeros(value))
                     self.worker.options_dispcal.append(

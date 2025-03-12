@@ -2234,7 +2234,9 @@ def get_display_profile(
             try:
                 buf = ctypes.create_unicode_buffer(buflen.value)
                 if ctypes.windll.gdi32.GetICMProfileW(
-                    dc, ctypes.byref(buflen), ctypes.byref(buf)  # WCHARs
+                    dc,
+                    ctypes.byref(buflen),
+                    ctypes.byref(buf),  # WCHARs
                 ):
                     if path_only:
                         profile = buf.value
@@ -3218,7 +3220,7 @@ class LUT16Type(ICCProfileTag):
         elif not pcs or pcs == b"XYZ":
             if not pcs:
                 warnings.warn(
-                    "LUT16Type.%s: PCS not specified, " "assuming XYZ" % method, Warning
+                    "LUT16Type.%s: PCS not specified, assuming XYZ" % method, Warning
                 )
             bp = [v / 32768.0 for v in bp_row]
             wp = [v / 32768.0 for v in wp_row]
@@ -3290,10 +3292,7 @@ class LUT16Type(ICCProfileTag):
                     [
                         uInt16Number(
                             tagData[
-                                52
-                                + n * i * 2
-                                + o * 2 * (g * x + y)
-                                + z * 2 : 54
+                                52 + n * i * 2 + o * 2 * (g * x + y) + z * 2 : 54
                                 + n * i * 2
                                 + o * 2 * (g * x + y)
                                 + z * 2
@@ -3540,11 +3539,7 @@ BEGIN_DATA
                 [
                     uInt16Number(
                         tagData[
-                            52
-                            + n * i * 2
-                            + m * 2 * z
-                            + y * 2
-                            + g**i * o * 2 : 54
+                            52 + n * i * 2 + m * 2 * z + y * 2 + g**i * o * 2 : 54
                             + n * i * 2
                             + m * 2 * z
                             + y * 2
@@ -4847,7 +4842,9 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
                     storage.append(data)
                 tagData.append(uInt32Number_tohex(recordLength))
                 tagData.append(uInt32Number_tohex(storage_offset + offset))
-        tagData.append(b"".join(storage))  # TODO: Are you sure that this needs to be bytes
+        tagData.append(
+            b"".join(storage)
+        )  # TODO: Are you sure that this needs to be bytes
         return b"".join(tagData)
 
     @tagData.setter
@@ -5013,9 +5010,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 unicodeDescriptionLength /= 2
             if (
                 tagData[
-                    unicodeOffset
-                    + 8
-                    + unicodeDescriptionLength : unicodeOffset
+                    unicodeOffset + 8 + unicodeDescriptionLength : unicodeOffset
                     + 8
                     + unicodeDescriptionLength
                     + 2
@@ -5031,8 +5026,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
             else:
                 charBytes = 2
             unicodeDescription = tagData[
-                unicodeOffset
-                + 8 : unicodeOffset
+                unicodeOffset + 8 : unicodeOffset
                 + 8
                 + (unicodeDescriptionLength) * charBytes
             ]
@@ -5209,7 +5203,6 @@ def TextType(tagData, tagSignature):
 
 
 class VideoCardGammaType(ICCProfileTag, ADict):
-
     # Private tag
     # http://developer.apple.com/documentation/GraphicsImaging/Reference/ColorSync_Manager/Reference/reference.html#//apple_ref/doc/uid/TP30000259-CH3g-C001473
 
@@ -5938,7 +5931,6 @@ class NamedColor2Value(object):
 
 
 class NamedColor2ValueTuple(tuple):
-
     __slots__ = ()
     REPR_OUTPUT_SIZE = 10
 
@@ -5959,7 +5951,6 @@ class NamedColor2ValueTuple(tuple):
 
 
 class NamedColor2Type(ICCProfileTag, AODict):
-
     REPR_OUTPUT_SIZE = 10
 
     def __init__(self, tagData=b"\0" * 84, tagSignature=None, pcs=None, device=None):

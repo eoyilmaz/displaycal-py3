@@ -128,11 +128,14 @@ def setup_argyll():
     argyll_path = pathlib.Path(argyll_temp_path) / f"Argyll_V{argyll_version}" / "bin"
     print(f"argyll_path: {argyll_path}")
     if argyll_path.is_dir():
+        print("argyll_path is valid!")
         setcfg("argyll.dir", str(argyll_path.absolute()))
         writecfg()
+        os.environ["PATH"] = f"{argyll_path}{os.pathsep}{os.environ['PATH']}"
         yield argyll_path
         cleanup()
     else:
+        print("argyll_path is invalid!")
         cleanup()
         pytest.skip("ArgyllCMS can not be setup!")
 

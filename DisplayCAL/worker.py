@@ -1547,10 +1547,12 @@ def make_argyll_compatible_path(path):
     regex = r"\\\\\?\\"
     driver_letter_escape_char = ":"
     os_path_sep = os.path.sep
+    string_ascii_uppercase = string.ascii_uppercase
     if isinstance(path, bytes):
         regex = regex.encode("utf-8")
         driver_letter_escape_char = driver_letter_escape_char.encode("utf-8")
         os_path_sep = os_path_sep.encode("utf-8")
+        string_ascii_uppercase = string_ascii_uppercase.encode("utf-8")
 
     if re.match(regex, path, re.I):
         # Don't forget about UNC paths:
@@ -1563,8 +1565,8 @@ def make_argyll_compatible_path(path):
         driveletterpart = parts[skip + 1]
         if (
             len(driveletterpart) == 2
-            and driveletterpart[0].upper() in string.ascii_uppercase
-            and driveletterpart[1] == driver_letter_escape_char
+            and driveletterpart[0:1].upper() in string_ascii_uppercase
+            and driveletterpart[1:2] == driver_letter_escape_char
         ):
             skip += 1
 

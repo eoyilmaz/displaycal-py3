@@ -96,6 +96,7 @@ DisplayCAL = [
     "VERSION_BASE",
     "VERSION",
     "x3d-viewer/**",
+    "xrc/**",
 ]
 
 [tool.setuptools.exclude-package-data]

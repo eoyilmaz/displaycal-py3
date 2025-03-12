@@ -64,23 +64,29 @@ def test_get_options_from_profile_2(data_files):
 
 
 def test_make_argyll_compatible_path_1():
-    """testing if make_argyll_compatible_path is working properly with bytes input"""
-    test_value = "C:\\Program Files\\some path\\excutable.exe"
+    """make_argyll_compatible_path is working properly with bytes input."""
+    test_value = "C:\\Program Files\\some path\\executable.exe"
     result = make_argyll_compatible_path(test_value)
-    expected_result = "C_Program Files_some path_excutable.exe"
+    if sys.platform == "win32":
+        expected_result = "C:\\Program Files\\some path\\executable.exe"
+    else:
+        expected_result = "C_Program Files_some path_executable.exe"
     assert result == expected_result
 
 
 def test_make_argyll_compatible_path_2():
-    """testing if make_argyll_compatible_path is working properly with bytes input"""
-    test_value = b"C:\\Program Files\\some path\\excutable.exe"
+    """make_argyll_compatible_path is working properly with bytes input."""
+    test_value = b"C:\\Program Files\\some path\\executable.exe"
     result = make_argyll_compatible_path(test_value)
-    expected_result = b"C_Program Files_some path_excutable.exe"
+    if sys.platform == "win32":
+        expected_result = b"C:\\Program Files\\some path\\executable.exe"
+    else:
+        expected_result = b"C_Program Files_some path_executable.exe"
     assert result == expected_result
 
 
 def test_worker_get_instrument_name_1():
-    """testing if the Worker.get_instrument_name() is working properly"""
+    """Worker.get_instrument_name() is working properly."""
     worker = Worker()
     result = worker.get_instrument_name()
     expected_result = ""
@@ -88,7 +94,7 @@ def test_worker_get_instrument_name_1():
 
 
 def test_worker_get_instrument_features():
-    """testing if Worker.get_instrument_features() is working properly"""
+    """Worker.get_instrument_features() is working properly."""
     worker = Worker()
     result = worker.get_instrument_features()
     assert result == {}

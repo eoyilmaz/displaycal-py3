@@ -37,12 +37,17 @@ def test_iccprofile_from_rgb_space():
         ["Profile class", "Display device profile"],
         ["Color model", "RGB"],
         ["Profile connection space (PCS)", "XYZ"],
-        ["Created", "2022-03-09 00:19:53"],
-        (
-            ["Platform", "Apple"]
-            if sys.platform == "darwin"
-            else ["Platform", "0x2A6E6978 '*nix'"]
-        ),
+        ["Created", "2022-03-09 00:19:53"]
+    ]
+
+    if sys.platform == "darwin":
+        expected_result.append(["Platform", "Apple"])
+    elif sys.platform == "win32":
+        expected_result.append(["Platform", "Microsoft"])
+    else:
+        expected_result.append(["Platform", "0x2A6E6978 '*nix'"])
+
+    expected_result += [
         ["Is embedded", "No"],
         ["Can be used independently", "Yes"],
         ["Device", ""],

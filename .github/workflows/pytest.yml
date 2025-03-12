@@ -13,6 +13,19 @@ jobs:
     name: Linux + Python ${{ matrix.python-version }} + wxPython ${{ matrix.wx-version }}
     env:
       DISPLAY: :0
+      WX420_PY38: pz0phprxb9dsbtwra76et/wxPython-4.2.0-cp38-cp38-linux_x86_64.whl?rlkey=ev0ju20g0s81n2i12vecbg51k
+      WX420_PY39: ldeiopj7zu6edsr8ynxbf/wxPython-4.2.0-cp39-cp39-linux_x86_64.whl?rlkey=jed0zzt7fdlbw2qsspz5f48aa
+      WX420_PY310: ux01vyvw9vgyyf0meqq9h/wxPython-4.2.0-cp310-cp310-linux_x86_64.whl?rlkey=qcupz8ucmbk2agrxpdiac4bjd
+      WX421_PY38: 19atqt84kha4en8xbdh30/wxPython-4.2.1-cp38-cp38-linux_x86_64.whl?rlkey=zvlss9fwomxxkq137x1hrkmjz
+      WX421_PY39: 7vh154wc7dguwi4ud3rvd/wxPython-4.2.1-cp39-cp39-linux_x86_64.whl?rlkey=a4ng45frt4huob5svttndt4rl
+      WX421_PY310: 06k31cfx7sgtu66z9lvj5/wxPython-4.2.1-cp310-cp310-linux_x86_64.whl?rlkey=epkxbzdkqrxptnrmzh03m2bw7
+      WX421_PY311: 3hc29rp1l5y7gcqdqcyit/wxPython-4.2.1-cp311-cp311-linux_x86_64.whl?rlkey=3ydeoe4leao9ngxr2giieab9e
+      WX422_PY39: r373vn7wxu90dulfnvqcf/wxPython-4.2.2-cp39-cp39-linux_x86_64.whl?rlkey=iiwq9yi1896ynj01lsp08hoc3
+      WX422_PY310: zrb9nacss8o50va4ekru5/wxPython-4.2.2-cp310-cp310-linux_x86_64.whl?rlkey=i6l7j2edvhz5sjg6y1dutzyle
+      WX422_PY311: g7zodatkgrhaoapw1xd6c/wxPython-4.2.2-cp311-cp311-linux_x86_64.whl?rlkey=3tf3n29anlnve1ey4j00o0b1c
+      WX422_PY312: xna4er43x1m8rveuzpgii/wxPython-4.2.2-cp312-cp312-linux_x86_64.whl?rlkey=0mxvdv0puyuzfatne903n8t7e
+      WX422_PY313: 7a4w68u74an6xrlypv3sl/wxPython-4.2.2-cp313-cp313-linux_x86_64.whl?rlkey=dvd3pw3x7ots1nrjd4ecbx83s
+
     runs-on: ubuntu-22.04
 
     strategy:
@@ -53,6 +66,7 @@ jobs:
     - name: Set Environment Variables
       run: |
         echo "py_version=$(echo ${{ matrix.python-version }} | tr -d .)" >> $GITHUB_ENV
+        echo "wx_version=$(echo ${{ matrix.wx-version }} | tr -d .)" >> $GITHUB_ENV
         if [ "${{ matrix.python-version }}" == "3.8" ]; then
           echo "add_dir_str=${{ matrix.python-version }}" >> $GITHUB_ENV
         elif [ "${{ matrix.python-version }}" == "3.9" ]; then
@@ -104,7 +118,8 @@ jobs:
 
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
-        uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
+        # uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
+        uv pip install --system https://www.dropbox.com/scl/fi/${{ env.[format('WX{0}_PY{1}', env.wx-version, env.py-version)] }}&dl=1
 
     - name: Install Python dependencies
       run: |

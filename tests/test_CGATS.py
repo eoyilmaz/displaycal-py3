@@ -1,5 +1,6 @@
 # -*- coding: utf-8 --*-
 from __future__ import annotations
+import sys
 from typing import List, TypedDict, Dict, Tuple
 
 import pytest
@@ -375,6 +376,10 @@ def test_cgats_from_ti3_back_to_bytes(data_files):
     path = data_files["0_16_proper.ti3"].absolute()
     with open(path, "rb") as f:
         raw_data = f.read()
+
+    # fix the line endings for Windows
+    if sys.platform == "win32":
+        raw_data = raw_data.replace(b"\r\n", b"\n")
     cgats = CGATS.CGATS(cgats=path)
     assert bytes(cgats) == raw_data
 

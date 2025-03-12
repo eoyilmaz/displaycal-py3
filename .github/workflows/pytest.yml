@@ -119,7 +119,7 @@ jobs:
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
         # uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
-        uv pip install --system https://www.dropbox.com/scl/fi/${{ env.[format('WX{0}_PY{1}', env.wx-version, env.py-version)] }}&dl=1
+        uv pip install --system https://www.dropbox.com/scl/fi/${{ env[format('WX{0}_PY{1}', env.wx-version, env.py-version)] }}&dl=1
 
     - name: Install Python dependencies
       run: |

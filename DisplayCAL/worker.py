@@ -2649,7 +2649,7 @@ class Worker(WorkerBase):
                 + " → "
                 + lang.getstr("trc." + gamma)
                 + (
-                    " {:d} cd/m² (mastering {}-{:d} cd/m²)".format(
+                    " {:0.0f} cd/m² (mastering {}-{:0.0f} cd/m²)".format(
                         white_cdm2, stripzeros(f"{minmll:.4f}"), maxmll
                     )
                 )
@@ -2662,7 +2662,7 @@ class Worker(WorkerBase):
                 + " → "
                 + lang.getstr("trc." + gamma)
                 + (
-                    " {:d} cd/m² (ambient {} cd/m²)".format(
+                    " {:0.0f} cd/m² (ambient {} cd/m²)".format(
                         lumi.Y, stripzeros(f"{ambient_cdm2:.2f}")
                     )
                 )
@@ -2712,7 +2712,7 @@ class Worker(WorkerBase):
                     " "
                     + lang.getstr("trc." + gamma)
                     + (
-                        " {}-{:d} cd/m² (mastering {}-{:d} cd/m²)".format(
+                        " {}-{:0.0f} cd/m² (mastering {}-{:0.0f} cd/m²)".format(
                             stripzeros(f"{profile_black_cdm2:.4f}"),
                             white_cdm2,
                             stripzeros(f"{minmll:.4f}"),
@@ -2729,7 +2729,7 @@ class Worker(WorkerBase):
                     " "
                     + lang.getstr("trc." + gamma)
                     + (
-                        " {}-{:d} cd/m² (ambient {} cd/m²)".format(
+                        " {}-{:0.0f} cd/m² (ambient {} cd/m²)".format(
                             stripzeros(f"{profile_black_cdm2:.4f}"),
                             white_cdm2,
                             stripzeros(f"{ambient_cdm2:.2f}"),
@@ -3905,7 +3905,7 @@ END_DATA
                     or getcfg("3dlut.hdr_minmll")
                     or getcfg("3dlut.hdr_maxmll") < 10000
                 ):
-                    lut3dp.append("@{:d}".format(getcfg("3dlut.hdr_peak_luminance")))
+                    lut3dp.append("@{:0.0f}".format(getcfg("3dlut.hdr_peak_luminance")))
                     if getcfg("3dlut.trc") == "smpte2084.hardclip":
                         lut3dp.append("h")
                     else:
@@ -3921,7 +3921,7 @@ END_DATA
                     ):
                         lut3dp.append("-")
                     if getcfg("3dlut.hdr_maxmll") < 10000:
-                        lut3dp.append("{:d}".format(getcfg("3dlut.hdr_maxmll")))
+                        lut3dp.append("{:0.0f}".format(getcfg("3dlut.hdr_maxmll")))
                     if getcfg("3dlut.trc") == "smpte2084.rolloffclip":
                         # Hue and chroma preservation
                         if getcfg("3dlut.hdr_sat") != 0.5:
@@ -4627,7 +4627,7 @@ END_DATA
                             ((a + 1) * (b + 1) * (c + 1)) / float(size**3) * 100
                         )
                         if perc > prevperc:
-                            logfiles.write(f"\r{perc:d}%")
+                            logfiles.write(f"\r{perc:0.0f}%")
                             prevperc = perc
                 logfiles.write("\n")
                 self.log("Skipped", size**3 - len(seen), "duplicate input values")
@@ -4791,7 +4791,7 @@ END_DATA
                                 if cond:
                                     # Black hack
                                     self.log(
-                                        "Black hack - forcing output RGB {:d} {:d} {:d}".format(
+                                        "Black hack - forcing output RGB {:0.0f} {:0.0f} {:0.0f}".format(
                                             *[
                                                 cLUT65_to_VidRGB(v / maxind) * 255
                                                 for v in abc
@@ -4893,7 +4893,7 @@ END_DATA
                             A2B0.clut[-1].append(RGB)
                         perc = round(len(A2B0.clut) / float(size**2) * 100)
                         if perc > prevperc:
-                            logfiles.write(f"\r{perc:d}%")
+                            logfiles.write(f"\r{perc:0.0f}%")
                             prevperc = perc
                 logfiles.write("\n")
                 profile_link.write(link_filename)
@@ -5053,7 +5053,7 @@ END_DATA
                                 ",".join([str(v) for v in in_colors])
                             )
                         )
-                    interp_args.append("--hdr={:d}".format(smpte2084 + hdr_display))
+                    interp_args.append("--hdr={:0.0f}".format(smpte2084 + hdr_display))
                     interp_args.append("--convert-video-rgb-to-clut65")
                     interp_args.append("--append-linear-cal")
                     interp_args.append("--batch")
@@ -7618,7 +7618,7 @@ BEGIN_DATA
                     raise Info(lang.getstr("aborted"))
                 A2B0.clut.append([])
                 if logfile:
-                    logfile.write("\r{:d}%".format(round(i / (numrows - 1.0) * 100)))
+                    logfile.write("\r{:0.0f}%".format(round(i / (numrows - 1.0) * 100)))
             # Apply black point compensation
             XYZ = colormath.blend_blackpoint(X, Y, Z, XYZbp)
             XYZ = [v / XYZwp[1] for v in XYZ]
@@ -7998,7 +7998,7 @@ BEGIN_DATA
                     logfile.write(
                         "Increasing saturation of actual "
                         "primaries for PCS candidate to "
-                        "{:d}%...\n".format(round(sat * 100))
+                        "{:0.0f}%...\n".format(round(sat * 100))
                     )
                 for i, channel in enumerate("rgb"):
                     # x, y, Y = result.tags[channel + "XYZ"].pcs.xyY
@@ -8435,7 +8435,7 @@ BEGIN_DATA
             for i in range(len(itable.input)):
                 itable.input[i].append(min(v[i] * 65535, 65535))
             if logfile and j % math.floor(maxval / 100.0) == 0:
-                logfile.write("\r{:d}%".format(round(j / maxval * 100)))
+                logfile.write("\r{:0.0f}%".format(round(j / maxval * 100)))
         if logfile:
             logfile.write("\n")
         if False and method and not bpc:
@@ -8634,7 +8634,7 @@ BEGIN_DATA
                         itable.clut[-1].append([v * step * 65535 for v in (R, G, B)])
                     if logfile:
                         logfile.write(
-                            "\r{:d}%".format(
+                            "\r{:0.0f}%".format(
                                 round((R * G * B) / ((clutres - 1.0) ** 3) * 100)
                             )
                         )
@@ -8646,7 +8646,7 @@ BEGIN_DATA
                     itable.clut.append([])
                     if logfile:
                         logfile.write(
-                            "\r{:d}%".format(round(i / (numrows - 1.0) * 100))
+                            "\r{:0.0f}%".format(round(i / (numrows - 1.0) * 100))
                         )
                 # Set RGB black and white explicitly
                 if pcs == "x":
@@ -10776,7 +10776,7 @@ usage: spotread [-options] [logfile]
                             logmsg = "Applying black point compensation"
                         else:
                             logmsg = (
-                                f"Applying {bpcorr * 100:d}% black point correction"
+                                f"Applying {bpcorr * 100:0.0f}% black point correction"
                             )
                         self.log(f"{logmsg} to TI3")
                         ti3[0].apply_bpc(XYZbp)
@@ -15445,7 +15445,7 @@ usage: spotread [-options] [logfile]
             # Get white RGB
             XYZwscaled = self.xicclu(profile, RGBscaled[-1], "a", pcs="x")[0]
             logfiles.write(
-                "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:d}\n".format(
+                "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:0.0f}\n".format(
                     *(XYZwscaled + [colormath.XYZ2CCT(*XYZwscaled)])
                 )
             )
@@ -15476,7 +15476,7 @@ usage: spotread [-options] [logfile]
                     "RGB white {:6.4f} {:6.4f} {:6.4f}\n".format(*RGBclip[:3])
                 )
                 logfiles.write(
-                    "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:d}\n".format(
+                    "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:0.0f}\n".format(
                         *(XYZscaled[i] + [colormath.XYZ2CCT(*XYZscaled[i])])
                     )
                 )
@@ -16608,7 +16608,7 @@ BEGIN_DATA
                             bps_unit_size = 1024.0
 
                         if total_size:
-                            percent = math.floor(float(bytes_so_far) / total_size * 100)
+                            percent = int(math.floor(float(bytes_so_far) / total_size * 100))
                             if (
                                 percent > prev_percent
                                 or time() >= update_ts + frametime
@@ -16648,7 +16648,7 @@ BEGIN_DATA
                         ) < int(chunk_size * 0.75):
                             if debug or test or verbose > 1:
                                 print(
-                                    "Download buffer size changed from {:d} KB to {:d} KB".format(
+                                    "Download buffer size changed from {:0.0f} KB to {:0.0f} KB".format(
                                         chunk_size / 1024.0, bps / fps / 1024
                                     )
                                 )

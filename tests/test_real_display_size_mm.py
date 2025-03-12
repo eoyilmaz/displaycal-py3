@@ -139,6 +139,30 @@ def test__enumerate_displays_uses_argyll_dispwin_output_2(
     assert result[1]["pos"] == (1728, -575)
 
 
+def test__enumerate_displays_uses_argyll_dispwin_output_6(
+    patch_subprocess_on_rdsmm, patch_argyll_util
+):
+    """_enumerate_displays() uses dispwin."""
+    patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_7
+    result = RealDisplaySizeMM._enumerate_displays()
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert (
+        result[0]["description"]
+        == b"Built-in Retina Display, at 0, 0, width 1728, height 1117 (Primary Display)"
+    )
+    assert result[0]["name"] == b"Built-in Retina Display"
+    assert result[0]["size"] == (1728, 1117)
+    assert result[0]["pos"] == (0, 0)
+    assert (
+        result[1]["description"]
+        == b"DELL UP2516D, at -2560, -323, width 2560, height 1440"
+    )
+    assert result[1]["name"] == b"DELL UP2516D"
+    assert result[1]["size"] == (2560, 1440)
+    assert result[1]["pos"] == (-2560, -323)
+
+
 def test__enumerate_displays_without_a_proper_dispwin_output_missing_lines(
     patch_subprocess_on_rdsmm, patch_argyll_util
 ):
@@ -247,12 +271,19 @@ def test_get_dispwin_output_dispwin_path_is_none_returns_empty_bytes(
     assert RealDisplaySizeMM.get_dispwin_output() == b""
 
 
+@pytest.mark.parametrize(
+    "dispwin_data_file_name", [
+        "dispwin_output_1.txt",
+        "dispwin_output_2.txt",
+        "dispwin_output_3.txt",
+        "dispwin_output_4.txt",
+    ]
+)
 def test_get_dispwin_output_returns_dispwin_output_as_bytes(
-    clear_displays, data_files, patch_subprocess
+    clear_displays, data_files, patch_subprocess, dispwin_data_file_name
 ):
     """get_dispwin_output() returns bytes."""
     # patch dispwin
-    dispwin_data_file_name = "dispwin_output_1.txt"
     with open(data_files[dispwin_data_file_name], "rb") as dispwin_data_file:
         dispwin_data = dispwin_data_file.read()
     patch_subprocess.output["dispwin-v-d0"] = dispwin_data

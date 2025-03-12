@@ -14,7 +14,6 @@ jobs:
     env:
       DISPLAY: :0
     runs-on: ubuntu-22.04
-    if: false
 
     strategy:
       fail-fast: false

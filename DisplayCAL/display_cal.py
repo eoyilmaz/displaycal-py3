@@ -19035,7 +19035,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             measureframe = self.measureframes.pop()
             if measureframe:
                 measureframe.Close()
-        for window in wx.GetTopLevelWindows():
+        for window in list(wx.GetTopLevelWindows()):
             if window and window is not self and window.IsShown():
                 print("Closing", window, "'%s'" % getattr(window, "Title", window.Name))
                 window.Close()
@@ -19093,7 +19093,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if isinstance(event, wx.CloseEvent) and event.CanVeto():
                     event.Veto()
                 return
-            for win in wx.GetTopLevelWindows():
+            for win in list(wx.GetTopLevelWindows()):
                 if win and not win.IsBeingDeleted():
                     if isinstance(win, VisualWhitepointEditor):
                         win.Close(force=True)

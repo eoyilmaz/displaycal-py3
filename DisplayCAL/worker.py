@@ -14232,7 +14232,7 @@ usage: spotread [-options] [logfile]
                 or (sys.platform == "darwin" and not self.activated)
             )
         ):
-            for window in wx.GetTopLevelWindows():
+            for window in list(wx.GetTopLevelWindows()):
                 if (
                     window
                     and window is not self.progress_wnd

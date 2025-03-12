@@ -1461,7 +1461,7 @@ class BaseFrame(wx.Frame):
                     id_name_label = int(data[1])
                 except ValueError:
                     id_name_label = data[1]
-                for win in reversed(wx.GetTopLevelWindows()):
+                for win in reversed(list(wx.GetTopLevelWindows())):
                     if (
                         win.Id == id_name_label
                         or win.Name == id_name_label
@@ -1700,7 +1700,7 @@ class BaseFrame(wx.Frame):
             else:
                 response = "invalid"
         elif data[0] == "getwindows" and len(data) == 1:
-            windows = [win for win in wx.GetTopLevelWindows() if win.IsShown()]
+            windows = [win for win in list(wx.GetTopLevelWindows()) if win.IsShown()]
             response = [
                 format_ui_element(win, responseformats[conn]) for win in windows
             ]
@@ -7897,7 +7897,7 @@ def get_toplevel_window(id_name_label):
         id_name_label = int(id_name_label)
     except ValueError:
         pass
-    for win in reversed(wx.GetTopLevelWindows()):
+    for win in reversed(list(wx.GetTopLevelWindows())):
         if (
             win
             and (

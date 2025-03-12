@@ -2377,7 +2377,7 @@ class ProfileLoader(object):
         windows.extend(
             [
                 window
-                for window in wx.GetTopLevelWindows()
+                for window in list(wx.GetTopLevelWindows())
                 if not isinstance(window, wx.Dialog)
                 and window.Name != "TaskBarNotification"
                 and window.Name != "DisplayIdentification"

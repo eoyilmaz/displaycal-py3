@@ -1022,7 +1022,7 @@ def get_dialogs(modal=False):
     """If there are any dialogs open, return them"""
     return [
         window
-        for window in wx.GetTopLevelWindows()
+        for window in list(wx.GetTopLevelWindows())
         if window
         and isinstance(window, wx.Dialog)
         and window.IsShown()

@@ -83,6 +83,10 @@ jobs:
         # start xvfb in the background
         sudo /usr/bin/Xvfb $DISPLAY -screen 0 1280x1024x24 &
 
+    - name: Setup libnotify4
+      run: |
+        sudo apt-get install -y libnotify4
+
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:

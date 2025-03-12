@@ -14,7 +14,7 @@ import pytest
 
 import DisplayCAL
 from DisplayCAL import RealDisplaySizeMM
-from DisplayCAL.config import setcfg
+from DisplayCAL.config import setcfg, writecfg
 from DisplayCAL.argyll import get_argyll_latest_version
 
 
@@ -129,6 +129,7 @@ def setup_argyll():
     print(f"argyll_path: {argyll_path}")
     if argyll_path.is_dir():
         setcfg("argyll.dir", str(argyll_path.absolute()))
+        writecfg()
         yield argyll_path
         cleanup()
     else:

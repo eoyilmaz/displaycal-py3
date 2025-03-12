@@ -10,10 +10,9 @@ from __future__ import annotations
 
 import contextlib
 from types import ModuleType
-from typing import Any, Callable, Dict, Generator, List, Tuple, Type, overload
-
+from typing import Any, Dict, Generator, List, Tuple, Type, overload
+    
 from _pytest.monkeypatch import MonkeyPatch
-from mypy_extensions import KwArg, VarArg
 
 Call = Tuple[Tuple[Any, ...], Dict[str, Any]]
 CallList = List[Call]

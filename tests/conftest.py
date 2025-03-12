@@ -104,7 +104,10 @@ def argyll():
         download_path = worker.download(url)
         print(f"Downloaded to: {download_path}")
         if os.path.exists(download_path):
-            shutil.move(download_path, argyll_package_file_name)
+            shutil.move(
+                download_path,
+                os.path.join(argyll_temp_path, argyll_package_file_name)
+            )
     else:
         print(f"Package file already exists: {argyll_package_file_name}")
         print("Not downloading it again!")

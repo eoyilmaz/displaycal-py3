@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from subprocess import Popen
+import sys
 
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version_string
 from DisplayCAL import config
@@ -25,6 +26,8 @@ def test_get_argyll_util(argyll):
     config.initcfg()
     result = get_argyll_util("ccxxmake")
     expected_result = os.path.join(config.getcfg("argyll.dir"), "ccxxmake")
+    if sys.platform == "win32":
+        expected_result += ".exe"
     assert result == expected_result
 
 

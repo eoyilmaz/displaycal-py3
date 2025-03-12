@@ -259,7 +259,7 @@ def test_is_allowed_1():
     assert result != ""
 
 
-def test_ti3_lookup_to_ti1_1(data_files):
+def test_ti3_lookup_to_ti1_1(data_files, argyll):
     """Test Worker.ti3_lookup_to_ti1() function for #129"""
     ti3_path = data_files["0_16_from_issue_129.ti3"].absolute()
     profile_path = data_files[

@@ -639,14 +639,9 @@ class ImageContainerBase(wx.Panel):
                 flags.
         """
         parent: wx.Window = self.GetParent()
-        if isinstance(parent, LabelBook):
-            agwStyle: int = parent.GetAGWWindowStyleFlag()
-            agwStyle &= ~flag
-            parent.SetAGWWindowStyleFlag(agwStyle)
-        else:
-            raise TypeError(
-                "Parent must be an instance of LabelBook or a compatible AGW class"
-            )
+        agwStyle: int = parent.GetAGWWindowStyleFlag()
+        agwStyle &= ~flag
+        parent.SetAGWWindowStyleFlag(agwStyle)
 
     def AssignImageList(self, imglist: wx.ImageList) -> None:
         """Assign an image list to the :class:`wx.ImageContainerBase`.
@@ -659,13 +654,8 @@ class ImageContainerBase(wx.Panel):
 
         self._ImageList: Union[None, wx.ImageList] = imglist
         parent: wx.Window = self.GetParent()
-        if isinstance(parent, LabelBook):
-            agwStyle: int = parent.GetAGWWindowStyleFlag()
-            parent.SetAGWWindowStyleFlag(agwStyle)
-        else:
-            raise TypeError(
-                "Parent must be an instance of LabelBook or a compatible AGW class"
-            )
+        agwStyle: int = parent.GetAGWWindowStyleFlag()
+        parent.SetAGWWindowStyleFlag(agwStyle)
 
     def GetImageList(self) -> Union[None, wx.ImageList]:
         """Return the image list for :class:`wx.ImageContainerBase`."""

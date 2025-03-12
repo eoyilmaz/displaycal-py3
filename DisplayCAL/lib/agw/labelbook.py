@@ -2616,25 +2616,6 @@ class FlatBookBase(wx.Panel):
         self.Bind(wx.EVT_NAVIGATION_KEY, self.OnNavigationKey)
         self.Bind(wx.EVT_MOUSE_CAPTURE_LOST, lambda evt: True)
 
-        # Ensure _pages is initialized
-        if isinstance(self, FlatImageBook):
-            self._pages = self.CreateImageContainer()
-        elif isinstance(self, LabelBook):
-            self._pages = self.CreateImageContainer()
-
-        if self._pages is None:
-            raise ValueError("ImageContainer is not initialized")
-
-        # Add the tab container to the sizer
-        self._mainSizer = wx.BoxSizer(
-            wx.HORIZONTAL
-            if self.HasAGWFlag(ImageBookStyle.INB_LEFT)
-            or self.HasAGWFlag(ImageBookStyle.INB_RIGHT)
-            else wx.VERTICAL
-        )
-        self._mainSizer.Add(self._pages, 0, wx.EXPAND)
-        self.SetSizer(self._mainSizer)
-        self._mainSizer.Layout()
 
     def CreateImageContainer(self) -> ImageContainerBase:
         """Create the image container class for :class:`FlatBookBase`."""

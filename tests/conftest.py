@@ -8,6 +8,7 @@ import sys
 import tarfile
 import tempfile
 
+from DisplayCAL.worker import Worker
 import pytest
 
 import DisplayCAL
@@ -98,7 +99,11 @@ def argyll():
     if not os.path.exists(tar_file_name):
         print(f"Downloading: {tar_file_name}")
         # Download the tar file if it doesn't already exist
-        subprocess.call(["/usr/bin/curl", url, "-o", tar_file_name])
+        worker = Worker()
+        download_path = worker.download(url)
+        print(f"Downloaded to: {download_path}")
+        if os.path.exists(download_path):
+            shutil.move(download_path, tar_file_name)
     else:
         print(f"Tar file already exists: {tar_file_name}")
         print("Not downloading it again!")

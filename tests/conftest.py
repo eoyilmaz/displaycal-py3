@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import zipfile
 
 from DisplayCAL.worker import Worker
 import pytest
@@ -95,22 +96,26 @@ def argyll():
     # change dir to argyll temp path
     os.chdir(argyll_temp_path)
 
-    tar_file_name = "Argyll.tgz"
-    if not os.path.exists(tar_file_name):
-        print(f"Downloading: {tar_file_name}")
-        # Download the tar file if it doesn't already exist
+    # Download the package file if it doesn't already exist
+    argyll_package_file_name = "Argyll.tgz" if sys.platform != "win32" else "Argyll.zip"
+    if not os.path.exists(argyll_package_file_name):
+        print(f"Downloading: {argyll_package_file_name}")
         worker = Worker()
         download_path = worker.download(url)
         print(f"Downloaded to: {download_path}")
         if os.path.exists(download_path):
-            shutil.move(download_path, tar_file_name)
+            shutil.move(download_path, argyll_package_file_name)
     else:
-        print(f"Tar file already exists: {tar_file_name}")
+        print(f"Package file already exists: {argyll_package_file_name}")
         print("Not downloading it again!")
 
-    print(f"Decompressing Tarfile: {tar_file_name}")
-    with tarfile.open(tar_file_name) as tar:
-        tar.extractall()
+    print(f"Decompressing Argyll Package: {argyll_package_file_name}")
+    if sys.platform == "win32":
+        with zipfile.ZipFile(argyll_package_file_name, "r") as zip_ref:
+            zip_ref.extractall()
+    else:
+        with tarfile.open(argyll_package_file_name) as tar:
+            tar.extractall()
 
     def cleanup():
         # cleanup the test

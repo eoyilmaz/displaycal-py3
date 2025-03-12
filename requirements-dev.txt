@@ -19,4 +19,5 @@ pytest-xdist
 ruff
 snowballstemmer
 twine
+uv
 wheel

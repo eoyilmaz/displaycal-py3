@@ -17,21 +17,21 @@ help:
 .PHONY: venv
 venv:
 	@printf "\n\033[36m--- $@: Creating Local virtualenv '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
-	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR)
+	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR); \
 
 build:
 	@printf "\n\033[36m--- $@: Building ---\033[0m\n"
 	echo -e "\n\033[36m--- $@: Local install into virtualenv '$(VIRTUALENV_DIR)' ---\033[0m\n";
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
-	pip install -r requirements.txt; \
-	pip install -r requirements-dev.txt; \
+	pip install uv; \
+	uv pip install -r requirements.txt -r requirements-dev.txt; \
 	python -m build;
 
 install:
 	@printf "\n\033[36m--- $@: Installing displaycal to virtualenv at '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
-	pip install ./dist/displaycal-$(VERSION)-*.whl --force-reinstall;
+	uv pip install ./dist/displaycal-$(VERSION)-*.whl --force-reinstall;
 
 launch:
 	@printf "\n\033[36m--- $@: Launching DisplayCAL ---\033[0m\n"
@@ -75,8 +75,8 @@ new-release:
 	git push origin main --tags
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
-	pip install -r requirements.txt; \
-	pip install -r requirements-dev.txt; \
+	uv pip install -r requirements.txt; \
+	uv pip install -r requirements-dev.txt; \
 	python -m build; \
 	twine check dist/DisplayCAL-$(VERSION).tar.gz; \
 	twine upload dist/DisplayCAL-$(VERSION).tar.gz;

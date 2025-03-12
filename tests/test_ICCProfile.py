@@ -103,6 +103,13 @@ def test_iccprofile_from_rgb_space():
         "Checksum",
         "0x{}".format(binascii.hexlify(icc.ID).upper().decode()),
     ]
+    print("result:")
+    print("=======")
+    print(result)
+    print("\n")
+    print("expected_result:")
+    print("===============")
+    print(expected_result)
 
     assert result == expected_result
 

@@ -339,7 +339,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                         or [imgTopPadding]
                     )[0]
 
-                if self._nHoeveredImgIdx == i:
+                if self._nHoveredImgIdx == i:
                     self.stateimgs.Draw(
                         0, dc, 0, imgYcoord, wx.IMAGELIST_DRAW_TRANSPARENT, True
                     )

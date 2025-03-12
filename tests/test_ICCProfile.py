@@ -832,8 +832,9 @@ def test_dict_type_to_json():
     assert d.to_json() == expected_result
 
 
-def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(argyll):
+def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(setup_argyll):
     """Testing for issue #185, opening sRGB.icm from ArgyllCMS raises TypeError."""
+    argyll = setup_argyll
     srgb_profile_path = argyll / ".." / "ref" / "sRGB.icm"
     icc_profile = ICCProfile.ICCProfile(srgb_profile_path)
     # the following should not raise an error

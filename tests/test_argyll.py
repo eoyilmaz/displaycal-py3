@@ -21,7 +21,7 @@ from tests.data.argyll_sp_data import SUBPROCESS_COM
 #     assert xicclu() is not None
 
 
-def test_get_argyll_util(argyll):
+def test_get_argyll_util(setup_argyll):
     """Test worker_base.get_argyll_util() function."""
     config.initcfg()
     result = get_argyll_util("ccxxmake")
@@ -31,7 +31,7 @@ def test_get_argyll_util(argyll):
     assert result == expected_result
 
 
-def test_get_argyll_version_string_1(argyll):
+def test_get_argyll_version_string_1(setup_argyll):
     """Test worker_base.get_argyll_version_string() function."""
     config.initcfg()
     with check_call(Popen, "communicate", SUBPROCESS_COM):

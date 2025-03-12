@@ -54,7 +54,7 @@ def data_path():
 
 
 @pytest.fixture(scope="module")
-def argyll():
+def setup_argyll():
     """Setup ArgyllCMS.
 
     This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it

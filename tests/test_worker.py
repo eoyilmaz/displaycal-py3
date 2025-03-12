@@ -109,7 +109,7 @@ def test_worker_instrument_supports_css_1():
 
 
 # @pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")
-def test_generate_b2a_from_inverse_table(data_files, argyll):
+def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     """Test Worker.generate_B2A_from_inverse_table() method"""
     worker = Worker()
     icc_profile1 = ICCProfile.ICCProfile(
@@ -122,7 +122,7 @@ def test_generate_b2a_from_inverse_table(data_files, argyll):
     assert result is True
 
 
-def test_get_argyll_version_1(argyll):
+def test_get_argyll_version_1(setup_argyll):
     """Test worker.get_argyll_version() function."""
     from DisplayCAL.worker import get_argyll_version
 
@@ -259,7 +259,7 @@ def test_is_allowed_1():
     assert result != ""
 
 
-def test_ti3_lookup_to_ti1_1(data_files, argyll):
+def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
     """Test Worker.ti3_lookup_to_ti1() function for #129"""
     ti3_path = data_files["0_16_from_issue_129.ti3"].absolute()
     profile_path = data_files[

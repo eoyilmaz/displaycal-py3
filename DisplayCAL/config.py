@@ -2052,10 +2052,13 @@ def initcfg(module=None, cfg=cfg, force_load=False):
         cfgbasename = f"{appbasename}-{module}"
     else:
         cfgbasename = appbasename
+
     makecfgdir()
-    if os.path.exists(confighome) and not os.path.exists(
-        os.path.join(confighome, f"{cfgbasename}.ini")
-    ):
+    cfg_full_path = os.path.join(confighome, f"{cfgbasename}.ini")
+    if os.path.exists(confighome) and not os.path.exists(cfg_full_path):
+        if not cfg.has_section(configparser.DEFAULTSECT):
+            # No Default section, add it...
+            cfg.add_section(configparser.DEFAULTSECT)
         # Set default preset
         setcfg("calibration.file", defaults["calibration.file"], cfg=cfg)
 
@@ -2076,25 +2079,26 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     for cfgname in cfgnames:
         for cfgroot in cfgroots:
             cfgfile = os.path.join(cfgroot, f"{cfgname}.ini")
-            if os.path.isfile(cfgfile):
-                try:
-                    mtime = os.stat(cfgfile).st_mtime
-                except EnvironmentError as exception:
-                    print(f"Warning - os.stat('{cfgfile}') failed: {exception}")
-                last_checked = cfginited.get(cfgfile)
-                if force_load or mtime != last_checked:
-                    cfginited[cfgfile] = mtime
-                    cfgfiles.append(cfgfile)
-                    if force_load:
-                        msg = "Force loading"
-                    elif last_checked:
-                        msg = "Reloading"
-                    else:
-                        msg = "Loading"
-                    # logger.debug(msg, cfgfile)
-                    print(msg, cfgfile)
-                # Make user config take precedence
-                break
+            if not os.path.isfile(cfgfile):
+                continue
+            try:
+                mtime = os.stat(cfgfile).st_mtime
+            except EnvironmentError as exception:
+                print(f"Warning - os.stat('{cfgfile}') failed: {exception}")
+            last_checked = cfginited.get(cfgfile)
+            if force_load or mtime != last_checked:
+                cfginited[cfgfile] = mtime
+                cfgfiles.append(cfgfile)
+                if force_load:
+                    msg = "Force loading"
+                elif last_checked:
+                    msg = "Reloading"
+                else:
+                    msg = "Loading"
+                # logger.debug(msg, cfgfile)
+                print(msg, cfgfile)
+            # Make user config take precedence
+            break
     if not cfgfiles:
         return
     if not module:

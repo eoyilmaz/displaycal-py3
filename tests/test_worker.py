@@ -64,23 +64,29 @@ def test_get_options_from_profile_2(data_files):
 
 
 def test_make_argyll_compatible_path_1():
-    """testing if make_argyll_compatible_path is working properly with bytes input"""
-    test_value = "C:\\Program Files\\some path\\excutable.exe"
+    """make_argyll_compatible_path is working properly with bytes input."""
+    test_value = "C:\\Program Files\\some path\\executable.exe"
     result = make_argyll_compatible_path(test_value)
-    expected_result = "C_Program Files_some path_excutable.exe"
+    if sys.platform == "win32":
+        expected_result = "C:\\Program Files\\some path\\executable.exe"
+    else:
+        expected_result = "C_Program Files_some path_executable.exe"
     assert result == expected_result
 
 
 def test_make_argyll_compatible_path_2():
-    """testing if make_argyll_compatible_path is working properly with bytes input"""
-    test_value = b"C:\\Program Files\\some path\\excutable.exe"
+    """make_argyll_compatible_path is working properly with bytes input."""
+    test_value = b"C:\\Program Files\\some path\\executable.exe"
     result = make_argyll_compatible_path(test_value)
-    expected_result = b"C_Program Files_some path_excutable.exe"
+    if sys.platform == "win32":
+        expected_result = b"C:\\Program Files\\some path\\executable.exe"
+    else:
+        expected_result = b"C_Program Files_some path_executable.exe"
     assert result == expected_result
 
 
 def test_worker_get_instrument_name_1():
-    """testing if the Worker.get_instrument_name() is working properly"""
+    """Worker.get_instrument_name() is working properly."""
     worker = Worker()
     result = worker.get_instrument_name()
     expected_result = ""
@@ -88,7 +94,7 @@ def test_worker_get_instrument_name_1():
 
 
 def test_worker_get_instrument_features():
-    """testing if Worker.get_instrument_features() is working properly"""
+    """Worker.get_instrument_features() is working properly."""
     worker = Worker()
     result = worker.get_instrument_features()
     assert result == {}
@@ -103,7 +109,7 @@ def test_worker_instrument_supports_css_1():
 
 
 # @pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")
-def test_generate_b2a_from_inverse_table(data_files, argyll):
+def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     """Test Worker.generate_B2A_from_inverse_table() method"""
     worker = Worker()
     icc_profile1 = ICCProfile.ICCProfile(
@@ -116,7 +122,7 @@ def test_generate_b2a_from_inverse_table(data_files, argyll):
     assert result is True
 
 
-def test_get_argyll_version_1(argyll):
+def test_get_argyll_version_1(setup_argyll):
     """Test worker.get_argyll_version() function."""
     from DisplayCAL.worker import get_argyll_version
 
@@ -253,7 +259,7 @@ def test_is_allowed_1():
     assert result != ""
 
 
-def test_ti3_lookup_to_ti1_1(data_files):
+def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
     """Test Worker.ti3_lookup_to_ti1() function for #129"""
     ti3_path = data_files["0_16_from_issue_129.ti3"].absolute()
     profile_path = data_files[

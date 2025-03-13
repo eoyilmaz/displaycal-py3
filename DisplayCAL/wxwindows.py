@@ -400,12 +400,10 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         # select pen, brush and font for the tab to be drawn
 
         if page.active:
-
             dc.SetFont(self._selected_font)
             textx, texty = selected_textx, selected_texty
 
         else:
-
             dc.SetFont(self._normal_font)
             textx, texty = normal_textx, normal_texty
 
@@ -430,7 +428,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         agwFlags = self.GetAGWFlags()
 
         if agwFlags & aui.AUI_NB_BOTTOM:
-
             border_points[0] = wx.Point(tab_x, tab_y)
             border_points[1] = wx.Point(tab_x, tab_y + tab_height - 6)
             border_points[2] = wx.Point(tab_x + 2, tab_y + tab_height - 4)
@@ -439,7 +436,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             border_points[5] = wx.Point(tab_x + tab_width, tab_y)
 
         else:  # if (agwFlags & aui.AUI_NB_TOP)
-
             border_points[0] = wx.Point(tab_x, tab_y + tab_height - 4)
             border_points[1] = wx.Point(tab_x, tab_y + 2)
             border_points[2] = wx.Point(tab_x + 2, tab_y)
@@ -454,7 +450,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         drawn_tab_height = border_points[0].y - border_points[1].y
 
         if page.active:
-
             # draw active tab
 
             # draw base background colour
@@ -486,7 +481,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             dc.GradientFillLinear(r, bottom_colour, top_colour, wx.NORTH)
 
         else:
-
             # draw inactive tab
 
             r = wx.Rect(tab_x, tab_y + 1, tab_width, tab_height - 3)
@@ -520,7 +514,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         # there are two horizontal grey lines at the bottom of the tab control,
         # this gets rid of the top one of those lines in the tab control
         if page.active:
-
             if agwFlags & aui.AUI_NB_BOTTOM:
                 dc.SetPen(wx.Pen(self._background_bottom_colour))
 
@@ -548,7 +541,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         bitmap_offset = 0
 
         if pagebitmap.IsOk():
-
             bitmap_offset = tab_x + 8
             if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT and close_button_width:
                 bitmap_offset += close_button_width - 5
@@ -567,7 +559,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             text_offset += 3  # bitmap padding
 
         else:
-
             if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT == 0 or not close_button_width:
                 text_offset = tab_x + 8
 
@@ -630,7 +621,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
 
         # draw close button if necessary
         if close_button_state != aui.AUI_BUTTON_STATE_HIDDEN:
-
             bmp = self._disabled_close_bmp
 
             if close_button_state == aui.AUI_BUTTON_STATE_HOVER:
@@ -945,7 +935,7 @@ class BaseFrame(wx.Frame):
         """wxPython Phoenix FindWindowByName descends into the parent windows,
         we don't want that
         """
-        for child in self.GetAllChildren():
+        for child in list(self.GetAllChildren()):
             if hasattr(child, "Name") and child.Name == name:
                 return child
 
@@ -1225,7 +1215,7 @@ class BaseFrame(wx.Frame):
                     else:
                         response.append(demjson.encode(win.message.Label))
                 # Ordering in tab order
-                for child in win.GetAllChildren():
+                for child in list(win.GetAllChildren()):
                     if (
                         child
                         and isinstance(child, (FlatShadedButton, GenButton, wx.Button))
@@ -1348,7 +1338,7 @@ class BaseFrame(wx.Frame):
         # same parent frame. Re-implement our own version.
         focus = self.FindFocus()
         if focus:
-            children = self.GetAllChildren()
+            children = list(self.GetAllChildren())
             if focus in children:
                 start = i = children.index(focus)
                 while True:
@@ -1471,7 +1461,7 @@ class BaseFrame(wx.Frame):
                     id_name_label = int(data[1])
                 except ValueError:
                     id_name_label = data[1]
-                for win in reversed(wx.GetTopLevelWindows()):
+                for win in reversed(list(wx.GetTopLevelWindows())):
                     if (
                         win.Id == id_name_label
                         or win.Name == id_name_label
@@ -1700,7 +1690,7 @@ class BaseFrame(wx.Frame):
                 win = self.get_top_window()
             if win:
                 # Ordering in tab order
-                for child in win.GetAllChildren():
+                for child in list(win.GetAllChildren()):
                     if is_scripting_allowed(win, child):
                         uielements.append(
                             format_ui_element(child, responseformats[conn])
@@ -1710,7 +1700,7 @@ class BaseFrame(wx.Frame):
             else:
                 response = "invalid"
         elif data[0] == "getwindows" and len(data) == 1:
-            windows = [win for win in wx.GetTopLevelWindows() if win.IsShown()]
+            windows = [win for win in list(wx.GetTopLevelWindows()) if win.IsShown()]
             response = [
                 format_ui_element(win, responseformats[conn]) for win in windows
             ]
@@ -2117,7 +2107,7 @@ class BaseFrame(wx.Frame):
                 )
             if self.last_focused_ctrl.ProcessEvent(catchup_event):
                 if debug:
-                    print("[D] Last focused control processed catchup " "event")
+                    print("[D] Last focused control processed catchup event")
                 self.last_focused_ctrl = None
         if (
             hasattr(event.GetEventObject(), "GetId")
@@ -2187,7 +2177,7 @@ class BaseFrame(wx.Frame):
                 self.SetMenuBar(menubar)
 
         # Controls and labels
-        for child in self.GetAllChildren():
+        for child in list(self.GetAllChildren()):
             if isinstance(
                 child,
                 (
@@ -2343,7 +2333,7 @@ class BaseFrame(wx.Frame):
         if not parent:
             parent = self
         scale = getcfg("app.dpi") / get_default_dpi()
-        for child in parent.GetAllChildren():
+        for child in list(parent.GetAllChildren()):
             if debug:
                 print(child.__class__, child.Name)
             if isinstance(
@@ -3436,7 +3426,6 @@ class FileDrop(_FileDrop):
 
 
 class FlatShadedButton(GradientButton):
-
     __bitmap = None
     _enabled = True
 
@@ -3456,7 +3445,16 @@ class FlatShadedButton(GradientButton):
     ):
         self.dpiscale = getcfg("app.dpi") / get_default_dpi()
         GradientButton.__init__(
-            self, parent, id, bitmap, label, pos, size, style, validator, name
+            self,
+            parent=parent,
+            id=id,
+            bitmap=bitmap,
+            label=label,
+            pos=pos,
+            size=size,
+            style=style,
+            validator=validator,
+            name=name,
         )
         self._bgcolour = bgcolour  # Original bgcolour
         self._fgcolour = fgcolour  # Original fgcolour
@@ -3578,7 +3576,6 @@ class FlatShadedButton(GradientButton):
         fgcolour = self.ForegroundColour
 
         if capture != self:
-
             if self._mouseAction == HOVER or self._hasFocus:
                 fill = self.LightColour(self.BackgroundColour, 3)
                 fgcolour = self.LightColour(fgcolour, 15)
@@ -3720,7 +3717,16 @@ class BorderGradientButton(GradientButton):
         self.use_sierra_style = sys.platform == "darwin"
         self._enabled = True
         GradientButton.__init__(
-            self, parent, id, bitmap, label, pos, size, style, validator, name
+            self,
+            parent=parent,
+            id=id,
+            bitmap=bitmap,
+            label=label,
+            pos=pos,
+            size=size,
+            style=style,
+            validator=validator,
+            name=name,
         )
         self.SetFont(adjust_font_size_for_gcdc(self.GetFont()))
         self._bitmapdisabled = self._bitmap
@@ -5871,7 +5877,7 @@ class LogWindow(InvincibleFrame):
                     else:
                         line = ts + line
                     if i < i_last:
-                        line = line.ljust(78 + 13) + " \u21B2"
+                        line = line.ljust(78 + 13) + " \u21b2"
                     lines.append(line)
             else:
                 lines.append(ts + line)
@@ -5901,7 +5907,7 @@ class LogWindow(InvincibleFrame):
             self.log_txt.SetStyle(start, start + 12, self._1stcolstyle)
             if textattr:
                 self.log_txt.SetStyle(start + 12, start + len(line), textattr)
-                if not line.endswith(" \u21B2"):
+                if not line.endswith(" \u21b2"):
                     textattr = None
             start += len(line + "\n")
 
@@ -5958,7 +5964,7 @@ class LogWindow(InvincibleFrame):
                 if os.path.exists(path):
                     dlg = ConfirmDialog(
                         self,
-                        msg=lang.getstr("dialog." "confirm_overwrite", (path)),
+                        msg=lang.getstr("dialog.confirm_overwrite", (path)),
                         ok=lang.getstr("overwrite"),
                         cancel=lang.getstr("cancel"),
                         bitmap=geticon(32, "dialog-warning"),
@@ -6028,7 +6034,7 @@ class LogWindow(InvincibleFrame):
                 if os.path.exists(path):
                     dlg = ConfirmDialog(
                         self,
-                        msg=lang.getstr("dialog." "confirm_overwrite", (path)),
+                        msg=lang.getstr("dialog.confirm_overwrite", (path)),
                         ok=lang.getstr("overwrite"),
                         cancel=lang.getstr("cancel"),
                         bitmap=geticon(32, "dialog-warning"),
@@ -6786,7 +6792,6 @@ class SimpleBook(labelbook.FlatBookBase):
         agwStyle=0,
         name="SimpleBook",
     ):
-
         labelbook.FlatBookBase.__init__(
             self, parent, id, pos, size, style, agwStyle, name
         )
@@ -7653,7 +7658,6 @@ class TwoWaySplitter(FourWaySplitter):
         pt = event.GetPosition()
 
         if self.GetMode(pt):
-
             barSize = self._GetSashSize()
 
             winborder, titlebar = get_platform_window_decoration_size()
@@ -7698,7 +7702,6 @@ class TwoWaySplitter(FourWaySplitter):
         self._flags &= ~FLAG_PRESSED
 
         if flgs & FLAG_PRESSED:
-
             if not self.GetAGWWindowStyleFlag() & wx.SP_LIVE_UPDATE:
                 self.DrawTrackSplitter(int(self._splitx), int(self._splity))
                 self.DrawSplitter(wx.ClientDC(self))
@@ -7729,7 +7732,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         # Moving split
         if self._flags & FLAG_PRESSED:
-
             width, height = self.GetSize()
             barSize = self._GetSashSize()
             border = self._GetBorderSize()
@@ -7765,7 +7767,9 @@ class TwoWaySplitter(FourWaySplitter):
                 self._splity = oldsplity
                 return
 
-            if int(oldsplitx) != int(self._splitx) or int(oldsplity) != int(self._splity):
+            if int(oldsplitx) != int(self._splitx) or int(oldsplity) != int(
+                self._splity
+            ):
                 if not self.GetAGWWindowStyleFlag() & wx.SP_LIVE_UPDATE:
                     self.DrawTrackSplitter(int(oldsplitx), int(oldsplity))
                     self.DrawTrackSplitter(int(self._splitx), int(self._splity))
@@ -7879,7 +7883,7 @@ def get_widget(win, id_name_label):
             id_name_label = int(id_name_label)
         except ValueError:
             pass
-        for child in win.GetAllChildren():
+        for child in list(win.GetAllChildren()):
             if is_scripting_allowed(win, child) and (
                 child.Id == id_name_label
                 or child.Name == id_name_label
@@ -7893,7 +7897,7 @@ def get_toplevel_window(id_name_label):
         id_name_label = int(id_name_label)
     except ValueError:
         pass
-    for win in reversed(wx.GetTopLevelWindows()):
+    for win in reversed(list(wx.GetTopLevelWindows())):
         if (
             win
             and (

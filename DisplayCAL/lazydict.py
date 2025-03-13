@@ -17,9 +17,8 @@ def unquote(string, raise_exception=True):
     Raises ValueError on missing end quote if there is a start quote.
 
     """
-    if len(string) > 1 and string[0] in "'" '"':
+    if len(string) > 1 and string[0] in "'\"":
         if string[-1] == string[0]:
-
             # NOTE: Order of unescapes is important to match YAML!
             string = unescape(string[1:-1])
 
@@ -330,7 +329,7 @@ class LazyDict_YAML_UltraLite(LazyDict):
     def _unquote(self, token, do_unescape=True, check=False, fileobj=None, lineno=-1):
         if len(token) > 1:
             c = token[0]
-            if c in "'" '"' and c == token[-1]:
+            if c in "'\"" and c == token[-1]:
                 token = token[1:-1]
                 if check and token.count(c) != token.count("\\" + c):
                     raise ValueError(

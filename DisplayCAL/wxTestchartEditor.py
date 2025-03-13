@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import csv
 import math
 import os
@@ -10,14 +9,17 @@ import sys
 import time
 
 if sys.platform == "win32":
-    import win32file
+    from win32 import win32file
 
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import imfile
-from DisplayCAL import localization as lang
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    floatspin,
+    imfile,
+    localization as lang,
+)
 from DisplayCAL.argyll_RGB2XYZ import (
     RGB2XYZ as argyll_RGB2XYZ,
     XYZ2RGB as argyll_XYZ2RGB,
@@ -25,14 +27,14 @@ from DisplayCAL.argyll_RGB2XYZ import (
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
 from DisplayCAL.config import (
     defaults,
+    get_current_profile,
+    get_data_path,
+    get_display_name,
+    get_total_patches,
+    get_verified_path,
     getbitmap,
     getcfg,
     geticon,
-    get_current_profile,
-    get_display_name,
-    get_data_path,
-    get_total_patches,
-    get_verified_path,
     hascfg,
     profile_ext,
     setcfg,
@@ -51,20 +53,19 @@ from DisplayCAL.worker import (
     get_current_profile_path,
     show_result_dialog,
 )
+from DisplayCAL.wxMeasureFrame import get_default_size
 from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
-    CustomGrid,
     ConfirmDialog,
+    CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
     InfoDialog,
     get_gradient_panel,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
-from DisplayCAL import floatspin
-from DisplayCAL.wxMeasureFrame import get_default_size
 
 
 def swap_dict_keys_values(mydict):
@@ -1145,7 +1146,7 @@ class TestchartEditor(BaseFrame):
 
         self.tc_size_handler()
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         for child in children:
             if hasattr(child, "SetFont"):
@@ -3237,7 +3238,7 @@ END_DATA"""
                 except Exception as exception:
                     handle_error(
                         UserWarning(
-                            "Warning - 3D file could not be " "saved: " + str(exception)
+                            f"Warning - 3D file could not be saved: {exception}"
                         ),
                         parent=self,
                     )

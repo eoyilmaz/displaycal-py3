@@ -7,6 +7,13 @@ import sys
 
 import numpy
 
+from DisplayCAL import (
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    localization as lang,
+    wxenhancedplot as plot,
+)
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
@@ -14,9 +21,9 @@ from DisplayCAL.config import (
     get_data_path,
     get_display_profile,
     get_display_rects,
+    get_verified_path,
     getcfg,
     geticon,
-    get_verified_path,
     setcfg,
 )
 from DisplayCAL.meta import name as appname
@@ -30,8 +37,12 @@ from DisplayCAL.worker import (
     make_argyll_compatible_path,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
+from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import (
+    GenBitmapButton as BitmapButton,
+    wx_Panel,
+)
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -42,11 +53,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     TooltipWindow,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel
-from DisplayCAL import colormath, config
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -1024,7 +1030,7 @@ class LUTFrame(BaseFrame):
         self.Bind(wx.EVT_MOVE, self.OnMove)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
         for child in children:
@@ -2260,7 +2266,6 @@ class LUTFrame(BaseFrame):
         fType = None
         dlg1 = None
         while fType not in extensions:
-
             if dlg1:  # FileDialog exists: Check for extension
                 InfoDialog(
                     self,

@@ -96,7 +96,6 @@ class _Dict2XML(dict):
 
 
 class _Trigger(_Dict2XML):
-
     # Subclass this
 
     def __init__(
@@ -124,7 +123,7 @@ class CalendarTrigger(_Trigger):
         days_of_week=None,
         months=None,
         days_of_month=None,
-        **kwargs
+        **kwargs,
     ):
         _Trigger.__init__(self, **kwargs)
         self["start_boundary"] = start_boundary
@@ -154,7 +153,6 @@ class CalendarTrigger(_Trigger):
 
 
 class LogonTrigger(_Trigger):
-
     pass
 
 
@@ -395,7 +393,6 @@ class TaskScheduler(object):
         elevated=False,
         echo=False,
     ):
-
         kwargs = locals()
         del kwargs["self"]
         del kwargs["cmd"]

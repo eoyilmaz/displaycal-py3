@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""This module contains resources and constants for the FlatMenu library in DisplayCAL.
+
+It defines various styles, states, and images used in the FlatMenu and related controls.
+"""
+
 import wx
 
 # Overall menu styles
@@ -27,13 +33,16 @@ ControlNormal = 3
 
 # FlatMenu styles
 FM_OPT_IS_LCD = 1
-""" Use this style if your computer uses a LCD screen. """
+"""Use this style if your computer uses a LCD screen."""
 FM_OPT_MINIBAR = 2
-""" Use this if you plan to use the toolbar only. """
+"""Use this if you plan to use the toolbar only."""
 FM_OPT_SHOW_CUSTOMIZE = 4
-""" Show "customize link" in the `More` menu, you will need to write your own handler. See demo. """
+"""Show "customize link" in the `More` menu, you will need to write your own handler.
+
+See demo.
+"""
 FM_OPT_SHOW_TOOLBAR = 8
-""" Set this option is you are planning to use the toolbar. """
+"""Set this option is you are planning to use the toolbar."""
 
 # Control status
 ControlStatusNoFocus = 0
@@ -91,6 +100,7 @@ INB_GRADIENT_BACKGROUND = 1024
 INB_WEB_HILITE = 2048
 INB_NO_RESIZE = 4096
 INB_FIT_LABELTEXT = 8192
+INB_BOLD_TAB_SELECTION = 16384
 
 INB_DEFAULT_STYLE = INB_BORDER | INB_TOP | INB_USE_PIN_BUTTON
 
@@ -225,7 +235,15 @@ menu_right_arrow_xpm = [
 # Shadow images
 # ----------------------------------
 
-shadow_right_xpm = ["5 5 1 1", "  c Black", "     ", "     ", "     ", "     ", "     "]
+shadow_right_xpm = [
+    "5 5 1 1",
+    "  c Black",
+    "     ",
+    "     ",
+    "     ",
+    "     ",
+    "     ",
+]
 
 # shadow_right.xpm 5x5
 shadow_right_alpha = [
@@ -324,7 +342,7 @@ shadow_right_top_alpha = [
     46,
 ]
 
-# shadow_buttom.xpm 5x5
+# shadow_bottom.xpm 5x5
 shadow_bottom_alpha = [
     184,
     184,
@@ -547,7 +565,7 @@ pin_down_xpm = [
 ]
 
 
-arrow_up = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
+arrow_up = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
 \x00\x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x80\x00\x00\x00\x12\x0b\x00\x00\x12\
 \x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\
 \x00w\xfcM\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
@@ -557,7 +575,8 @@ arrow_up = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00
 """"""""""""""""""""""""""""""""""""'
 
 
-arrow_down = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00\
+arrow_down = (
+    b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00\
 \x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x12\x0b\x00\x00\x12\x0b\
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\x00w\
 \xfcM\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
@@ -565,6 +584,7 @@ arrow_down = 'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x
 \x00\x00\x00\x00\x00\x00"""""""""""""""""""""""""""""""""""!"""""""\x10\x12"""""!\x00\x01\
 """""\x10\x00\x00\x12""""\x00\x00\x00\x02""""""""""""\x11\x11\x11\x12""""\x00\x00\x00\x02\
 """"""""""""""""""""""""""""""""""'
+)
 
 menu_up_arrow_xpm = [
     "16 16 2 1",
@@ -612,13 +632,23 @@ menu_down_arrow_xpm = [
 ]
 
 
-def getMenuUpArrowBitmap():
-    bmp = wx.BitmapFromXPMData(menu_up_arrow_xpm)
+def getMenuUpArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu up arrow with a white mask.
+
+    Returns:
+        wx.Bitmap: A wx.Bitmap object.
+    """
+    bmp = wx.Bitmap(menu_up_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp
 
 
-def getMenuDownArrowBitmap():
-    bmp = wx.BitmapFromXPMData(menu_down_arrow_xpm)
+def getMenuDownArrowBitmap() -> wx.Bitmap:
+    """Return a wx.Bitmap object representing a menu down arrow with a white mask.
+
+    Returns:
+        wx.Bitmap: A wx.Bitmap object.
+    """
+    bmp = wx.Bitmap(menu_down_arrow_xpm)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp

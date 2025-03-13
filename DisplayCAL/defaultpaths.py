@@ -14,8 +14,8 @@ if sys.platform not in ("darwin", "win32"):
 
 elif sys.platform == "win32":
     try:
-        from win32com.shell.shell import SHGetSpecialFolderPath
-        from win32com.shell.shellcon import (
+        from win32comext.shell.shell import SHGetSpecialFolderPath
+        from win32comext.shell.shellcon import (
             CSIDL_APPDATA,
             CSIDL_COMMON_APPDATA,
             CSIDL_COMMON_STARTUP,
@@ -137,6 +137,8 @@ else:
     # Linux
 
     class XDG:
+        # TODO: This class is a complete hack and it should be refactored,
+        #       and no hacks like relaying on `locals()` should be used.
 
         cache_home = getenvu("XDG_CACHE_HOME", expandvarsu("$HOME/.cache"))
         config_home = getenvu("XDG_CONFIG_HOME", expandvarsu("$HOME/.config"))
@@ -240,6 +242,7 @@ else:
     for name in dir(XDG):
         attr = getattr(XDG, name)
         if isinstance(attr, (str, list)):
+            # TODO: Using `locals()` is not a good practice.
             locals()["xdg_" + name] = attr
     del name, attr
 
@@ -267,6 +270,7 @@ else:
     ]
     programs = os.path.join(XDG.data_home, "applications")
     commonprograms = [os.path.join(dir_, "applications") for dir_ in XDG.data_dirs]
+
 if sys.platform in ("darwin", "win32"):
     iccprofiles_display = iccprofiles
     iccprofiles_display_home = iccprofiles_home

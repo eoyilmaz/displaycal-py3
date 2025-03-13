@@ -4,6 +4,14 @@ import math
 import os
 import sys
 
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    localization as lang,
+    wxenhancedplot as plot,
+)
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
@@ -13,13 +21,6 @@ from DisplayCAL.worker_base import get_argyll_util
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxLUTViewer import LUTCanvas
 from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
-from DisplayCAL import CGATS
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import localization as lang
-from DisplayCAL import wxenhancedplot as plot
-
 
 BGCOLOUR = "#101010"
 FGCOLOUR = "#999999"
@@ -454,7 +455,7 @@ class CCXXPlot(wx.Frame):
 
         if self.is_ccss:
             self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
-            for child in self.GetAllChildren():
+            for child in list(self.GetAllChildren()):
                 child.Bind(wx.EVT_KEY_DOWN, self.key_handler)
                 child.Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
 

@@ -24,6 +24,8 @@ else:
             wxversion.select(["4.0", "3.0", "%i.%i.%i" % wx_minversion[:3]])
         except wxversion.VersionError:
             pass
+
+from wx import __version__ as wx_version
 import wx
 
 if wx.VERSION < wx_minversion:
@@ -294,7 +296,6 @@ if "gtk3" in wx.PlatformInfo:
     DataViewListCtrl = dataview.DataViewListCtrl
 
     class ListCtrl(DataViewListCtrl):
-
         # Implement ListCtrl as DataViewListCtrl
         # Works around header rendering ugliness with GTK3
 
@@ -358,7 +359,7 @@ if "gtk3" in wx.PlatformInfo:
                 self.SelectRow(row)
             else:
                 raise NotImplementedError(
-                    "SetItemState is only implemented for " "selecting a single row"
+                    "SetItemState is only implemented for selecting a single row"
                 )
 
         def GetNextItem(
@@ -372,7 +373,7 @@ if "gtk3" in wx.PlatformInfo:
                 return self.GetSelectedRow()
             else:
                 raise NotImplementedError(
-                    "GetNextItem is only implemented for " "returning the selected row"
+                    "GetNextItem is only implemented for returning the selected row"
                 )
 
         def GetItemCount(self):
@@ -388,7 +389,7 @@ if "gtk3" in wx.PlatformInfo:
                     return 0
             else:
                 raise NotImplementedError(
-                    "GetItemState is only implemented to " "check if a row is selected"
+                    "GetItemState is only implemented to check if a row is selected"
                 )
 
         def Select(self, row, on=1):
@@ -400,7 +401,6 @@ if "gtk3" in wx.PlatformInfo:
     wx.ListCtrl = ListCtrl
 
     class SpinCtrl(wx._SpinCtrl):
-
         _spinwidth = 0
 
         def __init__(
@@ -517,7 +517,6 @@ def FindMenuItem(self, label):
     """Replacement for wx.Menu.FindItem"""
     label = GTKMenuItemGetFixedLabel(label)
     for menuitem in self.GetMenuItems():
-
         try:
             fixed_label = GTKMenuItemGetFixedLabel(menuitem.Label)
         except AttributeError:
@@ -546,7 +545,7 @@ def GTKMenuItemGetFixedLabel(label):
 if not hasattr(wx.Sizer, "GetItemIndex"):
 
     def GetItemIndex(self, item):
-        for i, child in enumerate(self.GetChildren()):
+        for i, child in enumerate(list(self.GetChildren())):
             if child.GetWindow() is item:
                 return i
         return -1
@@ -716,7 +715,6 @@ wx._BoxSizer = wx.BoxSizer
 
 
 class BoxSizer(wx._BoxSizer):
-
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
 
@@ -1024,7 +1022,7 @@ def get_dialogs(modal=False):
     """If there are any dialogs open, return them"""
     return [
         window
-        for window in wx.GetTopLevelWindows()
+        for window in list(wx.GetTopLevelWindows())
         if window
         and isinstance(window, wx.Dialog)
         and window.IsShown()
@@ -1611,7 +1609,6 @@ if not hasattr(PlateButton, "_SetState"):
 
 
 class TempXmlResource(object):
-
     _temp = None
 
     def __init__(self, xmlpath):

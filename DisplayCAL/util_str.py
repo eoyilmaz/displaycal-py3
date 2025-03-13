@@ -311,11 +311,11 @@ def make_ascii_printable(text, substitute=b""):
     """Make ASCII printable.
 
     Args:
-        text (bytes, str): A ``bytes`` or ``str`` value.
-        substitute (bytes, str): A ``bytes`` or ``str`` value.
+        text (Union[bytes, str]): A ``bytes`` or ``str`` value.
+        substitute (Union[bytes, str]): A ``bytes`` or ``str`` value.
 
     Returns:
-        bytes or str:
+        Union[bytes, str]: A bytes or str value that is ASCII printable.
     """
     buffer = []
     joiner = ""
@@ -393,7 +393,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
 
 
 def normalencode(unistr, form="NFKD", encoding="ASCII", errors="ignore"):
-    """Return encoded normal form of unicode string"""
+    """Return encoded normal form of unicode string."""
     return unicodedata.normalize(form, unistr).encode(encoding, errors)
 
 

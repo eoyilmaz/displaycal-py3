@@ -121,7 +121,6 @@ class XDisplay(object):
         return window
 
     def get_window_property(self, window, atom_id, atom_type=XA_CARDINAL):
-
         ret_type, ret_format, ret_len, ret_togo, atomv = (
             c_ulong(),
             c_int(),

@@ -172,7 +172,6 @@ class ExceptionPexpect(Exception):
         self.value = value
 
     def __str__(self):
-
         return str(self.value)
 
     def get_trace(self):
@@ -854,6 +853,7 @@ class spawn_unix(object):
         False.
 
         """
+        end_time = -1
         if timeout == -1:
             timeout = self.timeout
         if timeout is not None:
@@ -905,7 +905,6 @@ class spawn_unix(object):
             p.expect (['abcd'])
             p.expect (['wxyz'])
         """
-        self.child_fd
         attr = termios.tcgetattr(self.child_fd)
         if state:
             attr[3] = attr[3] | termios.ECHO
@@ -1377,7 +1376,7 @@ class spawn_unix(object):
 
     def expect(self, pattern, timeout=-1, searchwindowsize=None):
         """Seek through the stream until a pattern is matched.
-        
+
         The pattern is overloaded and may take several types. The pattern can be a
         StringType, EOF, a compiled re, or a list of any of those types. Strings will be
         compiled to re types.
@@ -1847,7 +1846,7 @@ class spawn_windows(spawn_unix):
         self.command = command_with_path
         self.args[0] = self.command
 
-        self.name = f'<{" ".join(self.args)}>'
+        self.name = f"<{' '.join(self.args)}>"
 
         # assert self.pid is None, 'The pid member should be None.'
         # assert self.command is not None, 'The command member should not be None.'
@@ -2979,7 +2978,7 @@ def log(e, suffix="", logdir=None):
                     # http://bugs.python.org/issue1760357
                     # To overcome this problem, we ignore the real modification
                     # date and force a rollover
-                    mtime = time.localtime(time() - 60 * 60 * 24)
+                    mtime = time.localtime(time.time() - 60 * 60 * 24)
                 if time.localtime()[:3] > mtime[:3]:
                     # do rollover
                     try:

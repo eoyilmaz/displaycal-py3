@@ -1084,7 +1084,6 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
         pt = event.GetPosition()
 
         if self.GetMode(pt):
-
             barSize = self._GetSashSize()
 
             winborder, titlebar = get_platform_window_decoration_size()
@@ -1129,7 +1128,6 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
 
 class ProfileInfoFrame(LUTFrame):
     def __init__(self, *args, **kwargs):
-
         if len(args) < 3 and "title" not in kwargs:
             kwargs["title"] = lang.getstr("profile.info")
         if "name" not in kwargs:
@@ -1405,7 +1403,7 @@ class ProfileInfoFrame(LUTFrame):
         self.display_no = -1
         self.display_rects = get_display_rects()
 
-        children = self.GetAllChildren()
+        children = list(self.GetAllChildren())
 
         self.Bind(wx.EVT_KEY_DOWN, self.key_handler)
         for child in children:
@@ -1997,7 +1995,7 @@ class ProfileInfoFrame(LUTFrame):
                 lang.getstr("profile.choose"),
                 defaultDir=defaultDir,
                 defaultFile=defaultFile,
-                wildcard=f'{lang.getstr("filetype.icc")}|*.icc;*.icm',
+                wildcard=f"{lang.getstr('filetype.icc')}|*.icc;*.icm",
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             )
             dlg.Center(wx.BOTH)
@@ -2010,7 +2008,7 @@ class ProfileInfoFrame(LUTFrame):
                 profile = ICCP.ICCProfile(path)
             except (IOError, ICCP.ICCProfileInvalidError):
                 show_result_dialog(
-                    Error(f'{lang.getstr("profile.invalid")}\n{path}'), self
+                    Error(f"{lang.getstr('profile.invalid')}\n{path}"), self
                 )
             else:
                 setcfg("last_icc_path", path)
@@ -2037,7 +2035,7 @@ class ProfileInfoFrame(LUTFrame):
                 desc = profile.getDescription()
                 profile_path = os.path.join(
                     self.worker.tempdir,
-                    f"{make_argyll_compatible_path(desc) }{profile_ext}",
+                    f"{make_argyll_compatible_path(desc)}{profile_ext}",
                 )
                 profile.write(profile_path)
             profile_mtime = os.stat(profile_path).st_mtime

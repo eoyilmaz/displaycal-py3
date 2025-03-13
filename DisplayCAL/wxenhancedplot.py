@@ -110,9 +110,12 @@ Zooming controls with mouse (when enabled):
 
 import functools
 import string as _string
-import wx
-from DisplayCAL.wxfixes import get_dc_font_scale
+
 import numpy as np
+
+import wx
+
+from DisplayCAL.wxfixes import get_dc_font_scale
 
 
 def convert_to_list_of_tuples(iterable):
@@ -1036,12 +1039,10 @@ class PlotCanvas(wx.Panel):
         fType = _string.lower(fileName[-3:])
         dlg1 = None
         while fType not in extensions:
-
             if dlg1:  # FileDialog exists: Check for extension
                 dlg2 = wx.MessageDialog(
                     self,
-                    "File name extension\n"
-                    "must be one of\nbmp, xbm, xpm, png, or jpg",
+                    "File name extension\nmust be one of\nbmp, xbm, xpm, png, or jpg",
                     "File Name Error",
                     wx.OK | wx.ICON_ERROR,
                 )
@@ -1128,7 +1129,7 @@ class PlotCanvas(wx.Panel):
         if not self.preview.Ok():
             wx.MessageDialog(
                 self,
-                "Print Preview failed.\n" "Check that default printer is configured\n",
+                "Print Preview failed.\nCheck that default printer is configured\n",
                 "Print error",
                 wx.OK | wx.CENTRE,
             ).ShowModal()
@@ -2211,7 +2212,7 @@ class PlotCanvas(wx.Panel):
                 of.GetFamily(),
                 of.GetStyle(),
                 of.GetWeight(),
-                **{kwarg: of.GetFaceName()}
+                **{kwarg: of.GetFaceName()},
             )
             self._fontCache[key] = font
             return font
@@ -2262,7 +2263,6 @@ class PlotCanvas(wx.Panel):
             raise ValueError(str(spec) + ": illegal axis specification")
 
     def _drawAxes(self, dc, p1, p2, scale, shift, xticks, yticks):
-
         penWidth = (
             self.printerScale * self._pointSize[0]
         )  # increases thickness for printing only

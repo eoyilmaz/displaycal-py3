@@ -521,7 +521,6 @@ def run():
 
 
 def run1():
-
     test_scripts = []
 
     test_scripts.append(

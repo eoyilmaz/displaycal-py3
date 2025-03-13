@@ -1,17 +1,26 @@
 # -*- coding: utf-8 -*-
 
-
 import os
 import re
 import shutil
 import sys
 import traceback
 
-from DisplayCAL.wxaddons import CustomEvent
-
 if sys.platform == "win32":
     import win32api
 
+from DisplayCAL import (
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    floatspin,
+    localization as lang,
+    madvr,
+    worker,
+    xh_bitmapctrls,
+    xh_filebrowsebutton,
+    xh_floatspin,
+)
 from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import video_encodings
 from DisplayCAL.config import (
@@ -33,20 +42,14 @@ from DisplayCAL.worker import (
     Error,
     Info,
     UnloggedInfo,
-    get_current_profile_path,
-    show_result_dialog,
-)
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import madvr
-from DisplayCAL import worker
-from DisplayCAL.worker import (
     UnloggedWarning,
     check_set_argyll_bin,
+    get_current_profile_path,
     get_options_from_profile,
+    show_result_dialog,
 )
+from DisplayCAL.wxaddons import CustomEvent
+from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -55,8 +58,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     wx,
 )
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL import floatspin, xh_filebrowsebutton, xh_floatspin, xh_bitmapctrls
 
 from wx import xrc
 

@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
+"""This module contains tests for the EDID parsing functionality in DisplayCAL."""
+
 import codecs
-import sys
+import platform
 
 import pytest
 
-from DisplayCAL import config, RealDisplaySizeMM
+from DisplayCAL import RealDisplaySizeMM, config
 from DisplayCAL.config import getcfg
 from DisplayCAL.dev.mocks import check_call
-from tests.data.display_data import DisplayData
 from DisplayCAL.edid import get_edid, parse_edid, parse_manufacturer_id
 
+from tests.data.display_data import DisplayData
 
-# @pytest.mark.skipif(sys.platform == "darwin", reason="Not working as expected on MacOS")
+
+# @pytest.mark.skipif(
+#     platform.system() == "Darwin", reason="Not working as expected on MacOS"
+# )
 def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
     """Testing DisplayCAL.colord.device_id_from_edid() function."""
     # patch xrandr
@@ -362,7 +367,7 @@ def test_parse_edid_1():
 
 
 def test_parse_edid_2():
-    """Testing DisplayCAL.edid.parse_edid() function. for #50"""
+    """Testing DisplayCAL.edid.parse_edid() function. for #50."""
     xrandr_edid_data = """
                 00ffffffffffff0004725805436e6072
                 1a1b0103805e35782aa191a9544d9c26

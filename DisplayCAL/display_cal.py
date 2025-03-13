@@ -1,32 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-DisplayCAL - display calibration and characterization powered by ArgyllCMS
+DisplayCAL - display calibration and characterization powered by ArgyllCMS.
 
 Copyright (C) 2008, 2009 Florian Hoech
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation; either version 3 of the License, or (at your
-option) any later version.
+This program is free software;
+you can redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation;
+either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along
-with this program; if not, see <http://www.gnu.org/licenses/>
+You should have received a copy of the GNU General Public License along with
+this program; if not, see <http://www.gnu.org/licenses/>
 """
 
-
-import sys
-
 # Standard modules
-
-from io import StringIO, BytesIO
 import datetime
-
-from decimal import Decimal
 import json as json_module
 import math
 import os
@@ -35,102 +28,93 @@ import re
 import shutil
 import socket
 import subprocess as sp
+import sys
 import threading
 import traceback
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
+import webbrowser  # Import the webbrowser module for platform-independent results
 import zipfile
-
-from send2trash import send2trash
-
-from DisplayCAL.util_dict import dict_sort
-
-if sys.platform == "win32":
-    import winreg
+from decimal import Decimal
 from hashlib import md5
+from io import BytesIO, StringIO
 from time import localtime, sleep, strftime, strptime, struct_time
 from zlib import crc32
 
-# Import the useful webbrowser module for platform-independent results
-import webbrowser
-
-# Set no delay time to open the web page
-webbrowser.PROCESS_CREATION_DELAY = 0
-APP_IS_UPTODATE = True
-
-# Config
-from DisplayCAL import config
-from DisplayCAL.config import (
-    appbasename,
-    autostart,
-    autostart_home,
-    build,
-    script_ext,
-    defaults,
-    enc,
-    exe,
-    exe_ext,
-    fs_enc,
-    getbitmap,
-    geticon,
-    get_ccxx_testchart,
-    get_current_profile,
-    get_display_profile,
-    get_data_path,
-    getcfg,
-    get_total_patches,
-    get_verified_path,
-    hascfg,
-    is_ccxx_testchart,
-    is_profile,
-    initcfg,
-    isapp,
-    isexe,
-    profile_ext,
-    pydir,
-    resfiles,
-    setcfg,
-    setcfg_cond,
-    writecfg,
-)
-
 # Custom modules
-
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import audio
-from DisplayCAL import ccmx
-from DisplayCAL import colord
-from DisplayCAL import colormath
-from DisplayCAL import localization as lang
-from DisplayCAL import madvr
-from DisplayCAL import pyi_md5pickuphelper
-from DisplayCAL import report
-
-if sys.platform == "win32":
-    from DisplayCAL import util_win
-elif sys.platform == "darwin":
-    from DisplayCAL import util_mac
-from DisplayCAL import wexpect
-
-# import wexpect
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    audio,
+    ccmx,
+    colord,
+    colormath,
+    config,
+    floatspin,
+    localization as lang,
+    madvr,
+    pyi_md5pickuphelper,
+    report,
+    util_x,
+    wexpect,
+    wxenhancedplot as plot,
+    xh_bitmapctrls,
+    xh_fancytext,
+    xh_filebrowsebutton,
+    xh_floatspin,
+    xh_hstretchstatbmp,
+)
+from DisplayCAL.argyll import get_argyll_latest_version
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
-    ti3_to_ti1,
     extract_cal_from_profile,
+    ti3_to_ti1,
     verify_ti1_rgb_xyz,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
 from DisplayCAL.argyll_names import viewconds
 from DisplayCAL.colormath import (
     CIEDCCT2xyY,
-    planckianCT2xyY,
-    xyY2CCT,
     XYZ2CCT,
     XYZ2Lab,
     XYZ2xyY,
+    planckianCT2xyY,
+    xyY2CCT,
+)
+from DisplayCAL.config import (
+    appbasename,
+    autostart,
+    autostart_home,
+    build,
+    defaults,
+    enc,
+    exe,
+    exe_ext,
+    fs_enc,
+    get_ccxx_testchart,
+    get_current_profile,
+    get_data_path,
+    get_display_profile,
+    get_total_patches,
+    get_verified_path,
+    getbitmap,
+    getcfg,
+    geticon,
+    hascfg,
+    initcfg,
+    is_ccxx_testchart,
+    is_profile,
+    isapp,
+    isexe,
+    profile_ext,
+    pydir,
+    resfiles,
+    script_ext,
+    setcfg,
+    setcfg_cond,
+    writecfg,
 )
 from DisplayCAL.debughelpers import (
     ResourceError,
@@ -138,18 +122,18 @@ from DisplayCAL.debughelpers import (
     getevttype,
     handle_error,
 )
-from DisplayCAL.edid import pnpidcache, get_manufacturer_name
+from DisplayCAL.edid import get_manufacturer_name, PNP_ID_CACHE
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
+    DOMAIN,
     VERSION,
     VERSION_BASE,
     author,
     development_home_page,
+    get_latest_changelog_entry,
     name as appname,
-    DOMAIN,
     version,
     version_short,
-    get_latest_changelog_entry,
 )
 from DisplayCAL.options import (
     debug,
@@ -159,17 +143,8 @@ from DisplayCAL.options import (
     verbose,
 )
 from DisplayCAL.patterngenerators import WebWinHTTPPatternGeneratorServer
-
-try:
-    from DisplayCAL.chromecast_patterngenerator import (
-        ChromeCastPatternGenerator as CCPG,
-    )
-except ImportError:
-    from types import NoneType
-
-    CCPG = NoneType
-
 from DisplayCAL.util_decimal import float2dec, stripzeros
+from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import LineCache, TarFileProper
 from DisplayCAL.util_list import index_fallback_ignorecase, intlist, natsort
 from DisplayCAL.util_os import (
@@ -192,15 +167,16 @@ from DisplayCAL.util_str import (
     universal_newlines,
     wrap,
 )
-from DisplayCAL import util_x
 from DisplayCAL.worker import (
     Error,
+    FilteredStream,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
     Warn,
     Worker,
+    _applycal_bug_workaround,
     check_argyll_bin,
     check_create_dir,
     check_file_isfile,
@@ -221,66 +197,45 @@ from DisplayCAL.worker import (
     parse_argument_string,
     set_argyll_bin,
     show_result_dialog,
-    FilteredStream,
-    _applycal_bug_workaround,
 )
-from DisplayCAL.argyll import get_argyll_latest_version
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-
-try:
-    from DisplayCAL.wxLUTViewer import LUTFrame
-except ImportError:
-    LUTFrame = None
-
-from DisplayCAL.wxMeasureFrame import MeasureFrame
-
-try:
-    from DisplayCAL.wxCCXXPlot import CCXXPlot
-except ImportError:
-    CCXXPlot = None
-
 from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxMeasureFrame import get_default_size
-
-try:
-    from DisplayCAL.wxProfileInfo import ProfileInfoFrame
-except ImportError:
-    ProfileInfoFrame = None
-
+from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wxMeasureFrame import MeasureFrame, get_default_size
 from DisplayCAL.wxReportFrame import ReportFrame
 from DisplayCAL.wxSynthICCFrame import SynthICCFrame
 from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxVisualWhitepointEditor import VisualWhitepointEditor
 from DisplayCAL.wxaddons import (
-    wx,
     BetterWindowDisabler,
     CustomEvent,
     CustomGridCellEvent,
     IdFactory,
     PopupMenu,
+    wx,
 )
 from DisplayCAL.wxfixes import (
-    ThemedGenButton,
     BitmapWithThemedButton,
-    set_bitmap_labels,
-    TempXmlResource,
-    wx_Panel,
     PlateButton,
+    TempXmlResource,
+    ThemedGenButton,
     get_bitmap_disabled,
+    set_bitmap_labels,
     set_maxsize,
+    wx_Panel,
 )
 from DisplayCAL.wxwindows import (
     AboutDialog,
     AuiBetterTabArt,
+    AutocompleteComboBox,
     BaseApp,
     BaseFrame,
     BetterStaticFancyText,
-    BorderGradientButton,
     BitmapBackgroundPanel,
     BitmapBackgroundPanelText,
+    BorderGradientButton,
     ConfirmDialog,
-    CustomGrid,
     CustomCellBoolRenderer,
+    CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
     FlatShadedButton,
@@ -291,33 +246,63 @@ from DisplayCAL.wxwindows import (
     ProgressDialog,
     TabButton,
     TooltipWindow,
-    get_gradient_panel,
     get_dialogs,
-    AutocompleteComboBox,
+    get_gradient_panel,
 )
-from DisplayCAL import floatspin
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import xh_fancytext
-from DisplayCAL import xh_filebrowsebutton
-from DisplayCAL import xh_floatspin
-from DisplayCAL import xh_hstretchstatbmp
-from DisplayCAL import xh_bitmapctrls
+
+from send2trash import send2trash
+
+# wxPython
+from wx import xrc
+from wx.lib import delayedresult, platebtn
+from wx.lib.art import flagart
+from wx.lib.scrolledpanel import ScrolledPanel
+
+if sys.platform == "win32":
+    from DisplayCAL import util_win
+    import winreg
+elif sys.platform == "darwin":
+    from DisplayCAL import util_mac
+
+try:
+    from DisplayCAL.chromecast_patterngenerator import (
+        ChromeCastPatternGenerator as CCPG,
+    )
+except ImportError:
+    from types import NoneType
+
+    CCPG = NoneType
+
+try:
+    from DisplayCAL.wxCCXXPlot import CCXXPlot
+except ImportError:
+    CCXXPlot = None
+
+try:
+    from DisplayCAL.wxLUTViewer import LUTFrame
+except ImportError:
+    LUTFrame = None
+
+try:
+    from DisplayCAL.wxProfileInfo import ProfileInfoFrame
+except ImportError:
+    ProfileInfoFrame = None
 
 # wxPython
 try:
     # Only wx.lib.aui.AuiNotebook looks reasonable across _all_ platforms.
     # Other tabbed book controls like wx.Notebook or wx.aui.AuiNotebook are
-    # impossible to get to look right under GTK because there's no way to
-    # set the correct background color for the pages.
+    # impossible to get to look right under GTK because there's no way to set
+    # the correct background color for the pages.
     from wx.lib.agw import aui
 except ImportError:
     # Fall back to wx.aui under ancient wxPython versions
     from wx import aui
 
-from wx import xrc
-from wx.lib import delayedresult, platebtn
-from wx.lib.art import flagart
-from wx.lib.scrolledpanel import ScrolledPanel
+# Set no delay time to open the web page
+webbrowser.PROCESS_CREATION_DELAY = 0
+
+APP_IS_UPTODATE = True
 
 
 def show_ccxx_error_dialog(exception, path, parent):
@@ -821,7 +806,9 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     col.i = 0
     dlg_list_ctrl.SetColumnWidth(int(col), int(75 * scale))  # Type
     dlg_list_ctrl.SetColumnWidth(int(col), int(415 * scale))  # Desc
-    dlg_list_ctrl.SetColumnWidth(int(col), int(150 * scale))  # Display manufactuer & model
+    dlg_list_ctrl.SetColumnWidth(
+        int(col), int(150 * scale)
+    )  # Display manufacturer & model
     # dlg_list_ctrl.SetColumnWidth(int(col), int(225 * scale))  # Instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(90 * scale))  # Ref. instrument
     dlg_list_ctrl.SetColumnWidth(int(col), int(150 * scale))  # Spectral res
@@ -3725,7 +3712,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # background. Replace with ThemedGenButton which does not have
             # that issue
             subst = BorderGradientButton(
-                btn.Parent, bitmap=geticon(16, "start"), label=btn.Label, name=btn.Name
+                parent=btn.Parent,
+                bitmap=geticon(16, "start"),
+                label=btn.Label,
+                name=btn.Name,
             )
             subst.SetBackgroundColour(btn.Parent.BackgroundColour)
             if sys.platform == "win32":
@@ -9274,7 +9264,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         oprof,
         self_check_report=False,
     ):
-
         self.Show()
 
         if not isinstance(result, Exception) and result:
@@ -10854,9 +10843,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         calibration = "calibration-%s.ti3" % serial
                         path = os.path.join(config.get_argyll_data_dir(), calibration)
                         if not os.path.isfile(path):
-                            print(
-                                "Retrieving factory calibration for " "ColorHug", serial
-                            )
+                            print("Retrieving factory calibration for ColorHug", serial)
                             url = (
                                 "https://raw.githubusercontent.com/hughski"
                                 "/colorhug-calibration/master/data/" + calibration
@@ -13559,11 +13546,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 dlg.sizer3.Add(boxsizer, 1, flag=wx.TOP | wx.EXPAND, border=12)
                 if sys.platform not in ("darwin", "win32"):
                     boxsizer.Add((1, 8))
-                if not pnpidcache:
+                if not PNP_ID_CACHE:
                     # Populate pnpidcache
                     get_manufacturer_name("???")
                 dlg.manufacturer_txt_ctrl = wx.Choice(
-                    dlg, -1, choices=natsort(list(pnpidcache.values())), size=(400, -1)
+                    dlg,
+                    -1,
+                    choices=natsort(list(PNP_ID_CACHE.values())),
+                    size=(400, -1),
                 )
                 manufacturer_selection = self.worker.get_display_edid().get(
                     "manufacturer", ""
@@ -13825,10 +13815,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
             manufacturer_id = None
             if manufacturer:
-                if not pnpidcache:
+                if not PNP_ID_CACHE:
                     # Populate pnpidcache
                     get_manufacturer_name("???")
-                manufacturers = dict([name, id_] for id_, name in pnpidcache.items())
+                manufacturers = dict([name, id_] for id_, name in PNP_ID_CACHE.items())
                 manufacturer_id = manufacturers.get(manufacturer)
             if debug:
                 print(f"manufacturer_id: {manufacturer_id}")
@@ -15933,7 +15923,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "%nn	" + lang.getstr("computer.name"),
             "%dn	" + lang.getstr("display"),
             "%dns	" + lang.getstr("display_short"),
-            "%dnw	" + lang.getstr("display") + " (" + lang.getstr("windows_only") + ")",
+            "%dnw	"
+            + lang.getstr("display")
+            + " ("
+            + lang.getstr("windows_only")
+            + ")",
             "%dnws	"
             + lang.getstr("display_short")
             + " ("
@@ -17752,7 +17746,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         "profile.unsupported",
                         (
                             profile.profileClass.decode("utf-8"),
-                            profile.colorSpace.decode("utf-8")
+                            profile.colorSpace.decode("utf-8"),
                         ),
                     )
                     + "\n"
@@ -17775,9 +17769,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     InfoDialog(
                         self,
-                        msg=lang.getstr("profile.no_targ")
-                        + "\n"
-                        + path,
+                        msg=lang.getstr("profile.no_targ") + "\n" + path,
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )
@@ -17851,9 +17843,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if display_index is not None:
                     # Found it
                     display_match = True
-                    if config.get_display_name(
-                        None, False
-                    ) != config.get_display_name(display_index, False):
+                    if config.get_display_name(None, False) != config.get_display_name(
+                        display_index, False
+                    ):
                         # Only need to update if currently selected display
                         # does not match found one
                         setcfg("display.number", display_index + 1)
@@ -17870,19 +17862,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         setcfg("3dlut.tab.enable.backup", 1)
             # Get and set the instrument
             instrument_id = (
-                profile.tags.get("meta", {})
-                .get("MEASUREMENT_device", {})
-                .get("value")
+                profile.tags.get("meta", {}).get("MEASUREMENT_device", {}).get("value")
             )
             if instrument_id:
                 for i, instrument in enumerate(self.worker.instruments):
                     if instrument.lower() == instrument_id:
                         # Found it
                         instrument_match = True
-                        if (
-                            self.worker.get_instrument_name().lower()
-                            == instrument_id
-                        ):
+                        if self.worker.get_instrument_name().lower() == instrument_id:
                             # No need to update anything
                             break
                         setcfg("comport.number", i + 1)
@@ -17899,9 +17886,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             except (IOError, CGATS.CGATSError):
                 InfoDialog(
                     self,
-                    msg="{}\n{}".format(
-                        lang.getstr("calibration.file.invalid"), path
-                    ),
+                    msg="{}\n{}".format(lang.getstr("calibration.file.invalid"), path),
                     ok=lang.getstr("ok"),
                     bitmap=geticon(32, "dialog-error"),
                 )
@@ -17912,9 +17897,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 print("[D] options_dispcal:", options_dispcal)
             if debug:
                 print("[D] options_colprof:", options_colprof)
-            ccxxsetting = getcfg("colorimeter_correction_matrix_file").split(
-                ":", 1
-            )[0]
+            ccxxsetting = getcfg("colorimeter_correction_matrix_file").split(":", 1)[0]
             ccmx = None
             # Check if TRC was set
             trc = False
@@ -18272,9 +18255,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         elif backup is not None:
                             setcfg("measure.override_" + keyword.lower(), backup)
                             cfgvalue = getcfg("measure.%s.backup" % keyword.lower())
-                            setcfg(
-                                "measure.override_%s.backup" % keyword.lower(), None
-                            )
+                            setcfg("measure.override_%s.backup" % keyword.lower(), None)
                             setcfg("measure.%s.backup" % keyword.lower(), None)
                     elif cfgvalue is not None:
                         if keyword == "AUTO_OPTIMIZE" and cfgvalue:
@@ -18303,9 +18284,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                     gamma_type = "b"
                                 setcfg("3dlut.trc_gamma_type", gamma_type)
                                 # Sync measurement report settings
-                                setcfg(
-                                    "measurement_report.trc_gamma_type", gamma_type
-                                )
+                                setcfg("measurement_report.trc_gamma_type", gamma_type)
                                 setcfg("measurement_report.apply_black_offset", 0)
                                 setcfg("measurement_report.apply_trc", 1)
                         elif keyword == "3DLUT_GAMUT_MAPPING_MODE":
@@ -18326,23 +18305,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if cfgvalue is not None:
                         cfgvalue = str(cfgvalue)
                         if cfgname.endswith("profile") and (
-                            not os.path.isabs(cfgvalue)
-                            or not os.path.isfile(cfgvalue)
+                            not os.path.isabs(cfgvalue) or not os.path.isfile(cfgvalue)
                         ):
                             if os.path.basename(os.path.dirname(cfgvalue)) == "ref":
                                 # Fall back to ref file if not absolute
                                 # path or not found
                                 cfgvalue = (
-                                    get_data_path(
-                                        "ref/" + os.path.basename(cfgvalue)
-                                    )
+                                    get_data_path("ref/" + os.path.basename(cfgvalue))
                                     or cfgvalue
                                 )
                             elif not os.path.dirname(cfgvalue):
                                 # Use profile dir
-                                cfgvalue = os.path.join(
-                                    os.path.dirname(path), cfgvalue
-                                )
+                                cfgvalue = os.path.join(os.path.dirname(path), cfgvalue)
                         setcfg(cfgname, cfgvalue)
                         if keyword == "SIMULATION_PROFILE":
                             # Only HDR 3D LUTs will have this set
@@ -18519,9 +18493,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if value != "DISPLAY":
                         InfoDialog(
                             self,
-                            msg=lang.getstr("calibration.file.invalid")
-                            + "\n"
-                            + path,
+                            msg=lang.getstr("calibration.file.invalid") + "\n" + path,
                             ok=lang.getstr("ok"),
                             bitmap=geticon(32, "dialog-error"),
                         )
@@ -18557,8 +18529,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         setcfg("3dlut.whitepoint.x", round(x, 4))
                         setcfg("3dlut.whitepoint.y", round(y, 4))
                         self.worker.options_dispcal.append(
-                            "-w%s,%s"
-                            % (getcfg("whitepoint.x"), getcfg("whitepoint.y"))
+                            "-w%s,%s" % (getcfg("whitepoint.x"), getcfg("whitepoint.y"))
                         )
                         settings.append(lang.getstr("whitepoint"))
                     setcfg("calibration.luminance", stripzeros(round(Y * 100, 3)))
@@ -18602,15 +18573,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 elif line[0] == "BLACK_POINT_CORRECTION":
                     if stripzeros(value) >= 0:
                         black_point_correction = True
-                        setcfg(
-                            "calibration.black_point_correction", stripzeros(value)
-                        )
+                        setcfg("calibration.black_point_correction", stripzeros(value))
                         self.worker.options_dispcal.append(
                             "-k%s" % getcfg("calibration.black_point_correction")
                         )
-                    settings.append(
-                        lang.getstr("calibration.black_point_correction")
-                    )
+                    settings.append(lang.getstr("calibration.black_point_correction"))
                 elif line[0] == "TARGET_BLACK_BRIGHTNESS":
                     setcfg("calibration.black_luminance", stripzeros(value))
                     self.worker.options_dispcal.append(
@@ -19068,7 +19035,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             measureframe = self.measureframes.pop()
             if measureframe:
                 measureframe.Close()
-        for window in wx.GetTopLevelWindows():
+        for window in list(wx.GetTopLevelWindows()):
             if window and window is not self and window.IsShown():
                 print("Closing", window, "'%s'" % getattr(window, "Title", window.Name))
                 window.Close()
@@ -19126,7 +19093,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if isinstance(event, wx.CloseEvent) and event.CanVeto():
                     event.Veto()
                 return
-            for win in wx.GetTopLevelWindows():
+            for win in list(wx.GetTopLevelWindows()):
                 if win and not win.IsBeingDeleted():
                     if isinstance(win, VisualWhitepointEditor):
                         win.Close(force=True)

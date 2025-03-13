@@ -1,9 +1,178 @@
 [build-system]
-requires = ["setuptools",
-    'pywin32; platform_system=="Windows"']
 build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+    'pywin32; platform_system=="Windows"',
+]
+
+[project]
+authors = [
+    {name = "Florian Höch", email = "florian@displaycal.net"},
+    {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
+    {name = "Patrick Zwerschke", email = "patrick@p5k.org"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: MacOS X",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+]
+description = "Display calibration and profiling with a focus on accuracy and versatility"
+dynamic = ["version", "dependencies"]
+license = { file = "LICENSE.txt" }
+maintainers = [
+    {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
+]
+name = "DisplayCAL"
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[project.urls]
+"Home Page" = "https://displaycal.net/"
+GitHub = "https://github.com/eoyilmaz/displaycal-py3"
+Repository = "https://github.com/eoyilmaz/displaycal-py3.git"
+Download = "https://github.com/eoyilmaz/displaycal-py3/releases/"
+
+[tool.distutils.bdist_rpm]
+doc-files = "LICENSE.txt README.html screenshots/ theme/"
+fix-python = 1
+packager = "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>"
+post-install = "util/rpm_postinstall.sh"
+post-uninstall = "util/rpm_postuninstall.sh"
+release = 1
+# keep_temp = 1
+
+[tool.distutils.bdist_wheel]
+universal = 0
+
+[tool.distutils.install]
+record = "INSTALLED_FILES"
+
+[tool.bdist_wininst]
+bitmap = "misc/media/install-py.bmp"
+install_script = "util/DisplayCAL_postinstall.py"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["./"]
+
+[tool.setuptools.package-data]
+DisplayCAL = [
+    "beep.wav",
+    "cacert.pem",
+    "camera_shutter.wav",
+    "ColorLookupTable.fx",
+    "dev/**",
+    "DisplayCAL.iss",
+    "lang/**",
+    "lib/**",
+    "LICENSE.txt",
+    "linear.cal",
+    "misc/**",
+    "pnp.ids",
+    "presets/**",
+    "py.typed",
+    "README.html",
+    "README.md",
+    "ref/**",
+    "report/**",
+    "screenshots/**",
+    "test.cal",
+    "theme/**",
+    "ti1/**",
+    "util/**",
+    "VERSION_BASE",
+    "VERSION",
+    "x3d-viewer/**",
+    "xrc/**",
+]
+
+[tool.setuptools.exclude-package-data]
+DisplayCAL = [
+    "docs",
+    "man",
+    "misc",
+    "test_dir",
+    "tests",
+    "theme",
+    "util"
+]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies.test = { file = ["requirements-dev.txt"] }
+version = { file = ["VERSION"] }
+
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+exclude = [
+    ".github",
+    "__pycache__",
+    ".coverage",
+    ".DS_Store",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "build",
+    "cacert.pem",
+    "DisplayCAL.egg-info",
+    "DisplayCAL/ref",
+    "dist",
+    "docs",
+    "INSTALLED_FILES",
+    "MANIFEST.in",
+    "misc",
+    "screenshots",
+    "test_dir",
+    "tests",
+    "tests/data/icc",
+    "theme",
+    "util",
+    "VERSION",
+]
+extend-select = ["B950"]
+ignore = ["D107", "E203", "E501", "E701", "SC200", "W503"]
+max-complexity = 12
+max-line-length = 80
+per-file-ignores = [
+    "DisplayCAL/lib/agw/fmresources.py: B950"
+]
 
 [tool.pytest.ini_options]
 pythonpath = [
-    "."
+    ".",
 ]
+
+[tool.tox]
+requires = ["tox>=4.23.2"]
+env_list = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+[tool.tox.env_run_base]
+description = "run the tests with pytest"
+package = "wheel"
+wheel_build_env = ".pkg"
+deps = [
+    "pytest>=6",
+    "pytest-cov",
+    "pytest-xdist",
+]
+commands = [
+    ["pytest"],
+]
+
+[tool.mypy]

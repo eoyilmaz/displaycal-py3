@@ -37,12 +37,17 @@ def test_iccprofile_from_rgb_space():
         ["Profile class", "Display device profile"],
         ["Color model", "RGB"],
         ["Profile connection space (PCS)", "XYZ"],
-        ["Created", "2022-03-09 00:19:53"],
-        (
-            ["Platform", "Apple"]
-            if sys.platform == "darwin"
-            else ["Platform", "0x2A6E6978 '*nix'"]
-        ),
+        ["Created", "2022-03-09 00:19:53"]
+    ]
+
+    if sys.platform == "darwin":
+        expected_result.append(["Platform", "Apple"])
+    elif sys.platform == "win32":
+        expected_result.append(["Platform", "Microsoft"])
+    else:
+        expected_result.append(["Platform", "0x2A6E6978 '*nix'"])
+
+    expected_result += [
         ["Is embedded", "No"],
         ["Can be used independently", "Yes"],
         ["Device", ""],
@@ -183,11 +188,16 @@ def test_iccprofile_get_info():
         ["Color model", "RGB"],
         ["Profile connection space (PCS)", "XYZ"],
         ["Created", "2022-02-14 02:44:22"],
-        (
-            ["Platform", "Apple"]
-            if sys.platform == "darwin"
-            else ["Platform", "0x2A6E6978 '*nix'"]
-        ),
+    ]
+
+    if sys.platform == "darwin":
+        expected_result.append(["Platform", "Apple"])
+    elif sys.platform == "win32":
+        expected_result.append(["Platform", "Microsoft"])
+    else:
+        expected_result.append(["Platform", "0x2A6E6978 '*nix'"])
+
+    expected_result += [
         ["Is embedded", "No"],
         ["Can be used independently", "Yes"],
         ["Device", ""],
@@ -832,8 +842,9 @@ def test_dict_type_to_json():
     assert d.to_json() == expected_result
 
 
-def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(argyll):
+def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(setup_argyll):
     """Testing for issue #185, opening sRGB.icm from ArgyllCMS raises TypeError."""
+    argyll = setup_argyll
     srgb_profile_path = argyll / ".." / "ref" / "sRGB.icm"
     icc_profile = ICCProfile.ICCProfile(srgb_profile_path)
     # the following should not raise an error

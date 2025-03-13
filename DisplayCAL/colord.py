@@ -474,7 +474,7 @@ def quirk_manufacturer(manufacturer):
     # Get rid of suffixes
     for suffix in quirk_cache["suffixes"]:
         if manufacturer.endswith(suffix):
-            manufacturer = manufacturer[0: len(manufacturer) - len(suffix)]
+            manufacturer = manufacturer[0 : len(manufacturer) - len(suffix)]
 
     manufacturer = manufacturer.rstrip()
 

@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
+
 import os
 import pathlib
 import shutil
 import subprocess
 import sys
 import tarfile
-
-import pytest
 import tempfile
+import zipfile
+
+from DisplayCAL.worker import Worker
+import pytest
 
 import DisplayCAL
 from DisplayCAL import RealDisplaySizeMM
-from DisplayCAL.config import setcfg
+from DisplayCAL.config import setcfg, writecfg
 from DisplayCAL.argyll import get_argyll_latest_version
 
 
 @pytest.fixture(scope="module")
 def data_files():
-    """generates data file list"""
+    """Generate data file list."""
     #  test/data
     extensions = ["*.txt", "*.tsv", "*.lin", "*.cal", "*.ti1", "*.ti3", "*.icc"]
 
@@ -51,7 +54,7 @@ def data_path():
 
 
 @pytest.fixture(scope="module")
-def argyll():
+def setup_argyll():
     """Setup ArgyllCMS.
 
     This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it
@@ -93,31 +96,46 @@ def argyll():
     # change dir to argyll temp path
     os.chdir(argyll_temp_path)
 
-    tar_file_name = "Argyll.tgz"
-    if not os.path.exists(tar_file_name):
-        print(f"Downloading: {tar_file_name}")
-        # Download the tar file if it doesn't already exist
-        subprocess.call(["/usr/bin/curl", url, "-o", tar_file_name])
+    # Download the package file if it doesn't already exist
+    argyll_package_file_name = "Argyll.tgz" if sys.platform != "win32" else "Argyll.zip"
+    if not os.path.exists(argyll_package_file_name):
+        print(f"Downloading: {argyll_package_file_name}")
+        worker = Worker()
+        download_path = worker.download(url, download_dir=argyll_temp_path)
+        print(f"Downloaded to: {download_path}")
+        if os.path.exists(download_path):
+            shutil.move(
+                download_path,
+                argyll_package_file_name
+            )
     else:
-        print(f"Tar file already exists: {tar_file_name}")
+        print(f"Package file already exists: {argyll_package_file_name}")
         print("Not downloading it again!")
 
-    print(f"Decompressing Tarfile: {tar_file_name}")
-    with tarfile.open(tar_file_name) as tar:
-        tar.extractall()
+    print(f"Decompressing Argyll Package: {argyll_package_file_name}")
+    if sys.platform == "win32":
+        with zipfile.ZipFile(argyll_package_file_name, "r") as zip_ref:
+            zip_ref.extractall()
+    else:
+        with tarfile.open(argyll_package_file_name) as tar:
+            tar.extractall()
 
     def cleanup():
         # cleanup the test
-        shutil.rmtree(argyll_temp_path)
+        shutil.rmtree(argyll_temp_path, ignore_errors=True)
         os.chdir(current_working_directory)
 
     argyll_path = pathlib.Path(argyll_temp_path) / f"Argyll_V{argyll_version}" / "bin"
     print(f"argyll_path: {argyll_path}")
     if argyll_path.is_dir():
+        print("argyll_path is valid!")
         setcfg("argyll.dir", str(argyll_path.absolute()))
+        writecfg()
+        os.environ["PATH"] = f"{argyll_path}{os.pathsep}{os.environ['PATH']}"
         yield argyll_path
         cleanup()
     else:
+        print("argyll_path is invalid!")
         cleanup()
         pytest.skip("ArgyllCMS can not be setup!")
 
@@ -163,6 +181,10 @@ def patch_subprocess(monkeypatch):
         STDOUT = None
         PIPE = None
         output = {}
+        wShowWindow = None
+        STARTUPINFO = subprocess.STARTUPINFO if sys.platform == "win32" else None
+        STARTF_USESHOWWINDOW = subprocess.STARTF_USESHOWWINDOW if sys.platform == "win32" else None
+        SW_HIDE = subprocess.SW_HIDE if sys.platform == "win32" else None
 
         @classmethod
         def Popen(cls, *args, **kwargs):

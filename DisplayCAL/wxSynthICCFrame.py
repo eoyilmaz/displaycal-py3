@@ -4,6 +4,17 @@ import math
 import os
 import sys
 
+from DisplayCAL import (
+    CGATS,
+    ICCProfile as ICCP,
+    colormath,
+    config,
+    floatspin,
+    localization as lang,
+    worker,
+    xh_bitmapctrls,
+    xh_floatspin,
+)
 from DisplayCAL.ICCProfile import ICCProfile
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
@@ -29,12 +40,8 @@ from DisplayCAL.worker import (
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL import CGATS
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import worker
+from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -43,11 +50,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     wx,
 )
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-from DisplayCAL import floatspin
-from DisplayCAL import xh_floatspin
-from DisplayCAL import xh_bitmapctrls
 
 from wx import xrc
 

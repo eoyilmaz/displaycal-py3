@@ -5,14 +5,14 @@ Generic mock functions for unit-tests.
 Use `check_call` as a context manager to mock calls and their return values as
 well to check if the method was called (or not).
 """
+
 from __future__ import annotations
 
 import contextlib
 from types import ModuleType
-from typing import Any, Callable, Dict, Generator, List, Tuple, Type, overload
-
+from typing import Any, Dict, Generator, List, Tuple, Type, overload
+    
 from _pytest.monkeypatch import MonkeyPatch
-from mypy_extensions import KwArg, VarArg
 
 Call = Tuple[Tuple[Any, ...], Dict[str, Any]]
 CallList = List[Call]
@@ -26,8 +26,7 @@ def _mp_call(
     method: str,
     return_value: Any,
     as_property: bool,
-) -> CallList:
-    ...
+) -> CallList: ...
 
 
 @overload
@@ -37,8 +36,7 @@ def _mp_call(
     mock_class: str,
     method: Any,  # return value in this case
     return_value: bool,  # as_property in this case
-) -> CallList:
-    ...
+) -> CallList: ...
 
 
 def _mp_call(
@@ -48,11 +46,10 @@ def _mp_call(
     return_value: Any,
     as_property: bool = False,
 ) -> CallList:
-    """
-    Mock a method in a class and record the calls to it.
+    """Mock a method in a class and record the calls to it.
 
-    If the given return_value is an Exception, it will be raised. If not, the
-    value will be returned from the mocked function/method.
+    If the given return_value is an Exception, it will be raised.
+    If not, the value will be returned from the mocked function/method.
     """
     calls: CallList = []
 
@@ -69,9 +66,7 @@ def _mp_call(
 
     # first case handles class + method, second one mock as str
     if as_property or (isinstance(mock_class, str) and return_value):
-        callback: Callable[[VarArg(Any), KwArg(Any)], Any] | property = property(
-            func_call
-        )
+        callback = property(func_call)
     else:
         callback = func_call
 
@@ -107,9 +102,7 @@ def check_call(  # pylint: disable=too-many-arguments
     """
     assert (call_args_list is not None and call_kwargs_list is not None) or (
         call_args_list is None and call_kwargs_list is None
-    ), (
-        "call_args and call_kwargs must be None or have a value " "(list/dict if empty)"
-    )
+    ), "call_args and call_kwargs must be None or have a value (list/dict if empty)"
     monkeypatch = MonkeyPatch()
     calls = _mp_call(monkeypatch, mock_class, method, return_value, as_property)
     try:
@@ -138,9 +131,7 @@ def check_call_str(  # pylint: disable=too-many-arguments
     """
     assert (call_args_list is not None and call_kwargs_list is not None) or (
         call_args_list is None and call_kwargs_list is None
-    ), (
-        "call_args and call_kwargs must be None or have a value " "(list/dict if empty)"
-    )
+    ), "call_args and call_kwargs must be None or have a value (list/dict if empty)"
     monkeypatch = MonkeyPatch()
     calls = _mp_call(monkeypatch, mock_class, return_value, as_property)
     yield calls
@@ -158,15 +149,15 @@ def assert_calls(
 ) -> None:
     """Check that the calls made to the mocked function are correct."""
     if call_count != -1:
-        assert (
-            len(calls) == call_count
-        ), f"Expected {call_count} calls to {m_name} but got: {len(calls)}"
+        assert len(calls) == call_count, (
+            f"Expected {call_count} calls to {m_name} but got: {len(calls)}"
+        )
     if call_args_list and call_kwargs_list:
         for idx, call_args in enumerate(call_args_list):
-            assert (
-                call_args == calls[idx][0]
-            ), f"Args to {m_name}: {call_args} expected: {call_args}"
+            assert call_args == calls[idx][0], (
+                f"Args to {m_name}: {call_args} expected: {call_args}"
+            )
         for idx, call_kwargs in enumerate(call_kwargs_list):
-            assert (
-                call_kwargs == calls[idx][1]
-            ), f"Kwargs to {m_name}: {call_kwargs} expected: {call_kwargs}"
+            assert call_kwargs == calls[idx][1], (
+                f"Kwargs to {m_name}: {call_kwargs} expected: {call_kwargs}"
+            )

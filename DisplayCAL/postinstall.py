@@ -169,7 +169,7 @@ def postinstall(prefix=None):
                                     pass
                             if os.path.exists(grppath):
                                 print(
-                                    ("Created start menu group '%s' in " "%s")
+                                    ("Created start menu group '%s' in %s")
                                     % (
                                         name,
                                         (
@@ -181,7 +181,7 @@ def postinstall(prefix=None):
                                 )
                             else:
                                 print(
-                                    ("Failed to create start menu group '%s' in " "%s")
+                                    ("Failed to create start menu group '%s' in %s")
                                     % (
                                         name,
                                         (
@@ -321,7 +321,7 @@ def postinstall(prefix=None):
                                         )
                                         continue
                                     print(
-                                        ("Installed start menu entry '%s' to " "%s")
+                                        ("Installed start menu entry '%s' to %s")
                                         % (
                                             lnkname,
                                             (

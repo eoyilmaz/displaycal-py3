@@ -3,6 +3,7 @@
 
 The utilities that were previously spread around are gathered here.
 """
+
 # Standard Library Imports
 import os
 import re
@@ -178,7 +179,7 @@ def get_argyll_version_string(name, paths=None):
     for line in (p.communicate(timeout=30)[0] or b"").splitlines():
         line = line.strip()
         if b"version" in line.lower():
-            argyll_version_string = line[line.lower().find(b"version") + 8:]
+            argyll_version_string = line[line.lower().find(b"version") + 8 :]
             break
     return argyll_version_string.decode("utf-8")
 

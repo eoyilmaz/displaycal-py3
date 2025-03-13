@@ -92,7 +92,6 @@ class Cube3D(object):
 
 
 class Cube3DIterator(Cube3D):
-
     # This iterator is actually slightly slower especially with large cubes
     # than using iter(<Cube3D instance>)
 

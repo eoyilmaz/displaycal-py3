@@ -4,7 +4,7 @@ from DisplayCAL.dev.mocks import check_call, check_call_str
 from tests.data.display_data import DisplayData
 
 
-def test_update_estimated_measurement_time_1(argyll):
+def test_update_estimated_measurement_time_1(setup_argyll):
     """Testing for issue #37
 
     wxReportFrame.ReportFrame.update_estimated_measurement_time() method raising

@@ -129,7 +129,7 @@ if sys.platform == "win32":
                 ):
                     # Check if our task exists, and if it does not, create it.
                     # (requires admin privileges)
-                    print(f"Trying to create task {taskname.repr()}...")
+                    print(f"Trying to create task {taskname:!r}...")
                     # Note that we use a stub so the task cannot be accidentally
                     # stopped (the stub launches the actual profile loader and
                     # then immediately exits)
@@ -216,7 +216,7 @@ if sys.platform == "win32":
                         if debug:
                             exception = traceback.format_exc()
                         print(
-                            f"Warning - Could not create task {taskname.repr()}:",
+                            f"Warning - Could not create task {taskname:!r}:",
                             exception,
                         )
                         if ts.stdout:
@@ -251,7 +251,7 @@ if sys.platform == "win32":
                         ts.disable(ms_cal_loader)
                     except Exception as exception:
                         print(
-                            f"Warning - Could not disable task {ms_cal_loader.repr()}:",
+                            f"Warning - Could not disable task {ms_cal_loader:!r}:",
                             exception,
                         )
                         if ts.stdout:
@@ -1082,9 +1082,7 @@ if sys.platform == "win32":
                 fn(arg0, devicekey=devicekey)
             except Exception as exception:
                 print(
-                    "{}({}, devicekey={}):".format(
-                        fn.__name__, arg0.repr(), devicekey.repr()
-                    ),
+                    "{}({!r}, devicekey={!r}):".format(fn.__name__, arg0, devicekey),
                     exception,
                 )
                 if show_error:
@@ -1847,12 +1845,12 @@ class ProfileLoader(object):
                         return
                     if debug > 1:
                         print(
-                            "[DEBUG] show_notification(text={}, sticky={}, "
-                            "show_notification={}, flags={}, toggle={})".format(
-                                text.repr(),
+                            "[DEBUG] show_notification(text={!r}, sticky={}, "
+                            "show_notification={}, flags={!r}, toggle={})".format(
+                                text,
                                 sticky,
                                 show_notification,
-                                flags.repr(),
+                                flags,
                                 toggle,
                             )
                         )
@@ -2150,10 +2148,10 @@ class ProfileLoader(object):
     def _notify(self, results, errors, sticky=False, show_notification=False):
         if debug > 1:
             print(
-                "[DEBUG] notify(results={}, errors={}, sticky={}, "
+                "[DEBUG] notify(results={!r}, errors={!r}, sticky={}, "
                 "show_notification={})".format(
-                    results.repr(),
-                    errors.repr(),
+                    results,
+                    errors,
                     sticky,
                     show_notification,
                 )
@@ -3252,9 +3250,7 @@ class ProfileLoader(object):
                 device0 = win32api.EnumDisplayDevices(moninfo["Device"], 0)
             except pywintypes.error as exception:
                 print(
-                    "EnumDisplayDevices({}, 0) failed:".format(
-                        moninfo["Device"].repr()
-                    ),
+                    "EnumDisplayDevices({!r}, 0) failed:".format(moninfo["Device"]),
                     exception,
                 )
                 device0 = None

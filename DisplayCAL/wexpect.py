@@ -853,6 +853,7 @@ class spawn_unix(object):
         False.
 
         """
+        end_time = -1
         if timeout == -1:
             timeout = self.timeout
         if timeout is not None:
@@ -904,7 +905,6 @@ class spawn_unix(object):
             p.expect (['abcd'])
             p.expect (['wxyz'])
         """
-        self.child_fd
         attr = termios.tcgetattr(self.child_fd)
         if state:
             attr[3] = attr[3] | termios.ECHO
@@ -2978,7 +2978,7 @@ def log(e, suffix="", logdir=None):
                     # http://bugs.python.org/issue1760357
                     # To overcome this problem, we ignore the real modification
                     # date and force a rollover
-                    mtime = time.localtime(time() - 60 * 60 * 24)
+                    mtime = time.localtime(time.time() - 60 * 60 * 24)
                 if time.localtime()[:3] > mtime[:3]:
                     # do rollover
                     try:

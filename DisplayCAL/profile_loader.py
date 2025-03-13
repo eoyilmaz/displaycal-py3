@@ -1806,7 +1806,7 @@ class ProfileLoader(object):
                         if i:
                             rad = i / float(numframes)
                             bitmap = config.geticon(
-                                16, "apply-profiles-tray-{:d}".format(360 * rad)
+                                16, "apply-profiles-tray-{:0.0f}".format(360 * rad)
                             )
                             image = bitmap.ConvertToImage()
                             image.RotateHue(-rad)

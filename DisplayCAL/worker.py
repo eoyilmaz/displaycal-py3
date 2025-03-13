@@ -3049,9 +3049,7 @@ class Worker(WorkerBase):
                 ),
             )
             print(
-                "Added DISPLAY_TYPE_BASE_ID {}".format(
-                    repr(cgats[0].DISPLAY_TYPE_BASE_ID)
-                )
+                "Added DISPLAY_TYPE_BASE_ID {!r}".format(cgats[0].DISPLAY_TYPE_BASE_ID)
             )
             return True
 
@@ -8370,13 +8368,13 @@ BEGIN_DATA
                 if logfile:
                     logfile.write("Matrix {:d}:\n".format(m + 1))
                     for row in matrix:
-                        logfile.write("{}\n".format(repr(row)))
+                        logfile.write("{!r}\n".format(row))
 
             itable.matrix = m2 * m3
             if logfile:
                 logfile.write("Final matrix:\n")
                 for row in itable.matrix:
-                    logfile.write("{}\n".format(repr(row)))
+                    logfile.write("{!r}\n".format(row))
 
             if logfile:
                 logfile.write("Applying matrix to input curve XYZ values...\n")
@@ -8658,14 +8656,14 @@ BEGIN_DATA
                     # For CIELab cLUT, white- and black point will only
                     # fall on a cLUT point if uneven cLUT res
                     if i == clutres * (clutres // 2) + clutres // 2:
-                        # if raw_input("{:d} {}".format(i, repr(RGB))):
+                        # if raw_input("{:d} {!r}".format(i, RGB)):
                         RGB = 0, 0, 0
                     elif i == (
                         clutres**2 * (clutres - 1)
                         + clutres * (clutres // 2)
                         + clutres // 2
                     ):
-                        # if raw_input("{:d} {}".format(i, repr(RGB))):
+                        # if raw_input("{:d} {!r}".format(i, RGB)):
                         RGB = 1, 1, 1
                 itable.clut[-1].append([v * 65535 for v in RGB])
         if logfile:
@@ -9970,8 +9968,8 @@ usage: spotread [-options] [logfile]
                                 )
                             except Exception as exception:
                                 self.log(
-                                    "util_win.enable_per_user_profiles({}, devicekey={}): {}".format(
-                                        per_user, repr(device.DeviceKey), exception
+                                    "util_win.enable_per_user_profiles({}, devicekey={!r}): {}".format(
+                                        per_user, device.DeviceKey, exception
                                     )
                                 )
                 if "-Sl" in args and (
@@ -10092,7 +10090,7 @@ usage: spotread [-options] [logfile]
 
     def _install_profile_colord(self, profile, device_id):
         """Install profile using colord"""
-        self.log(f"{appname}: Trying device ID {repr(device_id)}")
+        self.log(f"{appname}: Trying device ID {device_id:!r}")
         try:
             colord.install_profile(device_id, profile, logfn=self.log)
         except Exception as exception:
@@ -14501,7 +14499,7 @@ usage: spotread [-options] [logfile]
                 logbytes = "***"
             else:
                 logbytes = bytes_
-            self.logger.info("Sending key(s) {} ({:d})".format(repr(logbytes), i + 1))
+            self.logger.info("Sending key(s) {!r} ({:d})".format(logbytes, i + 1))
             try:
                 if sys.platform == "win32":
                     # directly send the bytes_ without encoding to anything

@@ -17,7 +17,7 @@ help:
 .PHONY: venv
 venv:
 	@printf "\n\033[36m--- $@: Creating Local virtualenv '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
-	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR); \
+	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR)
 
 build:
 	@printf "\n\033[36m--- $@: Building ---\033[0m\n"

@@ -10090,7 +10090,7 @@ usage: spotread [-options] [logfile]
 
     def _install_profile_colord(self, profile, device_id):
         """Install profile using colord"""
-        self.log(f"{appname}: Trying device ID {device_id:!r}")
+        self.log(f"{appname}: Trying device ID {device_id}")
         try:
             colord.install_profile(device_id, profile, logfn=self.log)
         except Exception as exception:
@@ -14499,7 +14499,7 @@ usage: spotread [-options] [logfile]
                 logbytes = "***"
             else:
                 logbytes = bytes_
-            self.logger.info("Sending key(s) {!r} ({:d})".format(logbytes, i + 1))
+            self.logger.info("Sending key(s) {} ({:d})".format(logbytes, i + 1))
             try:
                 if sys.platform == "win32":
                     # directly send the bytes_ without encoding to anything

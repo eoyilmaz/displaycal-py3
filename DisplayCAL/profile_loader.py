@@ -129,7 +129,7 @@ if sys.platform == "win32":
                 ):
                     # Check if our task exists, and if it does not, create it.
                     # (requires admin privileges)
-                    print(f"Trying to create task {taskname:!r}...")
+                    print(f"Trying to create task {taskname}...")
                     # Note that we use a stub so the task cannot be accidentally
                     # stopped (the stub launches the actual profile loader and
                     # then immediately exits)
@@ -216,7 +216,7 @@ if sys.platform == "win32":
                         if debug:
                             exception = traceback.format_exc()
                         print(
-                            f"Warning - Could not create task {taskname:!r}:",
+                            f"Warning - Could not create task {taskname}:",
                             exception,
                         )
                         if ts.stdout:

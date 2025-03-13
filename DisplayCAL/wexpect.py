@@ -2145,6 +2145,9 @@ class Wtty(object):
                 dirname = os.path.join(dirname, "lib")
                 spath.append(os.path.join(dirname, "library.zip"))
                 spath.append(os.path.join(dirname, "library.zip", appname))
+            # DEBUG: add lib/temp dir for debugging ArgyllCMS executables not starting problem
+            spath.append(os.path.join(dirname, "temp"))
+
             pyargs.insert(0, "-S")  # skip 'import site'
         pid = GetCurrentProcessId()
         tid = win32api.GetCurrentThreadId()

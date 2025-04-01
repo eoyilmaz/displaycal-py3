@@ -14,6 +14,5 @@ for /F usebackq %%a in (`python -c "from DisplayCAL import meta;print meta.versi
 if exist dist\py2exe.win32-py%python_version%\DisplayCAL-%version% (
     if exist codesigning\sign.cmd (
         call codesigning\sign.cmd dist\py2exe.win32-py%python_version%\DisplayCAL-%version%\*.exe
-        call codesigning\sign.cmd dist\py2exe.win32-py%python_version%\DisplayCAL-%version%\lib\DisplayCAL.lib*.python*.RealDisplaySizeMM.pyd
     )
 )

@@ -65,8 +65,8 @@ $Id: pexpect.py 507 2007-12-27 02:40:52Z noah $
 """
 
 import errno
-import re
 import os
+import re
 import select
 import signal
 import string
@@ -3034,8 +3034,12 @@ def which(filename):
 
 
 def join_args(args):
-    """Joins arguments into a command line. It quotes all arguments that contain
-    spaces or any of the characters ^!$%&()[]{}=;'+,`~"""
+    """Join arguments into a command line.
+
+    It quotes all arguments that contain spaces or any of the characters:
+
+        ^!$%&()[]{}=;'+,`~
+    """
     command_line = []
     for arg in args:
         if isinstance(arg, bytes):

@@ -1794,6 +1794,13 @@ class spawn_windows(spawn_unix):
         if args is None:
             args = []
 
+        # if any of the args contain any spaces (most possibly a path),
+        # we need to quote them
+        for i, arg in enumerate(args):
+            if " " in arg:
+                log("Quoting argument {}: {}".format(i, arg))
+                args[i] = '"{}"'.format(arg)
+
         # allow dummy instances for subclasses that may not use command or args.
         if command is None:
             self.command = None
@@ -2185,7 +2192,7 @@ class Wtty(object):
             (
                 os.path.join(dirname, "python.exe")
                 if getattr(sys, "frozen", False)
-                else os.path.join(os.path.dirname(sys.executable), "lib", "python.exe")
+                else os.path.join(os.path.dirname(sys.executable), "python.exe")
             ),
             " ".join(pyargs),
             "import sys;{}sys.path = {} + sys.path;"

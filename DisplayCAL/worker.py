@@ -12760,7 +12760,7 @@ usage: spotread [-options] [logfile]
                     # Create preconditioning profile
                     self.pauseable = False
                     basename = args[-1]
-                    precond_ti3 = CGATS.CGATS(basename + ".ti3")
+                    precond_ti3 = CGATS.CGATS(f"{basename}.ti3")
                     precond_ti3.fix_zero_measurements(logfile=self.get_logfiles(False))
                     precond_ti3.write()
                     # Extract grays and remaining colors
@@ -13719,7 +13719,7 @@ usage: spotread [-options] [logfile]
                 )
             elif apply_calibration is None:
                 # Use current videoLUT
-                cal = inoutfile + ".cal"
+                cal = f"{inoutfile}.cal"
                 result = self.save_current_video_lut(self.get_display(), cal)
                 if isinstance(result, Exception) and not isinstance(
                     result, UnloggedInfo
@@ -13727,7 +13727,7 @@ usage: spotread [-options] [logfile]
                     return result, None
             else:
                 cal = apply_calibration  # can be .cal or .icc / .icm
-            calcopy = inoutfile + ".cal"
+            calcopy = f"{inoutfile}.cal"
             filename, ext = os.path.splitext(cal)
             if getcfg("dry_run"):
                 options_dispcal = []
@@ -13805,7 +13805,7 @@ usage: spotread [-options] [logfile]
                     )
             cal = calcopy
             if options_dispcal:
-                self.options_dispcal = ["-" + arg for arg in options_dispcal]
+                self.options_dispcal = [f"-{arg}" for arg in options_dispcal]
         #
         # Make sure any measurement options are present
         if not self.options_dispcal:

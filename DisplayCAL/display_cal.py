@@ -9158,8 +9158,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         # filenames
         name, ext = os.path.splitext(os.path.basename(save_path))
-        ti1_path = os.path.join(temp, name + ".ti1")
-        profile_path = os.path.join(temp, name + ".icc")
+        ti1_path = os.path.join(temp,  f"{name}.ti1")
+        profile_path = os.path.join(temp, f"{name}.icc")
 
         if debug:
             print(f"save_path: {save_path}")
@@ -9199,7 +9199,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             calprof = profile
 
-        cal_path = os.path.join(temp, name + ".cal")
+        cal_path = os.path.join(temp,  f"{name}.cal")
         try:
             # Extract calibration from profile
             cal = extract_cal_from_profile(calprof, cal_path, False)
@@ -17177,7 +17177,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if path is None:
             path = getcfg("testchart.file")
         filename, ext = os.path.splitext(path)
-        ti1_path = filename + ".ti1"
+        ti1_path = f"{filename}.ti1"
         if (
             ext.lower() in (".icc", ".icm")
             and getcfg("testchart.patch_sequence") != "optimize_display_response_delay"

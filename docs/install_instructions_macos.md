@@ -5,7 +5,7 @@ Install with Installer
 ----------------------
 
 We now have a proper [installer](https://www.github.com/eoyilmaz/displaycal-py3/releases)
-for MacOS and this is the preffered way of running DisplayCAL under MacOS (unless you
+for MacOS and this is the preferred way of running DisplayCAL under MacOS (unless you
 want to test the latest code).
 
 Install through PyPI or Build From Source
@@ -124,7 +124,7 @@ Building `DisplayCAL.app`
 
 You can build a proper macOS app to make it easier to run the application.
 
-Fristly install the requirements if you didn't already done it before:
+Firstly install the requirements if you didn't already done it before:
 
 ```shell
 brew install glib gtk+3 python@3.13

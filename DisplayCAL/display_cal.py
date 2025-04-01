@@ -12655,6 +12655,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 cgats_measurement_mode += "V"
                             if (
                                 instrument_features.get("highres_mode")
+                                and cgats.queryv1("SPECTRAL_BANDS") is not None
                                 and cgats.queryv1("SPECTRAL_BANDS") > 36
                             ):
                                 cgats_measurement_mode += "H"
@@ -12686,7 +12687,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if debug or verbose >= 2:
                             print("cgats_observer =", cgats_observer)
                         if (
-                            cgats_instrument != instrument
+                            cgats_instrument.decode("utf-8") != instrument
                             or cgats_measurement_mode != measurement_mode
                             or cgats_observer.decode("utf-8") != observer
                         ):
@@ -12771,6 +12772,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             if defaultFile:
                 dlg.reference_ti3.SetPath(os.path.join(defaultDir, defaultFile))
+                wx.CallAfter(dlg.reference_ti3.setupControl)
             dlg.reference_ti3.changeCallback = check_last_ccxx_ti3
             dlg.reference_ti3.SetMaxFontSize(11)
             dlg.reference_ti3_droptarget = FileDrop(dlg)
@@ -12895,6 +12897,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             if defaultFile:
                 dlg.colorimeter_ti3.SetPath(os.path.join(defaultDir, defaultFile))
+                wx.CallAfter(dlg.colorimeter_ti3.setupControl)
             dlg.colorimeter_ti3.changeCallback = check_last_ccxx_ti3
             dlg.colorimeter_ti3.SetMaxFontSize(11)
             dlg.colorimeter_ti3_droptarget = FileDrop(dlg)
@@ -13744,7 +13747,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 white_abs = []
                 for _j, meas in enumerate((reference_ti3, colorimeter_ti3)):
                     # Get absolute whitepoint
-                    white = meas.queryv1("LUMINANCE_XYZ_CDM2") or meas.queryi1(
+                    white = meas.queryv1("LUMINANCE_XYZ_CDM2").decode("utf-8") or meas.queryi1(
                         {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
                     )
                     if isinstance(white, str):

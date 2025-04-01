@@ -975,6 +975,10 @@ class GamutViewOptions(wx_Panel):
 
     @property
     def direction(self):
+        index = self.direction_select.GetSelection()
+        if index == -1:  # Fix for #67
+            index = 0
+            self.direction_select.SetSelection(index)
         if self.direction_select.IsShown():
             return {0: "f", 1: "ib"}.get(self.direction_select.GetSelection())
         else:

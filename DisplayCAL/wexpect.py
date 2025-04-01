@@ -1235,8 +1235,9 @@ class spawn_unix(object):
             self.terminated = True
         elif os.WIFSTOPPED(status):
             raise ExceptionPexpect(
-                "Wait was called for a child process that is stopped. This is not supported. Is some other process "
-                "attempting job control with our child pid?"
+                "Wait was called for a child process that is stopped. "
+                "This is not supported. Is some other process attempting job "
+                "control with our child pid?"
             )
         return self.exitstatus
 
@@ -1262,8 +1263,9 @@ class spawn_unix(object):
         except OSError as e:  # No child processes
             if e.args[0] == str(errno.ECHILD):
                 raise ExceptionPexpect(
-                    'isalive() encountered condition where "terminated" is 0, but there was no child process. Did '
-                    "someone else call waitpid() on our process?"
+                    'isalive() encountered condition where "terminated" is 0, '
+                    'but there was no child process. '
+                    "Did someone else call waitpid() on our process?"
                 )
             else:
                 raise e
@@ -1279,16 +1281,18 @@ class spawn_unix(object):
             except OSError as e:  # This should never happen...
                 if e.args[0] == str(errno.ECHILD):
                     raise ExceptionPexpect(
-                        "isalive() encountered condition that should never happen. There was no child process. Did "
-                        "someone else call waitpid() on our process?"
+                        "isalive() encountered condition that should never happen. "
+                        "There was no child process. "
+                        "Did someone else call waitpid() on our process?"
                     )
                 else:
                     raise e
 
             # If pid is still 0 after two calls to waitpid() then
-            # the process really is alive. This seems to work on all platforms, except
-            # for Irix which seems to require a blocking call on waitpid or select, so I let read_nonblocking
-            # take care of this situation (unfortunately, this requires waiting through the timeout).
+            # the process really is alive. This seems to work on all platforms,
+            # except for Irix which seems to require a blocking call on waitpid
+            # or select, so I let read_nonblocking take care of this situation
+            # (unfortunately, this requires waiting through the timeout).
             if pid == 0:
                 return True
 
@@ -1307,8 +1311,9 @@ class spawn_unix(object):
             self.terminated = True
         elif os.WIFSTOPPED(status):
             raise ExceptionPexpect(
-                "isalive() encountered condition where child process is stopped. This is not supported. Is some other "
-                "process attempting job control with our child pid?"
+                "isalive() encountered condition where child process is "
+                "stopped. This is not supported. Is some other process "
+                "attempting job control with our child pid?"
             )
         return False
 
@@ -1363,8 +1368,8 @@ class spawn_unix(object):
                 compiled_pattern_list.append(p)
             else:
                 raise TypeError(
-                    "Argument must be one of StringTypes, EOF, TIMEOUT, SRE_Pattern, or a list of those "
-                    "type. %s" % str(type(p))
+                    "Argument must be one of StringTypes, EOF, TIMEOUT, "
+                    "SRE_Pattern, or a list of those type. {}".format(type(p))
                 )
 
         return compiled_pattern_list
@@ -1700,13 +1705,15 @@ class spawn_unix(object):
         """This method is no longer supported or allowed. I don't like getters
         and setters without a good reason."""
         raise ExceptionPexpect(
-            "This method is no longer supported or allowed. Just assign a value to the maxread member variable."
+            "This method is no longer supported or allowed. "
+            "Just assign a value to the maxread member variable."
         )
 
     def setlog(self, fileobject):
         """This method is no longer supported or allowed."""
         raise ExceptionPexpect(
-            "This method is no longer supported or allowed. Just assign a value to the logfile member variable."
+            "This method is no longer supported or allowed. "
+            "Just assign a value to the logfile member variable."
         )
 
 
@@ -1716,7 +1723,10 @@ class spawn_unix(object):
 
 
 class spawn_windows(spawn_unix):
-    """This is the main class interface for Pexpect. Use this class to start and control child applications."""
+    """This is the main class interface for Pexpect.
+
+    Use this class to start and control child applications.
+    """
 
     def __init__(
         self,
@@ -1732,8 +1742,16 @@ class spawn_windows(spawn_unix):
         columns=None,
         rows=None,
     ):
-        # super(spawn_windows, self).__init__(command=command, args=args, timeout=timeout, maxread=maxread,
-        #                                     searchwindowsize=searchwindowsize, logfile=logfile, cwd=cwd, env=env)
+        # super(spawn_windows, self).__init__(
+        #     command=command,
+        #     args=args,
+        #     timeout=timeout,
+        #     maxread=maxread,
+        #     searchwindowsize=searchwindowsize,
+        #     logfile=logfile,
+        #     cwd=cwd,
+        #     env=env
+        # )
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -1785,8 +1803,10 @@ class spawn_windows(spawn_unix):
             self._spawn(command, args)
 
     def __del__(self):
-        """This makes sure that no system resources are left open. Python only
-        garbage collects Python objects, not the child console."""
+        """Make sure that no system resources are left open.
+        
+        Python only garbage collects Python objects, not the child console.
+        """
         try:
             self.wtty.terminate_child()
         except Exception:
@@ -1797,10 +1817,12 @@ class spawn_windows(spawn_unix):
             pass
 
     def _spawn(self, command, args=None):
-        """This starts the given command in a child process. This does all the
-        fork/exec type of stuff for a pty. This is called by __init__. If args
-        is empty then command will be parsed (split on spaces) and args will be
-        set to parsed arguments."""
+        """Start the given command in a child process.
+
+        This does all the fork/exec type of stuff for a pty. This is called by
+        __init__. If args is empty then command will be parsed (split on
+        spaces) and args will be set to parsed arguments.
+        """
         if args is None:
             args = []
 
@@ -1816,8 +1838,9 @@ class spawn_windows(spawn_unix):
         # If command is an int type then it may represent a file descriptor.
         if isinstance(command, int):
             raise ExceptionPexpect(
-                "Command is an int type. If this is a file descriptor then maybe you want to use fdpexpect.fdspawn "
-                "which takes an existing file descriptor instead of a command string."
+                "Command is an int type. If this is a file descriptor then"
+                "maybe you want to use fdpexpect.fdspawn which takes an "
+                "existing file descriptor instead of a command string."
             )
 
         if not isinstance(args, list):
@@ -1836,7 +1859,7 @@ class spawn_windows(spawn_unix):
         command_with_path = which(self.command)
         if command_with_path is None:
             raise ExceptionPexpect(
-                "The command was not found or was not executable: %s." % self.command
+                f"The command was not found or was not executable: {self.command}."
             )
         self.command = command_with_path
         self.args[0] = self.command
@@ -2054,6 +2077,9 @@ class Wtty(object):
         )
         log(f"Code page: {self.codepage}")
         log(f"hasattr(sys, 'frozen'): {hasattr(sys, 'frozen')}")
+        if getattr(sys, 'frozen', False):
+            log(f"sys.frozen            : {sys.frozen}")
+            log(f"type(sys.frozen)      : {type(sys.frozen)}")
         self.columns = columns
         if isinstance(cwd, bytes):
             cwd = cwd.decode("utf-8")
@@ -2159,7 +2185,7 @@ class Wtty(object):
             (
                 os.path.join(dirname, "python.exe")
                 if getattr(sys, "frozen", False)
-                else os.path.join(os.path.dirname(sys.executable), "python.exe")
+                else os.path.join(os.path.dirname(sys.executable), "lib", "python.exe")
             ),
             " ".join(pyargs),
             "import sys;{}sys.path = {} + sys.path;"
@@ -2184,7 +2210,16 @@ class Wtty(object):
             ),
         )
 
-        log(command_line)
+        log(f"command_line: {command_line}")
+
+        if getattr(sys, "frozen", False):
+            # without the PYTHONHOME and PYTHONPATH the executable will not run
+            # with the frozen python interpreter
+            env["PYTHONHOME"] = dirname
+            env["PYTHONPATH"] = os.pathsep.join(spath)
+
+        log(f"env: {env}")
+
         self.__oproc, _, self.conpid, self.__otid = CreateProcess(
             None, command_line, None, None, False, CREATE_NEW_CONSOLE, env, self.cwd, si
         )

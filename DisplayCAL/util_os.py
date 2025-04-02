@@ -579,7 +579,7 @@ def is_superuser() -> bool:
         return os.geteuid() == 0
 
 
-def launch_file(filepath: str) -> int:
+def launch_file(filepath: str) -> Union[None, int]:
     """Open a file with its assigned default app.
 
     Return tuple(returncode, stdout, stderr) or None if functionality not available.
@@ -588,19 +588,27 @@ def launch_file(filepath: str) -> int:
         filepath (str): The path to the file.
 
     Returns:
-        int: The return code of the launched application.
+        Union[None, int]: The return code of the launched application.
     """
-    filepath = filepath.encode(fs_enc)
     retcode = None
-    kwargs = {"startupinfo": sp.STARTUPINFO(), "shell": True, "close_fds": True}
-    kwargs["startupinfo"].dwFlags |= sp.STARTF_USESHOWWINDOW
-    kwargs["startupinfo"].wShowWindow = sp.SW_HIDE
-
+    kwargs = {
+        "stdin": sp.PIPE,
+        "stdout": sp.PIPE,
+        "stderr": sp.PIPE
+    }
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":
         # for win32, we could use os.startfile,
         # but then we'd not be able to return exitcode (does it matter?)
+        startupinfo = sp.STARTUPINFO()
+        startupinfo.dwFlags |= sp.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = sp.SW_HIDE
+        kwargs = {
+            "startupinfo": startupinfo,
+            "shell": True,
+            "close_fds": True,
+        }
         retcode = sp.call(f'start "" "{filepath}"', **kwargs)
     elif which("xdg-open"):
         retcode = sp.call(["xdg-open", filepath], **kwargs)

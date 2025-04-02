@@ -28,7 +28,7 @@ from wx import xrc
 
 
 class ReportFrame(BaseFrame):
-    """Measurement report creation window"""
+    """Measurement report creation window."""
 
     def __init__(self, parent=None):
         BaseFrame.__init__(self, parent, -1, lang.getstr("measurement_report"))
@@ -76,9 +76,9 @@ class ReportFrame(BaseFrame):
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, "%s_ctrl" % which)
-            setattr(self, "%s_ctrl" % which, ctrl)
-            ctrl.changeCallback = getattr(self, "%s_ctrl_handler" % which)
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            setattr(self, f"{which}_ctrl", ctrl)
+            ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
                 if which == "chart":
                     wildcard = r"\.(cie|ti1|ti3)$"
@@ -110,7 +110,7 @@ class ReportFrame(BaseFrame):
                             ):
                                 continue
                         if not (
-                            path.lower().endswith(".ti2") and basepath + ".cie" in paths
+                            path.lower().endswith(".ti2") and f"{basepath}.cie" in paths
                         ):
                             history.append(path)
                 natsort_key = natsort_key_factory()
@@ -120,7 +120,7 @@ class ReportFrame(BaseFrame):
                 ctrl.SetHistory(history)
             ctrl.SetMaxFontSize(11)
             # Drop targets
-            handler = getattr(self, "%s_drop_handler" % which)
+            handler = getattr(self, f"{which}_drop_handler")
             if which.endswith("_profile"):
                 drophandlers = {".icc": handler, ".icm": handler}
             else:
@@ -379,7 +379,7 @@ class ReportFrame(BaseFrame):
                     show_result_dialog(
                         lang.getstr(
                             "error.testchart.missing_fields",
-                            (chart, "RGB/CMYK %s LAB/XYZ" % lang.getstr("or")),
+                            (chart, f"RGB/CMYK {lang.getstr('or')} LAB/XYZ"),
                         ),
                         self,
                     )
@@ -461,7 +461,7 @@ class ReportFrame(BaseFrame):
             self.set_profile("output")
 
     def set_profile(self, which, profile_path=None, silent=False):
-        path = getattr(self, "%s_profile_ctrl" % which).GetPath()
+        path = getattr(self, f"{which}_profile_ctrl").GetPath()
         if which == "output":
             # if profile_path is None:
             #   profile_path = get_current_profile_path(True, True)
@@ -499,7 +499,8 @@ class ReportFrame(BaseFrame):
                 except (IOError, ICCP.ICCProfileInvalidError):
                     if not silent:
                         show_result_dialog(
-                            Error(lang.getstr("profile.invalid") + "\n" + path),
+                            Error(
+                                f"{lang.getstr('profile.invalid')}\n{path}"),
                             parent=self,
                         )
                 except IOError as exception:
@@ -535,8 +536,8 @@ class ReportFrame(BaseFrame):
                     )
                 else:
                     if (
-                        not getattr(self, which + "_profile", None)
-                        or getattr(self, which + "_profile").fileName
+                        not getattr(self, f"{which}_profile", None)
+                        or getattr(self, f"{which}_profile").fileName
                         != profile.fileName
                     ):
                         # Profile selection has changed
@@ -552,7 +553,7 @@ class ReportFrame(BaseFrame):
                             else:
                                 if len(odata) != 1 or len(odata[0]) != 3:
                                     show_result_dialog(
-                                        "Blackpoint is invalid: %s" % odata, self
+                                        f"Blackpoint is invalid: {odata}", self
                                     )
                                     self.set_profile_ctrl_path(which)
                                     return
@@ -569,7 +570,7 @@ class ReportFrame(BaseFrame):
                             else:
                                 if len(odata) != 1 or len(odata[0]) != 3:
                                     show_result_dialog(
-                                        "Blackpoint is invalid: %s" % odata, self
+                                        f"Blackpoint is invalid: {odata}", self
                                     )
                                     self.set_profile_ctrl_path(which)
                                     return
@@ -591,10 +592,10 @@ class ReportFrame(BaseFrame):
                             self.XYZbpout = XYZbpout
                         elif which == "input":
                             self.XYZbpin = XYZbpin
-                    setattr(self, "%s_profile" % which, profile)
+                    setattr(self, f"{which}_profile", profile)
                     if not silent:
                         setcfg(
-                            "measurement_report.%s_profile" % which,
+                            f"measurement_report.{which}_profile",
                             profile and profile_path,
                         )
                         if which == "simulation":
@@ -605,14 +606,14 @@ class ReportFrame(BaseFrame):
             if path:
                 self.set_profile_ctrl_path(which)
         else:
-            setattr(self, "%s_profile" % which, None)
+            setattr(self, f"{which}_profile", None)
             if not silent:
-                setcfg("measurement_report.%s_profile" % which, None)
+                setcfg(f"measurement_report.{which}_profile", None)
                 self.mr_update_main_controls()
 
     def set_profile_ctrl_path(self, which):
-        getattr(self, "%s_profile_ctrl" % which).SetPath(
-            getcfg("measurement_report.%s_profile" % which)
+        getattr(self, f"{which}_profile_ctrl").SetPath(
+            getcfg(f"measurement_report.{which}_profile")
         )
 
     def mr_setup_language(self):
@@ -625,11 +626,11 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = lang.getstr("filetype.icc") + "|*.icc;*.icm"
+                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
             else:
                 wildcard = (
-                    lang.getstr("filetype.ti1_ti3_txt")
-                    + "|*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
+                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {
                 "chart": "measurement_report_choose_chart_or_reference",
@@ -641,7 +642,7 @@ class ReportFrame(BaseFrame):
                 dialogTitle=lang.getstr(msg),
                 fileMask=wildcard,
             )
-            ctrl = getattr(self, "%s_ctrl" % which)
+            ctrl = getattr(self, f"{which}_ctrl")
             for name in kwargs:
                 value = kwargs[name]
                 setattr(ctrl, name, value)
@@ -1013,7 +1014,7 @@ class ReportFrame(BaseFrame):
                 hours += 1
         else:
             hours, minutes = "--", "--"
-        getattr(self, which + "_meas_time").Label = lang.getstr(
+        getattr(self, f"{which}_meas_time").Label = lang.getstr(
             "estimated_measurement_time", (hours, minutes)
         )
         # Show visual warning by coloring the text if measurement is going to
@@ -1028,7 +1029,7 @@ class ReportFrame(BaseFrame):
         else:
             # Default text color
             color = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
-        getattr(self, which + "_meas_time").ForegroundColour = color
+        getattr(self, f"{which}_meas_time").ForegroundColour = color
 
     def use_devlink_profile_ctrl_handler(self, event):
         setcfg("3dlut.enable", 0)

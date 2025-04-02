@@ -17,7 +17,6 @@ classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Environment :: X11 Applications",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -29,7 +28,7 @@ classifiers = [
 ]
 description = "Display calibration and profiling with a focus on accuracy and versatility"
 dynamic = ["version", "dependencies"]
-license = { file = "LICENSE.txt" }
+license = {text = "GPL-3.0-or-later"}
 maintainers = [
     {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
 ]

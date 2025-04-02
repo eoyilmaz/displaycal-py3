@@ -172,7 +172,7 @@ To build the installer for your own use you can follow these steps:
    ```
 
    This should generate a folder under the `dist` folder with a name similar to
-   `py2exe.win32-py3.11-DisplayCAL-3.9.12`.
+   `py2exe.win32-py3.11-DisplayCAL-3.9.14`.
 
    All the executables and resources to run DisplayCAL are placed under this folder. So,
    you can directly run the executables under this folder.
@@ -185,15 +185,15 @@ To build the installer for your own use you can follow these steps:
    python setup.py inno
    ```
 
-   This will generate a file called `py2exe.win32-py3.11-Setup-inno.iss`
+   This will generate a file called `DisplayCAL-Setup-py2exe.win-amd64-py3.11.iss`
 
 5- Run Inno Setup to build the script:
 
    ```shell
    cd dist
-   "C:\Program Files (x86)\Inno Setup 6\iscc" py2exe.win32-py3.11-Setup-inno.iss
+   "C:\Program Files (x86)\Inno Setup 6\iscc" DisplayCAL-Setup-py2exe.win-amd64-py3.11.iss
    ```
 
 6- This should now generate the installer with the name
-   `DisplayCAL-3.9.12-Setup.exe` that you can use to install DisplayCAL to
+   `DisplayCAL-3.9.14-Setup.exe` that you can use to install DisplayCAL to
    any Windows computer.

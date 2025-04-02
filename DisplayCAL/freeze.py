@@ -783,9 +783,8 @@ def build_py2exe():
     manifest_in.append("global-exclude *.bak")
     manifest_in.append("global-exclude */__pycache__/*")
     if not dry_run:
-        manifest = open("MANIFEST.in", "w")
-        manifest.write("\n".join(manifest_in))
-        manifest.close()
+        with open("MANIFEST.in", "w") as manifest:
+            manifest.write("\n".join(manifest_in))
         if os.path.exists("MANIFEST"):
             os.remove("MANIFEST")
 

@@ -16,7 +16,7 @@ from DisplayCAL import localization as lang
 def create(report_path, placeholders2data, pack=True, templatename="report"):
     """Create a report with all placeholders substituted by data."""
     # read report template
-    templatefilename = "%s.html" % templatename
+    templatefilename = f"{templatename}.html"
     report_html_template_path = get_data_path(os.path.join("report", templatefilename))
     if not report_html_template_path:
         raise IOError(lang.getstr("file.missing", templatefilename))
@@ -59,12 +59,10 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
                 packer = jspacker.JavaScriptPacker()
                 js = packer.pack(js, 62, True).strip()
             report_html = report_html.replace(
-                'src="%s">' % include, ">/*<![CDATA[*/\n" + js + "\n/*]]>*/"
+                f'src="{include}">', f">/*<![CDATA[*/\n{js}\n/*]]>*/"
             )
         else:
-            report_html = report_html.replace(
-                '@import "%s";' % include, f.read().strip()
-            )
+            report_html = report_html.replace(f'@import "{include}";', f.read().strip())
         f.close()
 
     # write report
@@ -72,7 +70,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
         report_html_file = codecs.open(report_path, "w", "UTF-8")
     except OSError as exception:
         raise exception.__class__(
-            lang.getstr("error.file.create", report_path) + "\n\n" + str(exception)
+            "{}\n\n{}".format(lang.getstr("error.file.create", report_path), exception)
         )
     report_html_file.write(report_html)
     report_html_file.close()
@@ -174,7 +172,9 @@ def update(report_path, pack=True):
             templatename = "uniformity"
 
     # backup original report
-    shutil.copy2(report_path, "%s.%s" % (report_path, strftime("%Y-%m-%d_%H-%M-%S")))
+    shutil.copy2(
+        report_path, "{}.{}".format(report_path, strftime("%Y-%m-%d_%H-%M-%S"))
+    )
 
     create(report_path, placeholders2data, pack, templatename)
 
@@ -185,7 +185,9 @@ if __name__ == "__main__":
     if not sys.argv[1:]:
         print("Update existing report(s) with current template files.")
         print(
-            "Usage: %s report1.html [report2.html...]" % os.path.basename(sys.argv[0])
+            "Usage: {} report1.html [report2.html...]".format(
+                os.path.basename(sys.argv[0])
+            )
         )
     else:
         for arg in sys.argv[1:]:

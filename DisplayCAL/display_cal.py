@@ -13414,8 +13414,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     {"c": b"YES", "l": b"NO"}.get(getcfg(cfgname), b"NO"),
                 )
                 print(
-                    "Added DISPLAY_TYPE_REFRESH {!r}".format(
-                        cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8")
+                    "Added DISPLAY_TYPE_REFRESH {}".format(
+                        repr(cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8"))
                     )
                 )
         options_dispcal, options_colprof = get_options_from_ti3(reference_ti3)
@@ -14103,7 +14103,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         for column in ccmx_data_format:
                             RGB_XYZ.append(str(sample[column]))
                         metadata.append(
-                            '{}_DATA_{:.0f} "{}"'.format(label, i + 1, " ".join(RGB_XYZ))
+                            '{}_DATA_{:.0f} "{}"'.format(
+                                label, i + 1, " ".join(RGB_XYZ)
+                            )
                         )
                         # Line length limit for CGATS keywords 1024 chars, add
                         # spectral data as individual keywords
@@ -19242,10 +19244,8 @@ class StartupFrame(start_cls):
             gamut_with_gamma[0] = gamma
             gamut_with_gamma_profile = ICCP.ICCProfile.from_rgb_space(
                 gamut_with_gamma,
-                b"%s gamma %s" % (
-                    bytes(gamut, "utf-8"),
-                    bytes(str(f"{gamma:.1f}"), "utf-8")
-                ),
+                b"%s gamma %s"
+                % (bytes(gamut, "utf-8"), bytes(str(f"{gamma:.1f}"), "utf-8")),
             )
             gamut_with_gamma_io = BytesIO(gamut_with_gamma_profile.data)
             try:
@@ -19269,13 +19269,9 @@ class StartupFrame(start_cls):
                 inprofile_io = BytesIO(pim.info["icc_profile"])
                 # Convert from display profile to the given gamma and gamut
                 try:
-                    inprofile_cms = PIL.ImageCms.getOpenProfile(
-                        inprofile_io
-                    )
+                    inprofile_cms = PIL.ImageCms.getOpenProfile(inprofile_io)
                     PIL.ImageCms.profileToProfile(
-                        pim, inprofile_cms,
-                        gamut_with_gamma_cms,
-                        inPlace=True
+                        pim, inprofile_cms, gamut_with_gamma_cms, inPlace=True
                     )
                     # Convert PIL image to wx.Image
                     # XXX: Doesn't seem to work correctly, converted
@@ -19323,7 +19319,9 @@ class StartupFrame(start_cls):
                 is_mavericks = intlist(platform.mac_ver()[0].split(".")) >= [10, 9]
                 if is_mavericks:
                     # Under 10.9 we can specify screen region as arguments
-                    extra_args = ["-R{:.0f},{:.0f},{:.0f},{:.0f}".format(*splashdimensions)]
+                    extra_args = [
+                        "-R{:.0f},{:.0f},{:.0f},{:.0f}".format(*splashdimensions)
+                    ]
                 extra_args.append("-x")
                 screencap = which("screencapture")
             else:
@@ -19877,9 +19875,9 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
             try:
                 value = float(strval)
                 if (label[:3] == "RGB" or label == "XYZ_Y") and value > 100:
-                    raise ValueError(f"Value {value:!r} is invalid")
+                    raise ValueError(f"Value {repr(value)} is invalid")
                 elif value < 0:
-                    raise ValueError(f"Negative value {value:!r} is invalid")
+                    raise ValueError(f"Negative value {repr(value)} is invalid")
             except ValueError:
                 wx.Bell()
                 strval = f"{item[label]:.4f}"

@@ -76,6 +76,13 @@ or possibly fixed issues over the ``main`` branch.
 git checkout develop
 ```
 
+> [!TIP]
+> If you want to switch to some other branches to test the code you can replace
+> `develop` in the previous command with the branch name:
+> ```shell
+> git checkout 502-ccss-creation-with-i1pro3-does-not-seem-to-work
+> ```
+
 Then you can build and install DisplayCAL using:
 
 ```shell

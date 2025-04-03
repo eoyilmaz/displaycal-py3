@@ -19194,6 +19194,107 @@ class StartupFrame(start_cls):
         )
         self._buffereddc = wx.MemoryDC(self._bufferbitmap)
         self.worker = Worker()
+        self.grab_image()
+        self.SetClientSize(self.splash_bmp.Size)
+        self.SetPosition((self.splash_x, self.splash_y))
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        if len(self.zoom_scales):
+            self._alpha = 255
+        else:
+            self.SetTransparent(0)
+            self._alpha = 0
+
+        audio.safe_init()
+        if audio._lib:
+            print(
+                lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version))
+            )
+        # Startup sound
+        # Needs to be stereo!
+        if getcfg("startup_sound.enable"):
+            self.startup_sound = audio.Sound(get_data_path("theme/intro_new.wav"))
+            self.startup_sound.volume = 0.8
+            self.startup_sound.safe_play()
+
+        # We need to use CallLater instead of CallAfter otherwise dialogs
+        # will not show while the main frame is not yet initialized
+        wx.CallLater(1, self.startup)
+
+        if isinstance(self, wx.Dialog):
+            self.ShowModal()
+        else:
+            self.Show()
+
+    def gamma_correct_image(self, bmp_path, gamut="Rec. 709", gamma=2.0):
+        """Gamma correct the image to the given gammut and gamma."""
+        # We want to color convert the screenshot to the given gamut and gamma
+        # to get rid of visible color differences.
+        try:
+            import PIL
+            import PIL.Image
+            import PIL.ImageCms
+        except ImportError as exception:
+            PIL = None
+            print("Info: Couldn't import PIL:", exception)
+        else:
+            gamut_with_gamma = list(colormath.get_rgb_space(gamut))
+            gamut_with_gamma[0] = gamma
+            gamut_with_gamma_profile = ICCP.ICCProfile.from_rgb_space(
+                gamut_with_gamma,
+                b"%s gamma %s" % (
+                    bytes(gamut, "utf-8"),
+                    bytes(str(f"{gamma:.1f}"), "utf-8")
+                ),
+            )
+            gamut_with_gamma_io = BytesIO(gamut_with_gamma_profile.data)
+            try:
+                gamut_with_gamma_cms = PIL.ImageCms.getOpenProfile(gamut_with_gamma_io)
+            except Exception as exception:
+                gamut_with_gamma_cms = None
+                print("Info:", exception)
+
+        tif_path = os.path.join(self.worker.tempdir, "screencap.tif")
+        if not PIL or not gamut_with_gamma_cms:
+            return bmp_path, tif_path
+
+        # Open screenshot as PIL image
+        try:
+            pim = PIL.Image.open(bmp_path)
+        except Exception as exception:
+            print("Info: Couldn't open image:", exception)
+        else:
+            if "icc_profile" in pim.info:
+                # Get embedded ICC profile from image
+                inprofile_io = BytesIO(pim.info["icc_profile"])
+                # Convert from display profile to the given gamma and gamut
+                try:
+                    inprofile_cms = PIL.ImageCms.getOpenProfile(
+                        inprofile_io
+                    )
+                    PIL.ImageCms.profileToProfile(
+                        pim, inprofile_cms,
+                        gamut_with_gamma_cms,
+                        inPlace=True
+                    )
+                    # Convert PIL image to wx.Image
+                    # XXX: Doesn't seem to work correctly, converted
+                    # image consists of vertical stripes - probably an
+                    # issue with order of RGB data?
+                    # width, height = pim.size
+                    # img = wx.ImageFromBuffer(width, height,
+                    # pim.tobytes())
+                    pim.save(tif_path)
+                except Exception as exception:
+                    print("Info:", exception)
+                else:
+                    bmp_path = tif_path
+                # We are done with PIL image now
+
+        return bmp_path, tif_path
+
+    def grab_image(self):
+        """Grab screen shot."""
         is_wayland = os.getenv("XDG_SESSION_TYPE") == "wayland"
         # Grab a bitmap of the screen area we're going to draw on
         if sys.platform != "darwin" and not is_wayland:
@@ -19217,6 +19318,7 @@ class StartupFrame(start_cls):
                 self.splash_bmp.Size[1],
             )
             extra_args = []
+            geometry = [0, 0, 0, 0]
             if sys.platform == "darwin":
                 is_mavericks = intlist(platform.mac_ver()[0].split(".")) >= [10, 9]
                 if is_mavericks:
@@ -19241,6 +19343,8 @@ class StartupFrame(start_cls):
                 # Determine HiDPI scaling factor
                 geometry = self.GetDisplay().Geometry
             bmp_path = os.path.join(self.worker.tempdir, "screencap.png")
+            tif_path = bmp_path
+            gamma = 2.04  # somewhat arbitrary gamma value, but works the best for macOS
             if self.worker.exec_cmd(
                 screencap,
                 extra_args + ["screencap.png"],
@@ -19253,67 +19357,13 @@ class StartupFrame(start_cls):
                 result = False
             img = None
             if result and sys.platform == "darwin":
-                # We want to color convert the screenshot to wx Rec. 709
-                # gamma 1.8 to get rid of visible color differences.
-                try:
-                    import PIL
-                    import PIL.Image
-                    import PIL.ImageCms
-                except ImportError as exception:
-                    PIL = None
-                    print("Info: Couldn't import PIL:", exception)
-                else:
-                    rec709_gamma18 = list(colormath.get_rgb_space("Rec. 709"))
-                    rec709_gamma18[0] = 1.8
-                    rec709_gamma18_profile = ICCP.ICCProfile.from_rgb_space(
-                        rec709_gamma18, b"Rec. 709 gamma 1.8"
-                    )
-                    rec709_gamma18_io = BytesIO(rec709_gamma18_profile.data)
-                    try:
-                        rec709_gamma18_cms = PIL.ImageCms.getOpenProfile(
-                            rec709_gamma18_io
-                        )
-                    except Exception as exception:
-                        rec709_gamma18_cms = None
-                        print("Info:", exception)
-                tif_path = os.path.join(self.worker.tempdir, "screencap.tif")
-                if PIL and rec709_gamma18_cms:
-                    # Open screenshot as PIL image
-                    try:
-                        pim = PIL.Image.open(bmp_path)
-                    except Exception as exception:
-                        print("Info: Couldn't open image:", exception)
-                    else:
-                        if "icc_profile" in pim.info:
-                            # Get embedded ICC profile from image
-                            inprofile_io = BytesIO(pim.info["icc_profile"])
-                            # Convert from display profile to wx Rec. 709 gamma 1.8
-                            try:
-                                inprofile_cms = PIL.ImageCms.getOpenProfile(
-                                    inprofile_io
-                                )
-                                PIL.ImageCms.profileToProfile(
-                                    pim, inprofile_cms, rec709_gamma18_cms, inPlace=True
-                                )
-                                # Convert PIL image to wx.Image
-                                # XXX: Doesn't seem to work correctly, converted
-                                # image consists of vertical stripes - probably an
-                                # issue with order of RGB data?
-                                # width, height = pim.size
-                                # img = wx.ImageFromBuffer(width, height,
-                                # pim.tobytes())
-                                pim.save(tif_path)
-                            except Exception as exception:
-                                print("Info:", exception)
-                            else:
-                                bmp_path = tif_path
-                            # We are done with PIL image now
+                bmp_path, tif_path = self.gamma_correct_image(bmp_path, gamma=gamma)
             if result:
                 if not img:
                     img = wx.Image(bmp_path)
                 if img.IsOk():
                     if wx.VERSION > (3,):
-                        quality = wx.IMAGE_QUALITY_BILINEAR
+                        quality = wx.IMAGE_QUALITY_BICUBIC
                     else:
                         quality = wx.IMAGE_QUALITY_HIGH
                     if is_mavericks and (
@@ -19355,40 +19405,10 @@ class StartupFrame(start_cls):
                         img = img.GetSubImage(splashdimensions)
                     if sys.platform == "darwin" and bmp_path != tif_path:
                         # Fallback
-                        img.GammaCorrect()
+                        img.GammaCorrect(from_gamma=1.8, to_gamma=gamma)
                     bmp = img.ConvertToBitmap()
                     self._buffereddc.DrawBitmap(bmp, 0, 0)
                 self.worker.wrapup(False)
-        self.SetClientSize(self.splash_bmp.Size)
-        self.SetPosition((self.splash_x, self.splash_y))
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        if len(self.zoom_scales):
-            self._alpha = 255
-        else:
-            self.SetTransparent(0)
-            self._alpha = 0
-
-        audio.safe_init()
-        if audio._lib:
-            print(
-                lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version))
-            )
-        # Startup sound
-        # Needs to be stereo!
-        if getcfg("startup_sound.enable"):
-            self.startup_sound = audio.Sound(get_data_path("theme/intro_new.wav"))
-            self.startup_sound.volume = 0.8
-            self.startup_sound.safe_play()
-
-        # We need to use CallLater instead of CallAfter otherwise dialogs
-        # will not show while the main frame is not yet initialized
-        wx.CallLater(1, self.startup)
-
-        if isinstance(self, wx.Dialog):
-            self.ShowModal()
-        else:
-            self.Show()
 
     def startup(self):
         if sys.platform not in ("darwin", "win32"):

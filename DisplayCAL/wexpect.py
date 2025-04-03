@@ -1264,7 +1264,7 @@ class spawn_unix(object):
             if e.args[0] == str(errno.ECHILD):
                 raise ExceptionPexpect(
                     'isalive() encountered condition where "terminated" is 0, '
-                    'but there was no child process. '
+                    "but there was no child process. "
                     "Did someone else call waitpid() on our process?"
                 )
             else:
@@ -1811,7 +1811,7 @@ class spawn_windows(spawn_unix):
 
     def __del__(self):
         """Make sure that no system resources are left open.
-        
+
         Python only garbage collects Python objects, not the child console.
         """
         try:
@@ -2084,7 +2084,7 @@ class Wtty(object):
         )
         log(f"Code page: {self.codepage}")
         log(f"hasattr(sys, 'frozen'): {hasattr(sys, 'frozen')}")
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             log(f"sys.frozen            : {sys.frozen}")
             log(f"type(sys.frozen)      : {type(sys.frozen)}")
         self.columns = columns
@@ -2198,7 +2198,7 @@ class Wtty(object):
             "import sys;{}sys.path = {} + sys.path;"
             "args = {}; from DisplayCAL import wexpect;"
             "wexpect.ConsoleReader("
-            "wexpect.join_args(args), {:d}, {:d}, cp={}, c={}, r={}, logdir={!r}"
+            "wexpect.join_args(args), {:d}, {:d}, cp={}, c={}, r={}, logdir={}"
             ")".format(
                 # this fixes running Argyll commands through py2exe frozen python
                 (
@@ -2206,14 +2206,14 @@ class Wtty(object):
                     if hasattr(sys, "frozen")
                     else ""
                 ),
-                ("{!r}".format(spath)).replace('"', r"\""),
-                ("{!r}".format(args)).replace('"', r"\""),
+                ("{}".format(repr(spath))).replace('"', r"\""),
+                ("{}".format(repr(args))).replace('"', r"\""),
                 pid,
                 tid,
                 self.codepage,
                 self.columns,
                 self.rows,
-                logdir,
+                repr(logdir),
             ),
         )
 

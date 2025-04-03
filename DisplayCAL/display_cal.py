@@ -7667,7 +7667,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             vcgt = "no VCGT"
         if vcgt:
             description += ", " + vcgt
-        whitepoint = "{:d}K".format(round(XYZ2CCT(*list(profile.tags.wtpt.values()))))
+        whitepoint = "{:.0f}K".format(round(XYZ2CCT(*list(profile.tags.wtpt.values()))))
         description += ", " + whitepoint
         description += f", {profile.tags.lumi.Y:0.f} cd/m²"
         if gamma:
@@ -8407,7 +8407,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     pass
                 result = self.send_command(
                     "apply-profiles",
-                    "setcfg profile.load_on_login {:d}".format(
+                    "setcfg profile.load_on_login {:.0f}".format(
                         getcfg("profile.load_on_login")
                     ),
                 )
@@ -9298,7 +9298,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             elif "-E" in args:
                 qbits = 8  # ArgyllCMS default for video encoding (see dispread doc)
         if qbits:
-            print(f"Quantizing reference device values to {qbits:d} bits")
+            print(f"Quantizing reference device values to {qbits:.0f} bits")
             ti3_ref.quantize_device_values(qbits)
             if gray:
                 qmax = 2**qbits - 1.0
@@ -9360,7 +9360,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if sim_ti3:
                     sim_removed.insert(0, sim_ti3.DATA.pop(key))
             for item in ref_removed:
-                print(f"Removed patch #{item.key:d} from reference TI3: {item}")
+                print(f"Removed patch #{item.key:.0f} from reference TI3: {item}")
             for item in sim_removed:
                 print(f"Removed patch #{item.key} from simulation TI3: {item}")
             # Update offset
@@ -10289,7 +10289,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         args = '"{}" -c "{}"'.format(
             exe,
             "import sys;"
-            f"sys.path.insert(0, {pydir:!r});"
+            f"sys.path.insert(0, {repr(pydir)});"
             "from DisplayCAL import wxMeasureFrame;"
             "wxMeasureFrame.main();"
             "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)",
@@ -13341,7 +13341,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     [("RGB_R", values[0]), ("RGB_G", values[1]), ("RGB_B", values[2])]
                 )
                 devicecombination = " ".join(
-                    ["=".join([key, f"{value:d}"]) for key, value in patch.items()]
+                    ["=".join([key, f"{value:.0f}"]) for key, value in patch.items()]
                 )
                 name = devicecombination2name.get(devicecombination, devicecombination)
                 item = data_reference.queryi1(patch)
@@ -13414,8 +13414,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     {"c": b"YES", "l": b"NO"}.get(getcfg(cfgname), b"NO"),
                 )
                 print(
-                    "Added DISPLAY_TYPE_REFRESH {!r}".format(
-                        cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8")
+                    "Added DISPLAY_TYPE_REFRESH {}".format(
+                        repr(cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8"))
                     )
                 )
         options_dispcal, options_colprof = get_options_from_ti3(reference_ti3)
@@ -13434,7 +13434,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             and display
             and not quirk_manufacturer.lower() in display.lower()
         ):
-            manufacturer_display = b" ".join([quirk_manufacturer, display])
+            manufacturer_display = " ".join([quirk_manufacturer, display])
         elif display:
             manufacturer_display = display
 
@@ -14103,7 +14103,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         for column in ccmx_data_format:
                             RGB_XYZ.append(str(sample[column]))
                         metadata.append(
-                            '{}_DATA_{:d} "{}"'.format(label, i + 1, " ".join(RGB_XYZ))
+                            '{}_DATA_{:.0f} "{}"'.format(
+                                label, i + 1, " ".join(RGB_XYZ)
+                            )
                         )
                         # Line length limit for CGATS keywords 1024 chars, add
                         # spectral data as individual keywords
@@ -14111,7 +14113,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             column = column.decode("utf-8")
                             if column not in ccmx_data_format and column != "SAMPLE_ID":
                                 metadata.append(
-                                    '{}_DATA_{:d}_{} "{}"'.format(
+                                    '{}_DATA_{:.0f}_{} "{}"'.format(
                                         label, i + 1, column, sample[column]
                                     )
                                 )
@@ -14197,10 +14199,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             params = {"cgats": cgats}
             # Also upload reference and target CGATS (if available)
             for label in ("REFERENCE", "TARGET"):
-                filename = str(ccxx.queryv1(f"{label}_FILENAME").decode("utf-8") or "")
-                algo_hash = (ccxx.queryv1(f"{label}_HASH").decode("utf-8") or "").split(
-                    ":", 1
-                )
+                filename = (ccxx.queryv1(f"{label}_FILENAME") or b"").decode("utf-8")
+                algo_hash = (
+                    (ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")
+                ).split(":", 1)
                 if filename and os.path.isfile(filename) and algo_hash[0] in globals():
                     meas = bytes(CGATS.CGATS(filename)).strip()
                     # Check hash
@@ -15649,7 +15651,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for index in indexes:
                 removed.insert(0, data.pop(dlg.suspicious_items[index]))
             for item in removed:
-                print("Removed patch #{:d} from TI3: {}".format(item.key, item))
+                print("Removed patch #{:.0f} from TI3: {}".format(item.key, item))
             for index in dlg.mods:
                 fields = dlg.mods[index]
                 if index not in indexes:
@@ -17806,13 +17808,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     display_index = display_name_indexes[0]
                     print(
                         "Found display device matching model description at "
-                        f"index #{display_index:d}"
+                        f"index #{display_index:.0f}"
                     )
                 elif len(edid_md5_indexes) == 1:
                     display_index = edid_md5_indexes[0]
                     print(
                         "Found display device matching EDID MD5 at index "
-                        f"#{display_index:d}"
+                        f"#{display_index:.0f}"
                     )
                 else:
                     # We got several matches. As we can't be sure which
@@ -18507,7 +18509,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         setcfg("3dlut.whitepoint.x", round(x, 4))
                         setcfg("3dlut.whitepoint.y", round(y, 4))
                         self.worker.options_dispcal.append(
-                            "-w{},{}".format(getcfg("whitepoint.x"), getcfg("whitepoint.y"))
+                            "-w{},{}".format(
+                                getcfg("whitepoint.x"), getcfg("whitepoint.y")
+                            )
                         )
                         settings.append(lang.getstr("whitepoint"))
                     setcfg("calibration.luminance", stripzeros(round(Y * 100, 3)))
@@ -18829,9 +18833,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
         items.append(wx.StaticText(self.aboutdialog.panel, -1, ""))
         items.append(
-            wx.StaticText(
-                self.aboutdialog.panel, -1, f'{lang.getstr("translations")}:'
-            )
+            wx.StaticText(self.aboutdialog.panel, -1, f"{lang.getstr('translations')}:")
         )
         lauthors = {}
         for lcode in lang.ldict:
@@ -18846,7 +18848,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         for langs, lauthor in lauthors:
             items.append(
                 wx.StaticText(
-                    self.aboutdialog.panel, -1, "{} - {}".format(", ".join(langs), lauthor)
+                    self.aboutdialog.panel,
+                    -1,
+                    "{} - {}".format(", ".join(langs), lauthor),
                 )
             )
         items.append(wx.StaticText(self.aboutdialog.panel, -1, ""))
@@ -18923,7 +18927,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.StaticText(
                 self.aboutdialog.panel,
                 -1,
-                lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version)),
+                lang.getstr(
+                    "audio.lib", "{} {}".format(audio._lib, audio._lib_version)
+                ),
             )
         )
         items.append((1, 12))
@@ -19016,7 +19022,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 measureframe.Close()
         for window in list(wx.GetTopLevelWindows()):
             if window and window is not self and window.IsShown():
-                print("Closing", window, "'{}'".format(getattr(window, "Title", window.Name)))
+                print(
+                    "Closing",
+                    window,
+                    "'{}'".format(getattr(window, "Title", window.Name)),
+                )
                 window.Close()
         self.Hide()
         self.enable_menus(False)
@@ -19186,6 +19196,101 @@ class StartupFrame(start_cls):
         )
         self._buffereddc = wx.MemoryDC(self._bufferbitmap)
         self.worker = Worker()
+        self.grab_image()
+        self.SetClientSize(self.splash_bmp.Size)
+        self.SetPosition((self.splash_x, self.splash_y))
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        if len(self.zoom_scales):
+            self._alpha = 255
+        else:
+            self.SetTransparent(0)
+            self._alpha = 0
+
+        audio.safe_init()
+        if audio._lib:
+            print(
+                lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version))
+            )
+        # Startup sound
+        # Needs to be stereo!
+        if getcfg("startup_sound.enable"):
+            self.startup_sound = audio.Sound(get_data_path("theme/intro_new.wav"))
+            self.startup_sound.volume = 0.8
+            self.startup_sound.safe_play()
+
+        # We need to use CallLater instead of CallAfter otherwise dialogs
+        # will not show while the main frame is not yet initialized
+        wx.CallLater(1, self.startup)
+
+        if isinstance(self, wx.Dialog):
+            self.ShowModal()
+        else:
+            self.Show()
+
+    def gamma_correct_image(self, bmp_path, gamut="Rec. 709", gamma=2.0):
+        """Gamma correct the image to the given gammut and gamma."""
+        # We want to color convert the screenshot to the given gamut and gamma
+        # to get rid of visible color differences.
+        try:
+            import PIL
+            import PIL.Image
+            import PIL.ImageCms
+        except ImportError as exception:
+            PIL = None
+            print("Info: Couldn't import PIL:", exception)
+        else:
+            gamut_with_gamma = list(colormath.get_rgb_space(gamut))
+            gamut_with_gamma[0] = gamma
+            gamut_with_gamma_profile = ICCP.ICCProfile.from_rgb_space(
+                gamut_with_gamma,
+                b"%s gamma %s"
+                % (bytes(gamut, "utf-8"), bytes(str(f"{gamma:.1f}"), "utf-8")),
+            )
+            gamut_with_gamma_io = BytesIO(gamut_with_gamma_profile.data)
+            try:
+                gamut_with_gamma_cms = PIL.ImageCms.getOpenProfile(gamut_with_gamma_io)
+            except Exception as exception:
+                gamut_with_gamma_cms = None
+                print("Info:", exception)
+
+        tif_path = os.path.join(self.worker.tempdir, "screencap.tif")
+        if not PIL or not gamut_with_gamma_cms:
+            return bmp_path, tif_path
+
+        # Open screenshot as PIL image
+        try:
+            pim = PIL.Image.open(bmp_path)
+        except Exception as exception:
+            print("Info: Couldn't open image:", exception)
+        else:
+            if "icc_profile" in pim.info:
+                # Get embedded ICC profile from image
+                inprofile_io = BytesIO(pim.info["icc_profile"])
+                # Convert from display profile to the given gamma and gamut
+                try:
+                    inprofile_cms = PIL.ImageCms.getOpenProfile(inprofile_io)
+                    PIL.ImageCms.profileToProfile(
+                        pim, inprofile_cms, gamut_with_gamma_cms, inPlace=True
+                    )
+                    # Convert PIL image to wx.Image
+                    # XXX: Doesn't seem to work correctly, converted
+                    # image consists of vertical stripes - probably an
+                    # issue with order of RGB data?
+                    # width, height = pim.size
+                    # img = wx.ImageFromBuffer(width, height,
+                    # pim.tobytes())
+                    pim.save(tif_path)
+                except Exception as exception:
+                    print("Info:", exception)
+                else:
+                    bmp_path = tif_path
+                # We are done with PIL image now
+
+        return bmp_path, tif_path
+
+    def grab_image(self):
+        """Grab screen shot."""
         is_wayland = os.getenv("XDG_SESSION_TYPE") == "wayland"
         # Grab a bitmap of the screen area we're going to draw on
         if sys.platform != "darwin" and not is_wayland:
@@ -19209,11 +19314,14 @@ class StartupFrame(start_cls):
                 self.splash_bmp.Size[1],
             )
             extra_args = []
+            geometry = [0, 0, 0, 0]
             if sys.platform == "darwin":
                 is_mavericks = intlist(platform.mac_ver()[0].split(".")) >= [10, 9]
                 if is_mavericks:
                     # Under 10.9 we can specify screen region as arguments
-                    extra_args = ["-R{:d},{:d},{:d},{:d}".format(*splashdimensions)]
+                    extra_args = [
+                        "-R{:.0f},{:.0f},{:.0f},{:.0f}".format(*splashdimensions)
+                    ]
                 extra_args.append("-x")
                 screencap = which("screencapture")
             else:
@@ -19233,6 +19341,8 @@ class StartupFrame(start_cls):
                 # Determine HiDPI scaling factor
                 geometry = self.GetDisplay().Geometry
             bmp_path = os.path.join(self.worker.tempdir, "screencap.png")
+            tif_path = bmp_path
+            gamma = 2.04  # somewhat arbitrary gamma value, but works the best for macOS
             if self.worker.exec_cmd(
                 screencap,
                 extra_args + ["screencap.png"],
@@ -19245,67 +19355,13 @@ class StartupFrame(start_cls):
                 result = False
             img = None
             if result and sys.platform == "darwin":
-                # We want to color convert the screenshot to wx Rec. 709
-                # gamma 1.8 to get rid of visible color differences.
-                try:
-                    import PIL
-                    import PIL.Image
-                    import PIL.ImageCms
-                except ImportError as exception:
-                    PIL = None
-                    print("Info: Couldn't import PIL:", exception)
-                else:
-                    rec709_gamma18 = list(colormath.get_rgb_space("Rec. 709"))
-                    rec709_gamma18[0] = 1.8
-                    rec709_gamma18_profile = ICCP.ICCProfile.from_rgb_space(
-                        rec709_gamma18, b"Rec. 709 gamma 1.8"
-                    )
-                    rec709_gamma18_io = BytesIO(rec709_gamma18_profile.data)
-                    try:
-                        rec709_gamma18_cms = PIL.ImageCms.getOpenProfile(
-                            rec709_gamma18_io
-                        )
-                    except Exception as exception:
-                        rec709_gamma18_cms = None
-                        print("Info:", exception)
-                tif_path = os.path.join(self.worker.tempdir, "screencap.tif")
-                if PIL and rec709_gamma18_cms:
-                    # Open screenshot as PIL image
-                    try:
-                        pim = PIL.Image.open(bmp_path)
-                    except Exception as exception:
-                        print("Info: Couldn't open image:", exception)
-                    else:
-                        if "icc_profile" in pim.info:
-                            # Get embedded ICC profile from image
-                            inprofile_io = BytesIO(pim.info["icc_profile"])
-                            # Convert from display profile to wx Rec. 709 gamma 1.8
-                            try:
-                                inprofile_cms = PIL.ImageCms.getOpenProfile(
-                                    inprofile_io
-                                )
-                                PIL.ImageCms.profileToProfile(
-                                    pim, inprofile_cms, rec709_gamma18_cms, inPlace=True
-                                )
-                                # Convert PIL image to wx.Image
-                                # XXX: Doesn't seem to work correctly, converted
-                                # image consists of vertical stripes - probably an
-                                # issue with order of RGB data?
-                                # width, height = pim.size
-                                # img = wx.ImageFromBuffer(width, height,
-                                # pim.tobytes())
-                                pim.save(tif_path)
-                            except Exception as exception:
-                                print("Info:", exception)
-                            else:
-                                bmp_path = tif_path
-                            # We are done with PIL image now
+                bmp_path, tif_path = self.gamma_correct_image(bmp_path, gamma=gamma)
             if result:
                 if not img:
                     img = wx.Image(bmp_path)
                 if img.IsOk():
                     if wx.VERSION > (3,):
-                        quality = wx.IMAGE_QUALITY_BILINEAR
+                        quality = wx.IMAGE_QUALITY_BICUBIC
                     else:
                         quality = wx.IMAGE_QUALITY_HIGH
                     if is_mavericks and (
@@ -19347,38 +19403,10 @@ class StartupFrame(start_cls):
                         img = img.GetSubImage(splashdimensions)
                     if sys.platform == "darwin" and bmp_path != tif_path:
                         # Fallback
-                        img.GammaCorrect()
+                        img.GammaCorrect(from_gamma=1.8, to_gamma=gamma)
                     bmp = img.ConvertToBitmap()
                     self._buffereddc.DrawBitmap(bmp, 0, 0)
                 self.worker.wrapup(False)
-        self.SetClientSize(self.splash_bmp.Size)
-        self.SetPosition((self.splash_x, self.splash_y))
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        if len(self.zoom_scales):
-            self._alpha = 255
-        else:
-            self.SetTransparent(0)
-            self._alpha = 0
-
-        audio.safe_init()
-        if audio._lib:
-            print(lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version)))
-        # Startup sound
-        # Needs to be stereo!
-        if getcfg("startup_sound.enable"):
-            self.startup_sound = audio.Sound(get_data_path("theme/intro_new.wav"))
-            self.startup_sound.volume = 0.8
-            self.startup_sound.safe_play()
-
-        # We need to use CallLater instead of CallAfter otherwise dialogs
-        # will not show while the main frame is not yet initialized
-        wx.CallLater(1, self.startup)
-
-        if isinstance(self, wx.Dialog):
-            self.ShowModal()
-        else:
-            self.Show()
 
     def startup(self):
         if sys.platform not in ("darwin", "win32"):
@@ -19798,7 +19826,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
                     dlg.suspicious_items.append(cur)
                     grid.AppendRows(1)
                     row = grid.GetNumberRows() - 1
-                    grid.SetRowLabelValue(row, f"{cur.SAMPLE_ID:d}")
+                    grid.SetRowLabelValue(row, f"{cur.SAMPLE_ID:.0f}")
                     RGB = []
                     for k, label in enumerate("RGB"):
                         value = cur[f"RGB_{label}"]
@@ -19841,13 +19869,15 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
                 label = f"RGB_{label}"
             else:
                 label = f"XYZ_{label}"
-            strval = "0{}".format(grid.GetCellValue(event.Row, event.Col).replace(",", "."))
+            strval = "0{}".format(
+                grid.GetCellValue(event.Row, event.Col).replace(",", ".")
+            )
             try:
                 value = float(strval)
                 if (label[:3] == "RGB" or label == "XYZ_Y") and value > 100:
-                    raise ValueError(f"Value {value:!r} is invalid")
+                    raise ValueError(f"Value {repr(value)} is invalid")
                 elif value < 0:
-                    raise ValueError(f"Negative value {value:!r} is invalid")
+                    raise ValueError(f"Negative value {repr(value)} is invalid")
             except ValueError:
                 wx.Bell()
                 strval = f"{item[label]:.4f}"

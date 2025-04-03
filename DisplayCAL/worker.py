@@ -1140,7 +1140,7 @@ def parse_argument_string(args):
 
 
 def get_cfg_option_from_args(option_name, argmatch, args, whole=False):
-    """Parse args and return option (if found), otherwise default"""
+    """Parse args and return option (if found), otherwise return default."""
     option = defaults[option_name]
     iarg = get_arg(argmatch, args, whole)
     if iarg:

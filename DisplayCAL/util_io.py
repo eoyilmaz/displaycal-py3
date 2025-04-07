@@ -107,9 +107,9 @@ class GzipFileProper(gzip.GzipFile):
         if fname.endswith(".gz"):
             fname = fname[:-3]
         elif fname.endswith(".tgz"):
-            fname = "%s.tar" % fname[:-4]
+            fname = f"{fname[:-4]}.tar"
         elif fname.endswith(".wrz"):
-            fname = "%s.wrl" % fname[:-4]
+            fname = f"{fname[:-4]}.wrl"
         flags = 0
         if fname:
             flags = gzip.FNAME

@@ -15016,7 +15016,6 @@ usage: spotread [-options] [logfile]
 
         Return gamut volume (int, scaled to sRGB = 1.0) and
         coverage (dict) as tuple.
-
         """
         if isinstance(profile_path, list):
             profile_paths = profile_path
@@ -15208,7 +15207,7 @@ usage: spotread [-options] [logfile]
                         with open(tmpfilename, "wb") as outfile:
                             outfile.write(tweak_vrml(vrml).encode())
                     if filename.endswith(".wrl"):
-                        filename = filename[:-4] + ".wrz"
+                        filename = f"{filename[:-4]}.wrz"
                     else:
                         filename = gzfilename
                     if tmpfilename != filename:

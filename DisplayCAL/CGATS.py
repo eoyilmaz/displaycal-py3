@@ -1788,7 +1788,7 @@ Transform {
             writer = GzipFileProper
         else:
             writer = open
-        print("Writing", filename)
+        safe_print("Writing", filename)
         with writer(filename, "wb") as outfile:
             outfile.write(out.encode("utf-8"))
 

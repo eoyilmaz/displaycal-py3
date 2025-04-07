@@ -658,7 +658,7 @@ def vrml2x3dom(vrml, worker=None):
             token = ""
             listing = False
         elif attribute:
-            if c in ("\n", "\r"):
+            if c in "\n\r":
                 if listing:
                     if tag.attributes.get(token) and tag.attributes[token][-1] != " ":
                         tag.attributes[token] += " "
@@ -682,7 +682,7 @@ def vrml2x3dom(vrml, worker=None):
                         attribute = _attrchk(attribute, token, tag, indent)
                         token = ""
                     quote = 0
-        elif c not in (" ", "\n", "\r", "\t"):
+        elif c not in " \n\r\t":
             if c in valid_token_chars:
                 token += c
             else:
@@ -692,7 +692,7 @@ def vrml2x3dom(vrml, worker=None):
                 raise VRMLParseError("Parse error: Invalid token", token)
             if token == "children":
                 token = ""
-            elif c in (" ", "\t"):
+            elif c in " \t":
                 if not attribute:
                     attribute = True
                     if token in tag.attributes:
@@ -706,15 +706,19 @@ def vrmlfile2x3dfile(
 ):
     """Convert VRML file located at vrmlpath to HTML and write to x3dpath"""
     filename, ext = os.path.splitext(vrmlpath)
+    reader = open
     if ext.lower() in (".gz", ".wrz"):
-        cls = GzipFileProper
-    else:
-        cls = open
-    with cls(vrmlpath, "rb") as vrmlfile:
+        reader = GzipFileProper
+
+    with reader(vrmlpath, "rb") as vrmlfile:
         vrml = vrmlfile.read()
+
+    if isinstance(vrml, bytes):
+        vrml = vrml.decode("utf-8")
+
     if worker:
         worker.recent.write(
-            "%s %s\n" % (lang.getstr("converting"), os.path.basename(vrmlpath))
+            "{} {}\n".format(lang.getstr("converting"), os.path.basename(vrmlpath))
         )
     _safe_print(lang.getstr("converting"), vrmlpath)
     filename, ext = os.path.splitext(x3dpath)
@@ -725,14 +729,14 @@ def vrmlfile2x3dfile(
             return False
         if not html:
             _safe_print("Writing", x3dpath)
-            with open(x3dpath, "wb") as x3dfile:
+            with open(x3dpath, "w") as x3dfile:
                 x3dfile.write(x3d.x3d())
         else:
             html = x3d.html(
                 title=os.path.basename(filename), embed=embed, force=force, cache=cache
             )
-            _safe_print("Writing", x3dpath + ".html")
-            with open(x3dpath + ".html", "wb") as htmlfile:
+            _safe_print("Writing", f"{x3dpath}.html")
+            with open(f"{x3dpath}.html", "w") as htmlfile:
                 htmlfile.write(html)
     except KeyboardInterrupt:
         x3d = False

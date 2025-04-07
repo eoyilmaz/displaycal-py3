@@ -12,7 +12,7 @@ from xml.etree import ElementTree
 from qtpy import QtCore, QtGui, QtWidgets
 
 
-ADDRESS = ("192.168.178.48", 20002)
+ADDRESS = ("localhost", 20002)
 
 # <?xml version="1.0" encoding="utf-8"?>
 # <calibration>
@@ -99,7 +99,7 @@ class Client(QtCore.QThread):
                 self.update_color.emit(color)
 
     def parse_xml_data(self, xml_data_raw:bytes) -> QtGui.QColor:
-        """Parse the xml data and reutrn the QColor."""
+        """Parse the xml data and return the QColor."""
         calibration = ElementTree.fromstring(xml_data_raw)
         color = calibration.find("color")
         red = int(color.attrib["red"])

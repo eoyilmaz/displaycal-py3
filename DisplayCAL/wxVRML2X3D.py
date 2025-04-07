@@ -224,7 +224,7 @@ def vrmlfile2x3dfile(
         config.writecfg(module="VRML-to-X3D-converter", options=("last_vrml_path",))
     filename, ext = os.path.splitext(vrmlpath)
     if x3dpath is None:
-        x3dpath = filename + ".x3d"
+        x3dpath = f"{filename}.x3d"
     if x3dpath:
         dirname = os.path.dirname(x3dpath)
     while not x3dpath or not waccess(dirname, os.W_OK):
@@ -232,7 +232,7 @@ def vrmlfile2x3dfile(
             if not x3dpath:
                 print("No HTML output filename given.")
             else:
-                print("%r is not writable." % dirname)
+                print(f"{repr(dirname)} is not writable.")
             return False
         if not wx.GetApp():
             app = BaseApp(0)
@@ -260,7 +260,7 @@ def vrmlfile2x3dfile(
         vrmlpath = make_win32_compatible_long_path(vrmlpath)
         x3dpath = make_win32_compatible_long_path(x3dpath)
     if html:
-        finalpath = x3dpath + ".html"
+        finalpath = f"{x3dpath}.html"
         if sys.platform == "win32":
             finalpath = make_win32_compatible_long_path(finalpath)
             x3dpath = finalpath[:-5]

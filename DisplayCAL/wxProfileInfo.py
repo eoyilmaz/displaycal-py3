@@ -2076,7 +2076,7 @@ class ProfileInfoFrame(LUTFrame):
                 mods.append(order)
             if mods:
                 filename = "{} {}".format(
-                    filename, "".join(["[{}]".format(mod.upper() for mod in mods)])
+                    filename, "".join(["[{}]".format(mod.upper()) for mod in mods])
                 )
             if comparison_profile_path:
                 filename += (
@@ -2088,7 +2088,7 @@ class ProfileInfoFrame(LUTFrame):
                         filename, "".join([f"[{mod.upper()}]" for mod in mods])
                     )
             for vrmlext in (".vrml", ".vrml.gz", ".wrl", ".wrl.gz", ".wrz"):
-                vrmlpath = filename + vrmlext
+                vrmlpath =  f"{filename}{vrmlext}"
                 if sys.platform == "win32":
                     vrmlpath = make_win32_compatible_long_path(vrmlpath)
                 if os.path.isfile(vrmlpath):

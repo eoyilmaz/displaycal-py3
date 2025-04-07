@@ -9766,14 +9766,19 @@ usage: spotread [-options] [logfile]
                 if resp:
                     argyll_version_string = resp.read().strip()
 
-            installer_basename = (
-                f"Argyll_V{argyll_version_string}_USB_driver_installer.exe"
-            )
-
+            installer_basename = "ArgyllCMS_install_USB.exe"
             download_dir = os.path.join(config.datahome, "dl")
-            installer = os.path.join(download_dir, installer_basename)
-
+            installer = os.path.join(
+                download_dir,
+                f"Argyll_V{argyll_version_string}",
+                "usb",
+                installer_basename,
+            )
             if not os.path.isfile(installer):
+                # Update installer_basename to the one that is used in DisplayCAL.net
+                installer_basename = (
+                    f"Argyll_V{argyll_version_string}_USB_driver_installer.exe"
+                )
                 installer_zip = self.download(
                     f"https://{DOMAIN}/Argyll/{installer_basename}.zip"
                 )

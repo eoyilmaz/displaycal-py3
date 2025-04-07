@@ -2061,6 +2061,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         res.InsertHandler(xh_bitmapctrls.BitmapButton())
         res.InsertHandler(xh_bitmapctrls.StaticBitmap())
         self.mr_settings_panel = res.LoadPanel(self.calpanel, "panel")
+        self.calpanel.Sizer.__init__()  # fixes #507
         self.calpanel.Sizer.Add(self.mr_settings_panel, 1, flag=wx.EXPAND)
 
         # Make info panels use theme color

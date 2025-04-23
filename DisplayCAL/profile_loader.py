@@ -12,9 +12,34 @@ import subprocess as sp
 import warnings
 
 
-from DisplayCAL import config
-from DisplayCAL.config import appbasename, confighome, getcfg, setcfg
+from DisplayCAL import (
+    config,
+    ICCProfile as ICCP,
+    madvr,
+)
+from DisplayCAL.config import (
+    appbasename,
+    autostart_home,
+    autostart,
+    confighome,
+    enc,
+    exe,
+    exedir,
+    get_data_path,
+    get_default_dpi,
+    get_icon_bundle,
+    getcfg,
+    geticon,
+    iccprofiles,
+    pydir,
+    setcfg,
+)
+from DisplayCAL.colord import device_id_from_edid
+from DisplayCAL.colormath import smooth_avg
+from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
+from DisplayCAL.edid import get_edid
 from DisplayCAL.meta import (
+    DOMAIN,
     VERSION,
     VERSION_BASE,
     name as appname,
@@ -22,6 +47,31 @@ from DisplayCAL.meta import (
     version_short,
 )
 from DisplayCAL.options import debug, test, verbose
+from DisplayCAL.util_list import natsort_key_factory
+from DisplayCAL.util_os import (
+    getenvu,
+    is_superuser,
+    islink,
+    quote_args,
+    readlink,
+    safe_glob,
+    which,
+)
+from DisplayCAL.util_str import safe_asciize
+from DisplayCAL.wxaddons import CustomGridCellEvent
+from DisplayCAL.wxfixes import set_bitmap_labels, ThemedGenButton
+from DisplayCAL.wxwindows import (
+    BaseApp,
+    BaseFrame,
+    ConfirmDialog,
+    CustomCellBoolRenderer,
+    CustomGrid,
+    get_dialogs,
+    InfoDialog,
+    show_result_dialog,
+    TaskBarNotification,
+    wx,
+)
 
 if sys.platform == "win32":
     import ctypes
@@ -35,40 +85,7 @@ if sys.platform == "win32":
     import winerror
     import winreg
 
-    from DisplayCAL import (
-        ICCProfile as ICCP,
-        madvr,
-    )
-    from DisplayCAL.colord import device_id_from_edid
-    from DisplayCAL.colormath import smooth_avg
-    from DisplayCAL.config import (
-        autostart,
-        autostart_home,
-        enc,
-        exe,
-        exedir,
-        get_data_path,
-        get_default_dpi,
-        get_icon_bundle,
-        geticon,
-        iccprofiles,
-        pydir,
-    )
-    from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
-    from DisplayCAL.edid import get_edid
-    from DisplayCAL.meta import DOMAIN
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
-    from DisplayCAL.util_list import natsort_key_factory
-    from DisplayCAL.util_os import (
-        getenvu,
-        is_superuser,
-        islink,
-        quote_args,
-        readlink,
-        safe_glob,
-        which,
-    )
-    from DisplayCAL.util_str import safe_asciize
     from DisplayCAL.util_win import (
         calibration_management_isenabled,
         DISPLAY_DEVICE_ACTIVE,
@@ -88,20 +105,6 @@ if sys.platform == "win32":
         USE_REGISTRY,
         win_ver,
     )
-    from DisplayCAL.wxaddons import CustomGridCellEvent
-    from DisplayCAL.wxfixes import set_bitmap_labels, ThemedGenButton
-    from DisplayCAL.wxwindows import (
-        BaseApp,
-        BaseFrame,
-        ConfirmDialog,
-        CustomCellBoolRenderer,
-        CustomGrid,
-        get_dialogs,
-        InfoDialog,
-        show_result_dialog,
-        TaskBarNotification,
-        wx,
-    )
 
     if islink(exe):
         try:
@@ -111,1094 +114,1062 @@ if sys.platform == "win32":
         else:
             exedir = os.path.dirname(exe)
 
-    def setup_profile_loader_task(exe, exedir, pydir):
-        if sys.getwindowsversion() >= (6,):
-            from DisplayCAL import taskscheduler
 
-            taskname = f"{appname} Profile Loader Launcher"
+def setup_profile_loader_task(exe, exedir, pydir):
+    print("setup_profile_loader_task start")
+    if sys.getwindowsversion() < (6,):
+        print("setup_profile_loader_task end 1")
+        return
 
-            try:
-                ts = taskscheduler.TaskScheduler()
-            except Exception as exception:
-                print("Warning - could not access task scheduler:", exception)
-            else:
-                if (
-                    "--task" not in sys.argv[1:]
-                    and is_superuser()
-                    and not ts.query_task(taskname)
+    from DisplayCAL import taskscheduler
+
+    taskname = f"{appname} Profile Loader Launcher"
+
+    try:
+        ts = taskscheduler.TaskScheduler()
+    except Exception as exception:
+        print("Warning - could not access task scheduler:", exception)
+        print("setup_profile_loader_task end 2")
+        return
+
+    if "--task" not in sys.argv[1:] and is_superuser() and not ts.query_task(taskname):
+        # Check if our task exists, and if it does not, create it.
+        # (requires admin privileges)
+        print(f"Trying to create task {taskname}...")
+        # Note that we use a stub so the task cannot be accidentally
+        # stopped (the stub launches the actual profile loader and
+        # then immediately exits)
+        loader_args = []
+        if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
+            cmd = os.path.join(exedir, "pythonw.exe")
+            pyw = os.path.normpath(
+                os.path.join(pydir, "..", f"{appname}-apply-profiles.pyw")
+            )
+            script = get_data_path(
+                "/".join(["scripts", f"{appname}-apply-profiles-launcher"])
+            )
+            if os.path.exists(pyw):
+                # Running from source or 0install
+                # Check if this is a 0install implementation, in which
+                # case we want to call 0launch with the appropriate
+                # command
+                if re.match(
+                    r"sha\d+(?:new)?",
+                    os.path.basename(os.path.dirname(pydir)),
                 ):
-                    # Check if our task exists, and if it does not, create it.
-                    # (requires admin privileges)
-                    print(f"Trying to create task {taskname}...")
-                    # Note that we use a stub so the task cannot be accidentally
-                    # stopped (the stub launches the actual profile loader and
-                    # then immediately exits)
-                    loader_args = []
-                    if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
-                        cmd = os.path.join(exedir, "pythonw.exe")
-                        pyw = os.path.normpath(
-                            os.path.join(pydir, "..", appname + "-apply-profiles.pyw")
-                        )
-                        script = get_data_path(
-                            "/".join(["scripts", appname + "-apply-profiles-launcher"])
-                        )
-                        if os.path.exists(pyw):
-                            # Running from source or 0install
-                            # Check if this is a 0install implementation, in which
-                            # case we want to call 0launch with the appropriate
-                            # command
-                            if re.match(
-                                r"sha\d+(?:new)?",
-                                os.path.basename(os.path.dirname(pydir)),
-                            ):
-                                # No stub needed as 0install-win acts as stub
-                                cmd = which("0install-win.exe") or "0install-win.exe"
-                                loader_args.extend(
-                                    [
-                                        "run",
-                                        "--batch",
-                                        "--no-wait",
-                                        "--offline",
-                                        "--command=run-apply-profiles",
-                                        "--",
-                                        f"http://{DOMAIN}/0install/{appname}.xml",
-                                        "--task",
-                                    ]
-                                )
-                            else:
-                                # Running from source
-                                loader_args.append(script)
-                        else:
-                            # Regular (site-packages) install
-                            loader_args.append(script)
-                    else:
-                        # Standalone executable
-                        cmd = os.path.join(
-                            pydir, appname + "-apply-profiles-launcher.exe"
-                        )
-                    # Start at login, restart when resuming from sleep,
-                    # restart daily at 04:00
-                    triggers = [
-                        taskscheduler.LogonTrigger(),
-                        taskscheduler.ResumeFromSleepTrigger(),
-                    ]
-                    daily = taskscheduler.CalendarTrigger(
-                        start_boundary=time.strftime("%Y-%m-%dT04:00:00"),
-                        days_interval=1,
+                    # No stub needed as 0install-win acts as stub
+                    cmd = which("0install-win.exe") or "0install-win.exe"
+                    loader_args.extend(
+                        [
+                            "run",
+                            "--batch",
+                            "--no-wait",
+                            "--offline",
+                            "--command=run-apply-profiles",
+                            "--",
+                            f"http://{DOMAIN}/0install/{appname}.xml",
+                            "--task",
+                        ]
                     )
-                    actions = [taskscheduler.ExecAction(cmd, loader_args)]
-                    try:
-                        # Create the main task
-                        created = ts.create_task(
-                            taskname,
-                            "Open Source Developer, Florian Höch",
-                            "This task launches the profile "
-                            "loader with the applicable "
-                            "privileges for logged in users",
-                            multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
-                            replace_existing=True,
-                            triggers=triggers,
-                            actions=actions,
-                        )
-                        # Create the supplementary task
-                        created = ts.create_task(
-                            taskname + " - Daily Restart",
-                            "Open Source Developer, Florian Höch",
-                            "This task restarts the profile "
-                            "loader with the applicable "
-                            "privileges for logged in users",
-                            multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
-                            replace_existing=True,
-                            triggers=[daily],
-                            actions=actions,
-                        )
-                    except Exception as exception:
-                        if debug:
-                            exception = traceback.format_exc()
-                        print(
-                            f"Warning - Could not create task {taskname}:",
-                            exception,
-                        )
-                        if ts.stdout:
-                            print(str(ts.stdout, enc))
-                    else:
-                        print(str(ts.stdout, enc))
-                        if created:
-                            # Remove autostart entries, if any
-                            name = appname + " Profile Loader"
-                            entries = []
-                            if autostart:
-                                entries.append(os.path.join(autostart, name + ".lnk"))
-                            if autostart_home:
-                                entries.append(
-                                    os.path.join(autostart_home, name + ".lnk")
-                                )
-                            for entry in entries:
-                                if os.path.isfile(entry):
-                                    print("Removing", entry)
-                                    try:
-                                        os.remove(entry)
-                                    except EnvironmentError as exception:
-                                        print(exception)
-                if "Windows 10" in win_ver()[0]:
-                    # Disable Windows Calibration Loader.
-                    # This is absolutely REQUIRED under Win10 1903 to prevent
-                    # banding and not applying calibration twice
-                    ms_cal_loader = (
-                        r"\Microsoft\Windows\WindowsColorSystem\Calibration Loader"
-                    )
-                    try:
-                        ts.disable(ms_cal_loader)
-                    except Exception as exception:
-                        print(
-                            f"Warning - Could not disable task {repr(ms_cal_loader)}:",
-                            exception,
-                        )
-                        if ts.stdout:
-                            print(str(ts.stdout))
-                    else:
-                        print(str(ts.stdout))
-
-    class DisplayIdentificationFrame(wx.Frame):
-        def __init__(self, display, pos, size):
-            wx.Frame.__init__(
-                self,
-                None,
-                pos=pos,
-                size=size,
-                style=wx.CLIP_CHILDREN
-                | wx.STAY_ON_TOP
-                | wx.FRAME_NO_TASKBAR
-                | wx.NO_BORDER,
-                name="DisplayIdentification",
-            )
-            self.SetTransparent(240)
-            self.Sizer = wx.BoxSizer()
-            panel_outer = wx.Panel(self)
-            panel_outer.BackgroundColour = "#303030"
-            panel_outer.Sizer = wx.BoxSizer()
-            self.Sizer.Add(panel_outer, 1, flag=wx.EXPAND)
-            panel_inner = wx.Panel(panel_outer)
-            panel_inner.BackgroundColour = "#0078d7"
-            panel_inner.Sizer = wx.BoxSizer()
-            panel_outer.Sizer.Add(
-                panel_inner,
-                1,
-                flag=wx.ALL | wx.EXPAND,
-                border=int(math.ceil(size[0] / 12.0 / 40)),
-            )
-            display_parts = display.split("@", 1)
-            if len(display_parts) > 1:
-                info = display_parts[1].split(" - ", 1)
-                display_parts[1] = "@" + " ".join(info[:1])
-                if info[1:]:
-                    display_parts.append(" ".join(info[1:]))
-            label = "\n".join(display_parts)
-            text = wx.StaticText(panel_inner, -1, label, style=wx.ALIGN_CENTER)
-            text.ForegroundColour = "#FFFFFF"
-            font = wx.Font(
-                text.Font.PointSize * size[0] / 12.0 / 16,
-                wx.FONTFAMILY_DEFAULT,
-                wx.FONTSTYLE_NORMAL,
-                wx.FONTWEIGHT_LIGHT,
-            )
-            if not font.SetFaceName("Segoe UI Light"):
-                font = text.Font
-                font.PointSize *= size[0] / 12.0 / 16
-                font.weight = wx.FONTWEIGHT_LIGHT
-            text.Font = font
-            panel_inner.Sizer.Add(text, 1, flag=wx.ALIGN_CENTER_VERTICAL)
-            for element in (self, panel_outer, panel_inner, text):
-                element.Bind(wx.EVT_LEFT_UP, lambda e: self.Close())
-                element.Bind(wx.EVT_MIDDLE_UP, lambda e: self.Close())
-                element.Bind(wx.EVT_RIGHT_UP, lambda e: self.Close())
-            self.Bind(
-                wx.EVT_CHAR_HOOK, lambda e: e.KeyCode == wx.WXK_ESCAPE and self.Close()
-            )
-            self.Layout()
-            self.Show()
-            self.close_timer = wx.CallLater(3000, lambda: self and self.Close())
-
-    class FixProfileAssociationsDialog(ConfirmDialog):
-        def __init__(self, pl, parent=None):
-            self.pl = pl
-            ConfirmDialog.__init__(
-                self,
-                parent,
-                msg=lang.getstr("profile_loader.fix_profile_associations_warning"),
-                title=pl.get_title(),
-                ok=lang.getstr("profile_loader.fix_profile_associations"),
-                bitmap=geticon(32, "dialog-warning"),
-                wrap=128,
-            )
-            dlg = self
-            dlg.SetIcons(
-                get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
-            )
-            scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
-            list_panel = wx.Panel(dlg, -1)
-            list_panel.BackgroundColour = wx.SystemSettings.GetColour(
-                wx.SYS_COLOUR_3DLIGHT
-            )
-            list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
-            list_ctrl = wx.ListCtrl(
-                list_panel,
-                -1,
-                style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
-                name="displays2profiles",
-            )
-            list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
-            list_ctrl.InsertColumn(0, lang.getstr("display"))
-            list_ctrl.InsertColumn(1, lang.getstr("profile"))
-            list_ctrl.SetColumnWidth(0, int(200 * scale))
-            list_ctrl.SetColumnWidth(1, int(420 * scale))
-            # Ignore item focus/selection
-            list_ctrl.Bind(
-                wx.EVT_LIST_ITEM_FOCUSED,
-                lambda e: list_ctrl.SetItemState(
-                    e.GetIndex(), 0, wx.LIST_STATE_FOCUSED
-                ),
-            )
-            list_ctrl.Bind(
-                wx.EVT_LIST_ITEM_SELECTED,
-                lambda e: list_ctrl.SetItemState(
-                    e.GetIndex(), 0, wx.LIST_STATE_SELECTED
-                ),
-            )
-            self.devices2profiles_ctrl = list_ctrl
-            dlg.sizer3.Insert(
-                0, list_panel, 1, flag=wx.BOTTOM | wx.ALIGN_LEFT, border=12
-            )
-            self.update()
-
-        def update(self, event=None):
-            self.pl._set_display_profiles(dry_run=True)
-            numdisp = min(len(self.pl.devices2profiles), 5)
-            scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
-            hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
-            size = (640 * scale, (20 * numdisp + 25 + hscroll) * scale)
-            list_ctrl = self.devices2profiles_ctrl
-            list_ctrl.MinSize = size
-            list_ctrl.DeleteAllItems()
-            for i, (display_edid, profile, desc) in enumerate(
-                self.pl.devices2profiles.values()
-            ):
-                index = list_ctrl.InsertStringItem(i, "")
-                display = display_edid[0].replace(
-                    "[PRIMARY]", lang.getstr("display.primary")
-                )
-                list_ctrl.SetStringItem(index, 0, display)
-                list_ctrl.SetStringItem(index, 1, desc)
-                if not profile:
-                    continue
-                try:
-                    profile = ICCP.ICCProfile(profile)
-                except (IOError, ICCP.ICCProfileInvalidError) as exception:
-                    pass
                 else:
-                    if isinstance(profile.tags.get("meta"), ICCP.DictType):
-                        # Check if profile mapping makes sense
-                        id1 = device_id_from_edid(display_edid[1], quirk=True)
-                        id2 = device_id_from_edid(display_edid[1], quirk=False)
-                        if profile.tags.meta.getvalue("MAPPING_device_id") not in (
-                            id1,
-                            id2,
-                        ):
-                            list_ctrl.SetItemTextColour(index, "#FF8000")
-            self.sizer0.SetSizeHints(self)
-            self.sizer0.Layout()
-            if event and not self.IsActive():
-                self.RequestUserAttention()
-
-    class ProfileLoaderExceptionsDialog(ConfirmDialog):
-        def __init__(self, exceptions, known_apps=None):
-            if known_apps is None:
-                known_apps = set()
-            self._exceptions = {}
-            self.known_apps = known_apps
-            scale = getcfg("app.dpi") / config.get_default_dpi()
-            if scale < 1:
-                scale = 1
-            ConfirmDialog.__init__(
-                self,
-                None,
-                title=lang.getstr("exceptions"),
-                ok=lang.getstr("ok"),
-                cancel=lang.getstr("cancel"),
-                wrap=120,
-            )
-
-            dlg = self
-
-            dlg.SetIcons(
-                config.get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
-            )
-
-            dlg.delete_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("delete"))
-            dlg.sizer2.Insert(0, (12, 12))
-            dlg.sizer2.Insert(0, dlg.delete_btn)
-            dlg.delete_btn.Bind(wx.EVT_BUTTON, dlg.delete_handler)
-
-            dlg.browse_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("browse"))
-            dlg.sizer2.Insert(0, (12, 12))
-            dlg.sizer2.Insert(0, dlg.browse_btn)
-            dlg.browse_btn.Bind(wx.EVT_BUTTON, dlg.browse_handler)
-
-            dlg.add_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("add"))
-            dlg.sizer2.Insert(0, (12, 12))
-            dlg.sizer2.Insert(0, dlg.add_btn)
-            dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.browse_handler)
-
-            if "gtk3" in wx.PlatformInfo:
-                style = wx.BORDER_SIMPLE
+                    # Running from source
+                    loader_args.append(script)
             else:
-                style = wx.BORDER_THEME
-            dlg.grid = CustomGrid(dlg, -1, size=(648 * scale, 200 * scale), style=style)
-            grid = dlg.grid
-            grid.DisableDragRowSize()
-            grid.SetCellHighlightPenWidth(0)
-            grid.SetCellHighlightROPenWidth(0)
-            grid.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTER)
-            grid.SetMargins(0, 0)
-            grid.SetRowLabelAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-            grid.SetScrollRate(5, 5)
-            grid.draw_horizontal_grid_lines = False
-            grid.draw_vertical_grid_lines = False
-            grid.CreateGrid(0, 4)
-            grid.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
-            font = grid.GetDefaultCellFont()
-            if font.PointSize > 11:
-                font.PointSize = 11
-                grid.SetDefaultCellFont(font)
-            grid.SetColLabelSize(int(round(self.grid.GetDefaultRowSize() * 1.4)))
-            dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-            dc.SetFont(grid.GetLabelFont())
-            grid.SetRowLabelSize(
-                max(dc.GetTextExtent("99")[0], grid.GetDefaultRowSize())
+                # Regular (site-packages) install
+                loader_args.append(script)
+        else:
+            # Standalone executable
+            cmd = os.path.join(pydir, f"{appname}-apply-profiles-launcher.exe")
+        # Start at login, restart when resuming from sleep,
+        # restart daily at 04:00
+        triggers = [
+            taskscheduler.LogonTrigger(),
+            taskscheduler.ResumeFromSleepTrigger(),
+        ]
+        daily = taskscheduler.CalendarTrigger(
+            start_boundary=time.strftime("%Y-%m-%dT04:00:00"),
+            days_interval=1,
+        )
+        actions = [taskscheduler.ExecAction(cmd, loader_args)]
+        try:
+            # Create the main task
+            created = ts.create_task(
+                taskname,
+                "Open Source Developer, Florian Höch",
+                "This task launches the profile "
+                "loader with the applicable "
+                "privileges for logged in users",
+                multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
+                replace_existing=True,
+                triggers=triggers,
+                actions=actions,
             )
-            for i in range(grid.GetNumberCols()):
-                if i > 1:
-                    attr = wx.grid.GridCellAttr()
-                    attr.SetReadOnly(True)
-                    grid.SetColAttr(i, attr)
-                if i == 0:
-                    # On/off checkbox
-                    size = 22 * scale
-                elif i == 1:
-                    # Profile loader state icon
-                    size = 22 * scale
-                elif i == 2:
-                    # Executable basename
-                    size = dc.GetTextExtent("W" * 12)[0]
-                else:
-                    # Directory component
-                    size = dc.GetTextExtent("W" * 34)[0]
-                grid.SetColSize(i, size)
-            for i, label in enumerate(["", "", "executable", "directory"]):
-                grid.SetColLabelValue(i, lang.getstr(label))
-
-            # On/off checkbox
-            attr = wx.grid.GridCellAttr()
-            renderer = CustomCellBoolRenderer()
-            renderer._bitmap_unchecked = config.geticon(16, "empty")
-            attr.SetRenderer(renderer)
-            grid.SetColAttr(0, attr)
-
-            # Profile loader state icon
-            attr = wx.grid.GridCellAttr()
-            renderer = CustomCellBoolRenderer()
-            renderer._bitmap = config.geticon(16, "apply-profiles-reset")
-            bitmap = renderer._bitmap
-            image = bitmap.ConvertToImage().ConvertToGreyscale(0.75, 0.125, 0.125)
-            renderer._bitmap_unchecked = image.ConvertToBitmap()
-            attr.SetRenderer(renderer)
-            grid.SetColAttr(1, attr)
-
-            attr = wx.grid.GridCellAttr()
-            attr.SetRenderer(wx.grid.GridCellStringRenderer())
-            grid.SetColAttr(2, attr)
-
-            attr = wx.grid.GridCellAttr()
-            attr.SetRenderer(wx.grid.GridCellStringRenderer())
-            grid.SetColAttr(3, attr)
-
-            grid.EnableGridLines(False)
-
-            grid.BeginBatch()
-            for i, (key, (enabled, reset, path)) in enumerate(
-                sorted(exceptions.items())
-            ):
-                grid.AppendRows(1)
-                grid.SetRowLabelValue(i, "{:d}".format(i + 1))
-                grid.SetCellValue(i, 0, "1" if enabled else "")
-                grid.SetCellValue(i, 1, "1" if reset else "")
-                grid.SetCellValue(i, 2, os.path.basename(path))
-                grid.SetCellValue(i, 3, os.path.dirname(path))
-                self._exceptions[key] = enabled, reset, path
-            grid.EndBatch()
-
-            grid.Bind(wx.EVT_KEY_DOWN, dlg.key_handler)
-            grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, dlg.cell_click_handler)
-            grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, dlg.cell_dclick_handler)
-            grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, dlg.cell_select_handler)
-
-            dlg.sizer3.Add(grid, 1, flag=wx.LEFT | wx.ALIGN_LEFT, border=12)
-
-            # Legend
-            sizer = wx.FlexGridSizer(2, 2, 3, 1)
-            sizer.Add(wx.StaticBitmap(dlg, -1, renderer._bitmap_unchecked))
-            sizer.Add(
-                wx.StaticText(dlg, -1, " = " + lang.getstr("profile_loader.disable"))
+            # Create the supplementary task
+            created = ts.create_task(
+                f"{taskname} - Daily Restart",
+                "Open Source Developer, Florian Höch",
+                "This task restarts the profile "
+                "loader with the applicable "
+                "privileges for logged in users",
+                multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
+                replace_existing=True,
+                triggers=[daily],
+                actions=actions,
             )
-            sizer.Add(wx.StaticBitmap(dlg, -1, renderer._bitmap))
-            sizer.Add(wx.StaticText(dlg, -1, " = " + lang.getstr("calibration.reset")))
-
-            dlg.sizer3.Add(sizer, 1, flag=wx.LEFT | wx.TOP | wx.ALIGN_LEFT, border=12)
-
-            dlg.buttonpanel.Layout()
-            dlg.sizer0.SetSizeHints(dlg)
-            dlg.sizer0.Layout()
-
-            # This workaround is needed to update cell colours
-            grid.SelectAll()
-            grid.ClearSelection()
-
-            self.check_select_status()
-            dlg.ok.Disable()
-
-            dlg.Center()
-
-        def _get_path(self, row):
-            return os.path.join(
-                self.grid.GetCellValue(row, 3), self.grid.GetCellValue(row, 2)
+        except Exception as exception:
+            if debug:
+                exception = traceback.format_exc()
+            print(
+                f"Warning - Could not create task {taskname}:",
+                exception,
             )
+            if ts.stdout:
+                print(str(ts.stdout, enc))
+        else:
+            print(str(ts.stdout, enc))
+            if created:
+                # Remove autostart entries, if any
+                name = f"{appname} Profile Loader"
+                entries = []
+                if autostart:
+                    entries.append(os.path.join(autostart, f"{name}.lnk"))
+                if autostart_home:
+                    entries.append(os.path.join(autostart_home, f"{name}.lnk"))
+                for entry in entries:
+                    if os.path.isfile(entry):
+                        print("Removing", entry)
+                        try:
+                            os.remove(entry)
+                        except EnvironmentError as exception:
+                            print(exception)
 
-        def _update_exception(self, row):
-            path = self._get_path(row)
-            enabled = int(self.grid.GetCellValue(row, 0) or 0)
-            reset = int(self.grid.GetCellValue(row, 1) or 0)
-            self._exceptions[path.lower()] = enabled, reset, path
+    if "Windows 10" not in win_ver()[0]:
+        print("setup_profile_loader_task end 3")
+        return
 
-        def cell_click_handler(self, event):
-            if event.Col < 2:
-                if self.grid.GetCellValue(event.Row, event.Col):
-                    value = ""
-                else:
-                    value = "1"
-                self.grid.SetCellValue(event.Row, event.Col, value)
-                self._update_exception(event.Row)
-                self.ok.Enable()
+    # Disable Windows Calibration Loader.
+    # This is absolutely REQUIRED under Win10 1903 to prevent
+    # banding and not applying calibration twice
+    ms_cal_loader = r"\Microsoft\Windows\WindowsColorSystem\Calibration Loader"
+    try:
+        ts.disable(ms_cal_loader)
+    except Exception as exception:
+        print(
+            f"Warning - Could not disable task {repr(ms_cal_loader)}:",
+            exception,
+        )
+        if ts.stdout:
+            print(str(ts.stdout))
+    else:
+        print(str(ts.stdout))
+    print("setup_profile_loader_task end 4")
+
+
+class DisplayIdentificationFrame(wx.Frame):
+    def __init__(self, display, pos, size):
+        wx.Frame.__init__(
+            self,
+            None,
+            pos=pos,
+            size=size,
+            style=wx.CLIP_CHILDREN
+            | wx.STAY_ON_TOP
+            | wx.FRAME_NO_TASKBAR
+            | wx.NO_BORDER,
+            name="DisplayIdentification",
+        )
+        self.SetTransparent(240)
+        self.Sizer = wx.BoxSizer()
+        panel_outer = wx.Panel(self)
+        panel_outer.BackgroundColour = "#303030"
+        panel_outer.Sizer = wx.BoxSizer()
+        self.Sizer.Add(panel_outer, 1, flag=wx.EXPAND)
+        panel_inner = wx.Panel(panel_outer)
+        panel_inner.BackgroundColour = "#0078d7"
+        panel_inner.Sizer = wx.BoxSizer()
+        panel_outer.Sizer.Add(
+            panel_inner,
+            1,
+            flag=wx.ALL | wx.EXPAND,
+            border=int(math.ceil(size[0] / 12.0 / 40)),
+        )
+        display_parts = display.split("@", 1)
+        if len(display_parts) > 1:
+            info = display_parts[1].split(" - ", 1)
+            display_parts[1] = "@" + " ".join(info[:1])
+            if info[1:]:
+                display_parts.append(" ".join(info[1:]))
+        label = "\n".join(display_parts)
+        text = wx.StaticText(panel_inner, -1, label, style=wx.ALIGN_CENTER)
+        text.ForegroundColour = "#FFFFFF"
+        font = wx.Font(
+            text.Font.PointSize * size[0] / 12.0 / 16,
+            wx.FONTFAMILY_DEFAULT,
+            wx.FONTSTYLE_NORMAL,
+            wx.FONTWEIGHT_LIGHT,
+        )
+        if not font.SetFaceName("Segoe UI Light"):
+            font = text.Font
+            font.PointSize *= size[0] / 12.0 / 16
+            font.weight = wx.FONTWEIGHT_LIGHT
+        text.Font = font
+        panel_inner.Sizer.Add(text, 1, flag=wx.ALIGN_CENTER_VERTICAL)
+        for element in (self, panel_outer, panel_inner, text):
+            element.Bind(wx.EVT_LEFT_UP, lambda e: self.Close())
+            element.Bind(wx.EVT_MIDDLE_UP, lambda e: self.Close())
+            element.Bind(wx.EVT_RIGHT_UP, lambda e: self.Close())
+        self.Bind(
+            wx.EVT_CHAR_HOOK, lambda e: e.KeyCode == wx.WXK_ESCAPE and self.Close()
+        )
+        self.Layout()
+        self.Show()
+        self.close_timer = wx.CallLater(3000, lambda: self and self.Close())
+
+
+class FixProfileAssociationsDialog(ConfirmDialog):
+    def __init__(self, pl, parent=None):
+        self.pl = pl
+        ConfirmDialog.__init__(
+            self,
+            parent,
+            msg=lang.getstr("profile_loader.fix_profile_associations_warning"),
+            title=pl.get_title(),
+            ok=lang.getstr("profile_loader.fix_profile_associations"),
+            bitmap=geticon(32, "dialog-warning"),
+            wrap=128,
+        )
+        dlg = self
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        scale = getcfg("app.dpi") / get_default_dpi()
+        if scale < 1:
+            scale = 1
+        list_panel = wx.Panel(dlg, -1)
+        list_panel.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
+        list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
+        list_ctrl = wx.ListCtrl(
+            list_panel,
+            -1,
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
+            name="displays2profiles",
+        )
+        list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
+        list_ctrl.InsertColumn(0, lang.getstr("display"))
+        list_ctrl.InsertColumn(1, lang.getstr("profile"))
+        list_ctrl.SetColumnWidth(0, int(200 * scale))
+        list_ctrl.SetColumnWidth(1, int(420 * scale))
+        # Ignore item focus/selection
+        list_ctrl.Bind(
+            wx.EVT_LIST_ITEM_FOCUSED,
+            lambda e: list_ctrl.SetItemState(e.GetIndex(), 0, wx.LIST_STATE_FOCUSED),
+        )
+        list_ctrl.Bind(
+            wx.EVT_LIST_ITEM_SELECTED,
+            lambda e: list_ctrl.SetItemState(e.GetIndex(), 0, wx.LIST_STATE_SELECTED),
+        )
+        self.devices2profiles_ctrl = list_ctrl
+        dlg.sizer3.Insert(0, list_panel, 1, flag=wx.BOTTOM | wx.ALIGN_LEFT, border=12)
+        self.update()
+
+    def update(self, event=None):
+        self.pl._set_display_profiles(dry_run=True)
+        numdisp = min(len(self.pl.devices2profiles), 5)
+        scale = getcfg("app.dpi") / get_default_dpi()
+        if scale < 1:
+            scale = 1
+        hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
+        size = (640 * scale, (20 * numdisp + 25 + hscroll) * scale)
+        list_ctrl = self.devices2profiles_ctrl
+        list_ctrl.MinSize = size
+        list_ctrl.DeleteAllItems()
+        for i, (display_edid, profile, desc) in enumerate(
+            self.pl.devices2profiles.values()
+        ):
+            index = list_ctrl.InsertStringItem(i, "")
+            display = display_edid[0].replace(
+                "[PRIMARY]", lang.getstr("display.primary")
+            )
+            list_ctrl.SetStringItem(index, 0, display)
+            list_ctrl.SetStringItem(index, 1, desc)
+            if not profile:
+                continue
+            try:
+                profile = ICCP.ICCProfile(profile)
+            except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                pass
+            else:
+                if isinstance(profile.tags.get("meta"), ICCP.DictType):
+                    # Check if profile mapping makes sense
+                    id1 = device_id_from_edid(display_edid[1], quirk=True)
+                    id2 = device_id_from_edid(display_edid[1], quirk=False)
+                    if profile.tags.meta.getvalue("MAPPING_device_id") not in (
+                        id1,
+                        id2,
+                    ):
+                        list_ctrl.SetItemTextColour(index, "#FF8000")
+        self.sizer0.SetSizeHints(self)
+        self.sizer0.Layout()
+        if event and not self.IsActive():
+            self.RequestUserAttention()
+
+
+class ProfileLoaderExceptionsDialog(ConfirmDialog):
+    def __init__(self, exceptions, known_apps=None):
+        if known_apps is None:
+            known_apps = set()
+        self._exceptions = {}
+        self.known_apps = known_apps
+        scale = getcfg("app.dpi") / config.get_default_dpi()
+        if scale < 1:
+            scale = 1
+        ConfirmDialog.__init__(
+            self,
+            None,
+            title=lang.getstr("exceptions"),
+            ok=lang.getstr("ok"),
+            cancel=lang.getstr("cancel"),
+            wrap=120,
+        )
+
+        dlg = self
+
+        dlg.SetIcons(
+            config.get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
+        )
+
+        dlg.delete_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("delete"))
+        dlg.sizer2.Insert(0, (12, 12))
+        dlg.sizer2.Insert(0, dlg.delete_btn)
+        dlg.delete_btn.Bind(wx.EVT_BUTTON, dlg.delete_handler)
+
+        dlg.browse_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("browse"))
+        dlg.sizer2.Insert(0, (12, 12))
+        dlg.sizer2.Insert(0, dlg.browse_btn)
+        dlg.browse_btn.Bind(wx.EVT_BUTTON, dlg.browse_handler)
+
+        dlg.add_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("add"))
+        dlg.sizer2.Insert(0, (12, 12))
+        dlg.sizer2.Insert(0, dlg.add_btn)
+        dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.browse_handler)
+
+        if "gtk3" in wx.PlatformInfo:
+            style = wx.BORDER_SIMPLE
+        else:
+            style = wx.BORDER_THEME
+        dlg.grid = CustomGrid(dlg, -1, size=(648 * scale, 200 * scale), style=style)
+        grid = dlg.grid
+        grid.DisableDragRowSize()
+        grid.SetCellHighlightPenWidth(0)
+        grid.SetCellHighlightROPenWidth(0)
+        grid.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTER)
+        grid.SetMargins(0, 0)
+        grid.SetRowLabelAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
+        grid.SetScrollRate(5, 5)
+        grid.draw_horizontal_grid_lines = False
+        grid.draw_vertical_grid_lines = False
+        grid.CreateGrid(0, 4)
+        grid.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
+        font = grid.GetDefaultCellFont()
+        if font.PointSize > 11:
+            font.PointSize = 11
+            grid.SetDefaultCellFont(font)
+        grid.SetColLabelSize(int(round(self.grid.GetDefaultRowSize() * 1.4)))
+        dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
+        dc.SetFont(grid.GetLabelFont())
+        grid.SetRowLabelSize(max(dc.GetTextExtent("99")[0], grid.GetDefaultRowSize()))
+        for i in range(grid.GetNumberCols()):
+            if i > 1:
+                attr = wx.grid.GridCellAttr()
+                attr.SetReadOnly(True)
+                grid.SetColAttr(i, attr)
+            if i == 0:
+                # On/off checkbox
+                size = 22 * scale
+            elif i == 1:
+                # Profile loader state icon
+                size = 22 * scale
+            elif i == 2:
+                # Executable basename
+                size = dc.GetTextExtent("W" * 12)[0]
+            else:
+                # Directory component
+                size = dc.GetTextExtent("W" * 34)[0]
+            grid.SetColSize(i, size)
+        for i, label in enumerate(["", "", "executable", "directory"]):
+            grid.SetColLabelValue(i, lang.getstr(label))
+
+        # On/off checkbox
+        attr = wx.grid.GridCellAttr()
+        renderer = CustomCellBoolRenderer()
+        renderer._bitmap_unchecked = config.geticon(16, "empty")
+        attr.SetRenderer(renderer)
+        grid.SetColAttr(0, attr)
+
+        # Profile loader state icon
+        attr = wx.grid.GridCellAttr()
+        renderer = CustomCellBoolRenderer()
+        renderer._bitmap = config.geticon(16, "apply-profiles-reset")
+        bitmap = renderer._bitmap
+        image = bitmap.ConvertToImage().ConvertToGreyscale(0.75, 0.125, 0.125)
+        renderer._bitmap_unchecked = image.ConvertToBitmap()
+        attr.SetRenderer(renderer)
+        grid.SetColAttr(1, attr)
+
+        attr = wx.grid.GridCellAttr()
+        attr.SetRenderer(wx.grid.GridCellStringRenderer())
+        grid.SetColAttr(2, attr)
+
+        attr = wx.grid.GridCellAttr()
+        attr.SetRenderer(wx.grid.GridCellStringRenderer())
+        grid.SetColAttr(3, attr)
+
+        grid.EnableGridLines(False)
+
+        grid.BeginBatch()
+        for i, (key, (enabled, reset, path)) in enumerate(sorted(exceptions.items())):
+            grid.AppendRows(1)
+            grid.SetRowLabelValue(i, "{:d}".format(i + 1))
+            grid.SetCellValue(i, 0, "1" if enabled else "")
+            grid.SetCellValue(i, 1, "1" if reset else "")
+            grid.SetCellValue(i, 2, os.path.basename(path))
+            grid.SetCellValue(i, 3, os.path.dirname(path))
+            self._exceptions[key] = enabled, reset, path
+        grid.EndBatch()
+
+        grid.Bind(wx.EVT_KEY_DOWN, dlg.key_handler)
+        grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, dlg.cell_click_handler)
+        grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, dlg.cell_dclick_handler)
+        grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, dlg.cell_select_handler)
+
+        dlg.sizer3.Add(grid, 1, flag=wx.LEFT | wx.ALIGN_LEFT, border=12)
+
+        # Legend
+        sizer = wx.FlexGridSizer(2, 2, 3, 1)
+        sizer.Add(wx.StaticBitmap(dlg, -1, renderer._bitmap_unchecked))
+        sizer.Add(wx.StaticText(dlg, -1, " = " + lang.getstr("profile_loader.disable")))
+        sizer.Add(wx.StaticBitmap(dlg, -1, renderer._bitmap))
+        sizer.Add(wx.StaticText(dlg, -1, " = " + lang.getstr("calibration.reset")))
+
+        dlg.sizer3.Add(sizer, 1, flag=wx.LEFT | wx.TOP | wx.ALIGN_LEFT, border=12)
+
+        dlg.buttonpanel.Layout()
+        dlg.sizer0.SetSizeHints(dlg)
+        dlg.sizer0.Layout()
+
+        # This workaround is needed to update cell colours
+        grid.SelectAll()
+        grid.ClearSelection()
+
+        self.check_select_status()
+        dlg.ok.Disable()
+
+        dlg.Center()
+
+    def _get_path(self, row):
+        return os.path.join(
+            self.grid.GetCellValue(row, 3), self.grid.GetCellValue(row, 2)
+        )
+
+    def _update_exception(self, row):
+        path = self._get_path(row)
+        enabled = int(self.grid.GetCellValue(row, 0) or 0)
+        reset = int(self.grid.GetCellValue(row, 1) or 0)
+        self._exceptions[path.lower()] = enabled, reset, path
+
+    def cell_click_handler(self, event):
+        if event.Col < 2:
+            if self.grid.GetCellValue(event.Row, event.Col):
+                value = ""
+            else:
+                value = "1"
+            self.grid.SetCellValue(event.Row, event.Col, value)
+            self._update_exception(event.Row)
+            self.ok.Enable()
+        event.Skip()
+
+    def cell_dclick_handler(self, event):
+        if event.Col > 1:
+            self.browse_handler(event)
+        else:
+            self.cell_click_handler(event)
+
+    def cell_select_handler(self, event):
+        event.Skip()
+        wx.CallAfter(self.check_select_status)
+
+    def check_select_status(self):
+        rows = self.grid.GetSelectedRows()
+        self.browse_btn.Enable(len(rows) == 1)
+        self.delete_btn.Enable(bool(rows))
+
+    def key_handler(self, event):
+        dlg = self
+        if event.KeyCode == wx.WXK_SPACE:
+            dlg.cell_click_handler(
+                CustomGridCellEvent(
+                    wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
+                    dlg.grid,
+                    dlg.grid.GridCursorRow,
+                    dlg.grid.GridCursorCol,
+                )
+            )
+        elif event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE):
+            self.delete_handler(None)
+        else:
             event.Skip()
 
-        def cell_dclick_handler(self, event):
-            if event.Col > 1:
-                self.browse_handler(event)
-            else:
-                self.cell_click_handler(event)
-
-        def cell_select_handler(self, event):
-            event.Skip()
-            wx.CallAfter(self.check_select_status)
-
-        def check_select_status(self):
-            rows = self.grid.GetSelectedRows()
-            self.browse_btn.Enable(len(rows) == 1)
-            self.delete_btn.Enable(bool(rows))
-
-        def key_handler(self, event):
-            dlg = self
-            if event.KeyCode == wx.WXK_SPACE:
-                dlg.cell_click_handler(
-                    CustomGridCellEvent(
-                        wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
-                        dlg.grid,
-                        dlg.grid.GridCursorRow,
-                        dlg.grid.GridCursorCol,
+    def browse_handler(self, event):
+        if event.GetId() == self.add_btn.Id:
+            lstr = "add"
+            defaultDir = getenvu("ProgramW6432") or getenvu("ProgramFiles")
+            defaultFile = ""
+        else:
+            lstr = "browse"
+            row = self.grid.GetSelectedRows()[0]
+            defaultDir = self.grid.GetCellValue(row, 3)
+            defaultFile = self.grid.GetCellValue(row, 2)
+        dlg = wx.FileDialog(
+            self,
+            lang.getstr(lstr),
+            defaultDir=defaultDir,
+            defaultFile=defaultFile,
+            wildcard="*.exe",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        )
+        dlg.Center(wx.BOTH)
+        result = dlg.ShowModal()
+        path = dlg.GetPath()
+        dlg.Destroy()
+        if result == wx.ID_OK:
+            if os.path.basename(path).lower() in self.known_apps:
+                show_result_dialog(
+                    UnloggedError(
+                        lang.getstr(
+                            "profile_loader.exceptions.known_app.error",
+                            os.path.basename(path),
+                        )
                     )
                 )
-            elif event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE):
-                self.delete_handler(None)
-            else:
-                event.Skip()
-
-        def browse_handler(self, event):
+                return
             if event.GetId() == self.add_btn.Id:
-                lstr = "add"
-                defaultDir = getenvu("ProgramW6432") or getenvu("ProgramFiles")
-                defaultFile = ""
-            else:
-                lstr = "browse"
-                row = self.grid.GetSelectedRows()[0]
-                defaultDir = self.grid.GetCellValue(row, 3)
-                defaultFile = self.grid.GetCellValue(row, 2)
-            dlg = wx.FileDialog(
-                self,
-                lang.getstr(lstr),
-                defaultDir=defaultDir,
-                defaultFile=defaultFile,
-                wildcard="*.exe",
-                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-            )
-            dlg.Center(wx.BOTH)
-            result = dlg.ShowModal()
-            path = dlg.GetPath()
-            dlg.Destroy()
-            if result == wx.ID_OK:
-                if os.path.basename(path).lower() in self.known_apps:
-                    show_result_dialog(
-                        UnloggedError(
-                            lang.getstr(
-                                "profile_loader.exceptions.known_app.error",
-                                os.path.basename(path),
-                            )
+                # If it already exists, select the respective row
+                if path.lower() in self._exceptions:
+                    for row in range(self.grid.GetNumberRows()):
+                        exception = os.path.join(
+                            self.grid.GetCellValue(row, 3),
+                            self.grid.GetCellValue(row, 2),
                         )
-                    )
-                    return
-                if event.GetId() == self.add_btn.Id:
-                    # If it already exists, select the respective row
-                    if path.lower() in self._exceptions:
-                        for row in range(self.grid.GetNumberRows()):
-                            exception = os.path.join(
-                                self.grid.GetCellValue(row, 3),
-                                self.grid.GetCellValue(row, 2),
-                            )
-                            if exception.lower() == path.lower():
-                                break
-                    else:
-                        # Add new row
-                        self.grid.AppendRows(1)
-                        row = self.grid.GetNumberRows() - 1
-                        self.grid.SetCellValue(row, 0, "1")
-                        self.grid.SetCellValue(row, 1, "")
-                        self._exceptions[path.lower()] = 1, 0, path
-                self.grid.SetCellValue(row, 2, os.path.basename(path))
-                self.grid.SetCellValue(row, 3, os.path.dirname(path))
-                self._update_exception(row)
-                self.grid.SelectRow(row)
-                self.check_select_status()
-                self.grid.MakeCellVisible(row, 0)
-                self.ok.Enable()
-
-        def delete_handler(self, event):
-            for row in sorted(self.grid.GetSelectedRows(), reverse=True):
-                del self._exceptions[self._get_path(row).lower()]
-                self.grid.DeleteRows(row)
+                        if exception.lower() == path.lower():
+                            break
+                else:
+                    # Add new row
+                    self.grid.AppendRows(1)
+                    row = self.grid.GetNumberRows() - 1
+                    self.grid.SetCellValue(row, 0, "1")
+                    self.grid.SetCellValue(row, 1, "")
+                    self._exceptions[path.lower()] = 1, 0, path
+            self.grid.SetCellValue(row, 2, os.path.basename(path))
+            self.grid.SetCellValue(row, 3, os.path.dirname(path))
+            self._update_exception(row)
+            self.grid.SelectRow(row)
             self.check_select_status()
+            self.grid.MakeCellVisible(row, 0)
             self.ok.Enable()
 
-    class ProfileAssociationsDialog(InfoDialog):
-        def __init__(self, pl):
-            self.monitors = []
-            self.pl = pl
-            self.profile_info = {}
-            self.profiles = []
-            self.current_user = False
-            self.display_identification_frames = {}
-            InfoDialog.__init__(
-                self,
-                None,
-                msg="",
-                title=lang.getstr("profile_associations"),
-                ok=lang.getstr("close"),
-                bitmap=geticon(32, "display"),
-                show=False,
-                log=False,
-                wrap=128,
+    def delete_handler(self, event):
+        for row in sorted(self.grid.GetSelectedRows(), reverse=True):
+            del self._exceptions[self._get_path(row).lower()]
+            self.grid.DeleteRows(row)
+        self.check_select_status()
+        self.ok.Enable()
+
+
+class ProfileAssociationsDialog(InfoDialog):
+    def __init__(self, pl):
+        self.monitors = []
+        self.pl = pl
+        self.profile_info = {}
+        self.profiles = []
+        self.current_user = False
+        self.display_identification_frames = {}
+        InfoDialog.__init__(
+            self,
+            None,
+            msg="",
+            title=lang.getstr("profile_associations"),
+            ok=lang.getstr("close"),
+            bitmap=geticon(32, "display"),
+            show=False,
+            log=False,
+            wrap=128,
+        )
+        dlg = self
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        dlg.message.Hide()
+        dlg.set_as_default_btn = wx.Button(
+            dlg.buttonpanel, -1, lang.getstr("set_as_default")
+        )
+        dlg.sizer2.Insert(1, dlg.set_as_default_btn, flag=wx.RIGHT, border=12)
+        dlg.set_as_default_btn.Bind(wx.EVT_BUTTON, dlg.set_as_default)
+        dlg.set_as_default_btn.Disable()
+        dlg.profile_info_btn = wx.Button(
+            dlg.buttonpanel, -1, lang.getstr("profile.info")
+        )
+        dlg.sizer2.Insert(
+            0,
+            dlg.profile_info_btn,
+            flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+            border=12,
+        )
+        dlg.profile_info_btn.Bind(wx.EVT_BUTTON, dlg.show_profile_info)
+        dlg.profile_info_btn.Disable()
+        dlg.remove_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("remove"))
+        dlg.sizer2.Insert(0, dlg.remove_btn, flag=wx.RIGHT | wx.LEFT, border=12)
+        dlg.remove_btn.Bind(wx.EVT_BUTTON, dlg.remove_profile)
+        dlg.remove_btn.Disable()
+        dlg.add_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("add"))
+        dlg.sizer2.Insert(0, dlg.add_btn, flag=wx.LEFT, border=32 + 12)
+        dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.add_profile)
+        dlg.add_btn.Disable()
+        scale = getcfg("app.dpi") / get_default_dpi()
+        if scale < 1:
+            scale = 1
+        dlg.display_ctrl = wx.Choice(dlg, -1)
+        dlg.display_ctrl.Bind(wx.EVT_CHOICE, dlg.update_profiles)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        dlg.sizer3.Add(hsizer, 1, flag=wx.ALIGN_LEFT | wx.EXPAND | wx.TOP, border=5)
+        hsizer.Add(dlg.display_ctrl, 1, wx.ALIGN_CENTER_VERTICAL)
+        dlg.display_ctrl.Disable()
+        dlg.identify_btn = ThemedGenButton(dlg, -1, lang.getstr("displays.identify"))
+        dlg.identify_btn.MinSize = -1, dlg.display_ctrl.Size[1] + 2
+        dlg.identify_btn.Bind(wx.EVT_BUTTON, dlg.identify_displays)
+        hsizer.Add(dlg.identify_btn, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8)
+        dlg.identify_btn.Disable()
+        if sys.getwindowsversion() >= (6,):
+            hsizer = wx.BoxSizer(wx.HORIZONTAL)
+            dlg.sizer3.Add(hsizer, flag=wx.ALIGN_LEFT | wx.EXPAND)
+            dlg.use_my_settings_cb = wx.CheckBox(
+                dlg, -1, lang.getstr("profile_associations.use_my_settings")
             )
-            dlg = self
-            dlg.SetIcons(
-                get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
-            )
-            dlg.message.Hide()
-            dlg.set_as_default_btn = wx.Button(
-                dlg.buttonpanel, -1, lang.getstr("set_as_default")
-            )
-            dlg.sizer2.Insert(1, dlg.set_as_default_btn, flag=wx.RIGHT, border=12)
-            dlg.set_as_default_btn.Bind(wx.EVT_BUTTON, dlg.set_as_default)
-            dlg.set_as_default_btn.Disable()
-            dlg.profile_info_btn = wx.Button(
-                dlg.buttonpanel, -1, lang.getstr("profile.info")
-            )
-            dlg.sizer2.Insert(
-                0,
-                dlg.profile_info_btn,
-                flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+            dlg.use_my_settings_cb.Bind(wx.EVT_CHECKBOX, self.use_my_settings)
+            hsizer.Add(
+                dlg.use_my_settings_cb,
+                flag=wx.TOP | wx.BOTTOM | wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL,
                 border=12,
             )
-            dlg.profile_info_btn.Bind(wx.EVT_BUTTON, dlg.show_profile_info)
-            dlg.profile_info_btn.Disable()
-            dlg.remove_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("remove"))
-            dlg.sizer2.Insert(0, dlg.remove_btn, flag=wx.RIGHT | wx.LEFT, border=12)
-            dlg.remove_btn.Bind(wx.EVT_BUTTON, dlg.remove_profile)
-            dlg.remove_btn.Disable()
-            dlg.add_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("add"))
-            dlg.sizer2.Insert(0, dlg.add_btn, flag=wx.LEFT, border=32 + 12)
-            dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.add_profile)
-            dlg.add_btn.Disable()
-            scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
-            dlg.display_ctrl = wx.Choice(dlg, -1)
-            dlg.display_ctrl.Bind(wx.EVT_CHOICE, dlg.update_profiles)
-            hsizer = wx.BoxSizer(wx.HORIZONTAL)
-            dlg.sizer3.Add(hsizer, 1, flag=wx.ALIGN_LEFT | wx.EXPAND | wx.TOP, border=5)
-            hsizer.Add(dlg.display_ctrl, 1, wx.ALIGN_CENTER_VERTICAL)
-            dlg.display_ctrl.Disable()
-            dlg.identify_btn = ThemedGenButton(
-                dlg, -1, lang.getstr("displays.identify")
-            )
-            dlg.identify_btn.MinSize = -1, dlg.display_ctrl.Size[1] + 2
-            dlg.identify_btn.Bind(wx.EVT_BUTTON, dlg.identify_displays)
-            hsizer.Add(
-                dlg.identify_btn, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8
-            )
-            dlg.identify_btn.Disable()
-            if sys.getwindowsversion() >= (6,):
-                hsizer = wx.BoxSizer(wx.HORIZONTAL)
-                dlg.sizer3.Add(hsizer, flag=wx.ALIGN_LEFT | wx.EXPAND)
-                dlg.use_my_settings_cb = wx.CheckBox(
-                    dlg, -1, lang.getstr("profile_associations.use_my_settings")
-                )
-                dlg.use_my_settings_cb.Bind(wx.EVT_CHECKBOX, self.use_my_settings)
-                hsizer.Add(
-                    dlg.use_my_settings_cb,
-                    flag=wx.TOP | wx.BOTTOM | wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL,
-                    border=12,
-                )
-                self.use_my_settings_cb.Disable()
-                dlg.warn_bmp = wx.StaticBitmap(dlg, -1, geticon(16, "dialog-warning"))
-                dlg.warning = wx.StaticText(
-                    dlg,
-                    -1,
-                    lang.getstr(
-                        "profile_associations.changing_system_defaults.warning"
-                    ),
-                )
-                warnsizer = wx.BoxSizer(wx.HORIZONTAL)
-                hsizer.Add(warnsizer, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, border=12)
-                warnsizer.Add(dlg.warn_bmp, 0, wx.ALIGN_CENTER_VERTICAL)
-                warnsizer.Add(
-                    dlg.warning, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=4
-                )
-                self.warn_bmp.Hide()
-                self.warning.Hide()
-            else:
-                dlg.sizer3.Add((1, 12))
-            list_panel = wx.Panel(dlg, -1)
-            list_panel.BackgroundColour = wx.SystemSettings.GetColour(
-                wx.SYS_COLOUR_3DLIGHT
-            )
-            list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
-            hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
-            numrows = 10
-            list_ctrl = wx.ListCtrl(
-                list_panel,
+            self.use_my_settings_cb.Disable()
+            dlg.warn_bmp = wx.StaticBitmap(dlg, -1, geticon(16, "dialog-warning"))
+            dlg.warning = wx.StaticText(
+                dlg,
                 -1,
-                size=(640 * scale, (20 * numrows + 25 + hscroll) * scale),
-                style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
-                name="displays2profiles",
+                lang.getstr("profile_associations.changing_system_defaults.warning"),
             )
-            list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
-            list_ctrl.InsertColumn(0, lang.getstr("description"))
-            list_ctrl.InsertColumn(1, lang.getstr("filename"))
-            list_ctrl.SetColumnWidth(0, int(430 * scale))
-            list_ctrl.SetColumnWidth(1, int(210 * scale))
-            list_ctrl.Bind(
-                wx.EVT_LIST_ITEM_SELECTED,
-                lambda e: (
-                    dlg.remove_btn.Enable(),
-                    dlg.set_as_default_btn.Enable(e.GetIndex() > 0),
-                    dlg.profile_info_btn.Enable(),
-                ),
-            )
-            list_ctrl.Bind(
-                wx.EVT_LIST_ITEM_DESELECTED,
-                lambda e: (
-                    dlg.remove_btn.Disable(),
-                    dlg.set_as_default_btn.Disable(),
-                    dlg.profile_info_btn.Disable(),
-                ),
-            )
-            list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, dlg.set_as_default)
-            dlg.sizer3.Add(list_panel, flag=wx.BOTTOM | wx.ALIGN_LEFT, border=12)
-            dlg.profiles_ctrl = list_ctrl
-            dlg.fix_profile_associations_cb = wx.CheckBox(
-                dlg, -1, lang.getstr("profile_loader.fix_profile_associations")
-            )
-            dlg.fix_profile_associations_cb.Bind(
-                wx.EVT_CHECKBOX, self.toggle_fix_profile_associations
-            )
-            dlg.sizer3.Add(dlg.fix_profile_associations_cb, flag=wx.ALIGN_LEFT)
-            dlg.disable_btns()
-            dlg.update()
-            dlg.sizer0.SetSizeHints(dlg)
-            dlg.sizer0.Layout()
-            dlg.ok.SetDefault()
-            dlg.update_profiles_timer = wx.Timer(dlg)
-            dlg.Bind(wx.EVT_TIMER, dlg.update_profiles, dlg.update_profiles_timer)
-            dlg.update_profiles_timer.Start(1000)
+            warnsizer = wx.BoxSizer(wx.HORIZONTAL)
+            hsizer.Add(warnsizer, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, border=12)
+            warnsizer.Add(dlg.warn_bmp, 0, wx.ALIGN_CENTER_VERTICAL)
+            warnsizer.Add(dlg.warning, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=4)
+            self.warn_bmp.Hide()
+            self.warning.Hide()
+        else:
+            dlg.sizer3.Add((1, 12))
+        list_panel = wx.Panel(dlg, -1)
+        list_panel.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
+        list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
+        hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
+        numrows = 10
+        list_ctrl = wx.ListCtrl(
+            list_panel,
+            -1,
+            size=(640 * scale, (20 * numrows + 25 + hscroll) * scale),
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
+            name="displays2profiles",
+        )
+        list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
+        list_ctrl.InsertColumn(0, lang.getstr("description"))
+        list_ctrl.InsertColumn(1, lang.getstr("filename"))
+        list_ctrl.SetColumnWidth(0, int(430 * scale))
+        list_ctrl.SetColumnWidth(1, int(210 * scale))
+        list_ctrl.Bind(
+            wx.EVT_LIST_ITEM_SELECTED,
+            lambda e: (
+                dlg.remove_btn.Enable(),
+                dlg.set_as_default_btn.Enable(e.GetIndex() > 0),
+                dlg.profile_info_btn.Enable(),
+            ),
+        )
+        list_ctrl.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED,
+            lambda e: (
+                dlg.remove_btn.Disable(),
+                dlg.set_as_default_btn.Disable(),
+                dlg.profile_info_btn.Disable(),
+            ),
+        )
+        list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, dlg.set_as_default)
+        dlg.sizer3.Add(list_panel, flag=wx.BOTTOM | wx.ALIGN_LEFT, border=12)
+        dlg.profiles_ctrl = list_ctrl
+        dlg.fix_profile_associations_cb = wx.CheckBox(
+            dlg, -1, lang.getstr("profile_loader.fix_profile_associations")
+        )
+        dlg.fix_profile_associations_cb.Bind(
+            wx.EVT_CHECKBOX, self.toggle_fix_profile_associations
+        )
+        dlg.sizer3.Add(dlg.fix_profile_associations_cb, flag=wx.ALIGN_LEFT)
+        dlg.disable_btns()
+        dlg.update()
+        dlg.sizer0.SetSizeHints(dlg)
+        dlg.sizer0.Layout()
+        dlg.ok.SetDefault()
+        dlg.update_profiles_timer = wx.Timer(dlg)
+        dlg.Bind(wx.EVT_TIMER, dlg.update_profiles, dlg.update_profiles_timer)
+        dlg.update_profiles_timer.Start(1000)
 
-        def OnClose(self, event):
-            InfoDialog.OnClose(self, event)
+    def OnClose(self, event):
+        InfoDialog.OnClose(self, event)
 
-        def EndModal(self, retCode):
-            self.update_profiles_timer.Stop()
-            wx.Dialog.EndModal(self, retCode)
+    def EndModal(self, retCode):
+        self.update_profiles_timer.Stop()
+        wx.Dialog.EndModal(self, retCode)
 
-        def add_profile(self, event):
-            if self.add_btn.GetAuthNeeded():
-                if self.pl.elevate():
-                    self.EndModal(wx.ID_CANCEL)
-                return
-            dlg = ConfirmDialog(
+    def add_profile(self, event):
+        if self.add_btn.GetAuthNeeded():
+            if self.pl.elevate():
+                self.EndModal(wx.ID_CANCEL)
+            return
+        dlg = ConfirmDialog(
+            self,
+            msg=lang.getstr("profile.choose"),
+            title=lang.getstr("add"),
+            ok=lang.getstr("ok"),
+            cancel=lang.getstr("cancel"),
+            bitmap=geticon(32, appname + "-profile-info"),
+            wrap=128,
+        )
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        scale = getcfg("app.dpi") / get_default_dpi()
+        if scale < 1:
+            scale = 1
+        list_panel = wx.Panel(dlg, -1)
+        list_panel.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
+        list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
+        hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
+        numrows = 15
+        list_ctrl = wx.ListCtrl(
+            list_panel,
+            -1,
+            size=(640 * scale, (20 * numrows + 25 + hscroll) * scale),
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
+            name="displays2profiles",
+        )
+        list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
+        list_ctrl.InsertColumn(0, lang.getstr("description"))
+        list_ctrl.InsertColumn(1, lang.getstr("filename"))
+        list_ctrl.SetColumnWidth(0, int(430 * scale))
+        list_ctrl.SetColumnWidth(1, int(210 * scale))
+        list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, lambda e: dlg.ok.Enable())
+        list_ctrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, lambda e: dlg.ok.Disable())
+        list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, lambda e: dlg.EndModal(wx.ID_OK))
+        profiles = []
+        for pth in safe_glob(os.path.join(iccprofiles[0], "*.ic[cm]")) + safe_glob(
+            os.path.join(iccprofiles[0], "*.cdmp")
+        ):
+            try:
+                profile = ICCP.ICCProfile(pth)
+            except ICCP.ICCProfileInvalidError as exception:
+                print(f"{pth}:", exception)
+                traceback.print_exc()
+                continue
+            except IOError as exception:
+                print(exception)
+                continue
+            if profile.profileClass == b"mntr":
+                profiles.append((profile.getDescription(), os.path.basename(pth)))
+        natsort_key = natsort_key_factory()
+        profiles.sort(key=lambda item: natsort_key(item[0]))
+        for i, (desc, profile) in enumerate(profiles):
+            pindex = list_ctrl.InsertStringItem(i, "")
+            list_ctrl.SetStringItem(pindex, 0, desc)
+            list_ctrl.SetStringItem(pindex, 1, profile)
+        dlg.profiles_ctrl = list_ctrl
+        dlg.sizer3.Add(list_panel, 1, flag=wx.TOP | wx.ALIGN_LEFT, border=12)
+        dlg.sizer0.SetSizeHints(dlg)
+        dlg.sizer0.Layout()
+        dlg.ok.SetDefault()
+        dlg.ok.Disable()
+        dlg.Center()
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            pindex = list_ctrl.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if pindex > -1:
+                self.set_profile(profiles[pindex][1])
+            else:
+                wx.Bell()
+        dlg.Destroy()
+
+    def identify_displays(self, event):
+        for display, frame in list(self.display_identification_frames.items()):
+            if not frame:
+                self.display_identification_frames.pop(display)
+        for display, edid, moninfo, device in self.monitors:
+            frame = self.display_identification_frames.get(display)
+            if frame:
+                frame.close_timer.Stop()
+                frame.close_timer.Start(3000)
+            else:
+                m_left, m_top, m_right, m_bottom = moninfo["Monitor"]
+                m_width = abs(m_right - m_left)
+                m_height = abs(m_bottom - m_top)
+                pos = m_left + m_width / 4, m_top + m_height / 4
+                size = (m_width / 2, m_height / 2)
+                display_desc = display.replace(
+                    "[PRIMARY]", lang.getstr("display.primary")
+                )
+                frame = DisplayIdentificationFrame(display_desc, pos, size)
+                self.display_identification_frames[display] = frame
+
+    def show_profile_info(self, event):
+        pindex = self.profiles_ctrl.GetNextItem(
+            -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+        )
+        if pindex < 0:
+            wx.Bell()
+            return
+        try:
+            profile = ICCP.ICCProfile(self.profiles[pindex])
+        except (IOError, ICCP.ICCProfileInvalidError):
+            show_result_dialog(
+                Error(lang.getstr("profile.invalid") + "\n" + self.profiles[pindex]),
                 self,
-                msg=lang.getstr("profile.choose"),
-                title=lang.getstr("add"),
-                ok=lang.getstr("ok"),
-                cancel=lang.getstr("cancel"),
-                bitmap=geticon(32, appname + "-profile-info"),
-                wrap=128,
             )
-            dlg.SetIcons(
-                get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
-            )
-            scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
-            list_panel = wx.Panel(dlg, -1)
-            list_panel.BackgroundColour = wx.SystemSettings.GetColour(
-                wx.SYS_COLOUR_3DLIGHT
-            )
-            list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
-            hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
-            numrows = 15
-            list_ctrl = wx.ListCtrl(
-                list_panel,
-                -1,
-                size=(640 * scale, (20 * numrows + 25 + hscroll) * scale),
-                style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_THEME,
-                name="displays2profiles",
-            )
-            list_panel.Sizer.Add(list_ctrl, 1, flag=wx.ALL, border=1)
-            list_ctrl.InsertColumn(0, lang.getstr("description"))
-            list_ctrl.InsertColumn(1, lang.getstr("filename"))
-            list_ctrl.SetColumnWidth(0, int(430 * scale))
-            list_ctrl.SetColumnWidth(1, int(210 * scale))
-            list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, lambda e: dlg.ok.Enable())
-            list_ctrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, lambda e: dlg.ok.Disable())
-            list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, lambda e: dlg.EndModal(wx.ID_OK))
+            return
+        if profile.ID == "\0" * 16:
+            id = profile.calculateID(False)
+        else:
+            id = profile.ID
+        if id not in self.profile_info:
+            # Create profile info window and store in hash table
+            from wxProfileInfo import ProfileInfoFrame
+
+            self.profile_info[id] = ProfileInfoFrame(None, -1)
+            self.profile_info[id].Unbind(wx.EVT_CLOSE)
+            self.profile_info[id].Bind(wx.EVT_CLOSE, self.close_profile_info)
+        if (
+            not self.profile_info[id].profile
+            or self.profile_info[id].profile.calculateID(False) != id
+        ):
+            # Load profile if info window has no profile or ID is different
+            self.profile_info[id].profileID = id
+            self.profile_info[id].LoadProfile(profile)
+        if self.profile_info[id].IsIconized():
+            self.profile_info[id].Restore()
+        else:
+            self.profile_info[id].Show()
+            self.profile_info[id].Raise()
+        argyll_dir = getcfg("argyll.dir")
+        if getcfg("argyll.dir") != argyll_dir:
+            if self.pl.frame:
+                result = self.pl.frame.send_command(
+                    None, 'set-argyll-dir "{}"'.format(getcfg("argyll.dir"))
+                )
+            else:
+                result = "ok"
+            if result == "ok":
+                self.pl.writecfg()
+
+    def close_profile_info(self, event):
+        # Remove the frame from the hash table
+        if self:
+            self.profile_info.pop(event.GetEventObject().profileID)
+        # Closes the window
+        event.Skip()
+
+    def disable_btns(self):
+        self.remove_btn.Disable()
+        self.profile_info_btn.Disable()
+        self.set_as_default_btn.Disable()
+
+    def remove_profile(self, event):
+        if self.remove_btn.GetAuthNeeded():
+            if self.pl.elevate():
+                self.EndModal(wx.ID_CANCEL)
+            return
+        pindex = self.profiles_ctrl.GetNextItem(
+            -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+        )
+        if pindex > -1:
+            self.set_profile(self.profiles[pindex], True)
+        else:
+            wx.Bell()
+
+    def set_as_default(self, event):
+        if self.set_as_default_btn.GetAuthNeeded():
+            if self.pl.elevate():
+                self.EndModal(wx.ID_CANCEL)
+            return
+        pindex = self.profiles_ctrl.GetNextItem(
+            -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+        )
+        if pindex > -1:
+            self.set_profile(self.profiles[pindex])
+        else:
+            wx.Bell()
+
+    def set_profile(self, profile, unset=False):
+        if unset:
+            fn = ICCP.unset_display_profile
+        else:
+            fn = ICCP.set_display_profile
+        self._update_configuration(fn, profile)
+
+    def _update_configuration(self, fn, arg0):
+        dindex = self.display_ctrl.GetSelection()
+        display, edid, moninfo, device = self.monitors[dindex]
+        device0 = get_first_display_device(moninfo["Device"])
+        if device0 and device:
+            self._update_device(fn, arg0, device.DeviceKey)
+            if (
+                getcfg("profile_loader.fix_profile_associations")
+                and device.DeviceKey != device0.DeviceKey
+                and self.pl._can_fix_profile_associations()
+            ):
+                self._update_device(fn, arg0, device0.DeviceKey)
+            self.update_profiles(True, monitor=self.monitors[dindex], next=True)
+        else:
+            wx.Bell()
+
+    def _update_device(self, fn, arg0, devicekey, show_error=True):
+        if (
+            not USE_REGISTRY
+            and fn is enable_per_user_profiles
+            and not per_user_profiles_isenabled(devicekey=devicekey)
+        ):
+            # We need to re-associate per-user profiles to the
+            # display, otherwise the associations will be lost
+            # after enabling per-user if a system default profile
+            # was set (but only if we call WcsSetUsePerUserProfiles
+            # instead of setting the underlying registry value directly)
+            monkey = devicekey.split("\\")[-2:]
+            profiles = ICCP._winreg_get_display_profiles(monkey, True)
+        else:
             profiles = []
-            for pth in safe_glob(os.path.join(iccprofiles[0], "*.ic[cm]")) + safe_glob(
-                os.path.join(iccprofiles[0], "*.cdmp")
-            ):
-                try:
-                    profile = ICCP.ICCProfile(pth)
-                except ICCP.ICCProfileInvalidError as exception:
-                    print(f"{pth}:", exception)
-                    traceback.print_exc()
-                    continue
-                except IOError as exception:
-                    print(exception)
-                    continue
-                if profile.profileClass == b"mntr":
-                    profiles.append((profile.getDescription(), os.path.basename(pth)))
-            natsort_key = natsort_key_factory()
-            profiles.sort(key=lambda item: natsort_key(item[0]))
-            for i, (desc, profile) in enumerate(profiles):
-                pindex = list_ctrl.InsertStringItem(i, "")
-                list_ctrl.SetStringItem(pindex, 0, desc)
-                list_ctrl.SetStringItem(pindex, 1, profile)
-            dlg.profiles_ctrl = list_ctrl
-            dlg.sizer3.Add(list_panel, 1, flag=wx.TOP | wx.ALIGN_LEFT, border=12)
-            dlg.sizer0.SetSizeHints(dlg)
-            dlg.sizer0.Layout()
-            dlg.ok.SetDefault()
-            dlg.ok.Disable()
-            dlg.Center()
-            result = dlg.ShowModal()
-            if result == wx.ID_OK:
-                pindex = list_ctrl.GetNextItem(
-                    -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
-                )
-                if pindex > -1:
-                    self.set_profile(profiles[pindex][1])
-                else:
-                    wx.Bell()
-            dlg.Destroy()
-
-        def identify_displays(self, event):
-            for display, frame in list(self.display_identification_frames.items()):
-                if not frame:
-                    self.display_identification_frames.pop(display)
-            for display, edid, moninfo, device in self.monitors:
-                frame = self.display_identification_frames.get(display)
-                if frame:
-                    frame.close_timer.Stop()
-                    frame.close_timer.Start(3000)
-                else:
-                    m_left, m_top, m_right, m_bottom = moninfo["Monitor"]
-                    m_width = abs(m_right - m_left)
-                    m_height = abs(m_bottom - m_top)
-                    pos = m_left + m_width / 4, m_top + m_height / 4
-                    size = (m_width / 2, m_height / 2)
-                    display_desc = display.replace(
-                        "[PRIMARY]", lang.getstr("display.primary")
-                    )
-                    frame = DisplayIdentificationFrame(display_desc, pos, size)
-                    self.display_identification_frames[display] = frame
-
-        def show_profile_info(self, event):
-            pindex = self.profiles_ctrl.GetNextItem(
-                -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+        try:
+            fn(arg0, devicekey=devicekey)
+        except Exception as exception:
+            print(
+                "{}({}, devicekey={}):".format(
+                    fn.__name__, repr(arg0), repr(devicekey)
+                ),
+                exception,
             )
-            if pindex < 0:
-                wx.Bell()
-                return
-            try:
-                profile = ICCP.ICCProfile(self.profiles[pindex])
-            except (IOError, ICCP.ICCProfileInvalidError):
-                show_result_dialog(
-                    Error(
-                        lang.getstr("profile.invalid") + "\n" + self.profiles[pindex]
-                    ),
-                    self,
-                )
-                return
-            if profile.ID == "\0" * 16:
-                id = profile.calculateID(False)
-            else:
-                id = profile.ID
-            if id not in self.profile_info:
-                # Create profile info window and store in hash table
-                from wxProfileInfo import ProfileInfoFrame
+            if show_error:
+                wx.CallAfter(show_result_dialog, UnloggedError(str(exception)), self)
+        for profile_name in profiles:
+            ICCP.set_display_profile(profile_name, devicekey=devicekey)
 
-                self.profile_info[id] = ProfileInfoFrame(None, -1)
-                self.profile_info[id].Unbind(wx.EVT_CLOSE)
-                self.profile_info[id].Bind(wx.EVT_CLOSE, self.close_profile_info)
-            if (
-                not self.profile_info[id].profile
-                or self.profile_info[id].profile.calculateID(False) != id
-            ):
-                # Load profile if info window has no profile or ID is different
-                self.profile_info[id].profileID = id
-                self.profile_info[id].LoadProfile(profile)
-            if self.profile_info[id].IsIconized():
-                self.profile_info[id].Restore()
-            else:
-                self.profile_info[id].Show()
-                self.profile_info[id].Raise()
-            argyll_dir = getcfg("argyll.dir")
-            if getcfg("argyll.dir") != argyll_dir:
-                if self.pl.frame:
-                    result = self.pl.frame.send_command(
-                        None, 'set-argyll-dir "{}"'.format(getcfg("argyll.dir"))
-                    )
-                else:
-                    result = "ok"
-                if result == "ok":
-                    self.pl.writecfg()
+    def toggle_fix_profile_associations(self, event):
+        self.fix_profile_associations_cb.Value = (
+            self.pl._toggle_fix_profile_associations(event, self)
+        )
+        if self.fix_profile_associations_cb.Value == event.IsChecked():
+            self.update_profiles(True)
 
-        def close_profile_info(self, event):
-            # Remove the frame from the hash table
-            if self:
-                self.profile_info.pop(event.GetEventObject().profileID)
-            # Closes the window
-            event.Skip()
-
-        def disable_btns(self):
-            self.remove_btn.Disable()
-            self.profile_info_btn.Disable()
-            self.set_as_default_btn.Disable()
-
-        def remove_profile(self, event):
-            if self.remove_btn.GetAuthNeeded():
-                if self.pl.elevate():
-                    self.EndModal(wx.ID_CANCEL)
-                return
-            pindex = self.profiles_ctrl.GetNextItem(
-                -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+    def update(self, event=None):
+        self.monitors = list(self.pl.monitors)
+        self.display_ctrl.SetItems(
+            [
+                entry[0].replace("[PRIMARY]", lang.getstr("display.primary"))
+                for entry in self.monitors
+            ]
+        )
+        if self.monitors:
+            self.display_ctrl.SetSelection(0)
+        self.display_ctrl.Enable(bool(self.monitors))
+        self.identify_btn.Enable(bool(self.monitors))
+        self.add_btn.Enable(bool(self.monitors))
+        fix = self.pl._can_fix_profile_associations()
+        self.fix_profile_associations_cb.Enable(fix)
+        if fix:
+            self.fix_profile_associations_cb.SetValue(
+                bool(getcfg("profile_loader.fix_profile_associations"))
             )
-            if pindex > -1:
-                self.set_profile(self.profiles[pindex], True)
-            else:
-                wx.Bell()
+        self.update_profiles(event)
+        if event and not self.IsActive():
+            self.RequestUserAttention()
 
-        def set_as_default(self, event):
-            if self.set_as_default_btn.GetAuthNeeded():
-                if self.pl.elevate():
-                    self.EndModal(wx.ID_CANCEL)
-                return
-            pindex = self.profiles_ctrl.GetNextItem(
-                -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
-            )
-            if pindex > -1:
-                self.set_profile(self.profiles[pindex])
-            else:
-                wx.Bell()
-
-        def set_profile(self, profile, unset=False):
-            if unset:
-                fn = ICCP.unset_display_profile
-            else:
-                fn = ICCP.set_display_profile
-            self._update_configuration(fn, profile)
-
-        def _update_configuration(self, fn, arg0):
+    def update_profiles(self, event=None, monitor=None, next=False):
+        if not monitor:
             dindex = self.display_ctrl.GetSelection()
-            display, edid, moninfo, device = self.monitors[dindex]
-            device0 = get_first_display_device(moninfo["Device"])
-            if device0 and device:
-                self._update_device(fn, arg0, device.DeviceKey)
-                if (
-                    getcfg("profile_loader.fix_profile_associations")
-                    and device.DeviceKey != device0.DeviceKey
-                    and self.pl._can_fix_profile_associations()
-                ):
-                    self._update_device(fn, arg0, device0.DeviceKey)
-                self.update_profiles(True, monitor=self.monitors[dindex], next=True)
+            if -1 < dindex < len(self.monitors):
+                monitor = self.monitors[dindex]
             else:
-                wx.Bell()
-
-        def _update_device(self, fn, arg0, devicekey, show_error=True):
-            if (
-                not USE_REGISTRY
-                and fn is enable_per_user_profiles
-                and not per_user_profiles_isenabled(devicekey=devicekey)
-            ):
-                # We need to re-associate per-user profiles to the
-                # display, otherwise the associations will be lost
-                # after enabling per-user if a system default profile
-                # was set (but only if we call WcsSetUsePerUserProfiles
-                # instead of setting the underlying registry value directly)
-                monkey = devicekey.split("\\")[-2:]
-                profiles = ICCP._winreg_get_display_profiles(monkey, True)
-            else:
-                profiles = []
-            try:
-                fn(arg0, devicekey=devicekey)
-            except Exception as exception:
-                print(
-                    "{}({}, devicekey={}):".format(
-                        fn.__name__, repr(arg0), repr(devicekey)
-                    ),
-                    exception,
-                )
-                if show_error:
-                    wx.CallAfter(
-                        show_result_dialog, UnloggedError(str(exception)), self
-                    )
-            for profile_name in profiles:
-                ICCP.set_display_profile(profile_name, devicekey=devicekey)
-
-        def toggle_fix_profile_associations(self, event):
-            self.fix_profile_associations_cb.Value = (
-                self.pl._toggle_fix_profile_associations(event, self)
-            )
-            if self.fix_profile_associations_cb.Value == event.IsChecked():
-                self.update_profiles(True)
-
-        def update(self, event=None):
-            self.monitors = list(self.pl.monitors)
-            self.display_ctrl.SetItems(
-                [
-                    entry[0].replace("[PRIMARY]", lang.getstr("display.primary"))
-                    for entry in self.monitors
-                ]
-            )
-            if self.monitors:
-                self.display_ctrl.SetSelection(0)
-            self.display_ctrl.Enable(bool(self.monitors))
-            self.identify_btn.Enable(bool(self.monitors))
-            self.add_btn.Enable(bool(self.monitors))
-            fix = self.pl._can_fix_profile_associations()
-            self.fix_profile_associations_cb.Enable(fix)
-            if fix:
-                self.fix_profile_associations_cb.SetValue(
-                    bool(getcfg("profile_loader.fix_profile_associations"))
-                )
-            self.update_profiles(event)
-            if event and not self.IsActive():
-                self.RequestUserAttention()
-
-        def update_profiles(self, event=None, monitor=None, next=False):
-            if not monitor:
-                dindex = self.display_ctrl.GetSelection()
-                if -1 < dindex < len(self.monitors):
-                    monitor = self.monitors[dindex]
-                else:
-                    if event and not isinstance(event, wx.TimerEvent):
-                        wx.Bell()
-                    return
-            display, edid, moninfo, device = monitor
-            if not device:
                 if event and not isinstance(event, wx.TimerEvent):
                     wx.Bell()
                 return
-            if sys.getwindowsversion() >= (6,):
-                current_user = per_user_profiles_isenabled(devicekey=device.DeviceKey)
-                scope_changed = current_user != self.current_user
-                if scope_changed:
-                    self.current_user = current_user
-                    self.use_my_settings_cb.SetValue(current_user)
-                self.use_my_settings_cb.Enable()
-                superuser = is_superuser()
-                warn = not current_user and superuser
-                update_layout = warn is not self.warning.IsShown()
-                if update_layout:
-                    self.warn_bmp.Show(warn)
-                    self.warning.Show(warn)
-                    self.sizer3.Layout()
-                auth_needed = not (current_user or superuser)
-                update_layout = self.add_btn.GetAuthNeeded() is not auth_needed
-                if update_layout:
-                    self.buttonpanel.Freeze()
-                    self.add_btn.SetAuthNeeded(auth_needed)
-                    self.remove_btn.SetAuthNeeded(auth_needed)
-                    self.set_as_default_btn.SetAuthNeeded(auth_needed)
-                    self.buttonpanel.Layout()
-                    self.buttonpanel.Thaw()
-            else:
-                current_user = False
-                scope_changed = False
-            monkey = device.DeviceKey.split("\\")[-2:]
-            profiles = ICCP._winreg_get_display_profiles(monkey, current_user)
-            profiles.reverse()
-            profiles_changed = profiles != self.profiles
-            if profiles_changed:
-                self.profiles_ctrl.Freeze()
-                self.profiles = profiles
-                self.disable_btns()
-                self.profiles_ctrl.DeleteAllItems()
-                for i, profile in enumerate(self.profiles):
-                    pindex = self.profiles_ctrl.InsertStringItem(i, "")
-                    description = get_profile_desc(profile, False)
-                    if not i:
-                        # First profile is always default
-                        description += " ({})".format(lang.getstr("default"))
-                    self.profiles_ctrl.SetStringItem(pindex, 0, description)
-                    self.profiles_ctrl.SetStringItem(pindex, 1, profile)
-                self.profiles_ctrl.Thaw()
-            if scope_changed or profiles_changed:
-                if next or isinstance(event, wx.TimerEvent):
-                    wx.CallAfter(self._next)
+        display, edid, moninfo, device = monitor
+        if not device:
+            if event and not isinstance(event, wx.TimerEvent):
+                wx.Bell()
+            return
+        if sys.getwindowsversion() >= (6,):
+            current_user = per_user_profiles_isenabled(devicekey=device.DeviceKey)
+            scope_changed = current_user != self.current_user
+            if scope_changed:
+                self.current_user = current_user
+                self.use_my_settings_cb.SetValue(current_user)
+            self.use_my_settings_cb.Enable()
+            superuser = is_superuser()
+            warn = not current_user and superuser
+            update_layout = warn is not self.warning.IsShown()
+            if update_layout:
+                self.warn_bmp.Show(warn)
+                self.warning.Show(warn)
+                self.sizer3.Layout()
+            auth_needed = not (current_user or superuser)
+            update_layout = self.add_btn.GetAuthNeeded() is not auth_needed
+            if update_layout:
+                self.buttonpanel.Freeze()
+                self.add_btn.SetAuthNeeded(auth_needed)
+                self.remove_btn.SetAuthNeeded(auth_needed)
+                self.set_as_default_btn.SetAuthNeeded(auth_needed)
+                self.buttonpanel.Layout()
+                self.buttonpanel.Thaw()
+        else:
+            current_user = False
+            scope_changed = False
+        monkey = device.DeviceKey.split("\\")[-2:]
+        profiles = ICCP._winreg_get_display_profiles(monkey, current_user)
+        profiles.reverse()
+        profiles_changed = profiles != self.profiles
+        if profiles_changed:
+            self.profiles_ctrl.Freeze()
+            self.profiles = profiles
+            self.disable_btns()
+            self.profiles_ctrl.DeleteAllItems()
+            for i, profile in enumerate(self.profiles):
+                pindex = self.profiles_ctrl.InsertStringItem(i, "")
+                description = get_profile_desc(profile, False)
+                if not i:
+                    # First profile is always default
+                    description += " ({})".format(lang.getstr("default"))
+                self.profiles_ctrl.SetStringItem(pindex, 0, description)
+                self.profiles_ctrl.SetStringItem(pindex, 1, profile)
+            self.profiles_ctrl.Thaw()
+        if scope_changed or profiles_changed:
+            if next or isinstance(event, wx.TimerEvent):
+                wx.CallAfter(self._next)
 
-        def _next(self):
-            locked = self.pl.lock.locked()
+    def _next(self):
+        locked = self.pl.lock.locked()
+        if locked:
+            print("ProfileAssociationsDialog: Waiting to acquire lock...")
+        with self.pl.lock:
             if locked:
-                print("ProfileAssociationsDialog: Waiting to acquire lock...")
-            with self.pl.lock:
-                if locked:
-                    print("ProfileAssociationsDialog: Acquired lock")
-                self.pl._next = True
-                if locked:
-                    print("ProfileAssociationsDialog: Releasing lock")
+                print("ProfileAssociationsDialog: Acquired lock")
+            self.pl._next = True
+            if locked:
+                print("ProfileAssociationsDialog: Releasing lock")
 
-        def use_my_settings(self, event):
-            self._update_configuration(enable_per_user_profiles, event.IsChecked())
+    def use_my_settings(self, event):
+        self._update_configuration(enable_per_user_profiles, event.IsChecked())
 
 
 class ProfileLoader(object):
@@ -2539,7 +2510,7 @@ class ProfileLoader(object):
         except Exception as exception:
             if self.lock.locked():
                 self.lock.release()
-            wx.CallAfter(self._handle_fatal_error, traceback.format_exc())
+            wx.CallAfter(self._handle_fatal_error, exception)
 
     def _handle_fatal_error(self, exception):
         handle_error(exception)

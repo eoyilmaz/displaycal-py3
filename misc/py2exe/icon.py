@@ -17,7 +17,7 @@ import types
 try:
     StringTypes = types.StringTypes
 except AttributeError:
-    StringTypes = [ type("") ]
+    StringTypes = (str)
 
 import logging
 logger = logging.getLogger()
@@ -135,7 +135,7 @@ def CopyIcons_FromIco(dstpath, srcpath, id=1):
 def CopyIcons(dstpath, srcpath):
     import os.path
 
-    if type(srcpath) in StringTypes:
+    if isinstance(srcpath, StringTypes):
         srcpath = [ srcpath ]
 
     def splitter(s):

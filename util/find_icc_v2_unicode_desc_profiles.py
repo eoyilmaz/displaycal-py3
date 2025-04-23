@@ -41,6 +41,6 @@ for p in set(iccprofiles_home + iccprofiles):
                 elif not isinstance(profile.tags.desc, iccp.MultiLocalizedUnicodeType):
                     print(os.path.join(p, f))
                     print(
-                        "Warning: 'desc' is invalid type (%s)" % type(profile.tags.desc)
+                        f"Warning: 'desc' is invalid type ({type(profile.tags.desc)})"
                     )
                     print("")

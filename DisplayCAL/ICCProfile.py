@@ -3025,11 +3025,14 @@ class ICCProfileTag(object):
             return list.__repr__(self)
         else:
             if not self:
-                return "%s.%s()" % (self.__class__.__module__, self.__class__.__name__)
-            return "%s.%s(%r)" % (
+                return "{}.{}()".format(
+                    self.__class__.__module__,
+                    self.__class__.__name__
+                )
+            return "{}.{}({})".format(
                 self.__class__.__module__,
                 self.__class__.__name__,
-                self.tagData,
+                repr(self.tagData),
             )
 
 
@@ -5655,8 +5658,8 @@ class XYZNumber(AODict):
         XYZ = []
         for key in self:
             value = self[key]
-            XYZ.append("(%s, %s)" % (repr(key), str(value)))
-        return "%s.%s([%s])" % (
+            XYZ.append("({}, {})".format(repr(key), value))
+        return "{}.{}([{}])".format(
             self.__class__.__module__,
             self.__class__.__name__,
             ", ".join(XYZ),
@@ -5904,10 +5907,10 @@ class NamedColor2Value(object):
         dev = []
         for key in self.pcs:
             value = self.pcs[key]
-            pcs.append("%s=%s" % (str(key), str(value)))
+            pcs.append(f"{key}={value}")
         for value in self.device:
-            dev.append("%s" % value)
-        return "%s(%s, {%s}, [%s])" % (
+            dev.append(f"{value}")
+        return "{}({}, {{}}, [{}])".format(
             self.__class__.__name__,
             self.name,
             ", ".join(pcs),

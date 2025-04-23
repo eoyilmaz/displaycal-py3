@@ -11,15 +11,14 @@ class Cube3D(object):
             v = locals()[name]
             if not isinstance(v, int):
                 raise TypeError(
-                    "integer %s argument expected, got %s"
-                    % (name, v.__class__.__name__)
+                    f"integer {name} argument expected, got {v.__class__.__name__}"
                 )
         start = self._clamp(start, 0, numentries, -1)
         end = self._clamp(end, 0, numentries, -1)
         for i, name in enumerate(("start", "end")):
             v = locals()[name]
             if v == -1:
-                raise ValueError("%s argument %i out of range" % (name, orange[i]))
+                raise ValueError(f"{name} argument {orange[i]:.0f} out of range")
         self._size = size
         self._start = start
         self._len = end - start
@@ -84,7 +83,8 @@ class Cube3D(object):
         return self._len
 
     def __repr__(self):
-        return self.__class__.__name__ + "(size=%i, start=%i, end=%i)" % (
+        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(
+            self.__class__.__name__,
             self._size,
             self._start,
             self._start + self._len,

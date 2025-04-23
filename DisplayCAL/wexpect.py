@@ -1369,7 +1369,7 @@ class spawn_unix(object):
             else:
                 raise TypeError(
                     "Argument must be one of StringTypes, EOF, TIMEOUT, "
-                    "SRE_Pattern, or a list of those type. {}".format(type(p))
+                    f"SRE_Pattern, or a list of those type. {type(p)}"
                 )
 
         return compiled_pattern_list

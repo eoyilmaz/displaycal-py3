@@ -58,9 +58,9 @@ class DBusObjectInterfaceMethod(object):
                 elif isinstance(arg, float):
                     format_string += "f"
                 else:
-                    raise TypeError("Unsupported argument type: %s" % type(arg))
+                    raise TypeError(f"Unsupported argument type: {type(arg)}")
                 value.append(arg)
-            args = ["(%s)" % format_string]
+            args = [f"({format_string})"]
             args.extend(value)
         if "timeout" not in kwargs:
             kwargs["timeout"] = 500

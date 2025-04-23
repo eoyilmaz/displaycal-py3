@@ -207,7 +207,7 @@ class PyGauge(wx.Window):
             colour: an instance of :class:`wx.Colour`.
         """
 
-        if type(colour) != type([]):
+        if not isinstance(colour, list):
             self._barColour = [colour]
         else:
             self._barColour = list(colour)
@@ -235,7 +235,7 @@ class PyGauge(wx.Window):
             This overrides the bar colour previously set with
                 :meth:`PyGauge.SetBarColour`.
         """
-        if type(gradient) != type([]):
+        if not isinstance(gradient, list):
             self._barGradient = [gradient]
         else:
             self._barGradient = list(gradient)
@@ -490,7 +490,7 @@ class PyGauge(wx.Window):
                 the gauge.
         """
 
-        if type(value) != type([]):
+        if not isinstance(value, list):
             value = [value]
 
         if len(value) != len(self._value):

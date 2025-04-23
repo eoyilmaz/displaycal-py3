@@ -3892,7 +3892,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         f"({ip_port}):",
                         response,
                     )
-                if remote_appname == appname + "-apply-profiles":
+                if remote_appname == f"{appname}-apply-profiles":
                     # Update notification text of profile loader
                     conn.send_command(
                         "notify '{}' silent sticky".format(

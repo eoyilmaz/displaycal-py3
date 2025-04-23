@@ -7325,7 +7325,7 @@ class ICCProfile(object):
         return id1 == id2
 
     def load(self):
-        """Loads the profile from the file object.
+        """Load the profile from the file object.
 
         Normally, you don't need to call this method, since the ICCProfile
         class automatically loads the profile when necessary (load does
@@ -7335,7 +7335,9 @@ class ICCProfile(object):
             if self._file.closed:
                 self._file = open(self._file.name, "rb")
                 self._file.seek(len(self._data))
-            self._data += self._file.read(self.size - len(self._data))
+            read_size = self.size - len(self._data)
+            if read_size > 0:
+                self._data += self._file.read(read_size)
             self._file.close()
             self.is_loaded = True
 

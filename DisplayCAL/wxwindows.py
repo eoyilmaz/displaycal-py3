@@ -302,6 +302,7 @@ class AnimatedBitmap(wx.PyControl):
     def OnDestroy(self, event):
         self._timer.Stop()
         del self._timer
+        return 0
 
     def DoGetBestSize(self):
         return self._minsize
@@ -844,13 +845,14 @@ class BaseApp(wx.App):
                 print("Running application exit handlers")
                 BaseApp._run_exitfuncs()
         if hasattr(wx.App, "OnExit"):
-            return wx.App.OnExit(self)
+            result = wx.App.OnExit(self)
+            return result if result is not None else 0
         else:
             return 0
 
     @staticmethod
     def _run_exitfuncs():
-        """run any registered exit functions
+        """Run any registered exit functions.
 
         _exithandlers is traversed in reverse order so functions are executed
         last in, first out.
@@ -876,6 +878,8 @@ class BaseApp(wx.App):
 
         if exc_info is not None:
             raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
+
+        return 0
 
     @staticmethod
     def register_exitfunc(func, *args, **kwargs):
@@ -943,6 +947,7 @@ class BaseFrame(wx.Frame):
         if event.GetEventObject() is self:
             self.listening = False
         event.Skip()
+        return 0
 
     def close_all(self):
         windows = list(wx.GetTopLevelWindows())
@@ -3371,6 +3376,8 @@ class PathDialog(ConfirmDialog):
         self.filedialog.Destroy()
         event.Skip()
 
+        return 0
+
     def __getattr__(self, name):
         return getattr(self.filedialog, name)
 
@@ -5316,6 +5323,8 @@ class BetterPyGauge(pygauge.PyGauge):
         self._timer.Stop()
         del self._timer
 
+        return 0
+
     def OnPaint(self, event):
         """Handles the ``wx.EVT_PAINT`` event for L{PyGauge}.
 
@@ -5440,7 +5449,7 @@ class BetterPyGauge(pygauge.PyGauge):
         """
         self._indeterminate = False
 
-        if type(value) != type([]):
+        if not isinstance(value, list):
             value = [value]
 
         if len(value) != len(self._value):
@@ -5924,6 +5933,8 @@ class LogWindow(InvincibleFrame):
     def OnDestroy(self, event):
         event.Skip()
 
+        return 0
+
     def OnMove(self, event=None):
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
@@ -6351,13 +6362,17 @@ class ProgressDialog(wx.Dialog):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
-        if hasattr(wx.Window, "UnreserveControlId"):
-            for id in self.id_to_keycode.keys():
-                if id < 0:
-                    try:
-                        wx.Window.UnreserveControlId(id)
-                    except wx.wxAssertionError as exception:
-                        print(exception)
+        if not hasattr(wx.Window, "UnreserveControlId"):
+            return 0
+        for id in self.id_to_keycode.keys():
+            if id >= 0:
+                continue
+            try:
+                wx.Window.UnreserveControlId(id)
+            except wx.wxAssertionError as exception:
+                print(exception)
+
+        return 0
 
     def OnMove(self, event):
         if (
@@ -6945,6 +6960,7 @@ class SimpleTerminal(InvincibleFrame):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
+        return 0
 
     def OnMove(self, event):
         if (

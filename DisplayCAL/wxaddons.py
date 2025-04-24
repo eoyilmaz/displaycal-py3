@@ -655,10 +655,8 @@ class BetterWindowDisabler(object):
                 w.Enable(False)
                 if hasattr(w, "Disable"):
                     w._BetterWindowDisabler_Disable = w.Disable
-                    # w.Disable = types.MethodType(Disable, w, type(w))
                     w.Disable = types.MethodType(Disable, w)
                 w._BetterWindowDisabler_Enable = w.Enable
-                # w.Enable = types.MethodType(Enable, w, type(w))
                 w.Enable = types.MethodType(Enable, w)
                 w.Enable(enabled)
             return

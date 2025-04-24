@@ -13628,7 +13628,7 @@ usage: spotread [-options] [logfile]
                 # args.append("-b")
                 pass
             if verify:
-                if calibrate and type(verify) == int:
+                if calibrate and isinstance(verify, int):
                     args.append(f"-e{verify}")  # Verify final computed curves
                 elif self.argyll_version >= [1, 6]:
                     args.append("-z")  # Verify current curves

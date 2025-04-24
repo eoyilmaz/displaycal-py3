@@ -1061,6 +1061,7 @@ class PathDialogBase(wx.Dialog):
     def OnDestroy(self, event):
         self.filedialog.Destroy()
         event.Skip()
+        return 0
 
     def Show(self, show=True):
         self._isshown = show

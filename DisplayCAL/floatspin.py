@@ -290,19 +290,19 @@ class FloatTextCtrl(wx.TextCtrl):
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
 
     def OnDestroy(self, event):
-        """Handles the ``wx.EVT_WINDOW_DESTROY`` event for :class:`FloatTextCtrl`.
+        """Handle the ``wx.EVT_WINDOW_DESTROY`` event for :class:`FloatTextCtrl`.
 
         :param event: a :class:`WindowDestroyEvent` event to be processed.
 
         :note: This method tries to correctly handle the control destruction under MSW.
         """
-
         if self._parent:
             self._parent._textctrl = None
             self._parent = None
+        return 0
 
     def OnKeyDown(self, event):
-        """Handles the ``wx.EVT_KEYDOWN`` event for :class:`FloatTextCtrl`.
+        """Handle the ``wx.EVT_KEYDOWN`` event for :class:`FloatTextCtrl`.
 
         :param event: a :class:`KeyEvent` event to be processed.
         """
@@ -581,13 +581,12 @@ class FloatSpin(wx.PyControl):
             # end Philip Semanchuk move
 
     def OnDestroy(self, event):
-        """Handles the ``wx.EVT_WINDOW_DESTROY`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_WINDOW_DESTROY`` event for :class:`FloatSpin`.
 
         :param event: a :class:`WindowDestroyEvent` event to be processed.
 
         :note: This method tries to correctly handle the control destruction under MSW.
         """
-
         # Null This Since MSW Sends KILL_FOCUS On Deletion
         if self._textctrl:
             self._textctrl._parent = None
@@ -597,6 +596,8 @@ class FloatSpin(wx.PyControl):
         self._spinbutton.Destroy()
         self._spinbutton = None
 
+        return 0
+
     def DoGetBestSize(self):
         """Gets the size which best suits the window: for a control, it would be the
         minimal size which doesn't truncate the control, for a panel - the same
@@ -604,7 +605,6 @@ class FloatSpin(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         if self._spinctrl_bestsize.x == -999:
             spin = wx.SpinCtrl(self, -1)
             self._spinctrl_bestsize = spin.GetBestSize()
@@ -621,7 +621,6 @@ class FloatSpin(wx.PyControl):
 
     def DoSendEvent(self):
         """Send the event to the parent."""
-
         event = wx.CommandEvent(wx.wxEVT_COMMAND_SPINCTRL_UPDATED, self.GetId())
         event.SetEventObject(self)
         event.SetInt(int(self._value + 0.5))
@@ -1495,7 +1494,7 @@ class FixedPoint(object):
             self.n, self.p = temp.n, temp.p
             return
 
-        if isinstance(value, type(42.0)):
+        if isinstance(value, float):
             # XXX ignoring infinities and NaNs and overflows for now
             import math
 
@@ -1531,7 +1530,7 @@ class FixedPoint(object):
             self.n = n
             return
 
-        if isinstance(value, type(42 - 42j)):
+        if isinstance(value, complex):
             raise TypeError("can't convert complex to FixedPoint: " + repr(value))
 
         # can we coerce to a float?

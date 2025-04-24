@@ -250,13 +250,19 @@ class UntetheredFrame(BaseFrame):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
-        if hasattr(wx.Window, "UnreserveControlId"):
-            for id in self.id_to_keycode.keys():
-                if id < 0:
-                    try:
-                        wx.Window.UnreserveControlId(id)
-                    except wx.wxAssertionError as exception:
-                        print(exception)
+        if not hasattr(wx.Window, "UnreserveControlId"):
+            return 0
+
+        for id in self.id_to_keycode.keys():
+            if id >= 0:
+                continue
+            try:
+                wx.Window.UnreserveControlId(id)
+            except wx.wxAssertionError as exception:
+                print(exception)
+
+        return 0
+
 
     def OnMove(self, event):
         if (

@@ -1629,7 +1629,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             elif (
                 (name != "trc" or value not in valid_values["trc"])
                 and hasdef
-                and deftype in (Decimal, int, float)
+                and isinstance(defval, (Decimal, int, float))
             ):
                 try:
                     value = deftype(value)

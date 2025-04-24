@@ -188,7 +188,7 @@ def postinstall_windows(prefix):
                 ("Created start menu group '{}' in {}").format(
                     name,
                     (
-                        str(path, "MBCS", "replace") if type(path) != str else path
+                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
                     ).encode("MBCS", "replace"),
                 )
             )
@@ -197,7 +197,7 @@ def postinstall_windows(prefix):
                 ("Failed to create start menu group '{}' in {}").format(
                     name,
                     (
-                        str(path, "MBCS", "replace") if type(path) != str else path
+                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
                     ).encode("MBCS", "replace"),
                 )
             )
@@ -216,7 +216,7 @@ def postinstall_windows(prefix):
                             lnkname,
                             (
                                 str(grppath, "MBCS", "replace")
-                                if type(grppath) != str
+                                if not isinstance(grppath, str)
                                 else grppath
                             ).encode("MBCS", "replace"),
                         )
@@ -302,7 +302,7 @@ def postinstall_windows(prefix):
                             lnkname,
                             (
                                 str(grppath, "MBCS", "replace")
-                                if type(grppath) != str
+                                if not isinstance(grppath, str)
                                 else grppath
                             ).encode("MBCS", "replace"),
                         )
@@ -313,7 +313,7 @@ def postinstall_windows(prefix):
                         lnkname,
                         (
                             str(group, "MBCS", "replace")
-                            if type(group) != str
+                            if not isinstance(group, str)
                             else group
                         ).encode("MBCS", "replace"),
                     )

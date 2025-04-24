@@ -188,7 +188,7 @@ def ensureMinimal(minVersion, optionsRequired=False):
     offer to open their web browser to the wxPython downloads page,
     and will then exit the application.
     """
-    assert type(minVersion) == str
+    assert isinstance(minVersion, str)
 
     # ensure that wxPython hasn't been imported yet.
     if "wx" in sys.modules or "wxPython" in sys.modules:

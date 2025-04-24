@@ -3025,11 +3025,14 @@ class ICCProfileTag(object):
             return list.__repr__(self)
         else:
             if not self:
-                return "%s.%s()" % (self.__class__.__module__, self.__class__.__name__)
-            return "%s.%s(%r)" % (
+                return "{}.{}()".format(
+                    self.__class__.__module__,
+                    self.__class__.__name__
+                )
+            return "{}.{}({})".format(
                 self.__class__.__module__,
                 self.__class__.__name__,
-                self.tagData,
+                repr(self.tagData),
             )
 
 
@@ -5655,8 +5658,8 @@ class XYZNumber(AODict):
         XYZ = []
         for key in self:
             value = self[key]
-            XYZ.append("(%s, %s)" % (repr(key), str(value)))
-        return "%s.%s([%s])" % (
+            XYZ.append("({}, {})".format(repr(key), value))
+        return "{}.{}([{}])".format(
             self.__class__.__module__,
             self.__class__.__name__,
             ", ".join(XYZ),
@@ -5904,10 +5907,10 @@ class NamedColor2Value(object):
         dev = []
         for key in self.pcs:
             value = self.pcs[key]
-            pcs.append("%s=%s" % (str(key), str(value)))
+            pcs.append(f"{key}={value}")
         for value in self.device:
-            dev.append("%s" % value)
-        return "%s(%s, {%s}, [%s])" % (
+            dev.append(f"{value}")
+        return "{}({}, {{}}, [{}])".format(
             self.__class__.__name__,
             self.name,
             ", ".join(pcs),
@@ -7322,7 +7325,7 @@ class ICCProfile(object):
         return id1 == id2
 
     def load(self):
-        """Loads the profile from the file object.
+        """Load the profile from the file object.
 
         Normally, you don't need to call this method, since the ICCProfile
         class automatically loads the profile when necessary (load does
@@ -7332,7 +7335,9 @@ class ICCProfile(object):
             if self._file.closed:
                 self._file = open(self._file.name, "rb")
                 self._file.seek(len(self._data))
-            self._data += self._file.read(self.size - len(self._data))
+            read_size = self.size - len(self._data)
+            if read_size > 0:
+                self._data += self._file.read(read_size)
             self._file.close()
             self.is_loaded = True
 

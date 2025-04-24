@@ -15,7 +15,7 @@ STATUS_INFO_LENGTH_MISMATCH = NTSTATUS(0xC0000004)
 
 class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
     def __repr__(self):
-        return "%s(%s)" % (type(self).__name__, self.value)
+        return f"{self.__class__.__name__}({self.value})"
 
 
 SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)

@@ -9,6 +9,7 @@ protobuf
 PyChromecast
 pywin32; sys_platform == "win32"
 Send2Trash
+six
 WMI; sys_platform == "win32"
 wxPython >= 4.2.2
 zeroconf

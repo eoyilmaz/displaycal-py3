@@ -206,6 +206,7 @@ else:
         from DisplayCAL.util_dbus import (
             DBusObject,
             DBusException,
+            DBusObjectError,
             BUSTYPE_SESSION,
             dbus_session,
             dbus_system,
@@ -6080,22 +6081,28 @@ END_DATA
                             object_path = other_path
                         else:
                             object_path += "/" + other_path
-                    if not iface_dict.get("cookie"):
-                        try:
-                            iface = iface_dict.get("iface")
-                            if not iface:
-                                iface = DBusObject(
-                                    BUSTYPE_SESSION, bus_name, object_path
-                                )
-                            cookie = iface.inhibit(
-                                appname, *iface_dict.get("args", (inhibit_reason,))
+                    if iface_dict.get("cookie"):
+                        continue
+                    try:
+                        iface = iface_dict.get("iface")
+                        if not iface:
+                            iface = DBusObject(
+                                BUSTYPE_SESSION, bus_name, object_path
                             )
-                        except DBusException as exception:
-                            self.log(exception)
-                        else:
-                            iface_dict["iface"] = iface
-                            iface_dict["cookie"] = cookie
-                            self.log(f"{appname}: Inhibited {bus_name}")
+                        cookie = iface.inhibit(
+                            appname, *iface_dict.get("args", (inhibit_reason,))
+                        )
+                    except DBusException as exception:
+                        # The user might be running a minimal Wayland environment
+                        # without a screensaver or power management daemon
+                        self.log(
+                            f"{appname}: Warning - could not inhibit "
+                            f"{bus_name}: {exception}"
+                        )
+                        continue  # Skip to the next interface
+                    iface_dict["iface"] = iface
+                    iface_dict["cookie"] = cookie
+                    self.log(f"{appname}: Inhibited {bus_name}")
             else:
                 self.log(
                     f"{appname}: Warning - no D-Bus session bus - "
@@ -6137,7 +6144,7 @@ END_DATA
                     cd_device = colord.Device(object_path)
                     cd_device.profiling_inhibit()
                 except (colord.CDError, DBusException) as exception:
-                    self.log(exception)
+                    self.log(f"{appname}: Warning - Handled exception: {exception}")
                 else:
                     profiling_inhibit = True
                     self.log(f"{appname}: Inhibited display device", object_path)

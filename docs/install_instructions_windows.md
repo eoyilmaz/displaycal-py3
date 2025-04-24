@@ -5,7 +5,7 @@ Install with Installer
 ----------------------
 
 We now have a proper [installer](https://www.github.com/eoyilmaz/displaycal-py3/releases) for Windows
-and this is the preffered way of running DisplayCAL under Windows (unless you want to
+and this is the preferred way of running DisplayCAL under Windows (unless you want to
 test the latest code).
 
 Install through PyPI

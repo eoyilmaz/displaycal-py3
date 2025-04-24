@@ -80,19 +80,19 @@ class _Dict2XML(dict):
             if isinstance(value, _Dict2XML):
                 item = str(value)
             else:
-                cc = "".join(part[0].upper() + part[1:] for part in name.split("_"))
+                cc = "".join(f"{part[0].upper()}{part[1:]}" for part in name.split("_"))
                 if isinstance(value, (list, tuple)):
                     item = "\n".join([str(item) for item in value])
                 else:
-                    item = "<%(cc)s>%(value)s</%(cc)s>" % {"cc": cc, "value": value}
+                    item = f"<{cc}>{value}</{cc}>"
             items.append(indent(item, "  "))
-        return """<%(cls_name)s%(cls_attr)s>
-%(items)s
-</%(cls_name)s>""" % {
-            "cls_name": self["cls_name"],
-            "cls_attr": self["cls_attr"],
-            "items": "\n".join(items),
-        }
+        return """<{cls_name}{cls_attr}>
+{items}
+</{cls_name}>""".format(
+            cls_name=self["cls_name"],
+            cls_attr=self["cls_attr"],
+            items="\n".join(items),
+        )
 
 
 class _Trigger(_Dict2XML):
@@ -227,7 +227,7 @@ class Task(_Dict2XML):
         kwargs["registration_info"] = _Dict2XML(
             author=author,
             description=description,
-            URI="\\" + name,
+            URI=f"\\{name}",
             cls_name="RegistrationInfo",
         )
         kwargs["triggers"] = _Dict2XML(items=triggers or [], cls_name="Triggers")
@@ -264,9 +264,7 @@ class Task(_Dict2XML):
     def __str__(self):
         return (
             universal_newlines(
-                """<?xml version="1.0" encoding="UTF-16"?>
-%s"""
-                % str(self)
+                f'<?xml version="1.0" encoding="UTF-16"?>\n{super().__str__()}'
             )
             .replace("\n", "\r\n")
             .encode("UTF-16-LE")
@@ -276,7 +274,7 @@ class Task(_Dict2XML):
 class TaskScheduler(object):
     def __init__(self):
         self.__ts = None
-        self.stdout = ""
+        self.stdout = b""
         self.lastreturncode = None
 
     @property
@@ -297,7 +295,7 @@ class TaskScheduler(object):
         return self.__ts
 
     def __contains__(self, name):
-        return name + ".job" in self._ts.Enum()
+        return f"{name}.job" in self._ts.Enum()
 
     def __getitem__(self, name):
         return self._ts.Activate(name)
@@ -349,11 +347,11 @@ class TaskScheduler(object):
         del kwargs["echo"]
 
         if not replace_existing and name in self:
-            raise KeyError("The task %s already exists" % name)
+            raise KeyError(f"The task {name} already exists!")
 
-        tempdir = tempfile.mkdtemp(prefix=appname + "-")
+        tempdir = tempfile.mkdtemp(prefix=f"{appname}-")
         task = Task(**kwargs)
-        xmlfilename = os.path.join(tempdir, name + ".xml")
+        xmlfilename = os.path.join(tempdir, f"{name}.xml")
         task.write_xml(xmlfilename)
         try:
             return self._schtasks(
@@ -464,7 +462,7 @@ class TaskScheduler(object):
                 self.lastreturncode = int(p["hProcess"].handle == 0)
                 p["hProcess"].Close()
             finally:
-                self.stdout = ""
+                self.stdout = b""
         else:
             args.insert(0, "schtasks.exe")
             startupinfo = sp.STARTUPINFO()
@@ -477,9 +475,9 @@ class TaskScheduler(object):
                 stderr=sp.STDOUT,
                 startupinfo=startupinfo,
             )
-            self.stdout, stderr = p.communicate()
+            self.stdout, _ = p.communicate()
             if echo:
-                print(str(self.stdout))
+                print(str(self.stdout, encoding=enc, errors="replace"))
             self.lastreturncode = p.returncode
         return self.lastreturncode == 0
 
@@ -490,7 +488,7 @@ class TaskScheduler(object):
 if __name__ == "__main__":
 
     def print_task_attr(name, attr, *args):
-        print("%18s:" % name, end=" ")
+        print(f"{name:18s}:", end=" ")
         if callable(attr):
             try:
                 print(attr(*args))
@@ -506,7 +504,7 @@ if __name__ == "__main__":
     for taskname in ts:
         task = ts[taskname]
         print("=" * 79)
-        print("%18s:" % "Task", taskname)
+        print("{:18s}:".format("Task"), taskname)
         for name in dir(task):
             if name == "GetRunTimes":
                 continue
@@ -514,6 +512,6 @@ if __name__ == "__main__":
             if name.startswith("Get"):
                 if name in ("GetTrigger", "GetTriggerString"):
                     for i in range(task.GetTriggerCount()):
-                        print_task_attr(name[3:] + "(%i)" % i, attr, i)
+                        print_task_attr(f"{name[3:]}({i:d})", attr, i)
                 else:
                     print_task_attr(name[3:], attr)

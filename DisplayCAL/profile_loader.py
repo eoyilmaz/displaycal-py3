@@ -224,9 +224,9 @@ def setup_profile_loader_task(exe, exedir, pydir):
                 exception,
             )
             if ts.stdout:
-                print(str(ts.stdout, enc))
+                print(str(ts.stdout, encoding=enc, errors="replace"))
         else:
-            print(str(ts.stdout, enc))
+            print(str(ts.stdout, encoding=enc, errors="replace"))
             if created:
                 # Remove autostart entries, if any
                 name = f"{appname} Profile Loader"
@@ -259,9 +259,9 @@ def setup_profile_loader_task(exe, exedir, pydir):
             exception,
         )
         if ts.stdout:
-            print(str(ts.stdout))
+            print(str(ts.stdout, encoding=enc, errors="replace"))
     else:
-        print(str(ts.stdout))
+        print(str(ts.stdout, encoding=enc, errors="replace"))
     print("setup_profile_loader_task end 4")
 
 

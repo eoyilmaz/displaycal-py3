@@ -525,7 +525,7 @@ class CGATS(dict):
                         from DisplayCAL import localization as lang
 
                         tech = tech.decode()
-                        tech = lang.getstr("display.tech." + tech, default=tech)
+                        tech = lang.getstr(f"display.tech.{tech}", default=tech)
                         if display:
                             # Localized tech will be unicode always, need to
                             # make sure display is as well

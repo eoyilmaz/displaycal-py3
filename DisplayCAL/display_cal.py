@@ -13572,7 +13572,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             techloc = {}
             for technology_string in list(technology_strings.values()):
                 loc = lang.getstr(
-                    "display.tech." + technology_string, default=technology_string
+                    f"display.tech.{technology_string}", default=technology_string
                 )
                 loctech[loc] = technology_string
                 techloc[technology_string] = loc

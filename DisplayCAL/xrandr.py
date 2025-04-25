@@ -64,7 +64,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError("libX11: %s" % exception)
+    raise ImportError(f"libX11: {exception}")
 
 try:
     libxrandr.XRRGetOutputProperty.restype = c_int
@@ -84,7 +84,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError("libXrandr: %s" % exception)
+    raise ImportError(f"libXrandr: {exception}")
 
 
 class XDisplay:
@@ -101,7 +101,7 @@ class XDisplay:
     def open(self):
         self.display = libx11.XOpenDisplay(self.name.encode())
         if not self.display:
-            raise ValueError("Invalid X display %r" % self.name)
+            raise ValueError(f"Invalid X display {repr(self.name)}")
 
     def close(self):
         libx11.XCloseDisplay(self.display)
@@ -109,14 +109,14 @@ class XDisplay:
     def intern_atom(self, atom_name):
         atom_id = libx11.XInternAtom(self.display, atom_name, False)
         if not atom_id:
-            raise ValueError("Invalid atom name %r" % atom_name)
+            raise ValueError(f"Invalid atom name {repr(atom_name)}")
 
         return atom_id
 
     def root_window(self, screen_no=0):
         window = libx11.XRootWindow(self.display, screen_no)
         if not window:
-            raise ValueError("Invalid X screen %r" % screen_no)
+            raise ValueError(f"Invalid X screen {repr(screen_no)}")
 
         return window
 
@@ -159,7 +159,7 @@ class XDisplay:
 
     def get_output_property(self, output, atom_id, atom_type=XA_CARDINAL):
         if not output:
-            raise ValueError("Invalid output %r specified" % output)
+            raise ValueError(f"Invalid output {repr(output)} specified")
 
         ret_type, ret_format, ret_len, ret_togo, atomv = (
             c_ulong(),
@@ -204,4 +204,4 @@ if __name__ == "__main__":
         property = display.get_output_property(
             int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
         )
-        print("%s for display %s: %r" % (sys.argv[2], sys.argv[1], property))
+        print("{} for display {}: {}".format(sys.argv[2], sys.argv[1], repr(property)))

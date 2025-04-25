@@ -13,7 +13,6 @@ import warnings
 from collections import UserString
 from copy import copy
 from hashlib import md5
-from time import strftime
 from weakref import WeakValueDictionary
 
 from DisplayCAL.util_dict import dict_sort
@@ -93,7 +92,7 @@ elif sys.platform == "darwin":
 # Gamut volumes in cubic colorspace units (L*a*b*) as reported by Argyll's
 # iccgamut
 GAMUT_VOLUME_SRGB = 833675.435316  # rel. col.
-GAMUT_VOLUME_ADOBERGB = 1209986.014983  # rel. col.
+GAMUT_VOLUME_ADOBERGB = 1209986.014983  # rel. col.%
 GAMUT_VOLUME_SMPTE431_P3 = 1176953.485921  # rel. col.
 
 # http://msdn.microsoft.com/en-us/library/dd371953%28v=vs.85%29.aspx
@@ -442,7 +441,7 @@ def create_RGB_A2B_XYZ(input_curves, clut, logfn=print):
     Note that input curves and cLUT should already be adapted to D50.
     """
     if len(input_curves) != 3:
-        raise ValueError("Wrong number of input curves: %i" % len(input_curves))
+        raise ValueError(f"Wrong number of input curves: {len(input_curves)}")
 
     white_XYZ = clut[-1][-1]
 
@@ -495,9 +494,9 @@ def create_RGB_A2B_XYZ(input_curves, clut, logfn=print):
                 nextpow = fwd[i](iv + segment)
                 clipped = nextpow <= prevpow
                 logfn(
-                    "#%i %s" % (iv * (clutres - 1), "XYZ"[i]),
-                    "prev %.6f" % prevpow,
-                    "next %.6f" % nextpow,
+                    "#{:d} {}".format(int(iv * (clutres - 1)), "XYZ"[i]),
+                    f"prev {prevpow:.6f}",
+                    f"next {nextpow:.6f}",
                     "clip",
                     clipped,
                 )
@@ -834,7 +833,7 @@ def create_synthetic_hdr_clut_profile(
         hlg.white_cdm2 *= lscale
         if lscale < 1 and logfile:
             logfile.write(
-                "Nominal peak luminance after scaling = %.2f\n" % hlg.white_cdm2
+                f"Nominal peak luminance after scaling = {hlg.white_cdm2:.2f}\n"
             )
 
         Ymax = hlg.eotf(maxsignal)
@@ -847,7 +846,7 @@ def create_synthetic_hdr_clut_profile(
 
         encf = lambda v: v
     else:
-        raise NotImplementedError("Unknown HDR format %r" % hdr_format)
+        raise NotImplementedError(f"Unknown HDR format {repr(hdr_format)}")
 
     tonemap = eetf(1) != 1
 
@@ -1020,7 +1019,7 @@ def create_synthetic_hdr_clut_profile(
             itable.input[i].append(v * 65535)
         perc = math.floor(n * endperc)
         if logfile and perc > prevperc:
-            logfile.write("\r%i%%" % perc)
+            logfile.write(f"\r{perc:.0f}%")
             prevperc = perc
     startperc = perc
 
@@ -1028,7 +1027,7 @@ def create_synthetic_hdr_clut_profile(
         # Generate PCS-to-device shaper curves from interpolated values
         if logfile:
             logfile.write("\rGenerating PCS-to-device shaper curves...\n")
-            logfile.write("\r%i%%" % perc)
+            logfile.write(f"\r{perc:.0f}%")
         for j in range(4096):
             if worker and worker.thread_abort:
                 if forward_xicclu:
@@ -1042,7 +1041,7 @@ def create_synthetic_hdr_clut_profile(
                 otable.input[i].append(v)
             perc = startperc + math.floor(n)
             if logfile and perc > prevperc:
-                logfile.write("\r%i%%" % perc)
+                logfile.write(f"\r{perc:.0f}%")
                 prevperc = perc
         startperc = perc
 
@@ -1074,8 +1073,8 @@ def create_synthetic_hdr_clut_profile(
     else:
         endperc = 50
     if logfile:
-        logfile.write(logmsg + "...\n")
-        logfile.write("\r%i%%" % perc)
+        logfile.write(f"{logmsg}...\n")
+        logfile.write(f"\r{perc:.0f}%")
     # Selective hue preservation for redorange/orange
     # (otherwise shift towards yellow to preserve more saturation and detail)
     # Hue angles (RGB):
@@ -1104,7 +1103,7 @@ def create_synthetic_hdr_clut_profile(
                 RGB = [encf(v * step) for v in (R, G, B)]
                 RGB_in.append(tuple(RGB))
                 if debug and R == G == B:
-                    print("RGB %5.3f %5.3f %5.3f" % tuple(RGB), end=" ")
+                    print("RGB {:5.3f} {:5.3f} {:5.3f}".format(*RGB), end=" ")
                 RGB_sum = sum(RGB)
                 if hdr_format == "PQ" and mode in (
                     "HSV",
@@ -1120,12 +1119,7 @@ def create_synthetic_hdr_clut_profile(
                     )
                     if debug and R == G == B:
                         print(
-                            "-> ICtCp % 5.3f % 5.3f % 5.3f"
-                            % (
-                                I1,
-                                Ct1,
-                                Cp1,
-                            ),
+                            f"-> ICtCp {I1:5.3f} {Ct1:5.3f} {Cp1:5.3f}",
                             end=" ",
                         )
                     I2 = eetf(I1)
@@ -1144,8 +1138,9 @@ def create_synthetic_hdr_clut_profile(
                         X, Y, Z = (v / Y * Y3 if Y else v for v in (X, Y, Z))
                         if R == G == B and logfile and debug:
                             logfile.write(
-                                "\rE %.4f -> E' %.4f -> roll-off -> %.4f -> E %.4f -> scale (%i%%) -> %.4f\n"
-                                % (Y1, I1, I2, Y2, Y3 / Y2 * 100, Y3)
+                                f"\rE {Y1:.4f} -> E' {I1:.4f} -> roll-off -> "
+                                f"{I2:.4f} -> E {Y2:.4f} -> "
+                                f"scale ({Y3 / Y2:.0%}) -> {Y3:.4f}\n"
                             )
                 elif mode == "XYZ":
                     X, Y, Z = colormath.RGB2XYZ(*RGB, rgb_space=rgb_space, eotf=eotf)
@@ -1218,10 +1213,10 @@ def create_synthetic_hdr_clut_profile(
                     min_I = 1
                 if hdr_format == "PQ" and mode in ("HSV_ICtCp", "ICtCp", "RGB_ICtCp"):
                     if debug and R == G == B:
-                        print("* %5.3f" % min_I, "->", end=" ")
+                        print(f"* {min_I:5.3f}", "->", end=" ")
                     Ct2, Cp2 = (min_I * v for v in (Ct1, Cp1))
                     if debug and R == G == B:
-                        print("% 5.3f % 5.3f % 5.3f" % (I2, Ct2, Cp2), "->", end=" ")
+                        print(f"{I2:5.3f} {Ct2:5.3f} {Cp2:5.3f}", "->", end=" ")
                 if hdr_format == "HLG":
                     pass
                 elif mode == "XYZ":
@@ -1233,7 +1228,7 @@ def create_synthetic_hdr_clut_profile(
                         X, Y, Z, rgb_space, clamp=False, oetf=eotf_inverse
                     )
                 if debug and R == G == B:
-                    print("RGB %5.3f %5.3f %5.3f" % tuple(RGB))
+                    print("RGB {:5.3f} {:5.3f} {:5.3f}".format(*RGB))
                 HDR_RGB.append(RGB)
                 if hdr_format == "HLG":
                     pass
@@ -1279,7 +1274,7 @@ def create_synthetic_hdr_clut_profile(
                     count / clutres**3.0 * (endperc - startperc)
                 )
                 if logfile and perc > prevperc:
-                    logfile.write("\r%i%%" % perc)
+                    logfile.write(f"\r{perc:.0f}%")
                     prevperc = perc
 
     if hdr_format == "PQ" and tonemap:
@@ -1326,21 +1321,21 @@ def create_synthetic_hdr_clut_profile(
         if max(X, Y, Z) * 32768 > 65535 or min(X, Y, Z) < 0 or round(Y, 6) > 1:
             # This should not happen
             print(
-                "#%i" % i,
-                "RGB %.3f %.3f %.3f" % tuple(RGB),
-                "XYZ %.6f %.6f %.6f" % (X, Y, Z),
+                f"#{i}",
+                "RGB {:.3f} {:.3f} {:.3f}".format(*RGB),
+                f"XYZ {X:.6f} {Y:.6f} {Z:.6f}",
                 "not in range [0,1]",
             )
         HDR_XYZ[i] = (X, Y, Z)
         perc = startperc + math.floor(i / clutres**3.0 * (100 - startperc))
         if logfile and perc > prevperc:
-            logfile.write("\r%i%%" % perc)
+            logfile.write(f"\r{perc:.0f}%")
             prevperc = perc
     prevperc = startperc = perc = 0
 
     if forward_xicclu and backward_xicclu and logfile:
         logfile.write("\rDoing backward lookup...\n")
-        logfile.write("\r%i%%" % perc)
+        logfile.write(f"\r{perc:.0f}%")
     count = 0
     for _i, (X, Y, Z) in enumerate(HDR_XYZ):
         if worker and worker.thread_abort:
@@ -1359,7 +1354,7 @@ def create_synthetic_hdr_clut_profile(
                 and perc > prevperc
                 and backward_xicclu.__class__.__name__ == "Xicclu"
             ):
-                logfile.write("\r%i%%" % perc)
+                logfile.write(f"\r{perc:.0f}%")
                 prevperc = perc
     prevperc = startperc = perc = 0
 
@@ -1380,7 +1375,7 @@ def create_synthetic_hdr_clut_profile(
             backward_xicclu.exit()
         if logfile:
             logfile.write("\rDoing forward lookup...\n")
-            logfile.write("\r%i%%" % perc)
+            logfile.write(f"\r{perc:.0f}%")
 
         # Smooth
         row = 0
@@ -1413,7 +1408,7 @@ def create_synthetic_hdr_clut_profile(
                 and perc > prevperc
                 and forward_xicclu.__class__.__name__ == "Xicclu"
             ):
-                logfile.write("\r%i%%" % perc)
+                logfile.write(f"\r{perc:.0f}%")
                 prevperc = perc
         prevperc = startperc = perc = 0
 
@@ -1463,18 +1458,22 @@ def create_synthetic_hdr_clut_profile(
                 Cdiff.append(min(Cd / C, 1.0))
                 if Cd > Cdmax.get(Cdmaxk, -1):
                     Cdmax[Cdmaxk] = Cd
-                print("RGB in %5.2f %5.2f %5.2f" % (R, G, B))
+                print(f"RGB in {R:5.2f} {G:5.2f} {B:5.2f}")
                 print(
-                    "Content BT2020 XYZ (DIN99d) %5.2f %5.2f %5.2f"
-                    % tuple(v * 100 for v in XYZc)
+                    "Content BT2020 XYZ (DIN99d) {:5.2f} {:5.2f} {:5.2f}".format(
+                        *(v * 100 for v in XYZc)
+                    )
                 )
-                print("Content BT2020 LCH (DIN99d) %5.2f %5.2f %5.2f" % (L, C, H))
-                print("Display XYZ %5.2f %5.2f %5.2f" % tuple(v * 100 for v in XYZdisp))
-                print("Display LCH (DIN99d) %5.2f %5.2f %5.2f" % (Ld, Cd, Hd))
+                print(f"Content BT2020 LCH (DIN99d) {L:5.2f} {C:5.2f} {H:5.2f}")
+                print(
+                    "Display XYZ {:5.2f} {:5.2f} {:5.2f}".format(
+                        *(v * 100 for v in XYZdisp)
+                    )
+                )
+                print(f"Display LCH (DIN99d) {Ld:5.2f} {Cd:5.2f} {Hd:5.2f}")
                 if logfile:
                     logfile.write(
-                        "\r%s chroma compression factor: %6.4f\n"
-                        % (
+                        "\r{} chroma compression factor: {:6.4f}\n".format(
                             {0: "B", 1: "G", 2: "R", 3: "C", 4: "M", 5: "Y"}[i],
                             Cdiff[-1],
                         )
@@ -1491,7 +1490,7 @@ def create_synthetic_hdr_clut_profile(
         # colorspace in BT.2020
         if logfile:
             logfile.write("\rDetermining chroma compression factors...\n")
-            logfile.write("\r%i%%" % perc)
+            logfile.write(f"\r{perc:.0f}%")
         for i, XYZsrc in enumerate(HDR_XYZ):
             if worker and worker.thread_abort:
                 if forward_xicclu:
@@ -1581,28 +1580,33 @@ def create_synthetic_hdr_clut_profile(
             if C > Cmax.get(Cdmaxk, -1):
                 Cmax[Cdmaxk] = C
             if C:
-                # print '%6.3f %6.3f' % (Cd, C)
+                # print(f"{Cd:6.3f} {C:6.3f}")
                 Cdiff.append(min(Cd / C, 1.0))
             # if Cdiff[-1] < 0.0001:
-            #     raise RuntimeError("#%i RGB % 5.3f % 5.3f % 5.3f Cdiff %5.3f" % (i, R, G, B, Cdiff[-1]))
+            #     raise RuntimeError(f"#{i} RGB {R:5.3f} {G:5.3f} {B:5.3f} Cdiff {Cdiff[-1]:5.3f}")
             else:
                 Cdiff.append(1.0)
             display_LCH.append((Ld, Cd, Hd))
             if Cd > Cdmax.get(Cdmaxk, -1):
                 Cdmax[Cdmaxk] = Cd
             if debug:
-                print("RGB in %5.2f %5.2f %5.2f" % tuple(RGB_in[i]))
-                print("RGB out %5.2f %5.2f %5.2f" % (R, G, B))
+                print("RGB in {:5.2f} {:5.2f} {:5.2f}".format(*RGB_in[i]))
+                print(f"RGB out {R:5.2f} {G:5.2f} {B:5.2f}")
                 print(
-                    "Content BT2020 XYZ %5.2f %5.2f %5.2f"
-                    % tuple(v / maxv * 100 for v in XYZc_r2020)
+                    "Content BT2020 XYZ {:5.2f} {:5.2f} {:5.2f}".format(
+                        *(v / maxv * 100 for v in XYZc_r2020)
+                    )
                 )
-                print("Content BT2020 LCH %5.2f %5.2f %5.2f" % (L, C, H))
-                print("Display XYZ %5.2f %5.2f %5.2f" % tuple(v * 100 for v in XYZdisp))
-                print("Display LCH %5.2f %5.2f %5.2f" % (Ld, Cd, Hd))
+                print(f"Content BT2020 LCH {L:5.2f} {C:5.2f} {H:5.2f}")
+                print(
+                    "Display XYZ {:5.2f} {:5.2f} {:5.2f}".format(
+                        *(v * 100 for v in XYZdisp)
+                    )
+                )
+                print(f"Display LCH {Ld:5.2f} {Cd:5.2f} {Hd:5.2f}")
             perc = startperc + math.floor(i / clutres**3.0 * (80 - startperc))
             if logfile and perc > prevperc:
-                logfile.write("\r%i%%" % perc)
+                logfile.write(f"\r{perc:.0f}%")
                 prevperc = perc
         startperc = perc
 
@@ -1614,7 +1618,7 @@ def create_synthetic_hdr_clut_profile(
 
     if logfile and display_LCH and Cmode == "primaries_secondaries":
         logfile.write(
-            "\rChroma compression factor: %6.4f\n" % general_compression_factor
+            f"\rChroma compression factor: {general_compression_factor:6.4f}\n"
         )
 
     # Chroma compress to display XYZ
@@ -1623,7 +1627,7 @@ def create_synthetic_hdr_clut_profile(
             logfile.write("\rApplying chroma compression and filling cLUT...\n")
         else:
             logfile.write("\rFilling cLUT...\n")
-        logfile.write("\r%i%%" % perc)
+        logfile.write(f"\r{perc:.0f}%")
     row = 0
     oog_count = 0
     # if forward_xicclu:
@@ -1689,29 +1693,33 @@ def create_synthetic_hdr_clut_profile(
                                 # # luminance and hue
                                 # HCmax = Cmax[Cdmaxk]
                                 # if C and HCmax:
-                                # # Lookup display max chroma for given display
-                                # # luminance and hue
-                                # HCdmax = Cdmax[Cdmaxk]
-                                # # Display max chroma in 0..1 range
-                                # maxCc = min(HCdmax / HCmax, 1.0)
-                                # KSCc = 1.5 * maxCc - 0.5
-                                # # HDR chroma in 0..1 range
-                                # Cc1 = min(C / HCmax, 1.0)
-                                # if Cc1 >= KSCc <= 1 and maxCc > KSCc >= 0:
-                                # # Roll-off chroma
-                                # Cc2 = bt2390.apply(Cc1, KSCc,
-                                # maxCc, 1.0, 0,
-                                # normalize=False)
-                                # C = HCmax * Cc2
-                                # else:
-                                # # Use display chroma as-is (clip)
-                                # if debug:
-                                # print("CLUT grid point %i %i %i: "
-                                # "C %6.4f Cd %6.4f HCmax %6.4f maxCc "
-                                # "%6.4f KSCc %6.4f Cc1 %6.4f" %
-                                # (col_0, col_1, col_2, C, Cd,
-                                # HCmax, maxCc, KSCc, Cc1))
-                                # C = Cd
+                                #     # Lookup display max chroma for given display
+                                #     # luminance and hue
+                                #     HCdmax = Cdmax[Cdmaxk]
+                                #     # Display max chroma in 0..1 range
+                                #     maxCc = min(HCdmax / HCmax, 1.0)
+                                #     KSCc = 1.5 * maxCc - 0.5
+                                #     # HDR chroma in 0..1 range
+                                #     Cc1 = min(C / HCmax, 1.0)
+                                #     if Cc1 >= KSCc <= 1 and maxCc > KSCc >= 0:
+                                #         # Roll-off chroma
+                                #         Cc2 = bt2390.apply(
+                                #             Cc1, KSCc, maxCc, 1.0, 0, normalize=False
+                                #         )
+                                #         C = HCmax * Cc2
+                                #     else:
+                                #         # Use display chroma as-is (clip)
+                                #         if debug:
+                                #             print(
+                                #                 "CLUT grid point "
+                                #                 f"{int(col_0):d} {int(col_1):d} {int(col_2):d}: "
+                                #                 f"C {C:6.4f} Cd {Cd:6.4f} "
+                                #                 f"HCmax {HCmax:6.4f} "
+                                #                 f"maxCc {maxCc:6.4f} "
+                                #                 f"KSCc {KSCc:6.4f} "
+                                #                 f"Cc1 {Cc1:6.4f}"
+                                #             )
+                                #         C = Cd
                                 if C:
                                     C *= min(Cd / C, 1.0)
                                     C *= min(Ld / L, 1.0)
@@ -1751,8 +1759,8 @@ def create_synthetic_hdr_clut_profile(
                             X, Y, Z = colormath.xyY2XYZ(x, y, Y)
                     else:
                         print(
-                            "CLUT grid point %i %i %i: blend = 0"
-                            % (col_0, col_1, col_2)
+                            f"CLUT grid point {int(col_0):d} {int(col_1):d} {int(col_2):d}: "
+                            "blend = 0"
                         )
                 # if backward_xicclu and forward_xicclu:
                 #     backward_xicclu((X, Y, Z))
@@ -1762,7 +1770,7 @@ def create_synthetic_hdr_clut_profile(
                 #     perc = startperc + math.floor(row / clutres ** 3.0 *
                 #     (90 - startperc))
                 # if logfile and perc > prevperc:
-                #     logfile.write("\r%i%%" % perc)
+                #     logfile.write(f"\r{perc:.0f}%")
                 # prevperc = perc
                 # startperc = perc
 
@@ -1806,7 +1814,7 @@ def create_synthetic_hdr_clut_profile(
                 row += 1
                 perc = startperc + math.floor(row / clutres**3.0 * (100 - startperc))
                 if logfile and perc > prevperc:
-                    logfile.write("\r%i%%" % perc)
+                    logfile.write(f"\r{perc:.0f}%")
                     prevperc = perc
     prevperc = startperc = perc = 0
 
@@ -1840,9 +1848,9 @@ def create_synthetic_hdr_clut_profile(
                         or min(RGB) < 0
                     ):
                         print(
-                            "#%i" % count,
-                            "RGB %.3f %.3f %.3f" % tuple(RGB),
-                            "XYZ %.6f %.6f %.6f" % (X, Y, Z),
+                            f"#{count:d}",
+                            "RGB {:.3f} {:.3f} {:.3f}".format(*RGB),
+                            f"XYZ {X:.6f} {Y:.6f} {Z:.6f}",
                             "not in range [0,1]",
                         )
                     otable.clut[-1].append([min(max(v, 0), 1) * 65535 for v in RGB])
@@ -1996,8 +2004,8 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
                             colord.device_ids[edid_["hash"]] = device_id
                         if path_only:
                             print(
-                                "Got profile from colord for display %i (%s):"
-                                % (display_no, device_id),
+                                "Got profile from colord for display "
+                                f"{int(display_no):d} ({device_id}):",
                                 profile_path,
                             )
                             return profile_path
@@ -2006,7 +2014,7 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
 
 
 def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True):
-    """Argyll UCMM"""
+    """Argyll UCMM."""
     search = []
     edid = get_edid(display_no)
     if edid:
@@ -2016,27 +2024,31 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
     search.append((b"NAME", name))
     for path in [xdg_config_home] + xdg_config_dirs:
         color_jcnf = os.path.join(path, "color.jcnf")
-        if os.path.isfile(color_jcnf):
-            import json
+        if not os.path.isfile(color_jcnf):
+            continue
 
-            with open(color_jcnf) as f:
-                data = json.load(f)
-            displays = data.get("devices", {}).get("display")
-            if isinstance(displays, dict):
-                # Look for matching entry
-                for key, value in search:
-                    for item in displays.values():
-                        if isinstance(item, dict):
-                            if item.get(key) == value:
-                                profile_path = item.get("ICC_PROFILE")
-                                if path_only:
-                                    print(
-                                        "Got profile from Argyll UCMM for display %i (%s %s):"
-                                        % (display_no, key, value),
-                                        profile_path,
-                                    )
-                                    return profile_path
-                                return ICCProfile(profile_path, use_cache=use_cache)
+        with open(color_jcnf) as f:
+            data = json.load(f)
+        displays = data.get("devices", {}).get("display")
+        if not isinstance(displays, dict):
+            continue
+
+        # Look for matching entry
+        for key, value in search:
+            for item in displays.values():
+                if not isinstance(item, dict):
+                    continue
+                if item.get(key) != value:
+                    continue
+                profile_path = item.get("ICC_PROFILE")
+                if path_only:
+                    print(
+                        "Got profile from Argyll UCMM for display "
+                        f"{int(display_no):d} ({key} {value}):",
+                        profile_path,
+                    )
+                    return profile_path
+                return ICCProfile(profile_path, use_cache=use_cache)
 
 
 def _wcs_get_display_profile(
@@ -2081,51 +2093,50 @@ def _win10_1903_take_process_handles_snapshot():
 
 def _win10_1903_close_leaked_regkey_handles(devicekey):
     global prev_handles
-    if win10_1903:
-        # Wcs* methods leak handles under Win10 1903. Get and close them.
+    if not win10_1903:
+        return
+    # Wcs* methods leak handles under Win10 1903. Get and close them.
 
-        # Extract substring from devicekey for matching handle name, e.g.
-        # Control\Class\{4d36e96e-e325-11ce-bfc1-08002be10318}
-        substr = "\\".join(devicekey.split("\\")[-4:-1])
+    # Extract substring from devicekey for matching handle name, e.g.
+    # Control\Class\{4d36e96e-e325-11ce-bfc1-08002be10318}
+    substr = "\\".join(devicekey.split("\\")[-4:-1])
+    try:
+        handles = get_process_handles()
+    except WindowsError as exception:
+        print("Couldn't get process handles:", exception)
+        return
+    for handle in handles:
         try:
-            handles = get_process_handles()
+            handle_name = get_handle_name(handle)
         except WindowsError as exception:
-            print("Couldn't get process handles:", exception)
-            return
-        for handle in handles:
+            print(f"Couldn't get name of handle 0x{handle.HandleValue:x}:", exception)
+            handle_name = None
+        if debug and handle.HandleValue not in prev_handles:
             try:
-                handle_name = get_handle_name(handle)
+                handle_type = get_handle_type(handle)
             except WindowsError as exception:
                 print(
-                    "Couldn't get name of handle 0x%x:" % handle.HandleValue, exception
+                    f"Couldn't get typestring of handle 0x{handle.HandleValue:x}:",
+                    exception,
                 )
-                handle_name = None
-            if debug and handle.HandleValue not in prev_handles:
-                try:
-                    handle_type = get_handle_type(handle)
-                except WindowsError as exception:
-                    print(
-                        "Couldn't get typestring of handle 0x%x:" % handle.HandleValue,
-                        exception,
-                    )
-                    handle_type = None
-                print(
-                    "New handle",
-                    "0x%x" % handle.HandleValue,
-                    "type 0x%02x %s" % (handle.ObjectTypeIndex, handle_type),
-                    handle_name,
-                )
-            if handle_name and handle_name.endswith(substr):
-                print(
-                    "Windows 10",
-                    win_ver[2].split(" ", 1)[-1],
-                    "housekeeping: Closing leaked handle 0x%x" % handle.HandleValue,
-                    handle_name,
-                )
-                try:
-                    win32api.RegCloseKey(handle.HandleValue)
-                except pywintypes.error as exception:
-                    print("Couldn't close handle 0x%x:" % handle.HandleValue, exception)
+                handle_type = None
+            print(
+                "New handle",
+                f"0x{handle.HandleValue:x}",
+                f"type 0x{handle.ObjectTypeIndex:02x} {handle_type}",
+                handle_name,
+            )
+        if handle_name and handle_name.endswith(substr):
+            print(
+                "Windows 10",
+                win_ver[2].split(" ", 1)[-1],
+                f"housekeeping: Closing leaked handle 0x{handle.HandleValue:x}",
+                handle_name,
+            )
+            try:
+                win32api.RegCloseKey(handle.HandleValue)
+            except pywintypes.error as exception:
+                print(f"Couldn't close handle 0x{handle.HandleValue:x}:", exception)
 
 
 def _winreg_get_display_profile(
@@ -2175,20 +2186,22 @@ def _winreg_get_display_profiles(monkey, current_user=False):
         numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)
         for i in range(numvalues):
             name, value, type_ = winreg.EnumValue(key, i)
-            if name == "ICMProfile" and value:
-                if type_ == winreg.REG_BINARY:
-                    # Win2k/XP
-                    # convert to list of strings
-                    value = value.decode("utf-16").split("\0")
-                elif type_ == winreg.REG_MULTI_SZ:
-                    # Vista / Windows 7
-                    # nothing to be done, _winreg returns a list of strings
-                    pass
-                if not isinstance(value, list):
-                    value = [value]
-                while "" in value:
-                    value.remove("")
-                filenames.extend(value)
+            if name != "ICMProfile" or not value:
+                continue
+
+            if type_ == winreg.REG_BINARY:
+                # Win2k/XP
+                # convert to list of strings
+                value = value.decode("utf-16").split("\0")
+            elif type_ == winreg.REG_MULTI_SZ:
+                # Vista / Windows 7
+                # nothing to be done, _winreg returns a list of strings
+                pass
+            if not isinstance(value, list):
+                value = [value]
+            while "" in value:
+                value.remove("")
+            filenames.extend(value)
         winreg.CloseKey(key)
     except WindowsError as exception:
         if exception.args[0] == 2:
@@ -2213,225 +2226,244 @@ def get_display_profile(
     use_active_display_device=True,
     use_registry=True,
 ):
-    """Return ICC Profile for display n or None"""
-    profile = None
+    """Return ICC Profile for display n or None."""
     if sys.platform == "win32":
-        if "win32api" not in sys.modules:
-            raise ImportError("pywin32 not available")
-        if not devicekey:
-            # The ordering will work as long as Argyll continues using
-            # EnumDisplayMonitors
-            monitors = util_win.get_real_display_devices_info()
-            moninfo = monitors[display_no]
-        if not mscms and not devicekey:
-            # Via GetICMProfile. Sucks royally in a multi-monitor setup
-            # where one monitor is disabled, because it'll always get
-            # the profile of the first monitor regardless if that is the active
-            # one or not. Yuck. Also, in this case it does not reflect runtime
-            # changes to profile assignments. Double yuck.
-            buflen = ctypes.c_ulong(260)
-            dc = win32gui.CreateDC(moninfo["Device"], None, None)
-            try:
-                buf = ctypes.create_unicode_buffer(buflen.value)
-                if ctypes.windll.gdi32.GetICMProfileW(
-                    dc,
-                    ctypes.byref(buflen),
-                    ctypes.byref(buf),  # WCHARs
-                ):
-                    if path_only:
-                        profile = buf.value
-                    else:
-                        profile = ICCProfile(buf.value, use_cache=True)
-            finally:
-                win32gui.DeleteDC(dc)
-        else:
-            if devicekey:
-                device = None
-            elif use_active_display_device:
-                # This would be the correct way. Unfortunately that is not
-                # what other apps (or Windows itself) do.
-                device = util_win.get_active_display_device(moninfo["Device"])
-            else:
-                # This is wrong, but it's what other apps use. Matches
-                # GetICMProfile sucky behavior i.e. should return the same
-                # profile, but atleast reflects runtime changes to profile
-                # assignments.
-                device = util_win.get_first_display_device(moninfo["Device"])
-            if device:
-                devicekey = device.DeviceKey
-        if devicekey:
-            if mscms:
-                # Via WCS
-                if util_win.per_user_profiles_isenabled(devicekey=devicekey):
-                    scope = WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"]
-                else:
-                    scope = WCS_PROFILE_MANAGEMENT_SCOPE["SYSTEM_WIDE"]
-                if not use_registry:
-                    # NOTE: WcsGetDefaultColorProfile causes the whole system
-                    # to hitch if the profile of the active display device is
-                    # queried. Windows bug?
-                    return _wcs_get_display_profile(
-                        str(devicekey), scope, path_only=path_only
-                    )
-            else:
-                scope = None
-            # Via registry
-            monkey = devicekey.split("\\")[-2:]  # pun totally intended
-            # Current user scope
-            current_user = scope == WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"]
-            if current_user:
-                profile = _winreg_get_display_profile(monkey, True, path_only=path_only)
-            else:
-                # System scope
-                profile = _winreg_get_display_profile(monkey, path_only=path_only)
+        return get_display_profile_windows(
+            display_no, path_only, devicekey, use_active_display_device, use_registry
+        )
+    elif sys.platform == "darwin":
+        return get_display_profile_macos(display_no, path_only)
     else:
-        if sys.platform == "darwin":
-            if intlist(mac_ver()[0].split(".")) >= [10, 6]:
-                options = ["Image Events"]
-            else:
-                options = ["ColorSyncScripting"]
-        else:
-            options = ["_ICC_PROFILE"]
-            try:
-                from DisplayCAL import RealDisplaySizeMM as RDSMM
-            except ImportError as exception:
-                warnings.warn(str(exception), Warning)
-                display = get_display()
-            else:
-                display = RDSMM.get_x_display(display_no)
-            if display:
-                if x_hostname is None:
-                    x_hostname = display[0]
-                if x_display is None:
-                    x_display = display[1]
-                if x_screen is None:
-                    x_screen = display[2]
-                x_display_name = "%s:%s.%s" % (x_hostname, x_display, x_screen)
-        for option in options:
-            if sys.platform == "darwin":
-                # applescript: one-based index
-                applescript = [
-                    'tell app "%s"' % option,
-                    "set displayProfile to location of display profile of display %i"
-                    % (display_no + 1),
-                    "return POSIX path of displayProfile",
-                    "end tell",
-                ]
-                retcode, output, errors = osascript(applescript)
-                if retcode == 0 and output.strip():
-                    filename = output.strip("\n").decode(fs_enc)
-                    if path_only:
-                        profile = filename
-                    else:
-                        profile = ICCProfile(filename, use_cache=True)
-                elif errors.strip():
-                    raise IOError(errors.strip())
-            else:
-                # Linux
-                # Try colord
-                if colord.which("colormgr"):
-                    profile = _colord_get_display_profile(
-                        display_no, path_only=path_only
-                    )
-                    if profile:
-                        return profile
+        return get_display_profile_linux(
+            display_no, x_hostname, x_display, x_screen, path_only
+        )
+
+
+def get_display_profile_windows(
+    display_no=0,
+    path_only=False,
+    devicekey=None,
+    use_active_display_device=True,
+    use_registry=True,
+):
+    """Return ICC Profile for the given display under Windows."""
+    profile = None
+    if "win32api" not in sys.modules:
+        raise ImportError("pywin32 not available")
+    if not devicekey:
+        # The ordering will work as long as Argyll continues using
+        # EnumDisplayMonitors
+        monitors = util_win.get_real_display_devices_info()
+        moninfo = monitors[display_no]
+    if not mscms and not devicekey:
+        # Via GetICMProfile. Sucks royally in a multi-monitor setup
+        # where one monitor is disabled, because it'll always get
+        # the profile of the first monitor regardless if that is the active
+        # one or not. Yuck. Also, in this case it does not reflect runtime
+        # changes to profile assignments. Double yuck.
+        buflen = ctypes.c_ulong(260)
+        dc = win32gui.CreateDC(moninfo["Device"], None, None)
+        try:
+            buf = ctypes.create_unicode_buffer(buflen.value)
+            if ctypes.windll.gdi32.GetICMProfileW(
+                dc,
+                ctypes.byref(buflen),
+                ctypes.byref(buf),  # WCHARs
+            ):
                 if path_only:
-                    # No way to figure out the profile path from X atom, so use
-                    # Argyll's UCMM if libcolordcompat.so is not present
-                    if dlopen("libcolordcompat.so"):
-                        # UCMM configuration might be stale, ignore
-                        return
-                    profile = _ucmm_get_display_profile(
-                        display_no, x_display_name, path_only
-                    )
-                    return profile
-                # Try XrandR
-                if (
-                    xrandr
-                    and RDSMM
-                    and option == "_ICC_PROFILE"
-                    and None not in (x_hostname, x_display, x_screen)
-                ):
-                    with xrandr.XDisplay(x_display_name) as display:
-                        if debug:
-                            print("Using XrandR")
-                        for i, atom_id in enumerate(
-                            [
-                                RDSMM.get_x_icc_profile_output_atom_id(display_no),
-                                RDSMM.get_x_icc_profile_atom_id(display_no),
-                            ]
-                        ):
-                            if atom_id:
-                                if i == 0:
-                                    meth = display.get_output_property
-                                    what = RDSMM.GetXRandROutputXID(display_no)
-                                else:
-                                    meth = display.get_window_property
-                                    what = display.root_window(0)
-                                try:
-                                    property = meth(what, atom_id)
-                                except ValueError as exception:
-                                    warnings.warn(str(exception), Warning)
-                                else:
-                                    if property:
-                                        profile = ICCProfile(
-                                            b"".join(
-                                                bytes(chr(n), "UTF-8") for n in property
-                                            ),
-                                            use_cache=True,
-                                        )
-                                if profile:
-                                    return profile
-                                if debug:
-                                    if i == 0:
-                                        print(
-                                            "Couldn't get _ICC_PROFILE XrandR output property"
-                                        )
-                                        print("Using X11")
-                                    else:
-                                        print("Couldn't get _ICC_PROFILE X atom")
-                    return
-                # Read up to 8 MB of any X properties
-                if debug:
-                    print("Using xprop")
-                xprop = which("xprop")
-                if not xprop:
-                    return
-                atom = "%s%s" % (option, "" if display_no == 0 else "_%s" % display_no)
-                tgt_proc = sp.Popen(
-                    [
-                        xprop,
-                        "-display",
-                        "%s:%s.%s" % (x_hostname, x_display, x_screen),
-                        "-len",
-                        "8388608",
-                        "-root",
-                        "-notype",
-                        atom,
-                    ],
-                    stdin=sp.PIPE,
-                    stdout=sp.PIPE,
-                    stderr=sp.PIPE,
+                    profile = buf.value
+                else:
+                    profile = ICCProfile(buf.value, use_cache=True)
+        finally:
+            win32gui.DeleteDC(dc)
+    else:
+        if devicekey:
+            device = None
+        elif use_active_display_device:
+            # This would be the correct way. Unfortunately that is not
+            # what other apps (or Windows itself) do.
+            device = util_win.get_active_display_device(moninfo["Device"])
+        else:
+            # This is wrong, but it's what other apps use. Matches
+            # GetICMProfile sucky behavior i.e. should return the same
+            # profile, but atleast reflects runtime changes to profile
+            # assignments.
+            device = util_win.get_first_display_device(moninfo["Device"])
+        if device:
+            devicekey = device.DeviceKey
+    if devicekey:
+        if mscms:
+            # Via WCS
+            if util_win.per_user_profiles_isenabled(devicekey=devicekey):
+                scope = WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"]
+            else:
+                scope = WCS_PROFILE_MANAGEMENT_SCOPE["SYSTEM_WIDE"]
+            if not use_registry:
+                # NOTE: WcsGetDefaultColorProfile causes the whole system
+                # to hitch if the profile of the active display device is
+                # queried. Windows bug?
+                return _wcs_get_display_profile(
+                    str(devicekey), scope, path_only=path_only
                 )
-                stdout, stderr = [data.strip(b"\n") for data in tgt_proc.communicate()]
-                if stdout:
-                    if sys.platform == "darwin":
-                        filename = str(stdout, "UTF-8")
-                        if path_only:
-                            profile = filename
-                        else:
-                            profile = ICCProfile(filename, use_cache=True)
+        else:
+            scope = None
+            # Via registry
+        monkey = devicekey.split("\\")[-2:]  # pun totally intended
+        # Current user scope
+        current_user = scope == WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"]
+        if current_user:
+            profile = _winreg_get_display_profile(monkey, True, path_only=path_only)
+        else:
+            # System scope
+            profile = _winreg_get_display_profile(monkey, path_only=path_only)
+
+    return profile
+
+
+def get_display_profile_macos(display_no=0, path_only=False):
+    """Return ICC Profile for the given display under macOS."""
+    if intlist(mac_ver()[0].split(".")) >= [10, 6]:
+        options = ["Image Events"]
+    else:
+        options = ["ColorSyncScripting"]
+
+    for option in options:
+        # applescript: one-based index
+        applescript = [
+            f'tell app "{option}"',
+            "set displayProfile to location of display profile of "
+            f"display {int(display_no + 1):d}",
+            "return POSIX path of displayProfile",
+            "end tell",
+        ]
+        retcode, output, errors = osascript(applescript)
+        if retcode == 0 and output.strip():
+            filename = output.strip("\n").decode(fs_enc)
+            if path_only:
+                profile = filename
+            else:
+                profile = ICCProfile(filename, use_cache=True)
+        elif errors.strip():
+            raise IOError(errors.strip())
+
+    return profile
+
+
+def get_display_profile_linux(
+    display_no=0,
+    x_hostname=None,
+    x_display=None,
+    x_screen=None,
+    path_only=False,
+):
+    """Return ICC Profile for the given display under Linux."""
+    options = ["_ICC_PROFILE"]
+    try:
+        from DisplayCAL import RealDisplaySizeMM as RDSMM
+    except ImportError as exception:
+        warnings.warn(str(exception), Warning)
+        display = get_display()
+    else:
+        display = RDSMM.get_x_display(display_no)
+    if display:
+        if x_hostname is None:
+            x_hostname = display[0]
+        if x_display is None:
+            x_display = display[1]
+        if x_screen is None:
+            x_screen = display[2]
+        x_display_name = f"{x_hostname}:{x_display}.{x_screen}"
+    for option in options:
+        # Linux
+        # Try colord
+        if colord.which("colormgr") and (
+            profile := (_colord_get_display_profile(display_no, path_only=path_only))
+        ):
+            return profile
+        if path_only:
+            # No way to figure out the profile path from X atom, so use
+            # Argyll's UCMM if libcolordcompat.so is not present
+            if dlopen("libcolordcompat.so"):
+                # UCMM configuration might be stale, ignore
+                return
+            profile = _ucmm_get_display_profile(display_no, x_display_name, path_only)
+            return profile
+            # Try XrandR
+        if (
+            xrandr
+            and RDSMM
+            and option == "_ICC_PROFILE"
+            and None not in (x_hostname, x_display, x_screen)
+        ):
+            with xrandr.XDisplay(x_display_name) as display:
+                if debug:
+                    print("Using XrandR")
+                for i, atom_id in enumerate(
+                    [
+                        RDSMM.get_x_icc_profile_output_atom_id(display_no),
+                        RDSMM.get_x_icc_profile_atom_id(display_no),
+                    ]
+                ):
+                    if not atom_id:
+                        continue
+                    if i == 0:
+                        meth = display.get_output_property
+                        what = RDSMM.GetXRandROutputXID(display_no)
                     else:
-                        raw = [item.strip() for item in stdout.split("=")]
-                        if raw[0] == atom and len(raw) == 2:
-                            bin = "".join(
-                                [chr(int(part)) for part in raw[1].split(", ")]
+                        meth = display.get_window_property
+                        what = display.root_window(0)
+                    try:
+                        property = meth(what, atom_id)
+                    except ValueError as exception:
+                        warnings.warn(str(exception), Warning)
+                    else:
+                        if property and (
+                            profile := ICCProfile(
+                                b"".join(bytes(chr(n), "UTF-8") for n in property),
+                                use_cache=True,
                             )
-                            profile = ICCProfile(bin, use_cache=True)
-                elif stderr and tgt_proc.wait() != 0:
-                    raise IOError(stderr)
-            if profile:
-                break
+                        ):
+                            return profile
+                    if debug:
+                        if i == 0:
+                            print("Couldn't get _ICC_PROFILE XrandR output property")
+                            print("Using X11")
+                        else:
+                            print("Couldn't get _ICC_PROFILE X atom")
+            return
+
+        # Read up to 8 MB of any X properties
+        if debug:
+            print("Using xprop")
+        xprop = which("xprop")
+        if not xprop:
+            return
+        atom = "{}{}".format(option, "" if display_no == 0 else f"_{display_no}")
+        tgt_proc = sp.Popen(
+            [
+                xprop,
+                "-display",
+                f"{x_hostname}:{x_display}.{x_screen}",
+                "-len",
+                "8388608",
+                "-root",
+                "-notype",
+                atom,
+            ],
+            stdin=sp.PIPE,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
+        )
+        stdout, stderr = [data.strip(b"\n") for data in tgt_proc.communicate()]
+        if stdout:
+            raw = [item.strip() for item in stdout.split("=")]
+            if raw[0] == atom and len(raw) == 2:
+                bin = "".join([chr(int(part)) for part in raw[1].split(", ")])
+                profile = ICCProfile(bin, use_cache=True)
+        elif stderr and tgt_proc.wait() != 0:
+            raise IOError(stderr)
+        if profile:
+            break
     return profile
 
 
@@ -2745,8 +2777,9 @@ def _mp_hdr_tonemap(
                     cat=cat,
                 )
                 print(
-                    "Reached iteration limit, XYZ %.4f %.4f %.4f -> %.4f %.4f %.4f"
-                    % (oX_D50, oY_D50, oZ_D50, X_D50, Y_D50, Z_D50)
+                    "Reached iteration limit, XYZ "
+                    f"{oX_D50:.4f} {oY_D50:.4f} {oZ_D50:.4f} -> "
+                    f"{X_D50:.4f} {Y_D50:.4f} {Z_D50:.4f}"
                 )
             its_hi = max(its_hi, 10000 - its)
             XYZ[:] = X, Y, Z
@@ -2758,8 +2791,11 @@ def _mp_hdr_tonemap(
     if I_reduced_count:
         # Intensity was reduced, print informational statistics
         print(
-            "Max iterations %i dI avg %.4f max %.4f dC avg %.4f max %.4f"
-            % (its_hi, dI / I_reduced_count, dI_max, dC / I_reduced_count, dC_max)
+            f"Max iterations {int(its_hi):d} "
+            f"dI avg {dI / I_reduced_count:.4f} "
+            f"max {dI_max:.4f} "
+            f"dC avg {dC / I_reduced_count:.4f} "
+            f"max {dC_max:.4f}"
         )
     elif its_hi:
         print("Max iterations", its_hi)
@@ -2776,11 +2812,11 @@ def hexrepr(bytestring, mapping=None):
     hex_repr = (b"0x%s" % binascii.hexlify(bytestring).upper()).decode()
     ascii_repr = re.sub(b"[^\x20-\x7e]", b"", bytestring)
     if ascii_repr == bytestring:
-        hex_repr += " '%s'" % ascii_repr.decode()
+        hex_repr += f" '{ascii_repr.decode()}'"
         if mapping:
             value = mapping.get(ascii_repr)
             if value:
-                hex_repr += " " + value
+                hex_repr = f"{hex_repr} {value}"
     return hex_repr
 
 
@@ -2986,8 +3022,10 @@ class LazyLoadTagAODict(AODict):
                 tag = ICCProfileTag(tagData, tagSignature)
         except Exception as exception:
             raise ICCProfileInvalidError(
-                "Couldn't parse tag %r (type %r, offset %i, size %i): %r"
-                % (tagSignature, typeSignature, tagDataOffset, tagDataSize, exception)
+                f"Couldn't parse tag {repr(tagSignature)} "
+                f"(type {repr(typeSignature)}, "
+                f"offset {int(tagDataOffset):d}, "
+                f"size {int(tagDataSize):d}): {repr(exception)}"
             )
         self[key] = tag
         return tag
@@ -3026,8 +3064,7 @@ class ICCProfileTag:
         else:
             if not self:
                 return "{}.{}()".format(
-                    self.__class__.__module__,
-                    self.__class__.__name__
+                    self.__class__.__module__, self.__class__.__name__
                 )
             return "{}.{}({})".format(
                 self.__class__.__module__,
@@ -3059,12 +3096,12 @@ class Colorant:
     def __repr__(self):
         items = []
         for key, value in (("type", self.type), ("description", self.description)):
-            items.append("%s: %s" % (repr(key), repr(value)))
+            items.append(f"{repr(key)}: {repr(value)}")
         channels = []
         for xy in self.channels:
-            channels.append("[%s]" % ", ".join([str(v) for v in xy]))
-        items.append("'channels': [%s]" % ", ".join(channels))
-        return "{%s}" % ", ".join(items)
+            channels.append("[{}]".format(", ".join([str(v) for v in xy])))
+        items.append("'channels': [{}]".format(", ".join(channels)))
+        return "{{{}}}".format(", ".join(items))
 
     def __setitem__(self, key, value):
         object.__setattr__(self, key, value)
@@ -3123,7 +3160,7 @@ class Colorant:
 
     def update(self, *args, **kwargs):
         if len(args) > 1:
-            raise TypeError("update expected at most 1 arguments, got %i" % len(args))
+            raise TypeError(f"update expected at most 1 arguments, got {len(args):d}")
         for iterable in args + tuple(kwargs.items()):
             if hasattr(iterable, "items"):
                 self.update(iter(iterable.items()))
@@ -3223,12 +3260,12 @@ class LUT16Type(ICCProfileTag):
         elif not pcs or pcs == b"XYZ":
             if not pcs:
                 warnings.warn(
-                    "LUT16Type.%s: PCS not specified, assuming XYZ" % method, Warning
+                    f"LUT16Type.{method}: PCS not specified, assuming XYZ", Warning
                 )
             bp = [v / 32768.0 for v in bp_row]
             wp = [v / 32768.0 for v in wp_row]
         else:
-            raise ValueError("LUT16Type.%s: Unsupported PCS %r" % (method, pcs))
+            raise ValueError(f"LUT16Type.{method}: Unsupported PCS {repr(pcs)}")
         if [round(v * 32768) for v in bp] != [round(v * 32768) for v in bp_out]:
             D50 = colormath.get_whitepoint("D50")
 
@@ -3586,15 +3623,15 @@ BEGIN_DATA
 
         if diagpng and filename and len(self.output) == 3:
             # Generate diagnostic images
-            fname, ext = os.path.splitext(filename)
-            diag_fname = fname + ".%s.post.CLUT.png" % sig
+            fname, _ = os.path.splitext(filename)
+            diag_fname = f"{fname}.{sig}.post.CLUT.png"
             if diagpng == 2 and not os.path.isfile(diag_fname):
                 self.clut_writepng(diag_fname)
         else:
             diagpng = 0
 
         if logfile:
-            logfile.write("Smoothing %s...\n" % sig)
+            logfile.write(f"Smoothing {sig}...\n")
         # Create a list of <clutres> number of 2D grids, each one with a
         # size of (width x height) <clutres> x <clutres>
         grids = []
@@ -3616,7 +3653,12 @@ BEGIN_DATA
                         is_gray = x == y == clutres // 2
                     else:
                         is_gray = False
-                    # print i, y, x, "%i %i %i" % tuple(v / 655.35 * 2.55 for v in grid[y][x]), is_dark, raw_input(is_gray) if is_gray else ''
+                    # print(
+                    #     i, y, x,
+                    #     "{:d} {:d} {:d}".format(*(int(v / 655.35 * 2.55) for v in grid[y][x])),
+                    #     is_dark,
+                    #     raw_input(is_gray) if is_gray else "",
+                    # )
                     if is_dark or is_gray:
                         # Don't smooth dark colors and gray axis
                         continue
@@ -3683,7 +3725,7 @@ BEGIN_DATA
                 ]
 
         if diagpng and filename:
-            self.clut_writepng(fname + ".%s.post.CLUT.smooth.png" % sig)
+            self.clut_writepng(f"{fname}.{sig}.post.CLUT.smooth.png")
 
     def smooth2(
         self,
@@ -3710,14 +3752,14 @@ BEGIN_DATA
         if diagpng and filename and len(self.output) == 3:
             # Generate diagnostic images
             fname, ext = os.path.splitext(filename)
-            diag_fname = fname + ".%s.post.CLUT.png" % sig
+            diag_fname = f"{fname}.{sig}.post.CLUT.png"
             if diagpng == 2 and not os.path.isfile(diag_fname):
                 self.clut_writepng(diag_fname)
         else:
             diagpng = 0
 
         if logfile:
-            logfile.write("Smoothing %s...\n" % sig)
+            logfile.write(f"Smoothing {sig}...\n")
 
         for i in range(3):
             state = ("original", "pass", "final")[i]
@@ -3774,11 +3816,11 @@ BEGIN_DATA
                     if debug:
                         print("Writing diagnostic PNG for", state, channels)
                     self.clut_writepng(
-                        fname + ".%s.post.CLUT.%s.%s.png" % (sig, channels, state)
+                        f"{fname}.{sig}.post.CLUT.{channels}.{state}.png"
                     )
 
         if diagpng and filename:
-            self.clut_writepng(fname + ".%s.post.CLUT.smooth.png" % sig)
+            self.clut_writepng(f"{fname}.{sig}.post.CLUT.smooth.png")
 
     @property
     def tagData(self):
@@ -3886,7 +3928,7 @@ class ColorantTableType(ICCProfileTag, AODict):
                     keys = ["X", "Y", "Z"]
                     pcsvalues[i] = pcsvalue / 32768.0 * 100
                 else:
-                    print("Warning: Non-standard profile connection space '%s'" % pcs)
+                    print(f"Warning: Non-standard profile connection space '{pcs}'")
                     return
             end = data[:32].find(b"\0")
             if end < 0:
@@ -4013,10 +4055,10 @@ class CurveType(ICCProfileTag, list):
     def get_transfer_function(
         self, best=True, slice=(0.05, 0.95), black_Y=None, outoffset=None
     ):
-        """Return transfer function name, exponent and match percentage"""
+        """Return transfer function name, exponent and match percentage."""
         if len(self) == 1:
             # Gamma
-            return ("Gamma %.2f" % round(self[0], 2), self[0], 1.0), 1.0
+            return (f"Gamma {round(self[0], 2):.2f}", self[0], 1.0), 1.0
         if not len(self):
             # Identity
             return ("Gamma 1.0", 1.0, 1.0), 1.0
@@ -4057,14 +4099,20 @@ class CurveType(ICCProfileTag, list):
             ("L*", -3.0, outoffset),
             ("sRGB", -2.4, outoffset),
             (
-                "Gamma %.2f %i%%" % (round(gamma, 2), round(outoffset * 100)),
+                "Gamma {:.2f} {:.0%}".format(gamma, outoffset),
                 gamma,
                 outoffset,
             ),
         ]
         if outoffset_unspecified and black_Y:
             for i in range(100):
-                tfs.append(("Gamma %.2f %i%%" % (round(gamma, 2), i), gamma, i / 100.0))
+                tfs.append(
+                    (
+                        "Gamma {:.2f} {:d}%".format(gamma, i),
+                        gamma,
+                        i / 100.0,
+                    )
+                )
         for name, exp, outoffset in tfs:
             if name in ("DICOM", "Rec. 1886", "SMPTE 2084", "HLG"):
                 try:
@@ -4192,13 +4240,13 @@ class CurveType(ICCProfileTag, list):
         black_cdm2 = round(black_cdm2, 6)
         if black_cdm2 < 0.05 or black_cdm2 >= white_cdm2:
             raise ValueError(
-                "The black level of %s cd/m2 is out of range "
-                "for DICOM. Valid range begins at 0.05 cd/m2." % black_cdm2
+                f"The black level of {black_cdm2} cd/m2 is out of range "
+                "for DICOM. Valid range begins at 0.05 cd/m2."
             )
         if white_cdm2 > 4000 or white_cdm2 <= black_cdm2:
             raise ValueError(
-                "The white level of %s cd/m2 is out of range "
-                "for DICOM. Valid range is up to 4000 cd/m2." % white_cdm2
+                f"The white level of {white_cdm2} cd/m2 is out of range "
+                "for DICOM. Valid range is up to 4000 cd/m2."
             )
         black_jndi = colormath.DICOM(black_cdm2, True)
         white_jndi = colormath.DICOM(white_cdm2, True)
@@ -4242,8 +4290,8 @@ class CurveType(ICCProfileTag, list):
         """
         if black_cdm2 < 0 or black_cdm2 >= white_cdm2:
             raise ValueError(
-                "The black level of %f cd/m2 is out of range "
-                "for HLG. Valid range begins at 0 cd/m2." % black_cdm2
+                f"The black level of {black_cdm2:f} cd/m2 is out of range "
+                "for HLG. Valid range begins at 0 cd/m2."
             )
         values = []
 
@@ -4258,7 +4306,7 @@ class CurveType(ICCProfileTag, list):
         hlg.white_cdm2 *= lscale
         if lscale < 1 and logfile:
             logfile.write(
-                "Nominal peak luminance after scaling = %.2f\n" % hlg.white_cdm2
+                f"Nominal peak luminance after scaling = {hlg.white_cdm2:.2f}\n"
             )
 
         maxv = hlg.eotf(maxsignal)
@@ -4298,14 +4346,14 @@ class CurveType(ICCProfileTag, list):
         # Luminance levels depend on the end level of 10000 cd/m2
         if black_cdm2 < 0 or black_cdm2 >= white_cdm2:
             raise ValueError(
-                "The black level of %f cd/m2 is out of range "
-                "for SMPTE 2084. Valid range begins at 0 cd/m2." % black_cdm2
+                f"The black level of {black_cdm2:f} cd/m2 is out of range "
+                "for SMPTE 2084. Valid range begins at 0 cd/m2."
             )
         if max(white_cdm2, master_white_cdm2) > 10000:
             raise ValueError(
-                "The white level of %f cd/m2 is out of range "
-                "for SMPTE 2084. Valid range is up to 10000 cd/m2."
-                % max(white_cdm2, master_white_cdm2)
+                f"The white level of {max(white_cdm2, master_white_cdm2):f} "
+                "cd/m2 is out of range for SMPTE 2084. "
+                "Valid range is up to 10000 cd/m2."
             )
         values = []
         maxv = white_cdm2 / 10000.0
@@ -4455,7 +4503,7 @@ class ParametricCurveType(ICCProfileTag):
                 return self.params["c"] * v + self.params["f"]
         else:
             raise NotImplementedError(
-                "Invalid number of parameters: %i" % len(self.params)
+                f"Invalid number of parameters: {len(self.params):d}"
             )
 
     def apply(self, v):
@@ -4520,8 +4568,8 @@ class DictType(ICCProfileTag, AODict):
         recordlen = uInt32Number(tagData[12:16])
         if recordlen not in (16, 24, 32):
             print(
-                "Error (non-critical): '%s' invalid record length (expected 16, 24 or 32, got %s)"
-                % (tagData[:4], recordlen)
+                f"Error (non-critical): '{tagData[:4]}' invalid record length "
+                f"(expected 16, 24 or 32, got {recordlen})"
             )
             return
         elements = {}
@@ -4529,8 +4577,8 @@ class DictType(ICCProfileTag, AODict):
             record = tagData[16 + n * recordlen : 16 + (n + 1) * recordlen]
             if len(record) < recordlen:
                 print(
-                    "Error (non-critical): '%s' record %s too short (expected %s bytes, got %s bytes)"
-                    % (tagData[:4], n, recordlen, len(record))
+                    f"Error (non-critical): '{tagData[:4]}' record {n} too short "
+                    f"(expected {recordlen} bytes, got {len(record)} bytes)"
                 )
                 break
             for key, offsetpos in (
@@ -4569,8 +4617,8 @@ class DictType(ICCProfileTag, AODict):
                                     )
                             except Exception:
                                 print(
-                                    "Error (non-critical): could not decode '%s', offset %s, length %s"
-                                    % (tagData[:4], offset, size)
+                                    "Error (non-critical): could not decode "
+                                    f"'{tagData[:4]}', offset {offset}, length {size}"
                                 )
                             # Remember element by offset and size
                             elements[(offset, size)] = data
@@ -4719,7 +4767,7 @@ class DictTypeJSONEncoder(json.JSONEncoder):
         for name in obj:
             value = obj.getvalue(name, None, self.locale)
             name = obj.getname(name, None, self.locale)
-            value = '"%s"' % repr(str(value))[2:-1].replace('"', '\\"')
+            value = '"{}"'.format(repr(str(value))[2:-1].replace('"', '\\"'))
             name = regex.sub(repl_str, name)
             value = regex.sub(repl_str, value)
             return_data[name] = value
@@ -4759,8 +4807,8 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
         recordSize = uInt32Number(tagData[12:16])  # 12
         if recordSize != 12:
             print(
-                "Warning (non-critical): '%s' invalid record length (expected 12, got %s)"
-                % (tagData[:4], recordSize)
+                f"Warning (non-critical): '{tagData[:4]}' invalid record length "
+                f"(expected 12, got {recordSize})"
             )
             if recordSize < 12:
                 recordSize = 12
@@ -4887,8 +4935,8 @@ class ProfileSequenceDescType(ICCProfileTag, list):
                         cls = MultiLocalizedUnicodeType
                     else:
                         print(
-                            "Error (non-critical): could not fully decode 'pseq' - unknown %r tag type %r"
-                            % (desc_type, tag_type)
+                            "Error (non-critical): could not fully decode 'pseq' - "
+                            f"unknown {repr(desc_type)} tag type {repr(tag_type)}"
                         )
                         count = 1  # Skip remaining
                         break
@@ -5006,9 +5054,9 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 # double-byte characters (including trailing unicode NUL), not the
                 # number of bytes as in the profiles created by Vista and later
                 print(
-                    "Warning (non-critical): '%s' Unicode part end points "
+                    f"Warning (non-critical): '{tagData[:4]}' Unicode part end points "
                     "past the tag data, assuming number of bytes instead "
-                    "of number of characters for length" % tagData[:4]
+                    "of number of characters for length"
                 )
                 unicodeDescriptionLength /= 2
             if (
@@ -5021,9 +5069,9 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 == b"\0\0"
             ):
                 print(
-                    "Warning (non-critical): '%s' Unicode part "
+                    f"Warning (non-critical): '{tagData[:4]}' Unicode part "
                     "seems to be a single-byte string (double-byte "
-                    "string expected)" % tagData[:4]
+                    "string expected)"
                 )
                 charBytes = 1  # fix for fubar'd desc
             else:
@@ -5047,10 +5095,10 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                             == unicodeDescriptionLength - 1
                         ):
                             print(
-                                "Warning (non-critical): '%s' "
+                                f"Warning (non-critical): '{tagData[:4]}' "
                                 "Unicode part starts with UTF-16 big "
                                 "endian BOM, but actual contents seem "
-                                "to be UTF-16 little endian" % tagData[:4]
+                                "to be UTF-16 little endian"
                             )
                             # fix fubar'd desc
                             unicodeDescription = str(
@@ -5069,11 +5117,11 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                         unicodeDescription = unicodeDescription[2:]
                         if unicodeDescription[0] == b"\0":
                             print(
-                                "Warning (non-critical): '%s' "
+                                f"Warning (non-critical): '{tagData[:4]}' "
                                 "Unicode part starts with UTF-16 "
                                 "little endian BOM, but actual "
                                 "contents seem to be UTF-16 big "
-                                "endian" % tagData[:4]
+                                "endian"
                             )
                             # fix fubar'd desc
                             unicodeDescription = str(
@@ -5096,13 +5144,13 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                     else:
                         print(
                             "Error (non-critical): could not decode "
-                            "'%s' Unicode part - null byte(s) "
-                            "encountered" % tagData[:4]
+                            f"'{tagData[:4]}' Unicode part - null byte(s) "
+                            "encountered"
                         )
             except UnicodeDecodeError:
                 print(
                     "UnicodeDecodeError (non-critical): could not "
-                    "decode '%s' Unicode part" % tagData[:4]
+                    f"decode '{tagData[:4]}' Unicode part"
                 )
         else:
             charBytes = 1
@@ -5122,19 +5170,19 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                         self.Macintosh = macDescription
                 except KeyError:
                     print(
-                        "KeyError (non-critical): could not decode '%s' Macintosh part (unsupported encoding %s)"
-                        % (tagData[:4], self.macScriptCode)
+                        f"KeyError (non-critical): could not decode '{tagData[:4]}' "
+                        f"Macintosh part (unsupported encoding {self.macScriptCode})"
                     )
                 except LookupError:
                     print(
-                        "LookupError (non-critical): could not decode '%s' "
-                        "Macintosh part (unsupported encoding '%s')"
-                        % (tagData[:4], encodings["mac"][self.macScriptCode])
+                        f"LookupError (non-critical): could not decode '{tagData[:4]}' "
+                        "Macintosh part (unsupported encoding "
+                        f"'{encodings['mac'][self.macScriptCode]}')"
                     )
                 except UnicodeDecodeError:
                     print(
-                        "UnicodeDecodeError (non-critical): could not decode '%s' Macintosh part"
-                        % tagData[:4]
+                        "UnicodeDecodeError (non-critical): could not decode "
+                        f"'{tagData[:4]}' Macintosh part"
                     )
 
     @property
@@ -5404,7 +5452,7 @@ class VideoCardGammaTableType(VideoCardGammaType):
         hex2int = {1: uInt8Number, 2: uInt16Number, 4: uInt32Number, 8: uInt64Number}
         if entrySize not in hex2int:
             raise ValueError(
-                "Invalid VideoCardGammaTableType entry size %i" % entrySize
+                f"Invalid VideoCardGammaTableType entry size {int(entrySize):d}"
             )
         i = 0
         while i < channels:
@@ -5601,7 +5649,7 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
 
         """
         if quantize and not isinstance(quantize, int):
-            raise ValueError("Invalid quantization bits: %r" % quantize)
+            raise ValueError(f"Invalid quantization bits: {repr(quantize)}")
         if "ColorDeviceModel" in self:
             # Parse calibration information to VCGT
             cal = self.ColorDeviceModel.find("Calibration")
@@ -6010,14 +6058,15 @@ class NamedColor2Type(ICCProfileTag, AODict):
 
         if not set(pcsCoordinates.keys()).issuperset(set(keys)):
             raise ICCProfileInvalidError(
-                "Can't add namedColor2 without all 3 PCS coordinates: '%s'" % set(keys)
-                - set(pcsCoordinates.keys())
+                "Can't add namedColor2 without all 3 PCS coordinates: '{}'".format(
+                    set(keys) - set(pcsCoordinates.keys())
+                )
             )
 
         if len(deviceCoordinates) != self.deviceCoordCount:
             raise ICCProfileInvalidError(
-                "Can't add namedColor2 without all %s device coordinates (called with %s)"
-                % (self.deviceCoordCount, len(deviceCoordinates))
+                f"Can't add namedColor2 without all {self.deviceCoordCount} "
+                f"device coordinates (called with {len(deviceCoordinates)})"
             )
 
         nc2value = NamedColor2Value()
@@ -6027,7 +6076,7 @@ class NamedColor2Type(ICCProfileTag, AODict):
 
         if rootName in list(self.keys()):
             raise ICCProfileInvalidError(
-                "Can't add namedColor2 with existant name: '%s'" % rootName
+                f"Can't add namedColor2 with existant name: '{rootName}'"
             )
 
         nc2value.devicevalues = []
@@ -6485,7 +6534,7 @@ class ICCProfile:
             self.preferredCMM[:4].ljust(4, b" ") if self.preferredCMM else b"\0" * 4,
             # Next three lines are ICC version
             chr(int(str(self.version).split(".")[0])).encode(),
-            binascii.unhexlify(("%.2f" % self.version).split(".")[1]),
+            binascii.unhexlify((f"{self.version:.2f}").split(".")[1]),
             b"\0" * 2,
             self.profileClass[:4].ljust(4, b" "),
             self.colorSpace[:4].ljust(4, b" "),
@@ -6584,8 +6633,8 @@ class ICCProfile:
 
                     if tagSignature in self._tags:
                         print(
-                            "Error (non-critical): Tag '%s' already encountered. Skipping..."
-                            % tagSignature
+                            f"Error (non-critical): Tag '{tagSignature}' "
+                            "already encountered. Skipping..."
                         )
                     else:
                         if (tagDataOffset, tagDataSize) in tags:
@@ -6605,21 +6654,19 @@ class ICCProfile:
                             tagData = self._data[start:end]
                             if len(tagData) < tagDataSize:
                                 print(
-                                    "Warning: Tag data for tag %r is truncated (offset %i, expected size %i, "
-                                    "actual size %i)"
-                                    % (
-                                        tagSignature,
-                                        tagDataOffset,
-                                        tagDataSize,
-                                        len(tagData),
-                                    )
+                                    f"Warning: Tag data for tag {repr(tagSignature)} "
+                                    f"is truncated (offset {int(tagDataOffset):d}, "
+                                    f"expected size {int(tagDataSize):d}, "
+                                    f"actual size {len(tagData):d})"
                                 )
                                 tagDataSize = len(tagData)
                             typeSignature = tagData[:4]
                             if len(typeSignature) < 4:
                                 print(
-                                    "Warning: Tag type signature for tag %r is truncated (offset %i, size %i)"
-                                    % (tagSignature, tagDataOffset, tagDataSize)
+                                    "Warning: Tag type signature for tag "
+                                    f"{repr(tagSignature)} is truncated "
+                                    f"(offset {int(tagDataOffset):d}, "
+                                    f"size {int(tagDataSize):d})"
                                 )
                                 typeSignature = typeSignature.ljust(4, b" ")
                             if debug:
@@ -6691,7 +6738,7 @@ class ICCProfile:
         has_lut_tags = False
         for direction in ("A2B", "B2A"):
             for tableno in range(3):
-                tag = self.tags.get("%s%i" % (direction, tableno))
+                tag = self.tags.get(f"{direction}{tableno}")
                 if tag:
                     if isinstance(tag, LUT16Type):
                         has_lut_tags = True
@@ -7049,7 +7096,7 @@ class ICCProfile:
         if include_A2B:
             tables = []
             for i in range(3):
-                a2b = self.tags.get("A2B%i" % i)
+                a2b = self.tags.get(f"A2B{i}")
                 if isinstance(a2b, LUT16Type) and a2b not in tables:
                     a2b.apply_black_offset(XYZbp, logfiles, thread_abort, abortmessage)
                     tables.append(a2b)
@@ -7078,7 +7125,7 @@ class ICCProfile:
             self.tags[channel + "TRC"] = tag
         rgbbp_in = []
         for channel in "rgb":
-            rgbbp_in.append(self.tags["%sTRC" % channel][0] / 65535.0)
+            rgbbp_in.append(self.tags[f"{channel}TRC"][0] / 65535.0)
         bp_in = mtx * rgbbp_in
         if tuple(bp_in) == tuple(XYZbp):
             return
@@ -7086,12 +7133,12 @@ class ICCProfile:
         for i in range(size):
             rgb = []
             for channel in "rgb":
-                rgb.append(self.tags["%sTRC" % channel][i] / 65535.0)
+                rgb.append(self.tags[f"{channel}TRC"][i] / 65535.0)
             X, Y, Z = mtx * rgb
             XYZ = colormath.blend_blackpoint(X, Y, Z, bp_in, XYZbp, power=power)
             rgb = imtx * XYZ
-            for j in range(3):
-                self.tags["%sTRC" % "rgb"[j]][i] = min(max(rgb[j], 0), 1) * 65535
+            for j, channel in enumerate("rgb"):
+                self.tags[f"{channel}TRC"][i] = min(max(rgb[j], 0), 1) * 65535
 
     def set_bt1886_trc(
         self, XYZbp, outoffset=0.0, gamma=2.4, gamma_type="B", size=None
@@ -7140,7 +7187,7 @@ class ICCProfile:
         """
         self.set_trc_tags()
         for channel in "rgb":
-            self.tags["%sTRC" % channel].set_dicom_trc(XYZbp[1], white_cdm2, size)
+            self.tags[f"{channel}TRC"].set_dicom_trc(XYZbp[1], white_cdm2, size)
         self.apply_black_offset(
             [v / white_cdm2 for v in XYZbp], 40.0 * (white_cdm2 / 40.0)
         )
@@ -7167,7 +7214,7 @@ class ICCProfile:
         """
         self.set_trc_tags()
         for channel in "rgb":
-            self.tags["%sTRC" % channel].set_hlg_trc(
+            self.tags[f"{channel}TRC"].set_hlg_trc(
                 XYZbp[1], white_cdm2, system_gamma, ambient_cdm2, maxsignal, size
             )
         if tuple(XYZbp) != (0, 0, 0) and blend_blackpoint:
@@ -7200,7 +7247,7 @@ class ICCProfile:
         """
         self.set_trc_tags()
         for channel in "rgb":
-            self.tags["%sTRC" % channel].set_smpte2084_trc(
+            self.tags[f"{channel}TRC"].set_smpte2084_trc(
                 XYZbp[1],
                 white_cdm2,
                 master_black_cdm2,
@@ -7224,7 +7271,7 @@ class ICCProfile:
                     tag.set_trc(
                         power, size=1 if not callable(power) and power >= 0 else 1024
                     )
-            self.tags["%sTRC" % channel] = tag
+            self.tags[f"{channel}TRC"] = tag
 
     def set_localizable_desc(
         self, tagname, description, languagecode="en", countrycode="US"
@@ -7356,8 +7403,8 @@ class ICCProfile:
     def add_device_info(info, device, level=1):
         """Add a device structure (see profile header) to info dict"""
         indent = " " * 4 * level
-        info[indent + "Manufacturer"] = (
-            "0x%s" % binascii.hexlify(device.get("manufacturer", b"")).upper().decode()
+        info[f"{indent}Manufacturer"] = "0x{}".format(
+            binascii.hexlify(device.get("manufacturer", b"")).upper().decode()
         )
         if (
             len(device.get("manufacturer", b"")) == 4
@@ -7374,9 +7421,9 @@ class ICCProfile:
             if manufacturer != device.get("manufacturer"):
                 manufacturer = None
             else:
-                manufacturer = "'%s'" % manufacturer.decode()
+                manufacturer = f"'{manufacturer.decode()}'"
         if manufacturer is not None:
-            info[indent + "Manufacturer"] += " %s" % manufacturer
+            info[f"{indent}Manufacturer"] += f" {manufacturer}"
         info[indent + "Model"] = hexrepr(device.get("model", ""))
         attributes = device.get("attributes", {})
         info[indent + "Media attributes"] = ", ".join(
@@ -7390,13 +7437,13 @@ class ICCProfile:
 
     def get_info(self):
         info = DictList()
-        info["Size"] = "%i Bytes (%.2f KiB)" % (self.size, self.size / 1024.0)
+        info["Size"] = "{:d} Bytes ({:.2f} KiB)".format(int(self.size), self.size / 1024.0)
         info["Preferred CMM"] = hexrepr(self.preferredCMM, cmms)
-        info["ICC version"] = "%s" % self.version
+        info["ICC version"] = f"{self.version}"
         info["Profile class"] = profileclass.get(self.profileClass, self.profileClass)
         info["Color model"] = self.colorSpace.decode()
         info["Profile connection space (PCS)"] = self.connectionColorSpace.decode()
-        info["Created"] = strftime("%Y-%m-%d %H:%M:%S", self.dateTime.timetuple())
+        info["Created"] = "{:%Y-%m-%d %H:%M:%S}".format(self.dateTime)
         info["Platform"] = platform.get(self.platform, hexrepr(self.platform))
         info["Is embedded"] = {True: "Yes"}.get(self.embedded, "No")
         info["Can be used independently"] = {True: "Yes"}.get(self.independent, "No")
@@ -7410,41 +7457,45 @@ class ICCProfile:
         }.get(self.intent, "Unknown")
         info["PCS illuminant XYZ"] = " ".join(
             [
-                " ".join(["%6.2f" % (v * 100) for v in list(self.illuminant.values())]),
-                "(xy %s," % " ".join("%6.4f" % v for v in self.illuminant.xyY[:2]),
-                "CCT %iK)" % (colormath.XYZ2CCT(*list(self.illuminant.values())) or 0),
+                " ".join([f"{v * 100:6.2f}" for v in list(self.illuminant.values())]),
+                "(xy {},".format(
+                    " ".join(f"{v:6.4f}" for v in self.illuminant.xyY[:2])
+                ),
+                "CCT {:d}K)".format(
+                    int(colormath.XYZ2CCT(*list(self.illuminant.values()))) or 0
+                ),
             ]
         )
         info["Creator"] = hexrepr(self.creator, manufacturers)
-        info["Checksum"] = "0x%s" % binascii.hexlify(self.ID).upper().decode()
+        info["Checksum"] = f"0x{binascii.hexlify(self.ID).upper().decode()}"
         calculated_id = self.calculateID(False)
         if self.ID != b"\0" * 16:
             info["    Checksum OK"] = {True: "Yes"}.get(self.ID == calculated_id, "No")
         if self.ID != calculated_id:
             info["    Calculated checksum"] = (
-                "0x%s" % binascii.hexlify(calculated_id).upper().decode()
+                f"0x{binascii.hexlify(calculated_id).upper().decode()}"
             )
         for sig in self.tags:
             tag = self.tags[sig]
-            name = tags.get(sig, "'%s'" % sig)
+            name = tags.get(sig, f"'{sig}'")
             if isinstance(tag, chromaticAdaptionTag):
                 info[name] = self.guess_cat(False) or "Unknown"
                 name = "    Matrix"
                 for i, row in enumerate(tag):
                     if i > 0:
                         name = "    " * 2
-                    info[name] = " ".join("%6.4f" % v for v in row)
+                    info[name] = " ".join(f"{v:6.4f}" for v in row)
             elif isinstance(tag, ChromaticityType):
                 info["Chromaticity (illuminant-relative)"] = ""
                 for i, channel in enumerate(tag.channels):
                     if self.colorSpace.endswith(b"CLR"):
                         colorant_name = ""
                     else:
-                        colorant_name = "(%s) " % (self.colorSpace[i : i + 1]).decode(
-                            "utf-8"
+                        colorant_name = "({}) ".format(
+                            self.colorSpace[i : i + 1].decode("utf-8")
                         )
-                    info["    Channel %i %sxy" % (i + 1, colorant_name)] = " ".join(
-                        "%6.4f" % v for v in channel
+                    info[f"    Channel {i + 1:d} {colorant_name}xy"] = " ".join(
+                        f"{v:6.4f}" for v in channel
                     )
             elif isinstance(tag, ColorantTableType):
                 info["Colorants (PCS-relative)"] = ""
@@ -7455,17 +7506,20 @@ class ICCProfile:
                         values = colormath.Lab2XYZ(*values)
                     else:
                         values = [v / 100.0 for v in values]
-                    XYZxy = [" ".join("%6.2f" % v for v in list(colorant.values()))]
+                    XYZxy = [" ".join(f"{v:6.2f}" for v in list(colorant.values()))]
                     if values != [0, 0, 0]:
                         XYZxy.append(
-                            "(xy %s)"
-                            % " ".join(
-                                "%6.4f" % v for v in colormath.XYZ2xyY(*values)[:2]
+                            "(xy {})".format(
+                                " ".join(
+                                    f"{v:6.4f}" for v in colormath.XYZ2xyY(*values)[:2]
+                                )
                             )
                         )
                     colorant_name = colorant_name.decode()
                     info[
-                        "    %s %s" % (colorant_name, "".join(list(colorant.keys())))
+                        "    {} {}".format(
+                            colorant_name, "".join(list(colorant.keys()))
+                        )
                     ] = " ".join(XYZxy)
             elif isinstance(tag, ParametricCurveType):
                 params = "".join(sorted(tag.params.keys()))
@@ -7473,87 +7527,87 @@ class ICCProfile:
                 for key in tag_params:
                     value = tag_params[key]
                     if key == "g":
-                        fmt = "%3.2f"
+                        value = f"{value:3.2f}"
                     else:
-                        fmt = "%.6f"
-                    value = (fmt % value).rstrip("0").rstrip(".")
+                        value = f"{value:.6f}"
+                    value = value.rstrip("0").rstrip(".")
                     if key == "g" and "." not in value:
                         value += ".0"
                     tag_params[key] = value
                 tag_params["E"] = sig[0].upper()
                 if params == "g":
-                    info[name] = "Gamma %(g)s" % tag_params
+                    info[name] = f"Gamma {tag_params['g']}"
                 else:
                     info[name] = ""
                 if params == "abg":
-                    info["    if (%(E)s >= - %(b)s / %(a)s):" % tag_params] = (
-                        "Y = pow(%(a)s * %(E)s + %(b)s, %(g)s)" % tag_params
+                    info["    if ({E} >= - {b} / {a}):".format(**tag_params)] = (
+                        "Y = pow({a} * {E} + {b}, {g})".format(**tag_params)
                     )
-                    info["    if (%(E)s <  - %(b)s / %(a)s):" % tag_params] = "Y = 0"
+                    info["    if ({E} <  - {b} / {a}):".format(**tag_params)] = "Y = 0"
                 elif params == "abcg":
-                    info["    if (%(E)s >= - %(b)s / %(a)s):" % tag_params] = (
-                        "Y = pow(%(a)s * %(E)s + %(b)s, %(g)s) + %(c)s" % tag_params
+                    info["    if ({E} >= - {b} / {a}):".format(**tag_params)] = (
+                        "Y = pow({a} * {E} + {b}, {g}) + {c}".format(**tag_params)
                     )
-                    info["    if (%(E)s <  - %(b)s / %(a)s):" % tag_params] = (
-                        "Y = %(c)s" % tag_params
+                    info["    if ({E} <  - {b} / {a}):".format(**tag_params)] = (
+                        f"Y = {tag_params['c']}"
                     )
                 elif params == "abcdg":
-                    info["    if (%(E)s >= %(d)s):" % tag_params] = (
-                        "Y = pow(%(a)s * %(E)s + %(b)s, %(g)s)" % tag_params
+                    info["    if ({E} >= {d}):".format(**tag_params)] = (
+                        "Y = pow({a} * {E} + {b}, {g})".format(**tag_params)
                     )
-                    info["    if (%(E)s <  %(d)s):" % tag_params] = (
-                        "Y = %(c)s * %(E)s" % tag_params
+                    info["    if ({E} <  {d}):".format(**tag_params)] = (
+                        "Y = {c} * {E}".format(**tag_params)
                     )
                 elif params == "abcdefg":
-                    info["    if (%(E)s >= %(d)s):" % tag_params] = (
-                        "Y = pow(%(a)s * %(E)s + %(b)s, %(g)s) + %(e)s" % tag_params
+                    info["    if ({E} >= {d}):".format(**tag_params)] = (
+                        "Y = pow({a} * {E} + {b}, {g}) + {e}".format(**tag_params)
                     )
-                    info["    if (%(E)s <  %(d)s):" % tag_params] = (
-                        "Y = %(c)s * %(E)s + %(f)s" % tag_params
+                    info["    if ({E} <  {d}):".format(**tag_params)] = (
+                        "Y = {c} * {E} + {f}".format(**tag_params)
                     )
                 if params != "g":
                     tag = tag.get_trc()
-                    # info["    Average gamma"] = "%3.2f" % tag.get_gamma()
+                    # info["    Average gamma"] = f"{tag.get_gamma():3.2f}"
                     transfer_function = tag.get_transfer_function(
                         slice=(0, 1.0), outoffset=1.0
                     )
                     if round(transfer_function[1], 2) == 1.0:
-                        value = "%s" % (transfer_function[0][0])
+                        value = f"{transfer_function[0][0]}"
                     else:
                         if transfer_function[1] >= 0.95:
-                            value = "≈ %s (Δ %.2f%%)" % (
+                            value = "≈ {} (Δ {:.2%})".format(
                                 transfer_function[0][0],
-                                100 - transfer_function[1] * 100,
+                                1 - transfer_function[1],
                             )
                         else:
                             value = "Unknown"
                     info["    Transfer function"] = value
             elif isinstance(tag, CurveType):
                 if len(tag) == 1:
-                    value = ("%3.2f" % tag[0]).rstrip("0").rstrip(".")
+                    value = (f"{tag[0]:3.2f}").rstrip("0").rstrip(".")
                     if "." not in value:
-                        value += ".0"
-                    info[name] = "Gamma %s" % value
+                        value = f"{value}.0"
+                    info[name] = f"Gamma {value}"
                 elif len(tag):
                     info[name] = ""
-                    info["    Number of entries"] = "%i" % len(tag)
-                    # info["    Average gamma"] = "%3.2f" % tag.get_gamma()
+                    info["    Number of entries"] = f"{len(tag):d}"
+                    # info["    Average gamma"] = f"{tag.get_gamma():3.2f}"
                     transfer_function = tag.get_transfer_function(
                         slice=(0, 1.0), outoffset=1.0
                     )
                     if round(transfer_function[1], 2) == 1.0:
-                        value = "%s" % (transfer_function[0][0])
+                        value = f"{transfer_function[0][0]}"
                     else:
                         if transfer_function[1] >= 0.95:
-                            value = "≈ %s (Δ %.2f%%)" % (
+                            value = "≈ {} (Δ {:.2%})".format(
                                 transfer_function[0][0],
-                                100 - transfer_function[1] * 100,
+                                1 - transfer_function[1],
                             )
                         else:
                             value = "Unknown"
                     info["    Transfer function"] = value
-                    info["    Minimum Y"] = "%6.4f" % (tag[0] / 65535.0 * 100)
-                    info["    Maximum Y"] = "%6.2f" % (tag[-1] / 65535.0 * 100)
+                    info["    Minimum Y"] = "{:6.4f}".format(tag[0] / 65535.0 * 100)
+                    info["    Maximum Y"] = "{:6.2f}".format(tag[-1] / 65535.0 * 100)
             elif isinstance(tag, DictType):
                 if sig == "meta":
                     name = "Metadata"
@@ -7565,7 +7619,7 @@ class ICCProfile:
                     value = record.get("value")
                     if value and key == "prefix":
                         value = "\n".join(value.split(","))
-                    info["    %s" % key] = value
+                    info[f"    {key}"] = value
                     elements = dict()
                     for subkey in ("display_name", "display_value"):
                         entry = record.get(subkey)
@@ -7575,41 +7629,41 @@ class ICCProfile:
                                 for country in countries:
                                     value = countries[country]
                                     if country.strip("\0 "):
-                                        country = "/" + country
-                                    loc = "%s%s" % (language, country)
+                                        country = f"/{country}"
+                                    loc = f"{language}{country}"
                                     if loc not in elements:
                                         elements[loc] = dict()
                                     elements[loc][subkey] = value
                     for loc in elements:
                         items = elements[loc]
                         if len(items) > 1:
-                            value = "%s = %s" % tuple(items.values())
+                            value = "{} = {}".format(*items.values())
                         elif "display_name" in items:
-                            value = "%s" % items["display_name"]
+                            value = "{}".format(items["display_name"])
                         else:
-                            value = " = %s" % items["display_value"]
-                        info["        %s" % loc] = value
+                            value = " = {}".format(items["display_value"])
+                        info[f"        {loc}"] = value
             elif isinstance(tag, LUT16Type):
                 info[name] = ""
                 name = "    Matrix"
                 for i, row in enumerate(tag.matrix):
                     if i > 0:
                         name = "    " * 2
-                    info[name] = " ".join("%6.4f" % v for v in row)
+                    info[name] = " ".join(f"{v:6.4f}" for v in row)
                 info["    Input Table"] = ""
-                info["        Channels"] = "%i" % tag.input_channels_count
+                info["        Channels"] = f"{int(tag.input_channels_count):d}"
                 info["        Number of entries per channel"] = (
-                    "%i" % tag.input_entries_count
+                    f"{int(tag.input_entries_count):d}"
                 )
                 info["    Color Look Up Table"] = ""
-                info["        Grid Steps"] = "%i" % tag.clut_grid_steps
-                info["        Entries"] = "%i" % (
-                    tag.clut_grid_steps**tag.input_channels_count
+                info["        Grid Steps"] = f"{int(tag.clut_grid_steps):d}"
+                info["        Entries"] = "{:d}".format(
+                    int(tag.clut_grid_steps**tag.input_channels_count)
                 )
                 info["    Output Table"] = ""
-                info["        Channels"] = "%i" % tag.output_channels_count
+                info["        Channels"] = f"{int(tag.output_channels_count):d}"
                 info["        Number of entries per channel"] = (
-                    "%i" % tag.output_entries_count
+                    f"{int(tag.output_entries_count):d}"
                 )
             elif isinstance(tag, MakeAndModelType):
                 info[name] = ""
@@ -7617,21 +7671,21 @@ class ICCProfile:
                 manufacturer_name = edid.get_manufacturer_name(
                     edid.parse_manufacturer_id(manufacturer_code.ljust(2, b"\0")[:2])
                 )
-                info["    Manufacturer"] = "0x%s %s" % (
+                info["    Manufacturer"] = "0x{} {}".format(
                     binascii.hexlify(manufacturer_code).decode("utf-8").upper(),
                     manufacturer_name or "",
                 )
-                info["    Model"] = (
-                    "0x%s" % binascii.hexlify(tag.model).decode("utf-8").upper()
+                info["    Model"] = "0x{}".format(
+                    binascii.hexlify(tag.model).decode("utf-8").upper()
                 )
             elif isinstance(tag, MeasurementType):
                 info[name] = ""
                 info["    Observer"] = tag.observer.description
                 info["    Backing XYZ"] = " ".join(
-                    "%6.2f" % v for v in list(tag.backing.values())
+                    f"{v:6.2f}" for v in list(tag.backing.values())
                 )
                 info["    Geometry"] = tag.geometry.description
-                info["    Flare"] = "%.2f%%" % (tag.flare * 100)
+                info["    Flare"] = f"{tag.flare:.2%}"
                 info["    Illuminant"] = tag.illuminantType.description
             elif isinstance(tag, MultiLocalizedUnicodeType):
                 info[name] = ""
@@ -7643,13 +7697,12 @@ class ICCProfile:
                         if country.strip("\0 "):
                             country = "/" + country
                         language = language.decode()
-                        info["    %s%s" % (language, country)] = value
+                        info[f"    {language}{country}"] = value
             elif isinstance(tag, NamedColor2Type):
                 info[name] = ""
-                info["    Device color components"] = "%i" % (tag.deviceCoordCount,)
-                info["    Colors (PCS-relative)"] = "%i (%i Bytes) " % (
-                    tag.colorCount,
-                    len(tag.tagData),
+                info["    Device color components"] = f"{int(tag.deviceCoordCount):d}"
+                info["    Colors (PCS-relative)"] = (
+                    f"{int(tag.colorCount):d} ({len(tag.tagData):d} Bytes) "
                 )
                 i = 1
                 for k in tag:
@@ -7658,24 +7711,28 @@ class ICCProfile:
                     devout = []
                     for _kk in v.pcs:
                         vv = v.pcs[_kk]
-                        pcsout.append("%03.2f" % vv)
+                        pcsout.append(f"{vv:03.2f}")
                     for vv in v.device:
-                        devout.append("%03.2f" % vv)
-                    formatstr = "        %%0%is %%s%%s%%s" % len(str(tag.colorCount))
-                    key = formatstr % (i, tag.prefix, k, tag.suffix)
-                    info[key] = "%s %s" % (
+                        devout.append(f"{vv:03.2f}")
+                    formatstr = (
+                        f"        {{:0{len(str(tag.colorCount)):d}}} {{}}{{}}{{}}"
+                    )
+                    key = formatstr.format(i, tag.prefix, k, tag.suffix)
+                    info[key] = "{} {}".format(
                         "".join(list(v.pcs.keys())),
                         " ".join(pcsout),
                     )
                     if self.colorSpace != self.connectionColorSpace or " ".join(
                         pcsout
                     ) != " ".join(devout):
-                        info[key] += " (%s %s)" % (self.colorSpace, " ".join(devout))
+                        info[key] += " ({} {})".format(
+                            self.colorSpace, " ".join(devout)
+                        )
                     i += 1
             elif isinstance(tag, ProfileSequenceDescType):
                 info[name] = ""
                 for i, desc in enumerate(tag):
-                    info[" " * 4 + "%i" % (i + 1)] = ""
+                    info[" " * 4 + f"{i + 1:d}"] = ""
                     ICCProfile.add_device_info(info, desc, 2)
                     for desc_type in ("dmnd", "dmdd"):
                         description = str(desc[desc_type])
@@ -7685,11 +7742,13 @@ class ICCProfile:
                 if sig == "cprt":
                     info[name] = str(tag)
                 elif sig == "ciis":
-                    info[name] = ciis.get(tag, "'%s'" % tag)
+                    info[name] = ciis.get(tag, f"'{tag}'")
                 elif sig == "tech":
-                    info[name] = tech.get(tag, "'%s'" % tag)
+                    print(f"tag: {tag}")
+                    print(f"type(tag): {type(tag)}")
+                    info[name] = tech.get(tag, f"'{tag}'")
                 elif tag.find(b"\n") > -1 or tag.find(b"\r") > -1:
-                    info[name] = "[%i Bytes]" % len(tag)
+                    info[name] = f"[{len(tag):d} Bytes]"
                 else:
                     info[name] = tag[: 60 - len(name)] + (
                         b"...[%i more Bytes]" % (len(tag) - (60 - len(name)))
@@ -7698,7 +7757,7 @@ class ICCProfile:
                     )
             elif isinstance(tag, TextDescriptionType):
                 if not tag.get("Unicode") and not tag.get("Macintosh"):
-                    info["%s (ASCII)" % name] = tag.ASCII.decode("utf-8")
+                    info[f"{name} (ASCII)"] = tag.ASCII.decode("utf-8")
                 else:
                     info[name] = ""
                     info["    ASCII"] = tag.ASCII.decode("utf-8")
@@ -7711,24 +7770,24 @@ class ICCProfile:
                 # linear = tag.is_linear()
                 # info["    Is linear"] = {0: "No", 1: "Yes"}[linear]
                 for key in ("red", "green", "blue"):
-                    info["    %s gamma" % key.capitalize()] = (
-                        "%.2f" % tag[key + "Gamma"]
+                    info[f"    {key.capitalize()} gamma"] = "{:.2f}".format(
+                        tag[f"{key}Gamma"]
                     )
-                    info["    %s minimum" % key.capitalize()] = (
-                        "%.2f" % tag[key + "Min"]
+                    info[f"    {key.capitalize()} minimum"] = "{:.2f}".format(
+                        tag[f"{key}Min"]
                     )
-                    info["    %s maximum" % key.capitalize()] = (
-                        "%.2f" % tag[key + "Max"]
+                    info[f"    {key.capitalize()} maximum"] = "{:.2f}".format(
+                        tag[f"{key}Max"]
                     )
             elif isinstance(tag, VideoCardGammaTableType):
                 info[name] = ""
-                info["    Bitdepth"] = "%i" % (tag.entrySize * 8)
-                info["    Channels"] = "%i" % tag.channels
-                info["    Number of entries per channel"] = "%i" % tag.entryCount
+                info["    Bitdepth"] = f"{int(tag.entrySize * 8):d}"
+                info["    Channels"] = f"{int(tag.channels):d}"
+                info["    Number of entries per channel"] = f"{int(tag.entryCount):d}"
                 r_points, g_points, b_points, linear_points = tag.get_values()
                 points = r_points, g_points, b_points
                 # if r_points == g_points == b_points == linear_points:
-                # info["    Is linear" % i] = {True: "Yes"}.get(points[i] == linear_points, "No")
+                # info["    Is linear".format(i)] = {True: "Yes"}.get(points[i] == linear_points, "No")
                 # else:
                 if True:
                     unique = tag.get_unique_values()
@@ -7752,43 +7811,39 @@ class ICCProfile:
                             False,
                         )
                         if gamma:
-                            info["    Channel %i gamma at 50%% input" % (i + 1)] = (
-                                "%.2f" % gamma[0]
+                            info[f"    Channel {i + 1} gamma at 50% input"] = (
+                                f"{gamma[0]:.2f}"
                             )
                         vmin = channel[0]
                         vmax = channel[-1]
-                        info["    Channel %i minimum" % (i + 1)] = "%6.4f%%" % (
-                            vmin / scale * 100
+                        info[f"    Channel {i + 1} minimum"] = f"{vmin / scale:6.4%}"
+                        info[f"    Channel {i + 1} maximum"] = f"{vmax / scale:6.2%}"
+                        info[f"    Channel {i + 1} unique values"] = (
+                            f"{len(unique[i])} @ 8 Bit"
                         )
-                        info["    Channel %i maximum" % (i + 1)] = "%6.2f%%" % (
-                            vmax / scale * 100
-                        )
-                        info["    Channel %i unique values" % (i + 1)] = (
-                            "%i @ 8 Bit" % len(unique[i])
-                        )
-                        info["    Channel %i is linear" % (i + 1)] = {True: "Yes"}.get(
-                            points[i] == linear_points, "No"
-                        )
+                        info[f"    Channel {i + 1} is linear"] = "Yes" if points[i] == linear_points else "No"
             elif isinstance(tag, ViewingConditionsType):
                 info[name] = ""
                 info["    Illuminant"] = tag.illuminantType.description
-                info["    Illuminant XYZ"] = "%s (xy %s)" % (
-                    " ".join("%6.2f" % v for v in list(tag.illuminant.values())),
-                    " ".join("%6.4f" % v for v in tag.illuminant.xyY[:2]),
+                info["    Illuminant XYZ"] = "{} (xy {})".format(
+                    " ".join(f"{v:6.2f}" for v in list(tag.illuminant.values())),
+                    " ".join(f"{v:6.4f}" for v in tag.illuminant.xyY[:2]),
                 )
-                XYZxy = [" ".join("%6.2f" % v for v in list(tag.surround.values()))]
+                XYZxy = [" ".join(f"{v:6.2f}" for v in list(tag.surround.values()))]
                 if list(tag.surround.values()) != [0, 0, 0]:
                     XYZxy.append(
-                        "(xy %s)" % " ".join("%6.4f" % v for v in tag.surround.xyY[:2])
+                        "(xy {})".format(
+                            " ".join(f"{v:6.4f}" for v in tag.surround.xyY[:2])
+                        )
                     )
                 info["    Surround XYZ"] = " ".join(XYZxy)
             elif isinstance(tag, XYZType):
                 if sig == "lumi":
-                    info[name] = "%.2f cd/m²" % self.tags.lumi.Y
+                    info[name] = f"{self.tags.lumi.Y:.2f} cd/m²"
                 elif sig in ("bkpt", "wtpt"):
-                    format = {"bkpt": "%6.4f", "wtpt": "%6.2f"}[sig]
+                    format = {"bkpt": "{:6.4f}", "wtpt": "{:6.2f}"}[sig]
                     info[name] = ""
-                    if self.profileClass == b"mntr" and sig == b"wtpt":
+                    if self.profileClass == b"mntr" and sig == "wtpt":
                         info["    Is illuminant"] = "Yes"
                     if self.profileClass != b"prtr":
                         label = "Illuminant-relative"
@@ -7796,24 +7851,24 @@ class ICCProfile:
                         label = "PCS-relative"
                     # if self.connectionColorSpace == "Lab" and self.profileClass == "prtr":
                     if self.profileClass == b"prtr":
-                        color = [" ".join([format % v for v in tag.ir.Lab])]
-                        info["    %s Lab" % label] = " ".join(color)
+                        color = [" ".join([format.format(v) for v in tag.ir.Lab])]
+                        info[f"    {label} Lab"] = " ".join(color)
                     else:
                         color = [
-                            " ".join(format % (v * 100) for v in list(tag.ir.values()))
+                            " ".join(format.format(v * 100) for v in list(tag.ir.values()))
                         ]
                         if list(tag.ir.values()) != [0, 0, 0]:
-                            xy = " ".join("%6.4f" % v for v in tag.ir.xyY[:2])
-                            color.append("(xy %s)" % xy)
+                            xy = " ".join(f"{v:6.4f}" for v in tag.ir.xyY[:2])
+                            color.append(f"(xy {xy})")
                             cct, delta = colormath.xy_CCT_delta(*tag.ir.xyY[:2])
                         else:
                             cct = None
-                        info["    %s XYZ" % label] = " ".join(color)
+                        info[f"    {label} XYZ"] = " ".join(color)
                         if cct:
-                            info["    %s CCT" % label] = "%iK" % cct
+                            info[f"    {label} CCT"] = f"{int(cct):d}K"
                             if delta:
                                 info["        ΔE 2000 to daylight locus"] = (
-                                    "%.2f" % delta["E"]
+                                    f"{delta['E']:.2f}"
                                 )
                             kwargs = {"daylight": False}
                             cct, delta = colormath.xy_CCT_delta(
@@ -7821,43 +7876,43 @@ class ICCProfile:
                             )
                             if delta:
                                 info["        ΔE 2000 to blackbody locus"] = (
-                                    "%.2f" % delta["E"]
+                                    f"{delta['E']:.2f}"
                                 )
                     if "chad" in self.tags:
                         color = [
-                            " ".join(format % (v * 100) for v in list(tag.pcs.values()))
+                            " ".join(format.format(v * 100) for v in list(tag.pcs.values()))
                         ]
                         if list(tag.pcs.values()) != [0, 0, 0]:
-                            xy = " ".join("%6.4f" % v for v in tag.pcs.xyY[:2])
-                            color.append("(xy %s)" % xy)
+                            xy = " ".join(f"{v:6.4f}" for v in tag.pcs.xyY[:2])
+                            color.append(f"(xy {xy})")
                         info["    PCS-relative XYZ"] = " ".join(color)
                         cct, delta = colormath.xy_CCT_delta(*tag.pcs.xyY[:2])
                         if cct:
-                            info["    PCS-relative CCT"] = "%iK" % cct
+                            info["    PCS-relative CCT"] = f"{int(cct):d}K"
                         # if delta:
-                        # info[u"        ΔE 2000 to daylight locus"] = "%.2f" % delta["E"]
+                        #     info[u"        ΔE 2000 to daylight locus"] = f"{delta['E']:.2f}"
                         # kwargs = {"daylight": False}
                         # cct, delta = colormath.xy_CCT_delta(*tag.pcs.xyY[:2], **kwargs)
                         # if delta:
-                        # info[u"        ΔE 2000 to blackbody locus"] = "%.2f" % delta["E"]
+                        #     info[u"        ΔE 2000 to blackbody locus"] = f"{delta['E']:.2f}"
                 else:
                     info[name] = ""
                     info["    Illuminant-relative XYZ"] = " ".join(
                         [
                             " ".join(
-                                "%6.2f" % (v * 100) for v in list(tag.ir.values())
+                                f"{v * 100:6.2f}" for v in list(tag.ir.values())
                             ),
-                            "(xy %s)" % " ".join("%6.4f" % v for v in tag.ir.xyY[:2]),
+                            "(xy {})".format(" ".join(f"{v:6.4f}" for v in tag.ir.xyY[:2])),
                         ]
                     )
                     info["    PCS-relative XYZ"] = " ".join(
                         [
-                            " ".join("%6.2f" % (v * 100) for v in list(tag.values())),
-                            "(xy %s)" % " ".join("%6.4f" % v for v in tag.xyY[:2]),
+                            " ".join(f"{v * 100:6.2f}" for v in list(tag.values())),
+                            "(xy {})".format(" ".join(f"{v:6.4f}" for v in tag.xyY[:2])),
                         ]
                     )
             elif isinstance(tag, ICCProfileTag):
-                info[name] = "'%s' [%i Bytes]" % (
+                info[name] = "'{}' [{:d} Bytes]".format(
                     tag.tagData[:4].decode(),
                     len(tag.tagData),
                 )
@@ -7869,22 +7924,22 @@ class ICCProfile:
             return False
         rgb_space = [gamma or [], list(getattr(tags.wtpt, relation).values())]
         for component in ("r", "g", "b"):
-            if not "%sXYZ" % component in tags or (
+            if not f"{component}XYZ" in tags or (
                 not gamma
                 and (
-                    not "%sTRC" % component in tags
-                    or not isinstance(tags["%sTRC" % component], CurveType)
+                    not f"{component}TRC" in tags
+                    or not isinstance(tags[f"{component}TRC"], CurveType)
                 )
             ):
                 return False
-            rgb_space.append(getattr(tags["%sXYZ" % component], relation).xyY)
+            rgb_space.append(getattr(tags[f"{component}XYZ"], relation).xyY)
             if not gamma:
-                if len(tags["%sTRC" % component]) > 1:
+                if len(tags[f"{component}TRC"]) > 1:
                     rgb_space[0].append(
-                        [v / 65535.0 for v in tags["%sTRC" % component]]
+                        [v / 65535.0 for v in tags[f"{component}TRC"]]
                     )
                 else:
-                    rgb_space[0].append(tags["%sTRC" % component][0])
+                    rgb_space[0].append(tags[f"{component}TRC"][0])
         return rgb_space
 
     def get_chardata_bkpt(self, illuminant_relative=False):
@@ -7977,9 +8032,10 @@ class ICCProfile:
         if "meta" not in self.tags:
             self.tags.meta = DictType()
         spec_prefixes = "EDID_"
-        prefixes = (
-            self.tags.meta.getvalue("prefix", b"", None) or spec_prefixes
-        ).split(",")
+        prefix = self.tags.meta.getvalue("prefix", b"", None)
+        if isinstance(prefix, bytes):
+            prefix = prefix.decode("utf-8")
+        prefixes = (prefix or spec_prefixes).split(",")
         for prefix in spec_prefixes.split(","):
             if prefix not in prefixes:
                 prefixes.append(prefix)
@@ -7992,8 +8048,10 @@ class ICCProfile:
                 ("EDID_model_id", edid["product_id"]),
                 (
                     "EDID_date",
-                    "%0.4i-T%i"
-                    % (edid["year_of_manufacture"], edid["week_of_manufacture"]),
+                    "{:04d}-T{:d}".format(
+                        int(edid["year_of_manufacture"]),
+                        int(edid["week_of_manufacture"])
+                    ),
                 ),
                 ("EDID_red_x", edid["red_x"]),
                 ("EDID_red_y", edid["red_y"]),
@@ -8024,14 +8082,15 @@ class ICCProfile:
         self.tags.meta["EDID_md5"] = edid["hash"]
 
     def set_gamut_metadata(self, gamut_volume=None, gamut_coverage=None):
-        """Sets gamut volume and coverage metadata keys"""
+        """Set gamut volume and coverage metadata keys."""
         if gamut_volume or gamut_coverage:
             if "meta" not in self.tags:
                 self.tags.meta = DictType()
             # Update meta prefix
-            prefixes = (self.tags.meta.getvalue("prefix", b"", None) or "GAMUT_").split(
-                ","
-            )
+            prefix = self.tags.meta.getvalue("prefix", b"", None)
+            if isinstance(prefix, bytes):
+                prefix = prefix.decode("utf-8")
+            prefixes = (prefix or "GAMUT_").split(",")
             if "GAMUT_" not in prefixes:
                 prefixes.append("GAMUT_")
                 self.tags.meta["prefix"] = (",".join(prefixes)).encode()
@@ -8042,7 +8101,7 @@ class ICCProfile:
                 # Set gamut coverage
                 for key in gamut_coverage:
                     factor = gamut_coverage[key]
-                    self.tags.meta["GAMUT_coverage(%s)" % key] = factor
+                    self.tags.meta[f"GAMUT_coverage({key})"] = factor
 
     def write(self, stream_or_filename=None):
         """Write profile to stream.

@@ -65,7 +65,13 @@ from DisplayCAL import (
     xh_floatspin,
     xh_hstretchstatbmp,
 )
-from DisplayCAL.argyll import get_argyll_latest_version
+from DisplayCAL.argyll import (
+    check_set_argyll_bin,
+    get_argyll_latest_version,
+    get_argyll_version,
+    make_argyll_compatible_path,
+    set_argyll_bin
+)
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
     can_update_cal,
@@ -180,22 +186,18 @@ from DisplayCAL.worker import (
     check_argyll_bin,
     check_create_dir,
     check_file_isfile,
-    check_set_argyll_bin,
     check_ti3,
     check_ti3_criteria1,
     check_ti3_criteria2,
     get_arg,
     get_argyll_util,
-    get_argyll_version,
     get_cfg_option_from_args,
     get_current_profile_path,
     get_options_from_cal,
     get_options_from_profile,
     get_options_from_ti3,
     http_request,
-    make_argyll_compatible_path,
     parse_argument_string,
-    set_argyll_bin,
     show_result_dialog,
 )
 from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
@@ -4877,7 +4879,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ccmx = ["", ""]
                     index = 0
                     tech = None
-        if not tech:
+        if tech is None:
             tech = self.worker.get_instrument_measurement_modes().get(
                 getcfg("measurement_mode")
             )

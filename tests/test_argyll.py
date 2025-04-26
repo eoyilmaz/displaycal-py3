@@ -5,7 +5,7 @@ import sys
 
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version_string
 from DisplayCAL import config
-from DisplayCAL.dev.mocks import check_call
+from DisplayCAL.dev.mocks import check_call, check_call_str
 
 from tests.data.argyll_sp_data import SUBPROCESS_COM
 
@@ -37,4 +37,14 @@ def test_get_argyll_version_string_1(setup_argyll):
     with check_call(Popen, "communicate", SUBPROCESS_COM):
         result = get_argyll_version_string("ccxxmake")
     expected_result = "2.3.0"
+    assert result == expected_result
+
+
+def test_get_argyll_version_1(setup_argyll):
+    """Test worker.get_argyll_version() function."""
+    from DisplayCAL.argyll import get_argyll_version
+
+    with check_call_str("DisplayCAL.argyll.get_argyll_version_string", "2.3.0"):
+        result = get_argyll_version("ccxxmake")
+    expected_result = [2, 3, 0]
     assert result == expected_result

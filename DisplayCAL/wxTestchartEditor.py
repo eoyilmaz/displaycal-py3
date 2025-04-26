@@ -8,6 +8,8 @@ import shutil
 import sys
 import time
 
+from DisplayCAL.argyll import check_set_argyll_bin
+
 if sys.platform == "win32":
     from win32 import win32file
 
@@ -48,7 +50,6 @@ from DisplayCAL.worker import (
     Error,
     Worker,
     check_file_isfile,
-    check_set_argyll_bin,
     get_argyll_util,
     get_current_profile_path,
     show_result_dialog,

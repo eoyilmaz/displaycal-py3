@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import glob
 import os
 import pathlib
 import shutil
@@ -9,13 +9,18 @@ import tarfile
 import tempfile
 import zipfile
 
+from DisplayCAL import config
 from DisplayCAL.worker import Worker
 import pytest
 
 import DisplayCAL
 from DisplayCAL import RealDisplaySizeMM
+from DisplayCAL.argyll import (
+    get_argyll_latest_version,
+    get_argyll_version_string,
+    parse_argyll_version_string,
+)
 from DisplayCAL.config import setcfg, writecfg
-from DisplayCAL.argyll import get_argyll_latest_version
 
 
 @pytest.fixture(scope="module")
@@ -60,33 +65,41 @@ def setup_argyll():
     This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it
     can not find it, it will download from the source.
     """
-    argyll_version = get_argyll_latest_version()
-    argyll_download_url = {
-        "win32": f"https://www.argyllcms.com/Argyll_V{argyll_version}_win64_exe.zip",
-        "darwin": f"https://www.argyllcms.com/Argyll_V{argyll_version}_osx10.6_x86_64_bin.tgz",
-        "linux": f"https://www.argyllcms.com/Argyll_V{argyll_version}_linux_x86_64_bin.tgz",
-    }
-
     # first look in to ~/local/bin/ArgyllCMS
     home = pathlib.Path().home()
-    argyll_search_paths = [
-        home / ".local" / "bin" / "Argyll" / "bin",
-        home / ".local" / "bin" / f"Argyll_V{argyll_version}" / "bin",
-    ]
+    argyll_search_paths = glob.glob(str(home / ".local" / "bin" / "Argyll*" / "bin"))
 
     argyll_path = None
-    for path in argyll_search_paths:
+    for path in reversed(argyll_search_paths):
+        path = pathlib.Path(path)
         if path.is_dir():
             argyll_path = path
             setcfg("argyll.dir", str(argyll_path.absolute()))
+            argyll_version_string = get_argyll_version_string(
+                "xicclu", True, [str(path)]
+            )
+            argyll_version = parse_argyll_version_string(argyll_version_string)
+            print(f"argyll_version_string: {argyll_version_string}")
+            print(f"argyll_version: {argyll_version}")
+            setcfg("argyll.version", argyll_version_string)
+            writecfg()
             break
 
+    print(f"argyll_path: {argyll_path}")
     if argyll_path:
         yield argyll_path
         return
 
     # apparently argyll has not been found
     # download from source
+    argyll_version = get_argyll_latest_version()
+    argyll_domain = config.defaults.get("argyll.domain", "")
+    argyll_download_url = {
+        "win32": f"{argyll_domain}/Argyll_V{argyll_version}_win64_exe.zip",
+        "darwin": f"{argyll_domain}/Argyll_V{argyll_version}_osx10.6_x86_64_bin.tgz",
+        "linux": f"{argyll_domain}/Argyll_V{argyll_version}_linux_x86_64_bin.tgz",
+    }
+
     url = argyll_download_url[sys.platform]
 
     argyll_temp_path = tempfile.mkdtemp()
@@ -104,10 +117,7 @@ def setup_argyll():
         download_path = worker.download(url, download_dir=argyll_temp_path)
         print(f"Downloaded to: {download_path}")
         if os.path.exists(download_path):
-            shutil.move(
-                download_path,
-                argyll_package_file_name
-            )
+            shutil.move(download_path, argyll_package_file_name)
     else:
         print(f"Package file already exists: {argyll_package_file_name}")
         print("Not downloading it again!")
@@ -130,6 +140,11 @@ def setup_argyll():
     if argyll_path.is_dir():
         print("argyll_path is valid!")
         setcfg("argyll.dir", str(argyll_path.absolute()))
+        argyll_version_string = get_argyll_version_string("xicclu", True, [str(path)])
+        argyll_version = parse_argyll_version_string(argyll_version_string)
+        print(f"argyll_version_string: {argyll_version_string}")
+        print(f"argyll_version: {argyll_version}")
+        setcfg("argyll.version", argyll_version_string)
         writecfg()
         os.environ["PATH"] = f"{argyll_path}{os.pathsep}{os.environ['PATH']}"
         yield argyll_path
@@ -183,7 +198,9 @@ def patch_subprocess(monkeypatch):
         output = {}
         wShowWindow = None
         STARTUPINFO = subprocess.STARTUPINFO if sys.platform == "win32" else None
-        STARTF_USESHOWWINDOW = subprocess.STARTF_USESHOWWINDOW if sys.platform == "win32" else None
+        STARTF_USESHOWWINDOW = (
+            subprocess.STARTF_USESHOWWINDOW if sys.platform == "win32" else None
+        )
         SW_HIDE = subprocess.SW_HIDE if sys.platform == "win32" else None
 
         @classmethod

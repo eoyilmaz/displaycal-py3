@@ -5,6 +5,7 @@ import sys
 
 import traceback
 
+from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     defaults,
     fs_enc,
@@ -30,9 +31,7 @@ from DisplayCAL.util_str import strtr, universal_newlines, wrap
 from DisplayCAL.worker import (
     Error,
     UnloggedError,
-    check_set_argyll_bin,
     get_argyll_util,
-    make_argyll_compatible_path,
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx

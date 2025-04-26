@@ -17,7 +17,6 @@ from DisplayCAL import config
 from DisplayCAL.dev.mocks import check_call_str
 from DisplayCAL.worker import (
     get_argyll_version_string,
-    make_argyll_compatible_path,
     Worker,
     add_keywords_to_cgats,
     check_create_dir,
@@ -26,7 +25,11 @@ from DisplayCAL.worker import (
     check_file_isfile,
     check_ti3_criteria1,
 )
-from DisplayCAL.argyll import get_argyll_latest_version, get_argyll_util
+from DisplayCAL.argyll import (
+    get_argyll_latest_version,
+    get_argyll_util,
+    make_argyll_compatible_path,
+)
 from tests.data.display_data import DisplayData
 
 
@@ -120,16 +123,6 @@ def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     logfile = io.StringIO()
     result = worker.generate_B2A_from_inverse_table(icc_profile1, logfile=logfile)
     assert result is True
-
-
-def test_get_argyll_version_1(setup_argyll):
-    """Test worker.get_argyll_version() function."""
-    from DisplayCAL.worker import get_argyll_version
-
-    with check_call_str("DisplayCAL.worker.base_get_argyll_version_string", "2.3.0"):
-        result = get_argyll_version("ccxxmake")
-    expected_result = [2, 3, 0]
-    assert result == expected_result
 
 
 def test_sudo_class_initialization():
@@ -588,6 +581,107 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
             "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
         )
 
-    monkeypatch.setattr("DisplayCAL.worker.urllib.request.urlopen", patched_urlopen)
+    monkeypatch.setattr("DisplayCAL.argyll.urllib.request.urlopen", patched_urlopen)
+    # print(dir(get_argyll_latest_version))
+    # clear the cache
+    get_argyll_latest_version.cache_clear()
     result = get_argyll_latest_version()
     assert result == config.defaults.get("argyll.version")
+    # assert False
+
+
+def test_get_technology_strings_returns_dict(setup_argyll):
+    """Test get_technology_strings() returns a dict."""
+    worker = Worker()
+
+    result = worker.get_technology_strings()
+    assert isinstance(result, dict)
+
+
+def test_get_technology_strings_without_argyll_returns_from_argyll_17():
+    """Test get_technology_strings() returns a dictionary from argyll 1.7."""
+    get_argyll_latest_version.cache_clear()
+    worker = Worker()
+    worker.argyll_version = [0, 0, 0]
+
+    result = worker.get_technology_strings()
+    assert result == {
+        "c": "CRT",
+        "m": "Plasma",
+        "l": "LCD",
+        "1": "LCD CCFL",
+        "2": "LCD CCFL IPS",
+        "3": "LCD CCFL VPA",
+        "4": "LCD CCFL TFT",
+        "L": "LCD CCFL Wide Gamut",
+        "5": "LCD CCFL Wide Gamut IPS",
+        "6": "LCD CCFL Wide Gamut VPA",
+        "7": "LCD CCFL Wide Gamut TFT",
+        "e": "LCD White LED",
+        "8": "LCD White LED IPS",
+        "9": "LCD White LED VPA",
+        "d": "LCD White LED TFT",
+        "b": "LCD RGB LED",
+        "f": "LCD RGB LED IPS",
+        "g": "LCD RGB LED VPA",
+        "i": "LCD RGB LED TFT",
+        "h": "LCD RG Phosphor",
+        "j": "LCD RG Phosphor IPS",
+        "k": "LCD RG Phosphor VPA",
+        "n": "LCD RG Phosphor TFT",
+        "o": "LED OLED",
+        "a": "LED AMOLED",
+        "p": "DLP Projector",
+        "q": "DLP Projector RGB Filter Wheel",
+        "r": "DPL Projector RGBW Filter Wheel",
+        "s": "DLP Projector RGBCMY Filter Wheel",
+        "u": "Unknown",
+    }
+
+
+def test_get_technology_strings_without_argyll_returns_expected_data(setup_argyll):
+    """Test get_technology_strings() returns a dict with correct data."""
+    worker = Worker()
+    result = worker.get_technology_strings()
+    expected = {
+        "c": "CRT",
+        "m": "Plasma",
+        "l": "LCD",
+        "1": "LCD CCFL",
+        "2": "LCD CCFL IPS",
+        "3": "LCD CCFL PVA",
+        "4": "LCD CCFL TFT",
+        "L": "LCD CCFL Wide Gamut",
+        "5": "LCD CCFL Wide Gamut IPS",
+        "6": "LCD CCFL Wide Gamut PVA",
+        "7": "LCD CCFL Wide Gamut TFT",
+        "e": "LCD White LED",
+        "8": "LCD White LED IPS",
+        "9": "LCD White LED PVA",
+        "d": "LCD White LED TFT",
+        "b": "LCD RGB LED",
+        "f": "LCD RGB LED IPS",
+        "g": "LCD RGB LED PVA",
+        "j": "LCD RGB LED TFT",
+        "h": "LCD RG Phosphor",
+        "k": "LCD RG Phosphor IPS",
+        "n": "LCD RG Phosphor PVA",
+        "q": "LCD RG Phosphor TFT",
+        "r": "LCD PFS Phosphor",
+        "s": "LCD PFS Phosphor IPS",
+        "t": "LCD PFS Phosphor PVA",
+        "v": "LCD PFS Phosphor TFT",
+        "i": "LCD GB-R Phosphor",
+        "x": "LCD GB-R Phosphor IPS",
+        "y": "LCD GB-R Phosphor PVA",
+        "z": "LCD GB-R Phosphor TFT",
+        "o": "LED OLED",
+        "a": "LED AMOLED",
+        "w": "LED WOLED",
+        "p": "DLP Projector",
+        "A": "DLP Projector RGB Filter Wheel",
+        "B": "DLP Projector RGBW Filter Wheel",
+        "C": "DLP Projector RGBCMY Filter Wheel",
+        "u": "Unknown",
+    }
+    assert result == expected

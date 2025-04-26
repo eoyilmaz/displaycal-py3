@@ -189,9 +189,22 @@ def test_install_scope_handler(mainframe: MainFrame) -> None:
         install_scope_handler(dlg=dlg)
 
 
-def test_webbrowser_open() -> None:
+def test_webbrowser_open(monkeypatch) -> None:
     """Test if function calls browser as expected."""
-    assert webbrowser_open("https://github.com/eoyilmaz/displaycal-py3")
+    opened_urls = []
+
+    class PatchedWebBrowser(object):
+        @staticmethod
+        def open(url: str, new: int = 0, autoraise: bool = True) -> bool:
+            opened_urls.append(url)
+            return True
+
+    # patch webbrowser.open
+    monkeypatch.setattr("DisplayCAL.display_cal.webbrowser", PatchedWebBrowser)
+    assert opened_urls == []
+    url = "https://github.com/eoyilmaz/displaycal-py3"
+    assert webbrowser_open(url)
+    assert opened_urls == [url]
 
 
 def test_incrementing_int() -> None:

@@ -14,6 +14,7 @@ from DisplayCAL import (
     localization as lang,
     wxenhancedplot as plot,
 )
+from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
@@ -34,7 +35,6 @@ from DisplayCAL.worker import (
     Error,
     UnloggedError,
     Worker,
-    make_argyll_compatible_path,
     show_result_dialog,
 )
 from DisplayCAL.wxMeasureFrame import MeasureFrame

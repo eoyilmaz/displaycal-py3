@@ -6,6 +6,8 @@ import shutil
 import sys
 import traceback
 
+from DisplayCAL.argyll import check_set_argyll_bin
+
 if sys.platform == "win32":
     import win32api
 
@@ -43,7 +45,6 @@ from DisplayCAL.worker import (
     Info,
     UnloggedInfo,
     UnloggedWarning,
-    check_set_argyll_bin,
     get_current_profile_path,
     get_options_from_profile,
     show_result_dialog,

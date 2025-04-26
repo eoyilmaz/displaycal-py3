@@ -71,9 +71,12 @@ from DisplayCAL import localization as lang
 from DisplayCAL import wexpect
 from DisplayCAL.argyll import (
     check_argyll_bin,
+    check_set_argyll_bin,
+    get_argyll_instrument_config,
     get_argyll_util,
     get_argyll_utilname,
-    get_argyll_version_string as base_get_argyll_version_string,
+    get_argyll_version_string,
+    make_argyll_compatible_path,
     parse_argyll_version_string,
 )
 from DisplayCAL.argyll_cgats import (
@@ -94,9 +97,6 @@ from DisplayCAL.argyll_instruments import (
     instruments as all_instruments,
 )
 from DisplayCAL.argyll_names import (
-    names as argyll_names,
-    altnames as argyll_altnames,
-    optional as argyll_optional,
     viewconds,
     intents,
     observers,
@@ -116,7 +116,6 @@ from DisplayCAL.config import (
     geticon,
     get_data_path,
     get_total_patches,
-    get_verified_path,
     isapp,
     is_ccxx_testchart,
     profile_ext,
@@ -389,14 +388,6 @@ def check_file_isfile(filename, missing_msg=None, notfile_msg=None, silent=False
             return Error(notfile_msg)
         return False
     return True
-
-
-def check_set_argyll_bin(paths=None):
-    """Check if Argyll binaries can be found, otherwise let the user choose."""
-    if check_argyll_bin(paths):
-        return True
-    else:
-        return set_argyll_bin()
 
 
 def check_ti3_criteria1(
@@ -1067,40 +1058,6 @@ def _applycal_bug_workaround(profile):
                 trc_tag[:] = [interp(i / 255.0) for i in range(256)]
 
 
-def get_argyll_version(name, silent=False, paths=None):
-    """Determine version of a certain Argyll utility.
-
-    Args:
-        name (str): The name of the Argyll utility.
-        silent (bool): Silently check Argyll version. Default is False.
-        paths (Union[list, None]): Paths to look for Argyll executables.
-
-    Returns:
-        str: The Argyll utility version.
-    """
-    argyll_version_string = get_argyll_version_string(name, silent, paths)
-    return parse_argyll_version_string(argyll_version_string)
-
-
-def get_argyll_version_string(name, silent=False, paths=None):
-    """Return the version of the requested Argyll utility.
-
-    Args:
-        name (str): The name of the Argyll utility.
-        silent (bool): Silently check Argyll version. Default is False.
-        paths (Union[list, None]): Paths to look for Argyll executables.
-
-    Returns:
-        str: The Argyll utility version.
-    """
-    argyll_version_string = "0.0.0"
-    if (silent and check_argyll_bin(paths)) or (
-        not silent and check_set_argyll_bin(paths)
-    ):
-        argyll_version_string = base_get_argyll_version_string(name, paths)
-    return argyll_version_string
-
-
 def get_current_profile_path(
     include_display_profile=True, save_profile_if_no_path=False
 ):
@@ -1510,178 +1467,6 @@ def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
             dataset.root = data.root
             data[dataset.key] = dataset
     return cgats2
-
-
-def make_argyll_compatible_path(path):
-    """Make the path compatible with the Argyll utilities.
-
-    This is currently only effective under Windows to make sure that any
-    unicode 'division' slashes in the profile name are replaced with
-    underscores.
-    """
-    skip = -1
-    regex = r"\\\\\?\\"
-    driver_letter_escape_char = ":"
-    os_path_sep = os.path.sep
-    string_ascii_uppercase = string.ascii_uppercase
-    if isinstance(path, bytes):
-        regex = regex.encode("utf-8")
-        driver_letter_escape_char = driver_letter_escape_char.encode("utf-8")
-        os_path_sep = os_path_sep.encode("utf-8")
-        string_ascii_uppercase = string_ascii_uppercase.encode("utf-8")
-
-    if re.match(regex, path, re.I):
-        # Don't forget about UNC paths:
-        # \\?\UNC\Server\Volume\File
-        # \\?\C:\File
-        skip = 2
-
-    parts = path.split(os_path_sep)
-    if sys.platform == "win32" and len(parts) > skip + 1:
-        driveletterpart = parts[skip + 1]
-        if (
-            len(driveletterpart) == 2
-            and driveletterpart[0:1].upper() in string_ascii_uppercase
-            and driveletterpart[1:2] == driver_letter_escape_char
-        ):
-            skip += 1
-
-    for i, part in enumerate(parts):
-        if i > skip:
-            parts[i] = make_filename_safe(part)
-    return os_path_sep.join(parts)
-
-
-def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=()):
-    """Set the directory containing the Argyll CMS binary executables."""
-    if parent and not parent.IsShownOnScreen():
-        parent = None  # do not center on parent if not visible
-    # Check if Argyll version on PATH is newer than configured Argyll version
-    paths = getenvu("PATH", os.defpath).split(os.pathsep)
-    argyll_version_string = get_argyll_version_string("dispwin", True, paths)
-    argyll_version = parse_argyll_version_string(argyll_version_string)
-    argyll_version_string_cfg = get_argyll_version_string("dispwin", True)
-    argyll_version_cfg = parse_argyll_version_string(argyll_version_string_cfg)
-    # Don't prompt for 1.2.3_foo if current version is 1.2.3
-    # but prompt for 1.2.3 if current version is 1.2.3_foo
-    # Also prompt for 1.2.3_beta2 if current version is 1.2.3_beta
-    if (
-        argyll_version > argyll_version_cfg
-        and (
-            argyll_version[:4] == argyll_version_cfg[:4]
-            or not argyll_version_string.startswith(argyll_version_string_cfg)
-        )
-    ) or (
-        argyll_version < argyll_version_cfg
-        and argyll_version_string_cfg.startswith(argyll_version_string)
-        and "beta" in argyll_version_string_cfg.lower()
-    ):
-        argyll_dir = os.path.dirname(get_argyll_util("dispwin", paths) or "")
-        dlg = ConfirmDialog(
-            parent,
-            msg=lang.getstr(
-                "dialog.select_argyll_version",
-                (argyll_version_string, argyll_version_string_cfg),
-            ),
-            ok=lang.getstr("ok"),
-            cancel=lang.getstr("cancel"),
-            alt=lang.getstr("browse"),
-            bitmap=geticon(32, "dialog-question"),
-        )
-        dlg_result = dlg.ShowModal()
-        dlg.Destroy()
-        if dlg_result == wx.ID_OK:
-            setcfg("argyll.dir", None)
-            # Always write cfg directly after setting Argyll directory so
-            # subprocesses that read the configuration will use the right
-            # executables
-            writecfg()
-            return True
-        if dlg_result == wx.ID_CANCEL:
-            if callafter:
-                callafter(*callafter_args)
-            return False
-    else:
-        argyll_dir = None
-    if parent and not check_argyll_bin():
-        dlg = ConfirmDialog(
-            parent,
-            msg=lang.getstr("dialog.argyll.notfound.choice"),
-            ok=lang.getstr("download"),
-            cancel=lang.getstr("cancel"),
-            alt=lang.getstr("browse"),
-            bitmap=geticon(32, "dialog-question"),
-        )
-        dlg_result = dlg.ShowModal()
-        dlg.Destroy()
-        if dlg_result == wx.ID_OK:
-            # Download Argyll CMS
-            from DisplayCAL.display_cal import app_update_check
-
-            app_update_check(parent, silent, argyll=True)
-            return False
-        elif dlg_result == wx.ID_CANCEL:
-            if callafter:
-                callafter(*callafter_args)
-            return False
-    defaultPath = os.path.join(*get_verified_path("argyll.dir", path=argyll_dir))
-    dlg = wx.DirDialog(
-        parent,
-        lang.getstr("dialog.set_argyll_bin"),
-        defaultPath=defaultPath,
-        style=wx.DD_DIR_MUST_EXIST,
-    )
-    dlg.Center(wx.BOTH)
-    result = False
-    while not result:
-        result = dlg.ShowModal() == wx.ID_OK
-        if result:
-            path = dlg.GetPath().rstrip(os.path.sep)
-            if os.path.basename(path) != "bin":
-                path = os.path.join(path, "bin")
-            result = check_argyll_bin([path])
-            if result:
-                if verbose >= 3:
-                    print("Setting Argyll binary directory:", path)
-                setcfg("argyll.dir", path)
-                # Always write cfg directly after setting Argyll directory so
-                # subprocesses that read the configuration will use the right
-                # executables
-                writecfg()
-                break
-            else:
-                not_found = []
-                for name in argyll_names:
-                    if (
-                        not get_argyll_util(name, [path])
-                        and name not in argyll_optional
-                    ):
-                        not_found.append(
-                            (" " + lang.getstr("or") + " ").join(
-                                [
-                                    altname
-                                    for altname in [
-                                        altname + exe_ext
-                                        for altname in argyll_altnames[name]
-                                    ]
-                                    if "argyll" not in altname
-                                ]
-                            )
-                        )
-                InfoDialog(
-                    parent,
-                    msg=path
-                    + "\n\n"
-                    + lang.getstr("argyll.dir.invalid", ", ".join(not_found)),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
-        else:
-            break
-    dlg.Destroy()
-    if not result and callafter:
-        callafter(*callafter_args)
-    return result
 
 
 class EvalFalse:
@@ -2989,44 +2774,6 @@ class Worker(WorkerBase):
             codecs.encode(pwd.encode(), "base64").decode("utf-8").rstrip("=\n")
         )
         self._pwdstr = f"/tmp/{encoded_user_name}{encoded_pwd}"
-
-    def get_argyll_instrument_conf(self, what=None):
-        """Check for Argyll CMS udev rules/hotplug scripts"""
-        filenames = []
-        if what == "installed":
-            for filename in (
-                "/etc/udev/rules.d/55-Argyll.rules",
-                "/etc/udev/rules.d/45-Argyll.rules",
-                "/etc/hotplug/Argyll",
-                "/etc/hotplug/Argyll.usermap",
-                "/lib/udev/rules.d/55-Argyll.rules",
-                "/lib/udev/rules.d/69-cd-sensors.rules",
-            ):
-                if os.path.isfile(filename):
-                    filenames.append(filename)
-        else:
-            if what == "expected":
-                fn = lambda filename: filename
-            else:
-                fn = get_data_path
-            if os.path.isdir("/etc/udev/rules.d"):
-                if safe_glob("/dev/bus/usb/*/*"):
-                    # USB and serial instruments using udev, where udev
-                    # already creates /dev/bus/usb/00X/00X devices
-                    filenames.append(fn("usb/55-Argyll.rules"))
-                else:
-                    # USB using udev, where there are NOT /dev/bus/usb/00X/00X
-                    # devices
-                    filenames.append(fn("usb/45-Argyll.rules"))
-            else:
-                if os.path.isdir("/etc/hotplug"):
-                    # USB using hotplug and Serial using udev
-                    # (older versions of Linux)
-                    filenames.extend(
-                        fn(filename)
-                        for filename in ("usb/Argyll", "usb/Argyll.usermap")
-                    )
-        return [filename for filename in filenames if filename]
 
     def check_add_display_type_base_id(self, cgats, cfgname="measurement_mode"):
         """Add DISPLAY_TYPE_BASE_ID to CCMX"""
@@ -6086,9 +5833,7 @@ END_DATA
                     try:
                         iface = iface_dict.get("iface")
                         if not iface:
-                            iface = DBusObject(
-                                BUSTYPE_SESSION, bus_name, object_path
-                            )
+                            iface = DBusObject(BUSTYPE_SESSION, bus_name, object_path)
                         cookie = iface.inhibit(
                             appname, *iface_dict.get("args", (inhibit_reason,))
                         )
@@ -9211,40 +8956,38 @@ usage: spotread [-options] [logfile]
             # V1.7) with some duplicates
             # Use Argyll V1.7.1 mapping (which has no duplicate keys) for
             # Argyll before V1.7
-            return dict(
-                [
-                    ("c", "CRT"),
-                    ("m", "Plasma"),
-                    ("l", "LCD"),
-                    ("1", "LCD CCFL"),
-                    ("2", "LCD CCFL IPS"),
-                    ("3", "LCD CCFL VPA"),
-                    ("4", "LCD CCFL TFT"),
-                    ("L", "LCD CCFL Wide Gamut"),
-                    ("5", "LCD CCFL Wide Gamut IPS"),
-                    ("6", "LCD CCFL Wide Gamut VPA"),
-                    ("7", "LCD CCFL Wide Gamut TFT"),
-                    ("e", "LCD White LED"),
-                    ("8", "LCD White LED IPS"),
-                    ("9", "LCD White LED VPA"),
-                    ("d", "LCD White LED TFT"),
-                    ("b", "LCD RGB LED"),
-                    ("f", "LCD RGB LED IPS"),
-                    ("g", "LCD RGB LED VPA"),
-                    ("i", "LCD RGB LED TFT"),
-                    ("h", "LCD RG Phosphor"),
-                    ("j", "LCD RG Phosphor IPS"),
-                    ("k", "LCD RG Phosphor VPA"),
-                    ("n", "LCD RG Phosphor TFT"),
-                    ("o", "LED OLED"),
-                    ("a", "LED AMOLED"),
-                    ("p", "DLP Projector"),
-                    ("q", "DLP Projector RGB Filter Wheel"),
-                    ("r", "DPL Projector RGBW Filter Wheel"),
-                    ("s", "DLP Projector RGBCMY Filter Wheel"),
-                    ("u", "Unknown"),
-                ]
-            )
+            return {
+                "c": "CRT",
+                "m": "Plasma",
+                "l": "LCD",
+                "1": "LCD CCFL",
+                "2": "LCD CCFL IPS",
+                "3": "LCD CCFL VPA",
+                "4": "LCD CCFL TFT",
+                "L": "LCD CCFL Wide Gamut",
+                "5": "LCD CCFL Wide Gamut IPS",
+                "6": "LCD CCFL Wide Gamut VPA",
+                "7": "LCD CCFL Wide Gamut TFT",
+                "e": "LCD White LED",
+                "8": "LCD White LED IPS",
+                "9": "LCD White LED VPA",
+                "d": "LCD White LED TFT",
+                "b": "LCD RGB LED",
+                "f": "LCD RGB LED IPS",
+                "g": "LCD RGB LED VPA",
+                "i": "LCD RGB LED TFT",
+                "h": "LCD RG Phosphor",
+                "j": "LCD RG Phosphor IPS",
+                "k": "LCD RG Phosphor VPA",
+                "n": "LCD RG Phosphor TFT",
+                "o": "LED OLED",
+                "a": "LED AMOLED",
+                "p": "DLP Projector",
+                "q": "DLP Projector RGB Filter Wheel",
+                "r": "DPL Projector RGBW Filter Wheel",
+                "s": "DLP Projector RGBCMY Filter Wheel",
+                "u": "Unknown",
+            }
         result = self.exec_cmd(
             get_argyll_util("ccxxmake"),
             ["-??"],
@@ -9619,14 +9362,12 @@ usage: spotread [-options] [logfile]
         if not os.path.isdir(udevrules) and not os.path.isdir(hotplug):
             return Error(lang.getstr("udev_hotplug.unavailable"))
         if not filenames:
-            filenames = self.get_argyll_instrument_conf(
-                "installed" if uninstall else None
-            )
+            filenames = get_argyll_instrument_config("installed" if uninstall else None)
         if not filenames:
             return Error(
                 "\n".join(
                     lang.getstr("file.missing", filename)
-                    for filename in self.get_argyll_instrument_conf("expected")
+                    for filename in get_argyll_instrument_config("expected")
                 )
             )
         if uninstall:
@@ -16764,7 +16505,7 @@ BEGIN_DATA
                 )
             else:
                 show_result_dialog(
-                    lang.getstr("error.file_type_unsupported") + "\n" + result,
+                    f"{lang.getstr('error.file_type_unsupported')}\n{result}",
                     self.owner,
                 )
 
@@ -16821,6 +16562,7 @@ BEGIN_DATA
         return extracted
 
     def set_argyll_bin(self, result, filename):
+        """Set Argyll bin directory."""
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result and os.path.isdir(result[0]):

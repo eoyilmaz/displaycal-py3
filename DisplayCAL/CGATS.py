@@ -495,11 +495,10 @@ class CGATS(dict):
             return colorants
 
     def get_descriptor(self, localized=True):
-        """Return CGATS description as string, based on metadata
+        """Return CGATS description as string, based on metadata.
 
         If 'localized' is True (default), include localized technology
         description for CCSS files.
-
         """
         desc = self.queryv1("DESCRIPTOR")
         is_ccss = self.get(0, self).type == b"CCSS"
@@ -527,21 +526,20 @@ class CGATS(dict):
                         tech = tech.decode()
                         tech = lang.getstr(f"display.tech.{tech}", default=tech)
                         if display:
-                            # Localized tech will be unicode always, need to
-                            # make sure display is as well
+                            # Localized `tech` will always be a str,
+                            # need to make sure `display` is as well.
                             display = (
                                 display.decode("utf-8")
                                 if isinstance(display, bytes)
                                 else display
                             )
                     if display:
-                        tech += f" ({display})"
-                if isinstance(tech, str):
-                    desc = tech.encode("utf-8")
+                        tech = f"{tech} ({display})"
+                desc = tech.encode("utf-8") if isinstance(tech, str) else tech
         if not desc and self.filename:
             # With Python 3.6+ the encoding is always "utf-8" independent of the OS.
             desc = bytes(
-                str(os.path.splitext(os.path.basename(self.filename))[0]), "UTF-8"
+                str(os.path.splitext(os.path.basename(self.filename))[0]), "utf-8"
             )
         return desc
 

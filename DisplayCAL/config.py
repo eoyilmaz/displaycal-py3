@@ -1582,7 +1582,7 @@ defaults = {
     "x3dom.cache": 1,
     "x3dom.embed": 0,
 }
-lcode, lenc = locale.getdefaultlocale()
+lcode, lenc = locale.getlocale()
 if lcode:
     defaults["lang"] = lcode.split("_")[0].lower()
 

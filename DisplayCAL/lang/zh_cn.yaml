@@ -914,6 +914,8 @@
   数字光处理投影机 RGB 滤镜
 "display.tech.DLP Projector RGBCMY Filter Wheel": |-
   数字光处理投影机 RGBCMY 滤镜
+"display.tech.DLP Projector RGBW Filter Wheel": |-
+  数字光处理投影机 RGBW 滤镜
 "display.tech.DPL Projector RGBW Filter Wheel": |-
   数字光处理投影机 RGBW 滤镜
 "display.tech.LCD": |-
@@ -924,6 +926,8 @@
   液晶 CCFL背光 IPS面板
 "display.tech.LCD CCFL TFT": |-
   液晶 CCFL背光 TFT面板
+"display.tech.LCD CCFL PVA": |-
+  液晶 CCFL背光 PVA面板
 "display.tech.LCD CCFL VPA": |-
   液晶 CCFL背光 PVA面板
 "display.tech.LCD CCFL Wide Gamut": |-
@@ -932,6 +936,8 @@
   液晶 CCFL背光 广色域 IPS面板
 "display.tech.LCD CCFL Wide Gamut TFT": |-
   液晶 CCFL背光 广色域 TFT面板
+"display.tech.LCD CCFL Wide Gamut PVA": |-
+  液晶 CCFL背光 广色域 PVA面板
 "display.tech.LCD CCFL Wide Gamut VPA": |-
   液晶 CCFL背光 广色域 PVA面板
 "display.tech.LCD GB-R Phosphor": |-
@@ -940,6 +946,8 @@
   液晶 GB-r-LED背光 IPS面板
 "display.tech.LCD GB-R Phosphor TFT": |-
   液晶 GB-r-LED背光 TFT面板
+"display.tech.LCD GB-R Phosphor PVA": |-
+  液晶 GB-r-LED背光 PVA面板
 "display.tech.LCD GB-R Phosphor VPA": |-
   液晶 GB-r-LED背光 PVA面板
 "display.tech.LCD PFS Phosphor": |-
@@ -948,6 +956,8 @@
   液晶 PFS-磷光体 W-LED背光 IPS面板
 "display.tech.LCD PFS Phosphor TFT": |-
   液晶 PFS-磷光体 W-LED背光 TFT面板
+"display.tech.LCD PFS Phosphor PVA": |-
+  液晶 PFS-磷光体 W-LED背光 PVA面板
 "display.tech.LCD PFS Phosphor VPA": |-
   液晶 PFS-磷光体 W-LED背光 PVA面板
 "display.tech.LCD RG Phosphor": |-
@@ -956,6 +966,8 @@
   液晶 RG-磷光体 LED背光 IPS面板
 "display.tech.LCD RG Phosphor TFT": |-
   液晶 RG-磷光体 LED背光 TFT面板
+"display.tech.LCD RG Phosphor PVA": |-
+  液晶 RG-磷光体 LED背光 PVA面板
 "display.tech.LCD RG Phosphor VPA": |-
   液晶 RG-磷光体 LED背光 PVA面板
 "display.tech.LCD RGB LED": |-
@@ -964,6 +976,8 @@
   液晶 RGB-LED背光 IPS面板
 "display.tech.LCD RGB LED TFT": |-
   液晶 RGB-LED背光 TFT面板
+"display.tech.LCD RGB LED PVA": |-
+  液晶 RGB-LED背光 PVA面板
 "display.tech.LCD RGB LED VPA": |-
   液晶 RGB-LED背光 PVA面板
 "display.tech.LCD White LED": |-
@@ -972,6 +986,8 @@
   液晶 W-LED背光 IPS面板
 "display.tech.LCD White LED TFT": |-
   液晶 W-LED背光 TFT面板
+"display.tech.LCD White LED PVA": |-
+  液晶 W-LED背光 PVA面板
 "display.tech.LCD White LED VPA": |-
   液晶 W-LED背光 PVA面板
 "display.tech.LED AMOLED": |-

@@ -895,7 +895,8 @@ class BaseApp(wx.App):
             if not isinstance(self.TopWindow, wx.Dialog):
                 print("Trying to close main top-level application window...")
                 if self.TopWindow.Close(force=not event.CanVeto()):
-                    self.TopWindow.listening = False
+                    if self.TopWindow is not None:
+                        self.TopWindow.listening = False
                     self._query_end_session = self.TopWindow
                     print("Main top-level application window processed close event")
                     return

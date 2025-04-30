@@ -5,8 +5,9 @@ import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import ICCProfile as ICCP, argyll_cgats, config, colormath as cm
+from DisplayCAL import argyll_cgats, config, colormath as cm
 from DisplayCAL.cgats import CGATS
+from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.worker import Worker, Xicclu, get_argyll_util, _applycal_bug_workaround
 
 
@@ -146,7 +147,7 @@ def get_bkpt_wtpt(profile, intent, direction="f", order="n"):
 
 
 def main(icc_profile_filename, target_whitepoint=None, gamma=2.2, skip_cal=False):
-    profile = ICCP.ICCProfile(icc_profile_filename)
+    profile = ICCProfile(icc_profile_filename)
 
     worker = Worker()
 
@@ -217,7 +218,7 @@ def main(icc_profile_filename, target_whitepoint=None, gamma=2.2, skip_cal=False
             raise Exception("applycal returned a non-zero exit code")
         elif isinstance(result, Exception):
             raise result
-        calapplied = ICCP.ICCProfile(out_color_profile_filename)
+        calapplied = ICCProfile(out_color_profile_filename)
     else:
         calapplied = profile
 
@@ -432,7 +433,7 @@ def main(icc_profile_filename, target_whitepoint=None, gamma=2.2, skip_cal=False
             elif isinstance(result, Exception):
                 raise result
 
-            profile = ICCP.ICCProfile(out_color_profile_filename)
+            profile = ICCProfile(out_color_profile_filename)
 
     out_profile = profile
 

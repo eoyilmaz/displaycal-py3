@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import glob
 import os
 import pathlib
@@ -9,9 +10,10 @@ import tarfile
 import tempfile
 import zipfile
 
+import pytest
+
 from DisplayCAL import config
 from DisplayCAL.worker import Worker
-import pytest
 
 import DisplayCAL
 from DisplayCAL import RealDisplaySizeMM
@@ -20,7 +22,9 @@ from DisplayCAL.argyll import (
     get_argyll_version_string,
     parse_argyll_version_string,
 )
+from DisplayCAL.colormath import get_rgb_space
 from DisplayCAL.config import setcfg, writecfg
+from DisplayCAL.icc_profile import ICCProfile
 
 
 @pytest.fixture(scope="module")
@@ -158,12 +162,8 @@ def setup_argyll():
 @pytest.fixture(scope="function")
 def random_icc_profile():
     """Create a random ICCProfile suitable for modification."""
-    import tempfile
-    from DisplayCAL import colormath
-    from DisplayCAL import ICCProfile
-
-    rec709_gamma18 = list(colormath.get_rgb_space("Rec. 709"))
-    icc_profile = ICCProfile.ICCProfile.from_rgb_space(
+    rec709_gamma18 = list(get_rgb_space("Rec. 709"))
+    icc_profile = ICCProfile.from_rgb_space(
         rec709_gamma18, b"Rec. 709 gamma 1.8"
     )
     icc_profile_path = tempfile.mktemp(suffix=".icc")

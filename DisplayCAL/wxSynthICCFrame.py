@@ -5,7 +5,6 @@ import os
 import sys
 
 from DisplayCAL import (
-    ICCProfile as ICCP,
     colormath,
     config,
     floatspin,
@@ -18,7 +17,19 @@ from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
 )
-from DisplayCAL.ICCProfile import ICCProfile
+from DisplayCAL.icc_profile import (
+    ciis,
+    create_synthetic_hdr_clut_profile,
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    profileclass,
+    s15f16_is_equal,
+    SignatureType,
+    tech,
+    Text,
+    XYZType,
+)
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
@@ -429,8 +440,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
     def icc_drop_handler(self, path):
         """ICC profile dropped"""
         try:
-            profile = ICCP.ICCProfile(path)
-        except (IOError, ICCP.ICCProfileInvalidError) as exception:
+            profile = ICCProfile(path)
+        except (IOError, ICCProfileInvalidError) as exception:
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + path), self
             )
@@ -466,7 +477,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     luminance = profile.tags.lumi.Y
                 else:
                     luminance = 100
-                if not colors[1][1] and isinstance(profile.tags.get("targ"), ICCP.Text):
+                if not colors[1][1] and isinstance(profile.tags.get("targ"), Text):
                     # The profile may not reflect the actual black point.
                     # Get it from the embedded TI3 instead if zero from lookup.
                     XYZbp = profile.get_chardata_bkpt(True)
@@ -499,7 +510,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.parse_xy(None)
         self.black_XYZ_ctrl_handler(None)
         if len(colors[5:]) > 2:
-            trc = ICCP.CurveType()
+            trc = CurveType()
             for XYZ in colors[5:]:
                 trc.append(XYZ[1] / colors[0][1] * 65535)
             transfer_function = trc.get_transfer_function(outoffset=1.0)
@@ -889,7 +900,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         white = XYZ["wX"], XYZ["wY"], XYZ["wZ"]
         if rgb:
             # Color profile
-            profile = ICCP.ICCProfile.from_XYZ(
+            profile = ICCProfile.from_XYZ(
                 (XYZ["rX"], XYZ["rY"], XYZ["rZ"]),
                 (XYZ["gX"], XYZ["gY"], XYZ["gZ"]),
                 (XYZ["bX"], XYZ["bY"], XYZ["bZ"]),
@@ -901,16 +912,16 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 profile_class=profile_class,
             )
             black = colormath.adapt(XYZ["kX"], XYZ["kY"], XYZ["kZ"], white)
-            profile.tags.rTRC = ICCP.CurveType(profile=profile)
-            profile.tags.gTRC = ICCP.CurveType(profile=profile)
-            profile.tags.bTRC = ICCP.CurveType(profile=profile)
+            profile.tags.rTRC = CurveType(profile=profile)
+            profile.tags.gTRC = CurveType(profile=profile)
+            profile.tags.bTRC = CurveType(profile=profile)
             channels = "rgb"
         else:
             # Grayscale profile
-            profile = ICCP.ICCProfile()
+            profile = ICCProfile()
             # Profile class
             profile.profileClass = profile_class
-            if not ICCP.s15f16_is_equal(
+            if not s15f16_is_equal(
                 (XYZ["wX"], XYZ["wY"], XYZ["wZ"]), colormath.get_whitepoint("D50")
             ) and (
                 profile.profileClass not in (b"mntr", b"prtr")
@@ -930,7 +941,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     / self.getcfg("synthprofile.luminance")
                 )
             ] * 3
-            profile.tags.kTRC = ICCP.CurveType(profile=profile)
+            profile.tags.kTRC = CurveType(profile=profile)
             channels = "k"
         if trc == -2:
             # HLG
@@ -1032,7 +1043,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     )
                     quality = self.getcfg("profile.quality")
                     clutres = {"m": 17, "l": 9}.get(quality, 33)
-                    hdr_clut_profile = ICCP.create_synthetic_hdr_clut_profile(
+                    hdr_clut_profile = create_synthetic_hdr_clut_profile(
                         hdr_format,
                         rgb_space,
                         "",
@@ -1107,7 +1118,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 ]
             else:
                 X, Y, Z = (XYZ["kX"], XYZ["kY"], XYZ["kZ"])
-            profile.tags[tagname] = ICCP.XYZType()
+            profile.tags[tagname] = XYZType()
             (
                 profile.tags[tagname].X,
                 profile.tags[tagname].Y,
@@ -1117,12 +1128,12 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         if tech:
             if not isinstance(tech, bytes):
                 tech = tech.encode("utf-8")
-            profile.tags.tech = ICCP.SignatureType(b"sig \0\0\0\0" + tech, "tech")
+            profile.tags.tech = SignatureType(b"sig \0\0\0\0" + tech, "tech")
         # Colorimetric intent image state
         if ciis:
             if not isinstance(ciis, bytes):
                 ciis = ciis.encode("utf-8")
-            profile.tags.ciis = ICCP.SignatureType(b"sig \0\0\0\0" + ciis, "ciis")
+            profile.tags.ciis = SignatureType(b"sig \0\0\0\0" + ciis, "ciis")
         profile.setDescription(os.path.splitext(os.path.basename(path))[0])
         profile.calculateID()
         try:
@@ -1146,14 +1157,14 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         )
 
         self.profile_classes = dict(
-            get_mapping(list(ICCP.profileclass.items()), [b"mntr", b"scnr"])
+            get_mapping(list(profileclass.items()), [b"mntr", b"scnr"])
         )
         self.profile_class_ctrl.SetItems(list(self.profile_classes.values()))
         self.profile_class_ctrl.SetSelection(0)
 
         self.tech = dict(
             get_mapping(
-                [("", "unspecified")] + list(ICCP.tech.items()),
+                [("", "unspecified")] + list(tech.items()),
                 [
                     "",
                     "fscn",
@@ -1176,7 +1187,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.ciis = dict(
             get_mapping(
-                [("", "unspecified")] + list(ICCP.ciis.items()),
+                [("", "unspecified")] + list(ciis.items()),
                 ["", "scoe", "sape", "fpce"],
             )
         )

@@ -25,7 +25,6 @@ import zipfile
 
 from DisplayCAL import demjson_compat as demjson
 
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import audio
 from DisplayCAL import config
 from DisplayCAL.config import (
@@ -55,6 +54,10 @@ from DisplayCAL.debughelpers import (
     getevtobjname,
     getevttype,
     handle_error,
+)
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileInvalidError,
 )
 from DisplayCAL.log import log as log_
 from DisplayCAL.meta import name as appname
@@ -3208,8 +3211,8 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         name = None
         if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 pass
             else:
                 name = profile.getDescription()

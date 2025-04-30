@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-"""Tests for the DisplayCAL.ICCProfile module."""
+"""Tests for the DisplayCAL.icc_profile module."""
 import binascii
 import datetime
 import sys
 from time import strftime
 
-from DisplayCAL import ICCProfile, colormath
-from DisplayCAL.ICCProfile import (
+from DisplayCAL import colormath
+from DisplayCAL.icc_profile import (
     cmms,
     dateTimeNumber,
     DictType,
+    GAMUT_VOLUME_SRGB,
+    GAMUT_VOLUME_ADOBERGB,
+    GAMUT_VOLUME_SMPTE431_P3,
     hexrepr,
+    ICCProfile,
     ICCProfileTag,
     MultiLocalizedUnicodeType,
     s15Fixed16Number_tohex,
@@ -24,7 +28,7 @@ from DisplayCAL.ICCProfile import (
 def test_iccprofile_from_rgb_space():
     """Testing if the ICCProfile.from_rgb_space() method is working properly."""
     rec709_gamma18 = list(colormath.get_rgb_space("Rec. 709"))
-    icc = ICCProfile.ICCProfile.from_rgb_space(rec709_gamma18, b"Rec. 709 gamma 1.8")
+    icc = ICCProfile.from_rgb_space(rec709_gamma18, b"Rec. 709 gamma 1.8")
 
     assert icc is not None
     result = icc.get_info()
@@ -127,7 +131,7 @@ def test_iccprofile_from_chromaticies():
     display_name = "Monitor 1, Output DP-2"
     cat = "Bradford"
 
-    icc = ICCProfile.ICCProfile.from_chromaticities(
+    icc = ICCProfile.from_chromaticities(
         xy[0][0],
         xy[0][1],
         xy[1][0],
@@ -144,7 +148,7 @@ def test_iccprofile_from_chromaticies():
         cat=cat,
     )
 
-    assert isinstance(icc, ICCProfile.ICCProfile)
+    assert isinstance(icc, ICCProfile)
 
 
 def test_iccprofile_get_info():
@@ -161,7 +165,7 @@ def test_iccprofile_get_info():
     display_name = "Monitor 1, Output DP-2"
     cat = "Bradford"
 
-    icc = ICCProfile.ICCProfile.from_chromaticities(
+    icc = ICCProfile.from_chromaticities(
         xy[0][0],
         xy[0][1],
         xy[1][0],
@@ -275,7 +279,7 @@ def test_iccprofile_from_xyz():
     display_name = b"Monitor 1, Output DP-2"
     cat = "Bradford"
 
-    mtx = ICCProfile.ICCProfile.from_XYZ(
+    mtx = ICCProfile.from_XYZ(
         XYZ["r"],
         XYZ["g"],
         XYZ["b"],
@@ -288,7 +292,7 @@ def test_iccprofile_from_xyz():
         cat=cat,
     )
 
-    assert isinstance(mtx, ICCProfile.ICCProfile)
+    assert isinstance(mtx, ICCProfile)
 
 
 def test_uInt8Number_tohex_is_working_properly():
@@ -354,7 +358,7 @@ def test_sample_icc_file_1(data_files):
     Args:
         data_files: A fixture supplying data files.
     """
-    icc_profile = ICCProfile.ICCProfile(profile=data_files["default.icc"].absolute())
+    icc_profile = ICCProfile(profile=data_files["default.icc"].absolute())
     result = icc_profile.get_info()
 
     expected_result = [
@@ -440,7 +444,7 @@ def test_sample_icc_file_1(data_files):
 
 
 def test_hexrepr_is_with_mapping_supplied():
-    """Testing DisplayCAL.ICCProfile.hexrepr with a mapping is supplied."""
+    """Testing DisplayCAL.icc_profile.hexrepr with a mapping is supplied."""
     test_bytes_string = b"ADBE"
     expected_result = "0x41444245 'ADBE' Adobe"
     result = hexrepr(test_bytes_string, mapping=cmms)
@@ -448,7 +452,7 @@ def test_hexrepr_is_with_mapping_supplied():
 
 
 def test_hexrepr_is_without_mapping_supplied():
-    """Testing DisplayCAL.ICCProfile.hexrepr with no mapping is supplied."""
+    """Testing DisplayCAL.icc_profile.hexrepr with no mapping is supplied."""
     test_bytes_string = b"ADBE"
     expected_result = "0x41444245 'ADBE'"
     result = hexrepr(test_bytes_string)
@@ -456,7 +460,7 @@ def test_hexrepr_is_without_mapping_supplied():
 
 
 def test_date_time_number_is_working_properly():
-    """Testing if DisplayCAL.ICCProfile.dataTimeNumber function is working properly."""
+    """Testing if DisplayCAL.icc_profile.dataTimeNumber function is working properly."""
     test_value = b"\x07\xe6\x00\x02\x00\x13\x00\x12\x00*\x002"
     expected_result = datetime.datetime(2022, 2, 19, 18, 42, 50)
     result = dateTimeNumber(test_value)
@@ -488,7 +492,7 @@ def test_for_issue_31_1(data_files):
     icc_profile_path = data_files[
         "BenQ PD2700U-AC19BB79-F553-4582-B898-4247D669C2F1.icc"
     ]
-    icc = ICCProfile.ICCProfile(icc_profile_path)
+    icc = ICCProfile(icc_profile_path)
     result = icc.get_info()
     expected_result = [
         ["Size", "532 Bytes (0.52 KiB)"],
@@ -545,7 +549,7 @@ def test_for_issue_31_2(data_files):
     icc_profile_path = data_files[
         "BenQ SW271 #1 2021-11-17 14-21 2.2 F-S 1xCurve+MTX.icc"
     ]
-    icc = ICCProfile.ICCProfile(icc_profile_path)
+    icc = ICCProfile(icc_profile_path)
     result = icc.get_info()
     expected_result = [
         ["Size", "21420 Bytes (20.92 KiB)"],
@@ -655,7 +659,7 @@ def test_for_issue_31_2(data_files):
 def test_for_issue_31_3(data_files):
     """Test for issue #31, an ICC files reported to be creating errors."""
     icc_file_path = data_files["SW271 PM PenalNative_KB1_160_2022-03-17.icc"]
-    icc = ICCProfile.ICCProfile(icc_file_path)
+    icc = ICCProfile(icc_file_path)
     result = icc.get_info()
     expected_result = [
         ["Size", "10656 Bytes (10.41 KiB)"],
@@ -756,7 +760,7 @@ def test_for_issue_50_1(data_files):
     icc_profile_path = data_files[
         "UP2516D #1 2022-03-20 02-08 D6500 2.2 F-S XYZLUT+MTX.icc"
     ]
-    iccp = ICCProfile.ICCProfile(icc_profile_path)
+    iccp = ICCProfile(icc_profile_path)
     dict_type = iccp.tags["meta"]
     # It seems that we can't reproduce the error with this ICC profile.
     assert dict_type.tagData != ""
@@ -767,12 +771,12 @@ def test_gamut_coverage_1(data_files):
     icc_profile_path = data_files[
         "UP2516D #1 2022-03-20 02-08 D6500 2.2 F-S XYZLUT+MTX.icc"
     ]
-    iccp = ICCProfile.ICCProfile(icc_profile_path)
+    iccp = ICCProfile(icc_profile_path)
 
     gamuts = (
-        ("srgb", "sRGB", ICCProfile.GAMUT_VOLUME_SRGB),
-        ("adobe-rgb", "Adobe RGB", ICCProfile.GAMUT_VOLUME_ADOBERGB),
-        ("dci-p3", "DCI P3", ICCProfile.GAMUT_VOLUME_SMPTE431_P3),
+        ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
+        ("adobe-rgb", "Adobe RGB", GAMUT_VOLUME_ADOBERGB),
+        ("dci-p3", "DCI P3", GAMUT_VOLUME_SMPTE431_P3),
     )
     cinfo = []
     for key, name, _volume in gamuts:
@@ -787,12 +791,12 @@ def test_gamut_volume_1(data_files):
     icc_profile_path = data_files[
         "UP2516D #1 2022-03-20 02-08 D6500 2.2 F-S XYZLUT+MTX.icc"
     ]
-    iccp = ICCProfile.ICCProfile(icc_profile_path)
+    iccp = ICCProfile(icc_profile_path)
 
     gamuts = (
-        ("srgb", "sRGB", ICCProfile.GAMUT_VOLUME_SRGB),
-        ("adobe-rgb", "Adobe RGB", ICCProfile.GAMUT_VOLUME_ADOBERGB),
-        ("dci-p3", "DCI P3", ICCProfile.GAMUT_VOLUME_SMPTE431_P3),
+        ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
+        ("adobe-rgb", "Adobe RGB", GAMUT_VOLUME_ADOBERGB),
+        ("dci-p3", "DCI P3", GAMUT_VOLUME_SMPTE431_P3),
     )
     vinfo = []
     gamut_volume = float(iccp.tags.meta.getvalue("GAMUT_volume"))
@@ -800,7 +804,7 @@ def test_gamut_volume_1(data_files):
         vinfo.append(
             "%.1f%% %s"
             % (
-                gamut_volume * ICCProfile.GAMUT_VOLUME_SRGB / volume * 100,
+                gamut_volume * GAMUT_VOLUME_SRGB / volume * 100,
                 name,
             )
         )
@@ -812,7 +816,7 @@ def test_set_gamut_metadata_1(data_files):
     icc_profile_path = data_files[
         "UP2516D #1 2022-03-20 02-08 D6500 2.2 F-S XYZLUT+MTX.icc"
     ]
-    iccp = ICCProfile.ICCProfile(icc_profile_path)
+    iccp = ICCProfile(icc_profile_path)
 
     assert iccp.tags.meta["GAMUT_volume"] == "1.6934613892142165"
     assert iccp.tags.meta["GAMUT_coverage(srgb)"] == "0.9967"
@@ -852,6 +856,6 @@ def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(setup_argyll):
     """Testing for issue #185, opening sRGB.icm from ArgyllCMS raises TypeError."""
     argyll = setup_argyll
     srgb_profile_path = argyll / ".." / "ref" / "sRGB.icm"
-    icc_profile = ICCProfile.ICCProfile(srgb_profile_path)
+    icc_profile = ICCProfile(srgb_profile_path)
     # the following should not raise an error
     info = icc_profile.get_info()

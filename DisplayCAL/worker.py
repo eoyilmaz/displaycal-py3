@@ -74,7 +74,6 @@ from DisplayCAL.cgats import (
     sort_by_RGB,
     sort_by_RGB_sum,
 )
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import audio
 from DisplayCAL import colormath
 from DisplayCAL import config
@@ -157,6 +156,32 @@ from DisplayCAL.defaultpaths import (
     appdata,
 )
 from DisplayCAL.edid import WMIError, get_edid
+from DisplayCAL.icc_profile import (
+    _mp_apply,
+    chromaticAdaptionTag,
+    ChromaticityType,
+    create_RGB_A2B_XYZ,
+    create_synthetic_hdr_clut_profile,
+    CRInterpolation,
+    CurveType,
+    DictType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    ICCProfileTag,
+    GAMUT_VOLUME_SRGB,
+    get_display_profile,
+    LUT16Type,
+    MultiLocalizedUnicodeType,
+    ProfileSequenceDescType,
+    s15Fixed16Number,
+    s15Fixed16Number_tohex,
+    set_display_profile,
+    Text,
+    TextDescriptionType,
+    VideoCardGammaTableType,
+    VideoCardGammaType,
+    XYZType,
+)
 from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
 from DisplayCAL import madvr
 from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version
@@ -860,7 +885,7 @@ def create_shaper_curves(
             # Interpolate to final resolution
             # Spline interpolation to larger size
             x = (i / (final - 1.0) * (len(curve) - 1) for i in range(final))
-            spline = ICCP.CRInterpolation(curve)
+            spline = CRInterpolation(curve)
             curve[:] = (min(max(spline(v), 0), 1) for v in x)
             # Ensure still monotonically increasing
             curve[:] = colormath.make_monotonically_increasing(curve)
@@ -877,7 +902,7 @@ def _create_optimized_shaper_curves(
     bwd_mtx, bpc, single_curve, curves, profile, options_dispcal, XYZbp=None, logfn=None
 ):
     # Get black and white luminance
-    if isinstance(profile.tags.get("lumi"), ICCP.XYZType):
+    if isinstance(profile.tags.get("lumi"), XYZType):
         white_cdm2 = profile.tags.lumi.Y
     else:
         white_cdm2 = 100.0
@@ -894,7 +919,7 @@ def _create_optimized_shaper_curves(
         calgarg = get_arg("G", options_dispcal)
     if (
         calgarg
-        and isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+        and isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
         and not profile.tags.vcgt.is_linear()
     ):
         calgamma = {"l": -3.0, "s": -2.4, "709": -709, "240": -240}.get(
@@ -915,7 +940,7 @@ def _create_optimized_shaper_curves(
                     outoffset = float(calfarg[1][1:])
                 except ValueError:
                     pass
-            caltrc = ICCP.CurveType(profile=profile)
+            caltrc = CurveType(profile=profile)
             if calgamma > 0:
                 caltrc.set_bt1886_trc(black_Y, outoffset, calgamma, gamma_type)
             else:
@@ -945,7 +970,7 @@ def _create_optimized_shaper_curves(
         logfn and logfn(f"Calibration effective gamma = {gamma:.2f}")
     tfs = []
     for i, channel in enumerate("rgb"):
-        trc = ICCP.CurveType(profile=profile)
+        trc = CurveType(profile=profile)
         trc[:] = [v / float(curves[i][-1]) * 65535 for v in curves[i]]
         # Get transfer function and see if we have a good match
         # to a standard. If we do, use the standard transfer
@@ -1053,7 +1078,7 @@ def _applycal_bug_workaround(profile):
     # or TRC tags with less than 256 entries
     for channel in "rgb":
         trc_tag = profile.tags.get(channel + "TRC")
-        if isinstance(trc_tag, ICCP.CurveType) and len(trc_tag) < 256:
+        if isinstance(trc_tag, CurveType) and len(trc_tag) < 256:
             num_entries = len(trc_tag)
             if num_entries <= 1:
                 # Single gamma
@@ -1080,9 +1105,9 @@ def get_current_profile_path(
         filename, ext = os.path.splitext(profile_path)
         if ext.lower() in (".icc", ".icm"):
             try:
-                profile = ICCP.ICCProfile(profile_path)
+                profile = ICCProfile(profile_path)
             except Exception as exception:
-                print("ICCP.ICCProfile({}):".format(profile_path), exception)
+                print("ICCProfile({}):".format(profile_path), exception)
     elif include_display_profile:
         profile = config.get_display_profile()
         if profile and not profile.fileName and save_profile_if_no_path:
@@ -1174,7 +1199,7 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
 def get_options_from_cprt(cprt):
     """Extract options used for dispcal and colprof from profile copyright."""
     if not isinstance(cprt, str):
-        if isinstance(cprt, (ICCP.TextDescriptionType, ICCP.MultiLocalizedUnicodeType)):
+        if isinstance(cprt, (TextDescriptionType, MultiLocalizedUnicodeType)):
             cprt = str(cprt)
         else:
             cprt = str(cprt, fs_enc, "replace")
@@ -1211,8 +1236,8 @@ def get_options_from_profile(profile):
     look for the special DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and
     'ARGYLL_COLPROF_ARGS'. If either does not exist, fall back to the
     copyright tag (DisplayCAL < 0.4.0.2)"""
-    if not isinstance(profile, ICCP.ICCProfile):
-        profile = ICCP.ICCProfile(profile)
+    if not isinstance(profile, ICCProfile):
+        profile = ICCProfile(profile)
     dispcal_args = None
     colprof_args = None
     if "targ" in profile.tags:
@@ -2435,7 +2460,7 @@ class Worker(WorkerBase):
         smpte2084 = gamma in ("smpte2084.hardclip", "smpte2084.rolloffclip")
         hlg = gamma == "hlg"
         hdr = smpte2084 or hlg
-        lumi = profile2.tags.get("lumi", ICCP.XYZType())
+        lumi = profile2.tags.get("lumi", XYZType())
         if not lumi.Y:
             lumi.Y = 100.0
         profile_black_cdm2 = XYZbp[1] * lumi.Y
@@ -2611,7 +2636,7 @@ class Worker(WorkerBase):
                     hdr_format = "HLG"
                 cat = profile1.guess_cat() or "Bradford"
                 self.log("Using chromatic adaptation transform matrix:", cat)
-                profile = ICCP.create_synthetic_hdr_clut_profile(
+                profile = create_synthetic_hdr_clut_profile(
                     hdr_format,
                     rgb_space,
                     desc,
@@ -3851,7 +3876,7 @@ END_DATA
                 if (
                     not b2a
                     or (
-                        isinstance(b2a, ICCP.LUT16Type)
+                        isinstance(b2a, LUT16Type)
                         and b2a.clut_grid_steps < 17
                         and profile_out.creator == "argl"
                     )
@@ -3905,7 +3930,7 @@ END_DATA
             if len(odata) != 1 or len(odata[0]) != 3:
                 raise ValueError(f"Blackpoint is invalid: {odata}")
             XYZbp = odata[0]
-            if not XYZbp[1] and isinstance(profile_out.tags.get("targ"), ICCP.Text):
+            if not XYZbp[1] and isinstance(profile_out.tags.get("targ"), Text):
                 XYZbp = profile_out.get_chardata_bkpt()
                 if XYZbp:
                     XYZbp = [
@@ -3964,7 +3989,7 @@ END_DATA
                                 [lang.getstr("apply_cal.error"), "\n".join(self.errors)]
                             )
                         )
-                    profile_out = ICCP.ICCProfile(profile_out.fileName)
+                    profile_out = ICCProfile(profile_out.fileName)
 
             in_rgb_space = profile_in.get_rgb_space()
             if in_rgb_space:
@@ -4009,7 +4034,7 @@ END_DATA
                     "input profile for content colorspace:",
                     cat,
                 )
-                profile_src = ICCP.ICCProfile.from_chromaticities(
+                profile_src = ICCProfile.from_chromaticities(
                     crx,
                     cry,
                     cgx,
@@ -4085,7 +4110,7 @@ END_DATA
             if XYZwp:
                 # Quantize to ICC s15Fixed16Number encoding
                 XYZwp = [
-                    ICCP.s15Fixed16Number(ICCP.s15Fixed16Number_tohex(v)) for v in XYZwp
+                    s15Fixed16Number(s15Fixed16Number_tohex(v)) for v in XYZwp
                 ]
             else:
                 XYZwp = profile_in_wtpt_XYZ
@@ -4501,17 +4526,17 @@ END_DATA
                 del XYZ_src_out
                 logfiles.write("\n")
                 logfiles.write("Filling cLUT...\n")
-                profile_link = ICCP.ICCProfile()
+                profile_link = ICCProfile()
                 profile_link.profileClass = b"link"
                 profile_link.connectionColorSpace = b"RGB"
                 profile_link.setDescription(name)
                 profile_link.setCopyright(getcfg("copyright"))
-                profile_link.tags.pseq = ICCP.ProfileSequenceDescType(
+                profile_link.tags.pseq = ProfileSequenceDescType(
                     profile=profile_link
                 )
                 profile_link.tags.pseq.add(profile_in)
                 profile_link.tags.pseq.add(profile_out)
-                profile_link.tags.A2B0 = A2B0 = ICCP.LUT16Type(
+                profile_link.tags.A2B0 = A2B0 = LUT16Type(
                     None, "A2B0", profile_link
                 )
                 A2B0.matrix = colormath.Matrix3x3([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -4694,7 +4719,7 @@ END_DATA
                 and save_link_icc
                 and os.path.isfile(link_filename)
             ):
-                profile_link = ICCP.ICCProfile(link_filename)
+                profile_link = ICCProfile(link_filename)
                 profile_link.setDescription(name)
                 profile_link.setCopyright(getcfg("copyright"))
                 if manufacturer:
@@ -4705,7 +4730,7 @@ END_DATA
                 profile_link.device["model"] = device_model
                 if mmod:
                     profile_link.tags.mmod = mmod
-                profile_link.tags.meta = ICCP.DictType()
+                profile_link.tags.meta = DictType()
                 profile_link.tags.meta.update(
                     [
                         ("CMF_product", appname),
@@ -4870,28 +4895,28 @@ END_DATA
                         + in_ext,
                     )
                     profile_in.write()
-                    if isinstance(profile_in.tags.get("A2B0"), ICCP.LUT16Type):
+                    if isinstance(profile_in.tags.get("A2B0"), LUT16Type):
                         # Write diagnostic PNG
                         profile_in.tags.A2B0.clut_writepng(
                             "{}.A2B0.CLUT.png".format(
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
-                    if isinstance(profile_in.tags.get("DBG0"), ICCP.LUT16Type):
+                    if isinstance(profile_in.tags.get("DBG0"), LUT16Type):
                         # HDR RGB
                         profile_in.tags.DBG0.clut_writepng(
                             "{}.DBG0.CLUT.png".format(
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
-                    if isinstance(profile_in.tags.get("DBG1"), ICCP.LUT16Type):
+                    if isinstance(profile_in.tags.get("DBG1"), LUT16Type):
                         # Display RGB
                         profile_in.tags.DBG1.clut_writepng(
                             "{}.DBG1.CLUT.png".format(
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
-                    if isinstance(profile_in.tags.get("DBG2"), ICCP.LUT16Type):
+                    if isinstance(profile_in.tags.get("DBG2"), LUT16Type):
                         # Display XYZ
                         profile_in.tags.DBG2.clut_writepng(
                             "{}.DBG2.CLUT.png".format(
@@ -5915,10 +5940,10 @@ END_DATA
                 # Fallback - install linear cal sRGB profile
                 self.log(f"{appname}: Temporarily installing sRGB profile...")
                 display_profile = config.get_display_profile()
-                self.srgb = srgb = ICCP.ICCProfile.from_named_rgb_space("sRGB")
+                self.srgb = srgb = ICCProfile.from_named_rgb_space("sRGB")
                 # Date should not change so the ID stays the same.
                 srgb.dateTime = datetime.datetime(2003, 0o1, 23, 0, 0, 0)
-                srgb.tags.vcgt = ICCP.VideoCardGammaTableType("", "vcgt")
+                srgb.tags.vcgt = VideoCardGammaTableType("", "vcgt")
                 srgb.tags.vcgt.update(
                     {
                         "channels": 3,
@@ -6128,10 +6153,10 @@ BEGIN_DATA
                             else:
                                 # ICC profile
                                 try:
-                                    profile = ICCP.ICCProfile(calfilename)
+                                    profile = ICCProfile(calfilename)
                                 except (
                                     IOError,
-                                    ICCP.ICCProfileInvalidError,
+                                    ICCProfileInvalidError,
                                 ) as exception:
                                     self.madtpg_disconnect(False)
                                     return exception
@@ -7344,7 +7369,7 @@ BEGIN_DATA
             logfile.write("Creating perceptual A2B0 table\n")
             logfile.write("\n")
         # Make new A2B0
-        A2B0 = ICCP.LUT16Type(None, "A2B0", profile)
+        A2B0 = LUT16Type(None, "A2B0", profile)
         # Matrix (identity)
         A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         # Input / output curves (linear)
@@ -7663,7 +7688,7 @@ BEGIN_DATA
             itable = profile.tags[f"B2A{tableno:d}"]
         else:
             # Create new B2A table
-            itable = ICCP.LUT16Type(None, f"B2A{tableno:d}", profile)
+            itable = LUT16Type(None, f"B2A{tableno:d}", profile)
 
         use_cam_clipping = True
 
@@ -7726,7 +7751,7 @@ BEGIN_DATA
             # as first entry
             # outname = os.path.splitext(profile.fileName)[0]
             # if not os.path.isfile(outname + ".ti3"):
-            # if isinstance(profile.tags.get("targ"), ICCP.Text):
+            # if isinstance(profile.tags.get("targ"), Text):
             # with open(outname + ".ti3", "wb") as ti3:
             # ti3.write(profile.tags.targ)
             # else:
@@ -8050,9 +8075,9 @@ BEGIN_DATA
                 )
                 dirname, basename = os.path.split(profile.fileName)
                 basepath = os.path.join(
-                    dirname, "." + os.path.splitext(basename)[0] + "-MTX.tmp"
+                    dirname, f".{os.path.splitext(basename)[0]}-MTX.tmp"
                 )
-                ti3.write(basepath + ".ti3")
+                ti3.write(f"{basepath}.ti3")
                 # Calculate profile
                 cmd, args = get_argyll_util("colprof"), ["-v", "-qm", "-as", basepath]
                 result = self.exec_cmd(
@@ -8064,10 +8089,10 @@ BEGIN_DATA
                 if isinstance(result, Exception):
                     raise result
                 if result:
-                    mtx = ICCP.ICCProfile(basepath + profile_ext)
+                    mtx = ICCProfile(f"{basepath}{profile_ext}")
                     for column in "rgb":
                         tag = mtx.tags.get(column + "XYZ")
-                        if isinstance(tag, ICCP.XYZType):
+                        if isinstance(tag, XYZType):
                             XYZrgb.append(list(tag.values()))
                     # os.remove(basepath + ".ti3")
                     # os.remove(basepath + profile_ext)
@@ -8726,7 +8751,7 @@ BEGIN_DATA
         """
         arg = "-L"
         try:
-            profile = ICCP.get_display_profile(display_no)
+            profile = get_display_profile(display_no)
         except Exception as exception:
             print(exception)
             return arg
@@ -9255,7 +9280,7 @@ usage: spotread [-options] [logfile]
                 elif active_display.DeviceKey != displays[0].DeviceKey:
                     self.log(f"{appname}: Setting profile for active display device...")
                     try:
-                        ICCP.set_display_profile(
+                        set_display_profile(
                             os.path.basename(profile_path),
                             devicekey=active_display.DeviceKey,
                         )
@@ -9277,8 +9302,8 @@ usage: spotread [-options] [logfile]
         loader_install = None
         profile = None
         try:
-            profile = ICCP.ICCProfile(profile_path)
-        except (IOError, ICCP.ICCProfileInvalidError) as exception:
+            profile = ICCProfile(profile_path)
+        except (IOError, ICCProfileInvalidError) as exception:
             return exception
         device_id = self.get_device_id(quirk=False, query=True)
         if (
@@ -10640,8 +10665,8 @@ usage: spotread [-options] [logfile]
                 )
                 if not isinstance(result, Exception) and result:
                     try:
-                        profile = ICCP.ICCProfile(profile_path)
-                    except (IOError, ICCP.ICCProfileInvalidError):
+                        profile = ICCProfile(profile_path)
+                    except (IOError, ICCProfileInvalidError):
                         result = Error(
                             lang.getstr("profile.invalid") + "\n" + profile_path
                         )
@@ -10672,11 +10697,11 @@ usage: spotread [-options] [logfile]
                     # Add luminance tag
                     luminance_XYZ_cdm2 = ti3.queryv1("LUMINANCE_XYZ_CDM2")
                     if luminance_XYZ_cdm2:
-                        profile.tags.lumi = ICCP.XYZType(profile=profile)
+                        profile.tags.lumi = XYZType(profile=profile)
                         profile.tags.lumi.Y = float(luminance_XYZ_cdm2.split()[1])
 
                     # Add blackpoint tag
-                    profile.tags.bkpt = ICCP.XYZType(profile=profile)
+                    profile.tags.bkpt = XYZType(profile=profile)
                     if XYZbp:
                         black_XYZ = XYZbp
                     else:
@@ -10703,7 +10728,7 @@ usage: spotread [-options] [logfile]
             if os.path.isfile(args[-1] + ".chrm"):
                 # Get ChromaticityType tag
                 with open(args[-1] + ".chrm", "rb") as blob:
-                    chrm = ICCP.ChromaticityType(blob.read())
+                    chrm = ChromaticityType(blob.read())
             else:
                 chrm = None
 
@@ -10724,8 +10749,8 @@ usage: spotread [-options] [logfile]
             retcode = self.retcode
             try:
                 if not profile:
-                    profile = ICCP.ICCProfile(profile_path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(profile_path)
+            except (IOError, ICCProfileInvalidError):
                 result = Error(lang.getstr("profile.invalid") + "\n" + profile_path)
             else:
                 # Do we have a B2A0 table?
@@ -10754,7 +10779,7 @@ usage: spotread [-options] [logfile]
                 if gamap and collink:
                     gamap_profile_filename = getcfg("gamap_profile")
                     try:
-                        gamap_profile = ICCP.ICCProfile(gamap_profile_filename)
+                        gamap_profile = ICCProfile(gamap_profile_filename)
                     except (IOError, ICCProfileInvalidError) as exception:
                         self.log(exception)
                     else:
@@ -10880,7 +10905,7 @@ usage: spotread [-options] [logfile]
                             pcs = get_data_path("ref/PhotoPrintRGB_Lstar.icc")
                             if pcs:
                                 try:
-                                    gamap_profile = ICCP.ICCProfile(pcs)
+                                    gamap_profile = ICCProfile(pcs)
                                 except (IOError, ICCProfileInvalidError) as exception:
                                     self.log(exception)
                             else:
@@ -10960,8 +10985,8 @@ usage: spotread [-options] [logfile]
                         )
                         if not isinstance(result, Exception) and result:
                             try:
-                                link_profile = ICCP.ICCProfile(link_profile)
-                            except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                                link_profile = ICCProfile(link_profile)
+                            except (IOError, ICCProfileInvalidError) as exception:
                                 self.log(exception)
                                 continue
                             table = f"B2A{tableno:d}"
@@ -11167,7 +11192,7 @@ usage: spotread [-options] [logfile]
                         ):
                             # Make A2B0/A2B2 a distinct table
                             self.log("Making distinct", tablename)
-                            table = ICCP.LUT16Type(None, tablename, profile)
+                            table = LUT16Type(None, tablename, profile)
                             table.matrix = []
                             for row in A2B1.matrix:
                                 table.matrix.append(list(row))
@@ -11242,7 +11267,7 @@ usage: spotread [-options] [logfile]
                                 num_workers = None
                             table.clut = sum(
                                 pool_slice(
-                                    ICCP._mp_apply,
+                                    _mp_apply,
                                     table.clut,
                                     (
                                         profile.connectionColorSpace,
@@ -11321,7 +11346,7 @@ usage: spotread [-options] [logfile]
                     if getcfg("profile.type") == "X":
                         if (
                             not isinstance(
-                                profile.tags.get("vcgt"), ICCP.VideoCardGammaType
+                                profile.tags.get("vcgt"), VideoCardGammaType
                             )
                             or profile.tags.vcgt.is_linear()
                         ):
@@ -11345,7 +11370,7 @@ usage: spotread [-options] [logfile]
                     result = self._create_matrix_profile(
                         args[-1], profile, ptype, "XYZ", apply_bpc
                     )
-                    if isinstance(result, ICCP.ICCProfile):
+                    if isinstance(result, ICCProfile):
                         result = True
                         profchanged = True
             if not isinstance(result, Exception) and result:
@@ -11353,9 +11378,9 @@ usage: spotread [-options] [logfile]
                     "rTRC" in profile.tags
                     and "gTRC" in profile.tags
                     and "bTRC" in profile.tags
-                    and isinstance(profile.tags.rTRC, ICCP.CurveType)
-                    and isinstance(profile.tags.gTRC, ICCP.CurveType)
-                    and isinstance(profile.tags.bTRC, ICCP.CurveType)
+                    and isinstance(profile.tags.rTRC, CurveType)
+                    and isinstance(profile.tags.gTRC, CurveType)
+                    and isinstance(profile.tags.bTRC, CurveType)
                     and apply_bpc
                     and len(profile.tags.rTRC) > 1
                     and len(profile.tags.gTRC) > 1
@@ -11508,7 +11533,7 @@ usage: spotread [-options] [logfile]
         self.log("R=G=B (>= 1% luminance) dE*00 avg", dE_avg, "peak", dE_max)
 
         # Create profile
-        profile = ICCP.ICCProfile()
+        profile = ICCProfile()
         profile.version = 2.2  # Match ArgyllCMS
         profile.setDescription(description)
         profile.setCopyright(copyright)
@@ -11518,15 +11543,15 @@ usage: spotread [-options] [logfile]
             profile.setDeviceModelDescription(model)
         luminance_XYZ_cdm2 = ti3.queryv1("LUMINANCE_XYZ_CDM2")
         if luminance_XYZ_cdm2:
-            profile.tags.lumi = ICCP.XYZType(profile=profile)
+            profile.tags.lumi = XYZType(profile=profile)
             profile.tags.lumi.Y = float(luminance_XYZ_cdm2.split()[1])
-        profile.tags.wtpt = ICCP.XYZType(profile=profile)
+        profile.tags.wtpt = XYZType(profile=profile)
         white_XYZ = [v / 100.0 for v in RGB_XYZ[(100, 100, 100)]]
         (profile.tags.wtpt.X, profile.tags.wtpt.Y, profile.tags.wtpt.Z) = white_XYZ
-        profile.tags.bkpt = ICCP.XYZType(profile=profile)
+        profile.tags.bkpt = XYZType(profile=profile)
         black_XYZ = [v / 100.0 for v in RGB_XYZ[(0, 0, 0)]]
         (profile.tags.bkpt.X, profile.tags.bkpt.Y, profile.tags.bkpt.Z) = black_XYZ
-        profile.tags.arts = ICCP.chromaticAdaptionTag()
+        profile.tags.arts = chromaticAdaptionTag()
         profile.tags.arts.update(colormath.get_cat_matrix(cat))
 
         # Check if we have calibration, if so, add vcgt
@@ -11638,7 +11663,7 @@ usage: spotread [-options] [logfile]
                 break
         self.log("Initial cLUT resolution {:d}x{:d}x{:d}".format(*(iclutres,) * 3))
 
-        profile.tags.A2B0 = ICCP.create_RGB_A2B_XYZ(curves, clut, self.log)
+        profile.tags.A2B0 = create_RGB_A2B_XYZ(curves, clut, self.log)
 
         # Interpolate to higher cLUT resolution
         quality = getcfg("profile.quality")
@@ -11701,7 +11726,7 @@ usage: spotread [-options] [logfile]
                     )
                 )
 
-            profile.tags.A2B0 = ICCP.create_RGB_A2B_XYZ(curves, clut, self.log)
+            profile.tags.A2B0 = create_RGB_A2B_XYZ(curves, clut, self.log)
             clut_actual = actual
 
         self.log(
@@ -11745,7 +11770,7 @@ usage: spotread [-options] [logfile]
                 X, Y, Z = colormath.blend_blackpoint(X, Y, Z, XYZbp, (0, 0, 0), XYZwp)
             xy.append(colormath.XYZ2xyY(*(v / 100 for v in (X, Y, Z)))[:2])
         self.log("Using chromatic adaptation transform matrix:", cat)
-        mtx = ICCP.ICCProfile.from_chromaticities(
+        mtx = ICCProfile.from_chromaticities(
             xy[0][0],
             xy[0][1],
             xy[1][0],
@@ -11848,7 +11873,7 @@ usage: spotread [-options] [logfile]
                             profile.getDescription(),
                         )
                     )
-                    profile.tags[tagname] = ICCP.CurveType()
+                    profile.tags[tagname] = CurveType()
                 for XYZ in XYZout:
                     RGB = mtx * XYZ
                     for i, channel in enumerate("rgb"):
@@ -11890,7 +11915,7 @@ usage: spotread [-options] [logfile]
                                 tagname, profile.getDescription()
                             )
                         )
-                        profile.tags[tagname] = trc = ICCP.CurveType(profile=profile)
+                        profile.tags[tagname] = trc = CurveType(profile=profile)
                         # Slope limit for 16-bit encoding
                         trc[:] = [
                             max(v, j / 65535.0) * 65535 for j, v in enumerate(curves[i])
@@ -11961,8 +11986,8 @@ usage: spotread [-options] [logfile]
             if isinstance(result, Exception) or not result:
                 return result
             try:
-                matrix_profile = ICCP.ICCProfile(fakeout + profile_ext)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                matrix_profile = ICCProfile(fakeout + profile_ext)
+            except (IOError, ICCProfileInvalidError):
                 return Error(
                     lang.getstr("profile.invalid") + "\n" + fakeout + profile_ext
                 )
@@ -12006,8 +12031,8 @@ usage: spotread [-options] [logfile]
         if isinstance(profile, str):
             profile_path = profile
             try:
-                profile = ICCP.ICCProfile(profile_path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(profile_path)
+            except (IOError, ICCProfileInvalidError):
                 return Error(lang.getstr("profile.invalid") + "\n" + profile_path)
         else:
             profile_path = profile.fileName
@@ -12020,7 +12045,7 @@ usage: spotread [-options] [logfile]
             setcfg("last_icc_path", profile_path)
         if ti3:
             # Embed original TI3
-            profile.tags.targ = profile.tags.DevD = profile.tags.CIED = ICCP.TextType(
+            profile.tags.targ = profile.tags.DevD = profile.tags.CIED = TextType(
                 b"text\0\0\0\0" + bytes(ti3) + b"\0", b"targ"
             )
         if chrm:
@@ -12029,15 +12054,15 @@ usage: spotread [-options] [logfile]
         # Fixup desc tags - ASCII needs to be 7-bit
         # also add Unicode strings if different from ASCII
         if "desc" in profile.tags and isinstance(
-            profile.tags.desc, ICCP.TextDescriptionType
+            profile.tags.desc, TextDescriptionType
         ):
             profile.setDescription(profile.getDescription())
         if "dmdd" in profile.tags and isinstance(
-            profile.tags.dmdd, ICCP.TextDescriptionType
+            profile.tags.dmdd, TextDescriptionType
         ):
             profile.setDeviceModelDescription(profile.getDeviceModelDescription())
         if "dmnd" in profile.tags and isinstance(
-            profile.tags.dmnd, ICCP.TextDescriptionType
+            profile.tags.dmnd, TextDescriptionType
         ):
             profile.setDeviceManufacturerDescription(
                 profile.getDeviceManufacturerDescription()
@@ -12074,12 +12099,12 @@ usage: spotread [-options] [logfile]
                     + (b"\x00" * 4)
                     + (b"\x00" * 20)
                 )
-                profile.tags.mmod = ICCP.ICCProfileTag(mmod, "mmod")
+                profile.tags.mmod = ICCProfileTag(mmod, "mmod")
                 # Add new meta information based on EDID
                 profile.set_edid_metadata(edid)
             elif "meta" not in profile.tags:
                 # Make sure meta tag exists
-                profile.tags.meta = ICCP.DictType()
+                profile.tags.meta = DictType()
         if tags is True or (tags and "meta" in tags):
             profile.tags.meta.update(
                 {"CMF_product": appname, "CMF_binary": appname, "CMF_version": version}
@@ -12132,7 +12157,7 @@ usage: spotread [-options] [logfile]
         if (avg, peak, rms) != (None,) * 3:
             # Make sure meta tag exists
             if "meta" not in profile.tags:
-                profile.tags.meta = ICCP.DictType()
+                profile.tags.meta = DictType()
             # Update meta prefix
             prefixes = (
                 profile.tags.meta.getvalue("prefix", "", None) or "ACCURACY_"
@@ -12156,7 +12181,7 @@ usage: spotread [-options] [logfile]
                 getcfg("gamap_default_intent")
             ]
         # Check if we need to video scale vcgt
-        if isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType):
+        if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
             try:
                 cal = extract_cal_from_profile(profile, None, False, prefer_cal=True)
             except Exception as exception:
@@ -12250,7 +12275,7 @@ usage: spotread [-options] [logfile]
         self.log("-" * 80)
         # Add perceptual tables if not present
         if "A2B0" in profile.tags and "A2B1" not in profile.tags:
-            if not isinstance(profile.tags.A2B0, ICCP.LUT16Type):
+            if not isinstance(profile.tags.A2B0, LUT16Type):
                 self.log(f"{appname}: Can't process non-LUT16Type A2B0 table")
                 return []
             try:
@@ -12260,7 +12285,7 @@ usage: spotread [-options] [logfile]
                 if "B2A0" in profile.tags:
                     # Copy B2A0
                     B2A0 = profile.tags.B2A0
-                    profile.tags.B2A1 = B2A1 = ICCP.LUT16Type(None, "B2A1", profile)
+                    profile.tags.B2A1 = B2A1 = LUT16Type(None, "B2A1", profile)
                     B2A1.matrix = []
                     for row in B2A0.matrix:
                         B2A1.matrix.append(list(row))
@@ -12292,7 +12317,7 @@ usage: spotread [-options] [logfile]
                     and profile.tags[f"B2A{tableno:d}"] in rtables
                 ):
                     continue
-                if not isinstance(profile.tags[f"A2B{tableno:d}"], ICCP.LUT16Type):
+                if not isinstance(profile.tags[f"A2B{tableno:d}"], LUT16Type):
                     self.log(
                         f"{appname}: Can't process non-LUT16Type A2B{tableno:d} table"
                     )
@@ -12309,7 +12334,7 @@ usage: spotread [-options] [logfile]
                     or profile.tags["A2B1"].output[2][0] != 0
                 ):
                     # Need to apply BPC
-                    table = ICCP.LUT16Type(profile=profile)
+                    table = LUT16Type(profile=profile)
                     # Copy existing B2A1 table matrix, cLUT and output curves
                     table.matrix = rtables[0].matrix
                     table.clut = rtables[0].clut
@@ -12990,8 +13015,8 @@ usage: spotread [-options] [logfile]
                 # Only for L*a*b* LUT or if source profile is not a simple matrix
                 # profile, otherwise create hires CIECAM02 tables with collink
                 try:
-                    gamap_profile = ICCP.ICCProfile(getcfg("gamap_profile"))
-                except ICCP.ICCProfileInvalidError as exception:
+                    gamap_profile = ICCProfile(getcfg("gamap_profile"))
+                except ICCProfileInvalidError as exception:
                     self.log(exception)
                     return Error(
                         lang.getstr("profile.invalid") + "\n" + getcfg("gamap_profile")
@@ -13077,7 +13102,7 @@ usage: spotread [-options] [logfile]
             self.log("Preparing ChromaticityType tag from TI3 colorants")
             colorants = ti3.get_colorants()
             if colorants and None not in colorants:
-                chrm = ICCP.ChromaticityType()
+                chrm = ChromaticityType()
                 chrm.type = 0
                 for colorant in colorants:
                     if color_rep[1] == "LAB":
@@ -13272,7 +13297,7 @@ usage: spotread [-options] [logfile]
                         cal = calcopy
                 else:
                     rslt = extract_fix_copy_cal(cal, calcopy)
-                    if isinstance(rslt, ICCP.ICCProfileInvalidError):
+                    if isinstance(rslt, ICCProfileInvalidError):
                         return Error(lang.getstr("profile.invalid") + "\n" + cal), None
                     elif isinstance(rslt, Exception):
                         traceback.print_exc()
@@ -13431,8 +13456,8 @@ usage: spotread [-options] [logfile]
             try:
                 if ext.lower() in (".icc", ".icm"):
                     try:
-                        profile = ICCP.ICCProfile(filename + ext)
-                    except (IOError, ICCP.ICCProfileInvalidError):
+                        profile = ICCProfile(filename + ext)
+                    except (IOError, ICCProfileInvalidError):
                         return (
                             Error(
                                 lang.getstr(
@@ -13550,8 +13575,8 @@ usage: spotread [-options] [logfile]
                 if not result:
                     return None, None
                 try:
-                    profile = ICCP.ICCProfile(filename + ext)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(filename + ext)
+                except (IOError, ICCProfileInvalidError):
                     profile = None
                 if profile:
                     ti3 = StringIO(
@@ -13719,8 +13744,8 @@ usage: spotread [-options] [logfile]
                 if not result:
                     return None, None
                 try:
-                    profile = ICCP.ICCProfile(profile_path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(profile_path)
+                except (IOError, ICCProfileInvalidError):
                     return (
                         Error(lang.getstr("profile.invalid") + "\n" + profile_path),
                         None,
@@ -14827,7 +14852,7 @@ usage: spotread [-options] [logfile]
                         r"(\d+(?:\.\d+)?)\s+cubic\s+colorspace\s+units", line
                     )
                     if match:
-                        gamut_volume = float(match.groups()[0]) / ICCP.GAMUT_VOLUME_SRGB
+                        gamut_volume = float(match.groups()[0]) / GAMUT_VOLUME_SRGB
                         break
             else:
                 break
@@ -15055,8 +15080,8 @@ usage: spotread [-options] [logfile]
                     )
                     if not isinstance(result, Exception) and result:
                         try:
-                            profile = ICCP.ICCProfile(profile_path)
-                        except (IOError, ICCP.ICCProfileInvalidError):
+                            profile = ICCProfile(profile_path)
+                        except (IOError, ICCProfileInvalidError):
                             result = Error(
                                 lang.getstr("profile.invalid") + "\n" + profile_path
                             )
@@ -15105,7 +15130,7 @@ usage: spotread [-options] [logfile]
                             # Update desc tag - ASCII needs to be 7-bit
                             # also add Unicode string if different from ASCII
                             if "desc" in profile.tags and isinstance(
-                                profile.tags.desc, ICCP.TextDescriptionType
+                                profile.tags.desc, TextDescriptionType
                             ):
                                 profile.setDescription(getcfg("profile.name.expanded"))
                             # Calculate profile ID
@@ -15206,7 +15231,7 @@ usage: spotread [-options] [logfile]
                 profile.fileName = ofilename
                 self.wrapup(False)
                 return result
-            link = ICCP.ICCProfile(linkpath)
+            link = ICCProfile(linkpath)
             RGBscaled = []
             for i in range(256):
                 RGBscaled.append([i / 255.0] * 3)
@@ -15319,9 +15344,9 @@ usage: spotread [-options] [logfile]
                     B.append(RGB[2])
                 if res > 2:
                     # Catmull-Rom spline interpolation
-                    Ri = ICCP.CRInterpolation(R)
-                    Gi = ICCP.CRInterpolation(G)
-                    Bi = ICCP.CRInterpolation(B)
+                    Ri = CRInterpolation(R)
+                    Gi = CRInterpolation(G)
+                    Bi = CRInterpolation(B)
                 else:
                     # Linear interpolation
                     Ri = colormath.Interp(list(range(res)), R)
@@ -15343,7 +15368,7 @@ usage: spotread [-options] [logfile]
                     )
                 )
         has_nonlinear_vcgt = (
-            isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+            isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
             and not profile.tags.vcgt.is_linear()
         )
         if has_nonlinear_vcgt:
@@ -15398,7 +15423,7 @@ BEGIN_DATA
         else:
             # Re-create profile
             cti3 = None
-            if isinstance(profile.tags.get("targ"), ICCP.Text):
+            if isinstance(profile.tags.get("targ"), Text):
                 # Get measurement data
                 try:
                     cti3 = CGATS(profile.tags.targ)
@@ -15602,8 +15627,8 @@ BEGIN_DATA
 
         # profile
         if isinstance(profile, str):
-            profile = ICCP.ICCProfile(profile)
-        if not isinstance(profile, ICCP.ICCProfile):
+            profile = ICCProfile(profile)
+        if not isinstance(profile, ICCProfile):
             raise TypeError(
                 "Wrong type for profile, needs to be a ICCProfile instance, "
                 f"not {profile.__class__.__name__}"
@@ -15724,7 +15749,7 @@ BEGIN_DATA
         output_encoding = None
         if not pcs:
             # Try to determine input/output encoding for devicelink
-            if isinstance(profile.tags.get("meta"), ICCP.DictType):
+            if isinstance(profile.tags.get("meta"), DictType):
                 input_encoding = profile.tags.meta.getvalue("encoding.input")
                 output_encoding = profile.tags.meta.getvalue("encoding.output")
                 if input_encoding == "T":
@@ -15982,10 +16007,11 @@ BEGIN_DATA
 
         # profile
         if isinstance(profile, str):
-            profile = ICCP.ICCProfile(profile)
-        if not isinstance(profile, ICCP.ICCProfile):
+            profile = ICCProfile(profile)
+        if not isinstance(profile, ICCProfile):
             raise TypeError(
-                "Wrong type for profile, needs to be ICCP.ICCProfile instance"
+                "Wrong type for profile, needs to be ICCProfile instance, "
+                f"not {profile.__class__.__name__}"
             )
 
         # determine pcs for lookup

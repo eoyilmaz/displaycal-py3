@@ -44,7 +44,6 @@ from zlib import crc32
 
 # Custom modules
 from DisplayCAL import (
-    ICCProfile as ICCP,
     audio,
     ccmx,
     colord,
@@ -137,6 +136,21 @@ from DisplayCAL.debughelpers import (
     handle_error,
 )
 from DisplayCAL.edid import get_manufacturer_name, PNP_ID_CACHE
+from DisplayCAL.icc_profile import (
+    CurveType,
+    chromaticAdaptionTag,
+    DictType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    GAMUT_VOLUME_ADOBERGB,
+    GAMUT_VOLUME_SRGB,
+    GAMUT_VOLUME_SMPTE431_P3,
+    LUT16Type,
+    TextDescriptionType,
+    TextType,
+    XYZType,
+    VideoCardGammaType,
+)
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
     DOMAIN,
@@ -1488,8 +1502,8 @@ class GamapFrame(BaseFrame):
         c = self.gamap_perceptual_cb.GetValue() or self.gamap_saturation_cb.GetValue()
         if p and c:
             try:
-                profile = ICCP.ICCProfile(v)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(v)
+            except (IOError, ICCProfileInvalidError):
                 p = False
                 InfoDialog(
                     self,
@@ -6139,8 +6153,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 profile_filename = get_data_path("ref/" + profile_filename)
             if profile_filename:
                 try:
-                    profile = ICCP.ICCProfile(profile_filename)
-                except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                    profile = ICCProfile(profile_filename)
+                except (IOError, ICCProfileInvalidError) as exception:
                     print(f"{profile_filename}:", exception)
                 else:
                     if profile_filename not in list(self.input_profiles.values()):
@@ -6162,7 +6176,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.input_profiles[self.lut3d_input_profile_ctrl.GetStringSelection()],
                 event,
             )
-            lut3d_input_profile = ICCP.ICCProfile(getcfg("3dlut.input.profile"))
+            lut3d_input_profile = ICCProfile(getcfg("3dlut.input.profile"))
             if (
                 lut3d_input_profile
                 and "rTRC" in lut3d_input_profile.tags
@@ -6171,7 +6185,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 and lut3d_input_profile.tags.rTRC
                 == lut3d_input_profile.tags.gTRC
                 == lut3d_input_profile.tags.bTRC
-                and isinstance(lut3d_input_profile.tags.rTRC, ICCP.CurveType)
+                and isinstance(lut3d_input_profile.tags.rTRC, CurveType)
             ):
                 tf = lut3d_input_profile.tags.rTRC.get_transfer_function(outoffset=1.0)
                 # Set gamma to profile gamma if single gamma profile
@@ -6247,7 +6261,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             getcfg("3dlut.create")
             or (
                 profile
-                and isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                and isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
             )
         )
         self.lut3d_apply_cal_cb.SetValue(
@@ -6266,7 +6280,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             allow_b2a_gamap = (
                 profile
                 and "B2A0" in profile.tags
-                and isinstance(profile.tags.B2A0, ICCP.LUT16Type)
+                and isinstance(profile.tags.B2A0, LUT16Type)
                 and profile.tags.B2A0.clut_grid_steps >= 17
             )
         self.gamut_mapping_b2a.Enable(bool(allow_b2a_gamap))
@@ -6284,8 +6298,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg("3dlut.input.profile", lut3d_input_profile)
             else:
                 try:
-                    profile = ICCP.ICCProfile(lut3d_input_profile)
-                except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                    profile = ICCProfile(lut3d_input_profile)
+                except (IOError, ICCProfileInvalidError) as exception:
                     print(f"{lut3d_input_profile}:", exception)
                 else:
                     desc = profile.getDescription()
@@ -7559,7 +7573,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         The treshold for average delta E 1976 is 1.0
 
         """
-        if "meta" in profile.tags and isinstance(profile.tags.meta, ICCP.DictType):
+        if "meta" in profile.tags and isinstance(profile.tags.meta, DictType):
             try:
                 avg_dE76 = float(profile.tags.meta.getvalue("ACCURACY_dE76_avg"))
             except (TypeError, ValueError):
@@ -7598,7 +7612,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         return lang.getstr("profile.share.meta_missing")
                     if (
                         "B2A0" in profile.tags
-                        and isinstance(profile.tags.B2A0, ICCP.LUT16Type)
+                        and isinstance(profile.tags.B2A0, LUT16Type)
                         and profile.tags.B2A0.input_entries_count < 1024
                     ):
                         # 1024 is the Argyll value for a medium quality profile
@@ -7669,7 +7683,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             week = int(date[1])
             date = datetime.date(int(year), 1, 1) + datetime.timedelta(weeks=week)
             description += " '" + strftime("%y", date.timetuple())
-        if isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType):
+        if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
             if profile.tags.vcgt.is_linear():
                 vcgt = "linear VCGT"
             else:
@@ -8201,8 +8215,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             install_3dlut = self.lut3d_settings_panel.IsShown()
         if not isinstance(result, Exception) and result:
             try:
-                profile = ICCP.ICCProfile(profile_path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(profile_path)
+            except (IOError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + profile_path,
@@ -8285,8 +8299,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 print(path)
             if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     if verbose >= 1:
                         print(lang.getstr("failure"))
                     InfoDialog(
@@ -8361,8 +8375,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     cal = False
             elif cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
                 try:
-                    profile = ICCP.ICCProfile(cal)
-                except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                    profile = ICCProfile(cal)
+                except (IOError, ICCProfileInvalidError) as exception:
                     show_result_dialog(exception, self)
                     profile = None
             else:
@@ -8646,8 +8660,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if result != wx.ID_OK:
                 return
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 InfoDialog(
                     parent,
                     msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -8736,9 +8750,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         oprof = profile = get_current_profile(True)
         for i, profilepath in enumerate(paths):
             try:
-                profile = ICCP.ICCProfile(profilepath)
-            except (IOError, ICCP.ICCProfileInvalidError) as exception:
-                if isinstance(exception, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(profilepath)
+            except (IOError, ICCProfileInvalidError) as exception:
+                if isinstance(exception, ICCProfileInvalidError):
                     msg = "{}\n{}".format(lang.getstr("profile.invalid"), profilepath)
                 else:
                     msg = str(exception)
@@ -8807,10 +8821,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         apply_map = (
             use_sim
             and mprof.colorSpace == b"RGB"
-            and isinstance(mprof.tags.get("rXYZ"), ICCP.XYZType)
-            and isinstance(mprof.tags.get("gXYZ"), ICCP.XYZType)
-            and isinstance(mprof.tags.get("bXYZ"), ICCP.XYZType)
-            and not isinstance(mprof.tags.get("A2B0"), ICCP.LUT16Type)
+            and isinstance(mprof.tags.get("rXYZ"), XYZType)
+            and isinstance(mprof.tags.get("gXYZ"), XYZType)
+            and isinstance(mprof.tags.get("bXYZ"), XYZType)
+            and not isinstance(mprof.tags.get("A2B0"), LUT16Type)
         )
         apply_off = apply_map and getcfg("measurement_report.apply_black_offset")
         apply_trc = apply_map and getcfg("measurement_report.apply_trc")
@@ -9045,7 +9059,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     show_result_dialog(result, self)
                     return
                 odesc = oprof.getDescription()
-                oprof = ICCP.ICCProfile(profile_with_cal_path)
+                oprof = ICCProfile(profile_with_cal_path)
                 # Restore original description
                 oprof.setDescription(odesc)
 
@@ -9053,7 +9067,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ti1, oprof, pcs="x", intent="a", white_patches=0
             )
             wtpt = list(oprof.tags.wtpt.values())
-            if isinstance(oprof.tags.get("lumi"), ICCP.XYZType):
+            if isinstance(oprof.tags.get("lumi"), XYZType):
                 luminance = oprof.tags.lumi.Y
             else:
                 luminance = 100
@@ -9392,7 +9406,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         # calculate amount of calibration grayscale tone values
         cal_entrycount = 256
-        if isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType):
+        if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
             rgb = [[], [], []]
             vcgt = profile.tags.vcgt
             if "data" in vcgt:
@@ -9453,15 +9467,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.worker.wrapup(False if not isinstance(result, Exception) else result)
 
         wtpt_profile_norm = tuple(n * 100 for n in list(profile.tags.wtpt.values()))
-        if isinstance(profile.tags.get("chad"), ICCP.chromaticAdaptionTag):
+        if isinstance(profile.tags.get("chad"), chromaticAdaptionTag):
             # undo chromatic adaption of profile whitepoint
             WX, WY, WZ = profile.tags.chad.inverted() * wtpt_profile_norm
             wtpt_profile_norm = tuple((n / WY) * 100.0 for n in (WX, WY, WZ))
             # guess chromatic adaption transform (Bradford, CAT02...)
             cat = profile.guess_cat() or cat
-        elif isinstance(profile.tags.get("arts"), ICCP.chromaticAdaptionTag):
+        elif isinstance(profile.tags.get("arts"), chromaticAdaptionTag):
             cat = profile.guess_cat() or cat
-        if oprof and isinstance(oprof.tags.get("lumi"), ICCP.XYZType):
+        if oprof and isinstance(oprof.tags.get("lumi"), XYZType):
             # calculate unscaled whitepoint
             scale = oprof.tags.lumi.Y / 100.0
             wtpt_profile = tuple(n * scale for n in wtpt_profile_norm)
@@ -9711,8 +9725,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ):
                     if cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
                         try:
-                            profile = ICCP.ICCProfile(cal)
-                        except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                            profile = ICCProfile(cal)
+                        except (IOError, ICCProfileInvalidError) as exception:
                             print(exception)
                             profile = None
                     else:
@@ -9740,10 +9754,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 is True
             ):
-                profile = ICCP.ICCProfile()
+                profile = ICCProfile()
                 profile._data = "\0" * 128
-                profile._tags.desc = ICCP.TextDescriptionType("", "desc")
-                profile._tags.vcgt = ICCP.VideoCardGammaTableType("", "vcgt")
+                profile._tags.desc = TextDescriptionType("", "desc")
+                profile._tags.vcgt = VideoCardGammaTableType("", "vcgt")
                 profile._tags.vcgt.update(
                     {
                         "channels": 3,
@@ -10673,8 +10687,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if ext.lower() in (".icc", ".icm"):
                 self.worker.options_dispcal = []
                 try:
-                    profile = ICCP.ICCProfile(cal)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(cal)
+                except (IOError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + cal,
@@ -10822,7 +10836,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 + profile_ext
             )
             profile_path = os.path.join(self.worker.tempdir, defaultFile)
-            profile = ICCP.ICCProfile.from_edid(edid)
+            profile = ICCProfile.from_edid(edid)
             try:
                 profile.write(profile_path)
             except Exception as exception:
@@ -11118,8 +11132,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             vinfo = []
             has_cal = False
             try:
-                profile = ICCP.ICCProfile(profile_path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(profile_path)
+            except (IOError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + profile_path,
@@ -11130,7 +11144,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg("calibration.file.previous", None)
                 return
             else:
-                has_cal = isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                has_cal = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
                 if profile.profileClass != b"mntr" or profile.colorSpace != b"RGB":
                     InfoDialog(
                         self,
@@ -11201,9 +11215,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 )
                             )
                     gamuts = (
-                        ("srgb", "sRGB", ICCP.GAMUT_VOLUME_SRGB),
-                        ("adobe-rgb", "Adobe RGB", ICCP.GAMUT_VOLUME_ADOBERGB),
-                        ("dci-p3", "DCI P3", ICCP.GAMUT_VOLUME_SMPTE431_P3),
+                        ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
+                        ("adobe-rgb", "Adobe RGB", GAMUT_VOLUME_ADOBERGB),
+                        ("dci-p3", "DCI P3", GAMUT_VOLUME_SMPTE431_P3),
                     )
                     for key, name, _volume in gamuts:
                         try:
@@ -11232,7 +11246,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             vinfo.append(
                                 "{:.1f}% {}".format(
                                     gamut_volume
-                                    * ICCP.GAMUT_VOLUME_SRGB
+                                    * GAMUT_VOLUME_SRGB
                                     / volume
                                     * 100,
                                     name,
@@ -11848,8 +11862,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if not path:
                     return "fail"
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     return "fail"
             wx.CallAfter(self.init_lut_viewer, profile=profile, show=True)
         elif data[0] == "profile-info" and len(data) < 3:
@@ -11862,8 +11876,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if not path:
                     return "fail"
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     return "fail"
             wx.CallAfter(self.profile_info_handler, profile=profile)
         elif data[0] == "synthprofile" and len(data) < 3:
@@ -12053,8 +12067,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     name, ext = os.path.splitext(path)
                     if ext.lower() in (".icc", ".icm"):
                         try:
-                            profile = ICCP.ICCProfile(path)
-                        except (IOError, ICCP.ICCProfileInvalidError):
+                            profile = ICCProfile(path)
+                        except (IOError, ICCProfileInvalidError):
                             msg = lang.getstr("profile.invalid") + "\n" + path
                             if event or not lut_viewer:
                                 show_result_dialog(Error(msg), self)
@@ -13195,7 +13209,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if path:
                 try:
                     if os.path.splitext(path.lower())[1] in (".icm", ".icc"):
-                        profile = ICCP.ICCProfile(path)
+                        profile = ICCProfile(path)
                         meta = profile.tags.get("meta", {})
                         cgats = self.worker.ti1_lookup_to_ti3(
                             ccxx, profile, pcs="x", intent="a"
@@ -15536,8 +15550,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             filename, ext = os.path.splitext(path)
             if ext.lower() != ".ti3":
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     show_result_dialog(
                         Error(lang.getstr("profile.invalid") + "\n" + path), self
                     )
@@ -15583,7 +15597,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             if isinstance(tmp_working_dir, Exception):
                                 show_result_dialog(tmp_working_dir, self)
                                 return
-                            profile.tags.targ = ICCP.TextType(
+                            profile.tags.targ = TextType(
                                 b"text\0\0\0\0" + ti3 + b"\0", b"targ"
                             )
                             profile.tags.DevD = profile.tags.CIED = profile.tags.targ
@@ -15969,7 +15983,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """
         if (
             "B2A0" in profile.tags
-            and isinstance(profile.tags.B2A0, ICCP.LUT16Type)
+            and isinstance(profile.tags.B2A0, LUT16Type)
             and profile.tags.B2A0.clut_grid_steps < 17
             and profile.creator == b"argl"
         ):
@@ -16001,10 +16015,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
             elif (
                 "A2B0" in profile.tags
-                and not isinstance(profile.tags.A2B0, ICCP.LUT16Type)
+                and not isinstance(profile.tags.A2B0, LUT16Type)
             ) or (
                 "A2B1" in profile.tags
-                and not isinstance(profile.tags.A2B1, ICCP.LUT16Type)
+                and not isinstance(profile.tags.A2B1, LUT16Type)
             ):
                 result = Error(
                     lang.getstr("profile.required_tags_missing", "LUT16Type")
@@ -16119,8 +16133,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             source_filename, source_ext = os.path.splitext(path)
             if source_ext.lower() != ".ti3":
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -16383,7 +16397,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self,
                 )
                 return
-            profile = ICCP.ICCProfile.from_edid(edid)
+            profile = ICCProfile.from_edid(edid)
             try:
                 profile.write(profile_save_path)
             except Exception as exception:
@@ -17002,8 +17016,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             filename, ext = os.path.splitext(path)
             if ext.lower() in (".icc", ".icm"):
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -17236,7 +17250,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     ti1 = CGATS(path)
             else:  # icc or icm profile
-                profile = ICCP.ICCProfile(path)
+                profile = ICCProfile(path)
                 ti1 = CGATS(
                     ti3_to_ti1(
                         profile.tags.get("CIED", "") or profile.tags.get("targ", "")
@@ -17722,8 +17736,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         if ext.lower() in (".icc", ".icm"):
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -17753,7 +17767,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 cal = BytesIO(cied)
             else:
                 targ = profile.tags.get("targ")
-                from DisplayCAL.ICCProfile import Text
+                from DisplayCAL.icc_profile import Text
 
                 if targ and isinstance(targ, Text):
                     tag_data = targ.tagData
@@ -19253,7 +19267,7 @@ class StartupFrame(start_cls):
         else:
             gamut_with_gamma = list(colormath.get_rgb_space(gamut))
             gamut_with_gamma[0] = gamma
-            gamut_with_gamma_profile = ICCP.ICCProfile.from_rgb_space(
+            gamut_with_gamma_profile = ICCProfile.from_rgb_space(
                 gamut_with_gamma,
                 b"%s gamma %s"
                 % (bytes(gamut, "utf-8"), bytes(str(f"{gamma:.1f}"), "utf-8")),

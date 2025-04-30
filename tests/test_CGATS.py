@@ -288,7 +288,7 @@ def test_cgats_with_sample_data_2(data_files):
 
 def test_cgats_with_sample_targ_data(data_files):
     """Test ``DisplayCAL.cgats.CGATS`` class with data coming from the ``Text`` class"""
-    from DisplayCAL.ICCProfile import Text
+    from DisplayCAL.icc_profile import Text
 
     with open(data_files["ccxx.ti1"].absolute(), "rb") as f:
         targ_data = f.read()

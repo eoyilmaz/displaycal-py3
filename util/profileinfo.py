@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from DisplayCAL import colormath
-from DisplayCAL import ICCProfile as ICCP
+from DisplayCAL.icc_profile import ICCProfile, get_display_profile, XYZType
 
 
 def prettyprint(iterable, level=1):
@@ -23,8 +23,8 @@ def prettyprint(iterable, level=1):
 
 
 def profileinfo(profile):
-    if not isinstance(profile, ICCP.ICCProfile):
-        profile = ICCP.ICCProfile(profile)
+    if not isinstance(profile, ICCProfile):
+        profile = ICCProfile(profile)
     # Attributes
     print("Size:", profile.size, "Bytes (%.1f KB)" % (profile.size / 1024.0))
     print("Preferred CMM:", profile.preferredCMM)
@@ -68,12 +68,12 @@ def profileinfo(profile):
         YR = X * M[1][0] + Y * M[1][1] + Z * M[1][2]
         ZR = X * M[2][0] + Y * M[2][1] + Z * M[2][2]
         wtpt_profile_norm = tuple((n / YR) * 100.0 for n in (XR, YR, ZR))
-    if "lumi" in profile.tags and isinstance(profile.tags.lumi, ICCP.XYZType):
+    if "lumi" in profile.tags and isinstance(profile.tags.lumi, XYZType):
         print("Luminance:", profile.tags.lumi.Y)
     print("Actual Whitepoint XYZ:", " ".join(str(n) for n in wtpt_profile_norm))
     print("Correlated Color Temperature:", colormath.XYZ2CCT(*wtpt_profile_norm))
 
 
 if __name__ == "__main__":
-    for arg in sys.argv[1:] or [ICCP.get_display_profile()]:
+    for arg in sys.argv[1:] or [get_display_profile()]:
         profileinfo(arg)

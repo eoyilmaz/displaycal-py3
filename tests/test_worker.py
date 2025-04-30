@@ -12,7 +12,6 @@ from urllib.error import URLError
 
 import pytest
 
-from DisplayCAL import ICCProfile
 from DisplayCAL import config
 from DisplayCAL.argyll import (
     get_argyll_latest_version,
@@ -22,6 +21,7 @@ from DisplayCAL.argyll import (
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import initcfg, setcfg
 from DisplayCAL.dev.mocks import check_call_str
+from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.meta import DOMAIN
 from DisplayCAL.worker import (
     add_keywords_to_cgats,
@@ -116,7 +116,7 @@ def test_worker_instrument_supports_css_1():
 def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     """Test Worker.generate_B2A_from_inverse_table() method"""
     worker = Worker()
-    icc_profile1 = ICCProfile.ICCProfile(
+    icc_profile1 = ICCProfile(
         profile=data_files[
             "Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.icc"
         ].absolute()
@@ -235,7 +235,7 @@ def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
     ].absolute()
 
     ti3_cgat = CGATS(ti3_path)
-    icc_profile = ICCProfile.ICCProfile(profile_path)
+    icc_profile = ICCProfile(profile_path)
     config.initcfg()
     worker = Worker()
     ti1, ti3v = worker.ti3_lookup_to_ti1(ti3_cgat, icc_profile)

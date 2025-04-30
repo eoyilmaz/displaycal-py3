@@ -757,8 +757,8 @@ if __name__ == "__main__":
     from _thread import start_new_thread
     from time import sleep
     import random
+    from DisplayCAL.icc_profile import ICCProfile
     from DisplayCAL.util_io import Files
-    from DisplayCAL import ICCProfile as ICCP
     from DisplayCAL import worker
 
     class Subprocess:
@@ -795,7 +795,7 @@ if __name__ == "__main__":
     testchart = getcfg("testchart.file")
     if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
         try:
-            testchart = ICCP.ICCProfile(testchart).tags.targ
+            testchart = ICCProfile(testchart).tags.targ
         except Exception:
             pass
     try:

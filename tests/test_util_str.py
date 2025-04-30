@@ -9,7 +9,7 @@ from DisplayCAL.util_str import (
     safe_str,
     strtr,
 )
-from DisplayCAL.ICCProfile import TextDescriptionType
+from DisplayCAL.icc_profile import TextDescriptionType
 
 
 def test_asciize_working_properly_1():

@@ -14,7 +14,6 @@ if sys.platform == "win32":
     from win32 import win32file
 
 from DisplayCAL import (
-    ICCProfile as ICCP,
     colormath,
     config,
     floatspin,
@@ -52,6 +51,11 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileInvalidError,
+    NamedColor2Type,
+)
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
 from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
@@ -1922,8 +1926,8 @@ END_DATA"""
 
     def tc_add_saturation_sweeps_handler(self, event):
         try:
-            profile = ICCP.ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCP.ICCProfileInvalidError) as exception:
+            profile = ICCProfile(getcfg("tc_precond_profile"))
+        except (IOError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
         else:
             rgb_space = profile.get_rgb_space()
@@ -1988,8 +1992,8 @@ END_DATA"""
 
     def tc_add_ti3_handler(self, event, chart=None):
         try:
-            profile = ICCP.ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCP.ICCProfileInvalidError) as exception:
+            profile = ICCProfile(getcfg("tc_precond_profile"))
+        except (IOError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
             return
 
@@ -2048,11 +2052,11 @@ END_DATA"""
             img = None
             if ext.lower() in (".icc", ".icm"):
                 try:
-                    nclprof = ICCP.ICCProfile(chart)
+                    nclprof = ICCProfile(chart)
                     if (
                         nclprof.profileClass != "nmcl"
                         or "ncl2" not in nclprof.tags
-                        or not isinstance(nclprof.tags.ncl2, ICCP.NamedColor2Type)
+                        or not isinstance(nclprof.tags.ncl2, NamedColor2Type)
                         or nclprof.connectionColorSpace not in ("Lab", "XYZ")
                     ):
                         raise Error(lang.getstr("profile.only_named_color"))
@@ -3401,7 +3405,7 @@ END_DATA"""
                     ti1 = CGATS(path)
                     ti1.filename = path
             else:  # icc or icm profile
-                profile = ICCP.ICCProfile(path)
+                profile = ICCProfile(path)
                 ti1 = CGATS(
                     ti3_to_ti1(
                         profile.tags.get("CIED", "") or profile.tags.get("targ", "")

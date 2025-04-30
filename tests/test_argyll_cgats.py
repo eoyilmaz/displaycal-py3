@@ -6,7 +6,7 @@ from typing import Tuple
 import pytest
 
 from DisplayCAL import argyll_cgats
-from DisplayCAL import ICCProfile
+from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.debughelpers import Error
 
@@ -44,7 +44,7 @@ def test_quote_nonoption_args_1():
 def test_vcgt_to_cal_1(data_files):
     """Testing the vcgt_to_cal() function."""
     icc_path = data_files["UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"]
-    profile = ICCProfile.ICCProfile(icc_path)
+    profile = ICCProfile(icc_path)
     cgats = argyll_cgats.vcgt_to_cal(profile)
     assert cgats[0]["COLOR_REP"] == b"RGB"
     assert cgats[0]["DATA_FORMAT"] == {
@@ -70,7 +70,7 @@ def test_vcgt_to_cal_1(data_files):
 def test_extract_cal_from_profile_1(data_files, icc_name: str, exception: bool) -> None:
     """Testing the extract_cal_from_profile() function."""
     icc_path = data_files[icc_name]
-    profile = ICCProfile.ICCProfile(icc_path)
+    profile = ICCProfile(icc_path)
     if exception:
         with pytest.raises(Error):
             argyll_cgats.extract_cal_from_profile(profile)

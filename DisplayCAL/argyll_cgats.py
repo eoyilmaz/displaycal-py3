@@ -9,8 +9,8 @@ import traceback
 from io import BytesIO
 from time import strftime
 
-from DisplayCAL.debughelpers import Error
-from DisplayCAL.options import debug
+from DisplayCAL import colormath
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,
@@ -20,9 +20,17 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import colormath
-from DisplayCAL import localization as lang
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileInvalidError,
+    Text,
+    TextDescriptionType,
+    VideoCardGammaTableType,
+    VideoCardGammaType,
+    WcsProfilesTagType,
+)
+from DisplayCAL.debughelpers import Error
+from DisplayCAL.options import debug
 
 cals = {}
 
@@ -83,10 +91,10 @@ def cal_to_fake_profile(cal):
     vcgt, cal = cal_to_vcgt(cal, True)
     if not vcgt:
         return
-    profile = ICCP.ICCProfile()
+    profile = ICCProfile()
     profile.fileName = cal.filename
     profile._data = b"\0" * 128
-    profile._tags.desc = ICCP.TextDescriptionType(b"", "desc")
+    profile._tags.desc = TextDescriptionType(b"", "desc")
     profile._tags.desc.ASCII = str(os.path.basename(cal.filename)).encode(
         "ascii", "asciize"
     )
@@ -133,7 +141,7 @@ def cal_to_vcgt(cal, return_cgats=False):
         if debug:
             print(f"[D] No entries found in calibration {cal.filename}")
         return None
-    vcgt = ICCP.VideoCardGammaTableType(b"", "vcgt")
+    vcgt = VideoCardGammaTableType(b"", "vcgt")
     vcgt.update(
         {
             "channels": 3,
@@ -190,7 +198,7 @@ def extract_cal_from_profile(
 
     # Check if calibration is included in TI3
     targ = profile.tags.get("targ", profile.tags.get("CIED"))
-    if isinstance(targ, ICCP.Text):
+    if isinstance(targ, Text):
         cal = extract_cal_from_ti3(targ)
         if cal:
             check = cal
@@ -202,13 +210,13 @@ def extract_cal_from_profile(
         # Convert calibration information from embedded WCS profile
         # (if present) to VideCardFormulaType if the latter is not present
         if (
-            isinstance(profile.tags.get("MS00"), ICCP.WcsProfilesTagType)
+            isinstance(profile.tags.get("MS00"), WcsProfilesTagType)
             and "vcgt" not in profile.tags
         ):
             profile.tags["vcgt"] = profile.tags["MS00"].get_vcgt()
 
         # Get the calibration from profile vcgt
-        check = isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+        check = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
         get_cgats = vcgt_to_cal
         arg = profile
 
@@ -225,7 +233,7 @@ def extract_cal_from_profile(
     if (
         cal
         and not prefer_cal
-        and isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+        and isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
     ):
         # When vcgt is nonlinear, prefer it
         # Check for video levels encoding
@@ -323,8 +331,8 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
     from DisplayCAL.worker import get_options_from_profile
 
     try:
-        profile = ICCP.ICCProfile(source_filename)
-    except (IOError, ICCP.ICCProfileInvalidError) as exception:
+        profile = ICCProfile(source_filename)
+    except (IOError, ICCProfileInvalidError) as exception:
         return exception
     if "CIED" not in profile.tags and "targ" not in profile.tags:
         return None

@@ -14,7 +14,6 @@ import warnings
 
 from DisplayCAL import (
     config,
-    ICCProfile as ICCP,
     madvr,
 )
 from DisplayCAL.config import (
@@ -38,6 +37,18 @@ from DisplayCAL.colord import device_id_from_edid
 from DisplayCAL.colormath import smooth_avg
 from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
 from DisplayCAL.edid import get_edid
+from DisplayCAL.icc_profile import (
+    ADict,
+    ICCProfile,
+    ICCProfileInvalidError,
+    DictType,
+    get_display_profile,
+    set_display_profile,
+    unset_display_profile,
+    VideoCardGammaFormulaType,
+    VideoCardGammaType,
+    WcsProfilesTagType,
+)
 from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
@@ -85,6 +96,7 @@ if sys.platform == "win32":
     import winerror
     import winreg
 
+    from DisplayCAL.icc_profile import _winreg_get_display_profiles
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
     from DisplayCAL.util_win import (
         calibration_management_isenabled,
@@ -393,11 +405,11 @@ class FixProfileAssociationsDialog(ConfirmDialog):
             if not profile:
                 continue
             try:
-                profile = ICCP.ICCProfile(profile)
-            except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                profile = ICCProfile(profile)
+            except (IOError, ICCProfileInvalidError) as exception:
                 pass
             else:
-                if isinstance(profile.tags.get("meta"), ICCP.DictType):
+                if isinstance(profile.tags.get("meta"), DictType):
                     # Check if profile mapping makes sense
                     id1 = device_id_from_edid(display_edid[1], quirk=True)
                     id2 = device_id_from_edid(display_edid[1], quirk=False)
@@ -873,8 +885,8 @@ class ProfileAssociationsDialog(InfoDialog):
             os.path.join(iccprofiles[0], "*.cdmp")
         ):
             try:
-                profile = ICCP.ICCProfile(pth)
-            except ICCP.ICCProfileInvalidError as exception:
+                profile = ICCProfile(pth)
+            except ICCProfileInvalidError as exception:
                 print(f"{pth}:", exception)
                 traceback.print_exc()
                 continue
@@ -934,8 +946,8 @@ class ProfileAssociationsDialog(InfoDialog):
             wx.Bell()
             return
         try:
-            profile = ICCP.ICCProfile(self.profiles[pindex])
-        except (IOError, ICCP.ICCProfileInvalidError):
+            profile = ICCProfile(self.profiles[pindex])
+        except (IOError, ICCProfileInvalidError):
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + self.profiles[pindex]),
                 self,
@@ -1015,9 +1027,9 @@ class ProfileAssociationsDialog(InfoDialog):
 
     def set_profile(self, profile, unset=False):
         if unset:
-            fn = ICCP.unset_display_profile
+            fn = unset_display_profile
         else:
-            fn = ICCP.set_display_profile
+            fn = set_display_profile
         self._update_configuration(fn, profile)
 
     def _update_configuration(self, fn, arg0):
@@ -1048,7 +1060,7 @@ class ProfileAssociationsDialog(InfoDialog):
             # was set (but only if we call WcsSetUsePerUserProfiles
             # instead of setting the underlying registry value directly)
             monkey = devicekey.split("\\")[-2:]
-            profiles = ICCP._winreg_get_display_profiles(monkey, True)
+            profiles = _winreg_get_display_profiles(monkey, True)
         else:
             profiles = []
         try:
@@ -1063,7 +1075,7 @@ class ProfileAssociationsDialog(InfoDialog):
             if show_error:
                 wx.CallAfter(show_result_dialog, UnloggedError(str(exception)), self)
         for profile_name in profiles:
-            ICCP.set_display_profile(profile_name, devicekey=devicekey)
+            set_display_profile(profile_name, devicekey=devicekey)
 
     def toggle_fix_profile_associations(self, event):
         self.fix_profile_associations_cb.Value = (
@@ -1136,7 +1148,7 @@ class ProfileAssociationsDialog(InfoDialog):
             current_user = False
             scope_changed = False
         monkey = device.DeviceKey.split("\\")[-2:]
-        profiles = ICCP._winreg_get_display_profiles(monkey, current_user)
+        profiles = _winreg_get_display_profiles(monkey, current_user)
         profiles.reverse()
         profiles_changed = profiles != self.profiles
         if profiles_changed:
@@ -2555,7 +2567,7 @@ class ProfileLoader:
                 exception = None
                 profile_path = profile_name = None
                 try:
-                    profile_path = ICCP.get_display_profile(
+                    profile_path = get_display_profile(
                         i, path_only=True, devicekey=devicekey
                     )
                 except IndexError:
@@ -2687,11 +2699,11 @@ class ProfileLoader:
                         # Get display profile
                         if not self.profiles.get(key):
                             try:
-                                self.profiles[key] = ICCP.ICCProfile(profile_name)
+                                self.profiles[key] = ICCProfile(profile_name)
                                 if (
                                     isinstance(
                                         self.profiles[key].tags.get("MS00"),
-                                        ICCP.WcsProfilesTagType,
+                                        WcsProfilesTagType,
                                     )
                                     and "vcgt" not in self.profiles[key].tags
                                 ):
@@ -2701,10 +2713,10 @@ class ProfileLoader:
                                 self.profiles[key].tags.get("vcgt")
                             except Exception as exception:
                                 print(exception)
-                                self.profiles[key] = ICCP.ICCProfile()
+                                self.profiles[key] = ICCProfile()
                         profile = self.profiles[key]
                         if isinstance(
-                            profile.tags.get("vcgt"), ICCP.VideoCardGammaType
+                            profile.tags.get("vcgt"), VideoCardGammaType
                         ):
                             # Get display profile vcgt
                             vcgt_values = profile.tags.vcgt.get_values()[:3]
@@ -2773,7 +2785,7 @@ class ProfileLoader:
                             tagData += b"\0\x01\0\0"  # Gamma 1.0
                             tagData += b"\0" * 4  # Min 0.0
                             tagData += b"\0\x01\0\0"  # Max 1.0
-                        vcgt = ICCP.VideoCardGammaFormulaType(tagData, "vcgt")
+                        vcgt = VideoCardGammaFormulaType(tagData, "vcgt")
                         vcgt_values = vcgt.get_values()[:3]
                         if self._reset_gamma_ramps:
                             print("Caching linear gamma ramps")
@@ -3176,7 +3188,7 @@ class ProfileLoader:
                 print(f"Skipping 'WinDisc' temporary monitor {i:d}")
                 continue
             moninfo["_adapter"] = self.adapters.get(
-                moninfo["Device"], ICCP.ADict({"DeviceString": moninfo["Device"][4:]})
+                moninfo["Device"], ADict({"DeviceString": moninfo["Device"][4:]})
             )
             if self._is_buggy_video_driver(moninfo):
                 print(
@@ -3270,7 +3282,7 @@ class ProfileLoader:
                 device_name = "\\".join(device.DeviceName.split("\\")[:-1])
                 print(
                     self.adapters.get(
-                        device_name, ICCP.ADict({"DeviceString": device_name[4:]})
+                        device_name, ADict({"DeviceString": device_name[4:]})
                     ).DeviceString
                 )
             display_parts = display.split("@", 1)
@@ -3518,7 +3530,7 @@ class ProfileLoader:
             display_edid, profile, desc = self.devices2profiles[devicekey]
             if devicekey in self._fixed_profile_associations and profile:
                 try:
-                    current_profile = ICCP.get_display_profile(
+                    current_profile = get_display_profile(
                         path_only=True, devicekey=devicekey
                     )
                 except Exception as exception:
@@ -3545,8 +3557,8 @@ class ProfileLoader:
                             # Can only associate profiles to the display if
                             # per-user-profiles are enabled or if running as admin
                             enable_per_user_profiles(devicekey=devicekey)
-                        ICCP.set_display_profile(profile, devicekey=devicekey)
-                        ICCP.unset_display_profile(current_profile, devicekey=devicekey)
+                        set_display_profile(profile, devicekey=devicekey)
+                        unset_display_profile(current_profile, devicekey=devicekey)
                     except WindowsError as exception:
                         print(exception)
 
@@ -3600,7 +3612,7 @@ class ProfileLoader:
                     active_moninfo = None
                 display_edid = get_display_name_edid(device, active_moninfo)
                 try:
-                    profile = ICCP.get_display_profile(
+                    profile = get_display_profile(
                         path_only=True, devicekey=device.DeviceKey
                     )
                 except Exception as exception:
@@ -3626,7 +3638,7 @@ class ProfileLoader:
             if not device:
                 continue
             try:
-                correct_profile = ICCP.get_display_profile(
+                correct_profile = get_display_profile(
                     path_only=True, devicekey=device.DeviceKey
                 )
             except Exception as exception:
@@ -3654,7 +3666,7 @@ class ProfileLoader:
                         # Can only associate profiles to the display if
                         # per-user-profiles are enabled or if running as admin
                         enable_per_user_profiles(devicekey=device.DeviceKey)
-                    ICCP.set_display_profile(
+                    set_display_profile(
                         os.path.basename(correct_profile), devicekey=device.DeviceKey
                     )
                 except WindowsError as exception:
@@ -3815,7 +3827,7 @@ def get_profile_desc(profile_path, include_basename_if_different=True):
     if not profile_path:
         return ""
     try:
-        profile = ICCP.ICCProfile(profile_path)
+        profile = ICCProfile(profile_path)
         profile_desc = profile.getDescription()
     except Exception as exception:
         if not isinstance(exception, IOError):

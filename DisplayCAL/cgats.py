@@ -295,7 +295,7 @@ class CGATS(dict):
                         # assume text
                         cgats = io.StringIO(cgats)
 
-                from DisplayCAL.ICCProfile import ICCProfileTag
+                from DisplayCAL.icc_profile import ICCProfileTag
 
                 if isinstance(cgats, bytes):
                     # assume text

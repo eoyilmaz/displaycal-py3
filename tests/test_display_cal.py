@@ -9,27 +9,28 @@ import pytest
 import wx
 from wx import AppConsole, Button
 
-from DisplayCAL import display_cal, CGATS, config
+from DisplayCAL import display_cal, config
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import geticon
 from DisplayCAL.dev.mocks import check_call, check_call_str
 from DisplayCAL.display_cal import (
-    IncrementingInt,
-    webbrowser_open,
-    install_scope_handler,
-    MainFrame,
-    get_cgats_path,
-    get_cgats_measurement_mode,
-    colorimeter_correction_check_overwrite,
-    donation_message,
+    app_update_check,
     app_uptodate,
     check_donation,
-    app_update_check,
-    show_ccxx_error_dialog,
-    get_profile_load_on_login_label,
+    colorimeter_correction_check_overwrite,
+    donation_message,
     ExtraArgsFrame,
     GamapFrame,
-    StartupFrame,
+    get_cgats_measurement_mode,
+    get_cgats_path,
+    get_profile_load_on_login_label,
+    IncrementingInt,
+    install_scope_handler,
+    MainFrame,
     MeasurementFileCheckSanityDialog,
+    show_ccxx_error_dialog,
+    StartupFrame,
+    webbrowser_open,
 )
 from DisplayCAL.util_str import universal_newlines
 from DisplayCAL.util_list import intlist
@@ -145,7 +146,7 @@ def test_get_cgats_measurement_mode(
 ) -> None:
     """Test if expected measurement mode is returned."""
     path = data_files[file].absolute()
-    cgats = CGATS.CGATS(cgats=path)
+    cgats = CGATS(cgats=path)
     if file == "0_16.ti3":
         mode = modes[0]
     elif file == "0_16_with_refresh.ti3":
@@ -245,6 +246,6 @@ def test_init_measurement_file_check_sanity_dialog_frame(
 ) -> None:
     """Test if MeasurementFileCheckSanityDialog is initialized properly."""
     path = data_files["0_16.ti3"].absolute()
-    cgats = CGATS.CGATS(cgats=path)
+    cgats = CGATS(cgats=path)
     with check_call(MeasurementFileCheckSanityDialog, "Center"):
         MeasurementFileCheckSanityDialog(mainframe, cgats[0], check_ti3(cgats), False)

@@ -11,7 +11,15 @@ from time import strftime
 
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.options import debug
-from DisplayCAL import CGATS
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSError,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
+)
 from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import colormath
 from DisplayCAL import localization as lang
@@ -37,7 +45,7 @@ def add_dispcal_options_to_cal(cal, options_dispcal):
     # Add dispcal options to cal
     options_dispcal = quote_nonoption_args(options_dispcal)
     try:
-        cgats = CGATS.CGATS(cal)
+        cgats = CGATS(cal)
         cgats[0].add_section("ARGYLL_DISPCAL_ARGS", b" ".join(options_dispcal))
         return cgats
     except Exception:
@@ -47,7 +55,7 @@ def add_dispcal_options_to_cal(cal, options_dispcal):
 def add_options_to_ti3(ti3, options_dispcal=None, options_colprof=None):
     # Add dispcal and colprof options to ti3
     try:
-        cgats = CGATS.CGATS(ti3)
+        cgats = CGATS(ti3)
         if options_colprof:
             options_colprof = quote_nonoption_args(options_colprof)
             cgats[0].add_section(
@@ -95,16 +103,16 @@ def cal_to_vcgt(cal, return_cgats=False):
     cal must refer to a valid Argyll CAL file and can be a CGATS instance
     or a filename.
     """
-    if not isinstance(cal, CGATS.CGATS):
+    if not isinstance(cal, CGATS):
         try:
-            cal = CGATS.CGATS(cal)
+            cal = CGATS(cal)
         except (
             IOError,
-            CGATS.CGATSInvalidError,
-            CGATS.CGATSInvalidOperationError,
-            CGATS.CGATSKeyError,
-            CGATS.CGATSTypeError,
-            CGATS.CGATSValueError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
         ) as exception:
             print(f"Warning - couldn't process CGATS file '{cal}': {exception}")
             return None
@@ -151,14 +159,14 @@ def can_update_cal(path):
         return False
     if path not in cals or cals[path].mtime != calstat.st_mtime:
         try:
-            cal = CGATS.CGATS(path)
+            cal = CGATS(path)
         except (
             IOError,
-            CGATS.CGATSInvalidError,
-            CGATS.CGATSInvalidOperationError,
-            CGATS.CGATSKeyError,
-            CGATS.CGATSTypeError,
-            CGATS.CGATSValueError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
         ) as exception:
             if path in cals:
                 del cals[path]
@@ -186,7 +194,7 @@ def extract_cal_from_profile(
         cal = extract_cal_from_ti3(targ)
         if cal:
             check = cal
-            get_cgats = CGATS.CGATS
+            get_cgats = CGATS
             arg = cal
     else:
         cal = None
@@ -207,7 +215,7 @@ def extract_cal_from_profile(
     if check:
         try:
             cgats = get_cgats(arg)
-        except (IOError, CGATS.CGATSError) as e:
+        except (IOError, CGATSError) as e:
             traceback.print_exc()
             raise Error(lang.getstr("cal_extraction_failed")) from e
     elif raise_on_missing_cal:
@@ -282,7 +290,7 @@ def extract_cal_from_ti3(ti3):
 
     ti3 can be a file object or a string holding the data.
     """
-    if isinstance(ti3, CGATS.CGATS):
+    if isinstance(ti3, CGATS):
         ti3 = bytes(ti3)
     if isinstance(ti3, bytes):
         ti3 = BytesIO(ti3)
@@ -432,7 +440,7 @@ def extract_device_gray_primaries(
     filename = ti3.filename
     ti3 = ti3.queryi1("DATA")
     ti3.filename = filename
-    ti3_extracted = CGATS.CGATS(
+    ti3_extracted = CGATS(
         b"""CTI3
 DEVICE_CLASS "DISPLAY"
 COLOR_REP "RGB_XYZ"
@@ -531,7 +539,7 @@ def ti3_to_ti1(ti3_data):
 
     ti3_data can be a file object, a list of strings or a string holding the data.
     """
-    ti3 = CGATS.CGATS(ti3_data)
+    ti3 = CGATS(ti3_data)
     if not ti3:
         return ""
     ti3[0].type = b"CTI1"
@@ -552,7 +560,7 @@ def ti3_to_ti1(ti3_data):
 
 def vcgt_to_cal(profile):
     """Return a CAL (CGATS instance) from vcgt."""
-    cgats = CGATS.CGATS(file_identifier=b"CAL")
+    cgats = CGATS(file_identifier=b"CAL")
     context = cgats.add_data({"DESCRIPTOR": b"Argyll Device Calibration State"})
     context.add_data({"ORIGINATOR": b"vcgt"})
     context.add_data(
@@ -568,14 +576,14 @@ def vcgt_to_cal(profile):
     context.add_keyword("COLOR_REP", b"RGB")
     context.add_keyword("RGB_I")
     key = "DATA_FORMAT"
-    context[key] = CGATS.CGATS()
+    context[key] = CGATS()
     context[key].key = key
     context[key].parent = context
     context[key].root = cgats
     context[key].type = key.encode("utf-8")
     context[key].add_data((b"RGB_I", b"RGB_R", b"RGB_G", b"RGB_B"))
     key = "DATA"
-    context[key] = CGATS.CGATS()
+    context[key] = CGATS()
     context[key].key = key
     context[key].parent = context
     context[key].root = cgats
@@ -598,19 +606,19 @@ def verify_cgats(cgats, required, ignore_unknown=True):
     """
     cgats_1 = cgats.queryi1(required)
     if not cgats_1 or not cgats_1.parent or not cgats_1.parent.parent:
-        raise CGATS.CGATSKeyError(f"Missing required fields: {', '.join(required)}")
+        raise CGATSKeyError(f"Missing required fields: {', '.join(required)}")
     cgats_1 = cgats_1.parent.parent
     if not cgats_1.queryv1("NUMBER_OF_SETS"):
-        raise CGATS.CGATSInvalidError("Missing NUMBER_OF_SETS")
+        raise CGATSInvalidError("Missing NUMBER_OF_SETS")
     if not cgats_1.queryv1("DATA_FORMAT"):
-        raise CGATS.CGATSInvalidError("Missing DATA_FORMAT")
+        raise CGATSInvalidError("Missing DATA_FORMAT")
     for field in required:
         if field.encode("utf-8") not in list(cgats_1.queryv1("DATA_FORMAT").values()):
-            raise CGATS.CGATSKeyError(f"Missing required field: {field}")
+            raise CGATSKeyError(f"Missing required field: {field}")
     if not ignore_unknown:
         for field in list(cgats_1.queryv1("DATA_FORMAT").values()):
             if field not in required:
-                raise CGATS.CGATSError(f"Unknown field: {field}")
+                raise CGATSError(f"Unknown field: {field}")
     modified = cgats_1.modified
     cgats_1.filename = cgats.filename
     cgats_1.modified = modified

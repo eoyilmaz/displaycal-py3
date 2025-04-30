@@ -19,13 +19,13 @@ if sys.platform == "win32":
 
 
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     colormath,
     config,
     localization as lang,
 )
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.colormath import (
     VidRGB_to_cLUT65,
     VidRGB_to_eeColor,
@@ -443,9 +443,9 @@ class Xicclu(WorkerBase):
         xicclu = get_argyll_util(utilname)
         if not xicclu:
             raise Error(lang.getstr("argyll.util.not_found", utilname))
-        if not isinstance(profile, (CGATS.CGATS, ICCP.ICCProfile)):
+        if not isinstance(profile, (CGATS, ICCP.ICCProfile)):
             if profile.lower().endswith(".cal"):
-                profile = CGATS.CGATS(profile)
+                profile = CGATS(profile)
             else:
                 profile = ICCP.ICCProfile(profile)
         is_profile = isinstance(profile, ICCP.ICCProfile)

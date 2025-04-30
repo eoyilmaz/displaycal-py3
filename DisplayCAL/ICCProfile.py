@@ -7945,9 +7945,9 @@ class ICCProfile:
     def get_chardata_bkpt(self, illuminant_relative=False):
         """Get blackpoint from embeded characterization data ('targ' tag)"""
         if isinstance(self.tags.get("targ"), Text):
-            from DisplayCAL import CGATS
+            from DisplayCAL.cgats import CGATS
 
-            ti3 = CGATS.CGATS(self.tags.targ)
+            ti3 = CGATS(self.tags.targ)
             if 0 in ti3:
                 black = ti3[0].queryi({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})
                 # May be several samples for black. Average them.

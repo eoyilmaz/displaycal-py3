@@ -7,7 +7,7 @@ import pytest
 
 from DisplayCAL import argyll_cgats
 from DisplayCAL import ICCProfile
-from DisplayCAL.CGATS import CGATS
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.debughelpers import Error
 
 

@@ -60,7 +60,20 @@ if sys.platform == "win32":
     import winerror
 
 # custom
-from DisplayCAL import CGATS
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSError,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
+    rpad,
+    stable_sort_by_L,
+    sort_by_rec709_luma,
+    sort_by_RGB,
+    sort_by_RGB_sum,
+)
 from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import audio
 from DisplayCAL import colormath
@@ -331,8 +344,8 @@ while True:
 
 def add_keywords_to_cgats(cgats, keywords):
     """Add keywords to CGATS"""
-    if not isinstance(cgats, CGATS.CGATS):
-        cgats = CGATS.CGATS(cgats)
+    if not isinstance(cgats, CGATS):
+        cgats = CGATS(cgats)
     for keyword in keywords:
         value = keywords[keyword]
         cgats[0].add_keyword(keyword, value)
@@ -528,8 +541,8 @@ def check_ti3(ti3, print_debuginfo=True):
     (assuming sRGB) to Lab and comparing the values.
 
     """
-    if not isinstance(ti3, CGATS.CGATS):
-        ti3 = CGATS.CGATS(ti3)
+    if not isinstance(ti3, CGATS):
+        ti3 = CGATS(ti3)
     data = ti3.queryv1("DATA")
     datalen = len(data)
     black = data.queryi1({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})
@@ -1183,8 +1196,8 @@ def get_options_from_cprt(cprt):
 
 
 def get_options_from_cal(cal) -> ([str], [str]):
-    if not isinstance(cal, CGATS.CGATS):
-        cal = CGATS.CGATS(cal)
+    if not isinstance(cal, CGATS):
+        cal = CGATS(cal)
     if 0 in cal:
         cal = cal[0]
     if not cal or "ARGYLL_DISPCAL_ARGS" not in cal or not cal.ARGYLL_DISPCAL_ARGS:
@@ -1203,7 +1216,7 @@ def get_options_from_profile(profile):
     dispcal_args = None
     colprof_args = None
     if "targ" in profile.tags:
-        ti3 = CGATS.CGATS(profile.tags.targ)
+        ti3 = CGATS(profile.tags.targ)
         if 1 in ti3 and "ARGYLL_DISPCAL_ARGS" in ti3[1] and ti3[1].ARGYLL_DISPCAL_ARGS:
             dispcal_args = ti3[1].ARGYLL_DISPCAL_ARGS[0]
         if 0 in ti3 and "ARGYLL_COLPROF_ARGS" in ti3[0] and ti3[0].ARGYLL_COLPROF_ARGS:
@@ -1219,8 +1232,8 @@ def get_options_from_ti3(ti3):
     """Try and get options from TI3 file by looking for the special
     DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS'.
     """
-    if not isinstance(ti3, CGATS.CGATS):
-        ti3 = CGATS.CGATS(ti3)
+    if not isinstance(ti3, CGATS):
+        ti3 = CGATS(ti3)
     dispcal_args = None
     colprof_args = None
     if 1 in ti3 and "ARGYLL_DISPCAL_ARGS" in ti3[1] and ti3[1].ARGYLL_DISPCAL_ARGS:
@@ -1428,12 +1441,12 @@ def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
     """Insert patches from first TI file after first patch of second TI,
     ignoring RGB duplicates. Return second TI as CGATS instance.
     """
-    cgats2 = CGATS.CGATS(cgats2_path)
+    cgats2 = CGATS(cgats2_path)
     cgats1_data = cgats1.queryv1("DATA")
     data = cgats2.queryv1("DATA")
     data_format = cgats2.queryv1("DATA_FORMAT")
     # Get only RGB data
-    data.parent.DATA_FORMAT = CGATS.CGATS()
+    data.parent.DATA_FORMAT = CGATS()
     data.parent.DATA_FORMAT.key = "DATA_FORMAT"
     data.parent.DATA_FORMAT.parent = data
     data.parent.DATA_FORMAT.root = data.root
@@ -2234,8 +2247,8 @@ class Worker(WorkerBase):
                 if isinstance(result, Exception):
                     return result
                 try:
-                    cgats = CGATS.CGATS(ccmx)
-                except (IOError, CGATS.CGATSError) as exception:
+                    cgats = CGATS(ccmx)
+                except (IOError, CGATSError) as exception:
                     return exception
                 else:
                     ccxx_instrument_from_cgats = cgats.queryv1("INSTRUMENT") or b""
@@ -3172,12 +3185,12 @@ END_DATA
             return result
         ti3_path = os.path.join(tempdir, "0_16.ti3")
         try:
-            ti3 = CGATS.CGATS(ti3_path)
-        except (IOError, CGATS.CGATSError) as exception:
+            ti3 = CGATS(ti3_path)
+        except (IOError, CGATSError) as exception:
             return exception
         try:
             verify_ti1_rgb_xyz(ti3)
-        except CGATS.CGATSError as exception:
+        except CGATSError as exception:
             return exception
         luminance_XYZ_cdm2 = ti3.queryv1("LUMINANCE_XYZ_CDM2")
         if not luminance_XYZ_cdm2:
@@ -6108,8 +6121,8 @@ BEGIN_DATA
                             if calfilename.lower().endswith(".cal"):
                                 # .cal file
                                 try:
-                                    cal = CGATS.CGATS(calfilename)
-                                except (IOError, CGATS.CGATSError) as exception:
+                                    cal = CGATS(calfilename)
+                                except (IOError, CGATSError) as exception:
                                     self.madtpg_disconnect(False)
                                     return exception
                             else:
@@ -6134,13 +6147,13 @@ BEGIN_DATA
                                 cal = verify_cgats(cal, ("RGB_R", "RGB_G", "RGB_B"))
                                 if len(cal.DATA) != 256:
                                     # Needs to have 256 entries
-                                    raise CGATS.CGATSError(
+                                    raise CGATSError(
                                         "{}: {} != 256".format(
                                             lang.getstr("calibration"),
                                             lang.getstr("number_of_entries"),
                                         )
                                     )
-                            except CGATS.CGATSError as exception:
+                            except CGATSError as exception:
                                 self.madtpg_disconnect(False)
                                 return exception
                             # Convert calibration to ushort_Array_256_Array_3
@@ -8755,11 +8768,11 @@ BEGIN_DATA
                 ti3_options_colprof = get_options_from_ti3(ti3)[1]
             except (
                 IOError,
-                CGATS.CGATSInvalidError,
-                CGATS.CGATSInvalidOperationError,
-                CGATS.CGATSKeyError,
-                CGATS.CGATSTypeError,
-                CGATS.CGATSValueError,
+                CGATSInvalidError,
+                CGATSInvalidOperationError,
+                CGATSKeyError,
+                CGATSTypeError,
+                CGATSValueError,
             ) as exception:
                 print(exception)
                 ti3_options_colprof = []
@@ -10489,7 +10502,7 @@ usage: spotread [-options] [logfile]
             check_for_ti1_match = False
             is_regular_grid = False
             is_primaries_only = False
-            ti3 = CGATS.CGATS(args[-1] + ".ti3")
+            ti3 = CGATS(args[-1] + ".ti3")
             XYZbp = None
             try:
                 (
@@ -10562,7 +10575,7 @@ usage: spotread [-options] [logfile]
                             return Error(lang.getstr("file.missing", ti1_filename))
                         else:
                             continue
-                    ti1 = CGATS.CGATS(ti1_path)
+                    ti1 = CGATS(ti1_path)
                     (
                         ti1_extracted,
                         ti1_RGB_XYZ,
@@ -11785,8 +11798,8 @@ usage: spotread [-options] [logfile]
             return Error(lang.getstr("argyll.util.not_found", "colprof"))
         # Strip potential CAL from Ti3
         try:
-            oti3 = CGATS.CGATS(outname + ".ti3")
-        except (IOError, CGATS.CGATSError) as exception:
+            oti3 = CGATS(outname + ".ti3")
+        except (IOError, CGATSError) as exception:
             return exception
         else:
             if 0 in oti3:
@@ -12511,7 +12524,7 @@ usage: spotread [-options] [logfile]
                 )
             # Use small testchart for grayscale+primaries (34 patches)
             precond_ti1_path = get_data_path("ti1/d3-e4-s2-g28-m0-b0-f0.ti1")
-            precond_ti1 = CGATS.CGATS(precond_ti1_path)
+            precond_ti1 = CGATS(precond_ti1_path)
             setcfg("testchart.file", precond_ti1_path)
             cmd, args = self.prepare_dispread(apply_calibration)
             setcfg("testchart.file", "auto")
@@ -12522,7 +12535,7 @@ usage: spotread [-options] [logfile]
                     # Create preconditioning profile
                     self.pauseable = False
                     basename = args[-1]
-                    precond_ti3 = CGATS.CGATS(f"{basename}.ti3")
+                    precond_ti3 = CGATS(f"{basename}.ti3")
                     precond_ti3.fix_zero_measurements(logfile=self.get_logfiles(False))
                     precond_ti3.write()
                     # Extract grays and remaining colors
@@ -12690,9 +12703,9 @@ usage: spotread [-options] [logfile]
         patch_sequence = getcfg("testchart.patch_sequence")
         if patch_sequence != "optimize_display_response_delay":
             # Need to re-order patches
-            if not isinstance(ti1, CGATS.CGATS):
+            if not isinstance(ti1, CGATS):
                 try:
-                    ti1 = CGATS.CGATS(ti1)
+                    ti1 = CGATS(ti1)
                 except Exception as exception:
                     self.log(f"Warning - could not process TI1 file {ti1}:", exception)
                     return ti1
@@ -12700,14 +12713,14 @@ usage: spotread [-options] [logfile]
                 "Changing patch sequence:", lang.getstr(f"testchart.{patch_sequence}")
             )
             if patch_sequence == "maximize_lightness_difference":
-                result = ti1.checkerboard(sort1=CGATS.stable_sort_by_L)
+                result = ti1.checkerboard(sort1=stable_sort_by_L)
             elif patch_sequence == "maximize_rec709_luma_difference":
-                result = ti1.checkerboard(CGATS.sort_by_rec709_luma)
+                result = ti1.checkerboard(sort_by_rec709_luma)
             elif patch_sequence == "maximize_RGB_difference":
-                result = ti1.checkerboard(CGATS.sort_by_RGB_sum)
+                result = ti1.checkerboard(sort_by_RGB_sum)
             elif patch_sequence == "vary_RGB_difference":
                 result = ti1.checkerboard(
-                    CGATS.sort_by_RGB, None, split_grays=True, shift=True
+                    sort_by_RGB, None, split_grays=True, shift=True
                 )
             if not result:
                 self.log("Warning - patch sequence was not changed")
@@ -13504,11 +13517,11 @@ usage: spotread [-options] [logfile]
                     options_dispcal = get_options_from_cal(cal)[0]
                 except (
                     IOError,
-                    CGATS.CGATSInvalidError,
-                    CGATS.CGATSInvalidOperationError,
-                    CGATS.CGATSKeyError,
-                    CGATS.CGATSTypeError,
-                    CGATS.CGATSValueError,
+                    CGATSInvalidError,
+                    CGATSInvalidOperationError,
+                    CGATSKeyError,
+                    CGATSTypeError,
+                    CGATSValueError,
                 ) as exception:
                     return exception, None
                 if not os.path.exists(calcopy):
@@ -14302,7 +14315,7 @@ usage: spotread [-options] [logfile]
         # regardless of graphics card, but under Linux and Mac OS X there may be
         # more than 256 entries if the graphics card has greater than 8 bit
         # videoLUTs (e.g. Quadro and newer consumer cards)
-        cgats = CGATS.CGATS(outfilename)
+        cgats = CGATS(outfilename)
         data = cgats.queryv1("DATA")
         if data and len(data) != 256:
             print("VideoLUT has {:d} entries, interpolating to 256".format(len(data)))
@@ -14313,7 +14326,7 @@ usage: spotread [-options] [logfile]
             interp = {}
             for column in ("R", "G", "B"):
                 interp[column] = colormath.Interp(rgb["I"], rgb[column])
-            resized = CGATS.CGATS()
+            resized = CGATS()
             data.parent.DATA = resized
             resized.key = "DATA"
             resized.parent = data.parent
@@ -14350,16 +14363,16 @@ usage: spotread [-options] [logfile]
         self.sessionlogfiles[basename] = self.sessionlogfile
 
     def set_terminal_cgats(self, cgats):
-        if not isinstance(cgats, CGATS.CGATS):
+        if not isinstance(cgats, CGATS):
             try:
-                cgats = CGATS.CGATS(cgats)
+                cgats = CGATS(cgats)
             except (
                 IOError,
-                CGATS.CGATSInvalidError,
-                CGATS.CGATSInvalidOperationError,
-                CGATS.CGATSKeyError,
-                CGATS.CGATSTypeError,
-                CGATS.CGATSValueError,
+                CGATSInvalidError,
+                CGATSInvalidOperationError,
+                CGATSKeyError,
+                CGATSTypeError,
+                CGATSValueError,
             ) as exception:
                 return exception
         self.terminal.cgats = cgats
@@ -15060,7 +15073,7 @@ usage: spotread [-options] [logfile]
                                 self.options_dispcal,
                             )
                             if not ti3:
-                                ti3 = CGATS.CGATS("TI3\n")
+                                ti3 = CGATS("TI3\n")
                                 ti3[1] = cal_cgats
                             edid = self.get_display_edid()
                             display_name = edid.get(
@@ -15370,7 +15383,7 @@ BEGIN_DATA
             )
             cal += "{:f} {:f} {:f} {:f}\n".format(i / 255.0, R, G, B)
         cal += "END_DATA"
-        cal = CGATS.CGATS(cal)
+        cal = CGATS(cal)
         cal.filename = outpathname + ".cal"
         cal.write()
         if calibration_only:
@@ -15388,8 +15401,8 @@ BEGIN_DATA
             if isinstance(profile.tags.get("targ"), ICCP.Text):
                 # Get measurement data
                 try:
-                    cti3 = CGATS.CGATS(profile.tags.targ)
-                except (IOError, CGATS.CGATSError):
+                    cti3 = CGATS(profile.tags.targ)
+                except (IOError, CGATSError):
                     pass
                 else:
                     if 0 not in cti3 or cti3[0].type.strip() != b"CTI3":
@@ -15408,7 +15421,7 @@ BEGIN_DATA
                     profile.fileName = ofilename
                     self.wrapup(False)
                     return result
-                cti3 = CGATS.CGATS(temppathname + ".ti3")
+                cti3 = CGATS(temppathname + ".ti3")
             # Get RGB from measurement data
             RGBorig = []
             for i, sample in cti3[0].DATA.items():
@@ -15483,12 +15496,12 @@ BEGIN_DATA
         ti3_ref = None
         gray = None
         try:
-            if not isinstance(cgats, CGATS.CGATS):
-                cgats = CGATS.CGATS(cgats, True)
+            if not isinstance(cgats, CGATS):
+                cgats = CGATS(cgats, True)
             else:
                 # Always make a copy and do not alter a passed in CGATS instance!
                 cgats_filename = cgats.filename
-                cgats = CGATS.CGATS(bytes(cgats))
+                cgats = CGATS(bytes(cgats))
                 cgats.filename = cgats_filename
             if 0 in cgats:
                 # only look at the first section
@@ -15580,16 +15593,20 @@ BEGIN_DATA
         """
         # ti1
         if isinstance(ti1, str):
-            ti1 = CGATS.CGATS(ti1)
-        if not isinstance(ti1, CGATS.CGATS):
-            raise TypeError("Wrong type for ti1, needs to be CGATS.CGATS instance")
+            ti1 = CGATS(ti1)
+        if not isinstance(ti1, CGATS):
+            raise TypeError(
+                "Wrong type for ti1, needs to be a CGATS instance, "
+                f"not {t11.__class__.__name__}"
+            )
 
         # profile
         if isinstance(profile, str):
             profile = ICCP.ICCProfile(profile)
         if not isinstance(profile, ICCP.ICCProfile):
             raise TypeError(
-                "Wrong type for profile, needs to be ICCP.ICCProfile instance"
+                "Wrong type for profile, needs to be a ICCProfile instance, "
+                f"not {profile.__class__.__name__}"
             )
 
         # determine pcs for lookup
@@ -15620,9 +15637,9 @@ BEGIN_DATA
         ti1_filename = ti1.filename
         try:
             ti1 = verify_cgats(ti1, required, True)
-        except CGATS.CGATSInvalidError:
+        except CGATSInvalidError:
             raise ValueError(lang.getstr("error.testchart.invalid", ti1_filename))
-        except CGATS.CGATSKeyError:
+        except CGATSKeyError:
             raise ValueError(
                 lang.getstr(
                     "error.testchart.missing_fields",
@@ -15651,7 +15668,7 @@ BEGIN_DATA
             wp = ti1.queryv1("APPROX_WHITE_POINT")
             if wp:
                 wp = [float(v) for v in wp.split()]
-                wp = [CGATS.rpad((v / wp[1]) * 100.0, data.vmaxlen) for v in wp]
+                wp = [rpad((v / wp[1]) * 100.0, data.vmaxlen) for v in wp]
             else:
                 wp = colormath.get_standard_illuminant("D65", scale=100)
             for label in list(data.parent.DATA_FORMAT.values()):
@@ -15888,7 +15905,7 @@ BEGIN_DATA
                 )
         ofile.write(b"END_DATA\n")
         ofile.seek(0)
-        ti3 = CGATS.CGATS(ofile)[0]
+        ti3 = CGATS(ofile)[0]
 
         if colorspace == b"RGB" and white_patches and profile.profileClass == b"link":
             if white_patches_total:
@@ -15918,13 +15935,16 @@ BEGIN_DATA
         copy = True
         if isinstance(ti3, (str, bytes)):
             copy = False
-            ti3 = CGATS.CGATS(ti3)
-        if not isinstance(ti3, CGATS.CGATS):
-            raise TypeError("Wrong type for ti3, needs to be CGATS.CGATS instance")
+            ti3 = CGATS(ti3)
+        if not isinstance(ti3, CGATS):
+            raise TypeError(
+                "Wrong type for ti3, needs to be CGATS instance, "
+                f"not {ti3.__class__.__name__}"
+            )
         ti3_filename = ti3.filename
         if copy:
             # Make a copy and do not alter a passed in CGATS instance!
-            ti3 = CGATS.CGATS(bytes(ti3))
+            ti3 = CGATS(bytes(ti3))
 
         if fields == "XYZ":
             labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
@@ -15933,20 +15953,20 @@ BEGIN_DATA
 
         try:
             ti3v = verify_cgats(ti3, labels, True)
-        except CGATS.CGATSInvalidError as exception:
+        except CGATSInvalidError as exception:
             raise ValueError(
                 lang.getstr("error.testchart.invalid", ti3_filename)
                 + "\n"
                 + lang.getstr(str(exception))
             )
-        except CGATS.CGATSKeyError:
+        except CGATSKeyError:
             try:
                 if fields:
                     raise
                 else:
                     labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
                 ti3v = verify_cgats(ti3, labels, True)
-            except CGATS.CGATSKeyError:
+            except CGATSKeyError:
                 missing = ", ".join(labels)
                 if not fields:
                     missing += " " + lang.getstr("or") + " LAB_L, LAB_A, LAB_B"
@@ -16128,7 +16148,7 @@ BEGIN_DATA
                     ti3v.DATA[i - len(wp)][required[n]] = float(v)
         ti1out.write(b"END_DATA\n")
         ti1out.seek(0)
-        ti1 = CGATS.CGATS(ti1out)
+        ti1 = CGATS(ti1out)
         if debug:
             print(ti1)
         return ti1, ti3v

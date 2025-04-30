@@ -12,31 +12,34 @@ from urllib.error import URLError
 
 import pytest
 
-from DisplayCAL import ICCProfile, CGATS
+from DisplayCAL import ICCProfile
 from DisplayCAL import config
-from DisplayCAL.dev.mocks import check_call_str
-from DisplayCAL.worker import (
-    get_argyll_version_string,
-    Worker,
-    add_keywords_to_cgats,
-    check_create_dir,
-    check_cal_isfile,
-    check_profile_isfile,
-    check_file_isfile,
-    check_ti3_criteria1,
-)
 from DisplayCAL.argyll import (
     get_argyll_latest_version,
     get_argyll_util,
     make_argyll_compatible_path,
+)
+from DisplayCAL.cgats import CGATS
+from DisplayCAL.config import initcfg, setcfg
+from DisplayCAL.dev.mocks import check_call_str
+from DisplayCAL.meta import DOMAIN
+from DisplayCAL.worker import (
+    add_keywords_to_cgats,
+    check_cal_isfile,
+    check_create_dir,
+    check_file_isfile,
+    check_profile_isfile,
+    check_ti3_criteria1,
+    get_argyll_version_string,
+    get_options_from_profile,
+    Sudo,
+    Worker,
 )
 from tests.data.display_data import DisplayData
 
 
 def test_get_options_from_profile_1(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function"""
-    from DisplayCAL.worker import get_options_from_profile
-
     profile_path = data_files[
         "UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"
     ].absolute()
@@ -59,8 +62,6 @@ def test_get_options_from_profile_1(data_files):
 
 def test_get_options_from_profile_2(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function, for #69"""
-    from DisplayCAL.worker import get_options_from_profile
-
     profile_path = data_files["SW271 PM PenalNative_KB1_160_2022-03-17.icc"].absolute()
     options = get_options_from_profile(profile=profile_path)
     assert options == ([], [])  # no options on that profile
@@ -127,17 +128,12 @@ def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
 
 def test_sudo_class_initialization():
     """Test worker.Sudo class initialization"""
-    from DisplayCAL.worker import Sudo
-
     sudo = Sudo()
     assert sudo is not None
 
 
 def test_download_method_1():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/i1d3"
     result = worker.download(uri)
@@ -146,9 +142,6 @@ def test_download_method_1():
 
 def test_download_method_2():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/i1d3"
     result = worker.download(uri, force=True)
@@ -157,9 +150,6 @@ def test_download_method_2():
 
 def test_download_method_3():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/spyd2"
     result = worker.download(uri)
@@ -168,9 +158,6 @@ def test_download_method_3():
 
 def test_download_method_4():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/spyd2"
     result = worker.download(uri, force=True)
@@ -179,9 +166,6 @@ def test_download_method_4():
 
 def test_get_display_name_1():
     """Testing Worker.get_display_name() method."""
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg, setcfg
-
     initcfg()
     setcfg("display.number", 1)
     worker = Worker()
@@ -191,9 +175,6 @@ def test_get_display_name_1():
 
 def test_get_pwd():
     """Testing Worker.get_display_name() method."""
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg
-
     initcfg()
     worker = Worker()
     test_value = "test_value"
@@ -204,8 +185,6 @@ def test_get_pwd():
 def test_update_profile_1(random_icc_profile):
     """Testing Worker.update_profile() method."""
     from DisplayCAL import worker
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg
 
     worker.dbus_session = None
     worker.dbus_system = None
@@ -222,8 +201,6 @@ def test_update_profile_1(random_icc_profile):
 def test_exec_cmd_1():
     """Test worker.exec_cmd() function for issue #73"""
     # Command line:
-    from DisplayCAL.worker import Worker
-
     cmd = "/home/eoyilmaz/.local/bin/Argyll_V2.3.0/bin/colprof"
     args = [
         "-v",
@@ -245,8 +222,6 @@ def test_exec_cmd_1():
 
 def test_is_allowed_1():
     """Test Sudo.is_allowed() function for issue #76"""
-    from DisplayCAL.worker import Sudo
-
     sudo = Sudo()
     result = sudo.is_allowed()
     assert result != ""
@@ -258,15 +233,14 @@ def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
     profile_path = data_files[
         "UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"
     ].absolute()
-    from DisplayCAL import config, ICCProfile
 
-    ti3_cgat = CGATS.CGATS(ti3_path)
+    ti3_cgat = CGATS(ti3_path)
     icc_profile = ICCProfile.ICCProfile(profile_path)
     config.initcfg()
     worker = Worker()
     ti1, ti3v = worker.ti3_lookup_to_ti1(ti3_cgat, icc_profile)
-    assert isinstance(ti1, CGATS.CGATS)
-    assert isinstance(ti3v, CGATS.CGATS)
+    assert isinstance(ti1, CGATS)
+    assert isinstance(ti3v, CGATS)
     assert ti1 == {
         0: {
             "COLOR_REP": b"RGB",
@@ -374,7 +348,7 @@ def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
 def test_add_keywords_to_cgats(data_files) -> None:
     """Test if keywords are added to cgats by add_keywords_to_cgats."""
     path = data_files["0_16.ti3"].absolute()
-    cgats = CGATS.CGATS(cgats=path)
+    cgats = CGATS(cgats=path)
     assert "keyword" not in cgats[0]
     options = {"keyword": "Value"}
     alternated_cgats = add_keywords_to_cgats(cgats, options)

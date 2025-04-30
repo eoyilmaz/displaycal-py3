@@ -5,7 +5,6 @@ import os
 from time import gmtime, strftime
 
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     config,
     localization as lang,
@@ -14,6 +13,14 @@ from DisplayCAL import (
     xh_fancytext,
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
+)
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
 )
 from DisplayCAL.config import get_data_path, getcfg, geticon, hascfg, initcfg, setcfg
 from DisplayCAL.meta import name as appname
@@ -313,14 +320,14 @@ class ReportFrame(BaseFrame):
         chart = self.chart_ctrl.GetPath()
         values = []
         try:
-            cgats = CGATS.CGATS(chart)
+            cgats = CGATS(chart)
         except (
             IOError,
-            CGATS.CGATSInvalidError,
-            CGATS.CGATSInvalidOperationError,
-            CGATS.CGATSKeyError,
-            CGATS.CGATSTypeError,
-            CGATS.CGATSValueError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
         ) as exception:
             show_result_dialog(exception, self)
         else:

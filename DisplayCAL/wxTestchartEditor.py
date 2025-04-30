@@ -14,7 +14,6 @@ if sys.platform == "win32":
     from win32 import win32file
 
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     colormath,
     config,
@@ -27,6 +26,16 @@ from DisplayCAL.argyll_RGB2XYZ import (
     XYZ2RGB as argyll_XYZ2RGB,
 )
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSError,
+    CGATSKeyError,
+    rpad,
+    stable_sort_by_L,
+    sort_by_rec709_luma,
+    sort_by_RGB,
+    sort_by_RGB_sum,
+)
 from DisplayCAL.config import (
     defaults,
     get_current_profile,
@@ -1223,7 +1232,7 @@ class TestchartEditor(BaseFrame):
                 for i, row in enumerate(rows):
                     rows[i][1:] = [v / maxval * 100 for v in row[1:]]
             # Create temporary TI1
-            ti1 = CGATS.CGATS(
+            ti1 = CGATS(
                 """CTI1
 KEYWORD "COLOR_REP"
 COLOR_REP "RGB"
@@ -1512,16 +1521,16 @@ END_DATA"""
             self.ti1.checkerboard(None, None, split_grays=True, shift=True)
         elif idx == 19:
             # Maximize L* difference
-            self.ti1.checkerboard(sort1=CGATS.stable_sort_by_L)
+            self.ti1.checkerboard(sort1=stable_sort_by_L)
         elif idx == 20:
             # Maximize Rec. 709 luma difference
-            self.ti1.checkerboard(CGATS.sort_by_rec709_luma)
+            self.ti1.checkerboard(sort_by_rec709_luma)
         elif idx == 21:
             # Maximize RGB difference
-            self.ti1.checkerboard(CGATS.sort_by_RGB_sum)
+            self.ti1.checkerboard(sort_by_RGB_sum)
         elif idx == 22:
             # Vary RGB difference
-            self.ti1.checkerboard(CGATS.sort_by_RGB, None, split_grays=True, shift=True)
+            self.ti1.checkerboard(sort_by_RGB, None, split_grays=True, shift=True)
         self.tc_clear(False)
         self.tc_preview(True)
 
@@ -2310,19 +2319,19 @@ END_DATA"""
                 chart = "\n".join(chart)
 
         try:
-            chart = CGATS.CGATS(chart)
+            chart = CGATS(chart)
             if not chart.queryv1("DATA_FORMAT"):
-                raise CGATS.CGATSError(
+                raise CGATSError(
                     lang.getstr(
                         "error.testchart.missing_fields",
                         (chart.filename, "DATA_FORMAT"),
                     )
                 )
-        except (IOError, CGATS.CGATSError) as exception:
+        except (IOError, CGATSError) as exception:
             return exception
         finally:
             path = None
-            if isinstance(chart, CGATS.CGATS):
+            if isinstance(chart, CGATS):
                 if chart.filename:
                     path = chart.filename
             elif os.path.isfile(chart):
@@ -2413,7 +2422,7 @@ END_DATA"""
                 if not use_gamut:
                     chart[-2] += " %.4f %.4f %.4f" % (R, G, B)
 
-            chart = CGATS.CGATS("\n".join(chart))
+            chart = CGATS("\n".join(chart))
         else:
             chart.fix_device_values_scaling()
 
@@ -3386,14 +3395,14 @@ END_DATA"""
                 if ext.lower() == ".ti3":
                     with open(path, "rb") as f:
                         ti3_data = f.read()
-                    ti1 = CGATS.CGATS(ti3_to_ti1(ti3_data))
+                    ti1 = CGATS(ti3_to_ti1(ti3_data))
                     ti1.filename = filename + ".ti1"
                 else:
-                    ti1 = CGATS.CGATS(path)
+                    ti1 = CGATS(path)
                     ti1.filename = path
             else:  # icc or icm profile
                 profile = ICCP.ICCProfile(path)
-                ti1 = CGATS.CGATS(
+                ti1 = CGATS(
                     ti3_to_ti1(
                         profile.tags.get("CIED", "") or profile.tags.get("targ", "")
                     )
@@ -3402,9 +3411,9 @@ END_DATA"""
             ti1.fix_device_values_scaling()
             try:
                 ti1_1 = verify_cgats(ti1, ("RGB_R", "RGB_B", "RGB_G"))
-            except CGATS.CGATSError as exception:
+            except CGATSError as exception:
                 msg = {
-                    CGATS.CGATSKeyError: lang.getstr(
+                    CGATSKeyError: lang.getstr(
                         "error.testchart.missing_fields", (path, "RGB_R, RGB_G, RGB_B")
                     )
                 }.get(
@@ -3417,7 +3426,7 @@ END_DATA"""
             else:
                 try:
                     verify_cgats(ti1, ("XYZ_X", "XYZ_Y", "XYZ_Z"))
-                except CGATS.CGATSKeyError:
+                except CGATSKeyError:
                     # Missing XYZ, add via simple sRGB-like model
                     data = ti1_1.queryv1("DATA")
                     data.parent.DATA_FORMAT.add_data(("XYZ_X", "XYZ_Y", "XYZ_Z"))
@@ -3943,7 +3952,7 @@ END_DATA"""
             fixed_ti1 = result
         if not isinstance(result, Exception) and result:
             result = self.tc_create_ti1()
-            if isinstance(result, CGATS.CGATS):
+            if isinstance(result, CGATS):
                 if fixed_ti1:
                     if gray:
                         result[0].add_keyword("COMP_GREY_STEPS", gray_patches)
@@ -3959,7 +3968,7 @@ END_DATA"""
                     data = result.queryv1("DATA")
                     data_format = result.queryv1("DATA_FORMAT")
                     # Get only RGB data
-                    data.parent.DATA_FORMAT = CGATS.CGATS()
+                    data.parent.DATA_FORMAT = CGATS()
                     data.parent.DATA_FORMAT.key = "DATA_FORMAT"
                     data.parent.DATA_FORMAT.parent = data
                     data.parent.DATA_FORMAT.root = data.root
@@ -4011,7 +4020,7 @@ END_DATA"""
                 result = check_file_isfile(path, silent=False)
                 if not isinstance(result, Exception) and result:
                     try:
-                        result = CGATS.CGATS(path)
+                        result = CGATS(path)
                         print(lang.getstr("success"))
                     except Exception as exception:
                         result = Error(
@@ -4090,7 +4099,7 @@ END_DATA"""
                         grid.SetCellValue(
                             i,
                             j,
-                            CGATS.rpad(
+                            rpad(
                                 sample[label], vmaxlen + (1 if sample[label] < 0 else 0)
                             ),
                         )
@@ -4121,7 +4130,7 @@ END_DATA"""
         data_format = self.ti1.queryv1("DATA_FORMAT")
         data.moveby1(row + 1, len(newdata))
         for i in range(len(newdata)):
-            dataset = CGATS.CGATS()
+            dataset = CGATS()
             for label in data_format.values():
                 label = label.decode("utf-8")
                 if label not in newdata[i]:
@@ -4139,7 +4148,7 @@ END_DATA"""
                         self.grid.SetCellValue(
                             row + 1 + i,
                             col,
-                            CGATS.rpad(
+                            rpad(
                                 sample[label],
                                 data.vmaxlen + (1 if sample[label] < 0 else 0),
                             ),

@@ -44,7 +44,6 @@ from zlib import crc32
 
 # Custom modules
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     audio,
     ccmx,
@@ -81,6 +80,15 @@ from DisplayCAL.argyll_cgats import (
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
 from DisplayCAL.argyll_names import viewconds
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSError,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
+)
 from DisplayCAL.colormath import (
     CIEDCCT2xyY,
     XYZ2CCT,
@@ -827,11 +835,11 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
         # CGATS accepts ``bytes`` data only
         cgats[i] = item.get("cgats", "").encode("utf-8")
         try:
-            ccxx = CGATS.CGATS(cgats[i])
-        except CGATS.CGATSError as exception:
+            ccxx = CGATS(cgats[i])
+        except CGATSError as exception:
             print(exception)
             cgats[i] = b""
-            ccxx = CGATS.CGATS()
+            ccxx = CGATS()
         ccxx = ccxx.get(0, ccxx)
         index = dlg_list_ctrl.InsertStringItem(i, "")
         ccxx_type = item.get("type", "").upper()
@@ -1035,7 +1043,7 @@ def colorimeter_correction_check_overwrite(
     if getcfg("colorimeter_correction_matrix_file").split(":")[0] != "AUTO":
         setcfg("colorimeter_correction_matrix_file", ":" + path)
     if update_comports:
-        cgats = CGATS.CGATS(cgats)
+        cgats = CGATS(cgats)
         instrument = cgats.queryv1("INSTRUMENT") or getcfg(
             "colorimeter_correction.instrument"
         )
@@ -4605,10 +4613,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     desc = self.ccmx_cached_descriptors[path]
             elif os.path.isfile(path):
                 try:
-                    cgats = CGATS.CGATS(path, strict=True)
-                except (IOError, CGATS.CGATSError) as exception:
+                    cgats = CGATS(path, strict=True)
+                except (IOError, CGATSError) as exception:
                     print(exception)
-                    if isinstance(exception, CGATS.CGATSInvalidError):
+                    if isinstance(exception, CGATSInvalidError):
                         malformed_ccxx.append(path)
                     continue
                 if desc == lstr:
@@ -4698,13 +4706,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for i, path in enumerate(self.ccmx_item_paths):
                 if os.path.basename(path) == os.path.basename(ccmx[1]):
                     try:
-                        ccxx = CGATS.CGATS(path)
+                        ccxx = CGATS(path)
                         ccxx[0].DATA.vmaxlen = 5  # Allow margin of error
                     except Exception as exception:
                         print(exception)
                         break
                     try:
-                        cgats = CGATS.CGATS(ccmx[1], strict=True)
+                        cgats = CGATS(ccmx[1], strict=True)
                         vmaxlen = cgats[0].DATA.vmaxlen
                         cgats[0].DATA.vmaxlen = 5  # Allow margin of error
                     except Exception as exception:
@@ -4727,9 +4735,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if not desc and os.path.isfile(ccmx[1]):
                 try:
                     if not cgats:
-                        cgats = CGATS.CGATS(ccmx[1], strict=True)
-                except (IOError, CGATS.CGATSError) as exception:
-                    if isinstance(exception, CGATS.CGATSInvalidError) and ccmx[
+                        cgats = CGATS(ccmx[1], strict=True)
+                except (IOError, CGATSError) as exception:
+                    if isinstance(exception, CGATSInvalidError) and ccmx[
                         1
                     ] in self.get_argyll_data_files(
                         "lu", "*" + os.path.splitext(ccmx[1])[1]
@@ -4849,8 +4857,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             mode = None
             try:
                 if not cgats:
-                    cgats = CGATS.CGATS(ccmx[1], strict=True)
-            except (IOError, CGATS.CGATSError) as exception:
+                    cgats = CGATS(ccmx[1], strict=True)
+            except (IOError, CGATSError) as exception:
                 show_ccxx_error_dialog(exception, ccmx[1], self)
                 ccmx = ["", ""]
                 index = 0
@@ -8687,8 +8695,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # select measurement data (ti1 or ti3)
         chart = getcfg("measurement_report.chart")
         try:
-            chart = CGATS.CGATS(chart, True)
-        except (IOError, CGATS.CGATSError) as exception:
+            chart = CGATS(chart, True)
+        except (IOError, CGATSError) as exception:
             show_result_dialog(exception, getattr(self, "reportframe", self))
             return
 
@@ -9254,14 +9262,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not isinstance(result, Exception) and result:
             # get item 0 of the ti3 to strip the CAL part from the measured data
             try:
-                ti3_measured = CGATS.CGATS(ti3_path)[0]
+                ti3_measured = CGATS(ti3_path)[0]
             except (
                 IOError,
-                CGATS.CGATSInvalidError,
-                CGATS.CGATSInvalidOperationError,
-                CGATS.CGATSKeyError,
-                CGATS.CGATSTypeError,
-                CGATS.CGATSValueError,
+                CGATSInvalidError,
+                CGATSInvalidOperationError,
+                CGATSKeyError,
+                CGATSTypeError,
+                CGATSValueError,
             ) as exc:
                 result = exc
             else:
@@ -9426,7 +9434,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # create a 'joined' ti3 from ref ti3, with XYZ values from measured ti3
         # this makes sure CMYK data in the original ref will be present in
         # the newly joined ti3
-        ti3_joined = CGATS.CGATS(bytes(ti3_ref))[0]
+        ti3_joined = CGATS(bytes(ti3_ref))[0]
         ti3_joined.LUMINANCE_XYZ_CDM2 = ti3_measured.LUMINANCE_XYZ_CDM2
         # add XYZ to DATA_FORMAT if not yet present
         labels_xyz = ("XYZ_X", "XYZ_Y", "XYZ_Z")
@@ -9562,8 +9570,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ccmxpath = ccmx[1]
                 ccmx = os.path.basename(ccmx[1])
                 try:
-                    cgats = CGATS.CGATS(ccmxpath)
-                except (IOError, CGATS.CGATSError) as exception:
+                    cgats = CGATS(ccmxpath)
+                except (IOError, CGATSError) as exception:
                     print(f"{ccmxpath}:", exception)
                 else:
                     filename, ext = os.path.splitext(ccmx)
@@ -10857,8 +10865,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if os.path.isfile(path):
                             print("Using factory calibration", path)
                             try:
-                                cgats = CGATS.CGATS(path)
-                            except (IOError, CGATS.CGATSError) as exception:
+                                cgats = CGATS(path)
+                            except (IOError, CGATSError) as exception:
                                 print(exception)
                             else:
                                 white = cgats.queryi1(
@@ -10971,7 +10979,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 wx.CallAfter(show_result_dialog, result, self)
         elif is_ccxx_testchart():
             try:
-                cgats = CGATS.CGATS(
+                cgats = CGATS(
                     os.path.join(
                         getcfg("measurement.save_path"),
                         getcfg("measurement.name.expanded"),
@@ -12400,7 +12408,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ccxx = ccxx[1]
 
         try:
-            cgats = CGATS.CGATS(ccxx)
+            cgats = CGATS(ccxx)
         except Exception as exception:
             show_result_dialog(exception, self)
             return
@@ -12617,10 +12625,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if ti3:
                     if os.path.isfile(ti3):
                         try:
-                            cgats = CGATS.CGATS(ti3)
-                        except (IOError, CGATS.CGATSError) as exception:
+                            cgats = CGATS(ti3)
+                        except (IOError, CGATSError) as exception:
                             show_result_dialog(exception, dlg)
-                            cgats = CGATS.CGATS()
+                            cgats = CGATS()
                         cgats_instrument = cgats.queryv1("TARGET_INSTRUMENT")
                         if cgats_instrument:
                             cgats_instrument = get_canonical_instrument_name(
@@ -13137,15 +13145,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ccxx_testchart = get_ccxx_testchart()
             if not ccxx_testchart:
                 raise Error(lang.getstr("not_found", lang.getstr("ccxx.ti1")))
-            ccxx = CGATS.CGATS(ccxx_testchart)
+            ccxx = CGATS(ccxx_testchart)
         except (
             Error,
             IOError,
-            CGATS.CGATSInvalidError,
-            CGATS.CGATSInvalidOperationError,
-            CGATS.CGATSKeyError,
-            CGATS.CGATSTypeError,
-            CGATS.CGATSValueError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
         ) as exception:
             show_result_dialog(exception, self)
             return
@@ -13205,7 +13213,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             )
                             instrument = None
                             if targ[0:4] == "CTI3":
-                                targ = CGATS.CGATS(targ)
+                                targ = CGATS(targ)
                                 instrument = targ.queryv1("TARGET_INSTRUMENT")
                             if not instrument:
                                 instrument = meta.get("MEASUREMENT_device", {}).get(
@@ -13221,7 +13229,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             else "NO"
                         )
                         cgats.add_keyword("INSTRUMENT_TYPE_SPECTRAL", spec_type)
-                        cgats.ARGYLL_COLPROF_ARGS = CGATS.CGATS()
+                        cgats.ARGYLL_COLPROF_ARGS = CGATS()
                         cgats.ARGYLL_COLPROF_ARGS.key = "ARGYLL_COLPROF_ARGS"
                         cgats.ARGYLL_COLPROF_ARGS.parent = cgats
                         cgats.ARGYLL_COLPROF_ARGS.root = cgats
@@ -13239,11 +13247,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         cgats.ARGYLL_COLPROF_ARGS.add_data(
                             f'-M "{display}" -A "{manufacturer}"'
                         )
-                        cgats = CGATS.CGATS(bytes(cgats))
+                        cgats = CGATS(bytes(cgats))
                     else:
-                        cgats = CGATS.CGATS(path)
+                        cgats = CGATS(path)
                     if not cgats.queryv1("DATA"):
-                        raise CGATS.CGATSError("Missing DATA")
+                        raise CGATSError("Missing DATA")
                 except Exception as exception:
                     traceback.print_exc()
                     InfoDialog(
@@ -13325,9 +13333,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 return
             # Use only the device combinations from CCXX testchart
-            reference_new = CGATS.CGATS(b"BEGIN_DATA\nEND_DATA")
+            reference_new = CGATS(b"BEGIN_DATA\nEND_DATA")
             reference_new.DATA_FORMAT = reference_ti3.queryv1("DATA_FORMAT")
-            colorimeter_new = CGATS.CGATS(b"BEGIN_DATA\nEND_DATA")
+            colorimeter_new = CGATS(b"BEGIN_DATA\nEND_DATA")
             colorimeter_new.DATA_FORMAT = colorimeter_ti3.queryv1("DATA_FORMAT")
             data_reference = reference_ti3.queryv1("DATA")
             data_colorimeter = colorimeter_ti3.queryv1("DATA")
@@ -13678,7 +13686,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 if not isinstance(result, Exception) and result:
                     ref_ti3_fn_orig = reference_ti3.filename
-                    reference_ti3 = CGATS.CGATS(os.path.join(cwd, "reference.ti3"))
+                    reference_ti3 = CGATS(os.path.join(cwd, "reference.ti3"))
                     reference_ti3.filename = ref_ti3_fn_orig
                     # spec2cie doesn't update "LUMINANCE_XYZ_CDM2", and doesn't
                     # normalize measurement data to Y=100
@@ -13745,7 +13753,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ) or meas.queryi1({"RGB_R": 100, "RGB_G": 100, "RGB_B": 100})
                     if isinstance(white, str):
                         white = [float(v) for v in white.split()]
-                    elif isinstance(white, CGATS.CGATS):
+                    elif isinstance(white, CGATS):
                         white = white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
                     else:
                         # This shouldn't happen
@@ -13776,7 +13784,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             XYZ.extend((X, Y, Z))
                     R = colormath.four_color_matrix(*XYZ)
                     print(f"{appname}: Correction matrix is:")
-                    ccmx = CGATS.CGATS(source)
+                    ccmx = CGATS(source)
                     for i in range(3):
                         print("  {:.6f} {:.6f} {:.6f}".format(*R[i]))
                         for j, component in enumerate("XYZ"):
@@ -13864,7 +13872,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Show reference vs corrected colorimeter values along with
                 # delta E
                 matrix = colormath.Matrix3x3()
-                ccmx = CGATS.CGATS(cgats)
+                ccmx = CGATS(cgats)
                 for i, sample in ccmx.queryv1("DATA").items():
                     matrix.append([])
                     for component in "XYZ":
@@ -14194,7 +14202,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         result = dlg.ShowWindowModalBlocking()
         dlg.Destroy()
         if result == wx.ID_OK:
-            ccxx = CGATS.CGATS(cgats)
+            ccxx = CGATS(cgats)
             # Remove platform-specific/potentially sensitive information
             cgats = re.sub(
                 rb'\n(?:REFERENCE|TARGET)_FILENAME\s+"[^"]+"\n', b"\n", cgats
@@ -14207,7 +14215,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     (ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")
                 ).split(":", 1)
                 if filename and os.path.isfile(filename) and algo_hash[0] in globals():
-                    meas = bytes(CGATS.CGATS(filename)).strip()
+                    meas = bytes(CGATS(filename)).strip()
                     # Check hash
                     if globals()[algo_hash[0]](meas).hexdigest() == algo_hash[-1]:
                         params[label.lower() + "_cgats"] = meas
@@ -15555,7 +15563,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                     return
             setcfg("last_ti3_path", path)
-            ti3 = CGATS.CGATS(ti3)
+            ti3 = CGATS(ti3)
             if self.measurement_file_check_confirm(ti3, True):
                 if ti3.modified:
                     if profile:
@@ -15632,10 +15640,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Let the caller handle missing files
                 return True
         try:
-            if not isinstance(ti3, CGATS.CGATS):
-                ti3 = CGATS.CGATS(ti3)
+            if not isinstance(ti3, CGATS):
+                ti3 = CGATS(ti3)
             ti3_1 = verify_ti1_rgb_xyz(ti3)
-        except (IOError, CGATS.CGATSError) as exception:
+        except (IOError, CGATSError) as exception:
             show_result_dialog(exception, self)
             return False
         suspicious = check_ti3(ti3_1)
@@ -16303,7 +16311,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if is_tmp and path != ti3_tmp_path:
                             profile.close()
                             os.remove(path)
-                    ti3 = CGATS.CGATS(ti3_tmp_path)
+                    ti3 = CGATS(ti3_tmp_path)
                     if (
                         ti3.queryv1("COLOR_REP")
                         and ti3.queryv1("COLOR_REP")[:3] == b"RGB"
@@ -17224,21 +17232,21 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if ext.lower() == ".ti3":
                     with open(path, "rb") as f:
                         ti3_data = f.read()
-                    ti1 = CGATS.CGATS(ti3_to_ti1(ti3_data))
+                    ti1 = CGATS(ti3_to_ti1(ti3_data))
                 else:
-                    ti1 = CGATS.CGATS(path)
+                    ti1 = CGATS(path)
             else:  # icc or icm profile
                 profile = ICCP.ICCProfile(path)
-                ti1 = CGATS.CGATS(
+                ti1 = CGATS(
                     ti3_to_ti1(
                         profile.tags.get("CIED", "") or profile.tags.get("targ", "")
                     )
                 )
             try:
                 verify_ti1_rgb_xyz(ti1)
-            except CGATS.CGATSError as exception:
+            except CGATSError as exception:
                 msg = {
-                    CGATS.CGATSKeyError: lang.getstr(
+                    CGATSKeyError: lang.getstr(
                         "error.testchart.missing_fields",
                         (path, "RGB_R, RGB_G, RGB_B,  XYZ_X, XYZ_Y, XYZ_Z"),
                     )
@@ -17867,7 +17875,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             try:
                 options_dispcal, options_colprof = get_options_from_cal(path)
-            except (IOError, CGATS.CGATSError):
+            except (IOError, CGATSError):
                 InfoDialog(
                     self,
                     msg="{}\n{}".format(lang.getstr("calibration.file.invalid"), path),
@@ -18164,7 +18172,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             simset = False  # Only HDR 3D LUTs will have this set
             if "BEGIN_DATA_FORMAT" in ti3_lines:
                 cfgend = ti3_lines.index(b"BEGIN_DATA_FORMAT")
-                cfgpart = CGATS.CGATS(b"\n".join(ti3_lines[:cfgend]))
+                cfgpart = CGATS(b"\n".join(ti3_lines[:cfgend]))
                 lut3d_trc_set = False
                 config_lut = {
                     "SMOOTH_B2A_SIZE": "profile.b2a.hires.size",

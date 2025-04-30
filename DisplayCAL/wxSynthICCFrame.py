@@ -5,7 +5,6 @@ import os
 import sys
 
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     colormath,
     config,
@@ -14,6 +13,10 @@ from DisplayCAL import (
     worker,
     xh_bitmapctrls,
     xh_floatspin,
+)
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSInvalidError,
 )
 from DisplayCAL.ICCProfile import ICCProfile
 from DisplayCAL.argyll_cgats import extract_device_gray_primaries
@@ -514,8 +517,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
     def ti3_drop_handler(self, path):
         """TI3 file dropped"""
         try:
-            ti3 = CGATS.CGATS(path)
-        except (IOError, CGATS.CGATSInvalidError) as exception:
+            ti3 = CGATS(path)
+        except (IOError, CGATSInvalidError) as exception:
             show_result_dialog(
                 Error(lang.getstr("error.measurement.file_invalid", path)), self
             )

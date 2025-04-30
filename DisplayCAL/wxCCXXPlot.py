@@ -5,7 +5,6 @@ import os
 import sys
 
 from DisplayCAL import (
-    CGATS,
     ICCProfile as ICCP,
     colormath,
     config,
@@ -13,6 +12,7 @@ from DisplayCAL import (
     wxenhancedplot as plot,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.meta import name as appname
@@ -139,7 +139,7 @@ class CCXXPlot(wx.Frame):
                     worker.wrapup(False)
                 else:
                     try:
-                        cgats = CGATS.CGATS(temp_out_path)
+                        cgats = CGATS(temp_out_path)
                     except Exception as exception:
                         show_result_dialog(exception, parent)
                     finally:

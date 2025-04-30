@@ -8,6 +8,7 @@ import os
 import pathlib
 import re
 import struct
+import subprocess as sp
 import sys
 import warnings
 from collections import UserString
@@ -19,13 +20,6 @@ from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
     import winreg
-else:
-    import subprocess as sp
-
-    if sys.platform == "darwin":
-        from platform import mac_ver
-
-if sys.platform == "win32":
     try:
         import win32api
         import win32gui
@@ -49,7 +43,6 @@ except ImportError:
 from DisplayCAL import colormath
 from DisplayCAL import edid
 from DisplayCAL import imfile
-from DisplayCAL.colormath import NumberTuple
 from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
 from DisplayCAL.encoding import get_encodings
 from DisplayCAL.options import test_input_curve_clipping
@@ -85,10 +78,6 @@ elif sys.platform == "win32":
             win_ver[0].startswith("Windows 10") and win_ver[2] >= "Version 1903"
         )
 
-elif sys.platform == "darwin":
-    from DisplayCAL.util_mac import osascript
-
-
 # Gamut volumes in cubic colorspace units (L*a*b*) as reported by Argyll's
 # iccgamut
 GAMUT_VOLUME_SRGB = 833675.435316  # rel. col.
@@ -96,7 +85,7 @@ GAMUT_VOLUME_ADOBERGB = 1209986.014983  # rel. col.%
 GAMUT_VOLUME_SMPTE431_P3 = 1176953.485921  # rel. col.
 
 # http://msdn.microsoft.com/en-us/library/dd371953%28v=vs.85%29.aspx
-COLORPROFILESUBTYPE = {
+COLOR_PROFILE_SUBTYPE = {
     "NONE": 0x0000,
     "RGB_WORKING_SPACE": 0x0001,
     "PERCEPTUAL": 0x0002,
@@ -108,17 +97,17 @@ COLORPROFILESUBTYPE = {
 
 # http://msdn.microsoft.com/en-us/library/dd371955%28v=vs.85%29.aspx (wrong)
 # http://msdn.microsoft.com/en-us/library/windows/hardware/ff546018%28v=vs.85%29.aspx (ok)
-COLORPROFILETYPE = {"ICC": 0, "DMP": 1, "CAMP": 2, "GMMP": 3}
+COLOR_PROFILE_TYPE = {"ICC": 0, "DMP": 1, "CAMP": 2, "GMMP": 3}
 
 WCS_PROFILE_MANAGEMENT_SCOPE = {"SYSTEM_WIDE": 0, "CURRENT_USER": 1}
 
 ERROR_PROFILE_NOT_ASSOCIATED_WITH_DEVICE = 2015
 
-debug = False
+DEBUG = False
 
-enc, fs_enc = get_encodings()
+ENC, FS_ENC = get_encodings()
 
-cmms = {
+CMMS = {
     b"argl": "ArgyllCMS",
     b"ADBE": "Adobe",
     b"ACMS": "Agfa",
@@ -147,7 +136,7 @@ cmms = {
     b"zc00": "Zoran",
 }
 
-encodings = {
+ENCODINGS = {
     "mac": {
         141: "africaans",
         36: "albanian",
@@ -268,7 +257,7 @@ encodings = {
     }
 }
 
-colorants = {
+COLORANTS = {
     0: {"description": "unknown", "channels": ()},
     1: {
         "description": "ITU-R BT.709",
@@ -288,9 +277,9 @@ colorants = {
     },
 }
 
-geometry = {0: "unknown", 1: "0/45 or 45/0", 2: "0/d or d/0"}
+GEOMETRY = {0: "unknown", 1: "0/45 or 45/0", 2: "0/d or d/0"}
 
-illuminants = {
+ILLUMINANTS = {
     0: "unknown",
     1: "D50",
     2: "D65",
@@ -302,9 +291,9 @@ illuminants = {
     8: "F8",
 }
 
-observers = {0: "unknown", 1: "CIE 1931", 2: "CIE 1964"}
+OBSERVERS = {0: "unknown", 1: "CIE 1931", 2: "CIE 1964"}
 
-manufacturers = {
+MANUFACTURERS = {
     b"ADBE": "Adobe Systems Incorporated",
     b"APPL": "Apple Computer, Inc.",
     b"agfa": "Agfa Graphics N.V.",
@@ -323,14 +312,14 @@ manufacturers = {
     b"XRIT": "X-Rite",
 }
 
-platform = {
+PLATFORM = {
     b"APPL": "Apple",
     b"MSFT": "Microsoft",
     b"SGI ": "Silicon Graphics",
     b"SUNW": "Sun Microsystems",
 }
 
-profileclass = {
+PROFILE_CLASS = {
     b"scnr": "Input device profile",
     b"mntr": "Display device profile",
     b"prtr": "Output device profile",
@@ -340,7 +329,7 @@ profileclass = {
     b"nmcl": "Named color profile",
 }
 
-tags = {
+TAGS = {
     "A2B0": "Device to PCS: Intent 0",
     "A2B1": "Device to PCS: Intent 1",
     "A2B2": "Device to PCS: Intent 2",
@@ -379,7 +368,7 @@ tags = {
     "wtpt": "Media white point",
 }
 
-tech = {
+TECH = {
     "fscn": "Film scanner",
     "dcam": "Digital camera",
     "rscn": "Reflective scanner",
@@ -408,7 +397,7 @@ tech = {
     "dcpj": "Digital cinema projector",
 }
 
-ciis = {
+CIIS = {
     "scoe": "Scene colorimetry estimates",
     "sape": "Scene appearance estimates",
     "fpce": "Focal plane colorimetry estimates",
@@ -1102,7 +1091,7 @@ def create_synthetic_hdr_clut_profile(
                 # Apply a slight power to the segments to optimize encoding
                 RGB = [encf(v * step) for v in (R, G, B)]
                 RGB_in.append(tuple(RGB))
-                if debug and R == G == B:
+                if DEBUG and R == G == B:
                     print("RGB {:5.3f} {:5.3f} {:5.3f}".format(*RGB), end=" ")
                 RGB_sum = sum(RGB)
                 if hdr_format == "PQ" and mode in (
@@ -1117,7 +1106,7 @@ def create_synthetic_hdr_clut_profile(
                     I1, Ct1, Cp1 = colormath.RGB2ICtCp(
                         *RGB, rgb_space=rgb_space, eotf=eotf, oetf=eotf_inverse
                     )
-                    if debug and R == G == B:
+                    if DEBUG and R == G == B:
                         print(
                             f"-> ICtCp {I1:5.3f} {Ct1:5.3f} {Cp1:5.3f}",
                             end=" ",
@@ -1136,7 +1125,7 @@ def create_synthetic_hdr_clut_profile(
                         Y2 = hlg.eotf(I2)
                         Y3 = Y2 / Ymax
                         X, Y, Z = (v / Y * Y3 if Y else v for v in (X, Y, Z))
-                        if R == G == B and logfile and debug:
+                        if R == G == B and logfile and DEBUG:
                             logfile.write(
                                 f"\rE {Y1:.4f} -> E' {I1:.4f} -> roll-off -> "
                                 f"{I2:.4f} -> E {Y2:.4f} -> "
@@ -1212,10 +1201,10 @@ def create_synthetic_hdr_clut_profile(
                 else:
                     min_I = 1
                 if hdr_format == "PQ" and mode in ("HSV_ICtCp", "ICtCp", "RGB_ICtCp"):
-                    if debug and R == G == B:
+                    if DEBUG and R == G == B:
                         print(f"* {min_I:5.3f}", "->", end=" ")
                     Ct2, Cp2 = (min_I * v for v in (Ct1, Cp1))
-                    if debug and R == G == B:
+                    if DEBUG and R == G == B:
                         print(f"{I2:5.3f} {Ct2:5.3f} {Cp2:5.3f}", "->", end=" ")
                 if hdr_format == "HLG":
                     pass
@@ -1227,7 +1216,7 @@ def create_synthetic_hdr_clut_profile(
                     RGB = colormath.XYZ2RGB(
                         X, Y, Z, rgb_space, clamp=False, oetf=eotf_inverse
                     )
-                if debug and R == G == B:
+                if DEBUG and R == G == B:
                     print("RGB {:5.3f} {:5.3f} {:5.3f}".format(*RGB))
                 HDR_RGB.append(RGB)
                 if hdr_format == "HLG":
@@ -1589,7 +1578,7 @@ def create_synthetic_hdr_clut_profile(
             display_LCH.append((Ld, Cd, Hd))
             if Cd > Cdmax.get(Cdmaxk, -1):
                 Cdmax[Cdmaxk] = Cd
-            if debug:
+            if DEBUG:
                 print("RGB in {:5.2f} {:5.2f} {:5.2f}".format(*RGB_in[i]))
                 print(f"RGB out {R:5.2f} {G:5.2f} {B:5.2f}")
                 print(
@@ -1818,7 +1807,7 @@ def create_synthetic_hdr_clut_profile(
                     prevperc = perc
     prevperc = startperc = perc = 0
 
-    if debug:
+    if DEBUG:
         print("Num OOG:", oog_count)
 
     if generate_B2A:
@@ -2054,8 +2043,8 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
 def _wcs_get_display_profile(
     devicekey,
     scope=WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"],
-    profile_type=COLORPROFILETYPE["ICC"],
-    profile_subtype=COLORPROFILESUBTYPE["NONE"],
+    profile_type=COLOR_PROFILE_TYPE["ICC"],
+    profile_subtype=COLOR_PROFILE_SUBTYPE["NONE"],
     profile_id=0,
     path_only=False,
     use_cache=True,
@@ -2083,7 +2072,7 @@ def _wcs_get_display_profile(
 def _win10_1903_take_process_handles_snapshot():
     global prev_handles
     prev_handles = []
-    if win10_1903 and debug:
+    if win10_1903 and DEBUG:
         try:
             for handle in get_process_handles():
                 prev_handles.append(handle.HandleValue)
@@ -2111,7 +2100,7 @@ def _win10_1903_close_leaked_regkey_handles(devicekey):
         except WindowsError as exception:
             print(f"Couldn't get name of handle 0x{handle.HandleValue:x}:", exception)
             handle_name = None
-        if debug and handle.HandleValue not in prev_handles:
+        if DEBUG and handle.HandleValue not in prev_handles:
             try:
                 handle_type = get_handle_type(handle)
             except WindowsError as exception:
@@ -2322,6 +2311,9 @@ def get_display_profile_windows(
 
 def get_display_profile_macos(display_no=0, path_only=False):
     """Return ICC Profile for the given display under macOS."""
+    from platform import mac_ver
+    from DisplayCAL.util_mac import osascript
+
     if intlist(mac_ver()[0].split(".")) >= [10, 6]:
         options = ["Image Events"]
     else:
@@ -2338,7 +2330,7 @@ def get_display_profile_macos(display_no=0, path_only=False):
         ]
         retcode, output, errors = osascript(applescript)
         if retcode == 0 and output.strip():
-            filename = output.strip("\n").decode(fs_enc)
+            filename = output.strip("\n").decode(FS_ENC)
             if path_only:
                 profile = filename
             else:
@@ -2396,7 +2388,7 @@ def get_display_profile_linux(
             and None not in (x_hostname, x_display, x_screen)
         ):
             with xrandr.XDisplay(x_display_name) as display:
-                if debug:
+                if DEBUG:
                     print("Using XrandR")
                 for i, atom_id in enumerate(
                     [
@@ -2424,7 +2416,7 @@ def get_display_profile_linux(
                             )
                         ):
                             return profile
-                    if debug:
+                    if DEBUG:
                         if i == 0:
                             print("Couldn't get _ICC_PROFILE XrandR output property")
                             print("Using X11")
@@ -2433,7 +2425,7 @@ def get_display_profile_linux(
             return
 
         # Read up to 8 MB of any X properties
-        if debug:
+        if DEBUG:
             print("Using xprop")
         xprop = which("xprop")
         if not xprop:
@@ -3079,7 +3071,7 @@ class Text(ICCProfileTag, bytes):
         self.data = seq
 
     def __str__(self):
-        return self.data.decode(fs_enc, errors="replace")
+        return self.data.decode(FS_ENC, errors="replace")
 
 
 class Colorant:
@@ -3108,8 +3100,8 @@ class Colorant:
 
     @property
     def channels(self):
-        if not self._channels and self._type and self._type in colorants:
-            return [list(xy) for xy in colorants[self._type]["channels"]]
+        if not self._channels and self._type and self._type in COLORANTS:
+            return [list(xy) for xy in COLORANTS[self._type]["channels"]]
         return self._channels
 
     @channels.setter
@@ -3118,7 +3110,7 @@ class Colorant:
 
     @property
     def description(self):
-        return colorants.get(self._type, colorants[0])["description"]
+        return COLORANTS.get(self._type, COLORANTS[0])["description"]
 
     @description.setter
     def description(self, value):
@@ -3154,7 +3146,7 @@ class Colorant:
 
     @type.setter
     def type(self, value):
-        if value and value != self._type and value in colorants:
+        if value and value != self._type and value in COLORANTS:
             self._channels = []
         self._type = value
 
@@ -3179,14 +3171,14 @@ class Geometry(ADict):
     def __init__(self, binaryString):
         super(Geometry, self).__init__()
         self.type = uInt32Number(binaryString)
-        self.description = geometry[self.type]
+        self.description = GEOMETRY[self.type]
 
 
 class Illuminant(ADict):
     def __init__(self, binaryString):
         super(Illuminant, self).__init__()
         self.type = uInt32Number(binaryString)
-        self.description = illuminants[self.type]
+        self.description = ILLUMINANTS[self.type]
 
 
 class LUT16Type(ICCProfileTag):
@@ -3503,7 +3495,7 @@ BEGIN_DATA
                 if is_exclude or (
                     protect_gray_axis and (i == gray_row_i and j == gray_col_i)
                 ):
-                    if debug:
+                    if DEBUG:
                         print(
                             "protect", "exclude" if is_exclude else "gray", i, j, column
                         )
@@ -3511,7 +3503,7 @@ BEGIN_DATA
                 elif (protect_dark and sum(column) < 65535 * 0.03125 * 3) or (
                     protect_black and min(column) == max(column) == 0
                 ):
-                    if debug:
+                    if DEBUG:
                         print("protect dark", i, j, column)
                     fnkwargs["protect"].append(j)
                 for k in indexes:
@@ -3777,11 +3769,11 @@ BEGIN_DATA
                 ]
             ):
                 if order:
-                    if debug:
+                    if DEBUG:
                         print("Shifting order to", channels)
                     self.clut_shift_columns(order)
                 if i == 1 and j != 6:
-                    if debug:
+                    if DEBUG:
                         print("Smoothing")
                     exclude = None
                     protect_gray_axis = True
@@ -3813,7 +3805,7 @@ BEGIN_DATA
                         exclude=exclude,
                     )
                 if diagpng == 3 and filename and j != 6:
-                    if debug:
+                    if DEBUG:
                         print("Writing diagnostic PNG for", state, channels)
                     self.clut_writepng(
                         f"{fname}.{sig}.post.CLUT.{channels}.{state}.png"
@@ -3865,7 +3857,7 @@ class Observer(ADict):
     def __init__(self, bytes_data):
         super(ADict, self).__init__()
         self.type = uInt32Number(bytes_data)
-        self.description = observers[self.type]
+        self.description = OBSERVERS[self.type]
 
 
 class ChromaticityType(ICCProfileTag, Colorant):
@@ -5087,7 +5079,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 else:
                     if unicodeDescription[:2] == b"\xfe\xff":
                         # UTF-16 Big Endian
-                        if debug:
+                        if DEBUG:
                             print("UTF-16 Big endian")
                         unicodeDescription = unicodeDescription[2:]
                         if (
@@ -5112,7 +5104,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                             )
                     elif unicodeDescription[:2] == b"\xff\xfe":
                         # UTF-16 Little Endian
-                        if debug:
+                        if DEBUG:
                             print("UTF-16 Little endian")
                         unicodeDescription = unicodeDescription[2:]
                         if unicodeDescription[0] == b"\0":
@@ -5132,7 +5124,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                                 unicodeDescription, "utf-16-le", errors="replace"
                             )
                     else:
-                        if debug:
+                        if DEBUG:
                             print("ASSUMED UTF-16 Big Endian")
                         unicodeDescription = str(
                             unicodeDescription, "utf-16-be", errors="replace"
@@ -5163,7 +5155,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 try:
                     macDescription = str(
                         tagData[macOffset + 3 : macOffset + 3 + macDescriptionLength],
-                        "mac-" + encodings["mac"][self.macScriptCode],
+                        "mac-" + ENCODINGS["mac"][self.macScriptCode],
                         errors="replace",
                     ).strip("\0\n\r ")
                     if macDescription:
@@ -5177,7 +5169,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                     print(
                         f"LookupError (non-critical): could not decode '{tagData[:4]}' "
                         "Macintosh part (unsupported encoding "
-                        f"'{encodings['mac'][self.macScriptCode]}')"
+                        f"'{ENCODINGS['mac'][self.macScriptCode]}')"
                     )
                 except UnicodeDecodeError:
                     print(
@@ -5215,7 +5207,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                         len(macDescription) + 1
                     ),  # count of Macintosh chars + 1
                     macDescription.encode(
-                        "mac-" + encodings["mac"][self.get("macScriptCode", 0)],
+                        "mac-" + ENCODINGS["mac"][self.get("macScriptCode", 0)],
                         "replace",
                     )
                     + (b"\0" * (67 - len(macDescription))),
@@ -5742,7 +5734,7 @@ class XYZNumber(AODict):
 
     @property
     def xyY(self):
-        return NumberTuple(colormath.XYZ2xyY(self.X, self.Y, self.Z))
+        return colormath.NumberTuple(colormath.XYZ2xyY(self.X, self.Y, self.Z))
 
 
 class XYZType(ICCProfileTag, XYZNumber):
@@ -5847,7 +5839,7 @@ class XYZType(ICCProfileTag, XYZNumber):
             ref = self.profile.tags.bkpt
         else:
             ref = self.profile.tags.wtpt
-        return NumberTuple(
+        return colormath.NumberTuple(
             colormath.XYZ2xyY(self.X, self.Y, self.Z, (ref.X, ref.Y, ref.Z))
         )
 
@@ -6606,7 +6598,7 @@ class ICCProfile:
             if self._data and len(self._data) > 131:
                 # tag table and tagged element data
                 tagCount = uInt32Number(self._data[128:132])
-                if debug:
+                if DEBUG:
                     print("tagCount:", tagCount)
 
                 tagTable = self._data[132 : 132 + tagCount * 12]
@@ -6619,16 +6611,16 @@ class ICCProfile:
                         raise ICCProfileInvalidError("Tag table is truncated")
 
                     tagSignature = tag[:4].decode()
-                    if debug:
+                    if DEBUG:
                         print("tagSignature:", tagSignature)
 
                     tagDataOffset = uInt32Number(tag[4:8])
                     self._tagoffsets.append((tagDataOffset, tagSignature))
-                    if debug:
+                    if DEBUG:
                         print("    tagDataOffset:", tagDataOffset)
 
                     tagDataSize = uInt32Number(tag[8:12])
-                    if debug:
+                    if DEBUG:
                         print("    tagDataSize:", tagDataSize)
 
                     if tagSignature in self._tags:
@@ -6638,17 +6630,17 @@ class ICCProfile:
                         )
                     else:
                         if (tagDataOffset, tagDataSize) in tags:
-                            if debug:
+                            if DEBUG:
                                 print(
                                     "    tagDataOffset and tagDataSize indicate shared tag"
                                 )
                         else:
                             start = tagDataOffset - discard_len
-                            if debug:
+                            if DEBUG:
                                 print("    tagData start:", start)
 
                             end = tagDataOffset - discard_len + tagDataSize
-                            if debug:
+                            if DEBUG:
                                 print("    tagData end:", end)
 
                             tagData = self._data[start:end]
@@ -6669,7 +6661,7 @@ class ICCProfile:
                                     f"size {int(tagDataSize):d})"
                                 )
                                 typeSignature = typeSignature.ljust(4, b" ")
-                            if debug:
+                            if DEBUG:
                                 print("    typeSignature:", typeSignature)
                             tags[(tagDataOffset, tagDataSize)] = (
                                 typeSignature,
@@ -7438,13 +7430,13 @@ class ICCProfile:
     def get_info(self):
         info = DictList()
         info["Size"] = "{:d} Bytes ({:.2f} KiB)".format(int(self.size), self.size / 1024.0)
-        info["Preferred CMM"] = hexrepr(self.preferredCMM, cmms)
+        info["Preferred CMM"] = hexrepr(self.preferredCMM, CMMS)
         info["ICC version"] = f"{self.version}"
-        info["Profile class"] = profileclass.get(self.profileClass, self.profileClass)
+        info["Profile class"] = PROFILE_CLASS.get(self.profileClass, self.profileClass)
         info["Color model"] = self.colorSpace.decode()
         info["Profile connection space (PCS)"] = self.connectionColorSpace.decode()
         info["Created"] = "{:%Y-%m-%d %H:%M:%S}".format(self.dateTime)
-        info["Platform"] = platform.get(self.platform, hexrepr(self.platform))
+        info["Platform"] = PLATFORM.get(self.platform, hexrepr(self.platform))
         info["Is embedded"] = {True: "Yes"}.get(self.embedded, "No")
         info["Can be used independently"] = {True: "Yes"}.get(self.independent, "No")
         info["Device"] = ""
@@ -7466,7 +7458,7 @@ class ICCProfile:
                 ),
             ]
         )
-        info["Creator"] = hexrepr(self.creator, manufacturers)
+        info["Creator"] = hexrepr(self.creator, MANUFACTURERS)
         info["Checksum"] = f"0x{binascii.hexlify(self.ID).upper().decode()}"
         calculated_id = self.calculateID(False)
         if self.ID != b"\0" * 16:
@@ -7477,7 +7469,7 @@ class ICCProfile:
             )
         for sig in self.tags:
             tag = self.tags[sig]
-            name = tags.get(sig, f"'{sig}'")
+            name = TAGS.get(sig, f"'{sig}'")
             if isinstance(tag, chromaticAdaptionTag):
                 info[name] = self.guess_cat(False) or "Unknown"
                 name = "    Matrix"
@@ -7737,16 +7729,16 @@ class ICCProfile:
                     for desc_type in ("dmnd", "dmdd"):
                         description = str(desc[desc_type])
                         if description:
-                            info[" " * 8 + tags[desc_type]] = description
+                            info[" " * 8 + TAGS[desc_type]] = description
             elif isinstance(tag, Text):
                 if sig == "cprt":
                     info[name] = str(tag)
                 elif sig == "ciis":
-                    info[name] = ciis.get(tag, f"'{tag}'")
+                    info[name] = CIIS.get(tag, f"'{tag}'")
                 elif sig == "tech":
                     print(f"tag: {tag}")
                     print(f"type(tag): {type(tag)}")
-                    info[name] = tech.get(tag, f"'{tag}'")
+                    info[name] = TECH.get(tag, f"'{tag}'")
                 elif tag.find(b"\n") > -1 or tag.find(b"\r") > -1:
                     info[name] = f"[{len(tag):d} Bytes]"
                 else:

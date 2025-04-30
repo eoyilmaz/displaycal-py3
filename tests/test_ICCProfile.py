@@ -7,7 +7,7 @@ from time import strftime
 
 from DisplayCAL import colormath
 from DisplayCAL.icc_profile import (
-    cmms,
+    CMMS,
     dateTimeNumber,
     DictType,
     GAMUT_VOLUME_SRGB,
@@ -447,7 +447,7 @@ def test_hexrepr_is_with_mapping_supplied():
     """Testing DisplayCAL.icc_profile.hexrepr with a mapping is supplied."""
     test_bytes_string = b"ADBE"
     expected_result = "0x41444245 'ADBE' Adobe"
-    result = hexrepr(test_bytes_string, mapping=cmms)
+    result = hexrepr(test_bytes_string, mapping=CMMS)
     assert result == expected_result
 
 

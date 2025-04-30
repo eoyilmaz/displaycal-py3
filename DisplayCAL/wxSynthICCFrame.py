@@ -18,15 +18,15 @@ from DisplayCAL.cgats import (
     CGATSInvalidError,
 )
 from DisplayCAL.icc_profile import (
-    ciis,
+    CIIS,
     create_synthetic_hdr_clut_profile,
     CurveType,
     ICCProfile,
     ICCProfileInvalidError,
-    profileclass,
+    PROFILE_CLASS,
     s15f16_is_equal,
     SignatureType,
-    tech,
+    TECH,
     Text,
     XYZType,
 )
@@ -1157,14 +1157,14 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         )
 
         self.profile_classes = dict(
-            get_mapping(list(profileclass.items()), [b"mntr", b"scnr"])
+            get_mapping(list(PROFILE_CLASS.items()), [b"mntr", b"scnr"])
         )
         self.profile_class_ctrl.SetItems(list(self.profile_classes.values()))
         self.profile_class_ctrl.SetSelection(0)
 
         self.tech = dict(
             get_mapping(
-                [("", "unspecified")] + list(tech.items()),
+                [("", "unspecified")] + list(TECH.items()),
                 [
                     "",
                     "fscn",
@@ -1187,7 +1187,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.ciis = dict(
             get_mapping(
-                [("", "unspecified")] + list(ciis.items()),
+                [("", "unspecified")] + list(CIIS.items()),
                 ["", "scoe", "sape", "fpce"],
             )
         )

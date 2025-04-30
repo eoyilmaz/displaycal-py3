@@ -326,7 +326,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
     """Return the CAL section from a profile's embedded measurement data.
 
     Try to 'fix it' (add information needed to make the resulting .cal file
-    'updateable') and optionally copy it to target_filename.
+    'updatable') and optionally copy it to target_filename.
     """
     from DisplayCAL.worker import get_options_from_profile
 
@@ -346,88 +346,92 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
         if line == b"CAL":
             line = b"CAL    "  # Make sure CGATS file identifiers are always a minimum of 7 characters
             cal_found = True
-        if cal_found:
-            cal_lines.append(line)
-            if line == b'DEVICE_CLASS "DISPLAY"':
-                if options_dispcal := get_options_from_profile(profile)[0]:
-                    whitepoint = False
-                    # b = profile.tags.lumi.Y
-                    for o in options_dispcal:
-                        if o[0] == b"y":
-                            cal_lines.append(b'KEYWORD "DEVICE_TYPE"')
-                            if o[1] == b"c":
-                                cal_lines.append(b'DEVICE_TYPE "CRT"')
-                            else:
-                                cal_lines.append(b'DEVICE_TYPE "LCD"')
+        if not cal_found:
+            continue
+        cal_lines.append(line)
+        if line != b'DEVICE_CLASS "DISPLAY"':
+            continue
+        options_dispcal = get_options_from_profile(profile)[0]
+        if not options_dispcal:
+            continue
+        whitepoint = False
+        # b = profile.tags.lumi.Y
+        for o in options_dispcal:
+            if o[0] == b"y":
+                cal_lines.append(b'KEYWORD "DEVICE_TYPE"')
+                if o[1] == b"c":
+                    cal_lines.append(b'DEVICE_TYPE "CRT"')
+                else:
+                    cal_lines.append(b'DEVICE_TYPE "LCD"')
+                continue
+            if o[0] in (b"t", b"T"):
+                continue
+            if o[0] == b"w":
+                continue
+            if o[0] in (b"g", b"G"):
+                if o[1:] == b"240":
+                    trc = b"SMPTE240M"
+                elif o[1:] == b"709":
+                    trc = b"REC709"
+                elif o[1:] == b"l":
+                    trc = b"L_STAR"
+                elif o[1:] == b"s":
+                    trc = b"sRGB"
+                else:
+                    trc = o[1:]
+                    if o[0] == b"G":
+                        try:
+                            trc = 0 - Decimal(trc)
+                        except decimal.InvalidOperation:
                             continue
-                        if o[0] in (b"t", b"T"):
-                            continue
-                        if o[0] == b"w":
-                            continue
-                        if o[0] in (b"g", b"G"):
-                            if o[1:] == b"240":
-                                trc = b"SMPTE240M"
-                            elif o[1:] == b"709":
-                                trc = b"REC709"
-                            elif o[1:] == b"l":
-                                trc = b"L_STAR"
-                            elif o[1:] == b"s":
-                                trc = b"sRGB"
-                            else:
-                                trc = o[1:]
-                                if o[0] == b"G":
-                                    try:
-                                        trc = 0 - Decimal(trc)
-                                    except decimal.InvalidOperation:
-                                        continue
-                            cal_lines.extend(
-                                (b'KEYWORD "TARGET_GAMMA"', b'TARGET_GAMMA "%s"' % trc)
-                            )
-                            continue
-                        if o[0] == b"f":
-                            cal_lines.extend(
-                                (
-                                    b'KEYWORD "DEGREE_OF_BLACK_OUTPUT_OFFSET"',
-                                    b'DEGREE_OF_BLACK_OUTPUT_OFFSET "%s"' % o[1:],
-                                )
-                            )
+                cal_lines.extend(
+                    (b'KEYWORD "TARGET_GAMMA"', b'TARGET_GAMMA "%s"' % trc)
+                )
+                continue
+            if o[0] == b"f":
+                cal_lines.extend(
+                    (
+                        b'KEYWORD "DEGREE_OF_BLACK_OUTPUT_OFFSET"',
+                        b'DEGREE_OF_BLACK_OUTPUT_OFFSET "%s"' % o[1:],
+                    )
+                )
 
-                            continue
-                        if o[0] == b"k":
-                            cal_lines.extend(
-                                (
-                                    b'KEYWORD "BLACK_POINT_CORRECTION"',
-                                    b'BLACK_POINT_CORRECTION "%s"' % o[1:],
-                                )
-                            )
+                continue
+            if o[0] == b"k":
+                cal_lines.extend(
+                    (
+                        b'KEYWORD "BLACK_POINT_CORRECTION"',
+                        b'BLACK_POINT_CORRECTION "%s"' % o[1:],
+                    )
+                )
 
-                            continue
-                        if o[0] == b"B":
-                            cal_lines.extend(
-                                (
-                                    b'KEYWORD "TARGET_BLACK_BRIGHTNESS"',
-                                    b'TARGET_BLACK_BRIGHTNESS "%s"' % o[1:],
-                                )
-                            )
+                continue
+            if o[0] == b"B":
+                cal_lines.extend(
+                    (
+                        b'KEYWORD "TARGET_BLACK_BRIGHTNESS"',
+                        b'TARGET_BLACK_BRIGHTNESS "%s"' % o[1:],
+                    )
+                )
 
-                            continue
-                        if o[0] == b"q":
-                            if o[1] == b"l":
-                                q = b"low"
-                            elif o[1] == b"m":
-                                q = b"medium"
-                            else:
-                                q = b"high"
-                            cal_lines.extend(
-                                (b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q)
-                            )
-                    if not whitepoint:
-                        cal_lines.extend(
-                            (
-                                b'KEYWORD "NATIVE_TARGET_WHITE"',
-                                b'NATIVE_TARGET_WHITE ""',
-                            )
-                        )
+                continue
+            if o[0] == b"q":
+                if o[1] == b"l":
+                    q = b"low"
+                elif o[1] == b"m":
+                    q = b"medium"
+                else:
+                    q = b"high"
+                cal_lines.extend(
+                    (b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q)
+                )
+        if not whitepoint:
+            cal_lines.extend(
+                (
+                    b'KEYWORD "NATIVE_TARGET_WHITE"',
+                    b'NATIVE_TARGET_WHITE ""',
+                )
+            )
     if cal_lines:
         if target_filename:
             try:
@@ -495,21 +499,22 @@ END_DATA"""
         RGB = (item["RGB_R"], item["RGB_G"], item["RGB_B"])
         XYZ = (item["XYZ_X"], item["XYZ_Y"], item["XYZ_Z"])
         for RGB_XYZ in (RGB_XYZ_extracted, RGB_XYZ_remaining):
-            if RGB in RGB_XYZ:
-                if RGB != (100.0, 100.0, 100.0):
-                    # Add to existing values for averaging later
-                    # if it's not white (all other readings are scaled to the
-                    # white Y by dispread, so we don't alter it. Note that it's
-                    # always the first encountered white that will have Y = 100,
-                    # even if subsequent white readings may be higher)
-                    XYZ = tuple(RGB_XYZ[RGB][i] + XYZ[i] for i in range(3))
-                    if RGB not in dupes:
-                        dupes[RGB] = 1.0
-                    dupes[RGB] += 1.0
-                elif RGB in subset:
-                    # We have white already, remove it from the subset so any
-                    # additional white readings we encounter are ignored
-                    subset.remove(RGB)
+            if RGB not in RGB_XYZ:
+                continue
+            if RGB != (100.0, 100.0, 100.0):
+                # Add to existing values for averaging later
+                # if it's not white (all other readings are scaled to the
+                # white Y by dispread, so we don't alter it. Note that it's
+                # always the first encountered white that will have Y = 100,
+                # even if subsequent white readings may be higher)
+                XYZ = tuple(RGB_XYZ[RGB][i] + XYZ[i] for i in range(3))
+                if RGB not in dupes:
+                    dupes[RGB] = 1.0
+                dupes[RGB] += 1.0
+            elif RGB in subset:
+                # We have white already, remove it from the subset so any
+                # additional white readings we encounter are ignored
+                subset.remove(RGB)
         if (
             gray
             and (

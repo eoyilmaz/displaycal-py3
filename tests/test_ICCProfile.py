@@ -23,6 +23,7 @@ from DisplayCAL.icc_profile import (
     uInt16Number_tohex,
     uInt32Number_tohex,
 )
+from DisplayCAL.util_os import which
 
 
 def test_iccprofile_from_rgb_space():
@@ -854,8 +855,14 @@ def test_dict_type_to_json():
 
 def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(setup_argyll):
     """Testing for issue #185, opening sRGB.icm from ArgyllCMS raises TypeError."""
-    argyll = setup_argyll
-    srgb_profile_path = argyll / ".." / "ref" / "sRGB.icm"
+    xicclu_path = which("xicclu")
+    srgb_profile_path = None
+    if xicclu_path.startswith("/usr/bin"):
+        # linux, system installed ArgyllCMS
+        srgb_profile_path = "/usr/share/color/argyll/ref/sRGB.icm"
+    else:
+        argyll = setup_argyll
+        srgb_profile_path = argyll / ".." / "ref" / "sRGB.icm"
     icc_profile = ICCProfile(srgb_profile_path)
     # the following should not raise an error
-    info = icc_profile.get_info()
+    _ = icc_profile.get_info()

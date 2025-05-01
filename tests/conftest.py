@@ -13,6 +13,7 @@ import zipfile
 import pytest
 
 from DisplayCAL import config
+from DisplayCAL.util_os import which
 from DisplayCAL.worker import Worker
 
 import DisplayCAL
@@ -69,6 +70,21 @@ def setup_argyll():
     This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it
     can not find it, it will download from the source.
     """
+    # check if ArgyllCMS is already installed
+    xicclu_path = which("xicclu")
+    if xicclu_path:
+        # ArgyllCMS is already installed
+        argyll_path = pathlib.Path(xicclu_path).parent
+        setcfg("argyll.dir", str(argyll_path.absolute()))
+        argyll_version_string = get_argyll_version_string("xicclu", True, [str(argyll_path)])
+        argyll_version = parse_argyll_version_string(argyll_version_string)
+        print(f"argyll_version_string: {argyll_version_string}")
+        print(f"argyll_version: {argyll_version}")
+        setcfg("argyll.version", argyll_version_string)
+        writecfg()
+        yield argyll_path
+        return
+
     # first look in to ~/local/bin/ArgyllCMS
     home = pathlib.Path().home()
     argyll_search_paths = glob.glob(str(home / ".local" / "bin" / "Argyll*" / "bin"))
@@ -117,6 +133,7 @@ def setup_argyll():
     argyll_package_file_name = "Argyll.tgz" if sys.platform != "win32" else "Argyll.zip"
     if not os.path.exists(argyll_package_file_name):
         print(f"Downloading: {argyll_package_file_name}")
+        print(f"URL: {url}")
         worker = Worker()
         download_path = worker.download(url, download_dir=argyll_temp_path)
         print(f"Downloaded to: {download_path}")

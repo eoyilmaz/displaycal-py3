@@ -16429,7 +16429,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         elif result:
             if isinstance(result, tuple):
                 profile.set_gamut_metadata(result[0], result[1])
-                prefixes = profile.tags.meta.getvalue("prefix", "", None).split(",")
+                profile.tags.meta.getvalue("prefix", b"", None)
+                if isinstance(prefix, bytes):
+                    prefix = prefix.decode("utf-8")
+                prefixes = prefix.split(",")
                 # Set license
                 profile.tags.meta["License"] = getcfg("profile.license")
                 # Set device ID

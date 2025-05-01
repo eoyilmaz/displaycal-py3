@@ -1093,7 +1093,7 @@ def create_synthetic_hdr_clut_profile(
                 RGB_in.append(tuple(RGB))
                 if DEBUG and R == G == B:
                     print("RGB {:5.3f} {:5.3f} {:5.3f}".format(*RGB), end=" ")
-                RGB_sum = sum(RGB)
+                # RGB_sum = sum(RGB)
                 if hdr_format == "PQ" and mode in (
                     "HSV",
                     "HSV_ICtCp",
@@ -2734,7 +2734,7 @@ def _mp_hdr_tonemap(
                     H = colormath.RGB2HSV(*RGB_in)[0]
                     # This is the initial intensity, and hue + saturation
                     I, Ct, Cp = colormath.XYZ2ICtCp(X, Y, Z)
-                    Io, Cto, Cpo = I, Ct, Cp
+                    Io = I
                     Co = colormath.Lab2LCHab(I, Ct, Cp)[1]
                 # Desaturate
                 Ct *= 0.99
@@ -4074,8 +4074,8 @@ class CurveType(ICCProfileTag, list):
         black_cdm2 = black_Y * white_cdm2
         maxv = len(otrc) - 1.0
         maxi = int(maxv)
-        starti = int(round(0.4 * maxi))
-        endi = int(round(0.6 * maxi))
+        _starti = int(round(0.4 * maxi))
+        _endi = int(round(0.6 * maxi))
         gamma = otrc.get_gamma(True, slice=(0.4, 0.6), lstar_slice=False)
         egamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
         outoffset_unspecified = outoffset is None
@@ -5480,9 +5480,9 @@ class VideoCardGammaTableType(VideoCardGammaType):
         while len(data) < 3:
             data.append(data[0])
         for channel in data:
-            l = (len(channel) - 1) / 2.0
-            floor = float(channel[int(math.floor(l))])
-            ceil = float(channel[int(math.ceil(l))])
+            channel_length = (len(channel) - 1) / 2.0
+            floor = float(channel[int(math.floor(channel_length))])
+            ceil = float(channel[int(math.ceil(channel_length))])
             vmin = channel[0] / maxValue
             vmax = channel[-1] / maxValue
             v = (vmin + ((floor + ceil) / 2.0) * (vmax - vmin)) / maxValue
@@ -5950,7 +5950,7 @@ class NamedColor2Value:
             pcs.append(f"{key}={value}")
         for value in self.device:
             dev.append(f"{value}")
-        return "{}({}, {{}}, [{}])".format(
+        return "{}({}, {{{}}}, [{}])".format(
             self.__class__.__name__,
             self.name,
             ", ".join(pcs),
@@ -6256,7 +6256,7 @@ class ICCProfile:
 
             if data[:5] == b"<?xml" or data[:10] == b"<\0?\0x\0m\0l\0":
                 # Microsoft WCS profile
-                from io import StringIO, BytesIO
+                from io import BytesIO
                 from xml.etree import ElementTree
 
                 self.fileName = None
@@ -6891,9 +6891,10 @@ class ICCProfile:
         )
         profile.set_edid_metadata(edid)
         spec_prefixes = "DATA_,OPENICC_"
-        prefixes = (
-            profile.tags.meta.getvalue("prefix", "", None) or spec_prefixes
-        ).split(",")
+        prefix = profile.tags.meta.getvalue("prefix", b"", None)
+        if isinstance(prefix, bytes):
+            prefix = prefix.decode("utf-8")
+        prefixes = (prefix or spec_prefixes).split(",")
         for prefix in spec_prefixes.split(","):
             if prefix not in prefixes:
                 prefixes.append(prefix)
@@ -7916,10 +7917,10 @@ class ICCProfile:
             return False
         rgb_space = [gamma or [], list(getattr(tags.wtpt, relation).values())]
         for component in ("r", "g", "b"):
-            if not f"{component}XYZ" in tags or (
+            if "{component}XYZ" not in tags or (
                 not gamma
                 and (
-                    not f"{component}TRC" in tags
+                    f"{component}TRC" not in tags
                     or not isinstance(tags[f"{component}TRC"], CurveType)
                 )
             ):
@@ -8085,7 +8086,7 @@ class ICCProfile:
             prefixes = (prefix or "GAMUT_").split(",")
             if "GAMUT_" not in prefixes:
                 prefixes.append("GAMUT_")
-                self.tags.meta["prefix"] = (",".join(prefixes)).encode()
+            self.tags.meta["prefix"] = ",".join(prefixes)
             if gamut_volume:
                 # Set gamut size
                 self.tags.meta["GAMUT_volume"] = gamut_volume

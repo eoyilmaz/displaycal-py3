@@ -178,6 +178,7 @@ from DisplayCAL.icc_profile import (
     set_display_profile,
     Text,
     TextDescriptionType,
+    TextType,
     VideoCardGammaTableType,
     VideoCardGammaType,
     XYZType,
@@ -12147,9 +12148,10 @@ usage: spotread [-options] [logfile]
                 profile.tags.meta["MAPPING_device_id"] = device_id
                 spec_prefixes += ",MAPPING_"
         if tags is True or (tags and "meta" in tags):
-            prefixes = (
-                profile.tags.meta.getvalue("prefix", "", None) or spec_prefixes
-            ).split(",")
+            prefix = profile.tags.meta.getvalue("prefix", b"", None)
+            if isinstance(prefix, bytes):
+                prefix = prefix.decode("utf-8")
+            prefixes = (prefix or spec_prefixes).split(",")
             for prefix in spec_prefixes.split(","):
                 if prefix not in prefixes:
                     prefixes.append(prefix)
@@ -12159,9 +12161,10 @@ usage: spotread [-options] [logfile]
             if "meta" not in profile.tags:
                 profile.tags.meta = DictType()
             # Update meta prefix
-            prefixes = (
-                profile.tags.meta.getvalue("prefix", "", None) or "ACCURACY_"
-            ).split(",")
+            prefix = profile.tags.meta.getvalue("prefix", b"", None)
+            if isinstance(prefix, bytes):
+                prefix = prefix.decode("utf-8")
+            prefixes = (prefix or "ACCURACY_").split(",")
             if "ACCURACY_" not in prefixes:
                 prefixes.append("ACCURACY_")
                 profile.tags.meta["prefix"] = ",".join(prefixes)

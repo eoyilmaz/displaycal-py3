@@ -680,13 +680,13 @@ class Xicclu(WorkerBase):
         self.errors = self.stderr.readlines()
         self.stderr.close()
         if self.sessionlogfile and self.errors:
-            self.sessionlogfile.write("\n".join(self.errors))
+            self.sessionlogfile.write(b"\n".join(self.errors))
         if self.logfile:
-            self.logfile.write("\n")
+            self.logfile.write(b"\n")
         self.closed = True
         if p.returncode and raise_exception:
             # Error
-            raise IOError("\n".join(self.errors))
+            raise IOError(b"\n".join(self.errors))
 
     def exit(self, raise_exception=True):
         self.close(raise_exception)

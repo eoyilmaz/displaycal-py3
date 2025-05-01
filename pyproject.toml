@@ -18,7 +18,6 @@ classifiers = [
     "Environment :: X11 Applications",
     "Intended Audience :: End Users/Desktop",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -34,7 +33,7 @@ maintainers = [
 ]
 name = "DisplayCAL"
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.9"
 
 [project.urls]
 "Home Page" = "https://displaycal.net/"
@@ -159,7 +158,7 @@ pythonpath = [
 
 [tool.tox]
 requires = ["tox>=4.23.2"]
-env_list = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+env_list = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [tool.tox.env_run_base]
 description = "run the tests with pytest"

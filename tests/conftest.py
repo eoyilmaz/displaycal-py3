@@ -10,6 +10,8 @@ import tarfile
 import tempfile
 import zipfile
 
+from requests import HTTPError
+
 import pytest
 
 from DisplayCAL import config
@@ -135,7 +137,11 @@ def setup_argyll():
         print(f"Downloading: {argyll_package_file_name}")
         print(f"URL: {url}")
         worker = Worker()
-        download_path = worker.download(url, download_dir=argyll_temp_path)
+        result = worker.download(url, download_dir=argyll_temp_path)
+        if isinstance(result, HTTPError):
+            print(f"Error downloading {url}: {result}")
+            raise result
+        download_path = result
         print(f"Downloaded to: {download_path}")
         if os.path.exists(download_path):
             shutil.move(download_path, argyll_package_file_name)

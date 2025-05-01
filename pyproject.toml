@@ -27,7 +27,7 @@ classifiers = [
 ]
 description = "Display calibration and profiling with a focus on accuracy and versatility"
 dynamic = ["version", "dependencies"]
-license = {text = "GPL-3.0-or-later"}
+license = "GPL-3.0-or-later"
 maintainers = [
     {name = "Erkan Özgür Yılmaz", email = "eoyilmaz@gmail.com"},
 ]

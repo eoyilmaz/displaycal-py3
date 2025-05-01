@@ -144,7 +144,7 @@ def setup_argyll():
     if argyll_path.is_dir():
         print("argyll_path is valid!")
         setcfg("argyll.dir", str(argyll_path.absolute()))
-        argyll_version_string = get_argyll_version_string("xicclu", True, [str(path)])
+        argyll_version_string = get_argyll_version_string("xicclu", True, [str(argyll_path)])
         argyll_version = parse_argyll_version_string(argyll_version_string)
         print(f"argyll_version_string: {argyll_version_string}")
         print(f"argyll_version: {argyll_version}")

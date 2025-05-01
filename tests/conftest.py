@@ -114,6 +114,7 @@ def setup_argyll():
 
     # apparently argyll has not been found
     # download from source
+    get_argyll_latest_version.cache_clear()
     argyll_version = get_argyll_latest_version()
     argyll_domain = config.defaults.get("argyll.domain", "")
     argyll_download_url = {

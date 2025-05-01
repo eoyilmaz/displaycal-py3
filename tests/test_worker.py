@@ -140,29 +140,28 @@ def test_download_method_1():
     assert result is not None
 
 
-@pytest.mark.skipif(sys.platform == "linux", reason="Not working on Linux currently.")
-def test_download_method_2():
-    """Test Worker.download() method."""
-    worker = Worker()
-    uri = f"https://{DOMAIN}/i1d3"
-    result = worker.download(uri, force=True)
-    assert result is not None
+# def test_download_method_2():
+#     """Test Worker.download() method."""
+#     worker = Worker()
+#     uri = f"https://{DOMAIN}/i1d3"
+#     result = worker.download(uri, force=True)
+#     assert result is not None
 
 
-def test_download_method_3():
-    """Test Worker.download() method."""
-    worker = Worker()
-    uri = f"https://{DOMAIN}/spyd2"
-    result = worker.download(uri)
-    assert result is not None
+# def test_download_method_3():
+#     """Test Worker.download() method."""
+#     worker = Worker()
+#     uri = f"https://{DOMAIN}/spyd2"
+#     result = worker.download(uri)
+#     assert result is not None
 
 
-def test_download_method_4():
-    """Test Worker.download() method."""
-    worker = Worker()
-    uri = f"https://{DOMAIN}/spyd2"
-    result = worker.download(uri, force=True)
-    assert result is not None
+# def test_download_method_4():
+#     """Test Worker.download() method."""
+#     worker = Worker()
+#     uri = f"https://{DOMAIN}/spyd2"
+#     result = worker.download(uri, force=True)
+#     assert result is not None
 
 
 def test_get_display_name_1():

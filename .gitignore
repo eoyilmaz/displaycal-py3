@@ -6,7 +6,7 @@ __pycache__/
 .vscode/
 *.blend1
 *.code-workspace
-/.coverage
+/.coverage*
 /.pytest_cache/
 /.venv/
 /build/
@@ -25,5 +25,6 @@ __pycache__/
 /venv/
 /VERSION
 cacert.pem
+htmlcov
 main.py
 MANIFEST.in

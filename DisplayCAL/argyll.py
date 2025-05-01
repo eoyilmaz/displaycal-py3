@@ -5,7 +5,15 @@ The utilities that were previously spread around are gathered here.
 """
 
 # Standard Library Imports
-from functools import cache
+try:
+    from functools import cache
+except ImportError:
+    # Python 3.8 or older
+    from functools import lru_cache
+
+    def cache(func):
+        return lru_cache(maxsize=None)(func)
+
 import os
 import re
 import string

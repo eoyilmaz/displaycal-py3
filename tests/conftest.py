@@ -193,7 +193,7 @@ def random_icc_profile():
 
 
 @pytest.fixture(scope="function")
-def patch_subprocess(monkeypatch):
+def patch_subprocess():
     """Patch subprocess.
 
     Yields:

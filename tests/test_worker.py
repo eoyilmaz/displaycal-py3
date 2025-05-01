@@ -558,7 +558,7 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
     monkeypatch.setattr("DisplayCAL.argyll.urllib.request.urlopen", patched_urlopen)
     # print(dir(get_argyll_latest_version))
     # clear the cache
-    get_argyll_latest_version.cache_clear()
+    # get_argyll_latest_version.cache_clear()
     result = get_argyll_latest_version()
     assert result == config.defaults.get("argyll.version")
     # assert False
@@ -574,7 +574,7 @@ def test_get_technology_strings_returns_dict(setup_argyll):
 
 def test_get_technology_strings_without_argyll_returns_from_argyll_17():
     """Test get_technology_strings() returns a dictionary from argyll 1.7."""
-    get_argyll_latest_version.cache_clear()
+    # get_argyll_latest_version.cache_clear()
     worker = Worker()
     worker.argyll_version = [0, 0, 0]
 

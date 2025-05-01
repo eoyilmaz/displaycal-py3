@@ -857,7 +857,7 @@ def test_issue_185_parsing_of_ref_srgb_profile_from_argyllcms(setup_argyll):
     """Testing for issue #185, opening sRGB.icm from ArgyllCMS raises TypeError."""
     xicclu_path = which("xicclu")
     srgb_profile_path = None
-    if xicclu_path.startswith("/usr/bin"):
+    if xicclu_path and xicclu_path.startswith("/usr/bin"):
         # linux, system installed ArgyllCMS
         srgb_profile_path = "/usr/share/color/argyll/ref/sRGB.icm"
     else:

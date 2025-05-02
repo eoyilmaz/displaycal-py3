@@ -1169,13 +1169,11 @@ def setup():
             "wmi.xml",
             "wxpython.xml",
             "comtypes.xml",
-            "enum34.xml",
             "faulthandler.xml",
             "netifaces.xml",
             "protobuf.xml",
             "pychromecast.xml",
             "requests.xml",
-            "six.xml",
             "zeroconf.xml",
         ):
             dist_path = Path(pydir, "dist", "0install", tmpl_name)

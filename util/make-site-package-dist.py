@@ -71,12 +71,10 @@ pkgs = {
     "numpy": ["numpy"],
     "pygame": ["pygame"],
     "wx": [wx_pth],
-    "enum": ["enum"],  # enum/enum34 compatibility package
     "netifaces": ["netifaces"],
     "google.protobuf": ["google.protobuf"],
     "pychromecast": ["pychromecast"],
     "requests": ["requests"],
-    "six": ["six"],
     "zeroconf": ["zeroconf"],
 }
 if os.path.isdir(os.path.join(wx_pth, "wx")):

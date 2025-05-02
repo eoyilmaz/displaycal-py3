@@ -14,9 +14,7 @@
 		<requires interface="${URL}0install/python.xml" version="2.6..!4.0">
 			<version not-before="2.6" before="4.0" />
 		</requires>
-		<requires interface="${URL}0install/enum34.xml" />
 		<requires interface="${URL}0install/netifaces.xml" />
-		<requires interface="${URL}0install/six.xml" />
 		<implementation version="0.0.0" released="0000-00-00" stability="stable">
 			<environment name="PYTHONPATH" insert="." />
 		</implementation>

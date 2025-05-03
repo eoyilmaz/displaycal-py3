@@ -4,9 +4,8 @@
 """
 
 import random
+from io import BytesIO
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-
-from six import BytesIO
 
 
 from DisplayCAL.lib.agw.fmresources import (

@@ -26,7 +26,6 @@ Check out [Home Assistant](https://home-assistant.io) for a ready-made solution 
 		</requires>
 		<requires interface="${URL}0install/protobuf.xml" />
 		<requires interface="${URL}0install/requests.xml" />
-		<requires interface="${URL}0install/six.xml" />
 		<requires interface="${URL}0install/zeroconf.xml" />
 		<implementation version="0.0.0" released="0000-00-00" stability="stable">
 			<environment name="PYTHONPATH" insert="." />

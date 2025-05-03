@@ -618,6 +618,7 @@ def test_get_technology_strings_without_argyll_returns_from_argyll_17():
 def test_get_technology_strings_without_argyll_returns_expected_data(setup_argyll):
     """Test get_technology_strings() returns a dict with correct data."""
     worker = Worker()
+    assert False
     result = worker.get_technology_strings()
     expected = {
         "c": "CRT",

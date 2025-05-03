@@ -9042,18 +9042,17 @@ usage: spotread [-options] [logfile]
         technology_strings = dict()
         in_tech = False
         for line in self.output:
-            parts = line.strip().split(None, 1)
-            if parts:
-                arg = parts.pop(0)
-                if arg == "-t":
-                    parts = parts[0].split(None, 1)
-                    if len(parts) == 2:
-                        arg = parts.pop(0)
-                        in_tech = True
-                elif arg.startswith("-"):
-                    in_tech = False
-                if in_tech and parts:
-                    technology_strings[arg] = parts[0]
+            if not (parts := line.strip().split(None, 1)):
+                continue
+            if (arg := parts.pop(0)) == "-t":
+                parts = parts[0].split(None, 1)
+                if len(parts) == 2:
+                    arg = parts.pop(0)
+                    in_tech = True
+            elif arg.startswith("-"):
+                in_tech = False
+            if in_tech and parts:
+                technology_strings[arg] = parts[0]
         return technology_strings
 
     def has_lut_access(self):

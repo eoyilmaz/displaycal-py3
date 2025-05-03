@@ -567,6 +567,7 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
 def test_get_technology_strings_returns_dict(setup_argyll):
     """Test get_technology_strings() returns a dict."""
     worker = Worker()
+    print(f"argyll path: {setup_argyll}")
     print(f"worker.argyll_version: {worker.argyll_version}")
     assert False
 
@@ -618,6 +619,7 @@ def test_get_technology_strings_without_argyll_returns_from_argyll_17():
 def test_get_technology_strings_without_argyll_returns_expected_data(setup_argyll):
     """Test get_technology_strings() returns a dict with correct data."""
     worker = Worker()
+    print(f"argyll path: {setup_argyll}")
     assert False
     result = worker.get_technology_strings()
     expected = {

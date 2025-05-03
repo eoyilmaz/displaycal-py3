@@ -87,6 +87,10 @@ jobs:
       run: |
         sudo apt-get install -y libnotify4
 
+    - name: Update ArgyllCMS
+      run: |
+        sudo apt-get install -y libargyllcms-dev
+
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:

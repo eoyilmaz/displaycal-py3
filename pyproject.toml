@@ -151,6 +151,27 @@ per-file-ignores = [
     "DisplayCAL/lib/agw/fmresources.py: B950"
 ]
 
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # McCabe complexity
+    "C",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
 [tool.pytest.ini_options]
 pythonpath = [
     ".",

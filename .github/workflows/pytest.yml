@@ -28,6 +28,7 @@ jobs:
           - "4.2.0"
           - "4.2.1"
           - "4.2.2"
+          - "4.2.3"
         exclude:
           - wx-version: "4.2.0"
             python-version: "3.11"
@@ -41,10 +42,6 @@ jobs:
             python-version: "3.13"
           - wx-version: "4.2.2"
             python-version: "3.8"
-          - wx-version: "4.2.2"
-            python-version: "3.9"
-          - wx-version: "4.2.2"
-            python-version: "3.10"
 
     steps:
     - uses: actions/checkout@v4
@@ -145,6 +142,7 @@ jobs:
           - "4.2.0"
           - "4.2.1"
           - "4.2.2"
+          - "4.2.3"
         exclude:
           - wx-version: "4.2.0"
             python-version: "3.11"
@@ -157,11 +155,7 @@ jobs:
           - wx-version: "4.2.1"
             python-version: "3.13"
           - wx-version: "4.2.2"
-            python-version: "3.8"
-          - wx-version: "4.2.2"
-            python-version: "3.9"
-          - wx-version: "4.2.2"
-            python-version: "3.10"
+            python-version: "3.13"
 
     steps:
     - uses: actions/checkout@v4

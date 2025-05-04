@@ -565,8 +565,8 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
 
 
 @pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Not working properly on GitHub.",
+    os.getenv("GITHUB_ACTIONS") == "true" and sys.platform == "linux",
+    reason="Not working properly on GitHub on Linux machines.",
 )
 def test_get_technology_strings_returns_dict(setup_argyll):
     """Test get_technology_strings() returns a dict."""
@@ -616,8 +616,8 @@ def test_get_technology_strings_without_argyll_returns_from_argyll_17():
     }
 
 @pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Not working properly on GitHub.",
+    os.getenv("GITHUB_ACTIONS") == "true" and sys.platform == "linux",
+    reason="Not working properly on GitHub on Linux machines.",
 )
 def test_get_technology_strings_with_argyll_returns_expected_data(setup_argyll):
     """Test get_technology_strings() returns a dict with correct data."""

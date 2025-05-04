@@ -65,6 +65,7 @@ from DisplayCAL import (
 )
 from DisplayCAL.argyll import (
     check_set_argyll_bin,
+    get_argyll_instrument_config,
     get_argyll_latest_version,
     get_argyll_version,
     make_argyll_compatible_path,
@@ -3224,8 +3225,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         spyd2en = get_argyll_util("spyd2en")
         spyder2_firmware_exists = self.worker.spyder2_firmware_exists()
         if sys.platform not in ("darwin", "win32") or test:
-            installed = self.worker.get_argyll_instrument_conf("installed")
-            installable = self.worker.get_argyll_instrument_conf()
+            installed = get_argyll_instrument_config("installed")
+            installable = get_argyll_instrument_config()
             # Only enable if not yet installed and installable
             self.menuitem_install_argyll_instrument_conf.Enable(
                 bool(not installed and installable)
@@ -8067,7 +8068,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def install_argyll_instrument_conf(self, event=None, uninstall=False):
         if uninstall:
-            filenames = self.worker.get_argyll_instrument_conf("installed")
+            filenames = get_argyll_instrument_config("installed")
             if filenames:
                 dlgs = []
                 dlg = ConfirmDialog(

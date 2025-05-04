@@ -45,8 +45,8 @@ Download = "https://github.com/eoyilmaz/displaycal-py3/releases/"
 doc-files = "LICENSE.txt README.html screenshots/ theme/"
 fix-python = 1
 packager = "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>"
-post-install = "util/rpm_postinstall.sh"
-post-uninstall = "util/rpm_postuninstall.sh"
+post-install = "src/util/rpm_postinstall.sh"
+post-uninstall = "src/util/rpm_postuninstall.sh"
 release = 1
 # keep_temp = 1
 
@@ -57,14 +57,18 @@ universal = 0
 record = "INSTALLED_FILES"
 
 [tool.bdist_wininst]
-bitmap = "misc/media/install-py.bmp"
-install_script = "util/DisplayCAL_postinstall.py"
+bitmap = "src/misc/media/install-py.bmp"
+install_script = "src/util/DisplayCAL_postinstall.py"
 
 [tool.setuptools]
 include-package-data = false
 
 [tool.setuptools.packages.find]
-where = ["./"]
+where = ["src"]
+namespaces = false
+include = [
+    "DisplayCAL",
+]
 
 [tool.setuptools.package-data]
 DisplayCAL = [
@@ -100,11 +104,8 @@ DisplayCAL = [
 [tool.setuptools.exclude-package-data]
 DisplayCAL = [
     "docs",
-    "man",
     "misc",
-    "test_dir",
     "tests",
-    "theme",
     "util"
 ]
 

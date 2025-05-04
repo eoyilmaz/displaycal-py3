@@ -97,6 +97,10 @@ pypath = os.path.abspath(__file__)
 pydir = os.path.dirname(pypath)
 source_dir = os.path.dirname(pydir)
 
+print(f"pypath: {pypath}")
+print(f"pydir: {pydir}")
+print(f"source_dir: {source_dir}")
+
 
 if sys.platform in ("darwin", "win32"):
     # Adjust PATH so ctypes.util.find_library can find SDL2 DLLs (if present)
@@ -112,7 +116,6 @@ config = {
         "CHANGES.html",
         "LICENSE.txt",
         "README.html",
-        "README-fr.html",
         "screenshots/*.png",
         "theme/*.png",
         "theme/*.css",
@@ -233,7 +236,6 @@ def create_app_symlinks(dist_dir, scripts):
         ("tests", "Tests"),
         ("CHANGES.html", "CHANGES.html"),
         ("README.html", "README.html"),
-        ("README-fr.html", "README-fr.html"),
         ("LICENSE.txt", "LICENSE.txt"),
     ]:
         tgt = os.path.join(dist_dir, tgt)
@@ -360,6 +362,8 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
     """
     files = config[key]
     src_dir = source_dir
+    print(f"src_dir: {src_dir}")
+    print(f"pkgname: {pkgname}")
     if pkgname:
         files = files[pkgname]
         # modifying the src_dir is not working with py2app, so disabling it.
@@ -505,6 +509,7 @@ def setup():
 
         print("using distutils")
 
+    print("Code is here A1")
     if do_py2exe:
         setup_do_py2exe()
 
@@ -513,6 +518,7 @@ def setup():
         sys.argv = sys.argv[:i] + ["install"] + sys.argv[i + 1 :]
         install.create_home_path = lambda self: None
 
+    print("Code is here A2")
     if (
         skip_instrument_conf_files := "--skip-instrument-configuration-files"
         in sys.argv[1:]
@@ -531,10 +537,12 @@ def setup():
         i = sys.argv.index("--use-distutils")
         sys.argv = sys.argv[:i] + sys.argv[i + 1 :]
 
+    print("Code is here A3")
     if "--use-setuptools" in sys.argv[1:]:
         i = sys.argv.index("--use-setuptools")
         sys.argv = sys.argv[:i] + sys.argv[i + 1 :]
 
+    print("Code is here A4")
     argv = list(sys.argv[1:])
     for i, arg in enumerate(reversed(argv)):
         n = len(sys.argv) - i - 1
@@ -570,11 +578,13 @@ def setup():
             elif arg[0] == "-h" or arg[0].startswith("--help"):
                 help = True
 
+    print("Code is here A5")
     if not recordfile_name and (do_full_install or do_uninstall):
         recordfile_name = "INSTALLED_FILES"
     # if not do_uninstall:
     # sys.argv.append("--record=" + "INSTALLED_FILES")
 
+    print("Code is here A6")
     if sys.platform in ("darwin", "win32") or "bdist_egg" in sys.argv[1:]:
         doc = data = "." if do_py2app or do_py2exe or bdist_bbfreeze else name
     else:
@@ -593,6 +603,7 @@ def setup():
             if is_rpm_build:
                 doc = os.path.join(os.path.sep, "usr", doc)
 
+    print("Code is here A7")
     # Use CA file from certifi project
     if do_py2app or do_py2exe:
         import certifi
@@ -604,6 +615,7 @@ def setup():
         else:
             print("WARNING: cacert.pem from certifi project not found!")
 
+    print("Code is here A8")
     # on Mac OS X and Windows, we want data files in the package dir
     # (package_data will be ignored when using py2exe)
     package_data = {
@@ -621,9 +633,10 @@ def setup():
         package_data[name].append("theme/icons/*.ico")
     # Scripts
     if sys.platform == "darwin":
-        scripts = get_scripts(excludes=[appname.lower() + "-apply-profiles"])
+        scripts = get_scripts(excludes=[f"{appname.lower()}-apply-profiles"])
     else:
         scripts = get_scripts()
+    print("Code is here A9")
     # Doc files
     data_files = []
     if not is_rpm_build or doc_layout.startswith("deb"):
@@ -640,6 +653,7 @@ def setup():
             (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
         )
 
+    print("Code is here A10")
     # metainfo / appdata.xml
     data_files.append(
         (
@@ -647,7 +661,7 @@ def setup():
             [
                 relpath(
                     os.path.normpath(
-                        os.path.join(pydir, "..", "dist", f"{appstream_id}.appdata.xml")
+                        os.path.join(pydir, "..", "..", "dist", f"{appstream_id}.appdata.xml")
                     ),
                     source_dir,
                 )
@@ -655,6 +669,7 @@ def setup():
         )
     )
 
+    print("Code is here A11")
     if sys.platform not in ("darwin", "win32") or do_py2app or do_py2exe:
         # Linux/Unix or py2app/py2exe
         data_files += get_data(data, "package_data", name, excludes=["theme/icons/*"])
@@ -877,6 +892,7 @@ def setup():
                     os.path.join(
                         pydir,
                         "..",
+                        "..",
                         "scripts",
                         f"{name.lower()}-eecolor-to-madvr-converter",
                     )
@@ -884,6 +900,7 @@ def setup():
             )
         )
 
+    print("Code is here A12")
     sources = []
     if sys.platform == "win32":
         macros = [("NT", None)]
@@ -911,6 +928,7 @@ def setup():
 
     ext_modules = []
 
+    print("Code is here A13")
     requires = []
     if not setuptools or sys.platform != "win32":
         # wxPython windows installer doesn't add egg-info entry, so
@@ -923,6 +941,7 @@ def setup():
 
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
 
+    print("Code is here A14")
     attrs = {
         "author": author_ascii,
         "author_email": author_email,
@@ -968,6 +987,7 @@ def setup():
         "version": msiversion if "bdist_msi" in sys.argv[1:] else version,
     }
 
+    print("Code is here A15")
     if setuptools:
         attrs["entry_points"] = {
             "gui_scripts": [
@@ -1001,6 +1021,7 @@ def setup():
             ]
         )
 
+    print("Code is here A16")
     if bdist_bbfreeze:
         attrs["setup_requires"] = ["bbfreeze"]
 
@@ -1232,6 +1253,7 @@ def setup():
             attrs["setup_requires"] = ["py2exe"]
         attrs["zipfile"] = os.path.join("lib", "library.zip")
 
+    print("Code is here A17")
     if (do_uninstall or do_install or bdist_win or bdist_dumb) and not help:
         distutils.core._setup_stop_after = "commandline"
         dist = setup(**attrs)
@@ -1253,7 +1275,7 @@ def setup():
                 "userbase",
             ]:
                 if attrname not in ["prefix", "root"]:
-                    attrname = "install_" + attrname
+                    attrname = f"install_{attrname}"
                 if hasattr(cmd, attrname):
                     print(attrname, getattr(cmd, attrname))
         if debug > 1:
@@ -1272,6 +1294,7 @@ def setup():
         else:
             data_basedir = install_data
 
+        print(f"data_basedir: {data_basedir}")
         data = change_root(data_basedir, data)
         doc = change_root(data_basedir, doc)
         # determine in which cases we want to make data file paths relative to
@@ -1297,6 +1320,7 @@ def setup():
                 else:
                     attrs["data_files"][i] = (change_root(data_basedir, f[0]), f[1])
 
+    print("Code is here A18")
     if do_uninstall and not help:
         # Quick and dirty uninstall
         if dry_run:
@@ -1369,7 +1393,6 @@ def setup():
                     "CHANGES.html",
                     "LICENSE.txt",
                     "README.html",
-                    "README-fr.html",
                     "beep.wav",
                     "cacert.pem",
                     "camera_shutter.wav",
@@ -1396,7 +1419,6 @@ def setup():
                     "CHANGES.html",
                     "LICENSE.txt",
                     "README.html",
-                    "README-fr.html",
                 ]:
                     path = os.path.join(doc, fname)
                     if path not in paths:
@@ -1421,6 +1443,7 @@ def setup():
                                 os.path.join(path, name, f"{filename}.lnk")
                             )
 
+        print("Code is here A19")
         for path in paths:
             if os.path.exists(path):
                 if path in visited:
@@ -1472,6 +1495,7 @@ def setup():
             print(len(removed), "entries removed")
 
     else:
+        print("Code is here A20")
         # To have a working sdist and bdist_rpm when using distutils,
         # we go to the length of generating MANIFEST.in from scratch everytime,
         # using the information available from setup.
@@ -1482,7 +1506,6 @@ def setup():
                 "include MANIFEST",
                 "include MANIFEST.in",
                 "include README.html",
-                "include README-fr.html",
                 "include CHANGES.html",
                 f"include {name}*.pyw",
                 f"include {name}-*.pyw",
@@ -1506,6 +1529,7 @@ def setup():
             manifest_in.extend(
                 "include " + os.path.sep.join(src.split("/")) for src in extmod.sources
             )
+        print("Code is here A21")
         for pkg in attrs.get("packages", []):
             pkg = os.path.join(*pkg.split("."))
             pkgdir = os.path.sep.join(
@@ -1557,6 +1581,7 @@ def setup():
             if os.path.exists("MANIFEST"):
                 os.remove("MANIFEST")
 
+        print("Code is here A22")
         if bdist_bbfreeze:
             i = sys.argv.index("bdist_bbfreeze")
             if "-d" not in sys.argv[i + 1 :] and "--dist-dir" not in sys.argv[i + 1 :]:
@@ -1570,13 +1595,16 @@ def setup():
             if "egg_info" not in sys.argv[1:i]:
                 sys.argv.insert(i, "egg_info")
 
+        print("Code is here A23")
         if do_py2app or do_py2exe:
             sys.path.insert(1, pydir)
             i = sys.argv.index("py2app" if do_py2app else "py2exe")
             if "build_ext" not in sys.argv[1:i]:
                 sys.argv.insert(i, "build_ext")
 
+        print("Code is here A24")
         setup(**attrs)
+        print("Code is here A25")
 
         if dry_run or help:
             return

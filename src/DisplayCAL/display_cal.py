@@ -18968,12 +18968,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.aboutdialog.Show()
 
     def readme_handler(self, event):
-        if lang.getcode() == "fr":
-            readme = get_data_path("README-fr.html")
-        else:
-            readme = None
-        if not readme:
-            readme = get_data_path("README.html")
+        readme = get_data_path("README.html")
         if readme:
             launch_file(readme)
 

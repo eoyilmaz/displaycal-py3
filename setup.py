@@ -21,7 +21,9 @@ if sys.platform == "win32":
 
 
 pypath = Path(__file__).resolve()
-pydir = pypath.parent
+pydir = pypath.parent / "src"
+print(f"pypath: {pypath}")
+print(f"pydir: {pydir}")
 
 sys.path.insert(0, "DisplayCAL")
 sys.path.insert(1, str(pydir))

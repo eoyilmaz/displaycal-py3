@@ -20,4 +20,4 @@ script:
   - cp -f misc/Argyll $BUILD_APPDIR/usb
   - cp -f misc/Argyll.usermap $BUILD_APPDIR/usb
   - rm ${APPNAME}/theme/icons/*.ico ${APPNAME}/theme/icons/*.icns
-  - mv ${APPNAME} screenshots scripts theme LICENSE.txt README-fr.html README.html *.pyw $BUILD_APPDIR
+  - mv ${APPNAME} screenshots scripts theme LICENSE.txt README.html *.pyw $BUILD_APPDIR

@@ -52,10 +52,9 @@ Name: calibrationloadinghandledbydisplaycal; Description: {cm:CalibrationLoading
 Name: calibrationloadinghandledbyos; Description: {cm:CalibrationLoadingHandledByOS}; Flags: exclusive unchecked; GroupDescription: {cm:CalibrationLoading}; MinVersion: 0,6.1.7600; 
 
 [Files]
-Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\*; DestDir: {app}; Flags: recursesubdirs replacesameversion; Excludes: \%(AppName)s.exe,\README.html,\README-fr.html; 
+Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\*; DestDir: {app}; Flags: recursesubdirs replacesameversion; Excludes: \%(AppName)s.exe,\README.html; 
 Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\%(AppName)s.exe; DestDir: {app}; Flags: replacesameversion; 
 Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\README.html; DestDir: {app}; Flags: isreadme; 
-Source: py2exe.%(Platform)s-py%(PythonVersion)s\%(AppName)s-%(AppVersion)s\README-fr.html; DestDir: {app}; Flags: isreadme; Languages: french
 Source: ..\..\ccss\*.ccss; DestDir: {commonappdata}\ArgyllCMS; Flags: replacesameversion; 
 
 [Icons]
@@ -73,7 +72,6 @@ Name: {commondesktop}\%(AppName)s; Filename: {app}\%(AppName)s.exe; Tasks: deskt
 Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\%(AppName)s; Filename: {app}\%(AppName)s.exe; Tasks: quicklaunchicon; IconFilename: {app}\%(AppName)s.exe
 Name: {group}\LICENSE; Filename: {app}\LICENSE.txt
 Name: {group}\README (EN); Filename: {app}\README.html; Tasks: ; Languages: 
-Name: {group}\README (FR); Filename: {app}\README-fr.html; Tasks: ; Languages: french
 Name: "{commonstartup}\%(AppName)s Profile Loader"; Filename: {app}\%(AppName)s-apply-profiles.exe; OnlyBelowVersion: 0,6.0; Tasks: calibrationloadinghandledbydisplaycal; 
 
 [Run]

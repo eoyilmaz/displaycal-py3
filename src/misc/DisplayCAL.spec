@@ -242,7 +242,6 @@ f.close()"
 %config /etc/xdg/autostart/z-${APPNAME_LOWER}-apply-profiles.desktop
 %doc LICENSE.txt
 %doc README.html
-%doc README-fr.html
 %doc screenshots
 %doc theme
 /usr/share/man/man1/*

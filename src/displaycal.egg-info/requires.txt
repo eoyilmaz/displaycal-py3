@@ -1,0 +1,18 @@
+build
+certifi
+distro
+numpy
+Pillow
+protobuf
+PyChromecast
+Send2Trash
+wxPython>=4.2.2
+zeroconf
+
+[:sys_platform == "linux"]
+dbus-python
+
+[:sys_platform == "win32"]
+comtypes
+pywin32
+WMI

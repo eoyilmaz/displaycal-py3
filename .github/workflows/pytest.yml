@@ -87,10 +87,6 @@ jobs:
       run: |
         sudo apt-get install -y libnotify4
 
-    # - name: Update ArgyllCMS
-    #   run: |
-    #     sudo apt-get install -y gnome-color-manager
-
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:

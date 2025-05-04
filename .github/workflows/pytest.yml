@@ -102,6 +102,11 @@ jobs:
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
         uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
+        # Check if up pip install returned an error
+        if [ $? -ne 0 ]; then
+          echo "Error installing wxPython, trying to install from PyPI"
+          uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
+        fi
 
     - name: Install Python dependencies
       run: |

@@ -8495,8 +8495,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         silent=False,
         title=appname,
     ):
-        """'Install' (load) a calibration from a calibration file or
-        profile"""
+        """Install (load) a calibration from a calibration file or profile."""
         if config.is_virtual_display():
             return True
         # Install using dispwin
@@ -9781,31 +9780,32 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return False
 
     def load_display_profile_cal(self, event=None, lut_viewer_load_lut=True):
-        """Load calibration (vcgt) from current display profile"""
+        """Load calibration (vcgt) from current display profile."""
         profile = get_display_profile()
-        if check_set_argyll_bin():
+        if not check_set_argyll_bin():
+            return False
+        if verbose >= 1 and (getcfg("calibration.autoload") or event):
+            print(lang.getstr("calibration.loading_from_display_profile"))
+            if profile and profile.fileName:
+                print(profile.fileName)
+        if (not getcfg("calibration.autoload") and not event) or self.install_cal(
+            capture_output=True,
+            cal=True,
+            skip_scripts=True,
+            silent=not (getcfg("dry_run") and event),
+            title=lang.getstr("calibration.load_from_display_profile"),
+        ) is True:
+            if lut_viewer_load_lut:
+                self.lut_viewer_load_lut(profile=profile)
             if verbose >= 1 and (getcfg("calibration.autoload") or event):
-                print(lang.getstr("calibration.loading_from_display_profile"))
-                if profile and profile.fileName:
-                    print(profile.fileName)
-            if (not getcfg("calibration.autoload") and not event) or self.install_cal(
-                capture_output=True,
-                cal=True,
-                skip_scripts=True,
-                silent=not (getcfg("dry_run") and event),
-                title=lang.getstr("calibration.load_from_display_profile"),
-            ) is True:
-                if lut_viewer_load_lut:
-                    self.lut_viewer_load_lut(profile=profile)
-                if verbose >= 1 and (getcfg("calibration.autoload") or event):
-                    print(lang.getstr("success"))
-                return True
-            if (
-                verbose >= 1
-                and not getcfg("dry_run")
-                and (getcfg("calibration.autoload") or event)
-            ):
-                print(lang.getstr("failure"))
+                print(lang.getstr("success"))
+            return True
+        if (
+            verbose >= 1
+            and not getcfg("dry_run")
+            and (getcfg("calibration.autoload") or event)
+        ):
+            print(lang.getstr("failure"))
         return False
 
     def report_calibrated_handler(self, event):

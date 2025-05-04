@@ -194,7 +194,7 @@ def test_webbrowser_open(monkeypatch) -> None:
     """Test if function calls browser as expected."""
     opened_urls = []
 
-    class PatchedWebBrowser(object):
+    class PatchedWebBrowser:
         @staticmethod
         def open(url: str, new: int = 0, autoraise: bool = True) -> bool:
             opened_urls.append(url)

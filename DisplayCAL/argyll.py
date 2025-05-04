@@ -408,7 +408,7 @@ def parse_argyll_version_string(argyll_version_string):
     return argyll_version
 
 
-# @cache
+@cache
 def get_argyll_latest_version():
     """Return the latest ArgyllCMS version from argyllcms.com.
 

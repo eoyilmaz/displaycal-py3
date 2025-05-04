@@ -64,6 +64,12 @@ jobs:
           echo "add_dir_str=cpython-313" >> $GITHUB_ENV
         fi
 
+        if [ "${{ matrix.wx-version }}" == "4.2.3" ]; then
+          echo "wx_name=wxpython" >> $GITHUB_ENV
+        else;
+          echo "wx_name=wxPython" >> $GITHUB_ENV
+        fi
+
     - name: Setup xvfb
       run: |
         sudo apt-get update
@@ -101,12 +107,7 @@ jobs:
 
     - name: Install wxPython ${{ matrix.wx-version }}
       run: |
-        uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
-        # Check if up pip install returned an error
-        if [ $? -ne 0 ]; then
-          echo "Error installing wxPython, trying to install from PyPI"
-          uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
-        fi
+        uv pip install --system https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/${{ env.wx_name }}-${{ matrix.wx-version }}-cp${{ env.py_version }}-cp${{ env.py_version }}-linux_x86_64.whl
 
     - name: Install Python dependencies
       run: |

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # import decimal
 # Decimal = decimal.Decimal
 import decimal

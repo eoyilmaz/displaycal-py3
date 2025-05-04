@@ -1,8 +1,4 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-"""
-
+"""Interactive display calibration UI."""
 import os
 import re
 import sys

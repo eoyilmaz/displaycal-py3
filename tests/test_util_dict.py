@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from DisplayCAL.util_dict import dict_slice, dict_sort
 
 

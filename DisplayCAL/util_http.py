@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # http://code.activestate.com/recipes/146306-http-client-to-post-using-multipartform-data/
 
 import http.client

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from socketserver import TCPServer
 from socket import (
     AF_INET,

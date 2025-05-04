@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from DisplayCAL.util_str import (
     asciize,
     ellipsis_,

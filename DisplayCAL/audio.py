@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Audio wrapper module.
 
 Can use SDL, pyglet, pyo or wx.

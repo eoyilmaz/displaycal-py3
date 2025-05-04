@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-c
 """demjson 1.3 compatibility module"""
 
 from io import StringIO

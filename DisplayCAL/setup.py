@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-DisplayCAL setup.py script
+"""DisplayCAL setup.py script.
 
 Can be used with setuptools or pure distutils (the latter can be forced
 with the --use-distutils option, otherwise it will try to use setuptools

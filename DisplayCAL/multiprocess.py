@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from queue import Empty
 import atexit
 import errno

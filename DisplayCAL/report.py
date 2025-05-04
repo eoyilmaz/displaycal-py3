@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from time import strftime
 import codecs
 import os

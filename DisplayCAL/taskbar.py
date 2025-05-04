@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Contains Windows Taskbar related functionality.
 
 Unfortunatelly the newly implemented `ctypes` interface is not working. From what I

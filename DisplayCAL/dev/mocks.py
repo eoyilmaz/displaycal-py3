@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Generic mock functions for unit-tests.
+"""Generic mock functions for unit-tests.
 
 Use `check_call` as a context manager to mock calls and their return values as
 well to check if the method was called (or not).

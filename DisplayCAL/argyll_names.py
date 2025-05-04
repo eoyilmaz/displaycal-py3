@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Argyll CMS tools used by DisplayCAL
 names = [
     "applycal",

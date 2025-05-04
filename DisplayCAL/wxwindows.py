@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from datetime import datetime
 import html
 from html.parser import HTMLParser

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runtime configuration and user settings parser."""
 
 import configparser

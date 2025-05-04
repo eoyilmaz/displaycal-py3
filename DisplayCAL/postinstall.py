@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from io import StringIO
 from subprocess import call
 from os.path import basename, splitext

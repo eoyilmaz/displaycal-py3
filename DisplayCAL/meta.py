@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Meta information
-"""
+"""Meta information."""
 
 import re
 import sys

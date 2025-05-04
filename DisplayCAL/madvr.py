@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-
 # See developers/interfaces/madTPG.h in the madVR package
-
-
 from io import StringIO
 from binascii import unhexlify
 from time import sleep, time

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Drawing routines and customizations for the AGW widgets
 :class:`~wx.lib.agw.labelbook.LabelBook` and :class:`~wx.lib.agw.flatmenu.FlatMenu`.
 """

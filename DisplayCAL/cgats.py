@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Simple CGATS file parser class
 

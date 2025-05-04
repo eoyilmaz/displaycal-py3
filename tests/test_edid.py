@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains tests for the EDID parsing functionality in DisplayCAL."""
 
 import codecs

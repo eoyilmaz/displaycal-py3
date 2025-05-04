@@ -1,4 +1,3 @@
-# -*- coding: utf-8 --*-
 from __future__ import annotations
 import sys
 from typing import List, TypedDict, Dict, Tuple

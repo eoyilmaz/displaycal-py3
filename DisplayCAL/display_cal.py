@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 DisplayCAL - display calibration and characterization powered by ArgyllCMS.
 

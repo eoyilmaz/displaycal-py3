@@ -1,8 +1,4 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-
-"""
+"""Interactive display calibration UI."""
 
 from time import sleep, strftime
 import os

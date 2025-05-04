@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from codecs import EncodedFile
 from hashlib import md5
 import atexit

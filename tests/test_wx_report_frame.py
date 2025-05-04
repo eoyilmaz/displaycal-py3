@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from DisplayCAL.dev.mocks import check_call, check_call_str
 from tests.data.display_data import DisplayData
 

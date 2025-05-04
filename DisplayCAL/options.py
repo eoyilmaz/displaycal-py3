@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Parse commandline options.
+"""Parse commandline options.
 
 Note that none of these are advertised, as they solely exist for testing and development
 purposes.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ, XYZ2RGB

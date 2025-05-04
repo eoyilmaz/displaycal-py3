@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module provides utility functions for interacting with Windows-specific
 features, such as display devices, process management, and color management.
 """

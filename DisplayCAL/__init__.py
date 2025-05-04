@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 try:
     from DisplayCAL import __version__
 except ImportError:

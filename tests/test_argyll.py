@@ -4,7 +4,12 @@ from subprocess import Popen
 import sys
 
 from DisplayCAL import config
-from DisplayCAL.argyll import get_argyll_util, get_argyll_version_string
+from DisplayCAL.argyll import (
+    get_argyll_util,
+    get_argyll_version,
+    get_argyll_version_string,
+)
+
 from DisplayCAL.dev.mocks import check_call, check_call_str
 from tests.data.argyll_sp_data import SUBPROCESS_COM
 
@@ -21,7 +26,7 @@ from tests.data.argyll_sp_data import SUBPROCESS_COM
 
 
 def test_get_argyll_util(setup_argyll):
-    """Test worker_base.get_argyll_util() function."""
+    """Test get_argyll_util() function."""
     config.initcfg()
     result = get_argyll_util("ccxxmake")
     expected_result = os.path.join(config.getcfg("argyll.dir"), "ccxxmake")
@@ -31,7 +36,7 @@ def test_get_argyll_util(setup_argyll):
 
 
 def test_get_argyll_version_string_1(setup_argyll):
-    """Test worker_base.get_argyll_version_string() function."""
+    """Test get_argyll_version_string() function."""
     config.initcfg()
     with check_call(Popen, "communicate", SUBPROCESS_COM):
         result = get_argyll_version_string("ccxxmake")
@@ -40,9 +45,7 @@ def test_get_argyll_version_string_1(setup_argyll):
 
 
 def test_get_argyll_version_1(setup_argyll):
-    """Test worker.get_argyll_version() function."""
-    from DisplayCAL.argyll import get_argyll_version
-
+    """Test get_argyll_version() function."""
     with check_call_str("DisplayCAL.argyll.get_argyll_version_string", "2.3.0"):
         result = get_argyll_version("ccxxmake")
     expected_result = [2, 3, 0]

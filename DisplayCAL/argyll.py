@@ -341,8 +341,8 @@ def get_argyll_version_string(name, silent=False, paths=None):
         str: The Argyll utility version.
     """
     argyll_version_string = "0.0.0"
-    if (not silent or not check_set_argyll_bin(paths)) and (
-        silent or not check_argyll_bin(paths)
+    if (not silent or not check_argyll_bin(paths)) and (
+        silent or not check_set_argyll_bin(paths)
     ):
         return argyll_version_string
 

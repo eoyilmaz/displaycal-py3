@@ -54,6 +54,8 @@ clean-all: clean
 	-rm -f setuptools-*.egg
 	-rm -f use-distutils
 	-rm -f main.py
+	-rm -Rf htmlcov
+	-rm .coverage.*
 	-rm MANIFEST.in
 	-rm VERSION
 	-rm -Rf DisplayCAL.egg-info

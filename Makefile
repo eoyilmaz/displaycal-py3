@@ -58,7 +58,7 @@ clean-all: clean
 	-rm .coverage.*
 	-rm MANIFEST.in
 	-rm VERSION
-	-rm -Rf DisplayCAL.egg-info
+	-rm -Rf displaycal.egg-info
 	-rm DisplayCAL/__version__.py
 	-rm -Rf $(VIRTUALENV_DIR)
 

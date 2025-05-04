@@ -621,6 +621,7 @@ def test_get_technology_strings_without_argyll_returns_expected_data(setup_argyl
     worker = Worker()
     print(f"argyll path: {setup_argyll}")
     print(f"worker.argyll_version: {worker.argyll_version}")
+    assert False
     result = worker.get_technology_strings()
     expected = {
         "c": "CRT",

@@ -89,7 +89,7 @@ jobs:
 
     - name: Update ArgyllCMS
       run: |
-        sudo apt-get install -y libargyllcms-dev
+        sudo apt-get install -y gnome-color-manager
 
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

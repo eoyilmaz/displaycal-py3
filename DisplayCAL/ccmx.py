@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# Python 2.5
 import codecs
 import json
 import os

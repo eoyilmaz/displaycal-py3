@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   ParseMaster, version 1.0 (pre-release) (2005/05/12) x6
 #   Copyright 2005, Dean Edwards
 #   Web: http://dean.edwards.name/

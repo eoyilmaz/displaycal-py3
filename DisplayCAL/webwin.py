@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-
-"""
-Re-implementation of Argyll's webwin in pure python.
-
-"""
+"""Re-implementation of Argyll's webwin in pure python."""
 
 import http.server
 import time

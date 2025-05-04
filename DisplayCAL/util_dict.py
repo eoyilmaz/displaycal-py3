@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Temporary helper functions to ease OrderedDict removal."""
 
 

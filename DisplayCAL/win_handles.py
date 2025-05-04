@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ctypes import wintypes
 import ctypes
 import os

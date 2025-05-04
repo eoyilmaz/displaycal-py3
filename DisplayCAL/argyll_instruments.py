@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import re
 
 from DisplayCAL.util_str import strtr

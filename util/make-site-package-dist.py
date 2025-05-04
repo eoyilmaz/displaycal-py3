@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Collect modules from site-packages used by DisplayCAL
-"""
+"""Collect modules from site-packages used by DisplayCAL."""
 
 import glob
 import os

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the DisplayCAL.icc_profile module."""
 import binascii
 import datetime

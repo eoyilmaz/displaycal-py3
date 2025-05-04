@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import traceback
 
 from DisplayCAL import config

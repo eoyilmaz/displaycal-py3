@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from DisplayCAL.wxwindows import fancytext_RenderToRenderer
 
 

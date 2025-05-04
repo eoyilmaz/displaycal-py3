@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # stdlib
 import codecs
 from binascii import hexlify

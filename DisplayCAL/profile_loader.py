@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Set ICC profiles and load calibration curves for all configured display devices."""
 
 import math

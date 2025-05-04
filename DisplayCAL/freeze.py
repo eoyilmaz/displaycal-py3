@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This script is used by the py2exe to freeze the library into executables."""
 
 import sys

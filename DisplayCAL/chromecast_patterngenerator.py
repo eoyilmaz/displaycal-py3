@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from time import sleep
 
 # 0install: Make sure imported protobuf is from implementation to ensure

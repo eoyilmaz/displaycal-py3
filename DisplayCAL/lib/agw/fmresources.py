@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains resources and constants for the FlatMenu library in DisplayCAL.
 
 It defines various styles, states, and images used in the FlatMenu and related controls.

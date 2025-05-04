@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module provides functionality for retrieving and parsing EDID
 (Extended Display Identification Data) from various operating systems.
 

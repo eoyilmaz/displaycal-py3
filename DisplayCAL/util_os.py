@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This module provides utility functions for operating system-related tasks."""
 
 import builtins

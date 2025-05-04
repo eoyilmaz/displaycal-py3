@@ -23,12 +23,18 @@ if sys.platform == "win32":
 if sys.platform == "win32":
     import win32api
 
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import colormath
 from DisplayCAL import cubeiterator as ci
 from DisplayCAL import localization as lang
 from DisplayCAL import worker_base
 from DisplayCAL.config import CaseSensitiveConfigParser
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileTag,
+    LUT16Type,
+    TextDescriptionType,
+    TextType,
+)
 from DisplayCAL.imfile import tiff_get_header
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.network import get_network_addr, get_valid_host
@@ -218,7 +224,7 @@ def icc_device_link_to_madvr(
                 logfile.write("\r%i%%" % perc)
                 prevperc = perc
     else:
-        link = ICCP.ICCProfile(icc_device_link_filename)
+        link = ICCProfile(icc_device_link_filename)
         # Need a worker for abort event handling
         worker = worker_base.WorkerBase()
         # icclu verbose=0 gives a speed increase
@@ -459,12 +465,12 @@ class H3DLUT:
         """Write 3D LUT to ICC device link."""
         stream = self._get_stream(stream_or_filename, ".icc")
 
-        link = ICCP.ICCProfile()
+        link = ICCProfile()
         link.connectionColorSpace = b"RGB"
         link.profileClass = b"link"
-        link.tags.desc = ICCP.TextDescriptionType()
+        link.tags.desc = TextDescriptionType()
         link.tags.desc.ASCII = os.path.splitext(os.path.basename(stream.name))[0]
-        link.tags.cprt = ICCP.TextType(b"text\0\0\0\0No copyright", b"cprt")
+        link.tags.cprt = TextType(b"text\0\0\0\0No copyright", b"cprt")
 
         input_grid_steps = (
             2 ** self.inputBitDepth[0]
@@ -483,7 +489,7 @@ class H3DLUT:
         # the LUT16Type cLUT and only use tag data of offsets/sizes and shaper
         # curves while writing the raw cLUT data directly without going through
         # decoding/re-encoding roundtrip
-        A2B0 = ICCP.LUT16Type()
+        A2B0 = LUT16Type()
         A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         A2B0.input = []
         for i in range(3):
@@ -532,7 +538,7 @@ class H3DLUT:
                     i += 1
         io.write(A2B0.tagData[-output_bytes:])  # Append output curves
         io.seek(0)
-        link.tags.A2B0 = ICCP.ICCProfileTag(io.read(), "A2B0")
+        link.tags.A2B0 = ICCProfileTag(io.read(), "A2B0")
 
         link.write(stream)
 

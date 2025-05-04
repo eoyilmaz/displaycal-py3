@@ -6,14 +6,15 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import ICCProfile as ICCP, colormath, config, worker
+from DisplayCAL import colormath, config, worker
+from DisplayCAL.icc_profile import ICCProfile, TextType
 
 
 config.initcfg()
 srgb = config.get_data_path("ref/sRGB.icm")
 if not srgb:
     raise OSError("File not found: ref/sRGB.icm")
-ref = ICCP.ICCProfile(srgb)
+ref = ICCProfile(srgb)
 print("sRGB:", ref.fileName)
 
 
@@ -29,10 +30,10 @@ def update_preset(name):
         "rb",
     ) as f:
         ti3 = f.read()
-    prof = ICCP.ICCProfile(pth)
+    prof = ICCProfile(pth)
     if prof.tags.targ != ti3:
         print("Updating 'targ'...")
-        prof.tags.targ = ICCP.TextType(b"text\0\0\0\0%s\0" % ti3, b"targ")
+        prof.tags.targ = TextType(b"text\0\0\0\0%s\0" % ti3, b"targ")
     options_dispcal, options_colprof = worker.get_options_from_profile(prof)
     trc_a2b = {"240": -240, "709": -709, "l": -3, "s": -2.4}
     t_a2b = {"t": colormath.CIEDCCT2XYZ, "T": colormath.planckianCT2XYZ}

@@ -5,6 +5,12 @@ import sys
 
 import traceback
 
+from DisplayCAL import colormath
+from DisplayCAL import config
+from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import localization as lang
+from DisplayCAL import x3dom
+from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     defaults,
     fs_enc,
@@ -20,6 +26,17 @@ from DisplayCAL.config import (
     setcfg,
     writecfg,
 )
+from DisplayCAL.icc_profile import (
+    CurveType,
+    GAMUT_VOLUME_SRGB,
+    GAMUT_VOLUME_ADOBERGB,
+    GAMUT_VOLUME_SMPTE431_P3,
+    ICCProfile,
+    ICCProfileInvalidError,
+    NamedColor2Type,
+    ParametricCurveType,
+    VideoCardGammaType,
+)
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort
@@ -30,9 +47,7 @@ from DisplayCAL.util_str import strtr, universal_newlines, wrap
 from DisplayCAL.worker import (
     Error,
     UnloggedError,
-    check_set_argyll_bin,
     get_argyll_util,
-    make_argyll_compatible_path,
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
@@ -51,12 +66,6 @@ from DisplayCAL.wxwindows import (
     TwoWaySplitter,
 )
 from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel, set_maxsize
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import wxenhancedplot as plot
-from DisplayCAL import localization as lang
-from DisplayCAL import ICCProfile as ICCP
-from DisplayCAL import x3dom
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -288,7 +297,7 @@ class GamutCanvas(LUTCanvas):
                 profile
                 and profile.profileClass == b"nmcl"
                 and "ncl2" in profile.tags
-                and isinstance(profile.tags.ncl2, ICCP.NamedColor2Type)
+                and isinstance(profile.tags.ncl2, NamedColor2Type)
                 and profile.connectionColorSpace in (b"Lab", b"XYZ")
             ):
                 # Named color profile
@@ -423,7 +432,7 @@ class GamutCanvas(LUTCanvas):
 
         if not profiles:
             profiles = [
-                ICCP.ICCProfile(get_data_path("ref/sRGB.icm")),
+                ICCProfile(get_data_path("ref/sRGB.icm")),
                 get_display_profile(),
             ]
 
@@ -459,7 +468,7 @@ class GamutCanvas(LUTCanvas):
             if (
                 profile.profileClass == b"nmcl"
                 and "ncl2" in profile.tags
-                and isinstance(profile.tags.ncl2, ICCP.NamedColor2Type)
+                and isinstance(profile.tags.ncl2, NamedColor2Type)
                 and profile.connectionColorSpace in (b"Lab", b"XYZ")
             ):
                 for k in profile.tags.ncl2:
@@ -809,7 +818,7 @@ class GamutViewOptions(wx_Panel):
         self.comparison_profiles = dict([(lang.getstr("calibration.file.none"), None)])
         srgb = None
         try:
-            srgb = ICCP.ICCProfile(get_data_path("ref/sRGB.icm"))
+            srgb = ICCProfile(get_data_path("ref/sRGB.icm"))
         except EnvironmentError:
             pass
         except Exception as exception:
@@ -941,7 +950,7 @@ class GamutViewOptions(wx_Panel):
 
     def comparison_profile_drop_handler(self, path):
         try:
-            profile = ICCP.ICCProfile(path)
+            profile = ICCProfile(path)
         except Exception as exception:
             show_result_dialog(exception, self.TopLevelParent)
         else:
@@ -1444,7 +1453,7 @@ class ProfileInfoFrame(LUTFrame):
             self.client.SetEnableGrid(False)
             self.client.SetEnablePointLabel(True)
             if (
-                isinstance(self.profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                isinstance(self.profile.tags.get("vcgt"), VideoCardGammaType)
                 or (self.rTRC and self.gTRC and self.bTRC)
                 or ("B2A0" in self.profile.tags or "A2B0" in self.profile.tags)
             ):
@@ -1456,10 +1465,10 @@ class ProfileInfoFrame(LUTFrame):
         self.splitter.GetTopLeft().Refresh()
 
     def LoadProfile(self, profile, reset=True):
-        if not isinstance(profile, ICCP.ICCProfile):
+        if not isinstance(profile, ICCProfile):
             try:
-                profile = ICCP.ICCProfile(profile)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(profile)
+            except (IOError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
@@ -1482,9 +1491,9 @@ class ProfileInfoFrame(LUTFrame):
                     pass
 
             gamuts = (
-                ("srgb", "sRGB", ICCP.GAMUT_VOLUME_SRGB),
-                ("adobe-rgb", "Adobe RGB", ICCP.GAMUT_VOLUME_ADOBERGB),
-                ("dci-p3", "DCI P3", ICCP.GAMUT_VOLUME_SMPTE431_P3),
+                ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
+                ("adobe-rgb", "Adobe RGB", GAMUT_VOLUME_ADOBERGB),
+                ("dci-p3", "DCI P3", GAMUT_VOLUME_SMPTE431_P3),
             )
             for key, name, _volume in gamuts:
                 try:
@@ -1509,7 +1518,7 @@ class ProfileInfoFrame(LUTFrame):
             if gamut_volume:
                 for _key, name, volume in gamuts:
                     vinfo.append(
-                        f"{gamut_volume * ICCP.GAMUT_VOLUME_SRGB / volume * 100:.1f}% {name}"
+                        f"{gamut_volume * GAMUT_VOLUME_SRGB / volume * 100:.1f}% {name}"
                     )
                     if len(vinfo) == len(cinfo):
                         break
@@ -1520,7 +1529,7 @@ class ProfileInfoFrame(LUTFrame):
 
         for channel in "rgb":
             trc = profile.tags.get(f"{channel}TRC", profile.tags.get("kTRC"))
-            if isinstance(trc, ICCP.ParametricCurveType):
+            if isinstance(trc, ParametricCurveType):
                 trc = trc.get_trc()
             setattr(self, f"{channel}TRC", trc)
             setattr(self, f"tf_{channel}TRC", trc)
@@ -1538,9 +1547,9 @@ class ProfileInfoFrame(LUTFrame):
             "B2A0" in profile.tags or "A2B0" in profile.tags
         )
         self.gamut_view_options.toggle_clut.Enable(
-            isinstance(self.rTRC, ICCP.CurveType)
-            and isinstance(self.gTRC, ICCP.CurveType)
-            and isinstance(self.bTRC, ICCP.CurveType)
+            isinstance(self.rTRC, CurveType)
+            and isinstance(self.gTRC, CurveType)
+            and isinstance(self.bTRC, CurveType)
         )
         self.toggle_clut.SetValue("B2A0" in profile.tags or "A2B0" in profile.tags)
 
@@ -2009,8 +2018,8 @@ class ProfileInfoFrame(LUTFrame):
             if result != wx.ID_OK:
                 return
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{path}"), self
                 )

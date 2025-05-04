@@ -12,28 +12,34 @@ from urllib.error import URLError
 
 import pytest
 
-from DisplayCAL import ICCProfile, CGATS
 from DisplayCAL import config
-from DisplayCAL.dev.mocks import check_call_str
-from DisplayCAL.worker import (
-    get_argyll_version_string,
+from DisplayCAL.argyll import (
+    get_argyll_latest_version,
+    get_argyll_util,
     make_argyll_compatible_path,
-    Worker,
-    add_keywords_to_cgats,
-    check_create_dir,
-    check_cal_isfile,
-    check_profile_isfile,
-    check_file_isfile,
-    check_ti3_criteria1,
 )
-from DisplayCAL.argyll import get_argyll_latest_version, get_argyll_util
+from DisplayCAL.cgats import CGATS
+from DisplayCAL.config import initcfg, setcfg
+from DisplayCAL.dev.mocks import check_call_str
+from DisplayCAL.icc_profile import ICCProfile
+from DisplayCAL.meta import DOMAIN
+from DisplayCAL.worker import (
+    add_keywords_to_cgats,
+    check_cal_isfile,
+    check_create_dir,
+    check_file_isfile,
+    check_profile_isfile,
+    check_ti3_criteria1,
+    get_argyll_version_string,
+    get_options_from_profile,
+    Sudo,
+    Worker,
+)
 from tests.data.display_data import DisplayData
 
 
 def test_get_options_from_profile_1(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function"""
-    from DisplayCAL.worker import get_options_from_profile
-
     profile_path = data_files[
         "UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"
     ].absolute()
@@ -56,8 +62,6 @@ def test_get_options_from_profile_1(data_files):
 
 def test_get_options_from_profile_2(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function, for #69"""
-    from DisplayCAL.worker import get_options_from_profile
-
     profile_path = data_files["SW271 PM PenalNative_KB1_160_2022-03-17.icc"].absolute()
     options = get_options_from_profile(profile=profile_path)
     assert options == ([], [])  # no options on that profile
@@ -112,7 +116,7 @@ def test_worker_instrument_supports_css_1():
 def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     """Test Worker.generate_B2A_from_inverse_table() method"""
     worker = Worker()
-    icc_profile1 = ICCProfile.ICCProfile(
+    icc_profile1 = ICCProfile(
         profile=data_files[
             "Monitor 1 #1 2022-03-09 16-13 D6500 2.2 F-S XYZLUT+MTX.icc"
         ].absolute()
@@ -122,29 +126,14 @@ def test_generate_b2a_from_inverse_table(data_files, setup_argyll):
     assert result is True
 
 
-def test_get_argyll_version_1(setup_argyll):
-    """Test worker.get_argyll_version() function."""
-    from DisplayCAL.worker import get_argyll_version
-
-    with check_call_str("DisplayCAL.worker.base_get_argyll_version_string", "2.3.0"):
-        result = get_argyll_version("ccxxmake")
-    expected_result = [2, 3, 0]
-    assert result == expected_result
-
-
 def test_sudo_class_initialization():
     """Test worker.Sudo class initialization"""
-    from DisplayCAL.worker import Sudo
-
     sudo = Sudo()
     assert sudo is not None
 
 
 def test_download_method_1():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/i1d3"
     result = worker.download(uri)
@@ -153,9 +142,6 @@ def test_download_method_1():
 
 def test_download_method_2():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/i1d3"
     result = worker.download(uri, force=True)
@@ -164,9 +150,6 @@ def test_download_method_2():
 
 def test_download_method_3():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/spyd2"
     result = worker.download(uri)
@@ -175,9 +158,6 @@ def test_download_method_3():
 
 def test_download_method_4():
     """Test Worker.download() method."""
-    from DisplayCAL.meta import DOMAIN
-    from DisplayCAL.worker import Worker
-
     worker = Worker()
     uri = f"https://{DOMAIN}/spyd2"
     result = worker.download(uri, force=True)
@@ -186,9 +166,6 @@ def test_download_method_4():
 
 def test_get_display_name_1():
     """Testing Worker.get_display_name() method."""
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg, setcfg
-
     initcfg()
     setcfg("display.number", 1)
     worker = Worker()
@@ -198,9 +175,6 @@ def test_get_display_name_1():
 
 def test_get_pwd():
     """Testing Worker.get_display_name() method."""
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg
-
     initcfg()
     worker = Worker()
     test_value = "test_value"
@@ -211,8 +185,6 @@ def test_get_pwd():
 def test_update_profile_1(random_icc_profile):
     """Testing Worker.update_profile() method."""
     from DisplayCAL import worker
-    from DisplayCAL.worker import Worker
-    from DisplayCAL.config import initcfg
 
     worker.dbus_session = None
     worker.dbus_system = None
@@ -229,8 +201,6 @@ def test_update_profile_1(random_icc_profile):
 def test_exec_cmd_1():
     """Test worker.exec_cmd() function for issue #73"""
     # Command line:
-    from DisplayCAL.worker import Worker
-
     cmd = "/home/eoyilmaz/.local/bin/Argyll_V2.3.0/bin/colprof"
     args = [
         "-v",
@@ -252,8 +222,6 @@ def test_exec_cmd_1():
 
 def test_is_allowed_1():
     """Test Sudo.is_allowed() function for issue #76"""
-    from DisplayCAL.worker import Sudo
-
     sudo = Sudo()
     result = sudo.is_allowed()
     assert result != ""
@@ -265,15 +233,14 @@ def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
     profile_path = data_files[
         "UP2516D #1 2022-03-23 16-06 D6500 2.2 F-S XYZLUT+MTX.icc"
     ].absolute()
-    from DisplayCAL import config, ICCProfile
 
-    ti3_cgat = CGATS.CGATS(ti3_path)
-    icc_profile = ICCProfile.ICCProfile(profile_path)
+    ti3_cgat = CGATS(ti3_path)
+    icc_profile = ICCProfile(profile_path)
     config.initcfg()
     worker = Worker()
     ti1, ti3v = worker.ti3_lookup_to_ti1(ti3_cgat, icc_profile)
-    assert isinstance(ti1, CGATS.CGATS)
-    assert isinstance(ti3v, CGATS.CGATS)
+    assert isinstance(ti1, CGATS)
+    assert isinstance(ti3v, CGATS)
     assert ti1 == {
         0: {
             "COLOR_REP": b"RGB",
@@ -381,7 +348,7 @@ def test_ti3_lookup_to_ti1_1(data_files, setup_argyll):
 def test_add_keywords_to_cgats(data_files) -> None:
     """Test if keywords are added to cgats by add_keywords_to_cgats."""
     path = data_files["0_16.ti3"].absolute()
-    cgats = CGATS.CGATS(cgats=path)
+    cgats = CGATS(cgats=path)
     assert "keyword" not in cgats[0]
     options = {"keyword": "Value"}
     alternated_cgats = add_keywords_to_cgats(cgats, options)
@@ -588,6 +555,115 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
             "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
         )
 
-    monkeypatch.setattr("DisplayCAL.worker.urllib.request.urlopen", patched_urlopen)
+    monkeypatch.setattr("DisplayCAL.argyll.urllib.request.urlopen", patched_urlopen)
+    # print(dir(get_argyll_latest_version))
+    # clear the cache
+    get_argyll_latest_version.cache_clear()
     result = get_argyll_latest_version()
     assert result == config.defaults.get("argyll.version")
+    # assert False
+
+
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true" and sys.platform == "linux",
+    reason="Not working properly on GitHub on Linux machines.",
+)
+def test_get_technology_strings_returns_dict(setup_argyll):
+    """Test get_technology_strings() returns a dict."""
+    worker = Worker()
+    result = worker.get_technology_strings()
+    assert isinstance(result, dict)
+
+
+def test_get_technology_strings_without_argyll_returns_from_argyll_17():
+    """Test get_technology_strings() returns a dictionary from argyll 1.7."""
+    get_argyll_latest_version.cache_clear()
+    worker = Worker()
+    worker.argyll_version = [0, 0, 0]
+
+    result = worker.get_technology_strings()
+    assert result == {
+        "c": "CRT",
+        "m": "Plasma",
+        "l": "LCD",
+        "1": "LCD CCFL",
+        "2": "LCD CCFL IPS",
+        "3": "LCD CCFL VPA",
+        "4": "LCD CCFL TFT",
+        "L": "LCD CCFL Wide Gamut",
+        "5": "LCD CCFL Wide Gamut IPS",
+        "6": "LCD CCFL Wide Gamut VPA",
+        "7": "LCD CCFL Wide Gamut TFT",
+        "e": "LCD White LED",
+        "8": "LCD White LED IPS",
+        "9": "LCD White LED VPA",
+        "d": "LCD White LED TFT",
+        "b": "LCD RGB LED",
+        "f": "LCD RGB LED IPS",
+        "g": "LCD RGB LED VPA",
+        "i": "LCD RGB LED TFT",
+        "h": "LCD RG Phosphor",
+        "j": "LCD RG Phosphor IPS",
+        "k": "LCD RG Phosphor VPA",
+        "n": "LCD RG Phosphor TFT",
+        "o": "LED OLED",
+        "a": "LED AMOLED",
+        "p": "DLP Projector",
+        "q": "DLP Projector RGB Filter Wheel",
+        "r": "DPL Projector RGBW Filter Wheel",
+        "s": "DLP Projector RGBCMY Filter Wheel",
+        "u": "Unknown",
+    }
+
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true" and sys.platform == "linux",
+    reason="Not working properly on GitHub on Linux machines.",
+)
+def test_get_technology_strings_with_argyll_returns_expected_data(setup_argyll):
+    """Test get_technology_strings() returns a dict with correct data."""
+    get_argyll_latest_version.cache_clear()
+    worker = Worker()
+    assert worker.argyll_version != [0, 0, 0]
+    result = worker.get_technology_strings()
+    expected = {
+        "c": "CRT",
+        "m": "Plasma",
+        "l": "LCD",
+        "1": "LCD CCFL",
+        "2": "LCD CCFL IPS",
+        "3": "LCD CCFL PVA",
+        "4": "LCD CCFL TFT",
+        "L": "LCD CCFL Wide Gamut",
+        "5": "LCD CCFL Wide Gamut IPS",
+        "6": "LCD CCFL Wide Gamut PVA",
+        "7": "LCD CCFL Wide Gamut TFT",
+        "e": "LCD White LED",
+        "8": "LCD White LED IPS",
+        "9": "LCD White LED PVA",
+        "d": "LCD White LED TFT",
+        "b": "LCD RGB LED",
+        "f": "LCD RGB LED IPS",
+        "g": "LCD RGB LED PVA",
+        "j": "LCD RGB LED TFT",
+        "h": "LCD RG Phosphor",
+        "k": "LCD RG Phosphor IPS",
+        "n": "LCD RG Phosphor PVA",
+        "q": "LCD RG Phosphor TFT",
+        "r": "LCD PFS Phosphor",
+        "s": "LCD PFS Phosphor IPS",
+        "t": "LCD PFS Phosphor PVA",
+        "v": "LCD PFS Phosphor TFT",
+        "i": "LCD GB-R Phosphor",
+        "x": "LCD GB-R Phosphor IPS",
+        "y": "LCD GB-R Phosphor PVA",
+        "z": "LCD GB-R Phosphor TFT",
+        "o": "LED OLED",
+        "a": "LED AMOLED",
+        "w": "LED WOLED",
+        "p": "DLP Projector",
+        "A": "DLP Projector RGB Filter Wheel",
+        "B": "DLP Projector RGBW Filter Wheel",
+        "C": "DLP Projector RGBCMY Filter Wheel",
+        "u": "Unknown",
+    }
+    assert result == expected

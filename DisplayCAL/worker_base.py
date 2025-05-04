@@ -19,13 +19,12 @@ if sys.platform == "win32":
 
 
 from DisplayCAL import (
-    CGATS,
-    ICCProfile as ICCP,
     colormath,
     config,
     localization as lang,
 )
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.colormath import (
     VidRGB_to_cLUT65,
     VidRGB_to_eeColor,
@@ -45,6 +44,10 @@ from DisplayCAL.debughelpers import (
     # UnloggedInfo,
     # UnloggedWarning,
     # Warn,
+)
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    LUT16Type,
 )
 from DisplayCAL.log import LogFile
 from DisplayCAL.meta import name as appname
@@ -80,7 +83,7 @@ def _mp_xicclu(
 ):
     if not config.cfg.items(config.configparser.DEFAULTSECT):
         config.initcfg()
-    profile = ICCP.ICCProfile(profile_filename)
+    profile = ICCProfile(profile_filename)
     xicclu = Xicclu(
         profile,
         intent,
@@ -161,7 +164,7 @@ def _mp_generate_B2A_clut(
         config.initcfg()
     idata = []
     abmaxval = 255 + (255 / 256.0)
-    profile = ICCP.ICCProfile(profile_filename)
+    profile = ICCProfile(profile_filename)
     xicclu1 = Xicclu(profile, intent, direction, "n", pcs, 100)
     xicclu2 = xicclu1
     if use_cam_clipping:
@@ -443,12 +446,12 @@ class Xicclu(WorkerBase):
         xicclu = get_argyll_util(utilname)
         if not xicclu:
             raise Error(lang.getstr("argyll.util.not_found", utilname))
-        if not isinstance(profile, (CGATS.CGATS, ICCP.ICCProfile)):
+        if not isinstance(profile, (CGATS, ICCProfile)):
             if profile.lower().endswith(".cal"):
-                profile = CGATS.CGATS(profile)
+                profile = CGATS(profile)
             else:
-                profile = ICCP.ICCProfile(profile)
-        is_profile = isinstance(profile, ICCP.ICCProfile)
+                profile = ICCProfile(profile)
+        is_profile = isinstance(profile, ICCProfile)
         if (
             is_profile
             and profile.version >= 4
@@ -543,7 +546,7 @@ class Xicclu(WorkerBase):
                 profile_basename + ".xicclu", os.path.dirname(profile.fileName)
             )
             if is_profile:
-                profile_act = ICCP.ICCProfile(profile.fileName)
+                profile_act = ICCProfile(profile.fileName)
                 self.sessionlogfile.write(
                     "Profile ID %s (actual %s)"
                     % (hexlify(profile.ID), hexlify(profile_act.calculateID(False)))
@@ -677,13 +680,13 @@ class Xicclu(WorkerBase):
         self.errors = self.stderr.readlines()
         self.stderr.close()
         if self.sessionlogfile and self.errors:
-            self.sessionlogfile.write("\n".join(self.errors))
+            self.sessionlogfile.write(b"\n".join(self.errors))
         if self.logfile:
-            self.logfile.write("\n")
+            self.logfile.write(b"\n")
         self.closed = True
         if p.returncode and raise_exception:
             # Error
-            raise IOError("\n".join(self.errors))
+            raise IOError(b"\n".join(self.errors))
 
     def exit(self, raise_exception=True):
         self.close(raise_exception)
@@ -837,7 +840,7 @@ class MP_Xicclu(Xicclu):
         )
         self._out = []
         num_cpus = mp.cpu_count()
-        if isinstance(profile.tags.get("A2B0"), ICCP.LUT16Type):
+        if isinstance(profile.tags.get("A2B0"), LUT16Type):
             size = profile.tags.A2B0.clut_grid_steps
             self.num_workers = min(max(num_cpus, 1), size)
             if num_cpus > 2:

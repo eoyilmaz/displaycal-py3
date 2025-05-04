@@ -5,8 +5,6 @@ import os
 from time import gmtime, strftime
 
 from DisplayCAL import (
-    CGATS,
-    ICCProfile as ICCP,
     config,
     localization as lang,
     worker,
@@ -15,7 +13,29 @@ from DisplayCAL import (
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
-from DisplayCAL.config import get_data_path, getcfg, geticon, hascfg, initcfg, setcfg
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
+)
+from DisplayCAL.config import (
+    get_data_path,
+    getcfg,
+    geticon,
+    hascfg,
+    initcfg,
+    setcfg,
+)
+from DisplayCAL.icc_profile import (
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    LUT16Type,
+    XYZType,
+)
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_str import strtr
@@ -313,14 +333,14 @@ class ReportFrame(BaseFrame):
         chart = self.chart_ctrl.GetPath()
         values = []
         try:
-            cgats = CGATS.CGATS(chart)
+            cgats = CGATS(chart)
         except (
             IOError,
-            CGATS.CGATSInvalidError,
-            CGATS.CGATSInvalidOperationError,
-            CGATS.CGATSKeyError,
-            CGATS.CGATSTypeError,
-            CGATS.CGATSValueError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
         ) as exception:
             show_result_dialog(exception, self)
         else:
@@ -495,8 +515,8 @@ class ReportFrame(BaseFrame):
                 return
             if not profile:
                 try:
-                    profile = ICCP.ICCProfile(path)
-                except (IOError, ICCP.ICCProfileInvalidError):
+                    profile = ICCProfile(path)
+                except (IOError, ICCProfileInvalidError):
                     if not silent:
                         show_result_dialog(
                             Error(
@@ -802,10 +822,10 @@ class ReportFrame(BaseFrame):
         )
         enable5 = (
             sim_profile_color == "RGB"
-            and isinstance(self.simulation_profile.tags.get("rXYZ"), ICCP.XYZType)
-            and isinstance(self.simulation_profile.tags.get("gXYZ"), ICCP.XYZType)
-            and isinstance(self.simulation_profile.tags.get("bXYZ"), ICCP.XYZType)
-            and not isinstance(self.simulation_profile.tags.get("A2B0"), ICCP.LUT16Type)
+            and isinstance(self.simulation_profile.tags.get("rXYZ"), XYZType)
+            and isinstance(self.simulation_profile.tags.get("gXYZ"), XYZType)
+            and isinstance(self.simulation_profile.tags.get("bXYZ"), XYZType)
+            and not isinstance(self.simulation_profile.tags.get("A2B0"), LUT16Type)
         )
         # print(enable5, self.XYZbpin, self.XYZbpout)
         self.mr_trc_label.Show(enable1 and enable5)
@@ -1061,7 +1081,7 @@ class ReportFrame(BaseFrame):
                 and sim_profile.tags.rTRC
                 == sim_profile.tags.gTRC
                 == sim_profile.tags.bTRC
-                and isinstance(sim_profile.tags.rTRC, ICCP.CurveType)
+                and isinstance(sim_profile.tags.rTRC, CurveType)
             ):
                 tf = sim_profile.tags.rTRC.get_transfer_function(outoffset=1.0)
                 if update_trc or self.XYZbpin == self.XYZbpout:

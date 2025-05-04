@@ -6,11 +6,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import CGATS
+from DisplayCAL.cgats import CGATS
 
 
 def main(calfilename, caloutfilename, r_max, g_max, b_max):
-    cal = CGATS.CGATS(calfilename)
+    cal = CGATS(calfilename)
     for values in cal[0].DATA.itervalues():
         for label in "RGB":
             values["RGB_" + label] *= float(locals()[label.lower() + "_max"])

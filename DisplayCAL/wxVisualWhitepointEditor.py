@@ -15,7 +15,6 @@ from math import atan2, cos, pi, sin, sqrt
 from time import sleep
 
 from DisplayCAL import (
-    ICCProfile as ICCP,
     localization as lang,
 )
 from DisplayCAL.config import (
@@ -31,6 +30,13 @@ from DisplayCAL.config import (
     initcfg,
     profile_ext,
     setcfg,
+)
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileInvalidError,
+    get_display_profile,
+    VideoCardGammaType,
+    WcsProfilesTagType,
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import intlist
@@ -1535,7 +1541,7 @@ class ProfileManager:
         self._display = window.GetDisplay()
         self._lock = threading.Lock()
         self._profiles = {}
-        self._srgb_profile = ICCP.ICCProfile.from_named_rgb_space("sRGB")
+        self._srgb_profile = ICCProfile.from_named_rgb_space("sRGB")
         self._srgb_profile.setDescription(
             f"{appname} Visual Whitepoint Editor Temporary Profile"
         )
@@ -1555,8 +1561,8 @@ class ProfileManager:
         # Has to be thread-safe!
         with self._lock:
             try:
-                display_profile = ICCP.get_display_profile(display_no)
-            except (ICCP.ICCProfileInvalidError, IOError, IndexError) as exception:
+                display_profile = get_display_profile(display_no)
+            except (ICCProfileInvalidError, IOError, IndexError) as exception:
                 print(
                     "Could not get display profile for display %i" % (display_no + 1),
                     "@ %i, %i, %ix%i:" % geometry,
@@ -1572,11 +1578,11 @@ class ProfileManager:
                     # profile (if present) to VideCardGammaType if the
                     # latter is not present
                     if (
-                        isinstance(profile.tags.get("MS00"), ICCP.WcsProfilesTagType)
+                        isinstance(profile.tags.get("MS00"), WcsProfilesTagType)
                         and "vcgt" not in profile.tags
                     ):
                         profile.tags["vcgt"] = profile.tags["MS00"].get_vcgt()
-                    if isinstance(profile.tags.get("vcgt"), ICCP.VideoCardGammaType):
+                    if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
                         values = profile.tags.vcgt.getNormalizedValues()
                         RGB = []
                         for i in range(3):

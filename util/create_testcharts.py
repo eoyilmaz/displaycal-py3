@@ -7,7 +7,8 @@ import sys
 root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(root)
 
-from DisplayCAL import config, ICCProfile as ICCP, localization as lang, meta
+from DisplayCAL import config, localization as lang, meta
+from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.worker import Worker, check_argyll_bin, get_argyll_util
 
 
@@ -15,7 +16,7 @@ def create_testcharts(overwrite=False):
     min_bcc_steps, max_bcc_steps = 7, 11
     # Profile, amount of dark region emphasis
     precond = {
-        "eRGBv2": (ICCP.ICCProfile("eciRGB_v2.icc").fileName, 1.0),
+        "eRGBv2": (ICCProfile("eciRGB_v2.icc").fileName, 1.0),
         "aRGB": (config.get_data_path("ref/ClayRGB1998.icm"), 1.6),
         "Rec709_Gamma22": (config.get_data_path("ref/Rec709_Gamma22.icm"), 1.6),
         "sRGB": (config.get_data_path("ref/sRGB.icm"), 1.6),

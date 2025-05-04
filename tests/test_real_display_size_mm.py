@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from DisplayCAL import RealDisplaySizeMM, config
+from DisplayCAL import RealDisplaySizeMM, argyll, config
 from DisplayCAL.dev.mocks import check_call
 from tests.data.display_data import DisplayData
 
@@ -280,11 +280,14 @@ def test_get_dispwin_output_dispwin_path_is_none_returns_empty_bytes(
     ]
 )
 def test_get_dispwin_output_returns_dispwin_output_as_bytes(
-    clear_displays, data_files, patch_subprocess, dispwin_data_file_name
+    clear_displays, data_files, patch_subprocess_on_rdsmm, dispwin_data_file_name
 ):
     """get_dispwin_output() returns bytes."""
     # patch dispwin
     with open(data_files[dispwin_data_file_name], "rb") as dispwin_data_file:
         dispwin_data = dispwin_data_file.read()
-    patch_subprocess.output["dispwin-v-d0"] = dispwin_data
-    assert isinstance(RealDisplaySizeMM.get_dispwin_output(), bytes)
+    dispwin_path = argyll.get_argyll_util("dispwin")
+    patch_subprocess_on_rdsmm.output[f"{dispwin_path}-v-d0"] = dispwin_data
+
+    result = RealDisplaySizeMM.get_dispwin_output()
+    assert isinstance(result, bytes)

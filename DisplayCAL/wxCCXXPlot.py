@@ -5,16 +5,16 @@ import os
 import sys
 
 from DisplayCAL import (
-    CGATS,
-    ICCProfile as ICCP,
     colormath,
     config,
     localization as lang,
     wxenhancedplot as plot,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
+from DisplayCAL.icc_profile import CRInterpolation
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
@@ -139,7 +139,7 @@ class CCXXPlot(wx.Frame):
                     worker.wrapup(False)
                 else:
                     try:
-                        cgats = CGATS.CGATS(temp_out_path)
+                        cgats = CGATS(temp_out_path)
                     except Exception as exception:
                         show_result_dialog(exception, parent)
                     finally:
@@ -187,7 +187,7 @@ class CCXXPlot(wx.Frame):
                     # Interpolate if lores. Use Catmull-Rom instead of
                     # PolySpline as we want curves to go through points exactly
                     numvalues = len(values)
-                    interp = ICCP.CRInterpolation(values)
+                    interp = CRInterpolation(values)
                     values = []
                     for i in range(steps):
                         values.append(

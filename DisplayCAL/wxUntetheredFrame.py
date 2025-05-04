@@ -8,7 +8,7 @@ import re
 import sys
 import time
 
-from DisplayCAL.wxaddons import wx
+from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import (
     getbitmap,
     getcfg,
@@ -20,6 +20,7 @@ from DisplayCAL.config import (
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, test, verbose
+from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -32,7 +33,6 @@ from DisplayCAL.wxwindows import (
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import CGATS
 from DisplayCAL import audio
 from DisplayCAL import colormath
 from DisplayCAL import config
@@ -757,8 +757,8 @@ if __name__ == "__main__":
     from _thread import start_new_thread
     from time import sleep
     import random
+    from DisplayCAL.icc_profile import ICCProfile
     from DisplayCAL.util_io import Files
-    from DisplayCAL import ICCProfile as ICCP
     from DisplayCAL import worker
 
     class Subprocess:
@@ -795,13 +795,13 @@ if __name__ == "__main__":
     testchart = getcfg("testchart.file")
     if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
         try:
-            testchart = ICCP.ICCProfile(testchart).tags.targ
+            testchart = ICCProfile(testchart).tags.targ
         except Exception:
             pass
     try:
-        app.TopWindow.cgats = CGATS.CGATS(testchart)
+        app.TopWindow.cgats = CGATS(testchart)
     except Exception:
-        app.TopWindow.cgats = CGATS.CGATS(
+        app.TopWindow.cgats = CGATS(
             """TI1
 BEGIN_DATA_FORMAT
 SAMPLE_ID RGB_R RGB_G RGB_B XYZ_X XYZ_Y XYZ_Z

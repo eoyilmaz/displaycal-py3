@@ -72,20 +72,20 @@ def setup_argyll():
     This will search for ArgyllCMS binaries under ``.local/bin/Argyll*/bin`` and if it
     can not find it, it will download from the source.
     """
-    # check if ArgyllCMS is already installed
-    xicclu_path = which("xicclu")
-    if xicclu_path:
-        # ArgyllCMS is already installed
-        argyll_path = pathlib.Path(xicclu_path).parent
-        setcfg("argyll.dir", str(argyll_path.absolute()))
-        argyll_version_string = get_argyll_version_string("xicclu", True, [str(argyll_path)])
-        argyll_version = parse_argyll_version_string(argyll_version_string)
-        print(f"argyll_version_string: {argyll_version_string}")
-        print(f"argyll_version: {argyll_version}")
-        setcfg("argyll.version", argyll_version_string)
-        writecfg()
-        yield argyll_path
-        return
+    # # check if ArgyllCMS is already installed
+    # xicclu_path = which("xicclu")
+    # if xicclu_path:
+    #     # ArgyllCMS is already installed
+    #     argyll_path = pathlib.Path(xicclu_path).parent
+    #     setcfg("argyll.dir", str(argyll_path.absolute()))
+    #     argyll_version_string = get_argyll_version_string("xicclu", True, [str(argyll_path)])
+    #     argyll_version = parse_argyll_version_string(argyll_version_string)
+    #     print(f"argyll_version_string: {argyll_version_string}")
+    #     print(f"argyll_version: {argyll_version}")
+    #     setcfg("argyll.version", argyll_version_string)
+    #     writecfg()
+    #     yield argyll_path
+    #     return
 
     # first look in to ~/local/bin/ArgyllCMS
     home = pathlib.Path().home()

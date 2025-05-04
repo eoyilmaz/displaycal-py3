@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger()
 
 
-class Structure(object):
+class Structure:
     def __init__(self):
         size = self._sizeInBytes = struct.calcsize(self._format_)
         self._fields_ = list(struct.unpack(self._format_, '\000' * size))

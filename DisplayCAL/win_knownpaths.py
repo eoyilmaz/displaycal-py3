@@ -54,7 +54,7 @@ class GUID(ctypes.Structure):  # [1]
             self.Data4[i] = rest >> (8 - i - 1) * 8 & 0xFF
 
 
-class FOLDERID(object):  # [2]
+class FOLDERID:  # [2]
     AccountPictures = UUID("{008ca0b1-55b4-4c56-b8a8-4de4b299d3be}")
     AdminTools = UUID("{724EF170-A42D-4FEF-9F26-B60E846FBA4F}")
     ApplicationShortcuts = UUID("{A3918781-E5F2-4890-B3D9-A7E54332328C}")
@@ -151,7 +151,7 @@ class FOLDERID(object):  # [2]
     Windows = UUID("{F38BF404-1D43-42F2-9305-67DE0B28FC23}")
 
 
-class UserHandle(object):  # [3]
+class UserHandle:  # [3]
     current = wintypes.HANDLE(0)
     common = wintypes.HANDLE(-1)
 

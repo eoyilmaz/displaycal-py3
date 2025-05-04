@@ -309,7 +309,7 @@ def trunc(value, length):
     return repr(value)
 
 
-class H3DLUT(object):
+class H3DLUT:
     """3D LUT file format used by madVR"""
 
     # https://sourceforge.net/projects/thr3dlut
@@ -562,7 +562,7 @@ class H3DLUT(object):
             stream.close()
 
 
-class MadTPGBase(object):
+class MadTPGBase:
     """Generic pattern generator compatibility layer"""
 
     def wait(self):
@@ -1774,7 +1774,7 @@ class MadTPG_Net(MadTPGBase):
         return "%s:%s" % (addr or ("0.0.0.0", 0))
 
 
-class MadTPG_Net_Sender(object):
+class MadTPG_Net_Sender:
     def __init__(self, madtpg, conn, command):
         self.madtpg = madtpg
         self._conn = conn

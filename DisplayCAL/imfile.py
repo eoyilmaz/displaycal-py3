@@ -105,7 +105,7 @@ def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, format=None):
     write(clut, stream_or_filename, bitdepth, format)
 
 
-class Image(object):
+class Image:
     """Write 8 or 16 bit image files in DPX, PNG or TIFF format.
 
     Writing of single color images is highly optimized when using a single

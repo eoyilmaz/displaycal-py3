@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class Cube3D(object):
+class Cube3D:
     def __init__(self, size=65, start=0, end=None):
         orange = start, end
         numentries = size**3

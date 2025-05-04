@@ -130,7 +130,7 @@ def convert_to_list_of_tuples(iterable):
 # and Python 2.6 compatibility
 
 
-class DisplaySide(object):
+class DisplaySide:
     """Generic class for describing which sides of a box are displayed.
 
     Used for fine-tuning the axis, ticks, and values of a graph.
@@ -224,7 +224,7 @@ class DisplaySide(object):
 
 # TODO: replace with wx.DCPenChanger/wx.DCBrushChanger, etc.
 #       Alternatively, replace those with this function...
-class TempStyle(object):
+class TempStyle:
     """Decorator / Context Manager to revert pen or brush changes.
 
     Will revert pen, brush, or both to their previous values after a method

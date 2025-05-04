@@ -1264,7 +1264,7 @@ def parse_whereis_output(stdout: bytes) -> Dict:
     return result
 
 
-class FileLock(object):
+class FileLock:
     """A context manager for file locking.
 
     Args:

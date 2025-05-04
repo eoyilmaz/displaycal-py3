@@ -1388,7 +1388,7 @@ DEFAULT_PRECISION = 2
 # This only has effect at compile-time.
 
 
-class FixedPoint(object):
+class FixedPoint:
     """FixedPoint objects support decimal arithmetic with a fixed number of
     digits (called the object's precision) after the decimal point.  The
     number of digits before the decimal point is variable & unbounded.

@@ -57,7 +57,7 @@ def _shutdown(sock, addr):
     sock.close()
 
 
-class GenHTTPPatternGeneratorClient(object):
+class GenHTTPPatternGeneratorClient:
     """Generic pattern generator client using HTTP REST interface"""
 
     def __init__(self, host, port, bits, use_video_levels=False, logfile=None):
@@ -126,7 +126,7 @@ class GenHTTPPatternGeneratorClient(object):
         # raise NotImplementedError
 
 
-class GenTCPSockPatternGeneratorServer(object):
+class GenTCPSockPatternGeneratorServer:
     """Generic pattern generator server using TCP sockets"""
 
     def __init__(self, port, bits, use_video_levels=False, logfile=None):

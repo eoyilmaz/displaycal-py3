@@ -87,7 +87,7 @@ except AttributeError as exception:
     raise ImportError("libXrandr: %s" % exception)
 
 
-class XDisplay(object):
+class XDisplay:
     def __init__(self, name=None):
         self.name = name or os.getenv("DISPLAY")
 

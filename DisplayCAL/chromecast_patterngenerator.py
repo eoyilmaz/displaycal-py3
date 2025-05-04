@@ -80,7 +80,7 @@ class ChromeCastPatternGeneratorController(BaseController):
         )
 
 
-class ChromeCastPatternGenerator(object):
+class ChromeCastPatternGenerator:
     def __init__(self, name, logfile=None):
         self._controller = ChromeCastPatternGeneratorController()
         self.name = name

@@ -2890,7 +2890,7 @@ def videoCardGamma(tagData, tagSignature):
         return VideoCardGammaFormulaType(tagData, tagSignature)
 
 
-class CRInterpolation(object):
+class CRInterpolation:
     """Catmull-Rom interpolation.
     Curve passes through the points exactly, with neighbouring points influencing curvature.
     points[] should be at least 3 points long.
@@ -3004,7 +3004,7 @@ class LazyLoadTagAODict(AODict):
         return default
 
 
-class ICCProfileTag(object):
+class ICCProfileTag:
     def __init__(self, tagData, tagSignature):
         self.tagData = tagData
         self.tagSignature = tagSignature
@@ -3045,7 +3045,7 @@ class Text(ICCProfileTag, bytes):
         return self.data.decode(fs_enc, errors="replace")
 
 
-class Colorant(object):
+class Colorant:
     def __init__(self, binaryString=b"\0" * 4):
         self._type = uInt32Number(binaryString)
         self._channels = []
@@ -5555,7 +5555,7 @@ class ViewingConditionsType(ICCProfileTag, ADict):
         )
 
 
-class TagData(object):
+class TagData:
     def __init__(self, tagData, offset, size):
         self.tagData = tagData
         self.offset = offset
@@ -5846,7 +5846,7 @@ class chromaticAdaptionTag(colormath.Matrix3x3, s15Fixed16ArrayType):
                 return cat_name
 
 
-class NamedColor2Value(object):
+class NamedColor2Value:
     def __init__(
         self, valueData=b"\0" * 38, deviceCoordCount=0, pcs="XYZ", device="RGB"
     ):
@@ -6119,7 +6119,7 @@ class ICCProfileInvalidError(IOError):
 _iccprofilecache = WeakValueDictionary()
 
 
-class ICCProfile(object):
+class ICCProfile:
     """Returns a new ICCProfile object.
 
     Optionally initialized with a string containing binary profile data or

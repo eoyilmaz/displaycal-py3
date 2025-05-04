@@ -1684,7 +1684,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     return result
 
 
-class EvalFalse(object):
+class EvalFalse:
     """Evaluate to False in boolean comparisons."""
 
     def __init__(self, wrapped_object):
@@ -1697,7 +1697,7 @@ class EvalFalse(object):
         return False
 
 
-class DummyDialog(object):
+class DummyDialog:
     def __init__(self, *args, **kwargs):
         self.is_shown_on_screen = True
 
@@ -1833,7 +1833,7 @@ class FilteredStream:
             self.stream.write(self.linesep_out.join(lines))
 
 
-class Producer(object):
+class Producer:
     """Generic producer."""
 
     def __init__(self, worker, producer, continue_next=False):
@@ -1877,7 +1877,7 @@ class StringWithLengthOverride(UserString):
         return self.length
 
 
-class Sudo(object):
+class Sudo:
     """Determine if a command can be run via sudo"""
 
     def __init__(self):

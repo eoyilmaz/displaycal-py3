@@ -672,7 +672,7 @@ def main_testchart_editor():
     main("testchart-editor")
 
 
-class AppLock(object):
+class AppLock:
     def __init__(self, lockfilename, mode, exclusive=False, blocking=False):
         self._lockfilename = lockfilename
         self._mode = mode
@@ -754,7 +754,7 @@ class AppLock(object):
                 )
 
 
-class AppSocket(object):
+class AppSocket:
     def __init__(self):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

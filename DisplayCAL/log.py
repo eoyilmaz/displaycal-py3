@@ -98,7 +98,7 @@ class DummyLogger:
         pass
 
 
-class Log(object):
+class Log:
     def __call__(self, msg, fn=None):
         """Log a message.
 
@@ -144,7 +144,7 @@ class Log(object):
 log = Log()
 
 
-class LogFile(object):
+class LogFile:
     """Logfile class. Default is to not rotate."""
 
     def __init__(self, filename, logdir, when="never", backupCount=0):

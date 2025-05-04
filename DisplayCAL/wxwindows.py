@@ -5042,7 +5042,7 @@ class CustomCellBoolRenderer(CustomCellRenderer):
         return self._bitmap.Size
 
 
-class CustomColLabelRenderer(object):
+class CustomColLabelRenderer:
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5125,7 +5125,7 @@ class CustomColLabelRenderer(object):
             dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect)
 
 
-class CustomRowLabelRenderer(object):
+class CustomRowLabelRenderer:
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5474,7 +5474,7 @@ class BetterPyGauge(pygauge.PyGauge):
             self._update_step.append((float(value[i]) - v) / (time / 50))
 
 
-class BetterStaticFancyTextBase(object):
+class BetterStaticFancyTextBase:
     def GetLabel(self):
         return self._rawlabel
 

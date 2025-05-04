@@ -1609,7 +1609,7 @@ def setup():
 
         if (
             (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
-        ) and sys.version_info[:2] >= (2, 6):
+        ):
             from vc90crt import name as vc90crt_name, vc90crt_copy_files
 
             if do_py2exe:

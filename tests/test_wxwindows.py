@@ -5,7 +5,7 @@ from DisplayCAL.wxwindows import fancytext_RenderToRenderer
 def test_fancytext_render_to_renderer():
     """Testing DisplayCAL.wxwindows.fancytext_RenderToRenderer()"""
 
-    class FakeRenderer(object):
+    class FakeRenderer:
         def __init__(self):
             self.startElement = None
             self.endElement = None

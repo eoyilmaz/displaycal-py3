@@ -287,7 +287,7 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
         )
 
 
-class ThreadAbort(object):
+class ThreadAbort:
     def __init__(self):
         self.event = mp.Event()
 
@@ -302,7 +302,7 @@ class ThreadAbort(object):
         return 0
 
 
-class WorkerBase(object):
+class WorkerBase:
     def __init__(self):
         """Create and return a new base worker instance."""
         self.sessionlogfile = None

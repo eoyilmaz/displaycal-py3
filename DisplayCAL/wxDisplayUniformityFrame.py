@@ -515,11 +515,11 @@ if __name__ == "__main__":
     from _thread import start_new_thread
     from time import sleep
 
-    class Subprocess(object):
+    class Subprocess:
         def send(self, bytes_):
             start_new_thread(test, (bytes_,))
 
-    class Worker(object):
+    class Worker:
         def __init__(self):
             self.subprocess = Subprocess()
             self.subprocess_abort = False

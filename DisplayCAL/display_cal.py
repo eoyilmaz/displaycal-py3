@@ -1217,13 +1217,13 @@ def webbrowser_open(url, new=False):
         return False
 
 
-class Dummy(object):
+class Dummy:
     """Useful if we need an object to attach arbitrary attributes."""
 
     pass
 
 
-class IncrementingInt(object):
+class IncrementingInt:
     """A integer that increments by `step` each time it is used"""
 
     def __init__(self, start=0, stop=None, step=1):

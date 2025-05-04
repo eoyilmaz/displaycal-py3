@@ -516,7 +516,7 @@ class AuiManager_LRDocking(aui.AuiManager):
         return self.ProcessDockResult(target, drop)
 
 
-class Colour(object):
+class Colour:
     """This is a class similar to :class:`Colour`, which adds Hue, Saturation and
     Brightness capability. It contains also methods to convert RGB triplets
     into HSB triplets and vice-versa.
@@ -1521,7 +1521,7 @@ class NumSpin(wx_Panel):
         self.SetValue(value)
 
 
-class ProfileManager(object):
+class ProfileManager:
     """Manages profiles associated with the display that a window is on.
 
     Clears calibration on the display we're on, and restores it when moved

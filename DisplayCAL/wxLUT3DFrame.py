@@ -62,7 +62,7 @@ from DisplayCAL.wxwindows import (
 from wx import xrc
 
 
-class LUT3DMixin(object):
+class LUT3DMixin:
     """Mixin class that adds some ``lut3d_`` functions to the mixed-in class."""
 
     def lut3d_bind_event_handlers(self):

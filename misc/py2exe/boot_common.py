@@ -40,7 +40,7 @@
 
 import sys
 if sys.frozen == "windows_exe":
-    class Stderr(object):
+    class Stderr:
         encoding = None
         softspace = 0
         _file = None
@@ -67,7 +67,7 @@ if sys.frozen == "windows_exe":
     del sys._MessageBox
     del Stderr
 
-    class Blackhole(object):
+    class Blackhole:
         encoding = None
         softspace = 0
 

@@ -397,7 +397,7 @@ def _find_default():
     return None
 
 
-class _wxPackageInfo(object):
+class _wxPackageInfo:
     def __init__(self, pathname, stripFirst=False):
         self.pathname = pathname
         self.base = os.path.basename(pathname)

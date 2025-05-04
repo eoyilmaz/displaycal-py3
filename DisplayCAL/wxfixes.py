@@ -1158,7 +1158,7 @@ wx.ScrolledWindow = ScrolledWindow
 ScrolledPanel.ScrollChildIntoView = ScrolledWindow.ScrollChildIntoView
 
 
-class GenButton(object):
+class GenButton:
     """A generic button, based on wx.lib.buttons.GenButton.
 
     Fixes wx.lib.buttons.ThemedGenButton not taking into account backgroun
@@ -1614,7 +1614,7 @@ if not hasattr(PlateButton, "_SetState"):
     PlateButton._SetState = PlateButton.SetState
 
 
-class TempXmlResource(object):
+class TempXmlResource:
     _temp = None
 
     def __init__(self, xmlpath):

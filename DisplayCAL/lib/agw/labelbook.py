@@ -383,7 +383,7 @@ class ImageNotebookEvent(wx.PyCommandEvent):
 # ------------------------------------------------------------------------------------ #
 
 
-class ImageInfo(object):
+class ImageInfo:
     """This class stores tab info (caption, image, etc.) for :class:`LabelBook`."""
 
     def __init__(

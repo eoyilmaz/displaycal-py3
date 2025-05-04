@@ -38,7 +38,7 @@ Here is the code for future reference:
     IID_ITaskbarList3 = ctypes.c_char_p(b"{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}")
 
 
-    class Taskbar(object):
+    class Taskbar:
         def __init__(self, frame, maxv=100):
             self.frame = frame
             self.maxv = maxv
@@ -84,7 +84,7 @@ taskbar = cc.CreateObject(
 taskbar.HrInit()
 
 
-class Taskbar(object):
+class Taskbar:
     def __init__(self, frame, maxv=100):
         self.frame = frame
         self.maxv = maxv

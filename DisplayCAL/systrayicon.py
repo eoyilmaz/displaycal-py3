@@ -126,7 +126,7 @@ class Menu(wx.EvtHandler):
         item.Enabled = enable
 
 
-class MenuItem(object):
+class MenuItem:
     def __init__(
         self, menu, id=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
     ):

@@ -156,7 +156,7 @@ Element.getCEByTN = getChildElementsByTagName
 Element.getFCEByTN = getFirstChildElementByTagName
 
 
-class _Hash(object):
+class _Hash:
     def __init__(self):
         self.md5 = md5.new
         self.sha = sha.new
@@ -250,7 +250,7 @@ class ManifestXMLParseError(InvalidManifestError):
     pass
 
 
-class Manifest(object):
+class Manifest:
 
     # Manifests:
     # http://msdn.microsoft.com/en-us/library/aa375365%28VS.85%29.aspx

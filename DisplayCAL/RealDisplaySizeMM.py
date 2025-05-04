@@ -44,7 +44,7 @@ def RealDisplaySizeMM(display_no=0):
     return 0, 0
 
 
-class Display(object):
+class Display:
     """Store information about display."""
 
     def __init__(self):

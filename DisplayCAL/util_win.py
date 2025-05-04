@@ -132,7 +132,7 @@ def _get_icm_display_device_key(devicekey):
     return winreg.CreateKey(winreg.HKEY_CURRENT_USER, subkey)
 
 
-class MSCMSLoader(object):
+class MSCMSLoader:
     """Loader class for MSCMS."""
 
     _windll = None
@@ -706,7 +706,7 @@ def _free_library(handle):
     fn(handle)
 
 
-class UnloadableWinDLL(object):
+class UnloadableWinDLL:
     """WinDLL wrapper that allows unloading."""
 
     def __init__(self, dllname):

@@ -25,7 +25,7 @@ class VRMLParseError(Exception):
     pass
 
 
-class Tag(object):
+class Tag:
     """X3D Tag"""
 
     def __init__(self, tagname, **attributes):

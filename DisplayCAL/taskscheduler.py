@@ -271,7 +271,7 @@ class Task(_Dict2XML):
         )
 
 
-class TaskScheduler(object):
+class TaskScheduler:
     def __init__(self):
         self.__ts = None
         self.stdout = b""

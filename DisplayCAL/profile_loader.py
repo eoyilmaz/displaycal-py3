@@ -1172,7 +1172,7 @@ class ProfileAssociationsDialog(InfoDialog):
         self._update_configuration(enable_per_user_profiles, event.IsChecked())
 
 
-class ProfileLoader(object):
+class ProfileLoader:
     def __init__(self):
         from DisplayCAL.wxwindows import BaseApp, wx
 

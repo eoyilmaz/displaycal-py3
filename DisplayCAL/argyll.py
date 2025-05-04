@@ -34,7 +34,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.options import debug, verbose
-from DisplayCAL.util_os import getenvu, which
+from DisplayCAL.util_os import getenvu, safe_glob, which
 from DisplayCAL.util_str import make_filename_safe
 
 argyll_utils = {}
@@ -481,7 +481,7 @@ def make_argyll_compatible_path(path):
     return os_path_sep.join(parts)
 
 
-def get_argyll_instrument_config(self, what=None):
+def get_argyll_instrument_config(what=None):
     """Check for Argyll CMS udev rules/hotplug scripts."""
     filenames = []
     if what == "installed":

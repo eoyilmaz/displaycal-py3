@@ -1068,16 +1068,11 @@ class FloatSpin(wx.PyControl):
          tries to calculate the best number of digits based on input values passed
          in the constructor.
         """
-
         if digits < 0:
             incr = str(self._increment)
-            if incr.find(".") < 0:
-                digits = 0
-            else:
-                digits = len(incr[incr.find(".") + 1 :])
+            digits = 0 if incr.find(".") < 0 else len(incr[incr.find(".") + 1 :])
 
         self._digits = digits
-
         self.SetValue(self._value)
 
     def GetDigits(self):
@@ -1521,10 +1516,7 @@ class FixedPoint:
             # want n such that n / 10**p = top * 2**e, or
             # n = top * 10**p * 2**e
             top = top * _tento(p)
-            if e >= 0:
-                n = top << e
-            else:
-                n = _roundquotient(top, 1 << -e)
+            n = top << e if e >= 0 else _roundquotient(top, 1 << -e)
             if value < 0:
                 n = -n
             self.n = n
@@ -1844,10 +1836,7 @@ def _string2exact(s):
         raise ValueError("can't parse as number: " + repr(s))
 
     exp = m.group("exp")
-    if exp is None:
-        exp = 0
-    else:
-        exp = int(exp)
+    exp = 0 if exp is None else int(exp)
 
     intpart = m.group("int")
     if intpart is None:

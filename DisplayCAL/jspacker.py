@@ -55,10 +55,7 @@ class ParseMaster:
     def _repl(self, a, o, r, i):
         while i:
             m = a.group(o + i - 1)
-            if m is None:
-                s = ""
-            else:
-                s = m
+            s = "" if m is None else m
             r = r.replace("$" + str(i), s)
             i = i - 1
         r = ParseMaster.TRIM.sub("$1", r)
@@ -288,10 +285,7 @@ class JavaScriptPacker:
         parser = ParseMaster()
         encode = self.getEncoder(encoding)
         # for high-ascii, don't encode single character low-ascii
-        if encoding > 62:
-            regexp = r"""\w\w+"""
-        else:
-            regexp = r"""\w+"""
+        regexp = r"""\w\w+""" if encoding > 62 else r"""\w+"""
         # build the word list
         keywords = self.analyze(script, regexp, encode)
         encoded = keywords["encoded"]
@@ -426,10 +420,7 @@ class JavaScriptPacker:
         encode = encoding_functions[encoding]
         encode = encode.replace("_encoding", "$ascii")
         encode = encode.replace("arguments.callee", "$encode")
-        if ascii > 10:
-            inline = "$count.toString($ascii)"
-        else:
-            inline = "$count"
+        inline = "$count.toString($ascii)" if ascii > 10 else "$count"
         # $decode: code snippet to speed up decoding
         if fastDecode:
             # create the decoder
@@ -637,14 +628,8 @@ function _bar(_ocalvar) {
 
     p = JavaScriptPacker()
     for script, encoding, fastDecode, specialChars, expected in test_scripts:
-        if os.path.exists(script):
-            _script = open(script).read()
-        else:
-            _script = script
-        if os.path.exists(expected):
-            _expected = open(expected).read()
-        else:
-            _expected = expected
+        _script = open(script).read() if os.path.exists(script) else script
+        _expected = open(expected).read() if os.path.exists(expected) else expected
         print(script[:20], encoding, fastDecode, specialChars, expected[:20])
         print("=" * 40)
         result = p.pack(_script, encoding, fastDecode, specialChars)

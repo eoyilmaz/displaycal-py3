@@ -98,10 +98,7 @@ class ReportFrame(BaseFrame):
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
-                if which == "chart":
-                    wildcard = r"\.(cie|ti1|ti3)$"
-                else:
-                    wildcard = r"\.(icc|icm)$"
+                wildcard = r"\.(cie|ti1|ti3)$" if which == "chart" else r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
                     standard_profiles = config.get_standard_profiles(True)
@@ -307,10 +304,7 @@ class ReportFrame(BaseFrame):
             self.mr_show_trc_controls()
 
     def chart_btn_handler(self, event):
-        if self.Parent:
-            parent = self.Parent
-        else:
-            parent = self
+        parent = self.Parent if self.Parent else self
         chart = getcfg("measurement_report.chart")
         if not hasattr(parent, "tcframe"):
             parent.tcframe = TestchartEditor(
@@ -404,10 +398,7 @@ class ReportFrame(BaseFrame):
                 self.chart_ctrl.SetPath(getcfg("measurement_report.chart"))
             else:
                 self.chart_btn.Enable("RGB" in values)
-                if self.Parent:
-                    parent = self.Parent
-                else:
-                    parent = self
+                parent = self.Parent if self.Parent else self
                 if (
                     event
                     and self.chart_btn.Enabled
@@ -488,10 +479,7 @@ class ReportFrame(BaseFrame):
             #   os.path.isfile(profile_path) and
             #   profile_path != path)
             profile = config.get_current_profile(True)
-            if profile:
-                path = profile.fileName
-            else:
-                path = None
+            path = profile.fileName if profile else None
             setcfg("measurement_report.output_profile", path)
             XYZbpout = self.XYZbpout
             # XYZbpout will be set to the blackpoint of the selected profile.

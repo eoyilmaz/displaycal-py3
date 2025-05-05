@@ -68,11 +68,7 @@ def encodestdio(encodings=None, errors=None):
 def read(stream, size=-1):
     """Read from stream. Uses os.read() if stream is a tty,
     stream.read() otherwise."""
-    if stream.isatty():
-        data = os.read(stream.fileno(), size)
-    else:
-        data = stream.read(size)
-    return data
+    return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):

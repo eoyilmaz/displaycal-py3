@@ -103,10 +103,7 @@ class SafePrinter:
             strargs.append(arg)
         line = sep.join(strargs).rstrip(end)
         if pad is not False:
-            if pad is True:
-                width = _get_console_width()
-            else:
-                width = int(pad)
+            width = _get_console_width() if pad is True else int(pad)
             line = line.ljust(width, padchar)
         if fn:
             fn(line)

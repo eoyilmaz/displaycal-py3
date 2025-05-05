@@ -205,11 +205,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         clientSize = 0
         bUseYcoord = style & INB_RIGHT or style & INB_LEFT
-
-        if bUseYcoord:
-            clientSize = size.GetHeight()
-        else:
-            clientSize = size.GetWidth()
+        clientSize = size.GetHeight() if bUseYcoord else size.GetWidth()
 
         # We reserver 20 pixels for the 'pin' button
 
@@ -1377,10 +1373,7 @@ class DisplayAdjustmentFrame(windowcls):
                 target_br or initial_br or ("Initial", float(current_br.groups()[0]))
             )
             lstr = (compare_br[0]).lower()
-            if compare_br[1]:
-                percent = 100.0 / compare_br[1]
-            else:
-                percent = 100.0
+            percent = 100.0 / compare_br[1] if compare_br[1] else 100.0
             l_diff = float(current_br.groups()[0]) - compare_br[1]
             l = int(round(50 + l_diff * percent))
             if self.lb.GetCurrentPage().gauges.get("L"):
@@ -1439,10 +1432,7 @@ class DisplayAdjustmentFrame(windowcls):
                     abs(l_diff) * percent,
                 )
             else:
-                if target_bl:
-                    l_diff = 0
-                else:
-                    l_diff = None
+                l_diff = 0 if target_bl else None
                 label = lang.getstr("current") + " %.2f cd/m\u00b2" % current_bl
             self.lb.GetCurrentPage().txt[
                 "black_level"

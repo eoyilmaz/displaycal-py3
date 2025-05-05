@@ -239,10 +239,7 @@ class LUTCanvas(plot.PlotCanvas):
 
         if colorspace in (b"YCbr", b"RGB", b"GRAY", b"HSV", b"HLS"):
             axis_y = 255.0
-            if connection_colorspace in (b"Lab", b"XYZ"):
-                axis_x = 100.0
-            else:
-                axis_x = 255.0
+            axis_x = 100.0 if connection_colorspace in (b"Lab", b"XYZ") else 255.0
         else:
             axis_y = 100.0
             axis_x = 100.0
@@ -605,10 +602,7 @@ class LUTCanvas(plot.PlotCanvas):
         event.Skip()
 
     def OnMouseDoubleClick(self, event):
-        if self.last_draw:
-            boundingbox = self.last_draw[0].boundingBox()
-        else:
-            boundingbox = None
+        boundingbox = self.last_draw[0].boundingBox() if self.last_draw else None
         self.resetzoom(boundingbox=boundingbox)
         if self.last_draw:
             self.center()
@@ -1223,10 +1217,7 @@ class LUTFrame(BaseFrame):
 
     def show_actual_lut_handler(self, event):
         setcfg("lut_viewer.show_actual_lut", int(self.show_actual_lut_cb.GetValue()))
-        if hasattr(self, "current_cal"):
-            profile = self.current_cal
-        else:
-            profile = None
+        profile = self.current_cal if hasattr(self, "current_cal") else None
         self.load_lut(profile=profile)
 
     def load_lut(self, profile=None):
@@ -1407,10 +1398,7 @@ class LUTFrame(BaseFrame):
             use_icclu = False
             pcs = "l"
         if direction in ("b", "if"):
-            if pcs == "l":
-                idata = Lab_triplets
-            else:
-                idata = XYZ_triplets
+            idata = Lab_triplets if pcs == "l" else XYZ_triplets
         else:
             idata = devicevalues
 
@@ -1503,10 +1491,7 @@ class LUTFrame(BaseFrame):
         else:
             Lab_triplets = odata
 
-        if profile.colorSpace in (b"RGB", b"GRAY"):
-            maxv = 255
-        else:
-            maxv = 100
+        maxv = 255 if profile.colorSpace in (b"RGB", b"GRAY") else 100
         self.rTRC = CoordinateType(self.profile)
         self.gTRC = CoordinateType(self.profile)
         self.bTRC = CoordinateType(self.profile)
@@ -1989,10 +1974,7 @@ class LUTFrame(BaseFrame):
                 ):
                     tables = self.profile.tags.B2A2.output
                 entry_count = len(tables[0])
-                if curves_colorspace != b"RGB":
-                    maxv = 100
-                else:
-                    maxv = 255
+                maxv = 100 if curves_colorspace != b"RGB" else 255
                 lin = [v / (entry_count - 1.0) * maxv for v in range(entry_count)]
                 data = []
                 for i, table in enumerate(tables):
@@ -2231,10 +2213,7 @@ class LUTFrame(BaseFrame):
     def OnWheel(self, event):
         xy = wx.GetMousePosition()
         if self.client.last_draw:
-            if event.WheelRotation < 0:
-                direction = 1.0
-            else:
-                direction = -1.0
+            direction = 1.0 if event.WheelRotation < 0 else -1.0
             self.client.zoom(direction)
 
     def SaveFile(self, event=None):

@@ -19,10 +19,7 @@ def stripzeros(n):
     (1.0 becomes 1, 1.234567890 becomes 1.23456789).
 
     """
-    if isinstance(n, (float, int)):
-        n = "%.10f" % n
-    else:
-        n = str(n)
+    n = "%.10f" % n if isinstance(n, (float, int)) else str(n)
     if "." in n:
         n = n.rstrip("0").rstrip(".")
     try:

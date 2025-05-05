@@ -1282,16 +1282,10 @@ class CGATS(dict):
         radius = 15.0 / (len(data) ** (1.0 / 3.0))
         scale = 1.0
         if colorspace.startswith("DIN99"):
-            if colorspace == "DIN99":
-                scale = 100.0 / 40
-            else:
-                scale = 100.0 / 50
+            scale = 100.0 / 40 if colorspace == "DIN99" else 100.0 / 50
             radius /= scale
         white = data.queryi1({"RGB_R": 100, "RGB_G": 100, "RGB_B": 100})
-        if white:
-            white = white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-        else:
-            white = "D50"
+        white = white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"] if white else "D50"
         white = colormath.get_whitepoint(white)
         d50 = colormath.get_whitepoint("D50")
         if colorspace == "Lu'v'":
@@ -1781,10 +1775,7 @@ Transform {
                 out = x3d.html(title=os.path.basename(filename))
             else:
                 out = x3d.x3d()
-        if compress:
-            writer = GzipFileProper
-        else:
-            writer = open
+        writer = GzipFileProper if compress else open
         safe_print("Writing", filename)
         with writer(filename, "wb") as outfile:
             outfile.write(out.encode("utf-8"))
@@ -1811,27 +1802,16 @@ Transform {
 
         """
         modified = self.modified
-
-        if not get_first:
-            result = CGATS()
-        else:
-            result = None
-
-        if not isinstance(query, dict):
-            if not isinstance(query, (list, tuple)):
-                query = (query,)
+        result = CGATS() if not get_first else None
+        if not isinstance(query, dict) and not isinstance(query, (list, tuple)):
+            query = (query,)
 
         items = [self] + [self[key] for key in self]
         for item in items:
             if isinstance(item, (dict, list, tuple)):
                 if not get_first:
                     n = len(result)
-
-                if get_value:
-                    result_n = CGATS()
-                else:
-                    result_n = None
-
+                result_n = CGATS() if get_value else None
                 match_count = 0
                 for query_key in query:
                     if query_key in item or (
@@ -1912,10 +1892,7 @@ Transform {
 
     def remove(self, item):
         """Remove an item from the internal CGATS structure."""
-        if isinstance(item, CGATS):
-            key = item.key
-        else:
-            key = item
+        key = item.key if isinstance(item, CGATS) else item
         maxindex = len(self) - 1
         result = self[key]
         if isinstance(key, int) and key != maxindex:
@@ -1940,7 +1917,7 @@ Transform {
         ):
             raise NotImplementedError(
                 "Got unsupported color "
-                "representation %s" % b"_".join(color_rep).decode("utf-8")
+                "representation {}".format(b"_".join(color_rep).decode("utf-8"))
             )
 
         data = self.queryv1("DATA")
@@ -2017,9 +1994,9 @@ Transform {
                                 if warn_only:
                                     if logfile:
                                         logfile.write(
-                                            "Warning: Sample ID %i (%s %s) has %s <= 0!\n"
-                                            % (
-                                                sample.SAMPLE_ID,
+                                            "Warning: Sample ID {:d} ({} {}) has {} "
+                                            "<= 0!\n".format(
+                                                int(sample.SAMPLE_ID),
                                                 color_rep[0],
                                                 " ".join(
                                                     device_label_values.decode(
@@ -2036,10 +2013,9 @@ Transform {
                                     sample[label.decode("utf-8")] = 0.000001
                                     if logfile:
                                         logfile.write(
-                                            "Fudged sample ID %i (%s %s) %s to be "
-                                            "non-zero\n"
-                                            % (
-                                                sample.SAMPLE_ID,
+                                            "Fudged sample ID {:d} ({} {}) {} to be "
+                                            "non-zero\n".format(
+                                                int(sample.SAMPLE_ID),
                                                 color_rep[0],
                                                 " ".join(
                                                     device_label_values.decode(
@@ -2079,9 +2055,8 @@ Transform {
                     remove.insert(0, sample)
                     if logfile:
                         logfile.write(
-                            "Removed sample ID %i (%s %s) with %s = 0\n"
-                            % (
-                                sample.SAMPLE_ID,
+                            "Removed sample ID {:d} ({} {}) with {} = 0\n".format(
+                                int(sample.SAMPLE_ID),
                                 color_rep[0],
                                 " ".join(
                                     device_label_values.decode("utf-8").split()
@@ -2121,8 +2096,11 @@ Transform {
                 if white_Y != 100:
                     self.add_keyword(
                         "LUMINANCE_XYZ_CDM2",
-                        "%.4f %.4f %.4f"
-                        % (white_cie["XYZ_X"], white_cie["XYZ_Y"], white_cie["XYZ_Z"]),
+                        "{:.4f} {:.4f} {:.4f}".format(
+                            white_cie["XYZ_X"],
+                            white_cie["XYZ_Y"],
+                            white_cie["XYZ_Z"]
+                        ),
                     )
                     for sample in self.DATA.values():
                         for label in "XYZ":

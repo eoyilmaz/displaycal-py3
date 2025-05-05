@@ -471,16 +471,13 @@ class H3DLUT:
         input_grid_steps = (
             2 ** self.inputBitDepth[0]
         )  # Assume equal bitdepth for R, G, B
-        if input_grid_steps > 255:
-            # madVR 3D LUTs are 256^3, but ICC LUT16Type only supports up to
-            # 255^3. As madVR 3D LUTs use video levels encoding, we simply skip
-            # the first cLUT entry in each dimension and fix the offset by
-            # scaling the input/output shaper curves. That way, only level 1 of
-            # 255 will be affected (with black at 16 and white at 235),
-            # which isn't used in actual video content.
-            clut_grid_steps = 255
-        else:
-            clut_grid_steps = input_grid_steps
+        # madVR 3D LUTs are 256^3, but ICC LUT16Type only supports up to
+        # 255^3. As madVR 3D LUTs use video levels encoding, we simply skip
+        # the first cLUT entry in each dimension and fix the offset by
+        # scaling the input/output shaper curves. That way, only level 1 of
+        # 255 will be affected (with black at 16 and white at 235),
+        # which isn't used in actual video content.
+        clut_grid_steps = 255 if input_grid_steps > 255 else input_grid_steps
         # Filling a 255^3 list is VERY memory intensive in Python, so we 'fake'
         # the LUT16Type cLUT and only use tag data of offsets/sizes and shaper
         # curves while writing the raw cLUT data directly without going through
@@ -615,11 +612,8 @@ class MadTPG(MadTPGBase):
             value, valuetype = winreg.QueryValueEx(key, "")
         except Exception:
             raise RuntimeError(lang.getstr("madvr.not_found"))
-        if platform.architecture()[0] == "64bit":
-            bits = 64
-        else:
-            bits = 32
-        self.dllpath = os.path.join(os.path.split(value)[0], "madHcNet%i.dll" % bits)
+        bits = 64 if platform.architecture()[0] == "64bit" else 32
+        self.dllpath = os.path.join(os.path.split(value)[0], f"madHcNet{bits}.dll")
         if not value or not os.path.isfile(self.dllpath):
             raise OSError(lang.getstr("not_found", self.dllpath))
         handle = win32api.LoadLibrary(self.dllpath)
@@ -630,10 +624,7 @@ class MadTPG(MadTPGBase):
             for methodname in _methodnames + _autonet_methodnames:
                 if methodname == "AddConnectionCallback":
                     continue
-                if methodname in _autonet_methodnames:
-                    prefix = "AutoNet"
-                else:
-                    prefix = "madVR"
+                prefix = "AutoNet" if methodname in _autonet_methodnames else "madVR"
                 method = getattr(self.mad, prefix + "_" + methodname, None)
                 if not method and not methodname.startswith("LoadHdr3dlut"):
                     raise AttributeError(prefix + "_" + methodname)
@@ -676,11 +667,8 @@ class MadTPG(MadTPGBase):
             )
 
         # Return the method
-        if methodname in _autonet_methodnames:
-            prefix = "AutoNet"
-        else:
-            prefix = "madVR"
-        return getattr(self.mad, prefix + "_" + methodname)
+        prefix = "AutoNet" if methodname in _autonet_methodnames else "madVR"
+        return getattr(self.mad, f"{prefix}_{methodname}")
 
     def add_connection_callback(self, callback, param, component):
         """Handles callbacks for added/closed connections to playback components
@@ -1472,10 +1460,7 @@ class MadTPG_Net(MadTPGBase):
         while self.listening and end - start < timeout:
             clients = self.clients.copy()
             if clients:
-                if addr:
-                    c_addrs = [addr]
-                else:
-                    c_addrs = list(clients.keys())
+                c_addrs = [addr] if addr else list(clients.keys())
                 for c_addr in c_addrs:
                     client = clients.get(c_addr)
                     conn = self._client_sockets.get(c_addr)
@@ -1607,10 +1592,7 @@ class MadTPG_Net(MadTPGBase):
                 # but the equivalent madVR network protocol command is
                 # GetBlackWhiteLevel (without the "And")!
                 if repliedcommand == "GetBlackWhiteLevel":
-                    if len(params) == 8:
-                        params = struct.unpack("<ii", params)
-                    else:
-                        params = False
+                    params = struct.unpack("<ii", params) if len(params) == 8 else False
                 elif repliedcommand == "GetDeviceGammaRamp":
                     # Convert to ushort_Array_256_Array_3
                     ramp = ((ctypes.c_ushort * 256) * 3)()
@@ -1759,10 +1741,8 @@ class MadTPG_Net(MadTPGBase):
                     "MadTPG_Net: Expecting reply for command %i %r"
                     % (commandno, command)
                 )
-            if command in ("Load3dlut", "LoadHdr3dlut"):
-                timeout = 300  # Should be enough even for slow wireless
-            else:
-                timeout = 3
+            # Should be enough even for slow wireless
+            timeout = 300 if command in ("Load3dlut", "LoadHdr3dlut") else 3
             return self._expect(conn, commandno, "reply", timeout=timeout)
         return True
 
@@ -1802,22 +1782,16 @@ class MadTPG_Net_Sender:
             params = b""
             for j in range(3):
                 for i in range(256):
-                    if args[0] is None:
-                        # Clear device gamma ramp
-                        v = i * 257
-                    else:
-                        # Convert ushort_Array_256_Array_3 to string
-                        v = args[0][j][i]
+                    # Clear device gamma ramp if args[0] is None
+                    # else convert ushort_Array_256_Array_3 to string
+                    v = i * 257 if args[0] is None else args[0][j][i]
                     params += struct.pack("<H", v)
         elif self.command in (
             "SetDisableOsdButton",
             "SetStayOnTopButton",
             "SetUseFullscreenButton",
         ):
-            if args[0]:
-                params = "+"
-            else:
-                params = "-"
+            params = "+" if args[0] else "-"
         elif self.command == "SetOsdText":
             params = args[0].encode("UTF-16-LE")
         elif self.command in ("SetPatternConfig", "SetProgressBarPos"):

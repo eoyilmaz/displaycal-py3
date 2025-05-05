@@ -617,10 +617,7 @@ def vrml2x3dom(vrml, worker=None):
                 return False
         if curprogress > lastprogress:
             lastprogress = curprogress
-            if curprogress < 100:
-                end = None
-            else:
-                end = "\n"
+            end = None if curprogress < 100 else "\n"
             _safe_print.write("\r%i%%" % curprogress, end=end)
         if ord(c) < 32 and c not in "\n\r\t":
             raise VRMLParseError("Parse error: Got invalid character %r" % c)

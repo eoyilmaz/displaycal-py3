@@ -2052,10 +2052,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             wx.Size: Representing the best fit size for the supplied label & bitmap.
         """
-        if "__WXMSW__" in wx.Platform:
-            HEIGHT = 22
-        else:
-            HEIGHT = 26
+        HEIGHT = 22 if "__WXMSW__" in wx.Platform else 26
 
         dc = wx.MemoryDC()
         dc.SelectBitmap(wx.Bitmap(1, 1))

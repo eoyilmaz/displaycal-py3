@@ -737,12 +737,8 @@ def create_shaper_curves(
         gamma.insert(0, gamma[0])
         gamma.append(gamma[-1])
 
-    if bwd_mtx * [1, 1, 1] == [1, 1, 1]:
-        # cLUT profile
-        final = 2049
-    else:
-        # Shaper + matrix profile
-        final = 256
+    # cLUT profile or Shaper + matrix profile
+    final = 2049 if bwd_mtx * [1, 1, 1] == [1, 1, 1] else 256
 
     if all(len(gamma) == numvalues for gamma in gammas):
         # Follow curvature by using gamma as hint
@@ -1081,10 +1077,7 @@ def _applycal_bug_workaround(profile):
             num_entries = len(trc_tag)
             if num_entries <= 1:
                 # Single gamma
-                if num_entries:
-                    gamma = trc_tag[0]
-                else:
-                    gamma = 1.0
+                gamma = trc_tag[0] if num_entries else 1.0
                 trc_tag.set_trc(gamma, 256)
             else:
                 # Interpolate to 256 entries
@@ -1212,10 +1205,7 @@ def get_options_from_cprt(cprt):
     else:
         dispcal_args = None
         colprof_args = cprt.split(" colprof ")
-        if len(colprof_args) > 1:
-            colprof_args = colprof_args[1]
-        else:
-            colprof_args = None
+        colprof_args = colprof_args[1] if len(colprof_args) > 1 else None
     return dispcal_args, colprof_args
 
 
@@ -1275,10 +1265,7 @@ def get_pattern_geometry():
         x = y = 0.5
     size = size * defaults["size.measureframe"]
     match = re.search(r"@ -?\d+, -?\d+, (\d+)x(\d+)", getcfg("displays", raw=True))
-    if match:
-        display_size = [int(item) for item in match.groups()]
-    else:
-        display_size = 1920, 1080
+    display_size = [int(item) for item in match.groups()] if match else [1920, 1080]
     w, h = [min(size / v, 1.0) for v in display_size]
     if config.get_display_name(None, True) == "Prisma":
         w = h
@@ -2260,10 +2247,7 @@ class Worker(WorkerBase):
         ):
             # Use colorimeter correction?
             ccmx = getcfg("colorimeter_correction_matrix_file").split(":", 1)
-            if len(ccmx) > 1 and ccmx[1]:
-                ccmx = ccmx[1]
-            else:
-                ccmx = None
+            ccmx = ccmx[1] if len(ccmx) > 1 and ccmx[1] else None
             if ccmx and (
                 not ccmx.lower().endswith(".ccss") or self.instrument_supports_ccss()
             ):
@@ -3678,10 +3662,7 @@ END_DATA
             encoding = enc_in
             if enc_in != enc_out:
                 encoding += enc_out
-            if getcfg("3dlut.output.profile.apply_cal"):
-                cal_exclude = ""
-            else:
-                cal_exclude = "e"
+            cal_exclude = "" if getcfg("3dlut.output.profile.apply_cal") else "e"
             if getcfg("3dlut.trc").startswith("smpte2084"):
                 lut3dp = [str(getcfg("3dlut.trc_output_offset")) + ",2084"]
                 if (
@@ -4340,10 +4321,7 @@ END_DATA
 
                     # See if any values negatively clip
                     for i, v in enumerate(RGB):
-                        if black_hack:
-                            cond = v <= 16.0 / 255.0
-                        else:
-                            cond = v < 16.0 / 255.0
+                        cond = v <= 16.0 / 255.0 if black_hack else v < 16.0 / 255.0
                         if cond:
                             RGB[i] = 16.0 / 255.0
                             full[i] = 0.0
@@ -4497,10 +4475,7 @@ END_DATA
                     if num_cpus > 2:
                         num_workers = 2
                     num_batches = 1
-                if use_b2a:
-                    direction = "backward"
-                else:
-                    direction = "inverse forward"
+                direction = "backward" if use_b2a else "inverse forward"
                 logfiles.write(
                     "Creating device link from {} lookup ({:d} workers)...\n".format(
                         direction, num_workers
@@ -6571,10 +6546,7 @@ BEGIN_DATA
                 cmdfile = open(cmdfilename, "w")
                 allfile = open(allfilename, "a")
                 cmdfiles = Files((cmdfile, allfile))
-                if first:
-                    context = cmdfiles
-                else:
-                    context = cmdfile
+                context = cmdfiles if first else cmdfile
                 if sys.platform == "win32":
                     context.write("@echo off\n")
                     context.write(
@@ -6778,10 +6750,7 @@ BEGIN_DATA
                 startupinfo = None
             if not use_pty:
                 data_encoding = enc
-                if silent:
-                    stderr = sp.STDOUT
-                else:
-                    stderr = tempfile.SpooledTemporaryFile()
+                stderr = sp.STDOUT if silent else tempfile.SpooledTemporaryFile()
                 if capture_output:
                     stdout = tempfile.SpooledTemporaryFile()
                 elif (
@@ -7445,10 +7414,7 @@ BEGIN_DATA
         """
 
         if tableno is None:
-            if "A2B1" in profile.tags:
-                tableno = 1
-            else:
-                tableno = 0
+            tableno = 1 if "A2B1" in profile.tags else 0
         if not clutres:
             if "B2A{:d}".format(tableno) in profile.tags:
                 tablename = f"B2A{tableno:d}"
@@ -8257,16 +8223,13 @@ BEGIN_DATA
 
         if clutres == -1:
             # Auto
-            if pcs == "l" and smooth:
-                # Counteract L*a*b* cLUT accuracy loss when smoothing.
-                # With a res of 45, about the same accuracy as when using
-                # colprof B2A with a res of 33 and no smoothing.
-                # This is not necessary with XYZ cLUT as the accuracy is always
-                # higher than colprof baseline due to restricting the XYZ space
-                # with a matrix.
-                clutres = 45
-            else:
-                clutres = 33
+            # Counteract L*a*b* cLUT accuracy loss when smoothing.
+            # With a res of 45, about the same accuracy as when using
+            # colprof B2A with a res of 33 and no smoothing.
+            # This is not necessary with XYZ cLUT as the accuracy is always
+            # higher than colprof baseline due to restricting the XYZ space
+            # with a matrix.
+            clutres = 45 if pcs == "l" and smooth else 33
         step = 1.0 / (clutres - 1.0)
         do_lookup = True
         if do_lookup:
@@ -8382,10 +8345,7 @@ BEGIN_DATA
                                         v2[i] *= 1 - (threshold - d) / r
                                         v[i] += v2[i]
                             else:
-                                if cam_diag:
-                                    v = [100.0, 0.0, 100.0]
-                                else:
-                                    v = odata2[k]
+                                v = [100.0, 0.0, 100.0] if cam_diag else odata2[k]
                                 k += 1
                             odata.append(v)
             numrows = len(odata)
@@ -8827,10 +8787,7 @@ BEGIN_DATA
             options_colprof.append(display_manufacturer)
         if write:
             # Add dispcal and colprof arguments to ti3
-            if is_ccxx_testchart():
-                options_dispcal = []
-            else:
-                options_dispcal = self.options_dispcal
+            options_dispcal = [] if is_ccxx_testchart() else self.options_dispcal
             ti3 = add_options_to_ti3(ti3, options_dispcal, options_colprof)
             if ti3:
                 ti3.write()
@@ -9411,10 +9368,7 @@ usage: spotread [-options] [logfile]
                 config.datahome, "backup", strftime("%Y%m%dT%H%M%S")
             )
         for filename in filenames:
-            if filename.endswith(".rules"):
-                dst = udevrules
-            else:
-                dst = hotplug
+            dst = udevrules if filename.endswith(".rules") else hotplug
             if uninstall:
                 # Move file to backup location
                 backupdir = "".join([backupbase, os.path.dirname(filename)])
@@ -10700,10 +10654,7 @@ usage: spotread [-options] [logfile]
 
                     # Add blackpoint tag
                     profile.tags.bkpt = XYZType(profile=profile)
-                    if XYZbp:
-                        black_XYZ = XYZbp
-                    else:
-                        black_XYZ = (0, 0, 0)
+                    black_XYZ = XYZbp if XYZbp else (0, 0, 0)
                     (
                         profile.tags.bkpt.X,
                         profile.tags.bkpt.Y,
@@ -11259,10 +11210,7 @@ usage: spotread [-options] [logfile]
                                 rinterp.append(
                                     colormath.Interp(table.output[i], orange)
                                 )
-                            if len(table.clut[0]) < 33:
-                                num_workers = 1
-                            else:
-                                num_workers = None
+                            num_workers = 1 if len(table.clut[0]) < 33 else None
                             table.clut = sum(
                                 pool_slice(
                                     _mp_apply,
@@ -11758,10 +11706,7 @@ usage: spotread [-options] [logfile]
         XYZbp = ti3_RGB_XYZ[(0, 0, 0)]
         XYZwp = ti3_RGB_XYZ[(100, 100, 100)]
         for R, G, B in [(100, 0, 0), (0, 100, 0), (0, 0, 100), (100, 100, 100)]:
-            if R == G == B:
-                RGB_XYZ = ti3_RGB_XYZ
-            else:
-                RGB_XYZ = ti3_remaining
+            RGB_XYZ = ti3_RGB_XYZ if R == G == B else ti3_remaining
             X, Y, Z = RGB_XYZ[(R, G, B)]
             if XYZbp != (0, 0, 0) and not bpc:
                 # Adjust for black offset
@@ -11806,10 +11751,7 @@ usage: spotread [-options] [logfile]
         """
         if profile:
             cat = profile.guess_cat() or cat
-        if omit == "XYZ":
-            tags = "shaper"
-        else:
-            tags = "shaper+matrix"
+        tags = "shaper" if omit == "XYZ" else "shaper+matrix"
         self.log("-" * 80)
         self.log(f"Creating {tags} tags in separate step")
         self.log("Using chromatic adaptation transform matrix:", cat)
@@ -11845,12 +11787,8 @@ usage: spotread [-options] [logfile]
                 RGBin = []
                 for i in range(numentries):
                     RGBin.append((i / maxval,) * 3)
-                if "B2A0" in profile.tags:
-                    # Inverse backward
-                    direction = "ib"
-                else:
-                    # Forward
-                    direction = "f"
+                # Inverse backward if "B2A0" in tags, otherwise forward
+                direction = "ib" if "B2A0" in profile.tags else "f"
                 try:
                     XYZout = self.xicclu(profile, RGBin, "p", direction, pcs="x")
                 except Info as exception:
@@ -13189,10 +13127,7 @@ usage: spotread [-options] [logfile]
                 if getcfg("3dlut.create"):
                     value = getcfg(cfgname)
                     if cfgname == "3dlut.gamap.use_b2a":
-                        if value:
-                            value = "g"
-                        else:
-                            value = "G"
+                        value = "g" if value else "G"
                     elif cfgname == "3dlut.trc_gamma":
                         if getcfg("3dlut.trc_gamma_type") == "B":
                             value = -value
@@ -14295,10 +14230,7 @@ usage: spotread [-options] [logfile]
     def _safe_send(self, bytes_, retry=3, obfuscate=False):
         """Safely send a keystroke to the current subprocess."""
         for i in range(0, retry):
-            if obfuscate:
-                logbytes = "***"
-            else:
-                logbytes = bytes_
+            logbytes = "***" if obfuscate else bytes_
             self.logger.info("Sending key(s) {} ({:d})".format(logbytes, i + 1))
             try:
                 if sys.platform == "win32":
@@ -15738,12 +15670,10 @@ BEGIN_DATA
                 print(" ".join(("{:3.4f}",) * len(v)).format(*v))
 
         # lookup device->cie values through profile using (x)icclu
-        if pcs or self.argyll_version >= [1, 6]:
-            use_icclu = False
-        else:
-            # DeviceLink profile, we have to use icclu under older Argyll CMS
-            # versions because older xicclu cannot handle devicelink
-            use_icclu = True
+        #
+        # Under older ArgyllCMS versions, we have to use DeviceLink profile with
+        # icclu, because older xicclu cannot handle devicelink
+        use_icclu = False if pcs or self.argyll_version >= [1, 6] else True
 
         input_encoding = None
         output_encoding = None
@@ -16137,10 +16067,7 @@ BEGIN_DATA
                 ti1out.write(b"NUMBER_OF_SETS %s\n" % bytes(str(len(odata)), "utf-8"))
                 ti1out.write(b"BEGIN_DATA\n")
             if i < len(wp):
-                if ocolor == b"RGB":
-                    device = [100.00, 100.00, 100.00]
-                else:
-                    device = [0, 0, 0, 0]
+                device = [100.00, 100.00, 100.00] if ocolor == b"RGB" else [0, 0, 0, 0]
             # Make sure device values do not exceed valid range of 0..100
             device = [bytes(str(max(0, min(v, 100))), "utf-8") for v in device]
             cie = list((wp + list(cie_data.values()))[i].values())
@@ -16399,10 +16326,7 @@ BEGIN_DATA
                             prev_bytes_so_far = bytes_so_far
                             ts = time()
                         elif not bps:
-                            if tdiff:
-                                bps = bytes_so_far / tdiff
-                            else:
-                                bps = bytes_read
+                            bps = bytes_so_far / tdiff if tdiff else bytes_read
                         bps_unit = "Bytes"
                         bps_unit_size = 1.0
                         if bps > 1048576:
@@ -16567,11 +16491,7 @@ BEGIN_DATA
             return extracted
         with cls(filename, mode) as z:
             outdir = os.path.realpath(os.path.dirname(filename))
-            if cls is not zipfile.ZipFile:
-                method = z.getnames
-            else:
-                method = z.namelist
-
+            method = z.getnames if cls is not zipfile.ZipFile else z.namelist
             try:
                 names = method()
             except EOFError as e:

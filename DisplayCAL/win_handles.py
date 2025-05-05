@@ -1,6 +1,7 @@
 from ctypes import wintypes
 import ctypes
 import os
+import sys
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -125,12 +126,7 @@ def get_process_handles(pid=None):
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        pid = int(sys.argv[1])
-    else:
-        pid = None
+    pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
     for handle in get_process_handles(pid):
         print(
             (

@@ -1956,10 +1956,7 @@ END_DATA"""
             maxv = self.saturation_sweeps_intctrl.GetValue()
             newdata = []
             rows = self.grid.GetSelectionRows()
-            if rows:
-                row = rows[-1]
-            else:
-                row = self.grid.GetNumberRows() - 1
+            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
             for i in range(maxv):
                 saturation = 1.0 / (maxv - 1) * i
                 RGB, xyY = colormath.RGBsaturation(
@@ -2103,10 +2100,7 @@ END_DATA"""
         else:
             chart = result
             data_format = list(chart.queryv1("DATA_FORMAT").values())
-            if getcfg("tc_add_ti3_relative"):
-                intent = "r"
-            else:
-                intent = "a"
+            intent = "r" if getcfg("tc_add_ti3_relative") else "a"
             if not (
                 chart[0].type.strip() == "GAMUT"
                 and "RGB_R" in data_format
@@ -2129,10 +2123,7 @@ END_DATA"""
                 )
                 if not ti1 or not ti3:
                     return
-                if as_ti3:
-                    chart = ti1
-                else:
-                    chart = ti3
+                chart = ti1 if as_ti3 else ti3
             dataset = chart.queryi1("DATA")
             data_format = list(dataset.queryv1("DATA_FORMAT").values())
             # Returned CIE values are always either XYZ or Lab
@@ -2146,10 +2137,7 @@ END_DATA"""
                 cie = "XYZ"
             newdata = []
             rows = self.grid.GetSelectionRows()
-            if rows:
-                row = rows[-1]
-            else:
-                row = self.grid.GetNumberRows() - 1
+            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
             for i in dataset.DATA:
                 if cie == "Lab":
                     (
@@ -2278,10 +2266,7 @@ END_DATA"""
                         for line in self.worker.output:
                             if line.startswith("Output space ="):
                                 last_output_space = line.split("=")[1].strip()
-                        if last_output_space == "RGB":
-                            chart = outpath
-                        else:
-                            chart = imgpath
+                        chart = outpath if last_output_space == "RGB" else imgpath
                 else:
                     return Error("\n".join(self.worker.errors or self.worker.output))
             else:
@@ -2705,10 +2690,7 @@ END_DATA"""
         if neededrows > 0:
             self.preview.AppendRows(neededrows)
         while True:
-            if row == startrow:
-                cols = range(startcol, numcols)
-            else:
-                cols = range(numcols)
+            cols = range(startcol, numcols) if row == startrow else range(numcols)
             for col in cols:
                 if startindex + i < self.grid.GetNumberRows():
                     color = self.grid.GetCellBackgroundColour(startindex + i, 3)
@@ -3170,10 +3152,7 @@ END_DATA"""
         if view_3d_format == "HTML":
             formatext = ".html"
         elif view_3d_format == "VRML":
-            if getcfg("vrml.compress"):
-                formatext = ".wrz"
-            else:
-                formatext = ".wrl"
+            formatext = ".wrz" if getcfg("vrml.compress") else ".wrl"
         else:
             formatext = ".x3d"
         defaultFile = os.path.splitext(os.path.basename(defaultFile))[0] + formatext
@@ -3206,10 +3185,7 @@ END_DATA"""
         paths = []
         view_3d_format = getcfg("3d.format")
         if view_3d_format == "VRML":
-            if getcfg("vrml.compress"):
-                formatext = ".wrz"
-            else:
-                formatext = ".wrl"
+            formatext = ".wrz" if getcfg("vrml.compress") else ".wrl"
         else:
             formatext = ".x3d"
             if view_3d_format == "HTML":
@@ -3299,10 +3275,7 @@ END_DATA"""
                 result = dlg.ShowModal()
                 dlg.Destroy()
                 if result in (wx.ID_OK, ID_SAVE_AS):
-                    if result == ID_SAVE_AS:
-                        path = None
-                    else:
-                        path = self.ti1.filename
+                    path = None if result == ID_SAVE_AS else self.ti1.filename
                     if not self.tc_save_as_handler(True, path):
                         return False
                 elif result == wx.ID_CANCEL:
@@ -3628,10 +3601,7 @@ END_DATA"""
                             print("[D] %s: x%s" % (i, RGB_inc[i]))
                     if False:
                         RGB_inc_max = max(RGB_inc.values())
-                        if RGB_inc_max > 0:
-                            gray_patches = RGB_inc_max + 1
-                        else:
-                            gray_patches = 0
+                        gray_patches = RGB_inc_max + 1 if RGB_inc_max > 0 else 0
                     else:
                         gray_inc = {"0": 0}
                         for inc in RGB_inc:
@@ -4241,10 +4211,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_R == 100 and sample.RGB_G > 0:
-                labeltext = "r"
-            else:
-                labeltext = "R"
+            labeltext = "r" if sample.RGB_R == 100 and sample.RGB_G > 0 else "R"
         elif (sample.RGB_R == 0 and sample.RGB_B == 0) or (
             sample.RGB_G == 100 and sample.RGB_R == sample.RGB_B
         ):  # Green
@@ -4254,10 +4221,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_G == 100 and sample.RGB_R > 0:
-                labeltext = "g"
-            else:
-                labeltext = "G"
+            labeltext = "g" if sample.RGB_G == 100 and sample.RGB_R > 0 else "G"
         elif (sample.RGB_R == 0 and sample.RGB_G == 0) or (
             sample.RGB_B == 100 and sample.RGB_R == sample.RGB_G
         ):  # Blue
@@ -4267,10 +4231,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_B == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_B == 100 and sample.RGB_R > 0:
-                labeltext = "b"
-            else:
-                labeltext = "B"
+            labeltext = "b" if sample.RGB_B == 100 and sample.RGB_R > 0 else "B"
         elif (
             sample.RGB_R == 0 or sample.RGB_B == 100
         ) and sample.RGB_G == sample.RGB_B:  # Cyan
@@ -4280,10 +4241,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_G == 100 and sample.RGB_R > 0:
-                labeltext = "c"
-            else:
-                labeltext = "C"
+            labeltext = "c" if sample.RGB_G == 100 and sample.RGB_R > 0 else "C"
         elif (
             sample.RGB_G == 0 or sample.RGB_R == 100
         ) and sample.RGB_R == sample.RGB_B:  # Magenta
@@ -4293,10 +4251,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_R == 100 and sample.RGB_G > 0:
-                labeltext = "m"
-            else:
-                labeltext = "M"
+            labeltext = "m" if sample.RGB_R == 100 and sample.RGB_G > 0 else "M"
         elif (
             sample.RGB_B == 0 or sample.RGB_G == 100
         ) and sample.RGB_R == sample.RGB_G:  # Yellow
@@ -4306,10 +4261,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 100 and sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_B > 0:
-                labeltext = "y"
-            else:
-                labeltext = "Y"
+            labeltext = "y" if sample.RGB_B > 0 else "Y"
         else:
             labeltext = ""
             labelcolour = None

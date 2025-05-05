@@ -349,10 +349,7 @@ class GamutCanvas(LUTCanvas):
                                         width=w,
                                     )
                                 )
-                                if i == 1:
-                                    xy3 = []
-                                else:
-                                    xy3 = xy3[1:]
+                                xy3 = [] if i == 1 else xy3[1:]
                         xy2 = xy2[self.size :]
 
             # Add whitepoint
@@ -608,10 +605,7 @@ class GamutCanvas(LUTCanvas):
                         print(" ".join(("%3.4f",) * len(v)) % tuple(v))
 
                 # Lookup device -> XYZ values through profile using xicclu
-                if direction == "ib" and intent not in "ar":
-                    fwd_intent = "r"
-                else:
-                    fwd_intent = intent
+                fwd_intent = "r" if direction == "ib" and intent not in "ar" else intent
                 try:
                     # Device -> PCS, fwd
                     odata = self.worker.xicclu(
@@ -1705,10 +1699,7 @@ class ProfileInfoFrame(LUTFrame):
         wx.CallAfter(self.Destroy)
 
     def OnMotion(self, event):
-        if isinstance(event, wx.MouseEvent):
-            xy = self.client._getXY(event)
-        else:
-            xy = event
+        xy = self.client._getXY(event) if isinstance(event, wx.MouseEvent) else event
         if self.plot_mode_select.GetSelection() < self.plot_mode_select.GetCount() - 1:
             # Curves plot
             if isinstance(event, wx.MouseEvent):
@@ -1824,10 +1815,7 @@ class ProfileInfoFrame(LUTFrame):
                 self.grid.SetFocus()
             event.Skip()
         elif self.client.last_draw:
-            if event.WheelRotation < 0:
-                direction = 1.0
-            else:
-                direction = -1.0
+            direction = 1.0 if event.WheelRotation < 0 else -1.0
             self.client.zoom(direction)
 
     def _setsize(self):
@@ -1858,10 +1846,7 @@ class ProfileInfoFrame(LUTFrame):
     def get_platform_window_size(
         self, defaultwidth=None, defaultheight=None, split=False
     ):
-        if split:
-            name = ".split"
-        else:
-            name = ""
+        name = ".split" if split else ""
         if not defaultwidth:
             defaultwidth = defaults[f"size.profile_info{name}.w"]
         if not defaultheight:
@@ -2160,10 +2145,7 @@ class ProfileInfoFrame(LUTFrame):
                 vrmlpath = f"{filename}.wrl"
         if os.path.isfile(vrmlpath) and colorspace not in ("Lab", None):
             filename, ext = os.path.splitext(vrmlpath)
-            if ext.lower() in (".gz", ".wrz"):
-                cls = GzipFileProper
-            else:
-                cls = open
+            cls = GzipFileProper if ext.lower() in (".gz", ".wrz") else open
             with cls(vrmlpath, "rb") as vrmlfile:
                 vrml = vrmlfile.read()
             vrml = x3dom.update_vrml(vrml, colorspace)

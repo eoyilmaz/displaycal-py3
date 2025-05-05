@@ -462,10 +462,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         dlg.sizer2.Insert(0, dlg.add_btn)
         dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.browse_handler)
 
-        if "gtk3" in wx.PlatformInfo:
-            style = wx.BORDER_SIMPLE
-        else:
-            style = wx.BORDER_THEME
+        style = wx.BORDER_SIMPLE if "gtk3" in wx.PlatformInfo else wx.BORDER_THEME
         dlg.grid = CustomGrid(dlg, -1, size=(648 * scale, 200 * scale), style=style)
         grid = dlg.grid
         grid.DisableDragRowSize()
@@ -588,10 +585,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
 
     def cell_click_handler(self, event):
         if event.Col < 2:
-            if self.grid.GetCellValue(event.Row, event.Col):
-                value = ""
-            else:
-                value = "1"
+            value = "" if self.grid.GetCellValue(event.Row, event.Col) else "1"
             self.grid.SetCellValue(event.Row, event.Col, value)
             self._update_exception(event.Row)
             self.ok.Enable()
@@ -952,10 +946,7 @@ class ProfileAssociationsDialog(InfoDialog):
                 self,
             )
             return
-        if profile.ID == "\0" * 16:
-            id = profile.calculateID(False)
-        else:
-            id = profile.ID
+        id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
         if id not in self.profile_info:
             # Create profile info window and store in hash table
             from wxProfileInfo import ProfileInfoFrame
@@ -1025,10 +1016,7 @@ class ProfileAssociationsDialog(InfoDialog):
             wx.Bell()
 
     def set_profile(self, profile, unset=False):
-        if unset:
-            fn = unset_display_profile
-        else:
-            fn = set_display_profile
+        fn = unset_display_profile if unset else set_display_profile
         self._update_configuration(fn, profile)
 
     def _update_configuration(self, fn, arg0):
@@ -1611,10 +1599,7 @@ class ProfileLoader:
                         elif self.pl._reset_gamma_ramps:
                             icon = self._active_icon_reset
                         else:
-                            if idle:
-                                icon = self._idle_icon
-                            else:
-                                icon = self._active_icon
+                            icon = self._idle_icon if idle else self._active_icon
                     else:
                         icon = self._inactive_icon
                     if debug > 1:
@@ -1708,10 +1693,7 @@ class ProfileLoader:
 
                 def set_animation(self, event=None):
                     q = getcfg("profile_loader.tray_icon_animation_quality")
-                    if q:
-                        q = 0
-                    else:
-                        q = 2
+                    q = 0 if q else 2
                     print("Menu command: Set tray icon animation", q)
                     setcfg("profile_loader.tray_icon_animation_quality", q)
                     self.set_icons()
@@ -1867,10 +1849,7 @@ class ProfileLoader:
                         for i, (display, edid, moninfo, device) in enumerate(
                             self.pl.monitors
                         ):
-                            if device:
-                                devicekey = device.DeviceKey
-                            else:
-                                devicekey = None
+                            devicekey = device.DeviceKey if device else None
                             key = devicekey or str(i)
                             (
                                 profile_key,
@@ -2142,10 +2121,7 @@ class ProfileLoader:
             )
         self.taskbar_icon.set_visual_state()
         results.extend(errors)
-        if errors:
-            flags = wx.ICON_ERROR
-        else:
-            flags = wx.ICON_INFORMATION
+        flags = wx.ICON_ERROR if errors else wx.ICON_INFORMATION
         self.taskbar_icon.show_notification(
             "\n".join(results), sticky, show_notification, flags
         )
@@ -2557,10 +2533,7 @@ class ProfileLoader:
                 display_desc = display.replace(
                     "[PRIMARY]", lang.getstr("display.primary")
                 )
-                if device:
-                    devicekey = device.DeviceKey
-                else:
-                    devicekey = None
+                devicekey = device.DeviceKey if device else None
                 key = devicekey or str(i)
                 self._current_display_key = key
                 exception = None

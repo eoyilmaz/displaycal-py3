@@ -718,10 +718,7 @@ class MeasureFrame(InvincibleFrame):
             ts = time.time()
             for i, _byte in enumerate(buf):
                 m = intervals[i % 3]
-                if m and n % m < 1:
-                    color = ceilbytes
-                else:
-                    color = floorbytes
+                color = ceilbytes if m and n % m < 1 else floorbytes
                 buf[i] = color[i % 3]
                 if i % 3 == 2:
                     n += 1

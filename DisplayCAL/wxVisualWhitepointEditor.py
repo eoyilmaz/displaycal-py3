@@ -1488,10 +1488,7 @@ class NumSpin(wx_Panel):
         current = self.numctrl.GetValue()
         if n is None:
             n = current + inc
-        if inc > 0:
-            btn = self.spinup
-        else:
-            btn = self.spindn
+        btn = self.spinup if inc > 0 else self.spindn
         if event or self.is_button_pressed(btn):
             if n == current or (inc > 0 and n < current) or (inc < 0 and n > current):
                 # print '!_spin', current, inc, n, delay, bell
@@ -1861,10 +1858,7 @@ class VisualWhitepointEditor(wx.Frame):
 
         self.area_size_slider.BackgroundColour = self.mainPanel.BackgroundColour
 
-        if "gtk3" in wx.PlatformInfo:
-            size = (16, 16)
-        else:
-            size = (-1, -1)
+        size = (16, 16) if "gtk3" in wx.PlatformInfo else (-1, -1)
         self.zoomnormalbutton = BitmapButton(
             self.mainPanel,
             -1,
@@ -2091,10 +2085,7 @@ class VisualWhitepointEditor(wx.Frame):
         font.SetWeight(wx.BOLD)
         area_slider_label.Font = font
         mainSizer.Add(area_slider_label, 0, wx.LEFT | wx.BOTTOM, margin)
-        if "gtk3" in wx.PlatformInfo:
-            vmargin = margin
-        else:
-            vmargin = s(6)
+        vmargin = margin if "gtk3" in wx.PlatformInfo else s(6)
         slider_sizer = wx.FlexGridSizer(3, 3, vmargin, margin)
         slider_sizer.AddGrowableCol(1)
         mainSizer.Add(slider_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, margin)

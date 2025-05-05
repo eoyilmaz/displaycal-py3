@@ -4,8 +4,7 @@ The utilities that were previously spread around are gathered here.
 """
 
 # Standard Library Imports
-from functools import cache
-
+import contextlib
 import os
 import re
 import string
@@ -13,15 +12,22 @@ import subprocess as sp
 import sys
 import urllib.error
 import urllib.request
-from typing import List, Optional, Union
+from functools import cache
+from typing import Optional
+
+from DisplayCAL import config
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_names import (
+    altnames as argyll_altnames,
+)
 
 # Local Imports
 from DisplayCAL.argyll_names import (
     names as argyll_names,
-    altnames as argyll_altnames,
+)
+from DisplayCAL.argyll_names import (
     optional as argyll_optional,
 )
-from DisplayCAL import config, localization as lang
 from DisplayCAL.config import (
     exe_ext,
     fs_enc,
@@ -39,11 +45,11 @@ from DisplayCAL.util_str import make_filename_safe
 argyll_utils = {}
 
 
-def check_argyll_bin(paths: Optional[List[str]] = None) -> bool:
+def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
     """Check if the Argyll binaries can be found.
 
     Args:
-        paths (Optional[List[str]]): The paths to look for.
+        paths (Optional[list[str]]): The paths to look for.
 
     Returns:
         bool: True if all required Argyll binaries are found, False otherwise.
@@ -242,11 +248,11 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     return result
 
 
-def check_set_argyll_bin(paths: Optional[List[str]] = None) -> bool:
+def check_set_argyll_bin(paths: Optional[list[str]] = None) -> bool:
     """Check if Argyll binaries can be found, otherwise let the user choose.
 
     Args:
-        paths (Optional[List[str]]): The paths to look for.
+        paths (Optional[list[str]]): The paths to look for.
     """
     if check_argyll_bin(paths):
         return True
@@ -259,7 +265,7 @@ def get_argyll_util(name, paths=None):
 
     Args:
         name (str): The name of the utility.
-        paths (Union[None, List[str]]): The paths to look for.
+        paths (Union[None, list[str]]): The paths to look for.
 
     Returns:
         Union[None, str]: None if not found or the path of the utility.
@@ -400,10 +406,8 @@ def parse_argyll_version_string(argyll_version_string):
         argyll_version_string = argyll_version_string.decode()
     argyll_version = re.findall(r"(\d+|[^.\d]+)", argyll_version_string)
     for i, v in enumerate(argyll_version):
-        try:
+        with contextlib.suppress(ValueError):
             argyll_version[i] = int(v)
-        except ValueError:
-            pass
     return argyll_version
 
 
@@ -422,7 +426,7 @@ def get_argyll_latest_version():
             .read(100)
             .decode("utf-8"),
         )
-    except urllib.error.URLError as e:
+    except urllib.error.URLError:
         # no internet connection
         # return the default version
         return config.defaults.get("argyll.version")
@@ -496,7 +500,8 @@ def get_argyll_instrument_config(what=None):
                 filenames.append(filename)
     else:
         if what == "expected":
-            fn = lambda filename: filename
+            def fn(filename):
+                return filename
         else:
             fn = get_data_path
         if os.path.isdir("/etc/udev/rules.d"):

@@ -12,33 +12,31 @@ sound = Sound("test.wav", loop=True)
 sound.Play(fade_ms=1000)
 """
 
+import contextlib
+import ctypes.util
+import os
+import sys
+import threading
+import time
 from ctypes import (
-    CFUNCTYPE,
     POINTER,
     Structure,
     c_int,
     c_uint8,
     c_uint16,
     c_uint32,
-    c_void_p,
 )
-import ctypes.util
-import os
-import sys
-import threading
-import time
 
 if sys.platform == "win32":
     try:
-        import win32api
         import pywintypes
+        import win32api
     except ImportError:
         win32api = None
 
 from DisplayCAL.config import pydir
 from DisplayCAL.util_os import dlopen, getenvu
 from DisplayCAL.util_str import safe_str
-
 
 _ch = {}
 _initialized = False
@@ -96,7 +94,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                 except ValueError:
                     version.append(item)
             if version < [1, 2, 2]:
-                raise ImportError("pyglet version %s is too old" % pyglet.version)
+                raise ImportError(f"pyglet version {pyglet.version} is too old")
             _lib = "pyglet"
         except ImportError:
             _lib = None
@@ -134,10 +132,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
         SDL_INIT_AUDIO = 16
         AUDIO_S16LSB = 0x8010
         AUDIO_S16MSB = 0x9010
-        if sys.byteorder == "little":
-            MIX_DEFAULT_FORMAT = AUDIO_S16LSB
-        else:
-            MIX_DEFAULT_FORMAT = AUDIO_S16MSB
+        MIX_DEFAULT_FORMAT = AUDIO_S16LSB if sys.byteorder == "little" else AUDIO_S16MSB
         if sys.platform == "win32":
             pth = getenvu("PATH")
             libpth = os.path.join(pydir, "lib")
@@ -159,10 +154,8 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                 if libfn and win32api:
                     # Support for unicode paths
                     libfn = str(libfn)
-                    try:
+                    with contextlib.suppress(pywintypes.error):
                         handle = win32api.LoadLibrary(libfn)
-                    except pywintypes.error:
-                        pass
             elif sys.platform != "darwin":
                 # Hard-code lib names for Linux
                 libfn = f"lib{libname}"
@@ -200,10 +193,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                     samplerate, MIX_DEFAULT_FORMAT, channels, buffersize
                 )
                 _lib = "SDL"
-                if libname.startswith("SDL2"):
-                    _lib_version = "2.0"
-                else:
-                    _lib_version = "1.2"
+                _lib_version = "2.0" if libname.startswith("SDL2") else "1.2"
                 break
             else:
                 sdl = dll
@@ -402,7 +392,7 @@ class _Sound:
             self._thread += 1
             threading.Thread(
                 target=self._fade,
-                name="AudioFading-%d[%sms]" % (self._thread, fade_ms),
+                name=f"AudioFading-{self._thread}[{fade_ms}ms]",
                 args=(fade_ms, fade_in, self._thread),
             ).start()
             return True
@@ -436,10 +426,8 @@ class _Sound:
                 # and Linux even when seeking to start position which allows
                 # replaying the sound under Windows.
                 if stop_already_playing:
-                    try:
+                    with contextlib.suppress(TypeError):
                         self._ch.delete()
-                    except TypeError:
-                        pass
                 self._ch = pyglet.media.Player()
                 if self._lib_version >= "1.4.0":
                     self._ch.loop = self._loop
@@ -532,6 +520,7 @@ class _Sound:
 
 if __name__ == "__main__":
     import wx
+
     from DisplayCAL.config import get_data_path
 
     sound = Sound(get_data_path("theme/engine_hum_loop.wav"), True)

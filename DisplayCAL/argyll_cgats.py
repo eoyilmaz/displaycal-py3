@@ -1,9 +1,10 @@
 # import decimal
 # Decimal = decimal.Decimal
+import contextlib
 import decimal
-from decimal import Decimal
 import os
 import traceback
+from decimal import Decimal
 from io import BytesIO
 from time import strftime
 
@@ -18,6 +19,7 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
@@ -27,7 +29,6 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     WcsProfilesTagType,
 )
-from DisplayCAL.debughelpers import Error
 from DisplayCAL.options import debug
 
 cals = {}
@@ -113,7 +114,7 @@ def cal_to_vcgt(cal, return_cgats=False):
         try:
             cal = CGATS(cal)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -167,7 +168,7 @@ def can_update_cal(path):
         try:
             cal = CGATS(path)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -221,7 +222,7 @@ def extract_cal_from_profile(
     if check:
         try:
             cgats = get_cgats(arg)
-        except (IOError, CGATSError) as e:
+        except (OSError, CGATSError) as e:
             traceback.print_exc()
             raise Error(lang.getstr("cal_extraction_failed")) from e
     elif raise_on_missing_cal:
@@ -312,10 +313,8 @@ def extract_cal_from_ti3(ti3):
             cal_lines.append(line)
             if line == b"END_DATA":
                 break
-    try:
+    with contextlib.suppress(AttributeError):
         ti3.close()
-    except AttributeError:
-        pass
 
     return b"\n".join(cal_lines)
 
@@ -330,7 +329,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
 
     try:
         profile = ICCProfile(source_filename)
-    except (IOError, ICCProfileInvalidError) as exception:
+    except (OSError, ICCProfileInvalidError) as exception:
         return exception
     if "CIED" not in profile.tags and "targ" not in profile.tags:
         return None
@@ -342,7 +341,8 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
     for line in ti3_lines:
         line = line.strip()
         if line == b"CAL":
-            line = b"CAL    "  # Make sure CGATS file identifiers are always a minimum of 7 characters
+            # Make sure CGATS file identifiers are always a minimum of 7 characters long
+            line = line.ljust(7)
             cal_found = True
         if not cal_found:
             continue
@@ -420,9 +420,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
                     q = b"medium"
                 else:
                     q = b"high"
-                cal_lines.extend(
-                    (b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q)
-                )
+                cal_lines.extend((b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q))
         if not whitepoint:
             cal_lines.extend(
                 (

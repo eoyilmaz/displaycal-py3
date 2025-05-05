@@ -1655,20 +1655,10 @@ class PlotCanvas(wx.Panel):
         )  # saves most recient values
 
         # Get ticks and textExtents for axis if required
-        if self._xSpec != "none":
-            xticks = self._xticks(xAxis[0], xAxis[1])
-        else:
-            xticks = None
-        if xticks:
-            xTextExtent = dc.GetTextExtent(
-                xticks[-1][1]
-            )  # w h of x axis text last number on axis
-        else:
-            xTextExtent = (0, 0)  # No text for ticks
-        if self._ySpec != "none":
-            yticks = self._yticks(yAxis[0], yAxis[1])
-        else:
-            yticks = None
+        xticks = self._xticks(xAxis[0], xAxis[1]) if self._xSpec != "none" else None
+        # w h of x axis text last number on axis if `xticks`` else No text for ticks
+        xTextExtent = dc.GetTextExtent(xticks[-1][1]) if xticks else (0, 0)
+        yticks = self._yticks(yAxis[0], yAxis[1]) if self._ySpec != "none" else None
         if yticks:
             if self.getLogScale()[1]:
                 yTextExtent = dc.GetTextExtent("-2e-2")
@@ -2100,12 +2090,8 @@ class PlotCanvas(wx.Panel):
             int(legendBoxWH[1] + self._pointSize[1] * 2),
         )
         legend_inside = True
-        if legend_inside:
-            legendLHS = 0
-        else:
-            legendLHS = (
-                0.091 * legendBoxWH[0]
-            )  # border space between legend sym and graph box
+        # border space between legend sym and graph box
+        legendLHS = 0 if legend_inside else 0.091 * legendBoxWH[0]
         lineHeight = (
             max(legendSymExt[1], legendTextExt[1]) * 1.1
         )  # 1.1 used as space between lines
@@ -2203,10 +2189,7 @@ class PlotCanvas(wx.Panel):
         if font:
             return font  # yeah! cache hit
         else:
-            if "phoenix" in wx.PlatformInfo:
-                kwarg = "faceName"
-            else:
-                kwarg = "face"
+            kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
             font = wx.Font(
                 int(s),
                 of.GetFamily(),

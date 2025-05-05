@@ -363,10 +363,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         # modifying the src_dir is not working with py2app, so disabling it.
         # src_dir = os.path.join(src_dir, pkgname)
         if subkey:
-            if subkey in files:
-                files = files[subkey]
-            else:
-                files = []
+            files = files[subkey] if subkey in files else []
     data = []
     for pth in files:
         if not [exclude for exclude in excludes or [] if fnmatch(pth, exclude)]:
@@ -1045,10 +1042,7 @@ def setup():
         import wx
         from winmanifest_util import getmanifestxml
 
-        if platform.architecture()[0] == "64bit":
-            arch = "amd64"
-        else:
-            arch = "x86"
+        arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
         manifest_xml = getmanifestxml(
             os.path.join(
                 pydir,

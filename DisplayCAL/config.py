@@ -368,10 +368,7 @@ def create_bitmap(
                 size = []
     ow, oh = w, h
     set_default_app_dpi()
-    if scale:
-        scale = getcfg("app.dpi") / get_default_dpi()
-    else:
-        scale = 1
+    scale = getcfg("app.dpi") / get_default_dpi() if scale else 1
     if scale > 1:
         # HighDPI support
         w = int(round(w * scale))
@@ -595,20 +592,14 @@ def load_bitmap(
                     factors = (1, 1, 1, alpha / 255.0)
             if factors:
                 R, G, B = factors[:3]
-                if len(factors) > 3:
-                    alpha = factors[3]
-                else:
-                    alpha = 1.0
+                alpha = factors[3] if len(factors) > 3 else 1.0
                 img = img.AdjustChannels(R, G, B, alpha)
             if color:
                 # Hex format, RRGGBB or RRGGBBAA
                 R = int(color[0:2], 16) / 255.0
                 G = int(color[2:4], 16) / 255.0
                 B = int(color[4:6], 16) / 255.0
-                if len(color) > 6:
-                    alpha = int(color[6:8], 16) / 255.0
-                else:
-                    alpha = 1.0
+                alpha = int(color[6:8], 16) / 255.0 if len(color) > 6 else 1.0
                 img = img.AdjustChannels(R, G, B, alpha)
         if img:
             bmp = img.ConvertToBitmap()
@@ -666,10 +657,7 @@ def get_argyll_data_dir() -> str:
     if isinstance(argyll_version, str):
         argyll_version = list(map(int, argyll_version.split(".")))
 
-    if argyll_version < [1, 5, 0]:
-        argyll_data_dirname = "color"
-    else:
-        argyll_data_dirname = "ArgyllCMS"
+    argyll_data_dirname = "color" if argyll_version < [1, 5, 0] else "ArgyllCMS"
 
     if sys.platform == "darwin" and argyll_version < [1, 5, 0]:
         return os.path.join(
@@ -884,10 +872,7 @@ def get_data_path(relpath, rex=None):
             # Fedora and Ubuntu: /usr/share/color/argyll/ref
             # openSUSE: /usr/share/color/argyll
             pth = relpath.split("/", 1)[-1]
-            if pth != "ref":
-                curpath = os.path.join(dir_, pth)
-            else:
-                curpath = dir_
+            curpath = os.path.join(dir_, pth) if pth != "ref" else dir_
         if os.path.exists(curpath):
             curpath = os.path.normpath(curpath)
             if os.path.isdir(curpath):
@@ -2047,11 +2032,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     Read in settings if the configuration file exists, else create the
     settings directory if nonexistent.
     """
-    if module:
-        cfgbasename = f"{appbasename}-{module}"
-    else:
-        cfgbasename = appbasename
-
+    cfgbasename = f"{appbasename}-{module}" if module else appbasename
     makecfgdir()
     cfg_full_path = os.path.join(confighome, f"{cfgbasename}.ini")
     if os.path.exists(confighome) and not os.path.exists(cfg_full_path):
@@ -2357,10 +2338,7 @@ def writecfg(
     Returns:
         bool: True if successful, False otherwise.
     """
-    if module:
-        cfgbasename = f"{appbasename}-{module}"
-    else:
-        cfgbasename = appbasename
+    cfgbasename = f"{appbasename}-{module}" if module else appbasename
     # Remove unknown options
     for name, _val in cfg.items(configparser.DEFAULTSECT):
         if name not in defaults:

@@ -25,28 +25,17 @@ def tiff_get_header(w, h, samples_per_pixel, bitdepth):
     header.append(b"\0\0\0\x08")
 
     pixelcount = w * h * samples_per_pixel
-    if bitdepth == 16:
-        bytecount = pixelcount * 2
-    else:
-        bytecount = pixelcount
+    bytecount = pixelcount * 2 if bitdepth == 16 else pixelcount
 
     # Image file directory (IFD)
 
     # PhotometricInterpretation
-    if samples_per_pixel == 3:
-        pmi = 2  # RGB
-    else:
-        pmi = 5  # Separated (usually CMYK)
+    # RGB if samples_per_pixel == 3 else Separated (usually CMYK)
+    pmi = 2 if samples_per_pixel == 3 else 5
 
     # Tag, type, length, offset or data, is data (otherwise offset)
-    if w > 65535:
-        tag_type_w = TIFF_TAG_TYPE_DWORD
-    else:
-        tag_type_w = TIFF_TAG_TYPE_WORD
-    if h > 65535:
-        tag_type_h = TIFF_TAG_TYPE_DWORD
-    else:
-        tag_type_h = TIFF_TAG_TYPE_WORD
+    tag_type_w = TIFF_TAG_TYPE_DWORD if w > 65535 else TIFF_TAG_TYPE_WORD
+    tag_type_h = TIFF_TAG_TYPE_DWORD if h > 65535 else TIFF_TAG_TYPE_WORD
     ifd = [
         (0x100, tag_type_w, 1, w, True),  # ImageWidth
         (0x101, tag_type_h, 1, h, True),  # ImageLength
@@ -187,10 +176,7 @@ class Image:
         tzoffset = round(
             (time.mktime(time.localtime()) - time.mktime(time.gmtime())) / 60.0 / 60.0
         )
-        if tzoffset < 0:
-            tzoffset = b"%.2i" % tzoffset
-        else:
-            tzoffset = b"+%.2i" % tzoffset
+        tzoffset = b"%.2i" % tzoffset if tzoffset < 0 else b"+%.2i" % tzoffset
         stream.write(
             time.strftime("%Y:%m:%d:%H:%M:%S").encode() + tzoffset.encode() + b"\0\0"
         )

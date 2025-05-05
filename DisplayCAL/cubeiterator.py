@@ -38,10 +38,7 @@ class Cube3D:
         if not upper:
             upper = self._len
         if v < lower:
-            if v < -upper:
-                v = fallback or lower
-            else:
-                v = upper + v
+            v = fallback or lower if v < -upper else upper + v
         elif v > upper:
             v = fallback or upper
         return v

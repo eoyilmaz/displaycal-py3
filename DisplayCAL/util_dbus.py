@@ -76,10 +76,7 @@ class DBusObject:
         self._proxy = None
         self._iface = None
         if object_path:
-            if bus_type == BUSTYPE_SESSION:
-                bus = dbus_session
-            else:
-                bus = dbus_system
+            bus = dbus_session if bus_type == BUSTYPE_SESSION else dbus_system
             self._bus = bus
             interface = self._bus_name
             if self._iface_name:

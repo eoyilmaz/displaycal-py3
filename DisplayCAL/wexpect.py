@@ -1249,13 +1249,10 @@ class spawn_unix:
         if self.terminated:
             return False
 
-        if self.flag_eof:
-            # This is for Linux, which requires the blocking form of waitpid to get
-            # status of a defunct process. This is super-lame. The flag_eof would have
-            # been set in read_nonblocking(), so this should be safe.
-            waitpid_options = 0
-        else:
-            waitpid_options = os.WNOHANG
+        # This is for Linux, which requires the blocking form of waitpid to get
+        # status of a defunct process. This is super-lame. The flag_eof would have
+        # been set in read_nonblocking(), so this should be safe.
+        waitpid_options = 0 if self.flag_eof else os.WNOHANG
 
         try:
             pid, status = os.waitpid(self.pid, waitpid_options)
@@ -2159,10 +2156,7 @@ class Wtty:
             if getattr(sys, "frozen", False)
             else os.path.abspath(os.path.dirname(__file__))
         )
-        if getattr(sys, "frozen", False):
-            logdir = appname
-        else:
-            logdir = dirname
+        logdir = appname if getattr(sys, "frozen", False) else dirname
         logdir = os.path.basename(logdir)
         spath = [dirname]
         pyargs = ["-c"]
@@ -3143,15 +3137,9 @@ def split_command_line(command_line):
             ):
                 arg += "\\"
             arg = arg + c
-            if state_backup != state_whitespace:
-                state = state_backup
-            else:
-                state = state_basic
+            state = state_backup if state_backup != state_whitespace else state_basic
         elif state == state_singlequote:
-            if c == r"'":
-                state = state_basic
-            else:
-                arg = arg + c
+            state = state_basic if c == r"'" else arg + c
         elif state == state_doublequote:
             if c == r'"':
                 state = state_basic

@@ -1056,10 +1056,7 @@ class LUT3DMixin:
 
     def lut3d_snap_size(self, size):
         if self.getcfg("3dlut.format") == "mga" and size not in (17, 33):
-            if size < 33:
-                size = 17
-            else:
-                size = 33
+            size = 17 if size < 33 else 33
         elif self.getcfg("3dlut.format") == "ReShade" and size not in (16, 32, 64):
             if size < 32:
                 size = 16
@@ -1171,10 +1168,7 @@ class LUT3DMixin:
             config.defaults["3dlut.encoding.input"] = "t"
             config.defaults["3dlut.encoding.output"] = "t"
         else:
-            if format == "dcl":
-                encodings = ["n"]
-            else:
-                encodings = list(video_encodings)
+            encodings = ["n"] if format == "dcl" else list(video_encodings)
             config.defaults["3dlut.encoding.input"] = "n"
             config.defaults["3dlut.encoding.output"] = "n"
         if (
@@ -1243,10 +1237,7 @@ class LUT3DMixin:
         diffuse_PQ = colormath.specialpow(diffuse_ref_cdm2 / 10000, 1.0 / -2084)
         # Determine white cd/m2 after roll-off
         diffuse_tgt_cdm2 = colormath.specialpow(bt2390.apply(diffuse_PQ), -2084) * 10000
-        if diffuse_tgt_cdm2 < diffuse_ref_cdm2:
-            signalcolor = "#CC0000"
-        else:
-            signalcolor = "#008000"
+        signalcolor = "#CC0000" if diffuse_tgt_cdm2 < diffuse_ref_cdm2 else "#008000"
         self.lut3d_hdr_diffuse_white_txt.ForegroundColour = signalcolor
         self.lut3d_hdr_diffuse_white_txt.Label = "%.2f" % diffuse_tgt_cdm2
         self.lut3d_hdr_diffuse_white_txt_label.ForegroundColour = signalcolor
@@ -1290,10 +1281,7 @@ class LUT3DMixin:
 
     def lut3d_update_trc_control(self):
         if self.getcfg("3dlut.trc").startswith("smpte2084"):  # SMPTE 2084
-            if self.getcfg("3dlut.trc") == "smpte2084.hardclip":
-                sel = 2
-            else:
-                sel = 3
+            sel = 2 if self.getcfg("3dlut.trc") == "smpte2084.hardclip" else 3
             self.lut3d_trc_ctrl.SetSelection(sel)
         elif self.getcfg("3dlut.trc") == "hlg":  # Hybrid Log-Gamma (HLG)
             self.lut3d_trc_ctrl.SetSelection(4)
@@ -1592,10 +1580,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
         self.XYZbpout = [0.001, 0.001, 0.001]
         self.update_controls()
         self.update_layout()
-        if self.panel.VirtualSize[0] > self.panel.Size[0]:
-            scrollrate_x = 2
-        else:
-            scrollrate_x = 0
+        scrollrate_x = 2 if self.panel.VirtualSize[0] > self.panel.Size[0] else 0
         self.panel.SetScrollRate(scrollrate_x, 2)
 
         config.defaults.update(

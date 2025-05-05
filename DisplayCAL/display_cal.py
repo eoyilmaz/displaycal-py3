@@ -599,16 +599,9 @@ def app_update_confirm(
     if result == wx.ID_OK and (
         zeroinstall or (sys.platform in ("darwin", "win32") or argyll)
     ):
-        if parent and hasattr(parent, "worker"):
-            worker = parent.worker
-        else:
-            worker = Worker()
-        if snapshot:
-            # Snapshot
-            folder = "/snapshot"
-        else:
-            # Stable
-            folder = ""
+        worker = parent.worker if parent and hasattr(parent, "worker") else Worker()
+        # Snapshot or Stable
+        folder = "/snapshot" if snapshot else ""
         if zeroinstall:
             if parent:
                 parent.Close()
@@ -670,12 +663,9 @@ def app_update_confirm(
                         # Assume x86
                         suffix = "_linux_x86_bin.tgz"
             elif sys.platform == "win32":
-                if snapshot:
-                    # Snapshots are only avaialble as ZIP
-                    suffix = "-win32.zip"
-                else:
-                    # Regular stable versions are available as setup
-                    suffix = "-Setup.exe"
+                # Snapshots are only avaialble as ZIP
+                # or Regular stable versions are available as setup
+                suffix = "-win32.zip" if snapshot else "-Setup.exe"
             else:
                 suffix = ".dmg"
             worker.start(
@@ -1446,10 +1436,7 @@ class GamapFrame(BaseFrame):
             id=self.b2a_hires_cb.GetId(),
         )
         for v in config.valid_values["profile.b2a.hires.size"]:
-            if v > -1:
-                v = f"{v}x{v}x{v}"
-            else:
-                v = lang.getstr("auto")
+            v = f"{v}x{v}x{v}" if v > -1 else lang.getstr("auto")
             self.b2a_size_ctrl.Append(v)
         self.Bind(
             wx.EVT_CHOICE, self.b2a_size_ctrl_handler, id=self.b2a_size_ctrl.GetId()
@@ -1526,10 +1513,7 @@ class GamapFrame(BaseFrame):
                     )
                 ):
                     # pre-select suitable viewing condition
-                    if profile.profileClass == b"prtr":
-                        src_viewcond = "pp"
-                    else:
-                        src_viewcond = "mt"
+                    src_viewcond = "pp" if profile.profileClass == b"prtr" else "mt"
                     self.gamap_src_viewcond_ctrl.SetStringSelection(
                         lang.getstr("gamap.viewconds." + src_viewcond)
                     )
@@ -1674,10 +1658,7 @@ class GamapFrame(BaseFrame):
                 self.b2a_smooth_cb.SetValue(bool(getcfg("profile.b2a.hires.smooth")))
         else:
             self.b2a_smooth_cb.SetValue(False)
-        if self.low_quality_b2a_cb.GetValue():
-            v = "l"
-        else:
-            v = None
+        v = "l" if self.low_quality_b2a_cb.GetValue() else None
         if (
             v != getcfg("profile.quality.b2a") or hires != getcfg("profile.b2a.hires")
         ) and self.Parent:
@@ -1892,10 +1873,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.update_comports()
         self.mr_init_controls()
         self.update_controls(update_ccmx_items=False)
-        if self.calpanel.VirtualSize[0] > self.calpanel.Size[0]:
-            scrollrate_x = 2
-        else:
-            scrollrate_x = 0
+        scrollrate_x = 2 if self.calpanel.VirtualSize[0] > self.calpanel.Size[0] else 0
         self.calpanel.SetScrollRate(scrollrate_x, 2)
         x, y = getcfg("position.x", False), getcfg("position.y", False)
         if None not in (x, y):
@@ -2497,12 +2475,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """
         if sys.platform not in ("darwin", "win32"):
             # Linux
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
-                # Client-side decorations
-                safety_margin = 0
-            else:
-                # Assume server-side decorations
-                safety_margin = 40
+            # Client-side decorations in Wayland, server-side decorations in X11
+            safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
         else:
             safety_margin = 20
 
@@ -2555,10 +2529,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def set_size(self, set_height=False, fit_width=False):
         self.SetMinSize((0, 0))
         borders_tb = self.Size[1] - self.ClientSize[1]
-        if set_height:
-            height = self.get_min_height()
-        else:
-            height = self.ClientSize[1]
+        height = self.get_min_height() if set_height else self.ClientSize[1]
         borders_lr = self.Size[0] - self.ClientSize[0]
         scale = getcfg("app.dpi") / config.get_default_dpi()
         margin = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
@@ -2692,10 +2663,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.menubar = PopupMenu(self.header)
             for label in ("file", "options", "tools", "language", "help"):
                 menu_label = f"menu.{label}"
-                if label == "help":
-                    menu_name = "wxID_HELP"
-                else:
-                    menu_name = menu_label
+                menu_name = "wxID_HELP" if label == "help" else menu_label
                 menu = res.LoadMenu(menu_name)
                 self.menubar.Append(menu, menu_label)
             self.header.Bind(wx.EVT_RIGHT_UP, lambda e: self.menubar.popup())
@@ -4911,10 +4879,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.colorimeter_correction_matrix_ctrl.SetItems(items)
         self.colorimeter_correction_matrix_ctrl.SetSelection(index)
         self.colorimeter_correction_matrix_ctrl.Thaw()
-        if use_ccmx:
-            tooltip = ccmx[1]
-        else:
-            tooltip = ""
+        tooltip = ccmx[1] if use_ccmx else ""
         self.update_main_controls()
         self.colorimeter_correction_matrix_ctrl.SetToolTipString(tooltip)
         self.colorimeter_correction_info_btn.Enable(len(ccmx) > 1 and bool(ccmx[1]))
@@ -5461,10 +5426,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ctrl.GetContainingSizer().Show(ctrl, self.trc_ctrl.GetSelection() > 0)
         # Make the height of the last row in the calibration settings sizer
         # match the other rows
-        if self.trc_ctrl.GetSelection() > 0:
-            minheight = self.trc_ctrl.Size[1] + 8
-        else:
-            minheight = 0
+        minheight = self.trc_ctrl.Size[1] + 8 if self.trc_ctrl.GetSelection() > 0 else 0
         self.calibration_quality_ctrl.ContainingSizer.SetMinSize((0, minheight))
         self.black_point_correction_auto_handler()
         if freeze:
@@ -5758,10 +5720,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             dlg.sizer0.SetSizeHints(dlg)
             dlg.sizer0.Layout()
-            if event:
-                choice = dlg.ShowModal()
-            else:
-                choice = wx.ID_OK
+            choice = dlg.ShowModal() if event else wx.ID_OK
             asroot = dlg.install_systemwide.GetValue()
             dlg.Destroy()
             if choice == wx.ID_CANCEL:
@@ -6692,10 +6651,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not self.setup_patterngenerator(self):
             return
         evtobjname = event.GetEventObject().Name
-        if evtobjname == "luminance_measure_btn":
-            color = wx.WHITE
-        else:
-            color = wx.BLACK
+        color = wx.WHITE if evtobjname == "luminance_measure_btn" else wx.BLACK
         if self.worker.patterngenerator:
             self.worker.patterngenerator.send(
                 tuple(v / 255.0 for v in color[:3]),
@@ -6715,10 +6671,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         frame.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
         panel = wx.Panel(frame, size=(int(get_default_size()),) * 2)
         panel.SetBackgroundColour(color)
-        if wx.Platform == "__WXMSW__":
-            btncls = ThemedGenButton
-        else:
-            btncls = wx.Button
+        btncls = ThemedGenButton if wx.Platform == "__WXMSW__" else wx.Button
         measure_btn = btncls(panel, label=lang.getstr("measure"), name=evtobjname)
         measure_btn.Bind(wx.EVT_BUTTON, self.ambient_measure_handler)
         panel.Sizer = wx.FlexGridSizer(2, 3)
@@ -6780,12 +6733,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def ambient_measure_producer(self, interactive_frame):
         """Process spotread output for ambient readings"""
         cmd = get_argyll_util("spotread")
-        if interactive_frame != "ambient":
-            # Emissive
-            mode = "-e"
-        else:
-            # Ambient
-            mode = "-a"
+        # Emissive if interactive_frame is not ambient or Ambient
+        mode = "-e" if interactive_frame != "ambient" else "-a"
         args = ["-v", mode, "-x"]
         if getcfg("extra_args.spotread").strip():
             args += parse_argument_string(getcfg("extra_args.spotread"))
@@ -6864,12 +6813,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 set_whitepoint = dlg.ShowModal() == wx.ID_OK
                 dlg.Destroy()
         elif XYZ or Y:
-            # White or black luminance
-            if XYZ:
-                Y = XYZ.group(2)
-            else:
-                # Monochrome, e.g. Spyder4/5
-                Y = Y.group(1)
+            # White or black luminance or Monochrome, e.g. Spyder4/5
+            Y = XYZ.group(2) if XYZ else Y.group(1)
             Y = float(Y)
             if evtobjname in ("luminance_measure_btn", "ambient_luminance_measure_btn"):
                 # Force minimum luminance of 40 cd/m2 which should be suitable for
@@ -7684,10 +7629,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             date = datetime.date(int(year), 1, 1) + datetime.timedelta(weeks=week)
             description += " '" + strftime("%y", date.timetuple())
         if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
-            if profile.tags.vcgt.is_linear():
-                vcgt = "linear VCGT"
-            else:
-                vcgt = "VCGT"
+            vcgt = "linear VCGT" if profile.tags.vcgt.is_linear() else "VCGT"
         else:
             vcgt = "no VCGT"
         if vcgt:
@@ -8813,10 +8755,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     print(n, p.getDescription())
 
         if use_sim:
-            if sim_profile:
-                mprof = sim_profile
-            else:
-                mprof = profile
+            mprof = sim_profile if sim_profile else profile
         apply_map = (
             use_sim
             and mprof.colorSpace == b"RGB"
@@ -10579,10 +10518,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.worker.interactive = False
         if not isinstance(result, Exception) and result:
             wx.CallAfter(self.update_calibration_file_ctrl)
-            if getcfg("trc"):
-                cal = True
-            else:
-                cal = get_data_path("linear.cal")
+            cal = True if getcfg("trc") else get_data_path("linear.cal")
             self.worker.start_measurement(
                 self.calibrate_and_profile_finish,
                 apply_calibration=cal,
@@ -10700,12 +10636,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     # get dispcal options if present
                     options_dispcal = [
-                        "-" + arg for arg in get_options_from_profile(profile)[0]
+                        f"-{arg}" for arg in get_options_from_profile(profile)[0]
                     ]
-            if os.path.isfile(filename + ".cal"):
-                cal = filename + ".cal"
-            else:
-                cal = None
+            cal = f"{filename}.cal" if os.path.isfile(filename + ".cal") else None
         if self.worker.argyll_version < [1, 1, 0] or not self.worker.has_lut_access():
             # If Argyll < 1.1, we cannot save the current VideoLUT to use it.
             # For web, there is no point in using the current VideoLUT as it
@@ -10754,10 +10687,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.sizer3.Add(dlg.embed_cal_ctrl, flag=wx.TOP | wx.ALIGN_LEFT, border=border)
         dlg.sizer0.SetSizeHints(dlg)
         dlg.sizer0.Layout()
-        if silent:
-            result = wx.ID_OK
-        else:
-            result = dlg.ShowModal()
+        result = wx.ID_OK if silent else dlg.ShowModal()
         if can_use_current_cal or cal:
             reset_cal = dlg.reset_cal_ctrl.GetValue()
         embed_cal = dlg.embed_cal_ctrl.GetValue()
@@ -11364,10 +11294,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             dlg.sizer3.Add(
                 self.show_profile_info, flag=wx.TOP | wx.ALIGN_LEFT, border=4
             )
-            if profile.ID == "\0" * 16:
-                id = profile.calculateID(False)
-            else:
-                id = profile.ID
+            id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
             if id in self.profile_info:
                 self.show_profile_info.SetValue(self.profile_info[id].IsShownOnScreen())
             if installable:
@@ -11775,10 +11702,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
         if not profile:
             return
-        if profile.ID == "\0" * 16:
-            id = profile.calculateID(False)
-        else:
-            id = profile.ID
+        id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
         show = (
             not getattr(self, "show_profile_info", None)
             or self.show_profile_info.GetValue()
@@ -11940,10 +11864,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 CustomEvent(wx.EVT_BUTTON.evtType[0], self.calibrate_and_profile_btn),
             )
         elif data[0] == "create-profile" and len(data) < 3:
-            if len(data) == 2:
-                profile_path = data[1]
-            else:
-                profile_path = None
+            profile_path = data[1] if len(data) == 2 else None
             wx.CallAfter(self.create_profile_handler, None, path=profile_path)
         elif data[0] == "import-colorimeter-corrections":
             wx.CallAfter(
@@ -12442,10 +12363,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def colorimeter_correction_web_handler(self, event):
         """Check the web for cccmx or ccss files"""
-        if self.worker.instrument_supports_ccss():
-            filetype = "ccss,ccmx"
-        else:
-            filetype = "ccmx"
+        filetype = "ccss,ccmx" if self.worker.instrument_supports_ccss() else "ccmx"
         params = {
             "get": True,
             "type": filetype,
@@ -12710,10 +12628,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         ti3 = None
                 if debug or verbose >= 2:
                     print(f"last_{name}_ti3_path =", ti3)
-                if ti3:
-                    bmp = geticon(16, "checkmark")
-                else:
-                    bmp = geticon(16, "empty")
+                bmp = geticon(16, "checkmark") if ti3 else geticon(16, "empty")
                 getattr(dlg, f"measure_{name}").SetBitmapLabel(bmp)
                 getattr(dlg, f"measure_{name}").Refresh()
                 getattr(dlg, f"measure_{name}")._bmp.SetToolTipString(ti3 or "")
@@ -13404,10 +13319,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 white = colorimeter_ti3.queryi1("DATA").queryi1(
                     {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
                 )
-                if luminance:
-                    scale = luminance / 100.0
-                else:
-                    scale = 1.0
+                scale = luminance / 100.0 if luminance else 1.0
                 white = " ".join(
                     [
                         str(v)
@@ -13963,11 +13875,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 for i, label in enumerate(
                     ["x", "y", "Y", "", "", "x", "y", "Y", "ΔE*00"]
                 ):
-                    if i in (3, 4):
-                        # Rectangular (width = height)
-                        size = grid.GetDefaultRowSize()
-                    else:
-                        size = 80 * scale
+                    # Rectangular (width = height)
+                    size = grid.GetDefaultRowSize() if i in (3, 4) else 80 * scale
                     grid.SetColSize(i, int(size))
                     grid.SetColLabelValue(i, label)
                 grid.BeginBatch()
@@ -14061,10 +13970,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 grid.EndBatch()
                 dlg.sizer0.SetSizeHints(dlg)
                 dlg.sizer0.Layout()
-                if event:
-                    result = dlg.ShowWindowModalBlocking()
-                else:
-                    result = wx.ID_OK
+                result = dlg.ShowWindowModalBlocking() if event else wx.ID_OK
                 dlg.Destroy()
                 if result != wx.ID_OK:
                     self.worker.wrapup(False)
@@ -14608,10 +14514,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Import .edr
                 if asroot and sys.platform == "win32":
                     ccss = self.get_argyll_data_files("l", "*.ccss", True)
-                if isinstance(path, list):
-                    args = path
-                else:
-                    args = [path]
+                args = path if isinstance(path, list) else [path]
                 result = i1d3 = self.worker.import_edr(args, asroot=asroot)
                 if asroot and sys.platform == "win32":
                     # Hacky but the only way to know if we were successful
@@ -15359,10 +15262,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             and getcfg("calibration.black_point_correction_choice.show")
             and not getcfg("calibration.black_point_correction.auto")
         ):
-            if "c" in v:
-                ok = lang.getstr("turn_on")
-            else:
-                ok = lang.getstr("turn_off")
+            ok = lang.getstr("turn_on") if "c" in v else lang.getstr("turn_off")
             title = "calibration.black_point_correction"
             msg = "calibration.black_point_correction_choice"
             cancel = "setting.keep_current"
@@ -15386,10 +15286,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             result = dlg.ShowModal()
             dlg.Destroy()
             if result == wx.ID_OK:
-                if "c" in v:
-                    bkpt_corr = 1.0
-                else:
-                    bkpt_corr = 0.0
+                bkpt_corr = 1.0 if "c" in v else 0.0
                 if not cal_changed and bkpt_corr != getcfg(
                     "calibration.black_point_correction"
                 ):
@@ -15744,10 +15641,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         path_name, ext = os.path.splitext(filename)
         # Check for 7-Zip
         sevenzip = get_program_file("7z", "7-zip")
-        if sevenzip:
-            file_format = "7z"
-        else:
-            file_format = "zip"
+        file_format = "7z" if sevenzip else "zip"
         wildcard = "{}|*.{}".format(lang.getstr(f"filetype.{file_format}"), file_format)
         if file_format == "7z":
             wildcard = "{}|{}|*.zip".format(wildcard, lang.getstr("filetype.zip"))
@@ -17377,10 +17271,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             chart = chart.split(os.pathsep)
             chart.reverse()
             self.testcharts[i] = os.path.join(*chart)
-            if chart[-1] == "auto":
-                testchart_name = "auto_optimized"
-            else:
-                testchart_name = chart[-1]
+            testchart_name = "auto_optimized" if chart[-1] == "auto" else chart[-1]
             self.testchart_names.append(lang.getstr(testchart_name))
             i += 1
         return self.testchart_names
@@ -18297,10 +18188,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 setcfg("measurement_report.apply_black_offset", 0)
                                 setcfg("measurement_report.apply_trc", 1)
                         elif keyword == "3DLUT_GAMUT_MAPPING_MODE":
-                            if cfgvalue == "G":
-                                cfgvalue = 0
-                            else:
-                                cfgvalue = 1
+                            cfgvalue = 0 if cfgvalue == "G" else 1
                         elif keyword in (
                             "FFP_INSERTION_INTERVAL",
                             "FFP_INSERTION_DURATION",
@@ -18925,10 +18813,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         items.append(wx.StaticText(self.aboutdialog.panel, -1, ""))
 
         match = re.match(r"([^(]+)\s*(\([^(]+\))?\s*(\[[^[]+\])?", sys.version)
-        if match:
-            pyver_long = match.groups()
-        else:
-            pyver_long = [sys.version]
+        pyver_long = match.groups() if match else [sys.version]
         items.append(
             [
                 HyperLinkCtrl(
@@ -18967,10 +18852,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.aboutdialog.Show()
 
     def readme_handler(self, event):
-        if lang.getcode() == "fr":
-            readme = get_data_path("README-fr.html")
-        else:
-            readme = None
+        readme = get_data_path("README-fr.html") if lang.getcode() == "fr" else None
         if not readme:
             readme = get_data_path("README.html")
         if readme:
@@ -19762,10 +19644,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
         dlg.mods = {}
         dlg.force = force
 
-        if "gtk3" in wx.PlatformInfo:
-            style = wx.BORDER_SIMPLE
-        else:
-            style = wx.BORDER_THEME
+        style = wx.BORDER_SIMPLE if "gtk3" in wx.PlatformInfo else wx.BORDER_THEME
         dlg.grid = CustomGrid(
             dlg, -1, size=(int(940 * scale), int(200 * scale)), style=style
         )
@@ -19893,10 +19772,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
         if event.Col > 0:
             item = dlg.suspicious_items[event.Row]
             label = "_RGB__XYZ"[event.Col]
-            if event.Col < 6:
-                label = f"RGB_{label}"
-            else:
-                label = f"XYZ_{label}"
+            label = f"RGB_{label}" if event.Col < 6 else f"XYZ_{label}"
             strval = "0{}".format(
                 grid.GetCellValue(event.Row, event.Col).replace(",", ".")
             )
@@ -19972,10 +19848,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
 
     def cell_click_handler(self, event):
         if event.Col == 0:
-            if self.grid.GetCellValue(event.Row, event.Col):
-                value = ""
-            else:
-                value = "1"
+            value = "" if self.grid.GetCellValue(event.Row, event.Col) else "1"
             self.grid.SetCellValue(event.Row, event.Col, value)
             self.check_select_status()
         event.Skip()

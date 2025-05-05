@@ -72,10 +72,7 @@ def specialpow(a, b, slope_limit=0):
             v = 1.1115 * math.pow(a, 0.45) - 0.1115
     elif b == 1.0 / -3.0:
         # XYZ -> RGB, L* TRC
-        if a <= LSTAR_E:
-            v = 0.01 * a * LSTAR_K
-        else:
-            v = 1.16 * math.pow(a, 1.0 / 3.0) - 0.16
+        v = 0.01 * a * LSTAR_K if a <= LSTAR_E else 1.16 * math.pow(a, 1.0 / 3.0) - 0.16
     elif b == 1.0 / -2.4:
         # XYZ -> RGB, sRGB TRC
         if a <= SRGB_K0 / SRGB_P:
@@ -89,28 +86,17 @@ def specialpow(a, b, slope_limit=0):
         ) ** SMPTE2084_M2
     elif b == -2.4:
         # RGB -> XYZ, sRGB TRC
-        if a <= SRGB_K0:
-            v = a / SRGB_P
-        else:
-            v = math.pow((a + 0.055) / 1.055, 2.4)
+        v = a / SRGB_P if a <= SRGB_K0 else math.pow((a + 0.055) / 1.055, 2.4)
     elif b == -3.0:
         # RGB -> XYZ, L* TRC
-        if a <= 0.08:  # E * K * 0.01
-            v = 100.0 * a / LSTAR_K
-        else:
-            v = math.pow((a + 0.16) / 1.16, 3.0)
+        # E * K * 0.01
+        v = 100.0 * a / LSTAR_K if a <= 0.08 else math.pow((a + 0.16) / 1.16, 3.0)
     elif b == -240:
         # RGB -> XYZ, SMPTE 240M TRC
-        if a < SMPTE240M_K0:
-            v = a / SMPTE240M_P
-        else:
-            v = math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
+        v = a / SMPTE240M_P if a < SMPTE240M_K0 else math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
     elif b in (-601, -709):
         # RGB -> XYZ, Rec. 601/709 TRC
-        if a < REC709_K0:
-            v = a / REC709_P
-        else:
-            v = math.pow((a + 0.099) / 1.099, 1.0 / 0.45)
+        v = a / REC709_P if a < REC709_K0 else math.pow((a + 0.099) / 1.099, 1.0 / 0.45)
     elif b == -2084:
         # RGB -> XYZ, SMPTE 2084 (PQ)
         # See https://www.smpte.org/sites/default/files/2014-05-06-EOTF-Miller-1-2-handout.pdf
@@ -229,10 +215,7 @@ class HLG:
                 v = (math.exp((v - c) / a) + b) / 12.0
         else:
             # Relative scene linear light to non-linear HLG signal
-            if 0 <= v <= 1 / 12.0:
-                v = math.sqrt(3 * v)
-            else:
-                v = a * math.log(12 * v - b) + c
+            v = math.sqrt(3 * v) if 0 <= v <= 1 / 12.0 else a * math.log(12 * v - b) + c
         return v
 
     def eotf(self, RGB, inverse=False, apply_black_offset=True):
@@ -269,14 +252,8 @@ class HLG:
         Output range 0..1
 
         """
-        if isinstance(RGB, (float, int)):
-            R, G, B = (RGB,) * 3
-        else:
-            R, G, B = RGB
-        if apply_black_offset:
-            black_cdm2 = float(self.black_cdm2)
-        else:
-            black_cdm2 = 0
+        R, G, B = (RGB,) * 3 if isinstance(RGB, (float, int)) else RGB
+        black_cdm2 = float(self.black_cdm2) if apply_black_offset else 0
         alpha = (self.white_cdm2 - black_cdm2) / self.white_cdm2
         beta = black_cdm2 / self.white_cdm2
         Y = 0.2627 * R + 0.6780 * G + 0.0593 * B
@@ -960,10 +937,7 @@ def delta(
                   weighting factor (all three default to 1 if not set)
 
     """
-    if isinstance(method, str):
-        method = method.lower()
-    else:
-        method = str(int(method))
+    method = method.lower() if isinstance(method, str) else str(int(method))
     if method in ("94", "1994", "cie94", "cie1994"):
         textiles = p1
         dL = L2 - L1
@@ -975,10 +949,7 @@ def delta(
         SL = 1.0
         K1 = 0.048 if textiles else 0.045
         K2 = 0.014 if textiles else 0.015
-        if cie94_use_symmetric_chrominance:
-            C_ = math.sqrt(C1 * C2)
-        else:
-            C_ = C1
+        C_ = math.sqrt(C1 * C2) if cie94_use_symmetric_chrominance else C1
         SC = 1.0 + K1 * C_
         SH = 1.0 + K2 * C_
         KL = 2.0 if textiles else 1.0
@@ -1417,10 +1388,7 @@ def DIN99familyCH2DIN99ab(C99, H99):
 def DIN99familyab2DIN99CH(a99, b99):
     C99 = math.sqrt(math.pow(a99, 2) + math.pow(b99, 2))
     if a99 > 0:
-        if b99 >= 0:
-            h99ef = math.atan2(b99, a99)
-        else:
-            h99ef = 2 * math.pi + math.atan2(b99, a99)
+        h99ef = math.atan2(b99, a99) if b99 >= 0 else 2 * math.pi + math.atan2(b99, a99)
     elif a99 < 0:
         h99ef = math.atan2(b99, a99)
     else:
@@ -1629,15 +1597,8 @@ def Lab2XYZ(L, a, b, whitepoint=None, scale=1.0):
     else:
         xr = (116.0 * fx - 16) / LSTAR_K
 
-    if L > LSTAR_K * LSTAR_E:
-        yr = math.pow((L + 16) / 116.0, 3.0)
-    else:
-        yr = L / LSTAR_K
-
-    if math.pow(fz, 3.0) > LSTAR_E:
-        zr = math.pow(fz, 3.0)
-    else:
-        zr = (116.0 * fz - 16) / LSTAR_K
+    yr = math.pow((L + 16) / 116.0, 3.0) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
+    zr = math.pow(fz, 3.0) if math.pow(fz, 3.0) > LSTAR_E else (116.0 * fz - 16) / LSTAR_K
 
     Xr, Yr, Zr = get_whitepoint(whitepoint, scale)
 
@@ -1701,10 +1662,7 @@ def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
 
 def RGB2HSI(R, G, B, scale=1.0):
     I = (R + G + B) / 3.0
-    if I:
-        S = 1 - min(R, G, B) / I
-    else:
-        S = 0
+    S = 1 - min(R, G, B) / I if I else 0
     if not R == G == B:
         H = math.atan2(math.sqrt(3) * (G - B), 2 * R - G - B) / math.pi / 2
         if H < 0:
@@ -1831,10 +1789,7 @@ def RGB2XYZ(R, G, B, rgb_space=None, scale=1.0, eotf=None):
     RGB = [R, G, B]
     is_trc = isinstance(trc, (list, tuple))
     for i, v in enumerate(RGB):
-        if is_trc:
-            gamma = trc[i]
-        else:
-            gamma = trc
+        gamma = trc[i] if is_trc else trc
         if eotf:
             RGB[i] = eotf(v)
         elif isinstance(gamma, (list, tuple)):
@@ -1869,10 +1824,7 @@ def RGB2YPbPr_matrix(rgb_space="NTSC 1953"):
     (trc, whitepoint, (rx, ry, rY), (gx, gy, gY), (bx, by, bY), matrix) = get_rgb_space(
         rgb_space
     )
-    if matrix == get_rgb_space("NTSC 1953")[-1]:
-        ndigits = 3
-    else:
-        ndigits = 4
+    ndigits = 3 if matrix == get_rgb_space("NTSC 1953")[-1] else 4
     KR = round((matrix * (1, 0, 0))[1], ndigits)
     KB = round((matrix * (0, 0, 1))[1], ndigits)
     KG = 1.0 - KR - KB
@@ -2138,10 +2090,7 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
         keys = list(iterable.keys())
         values = list(iterable.values())
     else:
-        if hasattr(iterable, "next"):
-            values = list(iterable)
-        else:
-            values = iterable
+        values = list(iterable) if hasattr(iterable, "next") else iterable
         keys = range(len(values))
     if passes:
         values = smooth_avg(values, passes, window)
@@ -2667,10 +2616,7 @@ def XYZ2RGB(X, Y, Z, rgb_space=None, scale=1.0, round_=False, clamp=True, oetf=N
     RGB = matrix.inverted() * [X, Y, Z]
     is_trc = isinstance(trc, (list, tuple))
     for i, v in enumerate(RGB):
-        if is_trc:
-            gamma = trc[i]
-        else:
-            gamma = trc
+        gamma = trc[i] if is_trc else trc
         if clamp:
             v = min(1.0, max(0.0, v))
         if oetf:
@@ -2797,12 +2743,11 @@ def gam_fit(gf, v):
 
 
 def linmin(cp, xi, di, ftol, func, fdata):
-    # Adapted from ArgyllCMS numlib/powell.c
+    """Line bracketing and minimisation routine.
 
-    """
-    Line bracketing and minimisation routine.
     Return value at minimum.
 
+    Adapted from ArgyllCMS numlib/powell.c
     """
     POWELL_GOLD = 1.618034
     POWELL_CGOLD = 0.3819660
@@ -2818,10 +2763,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
     # xt, XT  # Trial point
     XT = {}
 
-    if di <= 10:
-        xt = XT
-    else:
-        xt = dvector(0, di - 1)  # Vector for trial point
+    xt = XT if di <= 10 else dvector(0, di - 1)  # Vector for trial point
 
     # --------------------------
     # First bracket the solution
@@ -3015,10 +2957,8 @@ def linmin(cp, xi, di, ftol, func, fdata):
                     de = p / q  # Change in xb
                     ux = xx + de  # Trial point according to parabolic fit
                     if (ux - ax) < tol2 or (bx - ux) < tol2:
-                        if (mx - xx) > 0.0:  # Don't use parabolic, use tol1
-                            de = tol1  # tol1 is +ve
-                        else:
-                            de = -tol1
+                        # Don't use parabolic, use tol1 if (mx - xx) > 0.0: tol1 is +ve
+                        de = tol1 if (mx - xx) > 0.0 else -tol1
                     logging.debug("linmin: Using parabolic fit")
             else:  # Keep using the golden section search
                 e = ax - xx if xx >= mx else bx - xx  # Override previous distance moved
@@ -3354,10 +3294,7 @@ class BT1886:
 
             if self.apply_trc:
                 # Convert linear light to Rec709 transfer curve
-                if vv < 0.018:
-                    vv = 4.5 * vv
-                else:
-                    vv = 1.099 * math.pow(vv, 0.45) - 0.099
+                vv = 4.5 * vv if vv < 0.018 else 1.099 * math.pow(vv, 0.45) - 0.099
 
             # Apply input offset
             vv = vv + self.ingo
@@ -3535,12 +3472,9 @@ class BT2390:
             # minLum > 0.25, due to a 'dip' in the function. The solution is to
             # adjust the exponent according to minLum. For minLum <= 0.25
             # (< 5.15 cd/m2), this will give the same result as 'pure' BT.2390-3
-            if b >= 0:
-                # Only for positive b i.e. minLum >= LB
-                p = min(1.0 / b, 4)
-            else:
-                # For negative b i.e. minLum < LB
-                p = 4
+            # Only for positive b i.e. minLum >= LB if b >= 0,
+            # otherwise for negative b i.e. minLum < LB
+            p = min(1.0 / b, 4) if b >= 0 else 4
             E3 = E2 + b * (1 - E2) ** p
             # If maxLum < 1, and the input value reaches maxLum, the resulting
             # output value will be higher than maxLum after applying the black

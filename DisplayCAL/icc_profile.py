@@ -964,10 +964,7 @@ def create_synthetic_hdr_clut_profile(
         logfile.write("Generating device-to-PCS shaper curves...\n")
     entries = 1025
     prevperc = 0
-    if generate_B2A:
-        endperc = 1
-    else:
-        endperc = 2
+    endperc = 1 if generate_B2A else 2
     threshold = eotf_inverse(pprevpow[-2])
     k = None
     end = eotf_inverse(pprevpow[-1])
@@ -1175,10 +1172,7 @@ def create_synthetic_hdr_clut_profile(
                         + 0.0593 * LinearRGB[2]
                     )
                     I2 = eotf(eetf(eotf_inverse(I1)))
-                    if I1:
-                        min_I = I2 / I1
-                    else:
-                        min_I = 1
+                    min_I = I2 / I1 if I1 else 1
                     RGB = [eotf_inverse(min_I * v) for v in LinearRGB]
                 if (
                     hdr_format == "PQ"
@@ -1486,14 +1480,12 @@ def create_synthetic_hdr_clut_profile(
                 if backward_xicclu:
                     backward_xicclu.exit()
                 raise Exception("aborted")
-            if display_XYZ:
-                XYZdisp = display_XYZ[i]
+
+            XYZdisp = display_XYZ[i] if display_XYZ else XYZsrc
             # # Adjust luminance from destination to source
             # Ydisp = XYZdisp[1]
             # if Ydisp:
             #     XYZdisp = [v / Ydisp * XYZsrc[1] for v in XYZdisp]
-            else:
-                XYZdisp = XYZsrc
             X, Y, Z = (v * maxv for v in XYZsrc)
             X, Y, Z = colormath.adapt(
                 X, Y, Z, whitepoint_destination=content_rgb_space[1], cat=cat
@@ -1792,10 +1784,7 @@ def create_synthetic_hdr_clut_profile(
                 )
                 if not display_RGB:
                     debugtable1.clut[-1].append([0, 0, 0])
-                if display_XYZ:
-                    XYZdisp = display_XYZ[row]
-                else:
-                    XYZdisp = [0, 0, 0]
+                XYZdisp = display_XYZ[row] if display_XYZ else [0, 0, 0]
                 debugtable2.clut[-1].append(
                     [min(max(v * 65535, 0), 65535) for v in XYZdisp]
                 )
@@ -2330,10 +2319,7 @@ def get_display_profile_macos(display_no=0, path_only=False):
         retcode, output, errors = osascript(applescript)
         if retcode == 0 and output.strip():
             filename = output.strip("\n").decode(FS_ENC)
-            if path_only:
-                profile = filename
-            else:
-                profile = ICCProfile(filename, use_cache=True)
+            profile = filename if path_only else ICCProfile(filename, use_cache=True)
         elif errors.strip():
             raise IOError(errors.strip())
 
@@ -3241,10 +3227,7 @@ class LUT16Type(ICCProfileTag):
             for row in (bp_row, wp_row):
                 for column, value in enumerate(row):
                     row[column] = interp[column](value)
-        if use_bpc:
-            method = "apply_bpc"
-        else:
-            method = "apply_black_offset"
+        method = "apply_bpc" if use_bpc else "apply_black_offset"
         if pcs == b"Lab":
             bp = colormath.Lab2XYZ(*legacy_PCSLab_uInt16_to_dec(*bp_row))
             wp = colormath.Lab2XYZ(*legacy_PCSLab_uInt16_to_dec(*wp_row))
@@ -3262,14 +3245,11 @@ class LUT16Type(ICCProfileTag):
 
             from DisplayCAL.multiprocess import pool_slice
 
-            if len(self.clut[0]) < 33:
-                num_workers = 1
-            else:
-                num_workers = None
+            num_workers = 1 if len(self.clut[0]) < 33 else None
 
             # if pcs != "Lab" and nonzero_bp:
-            # bp_out_offset = bp_out
-            # bp_out = (0, 0, 0)
+            #     bp_out_offset = bp_out
+            #     bp_out = (0, 0, 0)
 
             if bp != bp_out:
                 self.clut = sum(
@@ -3482,11 +3462,7 @@ BEGIN_DATA
             if protect_gray_axis or protect_dark or protect_black or exclude:
                 if i % clutres == 0:
                     block += 1
-                    if pcs == "XYZ":
-                        gray_col_i = block
-                    else:
-                        # L*a*b*
-                        gray_col_i = clutres // 2
+                    gray_col_i = block if pcs == "XYZ" else clutres // 2  # L*a*b*
                     gray_row_i = i + gray_col_i
                 fnkwargs["protect"] = []
             for j, column in enumerate(row):
@@ -3658,11 +3634,8 @@ BEGIN_DATA
                     # channel is fully saturated
                     if clutres - 1 in (y, x) or 0 in (x, y):
                         # Filter with a "plus" (+) shape
-                        if pcs == "Lab" and i > clutres / 2.0:
-                            # Smoothing factor for L*a*b* -> RGB cLUT above 50%
-                            smooth = 0.25
-                        else:
-                            smooth = 0.5
+                        # Smoothing factor for L*a*b* -> RGB cLUT above 50%
+                        smooth = 0.25 if pcs == "Lab" and i > clutres / 2.0 else 0.5
                         for j, c in enumerate((x, y)):
                             # Omit corners and perpendicular axis
                             if 0 < c < clutres - 1:
@@ -4009,11 +3982,7 @@ class CurveType(ICCProfileTag, list):
     ):
         """Return average or least squares gamma or a list of gamma values"""
         if len(self) <= 1:
-            if len(self):
-                values = self
-            else:
-                # Identity
-                values = [1.0]
+            values = self if len(self) else [1.0] # Identity
             if average or least_squares:
                 return values[0]
             return [values[0]]
@@ -4430,11 +4399,8 @@ class CurveType(ICCProfileTag, list):
     def tagData(self):
         """Return raw tag data."""
 
-        if len(self) == 1 and self[0] == 1.0:
-            # Identity
-            curveEntriesCount = 0
-        else:
-            curveEntriesCount = len(self)
+        # Identity
+        curveEntriesCount = 0 if len(self) == 1 and self[0] == 1.0 else len(self)
         tagData = [b"curv", b"\0" * 4, uInt32Number_tohex(curveEntriesCount)]
         if curveEntriesCount == 1:
             # Gamma
@@ -4657,10 +4623,7 @@ class DictType(ICCProfileTag, AODict):
                 if key == "name":
                     element = item[0]
                 else:
-                    if isinstance(item[1], dict):
-                        element = item[1].get(key)
-                    else:
-                        element = item[1]
+                    element = item[1].get(key) if isinstance(item[1], dict) else item[1]
                 if element is None:
                     offset = 0
                     size = 0
@@ -5339,10 +5302,8 @@ class VideoCardGammaType(ICCProfileTag, ADict):
 
         """
         if amount is None:
-            if hasattr(self, "entryCount"):
-                amount = self.entryCount
-            else:
-                amount = 256  # common value
+            # use entryCount if exists, otherwise use the common value
+            amount = self.entryCount if hasattr(self, "entryCount") else 256
         values = self.getNormalizedValues(amount)
         entryCount = len(values)
         channels = len(values[0])
@@ -6179,10 +6140,7 @@ class ICCProfile:
             if not profile:
                 raise ICCProfileInvalidError("Empty path given")
 
-            if isinstance(profile, str):
-                p = pathlib.Path(profile)
-            else:
-                p = profile
+            p = pathlib.Path(profile) if isinstance(profile, str) else profile
 
             if not p.is_file() and not p.is_absolute():
                 search_paths = list(set(iccprofiles_home + iccprofiles))
@@ -7518,10 +7476,7 @@ class ICCProfile:
                 tag_params = dict(list(tag.params.items()))
                 for key in tag_params:
                     value = tag_params[key]
-                    if key == "g":
-                        value = f"{value:3.2f}"
-                    else:
-                        value = f"{value:.6f}"
+                    value = f"{value:3.2f}" if key == "g" else f"{value:.6f}"
                     value = value.rstrip("0").rstrip(".")
                     if key == "g" and "." not in value:
                         value += ".0"
@@ -7601,10 +7556,7 @@ class ICCProfile:
                     info["    Minimum Y"] = "{:6.4f}".format(tag[0] / 65535.0 * 100)
                     info["    Maximum Y"] = "{:6.2f}".format(tag[-1] / 65535.0 * 100)
             elif isinstance(tag, DictType):
-                if sig == "meta":
-                    name = "Metadata"
-                else:
-                    name = "Generic name-value data"
+                name = "Metadata" if sig == "meta" else "Generic name-value data"
                 info[name] = ""
                 for key in tag:
                     record = tag.get(key)

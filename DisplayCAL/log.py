@@ -20,10 +20,7 @@ logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
 
 
-if debug:
-    loglevel = logging.DEBUG
-else:
-    loglevel = logging.INFO
+loglevel = logging.DEBUG if debug else logging.INFO
 
 
 logger = None
@@ -32,14 +29,15 @@ _logdir = None
 
 def showwarning(message, category, filename, lineno, file=None, line=""):
     # Adapted from _showwarning in Python2.7/lib/logging/__init__.py
-    """
-    Implementation of showwarnings which redirects to logging, which will first
-    check to see if the file parameter is None. If a file is specified, it will
-    delegate to the original warnings implementation of showwarning. Otherwise,
-    it will call warnings.formatwarning and will log the resulting string to a
-    warnings logger named "py.warnings" with level logging.WARNING.
+    """Implementation of `showwarnings` which redirects to logging.
 
-    UNlike the default implementation, the line is omitted from the warning,
+    It will first check to see if the file parameter is None. If a file is
+    specified, it will delegate to the original warnings implementation of
+    showwarning. Otherwise, it will call warnings.formatwarning and will log
+    the resulting string to a warnings logger named "py.warnings" with level
+    logging.WARNING.
+
+    Unlike the default implementation, the line is omitted from the warning,
     and the warning does not end with a newline.
     """
     if file is not None:
@@ -333,10 +331,7 @@ def get_file_logger(
             dstNow = now[-1]
             dstThen = mtime[-1]
             if dstNow != dstThen:
-                if dstNow:
-                    addend = 3600
-                else:
-                    addend = -3600
+                addend = 3600 if dstNow else -3600
                 mtime = localtime(t + addend)
             if now[:3] > mtime[:3]:
                 # do rollover

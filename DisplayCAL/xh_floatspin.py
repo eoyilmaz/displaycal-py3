@@ -34,10 +34,7 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
         is_spinctrldbl = hasattr(wx, "SpinCtrlDouble") and issubclass(
             floatspin.FloatSpin, wx.SpinCtrlDouble
         )
-        if is_spinctrldbl:
-            defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT
-        else:
-            defaultstyle = 0
+        defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT if is_spinctrldbl else 0
         w = floatspin.FloatSpin(
             parent=self.GetParentAsWindow(),
             id=self.GetID(),

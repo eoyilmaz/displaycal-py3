@@ -19,8 +19,5 @@ def get_display(display_name=None):
             )
         else:
             display = display_screen[0]
-            if len(display_screen) > 1:
-                screen = display_screen[1]
-            else:
-                screen = 0
+            screen = display_screen[1] if len(display_screen) > 1 else 0
     return hostname, display, screen

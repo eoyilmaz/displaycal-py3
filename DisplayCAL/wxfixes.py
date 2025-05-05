@@ -190,10 +190,7 @@ if "phoenix" in wx.PlatformInfo:
     )
 
     def ContainsRect(self, *args):
-        if len(args) > 1:
-            rect = wx.Rect(*args)
-        else:
-            rect = args[0]
+        rect = wx.Rect(*args) if len(args) > 1 else args[0]
         return self.Contains(rect)
 
     wx.Rect.ContainsRect = ContainsRect
@@ -1337,10 +1334,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
     def DrawBezel(self, dc, x1, y1, x2, y2):
         rect = wx.Rect(x1, y1, x2, y2)
-        if self.up:
-            state = 0
-        else:
-            state = wx.CONTROL_PRESSED | wx.CONTROL_SELECTED
+        state = 0 if self.up else wx.CONTROL_PRESSED | wx.CONTROL_SELECTED
         if not self.IsEnabled():
             state = wx.CONTROL_DISABLED
         elif self._default:
@@ -1779,10 +1773,7 @@ class BitmapWithThemedButton(wx.BoxSizer):
         self._bmp = wx.StaticBitmap(parent, -1, bitmap)
         # self.Add(self._bmp, flag=wx.ALIGN_CENTER_VERTICAL)
         self.Add(self._bmp)
-        if wx.Platform == "__WXMSW__":
-            btncls = ThemedGenButton
-        else:
-            btncls = wx.Button
+        btncls = ThemedGenButton if wx.Platform == "__WXMSW__" else wx.Button
         self._btn = btncls(parent, id, label, pos, size, style, validator, name)
         # self.Add(self._btn, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8)
         self.Add(self._btn, flag=wx.LEFT, border=8)

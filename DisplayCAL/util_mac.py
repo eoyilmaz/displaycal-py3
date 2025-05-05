@@ -158,12 +158,9 @@ def get_machine_attributes(model_id=None):
     f = ".framework/Versions/A/Resources/English.lproj"
     sk = "%s/ServerKit%s/XSMachineAttributes" % (pf, f)
     si = "%s/ServerInformation%s/SIMachineAttributes" % (pf, f)
-    if os.path.isfile(si + ".plist"):
-        # Mac OS X 10.8 or newer
-        filename = si
-    else:
-        # Mac OS X 10.6/10.7
-        filename = sk
+    # Mac OS X 10.8 or newer use "ServerInformation",
+    # Mac OS X 10.6/10.7 "ServerKit"
+    filename = si if os.path.isfile(f"{si}.plist") else sk
     try:
         p = sp.Popen(
             ["defaults", "read", filename, model_id],

@@ -121,14 +121,9 @@ def postinstall_macos(prefix=None):
 
 def postinstall_windows(prefix):
     """Do postinstall actions for Windows."""
-    if prefix is None:
-        # assume we are running from bdist_wininst installer
-        modpath = os.path.dirname(os.path.abspath(__file__))
-    else:
-        # assume we are running from source dir,
-        # or from install dir
-        modpath = prefix
-
+    # assume we are running from bdist_wininst installer if prefix is None,
+    # otherwise assume we are running from source dir, or from install dir
+    modpath = os.path.dirname(os.path.abspath(__file__)) if prefix is None else prefix
     if not os.path.exists(modpath):
         print("warning - '{}' not found".format(modpath.encode("MBCS", "replace")))
         return

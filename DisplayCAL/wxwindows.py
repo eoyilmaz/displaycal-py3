@@ -1422,10 +1422,7 @@ class BaseFrame(wx.Frame):
                 response = "failed"
             elif data[0] in ("close", "exit"):
                 if len(data) == 2:
-                    if data[0] == "exit":
-                        win = None
-                    else:
-                        win = get_toplevel_window(data[1])
+                    win = None if data[0] == "exit" else get_toplevel_window(data[1])
                 else:
                     win = self.get_top_window()
                 if win:
@@ -1668,10 +1665,7 @@ class BaseFrame(wx.Frame):
                                     " checked" if menuitem.IsChecked() else "",
                                 )
                             )
-            if responseformats[conn] != "plain":
-                response = menus
-            else:
-                response = menuitems
+            response = menus if responseformats[conn] != "plain" else menuitems
         elif data[0] == "getstate" and len(data) == 1:
             response = self.get_app_state(responseformats[conn])
         elif data[0] == "getuielement" and len(data) in (2, 3):
@@ -1839,10 +1833,7 @@ class BaseFrame(wx.Frame):
                     elif isinstance(child, (FlatShadedButton, GenButton, wx.Button)):
                         event = wx.EVT_BUTTON
                     if event:
-                        if isinstance(child, CustomCheckBox):
-                            ctrl = child._cb
-                        else:
-                            ctrl = child
+                        ctrl = child._cb if isinstance(child, CustomCheckBox) else child
                         events = [event]
                         if event is wx.EVT_SPINCTRL:
                             events.append(wx.EVT_TEXT)
@@ -2270,21 +2261,15 @@ class BaseFrame(wx.Frame):
         clientarea = self.GetDisplay().ClientArea
         sw = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         if sys.platform not in ("darwin", "win32"):  # Linux
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
-                # Client-side decorations
-                safety_margin = 0
-            else:
-                # Assume server-side decorations
-                safety_margin = 40
+            # Client-side decorations on wayland,
+            # otherwise assume server-side decorations
+            safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
         else:
             safety_margin = 20
         w, h = 0, 0
         for child in self.Children:
             if child.IsShown():
-                if child.Sizer:
-                    size = child.Sizer.CalcMin()
-                else:
-                    size = child.BestSize
+                size = child.Sizer.CalcMin() if child.Sizer else child.BestSize
                 w = max(size[0], w)
                 h += max(size[1], 0)
         minsize = (
@@ -2532,10 +2517,7 @@ class BaseInteractiveDialog(wx.Dialog):
             bgcolor = self.BackgroundColour
             self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
             if taskbar:
-                if parent and parent.IsShownOnScreen():
-                    taskbarframe = parent
-                else:
-                    taskbarframe = self
+                taskbarframe = parent if parent and parent.IsShownOnScreen() else self
                 if hasattr(taskbarframe, "taskbar"):
                     self.taskbar = taskbarframe.taskbar
                 else:
@@ -2574,10 +2556,7 @@ class BaseInteractiveDialog(wx.Dialog):
             self.buttonpanel.SetBackgroundColour(bgcolor)
         self.sizer0.Add(self.buttonpanel, flag=wx.EXPAND)
 
-        if bitmap_margin:
-            flags = wx.LEFT | wx.TOP
-        else:
-            flags = 0
+        flags = wx.LEFT | wx.TOP if bitmap_margin else 0
         if bitmap:
             self.bitmap = wx.StaticBitmap(self, -1, bitmap)
             self.sizer1.Add(self.bitmap, flag=flags, border=margin)
@@ -2640,10 +2619,7 @@ class BaseInteractiveDialog(wx.Dialog):
         # Make sure taskbar button flashes under Windows
         topwindow = app.GetTopWindow()
         topwindow_shown = topwindow and topwindow.IsShown()
-        if topwindow_shown:
-            window = topwindow
-        else:
-            window = self.Parent or self
+        window = topwindow if topwindow_shown else self.Parent or self
         # Only request user attention if toplevel window has a non-empty title
         if (
             not app.IsActive()
@@ -2654,10 +2630,7 @@ class BaseInteractiveDialog(wx.Dialog):
                 self.RequestUserAttention()
 
     def OnClose(self, event):
-        if event.GetEventObject() == self:
-            id = wx.ID_CANCEL
-        else:
-            id = event.GetId()
+        id = wx.ID_CANCEL if event.GetEventObject() == self else event.GetId()
         if self._log and isinstance(self, ConfirmDialog):
             if hasattr(self, "FindWindow"):
                 # wxPython 4
@@ -3269,10 +3242,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
                 value = value[:max_entries]
 
         index = control.GetSelection()
-        if self.history and index > -1:
-            tempValue = self.history[index]
-        else:
-            tempValue = ""
+        tempValue = self.history[index] if self.history and index > -1 else ""
         self.history = []
         control.Clear()
         for path in value + [tempValue]:
@@ -4771,10 +4741,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
             "CustomCellEditor.EndEdit(%r, %r, %r, %r) was called. This "
             "should not happen, but is unlikely an issue." % (row, col, grid, value)
         )
-        if wx.VERSION >= (2, 9):
-            changed = None
-        else:
-            changed = False
+        changed = None if wx.VERSION >= (2, 9) else False
         return changed
 
     def Reset(self):
@@ -5497,10 +5464,7 @@ class BetterStaticFancyTextBase:
         for c in label:
             if c == "<":
                 intag = True
-            if c in hyphens:
-                hyphen = True
-            else:
-                hyphen = False
+            hyphen = c in hyphens
             if intag and c == ">":
                 intag = False
             elif not intag:
@@ -5771,10 +5735,7 @@ class LogWindow(InvincibleFrame):
         # Fix wrong background color when disabled
         self.log_txt.Enable = lambda enable=True: None
         self.log_txt.Disable = lambda: None
-        if "phoenix" in wx.PlatformInfo:
-            kwarg = "faceName"
-        else:
-            kwarg = "face"
+        kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
         if sys.platform == "win32":
             font = wx.Font(
                 9,
@@ -5882,10 +5843,7 @@ class LogWindow(InvincibleFrame):
                 wrapped = self._textwrapper.wrap(line)
                 i_last = len(wrapped) - 1
                 for i, line in enumerate(wrapped):
-                    if i:
-                        line = self._linecontinuation + line
-                    else:
-                        line = ts + line
+                    line = self._linecontinuation + line if i else ts + line
                     if i < i_last:
                         line = line.ljust(78 + 13) + " \u21b2"
                     lines.append(line)
@@ -6035,10 +5993,7 @@ class LogWindow(InvincibleFrame):
                 )
                 return
             filename, ext = os.path.splitext(path)
-            if path.lower().endswith(".tar.gz"):
-                format = "tgz"
-            else:
-                format = ext[1:]
+            format = "tgz" if path.lower().endswith(".tar.gz") else ext[1:]
             if ext.lower() != "." + format and (
                 format != "tgz" or not path.lower().endswith(".tar.gz")
             ):
@@ -6874,10 +6829,7 @@ class SimpleTerminal(InvincibleFrame):
         self.console = wx.TextCtrl(self.panel, -1, "", style=consolestyle)
         self.console.SetBackgroundColour("#272727")
         self.console.SetForegroundColour("#808080")
-        if "phoenix" in wx.PlatformInfo:
-            kwarg = "faceName"
-        else:
-            kwarg = "face"
+        kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
         if sys.platform == "win32":
             font = wx.Font(
                 9,
@@ -7133,11 +7085,7 @@ class TabButton(PlateButton):
         :return: x cordinate to draw text at
 
         """
-        if self.IsEnabled():
-            bmp = self._bmp["enable"]
-        else:
-            bmp = self._bmp["disable"]
-
+        bmp = self._bmp["enable"] if self.IsEnabled() else self._bmp["disable"]
         xpos = 0
         if bmp is not None and bmp.IsOk():
             bw, bh = bmp.GetSize()
@@ -7171,10 +7119,7 @@ class TabButton(PlateButton):
         else:
             return False
 
-        if self._style & platebtn.PB_STYLE_SQUARE:
-            rad = 0
-        else:
-            rad = (height - 3) / 2
+        rad = 0 if self._style & platebtn.PB_STYLE_SQUARE else (height - 3) / 2
 
         gc.SetPen(wx.TRANSPARENT_PEN)
 
@@ -7329,10 +7274,7 @@ class TaskBarNotification(wx.Frame):
         border.Sizer.Layout()
         opos = pos
         display = self.GetDisplay()
-        if parent:
-            client_area = parent.ClientRect
-        else:
-            client_area = display.ClientArea
+        client_area = parent.ClientRect if parent else display.ClientArea
         geometry = display.Geometry
         # Determine tray position so we can show our popup
         # next to it
@@ -7473,10 +7415,7 @@ class TooltipWindow(InvincibleFrame):
             msg = msg[rowspercol:]
         for msg in msgs:
             label = "\n".join(msg)
-            if "<" in label:
-                cls = BetterStaticFancyText
-            else:
-                cls = wx.StaticText
+            cls = BetterStaticFancyText if "<" in label else wx.StaticText
             # We need to initialize the label with something,
             # so initialize it with with "dummy text",
             # and it will be replaced later on...

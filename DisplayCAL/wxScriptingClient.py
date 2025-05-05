@@ -167,10 +167,7 @@ class ScriptingClientFrame(SimpleTerminal):
             if colorize or isinstance(result, Exception):
                 end = self.console.GetLastPosition()
                 start = end - len(text)
-                if isinstance(result, Exception):
-                    color = ERRORCOLOR
-                else:
-                    color = RESPONSECOLOR
+                color = ERRORCOLOR if isinstance(result, Exception) else RESPONSECOLOR
                 self.mark_text(start, end, color)
         if get_response and not isinstance(result, Exception):
             delayedresult.startWorker(

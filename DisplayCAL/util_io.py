@@ -267,11 +267,7 @@ class TarFileProper(tarfile.TarFile):
         object. You can specify a different directory using `path'.
         """
         self._check("r")
-
-        if isinstance(member, str):
-            tarinfo = self.getmember(member)
-        else:
-            tarinfo = member
+        tarinfo = self.getmember(member) if isinstance(member, str) else member
 
         # Prepare the link target for makelink().
         if tarinfo.islnk():

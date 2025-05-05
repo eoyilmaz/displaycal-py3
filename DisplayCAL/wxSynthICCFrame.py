@@ -121,10 +121,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.preset_ctrl.Bind(wx.EVT_CHOICE, self.preset_ctrl_handler)
         for color in ("red", "green", "blue", "white", "black"):
             for component in "XYZxy":
-                if component in "xy":
-                    handler = "xy"
-                else:
-                    handler = "XYZ"
+                handler = "xy" if component in "xy" else "XYZ"
                 self.Bind(
                     floatspin.EVT_FLOATSPIN,
                     getattr(self, "%s_%s_ctrl_handler" % (color, handler)),
@@ -159,10 +156,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.update_controls()
         self.update_layout()
-        if self.panel.VirtualSize[0] > self.panel.Size[0]:
-            scrollrate_x = 2
-        else:
-            scrollrate_x = 0
+        scrollrate_x = 2 if self.panel.VirtualSize[0] > self.panel.Size[0] else 0
         self.panel.SetScrollRate(scrollrate_x, 2)
 
         self.save_btn.Hide()
@@ -247,10 +241,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.black_luminance_ctrl.SetIncrement(increment)
             fmt = "%%.%if" % self.black_luminance_ctrl.GetDigits()
             if fmt % 0 < fmt % v < fmt % increment:
-                if event:
-                    v = increment
-                else:
-                    v = 0
+                v = increment if event else 0
             elif fmt % v == fmt % 0:
                 v = 0
             v = round(v / increment) * increment
@@ -471,10 +462,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             except Exception as exception:
                 show_result_dialog(exception, self)
             else:
-                if "lumi" in profile.tags:
-                    luminance = profile.tags.lumi.Y
-                else:
-                    luminance = 100
+                luminance = profile.tags.lumi.Y if "lumi" in profile.tags else 100
                 if not colors[1][1] and isinstance(profile.tags.get("targ"), Text):
                     # The profile may not reflect the actual black point.
                     # Get it from the embedded TI3 instead if zero from lookup.
@@ -868,10 +856,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             "ciis": list(self.ciis.keys())[ciis_i],
         }
         if (trc == -2084 and rolloff) or trc == -2:
-            if trc == -2084:
-                msg = "smpte2084.rolloffclip"
-            else:
-                msg = "hlg"
+            msg = "smpte2084.rolloffclip" if trc == -2084 else "hlg"
             self.worker.recent.write(lang.getstr("trc." + msg) + "\n")
             self.worker.start(
                 consumer,
@@ -941,11 +926,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             ] * 3
             profile.tags.kTRC = CurveType(profile=profile)
             channels = "k"
-        if trc == -2:
-            # HLG
-            outoffset = 1
-        else:
-            outoffset = self.getcfg("synthprofile.trc_output_offset")
+        # HLG
+        outoffset = 1 if trc == -2 else self.getcfg("synthprofile.trc_output_offset")
         if trc == -1:
             # DICOM
             # Absolute luminance values!
@@ -978,10 +960,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 )
         elif trc == -2084 or trc == -2:
             # SMPTE 2084 or HLG
-            if trc == -2084:
-                hdr_format = "PQ"
-            else:
-                hdr_format = "HLG"
+            hdr_format = "PQ" if trc == -2084 else "HLG"
             minmll = self.getcfg("3dlut.hdr_minmll")
             if rolloff:
                 maxmll = self.getcfg("3dlut.hdr_maxmll")
@@ -1088,12 +1067,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 if black != [0, 0, 0] and outoffset and not bpc:
                     profile.tags.kTRC.apply_bpc(black[1])
         elif black != [0, 0, 0]:
-            if rgb:
-                # Color profile
-                vmin = 0
-            else:
-                # Grayscale profile
-                vmin = black[1]
+            # Color profile if rgb is True, else grayscale profile
+            vmin = 0 if rgb else black[1]
             for i, channel in enumerate(channels):
                 TRC = profile.tags["%sTRC" % channel]
                 TRC.set_trc(trc, 1024, vmin=vmin * 65535)

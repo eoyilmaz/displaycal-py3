@@ -648,10 +648,7 @@ def shell_exec(
     if wait_for_idle:
         flags |= SEE_MASK_WAITFORINPUTIDLE
     params = " ".join(quote_args(args))
-    if show:
-        show = win32con.SW_SHOWNORMAL
-    else:
-        show = win32con.SW_HIDE
+    show = win32con.SW_SHOWNORMAL if show else win32con.SW_HIDE
     return win32com_shell.ShellExecuteEx(
         fMask=flags, lpVerb=operation, lpFile=filename, lpParameters=params, nShow=show
     )
@@ -698,10 +695,7 @@ USE_NTDLL_LDR = False
 
 
 def _free_library(handle):
-    if USE_NTDLL_LDR:
-        fn = ctypes.windll.ntdll.LdrUnloadDll
-    else:
-        fn = _ctypes.FreeLibrary
+    fn = ctypes.windll.ntdll.LdrUnloadDll if USE_NTDLL_LDR else _ctypes.FreeLibrary
     fn(handle)
 
 

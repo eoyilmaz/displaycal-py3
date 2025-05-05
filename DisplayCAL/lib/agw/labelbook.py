@@ -1057,14 +1057,8 @@ class ImageContainerBase(wx.Panel):
                 ``False`` if it is facing leftwards.
         """
         # Set the bitmap according to the button status
-
-        if downPin:
-            pinBmp = wx.Bitmap(pin_down_xpm)
-        else:
-            pinBmp = wx.Bitmap(pin_left_xpm)
-
+        pinBmp = wx.Bitmap(pin_down_xpm) if downPin else wx.Bitmap(pin_left_xpm)
         xx: int = rect.x + 2
-
         if self._nPinButtonStatus in [INB_PIN_HOVER, INB_PIN_NONE]:
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.SetPen(wx.BLACK_PEN)

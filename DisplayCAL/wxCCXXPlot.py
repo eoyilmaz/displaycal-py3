@@ -87,21 +87,13 @@ class CCXXPlot(wx.Frame):
             fn, ext = os.path.splitext(os.path.basename(cgats.filename))
         else:
             fn = desc
-            if self.is_ccss:
-                ext = ".ccss"
-            else:
-                ext = ".ccmx"
+            ext = ".ccss" if self.is_ccss else ".ccmx"
 
         if isinstance(fn, bytes):
             fn = fn.decode("utf-8")
 
         desc = lang.getstr(f"{ext[1:]}.{fn}", default=desc)
-
-        if self.is_ccss:
-            ccxx_type = "spectral"
-        else:
-            ccxx_type = "matrix"
-
+        ccxx_type = "spectral" if self.is_ccss else "matrix"
         title = "%s: %s" % (
             lang.getstr(ccxx_type),
             desc if isinstance(desc, str) else desc.decode("utf-8"),
@@ -472,10 +464,7 @@ class CCXXPlot(wx.Frame):
 
     def OnWheel(self, event):
         """Mousewheel zoom"""
-        if event.WheelRotation < 0:
-            direction = 1.0
-        else:
-            direction = -1.0
+        direction = 1.0 if event.WheelRotation < 0 else -1.0
         self.canvas.zoom(direction)
 
     def key_handler(self, event):

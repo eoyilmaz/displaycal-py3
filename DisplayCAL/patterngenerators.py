@@ -426,10 +426,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         self.enable_processing(False, size)
 
     def enable_processing(self, enable=True, size=10):
-        if enable:
-            win = 1
-        else:
-            win = 2
+        win = 1 if enable else 2
         self.invoke("Window", "win%i" % win, {"sz": size})
 
     def get_config(self):

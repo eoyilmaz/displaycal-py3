@@ -345,10 +345,7 @@ def _handle_percent_sign(path, index, res):
             index = pathlen - 1
         else:
             var = path[:index]
-            if var in os.environ:
-                res = res + getenvu(var)
-            else:
-                res = res + "%" + var + "%"
+            res = res + getenvu(var) if var in os.environ else f"{res}%{var}%"
     return res
 
 
@@ -366,10 +363,7 @@ def _handle_dollar_sign(path, index, res):
         try:
             index = path.index("}")
             var = path[:index]
-            if var in os.environ:
-                res = res + getenvu(var)
-            else:
-                res = res + "${" + var + "}"
+            res = res + getenvu(var) if var in os.environ else f"{res}${{{var}}}"
         except ValueError:
             res = res + "${" + path
             index = pathlen - 1
@@ -381,10 +375,7 @@ def _handle_dollar_sign(path, index, res):
             var = var + c
             index = index + 1
             c = path[index : index + 1]
-        if var in os.environ:
-            res = res + getenvu(var)
-        else:
-            res = res + "$" + var
+        res = res + getenvu(var) if var in os.environ else f"{res}${var}"
         if c != "":
             index = index - 1
     return res
@@ -709,10 +700,7 @@ def mksfile(filename: str) -> tuple[int, str]:
     flags = tempfile._bin_openflags
     fname, ext = os.path.splitext(filename)
     for seq in range(tempfile.TMP_MAX):
-        if not seq:
-            pth = filename
-        else:
-            pth = f"{fname}({seq:d}){ext}"
+        pth = filename if not seq else f"{fname}({seq:d}){ext}"
         try:
             fd = os.open(pth, flags, 0o600)
             _set_cloexec(fd)
@@ -987,10 +975,7 @@ def safe_iglob(pathname: str) -> Iterator[str]:
         dirs = safe_iglob(dirname)
     else:
         dirs = [dirname]
-    if glob.has_magic(basename):
-        glob_in_dir = safe_glob1
-    else:
-        glob_in_dir = glob.glob0
+    glob_in_dir = safe_glob1 if glob.has_magic(basename) else glob.glob0
     for dirname in dirs:
         for name in glob_in_dir(dirname, basename):
             yield os.path.join(dirname, name)
@@ -1103,10 +1088,7 @@ def waccess(path: str, mode: int) -> bool:
             return False
         test.close()
     if mode & os.W_OK:
-        if os.path.isdir(path):
-            dir = path
-        else:
-            dir = os.path.dirname(path)
+        dir = path if os.path.isdir(path) else os.path.dirname(path)
         try:
             if os.path.isfile(path):
                 test = open(path, "ab")
@@ -1307,10 +1289,7 @@ class FileLock:
             fn = win32file.LockFileEx
             args = (self._handle, mode, 0, -0x10000, self._overlapped)
         else:
-            if self.exclusive:
-                op = fcntl.LOCK_EX
-            else:
-                op = fcntl.LOCK_SH
+            op = fcntl.LOCK_EX if self.exclusive else fcntl.LOCK_SH
             if not self.blocking:
                 op |= fcntl.LOCK_NB
             fn = fcntl.flock

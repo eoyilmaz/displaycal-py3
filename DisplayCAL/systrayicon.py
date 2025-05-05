@@ -39,10 +39,7 @@ class Menu(wx.EvtHandler):
         if item.Kind == wx.ITEM_SEPARATOR:
             flags = win32con.MF_SEPARATOR
         else:
-            if item.subMenu:
-                flags = win32con.MF_POPUP | win32con.MF_STRING
-            else:
-                flags = 0
+            flags = win32con.MF_POPUP | win32con.MF_STRING if item.subMenu else 0
             if not item.Enabled:
                 flags |= win32con.MF_DISABLED
         # Use ctypes instead of win32gui.AppendMenu for unicode support
@@ -373,10 +370,7 @@ class SysTrayIcon(wx.EvtHandler):
         if isinstance(hicon, wx.Icon):
             hicon = hicon.GetHandle()
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
-        if self._nid:
-            msg = win32gui.NIM_MODIFY
-        else:
-            msg = win32gui.NIM_ADD
+        msg = win32gui.NIM_MODIFY if self._nid else win32gui.NIM_ADD
         self._nid = (self.hwnd, 0, flags, win32con.WM_USER + 20, hicon, tooltip)
         try:
             win32gui.Shell_NotifyIcon(msg, self._nid)

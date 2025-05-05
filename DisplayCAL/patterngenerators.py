@@ -536,7 +536,7 @@ class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
         self.conn.sendall(struct.pack(">I", len(xml)) + xml.encode("utf-8"))
 
 
-class WebWinHTTPPatternGeneratorServer(TCPServer, object):
+class WebWinHTTPPatternGeneratorServer(TCPServer):
     def __init__(self, port, logfile=None):
         self.port = port
         Handler = webwin.WebWinHTTPRequestHandler

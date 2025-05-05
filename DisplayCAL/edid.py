@@ -156,7 +156,7 @@ def get_edid_windows(display_no, device):
 
     id_ = device.DeviceID.split("\\")[1]
     wmi_connection = None
-    not_main_thread = not (threading.current_thread() is threading.main_thread())
+    not_main_thread = threading.current_thread() is not threading.main_thread()
 
     if wmi:
         if not_main_thread:

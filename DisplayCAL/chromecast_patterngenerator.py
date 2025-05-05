@@ -25,20 +25,6 @@ if not getattr(sys, "frozen", False):
             sys.path[:] = syspath
             break
 
-if sys.version_info[:2] < (3,):
-    # zeroconf 0.19.1 is the last version supporting Python 2.x
-    # but zeroconf 0.20 lacks a check for Python version
-    import zeroconf
-
-    if zeroconf.__version__ > "0.19.1":
-        raise ImportError(
-            """
-Python version > 3.3 required for python-zeroconf %s.
-If you need support for Python 2 or Python 3.3 please use version 0.19.1
-    """
-            % zeroconf.__version__
-        )
-
 from pychromecast import get_chromecasts
 from pychromecast.controllers import BaseController
 

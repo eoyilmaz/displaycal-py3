@@ -4,7 +4,6 @@ import os
 import sys
 import time
 
-
 CCMX_TEMPLATE = """CCMX
 
 DESCRIPTOR "%(Name)s"
@@ -64,11 +63,11 @@ def convert_devicecorrections_to_ccmx(path, target_dir):
             for j, part in enumerate(parts):
                 part = part.strip()
                 if part and not part.startswith('"') and not part.endswith('"'):
-                    parts[j] = '"%s"' % part
+                    parts[j] = f'"{part}"'
         if parts[-1].strip() not in ("", "{") and i < len(lines) - 1:
             parts[-1] += ","
         lines[i] = ":".join(parts)
-    devcorrections_data = "{%s}" % "".join(lines).replace(",}", "}")
+    devcorrections_data = "{{{}}}".format("".join(lines).replace(",}", "}"))
     # Parse JSON
     devcorrections = json.loads(devcorrections_data)
     # Convert to ccmx
@@ -79,8 +78,9 @@ def convert_devicecorrections_to_ccmx(path, target_dir):
         values = {
             "DateTime": time.strftime("%a %b %d %H:%M:%S %Y"),
             "Originator": "Quato iColorDisplay",
-            "Name": "%s & %s"
-            % (devcorrection.get("Device"), devcorrection.get("Display")),
+            "Name": "{} & {}".format(
+                devcorrection.get("Device"), devcorrection.get("Display")
+            ),
         }
         for key in ("Device", "Display", "ReferenceDevice", "MatrixXYZ"):
             value = devcorrection.get(key)

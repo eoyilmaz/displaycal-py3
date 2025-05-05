@@ -5716,7 +5716,7 @@ END_DATA
 
         Args:
             cmd (str): the full path of the command.
-            args (List[str]): The arguments, if any.
+            args (list[str]): The arguments, if any.
             capture_output (bool): If True, swallows any output from the
                 command and sets the 'output' and 'errors' properties of the
                 Worker instance.

@@ -140,7 +140,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 Version 0.5
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import wx
 
@@ -362,7 +362,7 @@ class FourWaySplitter(wx.Panel):
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
-        self._windows: List[wx.Window] = []
+        self._windows: list[wx.Window] = []
 
         self._splitx = 0
         self._splity = 0
@@ -389,11 +389,11 @@ class FourWaySplitter(wx.Panel):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
         self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
 
-    def _IsVersionGreaterOrEqual(self, version: Tuple[int, int, int, int]) -> bool:
+    def _IsVersionGreaterOrEqual(self, version: tuple[int, int, int, int]) -> bool:
         """Compare the current wxPython version with the given version.
 
         Args:
-            version (Tuple[int, int, int, int]): a tuple of version numbers.
+            version (tuple[int, int, int, int]): a tuple of version numbers.
 
         Returns:
             bool: ``True`` if the current wxPython version is greater or equal to the

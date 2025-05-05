@@ -351,10 +351,10 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         key (str): The config key.
         pkgname (Union[None, str]): Name of the package. Default is None.
         subkey (Union[None, str]): Name of the subkey. Default is None.
-        excludes (Union[None, List[str]]): List of files to exclude. Default is None.
+        excludes (Union[None, list[str]]): List of files to exclude. Default is None.
 
     Returns:
-        List[str]: List of strings showing the paths of the data files.
+        list[str]: List of strings showing the paths of the data files.
     """
     files = config[key]
     src_dir = source_dir

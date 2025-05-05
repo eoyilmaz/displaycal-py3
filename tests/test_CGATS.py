@@ -1,6 +1,6 @@
 from __future__ import annotations
 import sys
-from typing import List, TypedDict, Dict, Tuple
+from typing import TypedDict
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -681,7 +681,7 @@ def test_export_3d_1(data_files):
         ),
     ],
 )
-def test_cgats_sorting_1(data_files, function: str, result: List[List[float]]) -> None:
+def test_cgats_sorting_1(data_files, function: str, result: list[list[float]]) -> None:
     """Test ``DisplayCAL.cgats.CGATS`` sorting methods except sort_RGB_to_top."""
     path = data_files["0_16_for_sorting.ti1"].absolute()
     cgats = CGATS(cgats=path)
@@ -696,7 +696,7 @@ class ColorCombination(TypedDict):
     red: bool
     green: bool
     blue: bool
-    result: List[List[float]]
+    result: list[list[float]]
 
 
 COLOR_COMBINATIONS = [
@@ -937,7 +937,7 @@ def test_cgats_sorting_2(data_files, color_combination: ColorCombination) -> Non
     ),
 )
 def test_cgats_checkerboard(
-    data_files, split_grays: bool, shift: bool, result: List[List[float]]
+    data_files, split_grays: bool, shift: bool, result: list[list[float]]
 ) -> None:
     """Test ``DisplayCAL.cgats.CGATS`` checkerboard method."""
     path = data_files["0_16_for_sorting.ti1"].absolute()
@@ -1009,7 +1009,7 @@ def test_cgats_apply_bpc(
     ),
 )
 def test_cgats_get_cie_data_format(
-    data_files, profile: str, result: Dict[int, bytes] | None
+    data_files, profile: str, result: dict[int, bytes] | None
 ) -> None:
     """Test ``DisplayCAL.cgats.CGATS`` get_cie_data_format."""
     path = data_files[profile].absolute()
@@ -1032,7 +1032,7 @@ def test_cgats_get_cie_data_format(
     ),
 )
 def test_cgats_get_white_cie(
-    data_files, profile: str, result: Dict[float] | None
+    data_files, profile: str, result: dict[float] | None
 ) -> None:
     """Test ``DisplayCAL.cgats.CGATS`` get_white_cie."""
     path = data_files[profile].absolute()
@@ -1117,7 +1117,7 @@ def test_fix_zero_measurements(
     profile: str,
     filtered_sets: int,
     unfiltered_sets: int,
-    result: Dict[str, int | float],
+    result: dict[str, int | float],
     warn: bool,
 ) -> None:
     """Test ``DisplayCAL.cgats.CGATS`` fix_zero_measurements method."""

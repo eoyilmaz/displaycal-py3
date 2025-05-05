@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 from hashlib import md5
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 from DisplayCAL import config
 from DisplayCAL.util_str import safe_str
@@ -103,7 +103,7 @@ def get_edid(
     display_no: int = 0,
     display_name: Optional[str] = None,
     device: Optional[str] = None,
-) -> Dict:
+) -> dict:
     """Get and parse EDID. Return dict.
 
     On Mac OS X, you need to specify a display name.
@@ -114,7 +114,7 @@ def get_edid(
         device (Optional[str]): The device identifier.
 
     Returns:
-        Dict: Parsed EDID data.
+        dict: Parsed EDID data.
     """
     edid = None
     if sys.platform == "win32":
@@ -449,14 +449,14 @@ def get_pnp_id_paths():
     return paths
 
 
-def parse_hwdb_data(lines: List[str]) -> None:
+def parse_hwdb_data(lines: list[str]) -> None:
     """Parse a from the hwdb file data.
 
     Args:
         line (str): The line to parse.
 
     Returns:
-        Tuple[str, str]: The parsed ID and name.
+        tuple[str, str]: The parsed ID and name.
     """
     id_, name = None, None
     for line in lines:
@@ -471,11 +471,11 @@ def parse_hwdb_data(lines: List[str]) -> None:
             PNP_ID_CACHE[id_] = name
 
 
-def parse_pnpid_data(lines: List[str]) -> None:
+def parse_pnpid_data(lines: list[str]) -> None:
     """Parse data from the pnp.ids file content.
 
     Args:
-        lines (List[str]): The data to parse.
+        lines (list[str]): The data to parse.
     """
     id_, name = None, None
     for line in lines:

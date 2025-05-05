@@ -6,7 +6,6 @@ import os
 import shutil
 import sys
 import tempfile
-from typing import Tuple, Dict
 from urllib.error import URLError
 
 import pytest
@@ -388,7 +387,7 @@ def test_check_profile_isfile(data_files, file: bool) -> None:
     ),
 )
 def test_check_file_isfile(
-    data_files, silent: bool, path: str, result: Tuple[str, str]
+    data_files, silent: bool, path: str, result: tuple[str, str]
 ) -> None:
     """Test if file gets detected."""
     assert (
@@ -427,7 +426,7 @@ def test_check_file_isfile(
         ),
     ),
 )
-def test_check_ti3_criteria1(sample: Dict[str:float], result: bool) -> None:
+def test_check_ti3_criteria1(sample: dict[str:float], result: bool) -> None:
     """Test for ti3 criteria1 check."""
     black = (0, 0, 0)
     white = (110, 110, 110)

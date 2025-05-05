@@ -721,7 +721,7 @@ class PopupMenu:
         """Return menus.
 
         Returns:
-            List[wx.Menu]: List of child menus.
+            list[wx.Menu]: List of child menus.
         """
         return list(self._menus)
 
@@ -729,7 +729,7 @@ class PopupMenu:
         """Set menus.
 
         Args:
-            menus (List[wx.Menu]): A list of wx.Menu instances to set as a
+            menus (list[wx.Menu]): A list of wx.Menu instances to set as a
                 child of this menubar.
         """
         self._menus = []

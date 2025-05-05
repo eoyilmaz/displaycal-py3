@@ -1,7 +1,6 @@
 import codecs
 import json
 import os
-import traceback
 
 from DisplayCAL.config import get_data_path
 from DisplayCAL.debughelpers import handle_error
@@ -26,20 +25,18 @@ def unquote(string, raise_exception=True):
     return string
 
 
-def escape(string):
-    r"""
-    Backslash-escape special chars in string
+def escape(string: str) -> bytes:
+    """Backslash-escape special chars in string."""
+    if isinstance(string, str):
+        string = string.encode("string_escape")
+    return string
 
-    """
-    return string.encode("string_escape")
 
-
-def unescape(string):
-    r"""
-    Unescape escaped chars in string
-
-    """
-    return string.decode("string_escape")
+def unescape(string: bytes) -> str:
+    """Unescape escaped chars in string."""
+    if isinstance(string, bytes):
+        string = string.decode("string_escape")
+    return string
 
 
 class LazyDict(dict):
@@ -47,7 +44,6 @@ class LazyDict(dict):
 
     The actual mappings are loaded from the source YAML file when they
     are accessed.
-
     """
 
     def __init__(self, path=None, encoding="UTF-8", errors="strict"):
@@ -159,37 +155,39 @@ class LazyDict(dict):
         return dict.keys(self)
 
     def load(self, path=None, encoding=None, errors=None, raise_exceptions=False):
-        if not self._isloaded and (path or self.path):
-            self._isloaded = True
-            if not path:
-                path = self.path
-            if path and not os.path.isabs(path):
-                path = get_data_path(path)
-            if path and os.path.isfile(path):
-                self.path = path
-                if encoding:
-                    self.encoding = encoding
-                if errors:
-                    self.errors = errors
-            else:
-                handle_error(
-                    UserWarning("Warning - file not found:\n\n%s" % path), tb=False
-                )
-                return
-            try:
-                with codecs.open(path, "r", self.encoding, self.errors) as f:
-                    self.parse(f)
-            except EnvironmentError as exception:
-                if raise_exceptions:
-                    raise
-                handle_error(exception)
-            except Exception as exception:
-                if raise_exceptions:
-                    raise
-                handle_error(
-                    UserWarning("Error parsing file:\n\n%s\n\n%s" % (path, exception)),
-                    tb=False,
-                )
+        if self._isloaded or (not path and not self.path):
+            return
+
+        self._isloaded = True
+        if not path:
+            path = self.path
+        if path and not os.path.isabs(path):
+            path = get_data_path(path)
+        if path and os.path.isfile(path):
+            self.path = path
+            if encoding:
+                self.encoding = encoding
+            if errors:
+                self.errors = errors
+        else:
+            handle_error(
+                UserWarning(f"Warning - file not found:\n\n{path}"), tb=False
+            )
+            return
+        try:
+            with codecs.open(path, "r", self.encoding, self.errors) as f:
+                self.parse(f)
+        except OSError as exception:
+            if raise_exceptions:
+                raise
+            handle_error(exception)
+        except Exception as exception:
+            if raise_exceptions:
+                raise
+            handle_error(
+                UserWarning(f"Error parsing file:\n\n{path}\n\n{exception}"),
+                tb=False,
+            )
 
     def parse(self, iterable):
         # Override this in subclass
@@ -267,8 +265,9 @@ class LazyDict_YAML_UltraLite(LazyDict):
                 tokens = line.split(":", 1)
                 if len(tokens) == 1:
                     raise ValueError(
-                        "Unsupported format (%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", line)), i)
+                        "Unsupported format ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))), i
+                        )
                     )
                 # key = tokens[0].strip("'"'"')
                 key = self._unquote(tokens[0].strip(), False, False, fileobj, i)
@@ -282,19 +281,26 @@ class LazyDict_YAML_UltraLite(LazyDict):
                             continue
                         raise ValueError(
                             "Expected a comment or a line break "
-                            "(%r line %i)"
-                            % (safe_str(getattr(fileobj, "name", line)), i)
+                            "({} line {})".format(
+                                format(safe_str(getattr(fileobj, "name", line))),
+                                i
+                            )
                         )
                 elif token.startswith("|") or token.startswith(">"):
                     raise ValueError(
                         "Style not supported "
-                        "(%r line %i)" % (safe_str(getattr(fileobj, "name", line)), i)
+                        "({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))),
+                            i
+                        )
                     )
                 elif token.startswith("\t"):
                     raise ValueError(
                         "Found character '\\t' that cannot "
-                        "start any token (%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", line)), i)
+                        "start any token ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))),
+                            i
+                        )
                     )
                 if token:
                     # Inline value
@@ -318,36 +324,46 @@ class LazyDict_YAML_UltraLite(LazyDict):
             else:
                 if not block:
                     raise ValueError(
-                        "Unsupported format (%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", line)), i)
+                        "Unsupported format ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))), i
+                        )
                     )
                 value.append(line[2:])
         if key:
             self[key] = "".join(value).rstrip("\n")
 
     def _unquote(self, token, do_unescape=True, check=False, fileobj=None, lineno=-1):
-        if len(token) > 1:
-            c = token[0]
-            if c in "'\"" and c == token[-1]:
-                token = token[1:-1]
-                if check and token.count(c) != token.count("\\" + c):
-                    raise ValueError(
-                        "Unescaped quotes found in token "
-                        "(%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", token)), lineno)
+        if len(token) <= 1:
+            return token
+        c = token[0]
+        if c in "'\"" and c == token[-1]:
+            token = token[1:-1]
+            if check and token.count(c) != token.count("\\" + c):
+                raise ValueError(
+                    "Unescaped quotes found in token "
+                    "({} line {})".format(
+                        repr(safe_str(getattr(fileobj, "name", token))),
+                        lineno
                     )
-                if do_unescape:
-                    token = unescape(token)
-            elif check and (token.count('"') != token.count('\\"')):
-                raise ValueError(
-                    "Unbalanced quotes found in token "
-                    "(%r line %i)" % (safe_str(getattr(fileobj, "name", token)), lineno)
                 )
-            if check and "\\'" in token:
-                raise ValueError(
-                    'Found unknown escape character "\'" '
-                    "(%r line %i)" % (safe_str(getattr(fileobj, "name", token)), lineno)
+            if do_unescape:
+                token = unescape(token)
+        elif check and (token.count('"') != token.count('\\"')):
+            raise ValueError(
+                "Unbalanced quotes found in token "
+                "({} line {})".format(
+                    repr(safe_str(getattr(fileobj, "name", token))),
+                    lineno
                 )
+            )
+        if check and "\\'" in token:
+            raise ValueError(
+                'Found unknown escape character "\'" '
+                "({} line {})".format(
+                    repr(safe_str(getattr(fileobj, "name", token))),
+                    lineno
+                )
+            )
         return token
 
 
@@ -398,7 +414,6 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
             elif quote and line_rstrip and line_rstrip[-1] == quote:
                 if self.debug:
                     print("END QUOTE")
-                if self.debug:
                     print("+ APPEND STRIPPED", repr(line.strip()))
                 value.append(line.strip())
                 self._collect(key, value, ">i")
@@ -415,8 +430,9 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                 if quote:
                     raise ValueError(
                         "Wrong end quote while scanning quoted "
-                        "scalar (%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", line)), i)
+                        "scalar ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))), i
+                        )
                     )
                 else:
                     if self.debug:
@@ -432,8 +448,9 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                     if not quote and "\t" in line:
                         raise ValueError(
                             "Found character '\\t' that cannot "
-                            "start any token (%r line %i)"
-                            % (safe_str(getattr(fileobj, "name", line)), i)
+                            "start any token ({} line {})".format(
+                                repr(safe_str(getattr(fileobj, "name", line))), i
+                            )
                         )
                     line = line.strip() + "\n"
                     if self.debug:
@@ -462,14 +479,15 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                     if token.startswith("\t"):
                         raise ValueError(
                             "Found character '\\t' that cannot "
-                            "start any token (%r line %i)"
-                            % (safe_str(getattr(fileobj, "name", line)), i)
+                            "start any token ({} line {})".format(
+                                repr(safe_str(getattr(fileobj, "name", line))), i
+                            )
                         )
                     if style.startswith(">"):
                         raise NotImplementedError(
-                            "Folded style is not "
-                            "supported (%r line %i)"
-                            % (safe_str(getattr(fileobj, "name", line)), i)
+                            "Folded style is not supported ({} line {})".format(
+                                repr(safe_str(getattr(fileobj, "name", line))), i
+                            )
                         )
                     if token.startswith("#"):
                         # Block or folded
@@ -479,14 +497,15 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                         continue
                     if style and token:
                         raise ValueError(
-                            "Expected a comment or a line break "
-                            "(%r line %i)"
-                            % (safe_str(getattr(fileobj, "name", line)), i)
+                            "Expected a comment or a line break ({} line {})".format(
+                                repr(safe_str(getattr(fileobj, "name", line))), i
+                            )
                         )
                 else:
                     raise ValueError(
-                        "Unsupported format (%r line %i)"
-                        % (safe_str(getattr(fileobj, "name", line)), i)
+                        "Unsupported format ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))), i
+                        )
                     )
                 if style or not token:
                     # Block or folded
@@ -536,8 +555,9 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                 value.append(line)
         if quote:
             raise ValueError(
-                "EOF while scanning quoted scalar (%r line %i)"
-                % (safe_str(getattr(fileobj, "name", line)), i)
+                "EOF while scanning quoted scalar ({} line {})".format(
+                    repr(safe_str(getattr(fileobj, "name", line))), i
+                )
             )
         if key:
             if self.debug:
@@ -597,159 +617,3 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                 if chars.endswith("\n"):
                     out += "\n"
         self[key] = out
-
-
-def test():
-    from io import StringIO
-    from time import time
-
-    from DisplayCAL.jsondict import JSONDict
-
-    # PyYAML
-    import yaml
-    from yaml import CSafeLoader
-
-    def y(doc):
-        try:
-            return yaml.safe_load(StringIO(doc))
-        except Exception as e:
-            print(f"{e.__class__.__name__}:", e)
-            traceback.print_exc()
-            return e
-
-    def l(doc):
-        l = LazyDict_YAML_Lite(debug=True)
-        try:
-            l.parse(StringIO(doc))
-        except Exception as e:
-            print(f"{e.__class__.__name__}:", e)
-            traceback.print_exc()
-            return e
-        return l
-
-    def c(doc, do_assert=True):
-        print("-" * 80)
-        print(repr(doc))
-        a = l(doc)
-        print("LazyDict_YAML_Lite", a)
-        b = y(doc)
-        print("yaml.YAML         ", b)
-        identical = isinstance(a, dict) and isinstance(b, dict) and a == b
-        print("Identical?", identical)
-        if do_assert:
-            assert identical
-
-    print("Testing YAML Lite to YAML conformance")
-    c('TEST: \n  "ABC\n\n  DEF\n"  \n    \n\n\n\n')
-    c('TEST: \n  "ABC\n\n  DEF"')
-    c('TEST: \n  "ABC\n  DEF\n"')
-    c('TEST: \n  "ABC\n\n  DEF\tG\n  \n    \n\n\n\n \t"')
-    c("TEST: \n  ABC\n\n  DEFG\n  \n    \n\n\n\n")
-    c('TEST: \n  "ABC\n\n  DEF\n"')
-    c("TEST: \n  ABC\n\n DEFG\n  \n    \n\n\n\n ")
-    c('TEST: \n  "ABC\n\n DEF\tG\n  \n    \n\n\n\n" ')
-    c("TEST: |\n  ABC\n\n  DEFG\n  \n    \n\n\n\n")
-    c("TEST: |+\n  ABC\n\n  DEFG\n  \n    \n\n\n\n")
-    c("TEST: |-\n  ABC\n\n  DEFG\n  \n    \n\n\n\n")
-    # c('TEST: >\n  ABC\n\n  DEFG\n  \n    \n\n\n\n')
-    # c('TEST: >+\n  ABC\n\n  DEFG\n  \n    \n\n\n\n')
-    # c('TEST: >-\n  ABC\n\n  DEFG\n  \n    \n\n\n\n')
-    c('TEST: "\n ABC\n\n  DEFG\n  \n    \n\n\n\n"')
-    c("TEST: |\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    c("TEST: |+\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    c("TEST: |-\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    # c('TEST: >\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ')
-    # c('TEST: >+\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ')
-    # c('TEST: >-\n  ABC\n\n  DEFG\n  \n    \n\n\n\n ')
-    c('TEST : |\n  "\n  ABC\n\n  DEFG\n  \n    \n\n\n\n  "')
-    c("TEST: |-\n  \n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    c("TEST: |\n  \n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    c("TEST:\n  \n  ABC\n\n  DEFG\n  \n    \n\n\n\n ")
-    c("TEST: |- # Comment\n  Value")
-    c("TEST: |- # Comment\n  Value # Not A Comment\n  # Not A Comment")
-
-    c("TEST: # Comment", do_assert=False)
-
-    print("=" * 80)
-    print("Performance test")
-
-    io = StringIO(
-        """{"test1": "Value 1",
-"test2": "Value 2 Line 1\\nValue 2 Line 2\\n\\nValue 2 Line 4\\n",
-"test3": "Value 3 Line 1\\n",
-"test4": "Value 4"}
-"""
-    )
-
-    d = JSONDict()
-    ts = time()
-    for i in range(10000):
-        d.parse(io)
-        io.seek(0)
-    jt = time() - ts
-
-    d = LazyDict_JSON()
-    ts = time()
-    for i in range(10000):
-        d.parse(io)
-        io.seek(0)
-    ljt = time() - ts
-
-    io = StringIO(
-        """"test1": Value 1
-"test2": |-
-  Value 2 Line 1
-  Value 2 Line 2
-
-  Value 2 Line 4
-"test3": |-
-  Value 3 Line 1
-"test4": "Value 4"
-"""
-    )
-
-    d = LazyDict_YAML_UltraLite()
-    ts = time()
-    for i in range(10000):
-        d.parse(io)
-        io.seek(0)
-    yult = time() - ts
-
-    d = LazyDict_YAML_Lite()
-    ts = time()
-    for i in range(10000):
-        d.parse(io)
-        io.seek(0)
-    ylt = time() - ts
-
-    ts = time()
-    for i in range(10000):
-        yaml.safe_load(io)
-        io.seek(0)
-    yt = time() - ts
-
-    ts = time()
-    for i in range(10000):
-        yaml.load(io, Loader=CSafeLoader)
-        io.seek(0)
-    yct = time() - ts
-
-    print("JSONDict(demjson): %.3fs" % jt)
-    print("LazyDict_JSON: %.3fs" % ljt)
-    print(
-        "LazyDict_YAML_UltraLite: %.3fs," % yult,
-        "vs JSONDict: %.1fx speed," % round(jt / yult, 1),
-        "vs YAML_Lite: %.1fx speed," % round(ylt / yult, 1),
-        "vs PyYAML: %.1fx speed," % round(yt / yult, 1),
-    )
-    print(
-        "LazyDict_YAML_Lite: %.3fs," % ylt,
-        "vs JSONDict: %.1fx speed," % round(jt / ylt, 1),
-        "vs PyYAML: %.1fx speed," % round(yt / ylt, 1),
-    )
-    print("yaml.safe_load: %.3fs" % yt)
-    print("yaml.load(CSafeLoader): %.3fs" % yct)
-
-
-if __name__ == "__main__":
-    test()

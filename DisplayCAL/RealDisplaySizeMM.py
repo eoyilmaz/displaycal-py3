@@ -2,7 +2,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import Dict, List, Union
+from typing import Union
 
 from DisplayCAL import argyll
 from DisplayCAL import localization as lang
@@ -183,11 +183,11 @@ def get_dispwin_output() -> bytes:
     return output
 
 
-def _enumerate_displays() -> List[dict]:
+def _enumerate_displays() -> list[dict]:
     """Generate display information data from ArgyllCMS's dispwin.
 
     Returns:
-        List[dict]: A list of dictionary containing display data.
+        list[dict]: A list of dictionary containing display data.
     """
     displays = []
     has_display = False
@@ -243,14 +243,14 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no: int = 0) -> Union[None, Dict]:
+def get_display(display_no: int = 0) -> Union[None, dict]:
     """Return display data for a given display number.
 
     Args:
         display_no (int): Display number.
 
     Returns:
-        Dict: The display data.
+        dict: The display data.
     """
     if _displays is None:
         enumerate_displays()

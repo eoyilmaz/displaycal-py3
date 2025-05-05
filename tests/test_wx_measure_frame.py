@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import pytest
 import wx
 from _pytest.fixtures import SubRequest
@@ -13,7 +11,7 @@ from tests.data.display_data import DisplayData
 @pytest.fixture(
     scope="session", name="size_in_mm", params=["size_available", "size_unavailable"]
 )
-def fixture_size_in_mm(request: SubRequest) -> Tuple[int, int]:
+def fixture_size_in_mm(request: SubRequest) -> tuple[int, int]:
     """Return display size in mm (width, height)."""
     return (
         DisplayData.DISPLAY_DATA_1["size"]
@@ -27,7 +25,7 @@ def fixture_size_in_mm(request: SubRequest) -> Tuple[int, int]:
     (True, False),
     ids=("with_RealDisplaySizeMM", "without_RealDisplaySizeMM"),
 )
-def test_get_default_size_1(real_display: bool, size_in_mm: Tuple[int, int]) -> None:
+def test_get_default_size_1(real_display: bool, size_in_mm: tuple[int, int]) -> None:
     """Testing wxMeasureFrame.get_default_size() function."""
     with check_call_str("DisplayCAL.wxMeasureFrame.getcfg", DisplayData.CFG_DATA):
         with check_call_str(

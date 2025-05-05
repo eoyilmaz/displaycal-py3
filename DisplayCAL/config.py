@@ -8,7 +8,7 @@ import re
 import string
 import sys
 from decimal import Decimal
-from typing import List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 if sys.platform == "win32":
     import winreg
@@ -231,7 +231,7 @@ virtual_displays = untethered_displays + ("madVR$",)
 
 
 def is_special_display(
-    display: Optional[str] = None, tests: List[str] = virtual_displays
+    display: Optional[str] = None, tests: list[str] = virtual_displays
 ) -> bool:
     """Check if the display is a special display.
 
@@ -409,7 +409,7 @@ def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
 
 def load_bitmap(
     name: str,
-    parts: List[str],
+    parts: list[str],
     ow: int,
     oh: int,
     w: int,
@@ -721,11 +721,11 @@ def split_display_name(display: str) -> str:
     return display.strip()
 
 
-def get_argyll_display_number(geometry: Tuple[int, int, int, int]) -> Union[None, int]:
+def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> Union[None, int]:
     """Translate from wx display geometry to Argyll display index.
 
     Args:
-        geometry (Tuple[int, int, int, int]): The geometry of the display.
+        geometry (tuple[int, int, int, int]): The geometry of the display.
 
     Returns:
         Union[None, int]: The Argyll display index.
@@ -767,11 +767,11 @@ def get_display_number(display_no: int) -> int:
     return 0
 
 
-def get_display_rects() -> List[Tuple[int, int, int, int]]:
+def get_display_rects() -> list[tuple[int, int, int, int]]:
     """Return the Argyll enumerated display coordinates and sizes.
 
     Returns:
-        List[Tuple[int, int, int, int]]: A list of wx.Rect objects representing the display coordinates and sizes.
+        list[tuple[int, int, int, int]]: A list of wx.Rect objects representing the display coordinates and sizes.
     """
     from DisplayCAL.wxaddons import wx
 
@@ -2351,7 +2351,7 @@ def writecfg(
         which (str): 'user' or 'system'
         worker (DisplayCAL.worker.Worker): worker instance if ``which == 'system'``
         module (Optional[str]): module name.
-        options (Tuple[str]): options to write.
+        options (tuple[str]): options to write.
         cfg (configparser.ConfigParser): configuration instance.
 
     Returns:

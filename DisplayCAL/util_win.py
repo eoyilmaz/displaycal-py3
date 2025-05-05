@@ -9,7 +9,7 @@ import _ctypes
 import platform
 import struct
 import sys
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 
 import pywintypes
@@ -277,7 +277,7 @@ def enable_per_user_profiles(
         return True
 
 
-def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
+def get_display_devices(devicename: str) -> list["PyDISPLAY_DEVICE"]:
     r"""Get all display devices of an output (there can be several).
 
     Example usage:
@@ -288,7 +288,7 @@ def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
         devicename (str): The device name.
 
     Returns:
-        List[PyDISPLAY_DEVICE]: List of display devices.
+        list[PyDISPLAY_DEVICE]: List of display devices.
     """
     devices = []
     n = 0
@@ -320,7 +320,7 @@ def get_first_display_device(
 
 
 def get_active_display_device(
-    devicename: str, devices: Optional[List["PyDISPLAY_DEVICE"]] = None
+    devicename: str, devices: Optional[list["PyDISPLAY_DEVICE"]] = None
 ) -> "PyDISPLAY_DEVICE":
     r"""Get active display device of an output (there can only be one per output).
 
@@ -332,7 +332,7 @@ def get_active_display_device(
 
     Args:
         devicename (str): The device name.
-        devices (Optional[List[PyDISPLAY_DEVICE]]): List of devices.
+        devices (Optional[list[PyDISPLAY_DEVICE]]): List of devices.
 
     Returns:
         PyDISPLAY_DEVICE: The active display device (display device object) or None.
@@ -348,14 +348,14 @@ def get_active_display_device(
 
 def get_active_display_devices(
     attrname: Optional[str] = None,
-) -> List["PyDISPLAY_DEVICE"]:
+) -> list["PyDISPLAY_DEVICE"]:
     """Return active display devices.
 
     Args:
         attrname (Optional[str]): The attribute name to get from the display device.
 
     Returns:
-        List[PyDISPLAY_DEVICE]: List of active display devices.
+        list[PyDISPLAY_DEVICE]: List of active display devices.
     """
     devices = []
     for moninfo in get_real_display_devices_info():
@@ -439,14 +439,14 @@ def get_process_filename(pid: int, handle: int = 0) -> str:
     return filename
 
 
-def get_file_info(filename: str) -> Dict:
+def get_file_info(filename: str) -> dict:
     """Get exe/dll file information.
 
     Args:
         filename (str): The filename.
 
     Returns:
-        Dict: The file information.
+        dict: The file information.
     """
     info = {"FileInfo": None, "StringFileInfo": {}, "FileVersion": None}
 
@@ -485,7 +485,7 @@ def get_file_info(filename: str) -> Dict:
     return info
 
 
-def get_pids() -> List[int]:
+def get_pids() -> list[int]:
     """Get PIDs of all running processes.
 
     Raises:
@@ -493,7 +493,7 @@ def get_pids() -> List[int]:
         get_windows_error: If an error occurs while enumerating processes.
 
     Returns:
-        List[int]: List of PIDs.
+        list[int]: List of PIDs.
     """
     if psapi is None:
         raise ImportError(
@@ -513,11 +513,11 @@ def get_pids() -> List[int]:
         return [_f for _f in pids[:count] if _f]
 
 
-def get_real_display_devices_info() -> List[Dict]:
+def get_real_display_devices_info() -> list[dict]:
     """Return info for real (non-virtual) devices.
 
     Returns:
-        List[Dict]: List of monitor info.
+        list[dict]: List of monitor info.
     """
     # See Argyll source spectro/dispwin.c MonitorEnumProc, get_displays
     monitors = []
@@ -591,39 +591,39 @@ def per_user_profiles_isenabled(
 
 def run_as_admin(
     cmd: str,
-    args: List[Any],
+    args: list[Any],
     close_process: bool = True,
     async_: bool = False,
     wait_for_idle: bool = False,
     show: bool = True,
-) -> Dict:
+) -> dict:
     """Run command with elevated privileges.
 
     This is a wrapper around ShellExecuteEx.
 
     Args:
         cmd (str): The command to run.
-        args (List[Any]): The arguments for the command.
+        args (list[Any]): The arguments for the command.
         close_process (bool): Whether to close the process after execution.
         async_ (bool): Whether to run the command asynchronously.
         wait_for_idle (bool): Whether to wait for the process to be idle.
         show (bool): Whether to show the command window.
 
     Returns:
-        Dict: A dictionary with hInstApp and hProcess members.
+        dict: A dictionary with hInstApp and hProcess members.
     """
     return shell_exec(cmd, args, "runas", close_process, async_, wait_for_idle, show)
 
 
 def shell_exec(
     filename: str,
-    args: List[Any],
+    args: list[Any],
     operation: str = "open",
     close_process: bool = True,
     async_: bool = False,
     wait_for_idle: bool = False,
     show: bool = True,
-) -> Dict:
+) -> dict:
     """Run command.
 
     This is a wrapper around ShellExecuteEx.
@@ -638,7 +638,7 @@ def shell_exec(
         show (bool): Whether to show the command window.
 
     Returns:
-        Dict: A dictionary with hInstApp and hProcess members.
+        dict: A dictionary with hInstApp and hProcess members.
     """
     flags = SEE_MASK_FLAG_NO_UI
     if not close_process:
@@ -657,11 +657,11 @@ def shell_exec(
     )
 
 
-def win_ver() -> Tuple[str, int, str, str]:
+def win_ver() -> tuple[str, int, str, str]:
     """Get Windows version info.
 
     Returns:
-        Tuple[str, int, str, str]: A tuple containing the product name, CSD
+        tuple[str, int, str, str]: A tuple containing the product name, CSD
             version, release, and build.
     """
     csd = sys.getwindowsversion()[-1]

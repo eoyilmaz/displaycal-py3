@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import pytest
 
 from DisplayCAL import argyll_cgats
@@ -156,7 +154,7 @@ def test_ti3_to_ti1_2(data_files):
 def test_extract_device_gray_primaries(
     data_files,
     profile: str,
-    sets: Tuple[int, int, int, int],
+    sets: tuple[int, int, int, int],
     include_neutrals: bool,
     gray: bool,
 ) -> None:

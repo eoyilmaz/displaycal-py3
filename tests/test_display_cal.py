@@ -2,7 +2,6 @@ import os
 import platform
 import sys
 from pathlib import Path
-from typing import Tuple
 
 import pytest
 import wx
@@ -141,7 +140,7 @@ def test_colorimeter_correction_check_overwrite(
     ),
 )
 def test_get_cgats_measurement_mode(
-    data_files, instrument: str, file: str, modes: Tuple[str, str, None]
+    data_files, instrument: str, file: str, modes: tuple[str, str, None]
 ) -> None:
     """Test if expected measurement mode is returned."""
     path = data_files[file].absolute()

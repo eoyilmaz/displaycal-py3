@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Union
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -84,7 +84,7 @@ def fixture_target_instrument(inst_str_format: str, data_files) -> Union[bytes, 
     ),
 )
 def test_get_canonical_instrument_name(
-    replacement: Dict[Union[str, bytes], Union[str, bytes]],
+    replacement: dict[Union[str, bytes], Union[str, bytes]],
     target_instrument: Union[bytes, str],
     inverse: bool,
 ) -> None:

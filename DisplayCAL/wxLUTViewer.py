@@ -1095,7 +1095,7 @@ class LUTFrame(BaseFrame):
                 Error(
                     "\n\n".join(
                         [
-                            "{}".format(e)
+                            f"{e}"
                             for e in set(self.client.errors)
                             if e is not None
                         ]

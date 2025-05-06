@@ -505,7 +505,7 @@ def load_bitmap(
                 "{}.png".format(os.path.join(parts[-2], "apps", parts[-1]))
             )
         if not path:
-            path = get_data_path("{}.png".format(os.path.sep.join(parts)))
+            path = get_data_path(f"{os.path.sep.join(parts)}.png")
         if path or scale == 1:
             break
     if path:
@@ -1723,7 +1723,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             strtr(
                 v,
                 [
-                    ("%{}".format(hex(ord(os.pathsep))[2:].upper()), os.pathsep),
+                    (f"%{hex(ord(os.pathsep))[2:].upper()}", os.pathsep),
                     ("%25", "%"),
                 ],
             )
@@ -1935,7 +1935,15 @@ def get_total_patches(
 
 
 def get_verified_path(cfg_item_name, path=None):
-    """Verify and return dir and filename for a path from the user cfg, or a given path."""  # noqa: B950
+    """Verify and return directory and filename for a user cfg path or given path.
+
+    Args:
+        cfg_item_name (str): Config item name to retrieve the path.
+        path (str, optional): Path to verify. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the directory and filename.
+    """
     defaultPath = path or getcfg(cfg_item_name)
     defaultDir = expanduseru("~")
     defaultFile = ""
@@ -2288,7 +2296,7 @@ def setcfg(name, value, cfg=cfg):
                     v,
                     [
                         ("%", "%25"),
-                        (os.pathsep, "%{}".format(hex(ord(os.pathsep))[2:].upper())),
+                        (os.pathsep, f"%{hex(ord(os.pathsep))[2:].upper()}"),
                     ],
                 )
                 for v in value

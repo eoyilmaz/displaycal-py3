@@ -4789,8 +4789,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ccmx[1] = self.ccmx_mapping.get(f"\0{display_name}", "")
             if not self.worker.instrument_supports_ccss() or not ccmx[1]:
                 instrument_name = self.worker.get_instrument_name()
-                print("instrument_name: {}".format(instrument_name))
-                print("display_name   : {}".format(display_name))
+                print(f"instrument_name: {instrument_name}")
+                print(f"display_name   : {display_name}")
                 ccmx[1] = self.ccmx_mapping.get(
                     f"{instrument_name}\0{display_name}", ""
                 )
@@ -5669,12 +5669,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] calibration_update_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         setcfg("calibration.update", int(self.calibration_update_cb.GetValue()))
         setcfg(
@@ -6295,12 +6291,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] profile_quality_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         oldq = getcfg("profile.quality")
         q = self.get_profile_quality()
@@ -6326,12 +6318,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] calibration_file_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         sel = self.calibration_file_ctrl.GetSelection()
         if sel > 0:
@@ -6408,12 +6396,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] calibration_quality_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         q = self.get_calibration_quality()
         self.set_calibration_quality_label(q)
@@ -6447,12 +6431,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] interactive_display_adjustment_ctrl_handler called "
-                "for ID {} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"for ID {event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         v = int(self.interactive_display_adjustment_cb.GetValue())
         if v != getcfg("calibration.interactive_display_adjustment"):
@@ -6499,12 +6479,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] black_point_correction_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         if event.GetId() == self.black_point_correction_intctrl.GetId():
             self.black_point_correction_ctrl.SetValue(
@@ -6532,12 +6508,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] black_point_rate_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         if event.GetId() == self.black_point_rate_floatctrl.GetId():
             self.black_point_rate_ctrl.SetValue(
@@ -6557,12 +6529,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] black_output_offset_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         if event.GetId() == self.black_output_offset_intctrl.GetId():
             self.black_output_offset_ctrl.SetValue(
@@ -6880,12 +6848,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] ambient_viewcond_adjust_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         if event.GetId() == self.ambient_viewcond_adjust_textctrl.GetId():
             if self.ambient_viewcond_adjust_textctrl.GetValue():
@@ -6938,12 +6902,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] black_luminance_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         self.calpanel.Freeze()
         if self.black_luminance_ctrl.GetSelection() == 1:  # cd/m2
@@ -6989,12 +6949,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] luminance_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         self.calpanel.Freeze()
         if self.luminance_ctrl.GetSelection() == 1:  # cd/m2
@@ -7034,12 +6990,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] whitepoint_colortemp_locus_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         v = self.get_whitepoint_locus()
         if v != getcfg("whitepoint.colortemp.locus"):
@@ -7082,12 +7034,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] whitepoint_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         self.calpanel.Freeze()
         show_advanced_options = bool(getcfg("show_advanced_options"))
@@ -7249,12 +7197,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def trc_type_ctrl_handler(self, event):
         if debug:
             print(
-                "[D] trc_type_ctrl_handler called for ID {} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                "[D] trc_type_ctrl_handler called for ID "
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         v = self.get_trc_type()
         if v != getcfg("trc.type"):
@@ -7274,12 +7219,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             return
         if debug:
             print(
-                "[D] trc_ctrl_handler called for ID {} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                "[D] trc_ctrl_handler called for ID "
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         self.panel.Freeze()
         unload_cal = True
@@ -7634,7 +7576,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             vcgt = "no VCGT"
         if vcgt:
             description += ", " + vcgt
-        whitepoint = "{:.0f}K".format(round(XYZ2CCT(*list(profile.tags.wtpt.values()))))
+        whitepoint = f"{round(XYZ2CCT(*list(profile.tags.wtpt.values()))):.0f}K"
         description += ", " + whitepoint
         description += f", {profile.tags.lumi.Y:0.f} cd/m²"
         if gamma:
@@ -11163,9 +11105,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             traceback.print_exc()
                             gamut_coverage = None
                         if gamut_coverage:
-                            cinfo.append(
-                                "{:.1f}% {}".format(gamut_coverage * 100, name)
-                            )
+                            cinfo.append(f"{gamut_coverage:.1%} {name}")
                     try:
                         gamut_volume = float(profile.tags.meta.getvalue("GAMUT_volume"))
                     except (TypeError, ValueError):
@@ -13386,7 +13326,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 instrument = instrument.decode("utf-8")
             observer = getcfg("colorimeter_correction.observer.reference")
             if observer == "1931_2":
-                description = "{} & {}".format(
+                description = "{} & {}".format(  # noqa: UP032
                     instrument or self.worker.get_instrument_name(),
                     manufacturer_display or self.worker.get_display_name(True, True),
                 )
@@ -13416,7 +13356,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             target_instrument = get_canonical_instrument_name(target_instrument)
             if isinstance(target_instrument, bytes):
                 target_instrument = target_instrument.decode("utf-8")
-            description = "{} ({})".format(description, target_instrument)
+            description = f"{description} ({target_instrument})"
         args = []
         tech = {b"YES": "Unknown"}.get(
             reference_ti3.queryv1("DISPLAY_TYPE_REFRESH"), b"LCD"
@@ -13628,7 +13568,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # relationship
                         XYZ_CDM2 = [float(v) for v in XYZ_CDM2.split()]
                         XYZ_CDM2 = [
-                            "{:.6f}".format(v * XYZ_CDM2[1] / 100.0)
+                            f"{v * XYZ_CDM2[1] / 100.0:.6f}"
                             for v in list(
                                 white.queryv1(("XYZ_X", "XYZ_Y", "XYZ_Z")).values()
                             )
@@ -13957,14 +13897,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     grid.SetCellValue(row, 8, f"{deltaE:.4f}")
                 print("")
                 print(
-                    "{}: Fit error is max {:.6f}, avg {:.6f} DE94".format(
-                        appname, max(deltaE_94), sum(deltaE_94) / len(deltaE_94)
-                    )
+                    f"{appname}: Fit error is max {max(deltaE_94):.6f}, "
+                    f"avg {sum(deltaE_94) / len(deltaE_94):.6f} DE94"
                 )
                 print(
-                    "{}: Fit error is max {:.6f}, avg {:.6f} DE00".format(
-                        appname, max(deltaE_00), sum(deltaE_00) / len(deltaE_00)
-                    )
+                    f"{appname}: Fit error is max {max(deltaE_00):.6f}, "
+                    f"avg {sum(deltaE_00) / len(deltaE_00):.6f} DE00"
                 )
                 grid.DefaultCellBackgroundColour = grid.LabelBackgroundColour
                 grid.EndBatch()
@@ -14000,7 +13938,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         )
                     )
                     metadata.append(
-                        '{}_HASH "md5:{}"'.format(
+                        '{}_HASH "md5:{}"'.format(  # noqa: UP032
                             label, md5(bytes(meas).strip()).hexdigest()
                         )
                     )
@@ -14044,9 +13982,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             column = column.decode("utf-8")
                             if column not in ccmx_data_format and column != "SAMPLE_ID":
                                 metadata.append(
-                                    '{}_DATA_{:.0f}_{} "{}"'.format(
-                                        label, i + 1, column, sample[column]
-                                    )
+                                    f'{label}_DATA_{i + 1:.0f}_{column} '
+                                    f'"{sample[column]}"'
                                 )
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
                 cgats = re.sub(
@@ -14193,12 +14130,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def comport_ctrl_handler(self, event=None, force=False):
         if debug and event:
             print(
-                "[D] comport_ctrl_handler called for ID {} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                "[D] comport_ctrl_handler called for ID "
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         if self.comport_ctrl.GetSelection() > -1:
             setcfg("comport.number", self.comport_ctrl.GetSelection() + 1)
@@ -14910,12 +14844,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def display_ctrl_handler(self, event, load_lut=True, update_ccmx_items=True):
         if debug:
             print(
-                "[D] display_ctrl_handler called for ID {} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                "[D] display_ctrl_handler called for ID "
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         display_no = self.display_ctrl.GetSelection()
         profile = None
@@ -15038,12 +14969,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] display_lut_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         try:
             i = self.displays.index(self.display_lut_ctrl.GetStringSelection())
@@ -15055,12 +14982,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] display_lut_link_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         bitmap_link = geticon(16, "stock_lock")
         bitmap_unlink = geticon(16, "stock_lock-open")
@@ -15181,12 +15104,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] measurement_mode_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         v = self.get_measurement_mode()
         if v and "p" in v and self.worker.argyll_version < [1, 1, 0]:
@@ -15311,12 +15230,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug and event:
             print(
                 "[D] profile_type_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         v = self.get_profile_type()
         lut_type = v in ("l", "x", "X")
@@ -15573,7 +15488,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for index in indexes:
                 removed.insert(0, data.pop(dlg.suspicious_items[index]))
             for item in removed:
-                print("Removed patch #{:.0f} from TI3: {}".format(item.key, item))
+                print(f"Removed patch #{item.key:.0f} from TI3: {item}")
             for index in dlg.mods:
                 fields = dlg.mods[index]
                 if index not in indexes:
@@ -15584,9 +15499,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if old != value:
                             item[field] = value
                             print(
-                                "Updated patch #{} in TI3: {} {:.4f} \u2192 {:.4f}".format(
-                                    item.SAMPLE_ID, field, old, value
-                                )
+                                f"Updated patch #{item.SAMPLE_ID} in TI3: "
+                                f"{field} {old:.4f} \u2192 {value:.4f}"
                             )
         dlg.Destroy()
         if result == wx.ID_CANCEL:
@@ -15607,12 +15521,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] profile_name_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         oldval = self.profile_name_textctrl.GetValue()
         if not self.check_profile_name() or len(oldval) > 80:
@@ -15652,7 +15562,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self,
             lang.getstr("archive.create"),
             defaultDir,
-            "{}.{}".format(os.path.basename(path_name), file_format),
+            f"{os.path.basename(path_name)}.{file_format}",
             wildcard=wildcard,
             style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
         )
@@ -16874,12 +16784,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if debug:
             print(
                 "[D] testchart_ctrl_handler called for ID "
-                "{} {} event type {} {}".format(
-                    event.GetId(),
-                    getevtobjname(event, self),
-                    event.GetEventType(),
-                    getevttype(event),
-                )
+                f"{event.GetId()} {getevtobjname(event, self)} event type "
+                f"{event.GetEventType()} {getevttype(event)}"
             )
         self.set_testchart(self.testcharts[self.testchart_ctrl.GetSelection()])
         wx.CallAfter(self.check_testchart_patches_amount)
@@ -18840,9 +18746,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.StaticText(
                 self.aboutdialog.panel,
                 -1,
-                lang.getstr(
-                    "audio.lib", "{} {}".format(audio._lib, audio._lib_version)
-                ),
+                lang.getstr("audio.lib", f"{audio._lib} {audio._lib_version}"),
             )
         )
         items.append((1, 12))
@@ -19120,7 +19024,7 @@ class StartupFrame(start_cls):
         audio.safe_init()
         if audio._lib:
             print(
-                lang.getstr("audio.lib", "{} {}".format(audio._lib, audio._lib_version))
+                lang.getstr("audio.lib", f"{audio._lib} {audio._lib_version}")
             )
         # Startup sound
         # Needs to be stereo!
@@ -19663,7 +19567,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
         dc.SetFont(grid.GetLabelFont())
         w, h = dc.GetTextExtent(
-            "99{}".format(dlg.ti3.DATA[dlg.ti3.NUMBER_OF_SETS - 1].SAMPLE_ID)
+            f"99{dlg.ti3.DATA[dlg.ti3.NUMBER_OF_SETS - 1].SAMPLE_ID}"
         )
         grid.SetRowLabelSize(max(w, grid.GetDefaultRowSize()))
         w, h = dc.GetTextExtent("9999999999")

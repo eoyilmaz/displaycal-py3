@@ -266,9 +266,8 @@ class SysTrayIcon(wx.EvtHandler):
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         print(
-            "SysTrayIcon.OnCommand(hwnd={}, msg={}, wparam={}, lparam={})".format(
-                repr(hwnd), repr(msg), repr(wparam), repr(lparam)
-            )
+            f"SysTrayIcon.OnCommand(hwnd={repr(hwnd)}, msg={repr(msg)}, "
+            f"wparam={repr(wparam)}, lparam={repr(lparam)})"
         )
         if not self.menu:
             print("Warning: Don't have menu")

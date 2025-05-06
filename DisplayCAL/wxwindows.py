@@ -2243,9 +2243,7 @@ class BaseFrame(wx.Frame):
                 label = GTKMenuItemGetFixedLabel(label)
                 localized_label = lang.getstr(label)
                 if item.Accel:
-                    localized_label_text_with_accel = "{}\t{}".format(
-                        localized_label, item.Accel.ToString()
-                    )
+                    localized_label_text_with_accel = f"{localized_label}\t{item.Accel.ToString()}"
                     # item.Text = localized_label_text_with_accel
                     item.SetItemLabel(localized_label_text_with_accel)
                 else:

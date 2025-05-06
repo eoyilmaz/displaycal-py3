@@ -226,9 +226,7 @@ def postinstall_windows(prefix):
                                 uninstaller,
                                 lnkname,
                                 lnkpath,
-                                '-u "{}-wininst.log"'.format(
-                                    os.path.join(sys.prefix, name)
-                                ),
+                                f'-u "{os.path.join(sys.prefix, name)}-wininst.log"',
                                 sys.prefix,
                                 os.path.join(
                                     modpath,

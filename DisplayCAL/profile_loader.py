@@ -535,7 +535,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         grid.BeginBatch()
         for i, (key, (enabled, reset, path)) in enumerate(sorted(exceptions.items())):
             grid.AppendRows(1)
-            grid.SetRowLabelValue(i, "{:d}".format(i + 1))
+            grid.SetRowLabelValue(i, f"{i + 1:d}")
             grid.SetCellValue(i, 0, "1" if enabled else "")
             grid.SetCellValue(i, 1, "1" if reset else "")
             grid.SetCellValue(i, 2, os.path.basename(path))
@@ -1054,9 +1054,7 @@ class ProfileAssociationsDialog(InfoDialog):
             fn(arg0, devicekey=devicekey)
         except Exception as exception:
             print(
-                "{}({}, devicekey={}):".format(
-                    fn.__name__, repr(arg0), repr(devicekey)
-                ),
+                f"{fn.__name__}({repr(arg0)}, devicekey={repr(devicekey)}):",
                 exception,
             )
             if show_error:
@@ -1547,9 +1545,8 @@ class ProfileLoader:
                         return
                     if debug > 1:
                         print(
-                            "[DEBUG] animate(enumerate_windows_and_processes={}, idle={})".format(
-                                enumerate_windows_and_processes, idle
-                            )
+                            "[DEBUG] animate(enumerate_windows_and_processes="
+                            f"{enumerate_windows_and_processes}, idle={idle})"
                         )
                     if self._icon_index < len(self._active_icons) - 1:
                         self._animate = True
@@ -1572,9 +1569,9 @@ class ProfileLoader:
                 def get_icon(self, enumerate_windows_and_processes=False, idle=False):
                     if debug > 1:
                         print(
-                            "[DEBUG] get_icon(enumerate_windows_and_processes={}, idle={})".format(
-                                enumerate_windows_and_processes, idle
-                            )
+                            "[DEBUG] "
+                            "get_icon(enumerate_windows_and_processes="
+                            f"{enumerate_windows_and_processes}, idle={idle})"
                         )
                     if (
                         self.pl._should_apply_profiles(
@@ -1731,11 +1728,9 @@ class ProfileLoader:
                         exceptions = []
                         for key in dlg._exceptions:
                             enabled, reset, path = dlg._exceptions[key]
-                            exceptions.append(
-                                "{:d}:{:d}:{}".format(enabled, reset, path)
-                            )
+                            exceptions.append(f"{enabled:d}:{reset:d}:{path}")
                             print(
-                                "Enabled={}".format(bool(enabled)),
+                                f"Enabled={bool(enabled)}",
                                 "Action={}".format(reset and "Reset" or "Disable"),
                                 path,
                             )
@@ -1772,7 +1767,7 @@ class ProfileLoader:
                         if i:
                             rad = i / float(numframes)
                             bitmap = config.geticon(
-                                16, "apply-profiles-tray-{:0.0f}".format(360 * rad)
+                                16, f"apply-profiles-tray-{360 * rad:0.0f}"
                             )
                             image = bitmap.ConvertToImage()
                             image.RotateHue(-rad)
@@ -1787,9 +1782,8 @@ class ProfileLoader:
                         return
                     if debug > 1:
                         print(
-                            "[DEBUG] set_visual_state(enumerate_windows_and_processes={}, idle={})".format(
-                                enumerate_windows_and_processes, idle
-                            )
+                            "[DEBUG] set_visual_state(enumerate_windows_and_processes="
+                            f"{enumerate_windows_and_processes}, idle={idle})"
                         )
                     self.SetIcon(
                         self.get_icon(enumerate_windows_and_processes, idle),
@@ -1811,14 +1805,9 @@ class ProfileLoader:
                         return
                     if debug > 1:
                         print(
-                            "[DEBUG] show_notification(text={}, sticky={}, "
-                            "show_notification={}, flags={}, toggle={})".format(
-                                repr(text),
-                                sticky,
-                                show_notification,
-                                repr(flags),
-                                toggle,
-                            )
+                            f"[DEBUG] show_notification(text={repr(text)}, "
+                            f"sticky={sticky}, show_notification={show_notification}, "
+                            f"flags={repr(flags)}, toggle={toggle})"
                         )
                     if (sticky or text) and show_notification:
                         # Do not show notification unless enabled
@@ -2043,7 +2032,7 @@ class ProfileLoader:
                     # (e.g. oyranos-monitor with xcalib, or colord)
                     if worker.exec_cmd(
                         dispwin,
-                        ["-v", "-d{:d}".format(i + 1), profile_arg],
+                        ["-v", f"-d{i + 1:d}", profile_arg],
                         capture_output=True,
                         skip_scripts=True,
                         silent=False,
@@ -2080,7 +2069,7 @@ class ProfileLoader:
                     # Verify the calibration was actually loaded
                     worker.exec_cmd(
                         dispwin,
-                        ["-v", "-d{:d}".format(i + 1), "-V", profile_arg],
+                        ["-v", f"-d{i + 1:d}", "-V", profile_arg],
                         capture_output=True,
                         skip_scripts=True,
                         silent=False,
@@ -2111,13 +2100,8 @@ class ProfileLoader:
     def _notify(self, results, errors, sticky=False, show_notification=False):
         if debug > 1:
             print(
-                "[DEBUG] notify(results={}, errors={}, sticky={}, "
-                "show_notification={})".format(
-                    repr(results),
-                    repr(errors),
-                    sticky,
-                    show_notification,
-                )
+                f"[DEBUG] notify(results={repr(results)}, errors={repr(errors)}, "
+                f"sticky={sticky}, show_notification={show_notification})"
             )
         self.taskbar_icon.set_visual_state()
         results.extend(errors)
@@ -2411,7 +2395,7 @@ class ProfileLoader:
             # Windows XP or Win10 >= 1903 if not running elevated
             if exception.args[0] != errno.ENOENT or sys.getwindowsversion() >= (6,):
                 warnings.warn(
-                    r"Registry access failed: {}: HKLM\{}".format(exception, key_name),
+                    rf"Registry access failed: {exception}: HKLM\{key_name}",
                     Warning,
                 )
             key = None
@@ -2429,9 +2413,8 @@ class ProfileLoader:
                 subkey = winreg.OpenKey(key, subkey_name)
             except WindowsError as exception:
                 warnings.warn(
-                    r"Registry access failed: {}: HKLM\{}\{}".format(
-                        exception, key_name, subkey_name
-                    ),
+                    f"Registry access failed: {exception}: "
+                    rf"HKLM\{key_name}\{subkey_name}",
                     Warning,
                 )
                 continue
@@ -2444,9 +2427,8 @@ class ProfileLoader:
                 timestamp = winreg.QueryValueEx(subkey, "Timestamp")[0]
             except WindowsError as exception:
                 warnings.warn(
-                    r"Registry access failed: {}: {} (HKLM\{}\{})".format(
-                        exception, value_name, key_name, subkey_name
-                    ),
+                    f"Registry access failed: {exception}: {value_name} "
+                    rf"(HKLM\{key_name}\{subkey_name})",
                     Warning,
                 )
                 continue
@@ -2460,7 +2442,7 @@ class ProfileLoader:
         if key:
             winreg.CloseKey(key)
         print(
-            "Display configuration change detection took {:.6f} ms".format(
+            "Display configuration change detection took {:.6f} ms".format(  # noqa: UP032
                 (time.time() - ts) * 1000.0
             )
         )
@@ -2544,7 +2526,7 @@ class ProfileLoader:
                     )
                 except IndexError:
                     if debug:
-                        print("Display {} ({}) no longer present?".format(key, display))
+                        print(f"Display {key} ({display}) no longer present?")
                     self._next = False
                     break
                 except Exception as exception:
@@ -2554,9 +2536,8 @@ class ProfileLoader:
                     ) or debug:
                         self._last_exception_args = exception.args
                         print(
-                            "Could not get display profile for display {} ({}):".format(
-                                key, display
-                            ),
+                            "Could not get display profile for display "
+                            f"{key} ({display}):",
                             exception,
                         )
                     if exception.args[0] == errno.ENOENT:
@@ -3590,7 +3571,7 @@ class ProfileLoader:
                 except Exception as exception:
                     print(
                         "Could not get display profile for display "
-                        "device {} ({}):".format(device.DeviceKey, display_edid[0]),
+                        f"device {device.DeviceKey} ({display_edid[0]}):",
                         exception,
                     )
                     profile = None
@@ -3602,9 +3583,7 @@ class ProfileLoader:
                     get_profile_desc(profile),
                 )
                 if debug or verbose > 1:
-                    print(
-                        "{} ({}): {}".format(display_edid[0], device.DeviceKey, profile)
-                    )
+                    print(f"{display_edid[0]} ({device.DeviceKey}): {profile}")
             # Set the active profile
             device = active_device
             if not device:
@@ -3616,7 +3595,7 @@ class ProfileLoader:
             except Exception as exception:
                 print(
                     "Could not get display profile for active display "
-                    "device {} ({}):".format(device.DeviceKey, display),
+                    f"device {device.DeviceKey} ({display}):",
                     exception,
                 )
                 continue
@@ -3746,7 +3725,7 @@ class ProfileLoader:
             self._exceptions[key] = (enabled, reset, path)
             self._exception_names.add(os.path.basename(key))
             print(
-                "Enabled={}".format(bool(enabled)),
+                f"Enabled={bool(enabled)}",
                 "Action={}".format(reset and "Reset" or "Disable"),
                 path,
             )
@@ -3782,15 +3761,13 @@ def get_display_name_edid(device, moninfo=None, index=None, include_adapter=Fals
         m_left, m_top, m_right, m_bottom = moninfo["Monitor"]
         m_width = m_right - m_left
         m_height = m_bottom - m_top
-        display = " @ ".join(
-            [display, "{:d}, {:d}, {:d}x{:d}".format(m_left, m_top, m_width, m_height)]
-        )
+        display = f"{display} @ {m_left:d}, {m_top:d}, {m_width:d}x{m_height:d}"
         if moninfo["Flags"] & MONITORINFOF_PRIMARY:
             display += " [PRIMARY]"
         if moninfo.get("_adapter") and include_adapter:
             display += " - {}".format(moninfo["_adapter"].DeviceString)
     if index is not None:
-        display = "{:d}. {}".format(index + 1, display)
+        display = f"{index + 1:d}. {display}"
     return display, edid
 
 
@@ -3854,13 +3831,12 @@ def main():
     if "--help" in sys.argv[1:] or unknown_option:
         if unknown_option:
             print(
-                "{}: unrecognized option `{}'".format(
-                    os.path.basename(sys.argv[0]), unknown_option
-                )
+                f"{os.path.basename(sys.argv[0])}: "
+                f"unrecognized option `{unknown_option}'"
             )
             if sys.platform == "win32":
                 BaseApp._run_exitfuncs()
-        print("Usage: {} [OPTION]...".format(os.path.basename(sys.argv[0])))
+        print(f"Usage: {os.path.basename(sys.argv[0])} [OPTION]...")
         print("Apply profiles to configured display devices and load calibration")
         print(f"Version {version}")
         print("")
@@ -3956,7 +3932,7 @@ def main():
                     for line in textwrap.fill(cfgdoc, 75).splitlines():
                         print(" " * 4 + line.rstrip())
     elif "-V" in sys.argv[1:] or "--version" in sys.argv[1:]:
-        print("{} {}".format(os.path.basename(sys.argv[0]), version))
+        print(f"{os.path.basename(sys.argv[0])} {version}")
     else:
         if sys.platform == "win32":
             setup_profile_loader_task(exe, exedir, pydir)

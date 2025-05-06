@@ -941,20 +941,20 @@ def _create_optimized_shaper_curves(
             else:
                 caltrc.set_trc(calgamma)
             caltf = caltrc.get_transfer_function(True, (0, 1), black_Y, outoffset)
-    logfn and logfn(f"Black relative luminance = {round(black_Y, 6):.6f}")
-    if outoffset is not None:
-        logfn and logfn(f"Black output offset = {round(outoffset, 2):.2f}")
-    if calgamma > 0:
-        logfn and logfn(
+    if logfn:
+        logfn(f"Black relative luminance = {round(black_Y, 6):.6f}")
+    if outoffset is not None and logfn:
+        logfn(f"Black output offset = {round(outoffset, 2):.2f}")
+    if calgamma > 0 and logfn:
+        logfn(
             "Calibration gamma = {:.2f} {}".format(
                 round(calgamma, 2), {"g": "relative", "G": "absolute"}.get(gamma_type)
             )
         )
-    if calgamma:
-        logfn and logfn(
-            "Calibration overall transfer function ≈ {} (Δ {:.2f}%)".format(
-                caltf[0][0], 100 - caltf[1] * 100
-            )
+    if calgamma and logfn:
+        logfn(
+            "Calibration overall transfer function ≈ "
+            f"{caltf[0][0]} (Δ {1 - caltf[1]:.2%})"
         )
     if calgamma > 0 and black_Y:
         # Calculate effective gamma
@@ -962,7 +962,8 @@ def _create_optimized_shaper_curves(
             (len(caltrc) - 1) / 2.0, list(range(len(caltrc))), caltrc
         )
         gamma = colormath.get_gamma([(0.5, midpoint / 65535.0)])
-        logfn and logfn(f"Calibration effective gamma = {gamma:.2f}")
+        if logfn:
+            logfn(f"Calibration effective gamma = {gamma:.2f}")
     tfs = []
     for i, channel in enumerate("rgb"):
         trc = CurveType(profile=profile)
@@ -977,16 +978,19 @@ def _create_optimized_shaper_curves(
         tf = trc.get_transfer_function(True, (0, 1), black_Y, outoffset)
         label = ["Transfer function", channel.upper()]
         label.append("≈ {} (Δ {:.2f}%)".format(tf[0][0], 100 - tf[1] * 100))
-        logfn and logfn(" ".join(label))
+        if logfn:
+            logfn(" ".join(label))
         gamma = tf[0][1]
         if gamma > 0 and black_Y:
             # Calculate effective gamma
             gamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
-            logfn and logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
+            if logfn:
+                logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
         # Only use standard transfer function if we got a good match
         if tf[1] >= 0.98:
             # Good match
-            logfn and logfn("Got good match (+-2%)")
+            if logfn:
+                logfn("Got good match (+-2%)")
             if (
                 single_curve
                 and calgamma
@@ -994,7 +998,8 @@ def _create_optimized_shaper_curves(
             ):
                 # Use calibration gamma
                 tf = caltf
-                logfn and logfn("Using calibration transfer function")
+                if logfn:
+                    logfn("Using calibration transfer function")
             tfs.append((tf, trc))
 
     if len(tfs) == 3:
@@ -1054,14 +1059,16 @@ def _create_optimized_shaper_curves(
                     trc.set_trc(gamma)
             trc.apply_bpc()
             tf = trc.get_transfer_function(True, (0, 1), black_Y, outoffset)
-            logfn and logfn(
-                "Using transfer function for {}: {}".format(channel.upper(), tf[0][0])
-            )
+            if logfn:
+                logfn(
+                    "Using transfer function for {}: {}".format(channel.upper(), tf[0][0])
+                )
             gamma = tf[0][1]
             if gamma > 0 and black_Y:
                 # Calculate effective gamma
                 gamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
-                logfn and logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
+                if logfn:
+                    logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
             optcurves.append([v / 65535.0 * curves[i][-1] for v in trc])
         curves = optcurves
 
@@ -1099,7 +1106,7 @@ def get_current_profile_path(
             try:
                 profile = ICCProfile(profile_path)
             except Exception as exception:
-                print("ICCProfile({}):".format(profile_path), exception)
+                print(f"ICCProfile({profile_path}):", exception)
     elif include_display_profile:
         profile = config.get_display_profile()
         if profile and not profile.fileName and save_profile_if_no_path:
@@ -1325,7 +1332,7 @@ def get_default_headers():
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)
-        oscpu = "Mac OS X {}; {}".format(mac_ver()[0], mac_ver()[-1])
+        oscpu = f"Mac OS X {mac_ver()[0]}; {mac_ver()[-1]}"
     elif sys.platform == "win32":
         machine = platform.machine()
         oscpu = "{}; {}".format(
@@ -1480,9 +1487,8 @@ def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
         # Insert preconditioned point datasets after first patch
         if logfn:
             logfn(
-                "{}: Adding {:d} fixed points to {}".format(
-                    appname, len(cgats1_datasets), cgats2_path
-                )
+                f"{appname}: Adding {len(cgats1_datasets):d} "
+                f"fixed points to {cgats2_path}"
             )
         data.moveby1(1, len(cgats1_datasets))
         for i, dataset in enumerate(cgats1_datasets):
@@ -2493,7 +2499,7 @@ class Worker(WorkerBase):
                 *colormath.XYZ2Lab(*[v * 100 for v in XYZbp])
             )
         )
-        self.log("Output offset = {:.2f}%".format(outoffset * 100))
+        self.log(f"Output offset = {outoffset:.2%}")
         if hdr:
             odesc = profile1.getDescription()
             desc = re.sub(
@@ -2817,11 +2823,7 @@ class Worker(WorkerBase):
                     getcfg(cfgname), 1
                 ),
             )
-            print(
-                "Added DISPLAY_TYPE_BASE_ID {}".format(
-                    repr(cgats[0].DISPLAY_TYPE_BASE_ID)
-                )
-            )
+            print(f"Added DISPLAY_TYPE_BASE_ID {repr(cgats[0].DISPLAY_TYPE_BASE_ID)}")
             return True
 
     def check_display_conf_oy_compat(self, display_no):
@@ -2971,9 +2973,7 @@ class Worker(WorkerBase):
                         exception,
                     )
                     self.exec_cmd_returnvalue = Error(
-                        "Could not read SpyderX sensor cal: {}".format(
-                            safe_str(exception)
-                        )
+                        f"Could not read SpyderX sensor cal: {safe_str(exception)}"
                     )
                     self.abort_subprocess()
                     return False
@@ -3884,10 +3884,7 @@ END_DATA
                 (profile_out_filename, profile_out_ext) = os.path.splitext(
                     profile_out_basename
                 )
-                profile_out_basename = "{} (2){}".format(
-                    profile_out_filename,
-                    profile_out_ext,
-                )
+                profile_out_basename = f"{profile_out_filename} (2){profile_out_ext}"
             profile_out.fileName = os.path.join(cwd, profile_out_basename)
             profile_out.write()
             profile_out_cal_path = os.path.splitext(profile_out.fileName)[0] + ".cal"
@@ -3917,9 +3914,8 @@ END_DATA
                         v * XYZbp[1] for v in list(profile_out.tags.wtpt.pcs.values())
                     ]
                     self.log(
-                        "Using black Y from destination profile "
-                        "characterization data (normalized 0..100): "
-                        "{:.6f}".format(XYZbp[1] * 100)
+                        "Using black Y from destination profile characterization "
+                        f"data (normalized 0..100): {XYZbp[1] * 100:.6f}"
                     )
                     use_collink_bt1886 = False
             elif XYZbp[1]:
@@ -4434,8 +4430,8 @@ END_DATA
                             # Found
                             XYZwscaled = XYZscaled[i]
                             logfiles.write(
-                                "Solution found at index {:d} "
-                                "(step size {:f})\n".format(i, 1 / 2000.0)
+                                f"Solution found at index {i:d} "
+                                f"(step size {1 / 2000.0:f})\n"
                             )
                             logfiles.write(
                                 "RGB white {:6.4f} {:6.4f} {:6.4f}\n".format(
@@ -4456,9 +4452,7 @@ END_DATA
                             break
                     if not XYZwscaled:
                         raise Error(
-                            "No solution found in {:d} iterations with {:d} steps".format(
-                                n, i
-                            )
+                            f"No solution found in {n:d} iterations with {i:d} steps"
                         )
                     for i, XYZ in enumerate(XYZ_src_out):
                         XYZ[:] = [v / XYZw[1] * XYZwscaled[1] for v in XYZ]
@@ -4477,9 +4471,8 @@ END_DATA
                     num_batches = 1
                 direction = "backward" if use_b2a else "inverse forward"
                 logfiles.write(
-                    "Creating device link from {} lookup ({:d} workers)...\n".format(
-                        direction, num_workers
-                    )
+                    f"Creating device link from {direction} "
+                    f"lookup ({num_workers:d} workers)...\n"
                 )
                 RGB_dst_out = []
                 for slices in pool_slice(
@@ -4812,7 +4805,7 @@ END_DATA
                                 ",".join([str(v) for v in in_colors])
                             )
                         )
-                    interp_args.append("--hdr={:0.0f}".format(smpte2084 + hdr_display))
+                    interp_args.append(f"--hdr={smpte2084 + hdr_display:0.0f}")
                     interp_args.append("--convert-video-rgb-to-clut65")
                     interp_args.append("--append-linear-cal")
                     interp_args.append("--batch")
@@ -4872,28 +4865,28 @@ END_DATA
                     if isinstance(profile_in.tags.get("A2B0"), LUT16Type):
                         # Write diagnostic PNG
                         profile_in.tags.A2B0.clut_writepng(
-                            "{}.A2B0.CLUT.png".format(
+                            "{}.A2B0.CLUT.png".format(  # noqa: UP032
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
                     if isinstance(profile_in.tags.get("DBG0"), LUT16Type):
                         # HDR RGB
                         profile_in.tags.DBG0.clut_writepng(
-                            "{}.DBG0.CLUT.png".format(
+                            "{}.DBG0.CLUT.png".format(  # noqa: UP032
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
                     if isinstance(profile_in.tags.get("DBG1"), LUT16Type):
                         # Display RGB
                         profile_in.tags.DBG1.clut_writepng(
-                            "{}.DBG1.CLUT.png".format(
+                            "{}.DBG1.CLUT.png".format(  # noqa: UP032
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
                     if isinstance(profile_in.tags.get("DBG2"), LUT16Type):
                         # Display XYZ
                         profile_in.tags.DBG2.clut_writepng(
-                            "{}.DBG2.CLUT.png".format(
+                            "{}.DBG2.CLUT.png".format(  # noqa: UP032
                                 os.path.splitext(profile_in.fileName)[0]
                             )
                         )
@@ -5056,7 +5049,7 @@ END_DATA
                 lut.append([f"# OUTPUT RANGE: {output_bits:d}"])
                 lut.append([])
                 for i in range(0, size):
-                    lut[-1].append("{:d}".format(quantizer(i * step)))
+                    lut[-1].append(f"{quantizer(i * step):d}")
             else:
                 # dcl
                 lut = [["# DeviceControl-LG 3D"]]
@@ -5065,9 +5058,7 @@ END_DATA
                 lut.append([])
                 for component in (0, 1, 2):
                     lut[-1].append(
-                        "{:d}".format(
-                            int(round(RGB_triplet[component] / scale * maxval))
-                        )
+                        f"{int(round(RGB_triplet[component] / scale * maxval)):d}"
                     )
         elif format == "cube":
             if maxval is None:
@@ -5076,14 +5067,14 @@ END_DATA
             lut.append(["DOMAIN_MIN 0.0 0.0 0.0"])
             fp_offset = str(maxval).find(".")
             domain_max = "DOMAIN_MAX {} {} {}".format(
-                ("{{:.{:d}f}}".format(len(str(maxval)[fp_offset + 1 :])),) * 3
+                (f"{{:.{len(str(maxval)[fp_offset + 1 :]):d}f}}",) * 3
             )
             lut.append([domain_max.format((maxval,) * 3)])
             lut.append([])
             for RGB_triplet in RGB_out:
                 lut.append([])
                 for component in (0, 1, 2):
-                    lut[-1].append("{:.6f}".format(RGB_triplet[component] * maxval))
+                    lut[-1].append(f"{RGB_triplet[component] * maxval:.6f}")
         elif format == "spi3d":
             if maxval is None:
                 maxval = 1.0
@@ -5093,14 +5084,14 @@ END_DATA
             for i, RGB_triplet in enumerate(RGB_out):
                 lut.append([str(index) for index in RGB_indexes[i]])
                 for component in (0, 1, 2):
-                    lut[-1].append("{:.6f}".format(RGB_triplet[component] * maxval))
+                    lut[-1].append(f"{RGB_triplet[component] * maxval:.6f}")
         elif format == "eeColor":
             if maxval is None:
                 maxval = 1.0
             lut = []
             for i, RGB_triplet in enumerate(RGB_out):
                 lut.append(
-                    ["{:.6f}".format(component * maxval) for component in RGB_oin[i]]
+                    [f"{component * maxval:.6f}" for component in RGB_oin[i]]
                 )
                 for component in (0, 1, 2):
                     v = RGB_triplet[component] * maxval
@@ -5116,19 +5107,19 @@ END_DATA
         elif format == "mga":
             lut = [
                 ["#HEADER"],
-                ["#filename: {}".format(os.path.basename(path))],
+                [f"#filename: {os.path.basename(path)}"],
                 ["#type: 3D cube file"],
                 ["#format: 1.00"],
                 ["#created: {}".format(strftime("%d %B %Y"))],
                 [f"#owner: {getpass.getuser()}"],
-                ["#title: {}".format(os.path.splitext(os.path.basename(path))[0])],
+                [f"#title: {os.path.splitext(os.path.basename(path))[0]}"],
                 ["#END"],
             ]
             lut.append([])
             lut.append(["channel 3d"])
-            lut.append(["in {:d}".format(size**3)])
+            lut.append([f"in {size**3:d}"])
             maxval = 2**output_bits - 1
-            lut.append(["out {:d}".format(maxval + 1)])
+            lut.append([f"out {maxval + 1:d}"])
             lut.append([""])
             lut.append(["format lut"])
             lut.append([""])
@@ -5136,9 +5127,7 @@ END_DATA
             for i, RGB_triplet in enumerate(RGB_out):
                 lut.append([f"{i:d}"])
                 for component in (0, 1, 2):
-                    lut[-1].append(
-                        ("{}".format(int(round(RGB_triplet[component] * maxval))))
-                    )
+                    lut[-1].append(f"{int(round(RGB_triplet[component] * maxval))}")
             valsep = "\t"
         elif format == "png":
             lut = [[]]
@@ -5354,9 +5343,7 @@ END_DATA
                                 # valid in both UTF-8 and stdout encoding
                                 # by a re-encode/decode step
                                 displays.append(
-                                    "Chromecast {}: {}".format(
-                                        line[0], safe_str(value, enc)
-                                    )
+                                    f"Chromecast {line[0]}: {safe_str(value, enc)}"
                                 )
                         elif arg == "-dprisma[:host]":
                             # Prisma (via Argyll CMS)
@@ -5365,11 +5352,8 @@ END_DATA
                             match = re.findall(r".+?: (.+) @ (.+)", value)
                             if len(match):
                                 displays.append(
-                                    "Prisma {}: {} @ {}".format(
-                                        line[0],
-                                        safe_str(match[0][0], enc),
-                                        match[0][1],
-                                    )
+                                    f"Prisma {line[0]}: {safe_str(match[0][0], enc)} "
+                                    f"@ {match[0][1]}"
                                 )
                         elif arg == "-c" and enumerate_ports:
                             if (
@@ -5462,9 +5446,7 @@ END_DATA
                         display = " @ ".join(
                             [
                                 display_name,
-                                "{:d}, {:d}, {:d}x{:d}".format(
-                                    m_left, m_top, m_width, m_height
-                                ),
+                                f"{m_left:d}, {m_top:d}, {m_width:d}x{m_height:d}",
                             ]
                         )
                         if is_primary:
@@ -6082,9 +6064,7 @@ BEGIN_DATA
                                 # Get RGB from dictionary
                                 for i in RGB:
                                     R, G, B = RGB[i]
-                                    cal += "{:f} {:f} {:f} {:f}\n".format(
-                                        i / 255.0, R, G, B
-                                    )
+                                    cal += f"{i / 255.0:f} {R:f} {G:f} {B:f}\n"
                                 cal += "END_DATA"
                                 # Write out .cal file
                                 try:
@@ -6186,7 +6166,7 @@ BEGIN_DATA
                         endis = "enable"
                     if not getattr(self.madtpg, endis + "_3dlut")():
                         self.madtpg_disconnect(False)
-                        return Error("madVR_{}3dlut failed".format(endis.capitalize()))
+                        return Error(f"madVR_{endis.capitalize()}3dlut failed")
                     fullscreen = self.madtpg.is_use_fullscreen_button_pressed()
                     if sys.platform == "win32":
                         # Make sure interactive display adjustment window isn't
@@ -6319,8 +6299,8 @@ BEGIN_DATA
                     ):
                         self.madtpg_disconnect()
                         return Error("madVR_GetPatternConfig failed")
-                    self.log("Pattern area: {:d}%".format(patternconfig[0]))
-                    self.log("Background level: {:d}%".format(patternconfig[1]))
+                    self.log(f"Pattern area: {patternconfig[0]:d}%")
+                    self.log(f"Background level: {patternconfig[1]:d}%")
                     self.log(
                         "Background mode: {}".format(
                             {0: "Constant", 1: "APL gamma", 2: "APL linear"}.get(
@@ -6328,7 +6308,7 @@ BEGIN_DATA
                             )
                         )
                     )
-                    self.log("Border width: {:d} pixels".format(patternconfig[3]))
+                    self.log(f"Border width: {patternconfig[3]:d} pixels")
                     if (
                         isinstance(self.madtpg, madvr.MadTPG_Net)
                         or madvr_use_virtual_display
@@ -6336,18 +6316,14 @@ BEGIN_DATA
                         dindex = args.index("-dmadvr")
                         args.remove("-dmadvr")
                         if madvr_use_virtual_display:
-                            args.insert(
-                                dindex, "-d{}".format(self.argyll_virtual_display)
-                            )
+                            args.insert(dindex, f"-d{self.argyll_virtual_display}")
                         else:
                             args.insert(0, "-P1,1,0.01")
                     else:
                         # Only if using native madTPG implementation!
                         if not get_arg("-P", args):
                             # Setup patch size to match pattern config
-                            args.insert(
-                                0, "-P0.5,0.5,{:f}".format(math.sqrt(patternconfig[0]))
-                            )
+                            args.insert(0, f"-P0.5,0.5,{math.sqrt(patternconfig[0]):f}")
                         if not patternconfig[1] and self.argyll_version >= [1, 7]:
                             # Setup black background if background level is zero.
                             # Only do this for Argyll >= 1.7 to prevent messing
@@ -6400,14 +6376,13 @@ BEGIN_DATA
                     waitfile.write("echo.\n")
                     waitfile.write("echo Current RGB %*\n")
                     waitfile.write(
-                        'set "PYTHONPATH={}"\n'.format(
-                            safe_str(os.pathsep.join(pythonpath)), enc
+                        'set "PYTHONPATH={}"\n'.format(  # noqa: UP032
+                            safe_str(os.pathsep.join(pythonpath), enc)
                         )
                     )
                     waitfile.write(
-                        '"{}" -S "{}" %*\n'.format(
-                            safe_str(python, enc), safe_str(scriptfilename, enc)
-                        )
+                        f'"{safe_str(python, enc)}" '
+                        f'-S "{safe_str(scriptfilename, enc)}" %*\n'
                     )
                 args[index] += waitfilename
             else:
@@ -6550,7 +6525,7 @@ BEGIN_DATA
                 if sys.platform == "win32":
                     context.write("@echo off\n")
                     context.write(
-                        ("PATH {};%PATH%\n".format(os.path.dirname(cmd))).encode(
+                        f"PATH {os.path.dirname(cmd)};%PATH%\n".encode(
                             enc, "safe_asciize"
                         )
                     )
@@ -6562,10 +6537,8 @@ BEGIN_DATA
                         cmdfiles.write("color 07\n")
                 else:
                     context.write(
-                        (
-                            "PATH={}:$PATH\n".format(os.path.dirname(cmd)).encode(
-                                enc, "safe_asciize"
-                            )
+                        f"PATH={os.path.dirname(cmd)}:$PATH\n".encode(
+                            enc, "safe_asciize"
                         )
                     )
                     if sys.platform == "darwin" and config.mac_create_app:
@@ -7356,7 +7329,7 @@ BEGIN_DATA
         if not clutres:
             clutres = len(profile.tags.A2B0.clut[0])
         if logfile:
-            logfile.write("cLUT grid res: {:d}\n".format(clutres))
+            logfile.write(f"cLUT grid res: {clutres:d}\n")
         vrange = range(clutres)
         step = 1.0 / (clutres - 1.0)
         idata = []
@@ -7370,8 +7343,8 @@ BEGIN_DATA
         numrows = len(odata)
         if numrows != clutres**3:
             raise ValueError(
-                "Number of cLUT entries ({}) exceeds cLUT res "
-                "maximum ({}^3 = {})".format(numrows, clutres, clutres**3)
+                f"Number of cLUT entries ({numrows}) exceeds cLUT res "
+                f"maximum ({clutres}^3 = {clutres**3})"
             )
         XYZbp = list(odata[0])
         XYZwp = list(odata[-1])
@@ -7383,7 +7356,7 @@ BEGIN_DATA
                     raise Info(lang.getstr("aborted"))
                 A2B0.clut.append([])
                 if logfile:
-                    logfile.write("\r{:0.0f}%".format(round(i / (numrows - 1.0) * 100)))
+                    logfile.write(f"\r{i / (numrows - 1.0):0.0%}")
             # Apply black point compensation
             XYZ = colormath.blend_blackpoint(X, Y, Z, XYZbp)
             XYZ = [v / XYZwp[1] for v in XYZ]
@@ -7416,7 +7389,7 @@ BEGIN_DATA
         if tableno is None:
             tableno = 1 if "A2B1" in profile.tags else 0
         if not clutres:
-            if "B2A{:d}".format(tableno) in profile.tags:
+            if f"B2A{tableno:d}" in profile.tags:
                 tablename = f"B2A{tableno:d}"
             else:
                 tablename = f"A2B{tableno:d}"
@@ -7760,18 +7733,16 @@ BEGIN_DATA
                     logfile.write(
                         "Increasing saturation of actual "
                         "primaries for PCS candidate to "
-                        "{:0.0f}%...\n".format(round(sat * 100))
+                        f"{sat:0.0%}...\n".format(round(sat * 100))
                     )
                 for i, channel in enumerate("rgb"):
                     # x, y, Y = result.tags[channel + "XYZ"].pcs.xyY
                     x, y, Y = xyYrgb[i]
                     if logfile:
-                        logfile.write(
-                            "{} xy {:.6f} {:.6f} -> ".format(channel.upper(), x, y)
-                        )
+                        logfile.write(f"{channel.upper()} xy {x:.6f} {y:.6f} -> ")
                     x, y, Y = colormath.xyYsaturation(x, y, Y, wx, wy, sat)
                     if logfile:
-                        logfile.write("{:.6f} {:.6f}\n".format(x, y))
+                        logfile.write(f"{x:.6f} {y:.6f}\n")
                     xyYrgb[i] = x, y, Y
                 (rx, ry, rY), (gx, gy, gY), (bx, by, bY) = xyYrgb
                 mtx = colormath.rgb_to_xyz_matrix(rx, ry, gx, gy, bx, by, XYZwp)
@@ -7986,10 +7957,8 @@ BEGIN_DATA
                                 # clipped
                                 if logfile:
                                     logfile.write(
-                                        "Skipping {} because it does "
-                                        "not encompass Rec. 709 {}\n".format(
-                                            rgb_space[-1], color
-                                        )
+                                        f"Skipping {rgb_space[-1]} because it does "
+                                        f"not encompass Rec. 709 {color}\n"
                                     )
                                 skip = True
                                 break
@@ -8011,11 +7980,9 @@ BEGIN_DATA
                 )
                 if logfile:
                     logfile.write(
-                        "{} fit: {:.2f} (area: {:.2f}%)\n".format(
-                            rgb_space[-1],
-                            round(1.0 / max(extremes), 2),
-                            area1 / area2 * 100,
-                        )
+                        f"{rgb_space[-1]} "
+                        f"fit: {round(1.0 / max(extremes), 2):.2f} "
+                        f"(area: {area1 / area2:.2%})\n"
                     )
                 pcs_candidates.append((area1 / area2, 1.0 / max(extremes), rgb_space))
                 # Check if tested RGB space contains actual primaries
@@ -8084,7 +8051,7 @@ BEGIN_DATA
                     if round(fit, 2) >= 1:
                         break
                 if logfile:
-                    logfile.write("Using primaries: {}\n".format(rgb_space[-1]))
+                    logfile.write(f"Using primaries: {rgb_space[-1]}\n")
                 for channel, components in rgb:
                     XYZrgb.append(colormath.RGB2XYZ(*components, rgb_space=rgb_space))
                 pcs_candidate = rgb_space[-1]
@@ -8103,11 +8070,8 @@ BEGIN_DATA
             Xb, Yb, Zb = XYZrgb[2]
             if logfile:
                 logfile.write(
-                    "R+G+B XYZ: {:.4f} {:.4f} {:.4f}\n".format(
-                        Xr + Xg + Xb,
-                        Yr + Yg + Yb,
-                        Zr + Zg + Zb,
-                    )
+                    "R+G+B XYZ: "
+                    f"{Xr + Xg + Xb:.4f} {Yr + Yg + Yb:.4f} {Zr + Zg + Zb:.4f}\n"
                 )
             m1 = colormath.Matrix3x3(
                 ((Xr, Xg, Xb), (Yr, Yg, Yb), (Zr, Zg, Zb))
@@ -8116,7 +8080,7 @@ BEGIN_DATA
             Sr, Sg, Sb = m1 * XYZwp
             if logfile:
                 logfile.write(
-                    "Correction factors: {:.4f} {:.4f} {:.4f}\n".format(Sr, Sg, Sb)
+                    f"Correction factors: {Sr:.4f} {Sg:.4f} {Sb:.4f}\n"
                 )
             m2 = colormath.Matrix3x3(
                 (
@@ -8130,15 +8094,15 @@ BEGIN_DATA
 
             for m, matrix in enumerate(matrices):
                 if logfile:
-                    logfile.write("Matrix {:d}:\n".format(m + 1))
+                    logfile.write(f"Matrix {m + 1:d}:\n")
                     for row in matrix:
-                        logfile.write("{}\n".format(repr(row)))
+                        logfile.write(f"{repr(row)}\n")
 
             itable.matrix = m2 * m3
             if logfile:
                 logfile.write("Final matrix:\n")
                 for row in itable.matrix:
-                    logfile.write("{}\n".format(repr(row)))
+                    logfile.write(f"{repr(row)}\n")
 
             if logfile:
                 logfile.write("Applying matrix to input curve XYZ values...\n")
@@ -8197,7 +8161,7 @@ BEGIN_DATA
             for i in range(len(itable.input)):
                 itable.input[i].append(min(v[i] * 65535, 65535))
             if logfile and j % math.floor(maxval / 100.0) == 0:
-                logfile.write("\r{:0.0f}%".format(round(j / maxval * 100)))
+                logfile.write(f"\r{j / maxval:0.0%}")
         if logfile:
             logfile.write("\n")
         if False and method and not bpc:
@@ -8213,7 +8177,7 @@ BEGIN_DATA
                     v = 0
                     if logfile:
                         logfile.write(
-                            "#{:d} {:d} -> {:d}\n".format(j, itable.input[i][j], v)
+                            f"#{j:d} {itable.input[i][j]:d} -> {v:d}\n"
                         )
                     itable.input[i][j] = v
 
@@ -8244,9 +8208,7 @@ BEGIN_DATA
 
             if logfile:
                 logfile.write(
-                    "Generating {}{:d} table lookup input values...\n".format(
-                        source, tableno
-                    )
+                    f"Generating {source}{tableno:d} table lookup input values...\n"
                 )
                 logfile.write(f"cLUT grid res: {clutres:d}\n")
                 logfile.write(
@@ -8389,11 +8351,7 @@ BEGIN_DATA
                     for B in range(clutres):
                         itable.clut[-1].append([v * step * 65535 for v in (R, G, B)])
                     if logfile:
-                        logfile.write(
-                            "\r{:0.0f}%".format(
-                                round((R * G * B) / ((clutres - 1.0) ** 3) * 100)
-                            )
-                        )
+                        logfile.write(f"\r{(R * G * B) / ((clutres - 1.0) ** 3):0.0%}")
         else:
             for i, RGB in enumerate(odata):
                 if i % clutres == 0:
@@ -8401,9 +8359,7 @@ BEGIN_DATA
                         raise Info(lang.getstr("aborted"))
                     itable.clut.append([])
                     if logfile:
-                        logfile.write(
-                            "\r{:0.0f}%".format(round(i / (numrows - 1.0) * 100))
-                        )
+                        logfile.write(f"\r{i / (numrows - 1.0):0.0%}")
                 # Set RGB black and white explicitly
                 if pcs == "x":
                     if i == 0:
@@ -9091,9 +9047,8 @@ usage: spotread [-options] [logfile]
                 methodname = "load_3dlut_file"
                 lut3d_section = "calibration"
             print(
-                "Installing madVR 3D LUT for {} slot {:d} ({})...".format(
-                    lut3d_section, slot, rgb_space_name
-                )
+                "Installing madVR 3D LUT for "
+                f"{lut3d_section} slot {slot:d} ({rgb_space_name})..."
             )
             try:
                 # Connect & load 3D LUT
@@ -9720,9 +9675,9 @@ usage: spotread [-options] [logfile]
                                 )
                             except Exception as exception:
                                 self.log(
-                                    "util_win.enable_per_user_profiles({}, devicekey={}): {}".format(
-                                        per_user, repr(device.DeviceKey), exception
-                                    )
+                                    f"util_win.enable_per_user_profiles({per_user}, "
+                                    f"devicekey={repr(device.DeviceKey)}): "
+                                    f"{exception}"
                                 )
                 if "-Sl" in args and (
                     sys.platform != "darwin"
@@ -10044,9 +9999,7 @@ usage: spotread [-options] [logfile]
                 except Exception as exception:
                     self.log(
                         "Warning - could not remove old "
-                        "v0.1b calibration loader '{}': {}".format(
-                            loader_v01b, exception
-                        )
+                        f"v0.1b calibration loader '{loader_v01b}': {exception}"
                     )
             loader_v02b = os.path.join(autostart_home, f"{name}.lnk")
             if os.path.exists(loader_v02b):
@@ -10056,9 +10009,7 @@ usage: spotread [-options] [logfile]
                 except Exception as exception:
                     self.log(
                         "Warning - could not remove old "
-                        "v0.2b calibration loader '{}': {}".format(
-                            loader_v02b, exception
-                        )
+                        f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
             loader_v0558 = os.path.join(autostart_home, name + ".lnk")
             if os.path.exists(loader_v0558):
@@ -10068,9 +10019,7 @@ usage: spotread [-options] [logfile]
                 except Exception as exception:
                     self.log(
                         "Warning - could not remove old "
-                        "v0.2b calibration loader '{}': {}".format(
-                            loader_v02b, exception
-                        )
+                        f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
         if autostart:
             loader_v0558 = os.path.join(autostart, f"{name}.lnk")
@@ -10081,9 +10030,7 @@ usage: spotread [-options] [logfile]
                 except Exception as exception:
                     self.log(
                         "Warning - could not remove old "
-                        "v0.2b calibration loader '{}': {}".format(
-                            loader_v02b, exception
-                        )
+                        f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
         # Create unified loader
         name = f"{appname} Profile Loader"
@@ -10525,9 +10472,7 @@ usage: spotread [-options] [logfile]
                         if False:  # getcfg("profile.black_point_compensation"):
                             logmsg = "Applying black point compensation"
                         else:
-                            logmsg = (
-                                f"Applying {bpcorr * 100:0.0f}% black point correction"
-                            )
+                            logmsg = (f"Applying {bpcorr:0.0%} black point correction")
                         self.log(f"{logmsg} to TI3")
                         ti3[0].apply_bpc(XYZbp)
                         ti3.write()
@@ -11469,11 +11414,7 @@ usage: spotread [-options] [logfile]
                 dE = colormath.delta(L, 0, 0, L, a, b, "00")["E"]
                 dEs.append(dE)
                 if debug or verbose > 1:
-                    self.log(
-                        "L* {:5.2f} a* {:5.2f} b* {:5.2f} dE*00 {:4.2f}".format(
-                            L, a, b, dE
-                        )
-                    )
+                    self.log(f"L* {L:5.2f} a* {a:5.2f} b* {b:5.2f} dE*00 {dE:4.2f}")
         dE_avg = sum(dEs) / len(dEs)
         dE_max = max(dEs)
         self.log("R=G=B (>= 1% luminance) dE*00 avg", dE_avg, "peak", dE_max)
@@ -11666,10 +11607,9 @@ usage: spotread [-options] [logfile]
             if actual > clut_actual:
                 # Did we get any additional actual measured cLUT points?
                 self.log(
-                    "cLUT resolution {:d}x{:d}x{:d}: Got {:d} additional values from "
-                    "actual measurements".format(
-                        clutres, clutres, clutres, actual - clut_actual
-                    )
+                    f"cLUT resolution {clutres:d}x{clutres:d}x{clutres:d}: Got "
+                    f"{actual - clut_actual:d} additional values from "
+                    "actual measurements"
                 )
 
             profile.tags.A2B0 = create_RGB_A2B_XYZ(curves, clut, self.log)
@@ -11847,9 +11787,8 @@ usage: spotread [-options] [logfile]
                     for i, channel in enumerate("rgb"):
                         tagname = channel + tagcls
                         self.log(
-                            "Adding {} from interpolation to {}".format(
-                                tagname, profile.getDescription()
-                            )
+                            f"Adding {tagname} from interpolation "
+                            f"to {profile.getDescription()}"
                         )
                         profile.tags[tagname] = trc = CurveType(profile=profile)
                         # Slope limit for 16-bit encoding
@@ -11934,9 +11873,8 @@ usage: spotread [-options] [logfile]
                     tag = matrix_profile.tags.get(tagname)
                     if tag:
                         self.log(
-                            "Adding {} from matrix profile to {}".format(
-                                tagname, profile.getDescription()
-                            )
+                            f"Adding {tagname} from matrix profile "
+                            f"to {profile.getDescription()}"
                         )
                         profile.tags[tagname] = tag
                     else:
@@ -13162,14 +13100,9 @@ usage: spotread [-options] [logfile]
             # 3D LUT content color space (currently only used for HDR)
             for color in ("white", "red", "green", "blue"):
                 for coord in "xy":
-                    keyword = "3DLUT_CONTENT_COLORSPACE_{}_{}".format(
-                        color.upper(),
-                        coord.upper(),
-                    )
+                    keyword = f"3DLUT_CONTENT_COLORSPACE_{color.upper()}_{coord.upper()}"
                     if getcfg("3dlut.create"):
-                        value = getcfg(
-                            "3dlut.content.colorspace.{}.{}".format(color, coord)
-                        )
+                        value = getcfg(f"3dlut.content.colorspace.{color}.{coord}")
                         ti3[0].add_keyword(keyword, safe_str(value, "utf-8"))
                     elif keyword in ti3[0]:
                         ti3[0].remove_keyword(keyword)
@@ -13308,7 +13241,7 @@ usage: spotread [-options] [logfile]
                     # the adapting luminance. To correct for this,
                     # scale so that dispcal gets the correct value.
                     ambient = getcfg("calibration.ambient_viewcond_adjust.lux")
-                    args.append("-a{}".format(ambient * 5))
+                    args.append(f"-a{ambient * 5}")
                 if not getcfg("calibration.black_point_correction.auto"):
                     args.append(
                         "-k{}".format(getcfg("calibration.black_point_correction"))
@@ -13788,7 +13721,7 @@ usage: spotread [-options] [logfile]
             args.append("-b{}".format(getcfg("tc_multi_bcc_steps")))
         tc_algo = getcfg("tc_algo")
         if getcfg("tc_fullspread_patches") > 0:
-            args.append("-f{}".format(config.get_total_patches()))
+            args.append(f"-f{config.get_total_patches()}")
             if tc_algo:
                 args.append("-" + tc_algo)
             if tc_algo in ("i", "I"):
@@ -14231,7 +14164,7 @@ usage: spotread [-options] [logfile]
         """Safely send a keystroke to the current subprocess."""
         for i in range(0, retry):
             logbytes = "***" if obfuscate else bytes_
-            self.logger.info("Sending key(s) {} ({:d})".format(logbytes, i + 1))
+            self.logger.info(f"Sending key(s) {logbytes} ({i + 1:d})")
             try:
                 if sys.platform == "win32":
                     # directly send the bytes_ without encoding to anything
@@ -14275,7 +14208,7 @@ usage: spotread [-options] [logfile]
         cgats = CGATS(outfilename)
         data = cgats.queryv1("DATA")
         if data and len(data) != 256:
-            print("VideoLUT has {:d} entries, interpolating to 256".format(len(data)))
+            print(f"VideoLUT has {len(data):d} entries, interpolating to 256")
             rgb = {"I": [], "R": [], "G": [], "B": []}
             for entry in data.values():
                 for column in ("I", "R", "G", "B"):
@@ -14749,7 +14682,7 @@ usage: spotread [-options] [logfile]
             mods.append(order)
         if mods:
             outname += " {}".format(
-                "".join(["[{}]".format(mod.upper()) for mod in mods])
+                "".join([f"[{mod.upper()}]" for mod in mods])
             )
         gamut_volume = None
         gamut_coverage = {}
@@ -14959,10 +14892,10 @@ usage: spotread [-options] [logfile]
                 # 'path/to/2.gam' volume = xxx.x cubic units, intersect = xx.xx%
                 for line in worker.output:
                     match = re.search(
-                        r"[\/]{}.gam'\s+volume\s*=\s*"
+                        rf"[\/]{re.escape(src)}.gam'\s+volume\s*=\s*"
                         r"\d+(?:\.\d+)?\s+cubic\s+units,?"
                         r"\s+intersect\s*=\s*"
-                        r"(\d+(?:\.\d+)?)".format(re.escape(src)),
+                        r"(\d+(?:\.\d+)?)",
                         line,
                     )
                     if match:
@@ -15197,9 +15130,7 @@ usage: spotread [-options] [logfile]
                 # Found
                 XYZwscaled = XYZscaled[i]
                 logfiles.write(
-                    "Solution found at index {:d} (step size {:f})\n".format(
-                        i, 1 / 1999.0
-                    )
+                    f"Solution found at index {i:d} (step size {1 / 1999.0:f})\n"
                 )
                 logfiles.write(
                     "RGB white {:6.4f} {:6.4f} {:6.4f}\n".format(*RGBclip[:3])
@@ -15338,7 +15269,7 @@ BEGIN_DATA
                 wp_out=RGBscaled[-1],
                 weight=True,
             )
-            cal += "{:f} {:f} {:f} {:f}\n".format(i / 255.0, R, G, B)
+            cal += f"{i / 255.0:f} {R:f} {G:f} {B:f}\n"
         cal += "END_DATA"
         cal = CGATS(cal)
         cal.filename = outpathname + ".cal"
@@ -15656,16 +15587,14 @@ BEGIN_DATA
                     while white_added_count < white_patches:
                         data.insert(0, white)
                         white_added_count += 1
-                print("Added {:d} white patch(es)".format(white_added_count))
+                print(f"Added {white_added_count:d} white patch(es)")
 
         idata = []
         for primaries in list(device_data.values()):
             idata.append(list(primaries.values()))
 
         if debug:
-            print(
-                "ti1_lookup_to_ti3 {} -> {} idata".format(profile.colorSpace, color_rep)
-            )
+            print(f"ti1_lookup_to_ti3 {profile.colorSpace} -> {color_rep} idata")
             for v in idata:
                 print(" ".join(("{:3.4f}",) * len(v)).format(*v))
 
@@ -16345,14 +16274,9 @@ BEGIN_DATA
                                 or time() >= update_ts + frametime
                             ):
                                 self.lastmsg.write(
-                                    "\r{:d}% ({:.1f} / {:.1f} {}, {:.2f} {}/s)".format(
-                                        percent,
-                                        bytes_so_far / unit_size,
-                                        total_size / unit_size,
-                                        unit,
-                                        round(bps / bps_unit_size, 2),
-                                        bps_unit,
-                                    )
+                                    f"\r{percent:d}% ({bytes_so_far / unit_size:.1f} "
+                                    f"/ {total_size / unit_size:.1f} {unit}, "
+                                    f"{round(bps / bps_unit_size, 2):.2f} {bps_unit}/s)"
                                 )
                                 prev_percent = percent
                                 update_ts = time()
@@ -16364,12 +16288,9 @@ BEGIN_DATA
                                 unit = "KiB"
                                 unit_size = 1024.0
                             self.lastmsg.write(
-                                "\r{:.1f} {} ({:.2f} {}/s)".format(
-                                    bytes_so_far / unit_size,
-                                    unit,
-                                    round(bps / bps_unit_size, 2),
-                                    bps_unit,
-                                )
+                                f"\r{bytes_so_far / unit_size:.1f} {unit} "
+                                f"({round(bps / bps_unit_size, 2):.2f} "
+                                f"{bps_unit}/s)"
                             )
                             update_ts = time()
 
@@ -16379,9 +16300,9 @@ BEGIN_DATA
                         ) < int(chunk_size * 0.75):
                             if debug or test or verbose > 1:
                                 print(
-                                    "Download buffer size changed from {:0.0f} KB to {:0.0f} KB".format(
-                                        chunk_size / 1024.0, bps / fps / 1024
-                                    )
+                                    "Download buffer size changed from "
+                                    f"{chunk_size / 1024.0:0.0f} KB to "
+                                    f"{bps / fps / 1024:0.0f} KB"
                                 )
                             chunk_size = int(bps / fps)
 

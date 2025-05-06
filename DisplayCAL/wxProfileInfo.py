@@ -2069,7 +2069,7 @@ class ProfileInfoFrame(LUTFrame):
                 mods.append(order)
             if mods:
                 filename = "{} {}".format(
-                    filename, "".join(["[{}]".format(mod.upper()) for mod in mods])
+                    filename, "".join([f"[{mod.upper()}]" for mod in mods])
                 )
             if comparison_profile_path:
                 filename += (

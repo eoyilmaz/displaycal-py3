@@ -77,7 +77,7 @@ class Cube3D:
         return self._len
 
     def __repr__(self):
-        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(
+        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(  # noqa: UP032
             self.__class__.__name__,
             self._size,
             self._start,

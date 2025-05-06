@@ -251,27 +251,22 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             thread = threading.Thread(
                 target=self._cast_receive_handler,
                 name=(
-                    "PrismaPatternGeneratorClient.BroadcastHandler[{}:{}]".format(
-                        self.broadcast_ip, port
-                    )
+                    "PrismaPatternGeneratorClient.BroadcastHandler["
+                    f"{self.broadcast_ip}:{port}]"
                 ),
                 args=(sock, self.broadcast_ip, port),
             )
             self._threads.append(thread)
             thread.start()
         except error as exception:
-            print(
-                "PrismaPatternGeneratorClient: UDP Port {:d}: {:s}".format(
-                    port, exception
-                )
-            )
+            print(f"PrismaPatternGeneratorClient: UDP Port {port:d}: {exception:s}")
 
     def _cast_receive_handler(self, sock, host, port):
         cast = "broadcast"
         if self.debug:
             print(
                 "PrismaPatternGeneratorClient: Entering receiver thread for "
-                "{:s} port {:d}".format(cast, port)
+                f"{cast:s} port {port:d}"
             )
         self._cast_sockets[(host, port)] = sock
         while getattr(self, "listening", False):
@@ -280,7 +275,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             except timeout as exception:
                 print(
                     "PrismaPatternGeneratorClient: In receiver thread for "
-                    "{:s} port {:d}:".format(cast, port),
+                    f"{cast:s} port {port:d}:",
                     exception,
                 )
                 continue
@@ -291,7 +286,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                 if exception.errno != errno.ECONNRESET or self.debug:
                     print(
                         "PrismaPatternGeneratorClient: In receiver thread for "
-                        "{:s} port {:d}:".format(cast, port),
+                        f"{cast:s} port {port:d}:",
                         exception,
                     )
                 break
@@ -300,7 +295,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                     if self.debug:
                         print(
                             "PrismaPatternGeneratorClient: Received "
-                            "{} from {}:{}: {}".format(cast, addr[0], addr[1], data)
+                            f"{cast} from {addr[0]}:{addr[1]}: {data}"
                         )
                     if data.startswith(self.prod_oem):
                         name = data[8:32].rstrip(b"\0")
@@ -313,8 +308,8 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         _shutdown(sock, (host, port))
         if self.debug:
             print(
-                "PrismaPatternGeneratorClient: Exiting {:s} receiver thread "
-                "for port {:d}".format(cast, port)
+                f"PrismaPatternGeneratorClient: Exiting {cast:s} "
+                f"receiver thread for port {port:d}"
             )
 
     def announce(self):
@@ -328,7 +323,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         if self.debug:
             print(
                 "PrismaPatternGeneratorClient: Sending broadcast from "
-                "{}:{} to port {:d}".format(addr[0], addr[1], port)
+                f"{addr[0]}:{addr[1]} to port {port:d}"
             )
         sock.sendall(self.prod_oem)
         sock.close()
@@ -552,9 +547,8 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
 
     def handle_error(self, request, client_address):
         print(
-            "Exception happened during processing of request from {}:{}:".format(
-                client_address, sys.exc_info()[1]
-            )
+            "Exception happened during processing of request from "
+            f"{client_address}:{sys.exc_info()[1]}:"
         )
 
     @property
@@ -587,7 +581,7 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
         pattern = [
             "#{:02d}{:02d}{:02d}".format(*tuple(round(v * 255) for v in rgb)),
             "#{:02d}{:02d}{:02d}".format(*tuple(round(v * 255) for v in bgrgb)),
-            "{:.4f}|{:.4f}|{:.4f}|{:.4f}".format(x, y, w, h),
+            f"{x:.4f}|{y:.4f}|{w:.4f}|{h:.4f}",
         ]
         self.pattern = "|".join(pattern)
 

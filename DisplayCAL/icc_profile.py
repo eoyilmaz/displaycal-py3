@@ -2871,11 +2871,7 @@ def uInt32Number(binaryString):
 
 
 def uInt32Number_tohex(num):
-    try:
-        return struct.pack(">I", int(round(num)))
-    except struct.error as e:
-        print("num: {}".format(num))
-        raise e
+    return struct.pack(">I", int(round(num)))
 
 
 def uInt64Number(binaryString):
@@ -3039,15 +3035,10 @@ class ICCProfileTag:
         elif isinstance(self, list):
             return list.__repr__(self)
         else:
+            cls = self.__class__
             if not self:
-                return "{}.{}()".format(
-                    self.__class__.__module__, self.__class__.__name__
-                )
-            return "{}.{}({})".format(
-                self.__class__.__module__,
-                self.__class__.__name__,
-                repr(self.tagData),
-            )
+                return f"{cls.__module__}.{cls.__name__}()"
+            return f"{cls.__module__}.{cls.__name__}({repr(self.tagData)})"
 
 
 class Text(ICCProfileTag, bytes):
@@ -4059,7 +4050,7 @@ class CurveType(ICCProfileTag, list):
             ("L*", -3.0, outoffset),
             ("sRGB", -2.4, outoffset),
             (
-                "Gamma {:.2f} {:.0%}".format(gamma, outoffset),
+                f"Gamma {gamma:.2f} {outoffset:.0%}",
                 gamma,
                 outoffset,
             ),
@@ -4068,7 +4059,7 @@ class CurveType(ICCProfileTag, list):
             for i in range(100):
                 tfs.append(
                     (
-                        "Gamma {:.2f} {:d}%".format(gamma, i),
+                        f"Gamma {gamma:.2f} {i:d}%",
                         gamma,
                         i / 100.0,
                     )
@@ -5658,7 +5649,7 @@ class XYZNumber(AODict):
         XYZ = []
         for key in self:
             value = self[key]
-            XYZ.append("({}, {})".format(repr(key), value))
+            XYZ.append(f"({repr(key)}, {value})")
         return "{}.{}([{}])".format(
             self.__class__.__module__,
             self.__class__.__name__,
@@ -6010,9 +6001,8 @@ class NamedColor2Type(ICCProfileTag, AODict):
 
         if not set(pcsCoordinates.keys()).issuperset(set(keys)):
             raise ICCProfileInvalidError(
-                "Can't add namedColor2 without all 3 PCS coordinates: '{}'".format(
-                    set(keys) - set(pcsCoordinates.keys())
-                )
+                "Can't add namedColor2 without all 3 PCS coordinates: "  # noqa: UP032
+                "'{}'".format(set(keys) - set(pcsCoordinates.keys()))
             )
 
         if len(deviceCoordinates) != self.deviceCoordCount:
@@ -7387,13 +7377,13 @@ class ICCProfile:
 
     def get_info(self):
         info = DictList()
-        info["Size"] = "{:d} Bytes ({:.2f} KiB)".format(int(self.size), self.size / 1024.0)
+        info["Size"] = f"{int(self.size):d} Bytes ({self.size / 1024.0:.2f} KiB)"
         info["Preferred CMM"] = hexrepr(self.preferredCMM, CMMS)
         info["ICC version"] = f"{self.version}"
         info["Profile class"] = PROFILE_CLASS.get(self.profileClass, self.profileClass)
         info["Color model"] = self.colorSpace.decode()
         info["Profile connection space (PCS)"] = self.connectionColorSpace.decode()
-        info["Created"] = "{:%Y-%m-%d %H:%M:%S}".format(self.dateTime)
+        info["Created"] = "{:%Y-%m-%d %H:%M:%S}".format(self.dateTime)  # noqa: UP032
         info["Platform"] = PLATFORM.get(self.platform, hexrepr(self.platform))
         info["Is embedded"] = {True: "Yes"}.get(self.embedded, "No")
         info["Can be used independently"] = {True: "Yes"}.get(self.independent, "No")
@@ -7411,7 +7401,7 @@ class ICCProfile:
                 "(xy {},".format(
                     " ".join(f"{v:6.4f}" for v in self.illuminant.xyY[:2])
                 ),
-                "CCT {:d}K)".format(
+                "CCT {:d}K)".format(  # noqa: UP032
                     int(colormath.XYZ2CCT(*list(self.illuminant.values()))) or 0
                 ),
             ]
@@ -7522,7 +7512,7 @@ class ICCProfile:
                         value = f"{transfer_function[0][0]}"
                     else:
                         if transfer_function[1] >= 0.95:
-                            value = "≈ {} (Δ {:.2%})".format(
+                            value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
                                 transfer_function[0][0],
                                 1 - transfer_function[1],
                             )
@@ -7546,15 +7536,15 @@ class ICCProfile:
                         value = f"{transfer_function[0][0]}"
                     else:
                         if transfer_function[1] >= 0.95:
-                            value = "≈ {} (Δ {:.2%})".format(
+                            value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
                                 transfer_function[0][0],
                                 1 - transfer_function[1],
                             )
                         else:
                             value = "Unknown"
                     info["    Transfer function"] = value
-                    info["    Minimum Y"] = "{:6.4f}".format(tag[0] / 65535.0 * 100)
-                    info["    Maximum Y"] = "{:6.2f}".format(tag[-1] / 65535.0 * 100)
+                    info["    Minimum Y"] = f"{tag[0] / 65535.0 * 100:6.4f}"
+                    info["    Maximum Y"] = f"{tag[-1] / 65535.0 * 100:6.2f}"
             elif isinstance(tag, DictType):
                 name = "Metadata" if sig == "meta" else "Generic name-value data"
                 info[name] = ""
@@ -7601,7 +7591,7 @@ class ICCProfile:
                 )
                 info["    Color Look Up Table"] = ""
                 info["        Grid Steps"] = f"{int(tag.clut_grid_steps):d}"
-                info["        Entries"] = "{:d}".format(
+                info["        Entries"] = "{:d}".format(  # noqa: UP032
                     int(tag.clut_grid_steps**tag.input_channels_count)
                 )
                 info["    Output Table"] = ""
@@ -7856,10 +7846,7 @@ class ICCProfile:
                         ]
                     )
             elif isinstance(tag, ICCProfileTag):
-                info[name] = "'{}' [{:d} Bytes]".format(
-                    tag.tagData[:4].decode(),
-                    len(tag.tagData),
-                )
+                info[name] = f"'{tag.tagData[:4].decode()}' [{len(tag.tagData):d} Bytes]"
         return info
 
     def get_rgb_space(self, relation="ir", gamma=None):

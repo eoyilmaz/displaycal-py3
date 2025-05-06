@@ -202,4 +202,4 @@ if __name__ == "__main__":
         property = display.get_output_property(
             int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
         )
-        print("{} for display {}: {}".format(sys.argv[2], sys.argv[1], repr(property)))
+        print(f"{sys.argv[2]} for display {sys.argv[1]}: {repr(property)}")

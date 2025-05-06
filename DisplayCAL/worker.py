@@ -16789,7 +16789,7 @@ BEGIN_DATA
             return
         # NEVER - Use line buffer
         self.buffer.append(txt)
-        self.buffer = [line for line in StringIO("".join(self.buffer))]
+        self.buffer = list(StringIO("".join(self.buffer)))
         for line in self.buffer:
             if not (
                 line.endswith("\n")

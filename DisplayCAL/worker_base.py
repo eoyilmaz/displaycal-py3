@@ -343,7 +343,7 @@ class WorkerBase:
     def log(self, *args, **kwargs):
         """Log to global logfile and session logfile (if any)"""
         # if we have any exceptions print the traceback, so we bust'em.
-        if any([isinstance(arg, BaseException) for arg in args]):
+        if any(isinstance(arg, BaseException) for arg in args):
             traceback.print_exc()
         msg = " ".join(safe_basestring(arg) for arg in args)
         fn = kwargs.get("fn", print)

@@ -2098,7 +2098,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     # only if it can't be parsed
     except Exception:
         print(
-            "Warning - could not parse configuration files:\n%s".format(
+            "Warning - could not parse configuration files:\n{}".format(
                 "\n".join(cfgfiles)
             )
         )
@@ -2391,7 +2391,7 @@ def writecfg(
             if getcfg("argyll.dir"):
                 cfgfile.write(
                     (
-                        "%s%s".format(
+                        "{}{}".format(
                             os.linesep.join(
                                 [
                                     "[Default]",

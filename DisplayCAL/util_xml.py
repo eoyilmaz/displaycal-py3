@@ -63,7 +63,7 @@ class ETreeDict(dict):
         super(ETreeDict, self).__init__()
         children = len(etree)
         if etree.attrib or etree.text or children:
-            self[etree.tag] = dict(("@" + k, v) for k, v in etree.attrib.items())
+            self[etree.tag] = {f"@{k}": v for k, v in etree.attrib.items()}
             if etree.text:
                 text = etree.text.strip()
                 if etree.attrib or children:

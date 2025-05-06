@@ -161,7 +161,7 @@ class DisplaySide:
     valid_names = ("bottom", "left", "right", "top")
 
     def __init__(self, bottom, left, top, right):
-        if not all([isinstance(x, bool) for x in [bottom, left, top, right]]):
+        if not all(isinstance(x, bool) for x in [bottom, left, top, right]):
             raise TypeError("All args must be bools")
         self.bottom = bottom
         self.left = left

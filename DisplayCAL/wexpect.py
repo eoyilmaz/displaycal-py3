@@ -362,7 +362,7 @@ def spawn(
         if isinstance(cwd, bytes):
             cwd = cwd.decode("utf-8")
         log(f"Working directory: {cwd}")
-    log("Spawning {}".format(join_args([command] + args)))
+    log(f"Spawning {join_args([command] + args)}")
     if sys.platform == "win32":
         return spawn_windows(
             command,
@@ -1794,8 +1794,8 @@ class spawn_windows(spawn_unix):
         # we need to quote them
         for i, arg in enumerate(args):
             if " " in arg:
-                log("Quoting argument {}: {}".format(i, arg))
-                args[i] = '"{}"'.format(arg)
+                log(f"Quoting argument {i}: {arg}")
+                args[i] = f'"{arg}"'
 
         # allow dummy instances for subclasses that may not use command or args.
         if command is None:
@@ -2199,8 +2199,8 @@ class Wtty:
                     if hasattr(sys, "frozen")
                     else ""
                 ),
-                ("{}".format(repr(spath))).replace('"', r"\""),
-                ("{}".format(repr(args))).replace('"', r"\""),
+                (f"{repr(spath)}").replace('"', r"\""),
+                (f"{repr(args)}").replace('"', r"\""),
                 pid,
                 tid,
                 self.codepage,

@@ -182,11 +182,7 @@ if __name__ == "__main__":
     lang.init()
     if not sys.argv[1:]:
         print("Update existing report(s) with current template files.")
-        print(
-            "Usage: {} report1.html [report2.html...]".format(
-                os.path.basename(sys.argv[0])
-            )
-        )
+        print(f"Usage: {os.path.basename(sys.argv[0])} report1.html [report2.html...]")
     else:
         for arg in sys.argv[1:]:
             try:

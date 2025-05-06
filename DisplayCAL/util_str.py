@@ -345,7 +345,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
     """
     if not isinstance(unistr, (str, bytes)):
         raise TypeError(
-            "unistr should be a str or bytes, not {}".format(unistr.__class__.__name__)
+            f"unistr should be a str or bytes, not {unistr.__class__.__name__}"
         )
     # Turn characters that are invalid in the filesystem encoding into ASCII
     # substitution character '?'

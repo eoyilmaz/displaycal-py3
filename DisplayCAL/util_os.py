@@ -47,7 +47,7 @@ else:
     import warnings
 
     warnings.warn(
-        "Module {} is being reloaded. This is NOT recommended.".format(__name__),
+        f"Module {__name__} is being reloaded. This is NOT recommended.",
         RuntimeWarning,
         stacklevel=2,
     )

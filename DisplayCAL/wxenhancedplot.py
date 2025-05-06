@@ -191,7 +191,7 @@ class DisplaySide:
             err_str = "attribute must be one of {}"
             raise NameError(err_str.format(self.valid_names))
         if not isinstance(value, bool):
-            raise TypeError("'{}' must be a boolean".format(name))
+            raise TypeError(f"'{name}' must be a boolean")
         self.__dict__[name] = value
 
     def __len__(self):
@@ -271,7 +271,7 @@ class TempStyle:
 
     def __init__(self, which="both", dc=None):
         if which not in self._valid_types:
-            raise ValueError("`which` must be one of {}".format(self._valid_types))
+            raise ValueError(f"`which` must be one of {self._valid_types}")
         self.which = which
         self.dc = dc
         self.prevPen = None

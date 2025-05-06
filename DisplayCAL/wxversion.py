@@ -433,10 +433,7 @@ class _wxPackageInfo:
             return True
         # otherwise, if we have any option not present in other, then
         # the match fails.
-        for opt in self.options:
-            if opt not in other.options:
-                return False
-        return True
+        return all(opt in other.options for opt in self.options)
 
     def __lt__(self, other):
         return self.version < other.version or (

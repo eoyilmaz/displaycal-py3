@@ -271,7 +271,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             if (
                 style & INB_FIT_BUTTON
                 and not ((style & INB_LEFT) or (style & INB_RIGHT))
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
                 rectWidth = (
@@ -365,7 +365,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             # Draw the text
             if (
                 not style & INB_SHOW_ONLY_IMAGES
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
             ):
                 dc.SetFont(normalFont)
 

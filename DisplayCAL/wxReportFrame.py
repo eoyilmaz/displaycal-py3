@@ -366,7 +366,7 @@ class ReportFrame(BaseFrame):
                     fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
-                    elif "RGB" in values and not ext.lower() == ".cie":
+                    elif "RGB" in values and ext.lower() != ".cie":
                         index = values.index("RGB")
                     elif "CMYK" in values:
                         index = values.index("CMYK")

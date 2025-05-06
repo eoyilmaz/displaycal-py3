@@ -124,10 +124,10 @@ class Tag:
                 with open(cachefilename, "rb") as cachefile:
                     body = cachefile.read()
             if not body.strip():
-                for url in (url, url.replace("https://", "http://")):
-                    _safe_print("Requesting:", url)
+                for url_ in (url, url.replace("https://", "http://")):
+                    _safe_print("Requesting:", url_)
                     try:
-                        response = urllib.request.urlopen(url)
+                        response = urllib.request.urlopen(url_)
                     except (
                         socket.error,
                         urllib.error.URLError,

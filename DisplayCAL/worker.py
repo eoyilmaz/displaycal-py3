@@ -977,7 +977,7 @@ def _create_optimized_shaper_curves(
         # standard transfer function.
         tf = trc.get_transfer_function(True, (0, 1), black_Y, outoffset)
         label = ["Transfer function", channel.upper()]
-        label.append("≈ {} (Δ {:.2f}%)".format(tf[0][0], 100 - tf[1] * 100))
+        label.append(f"≈ {tf[0][0]} (Δ {1 - tf[1]:.2%})")
         if logfn:
             logfn(" ".join(label))
         gamma = tf[0][1]
@@ -985,7 +985,7 @@ def _create_optimized_shaper_curves(
             # Calculate effective gamma
             gamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
             if logfn:
-                logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
+                logfn(f"Effective gamma = {round(gamma, 2):.2f}")
         # Only use standard transfer function if we got a good match
         if tf[1] >= 0.98:
             # Good match
@@ -1060,15 +1060,13 @@ def _create_optimized_shaper_curves(
             trc.apply_bpc()
             tf = trc.get_transfer_function(True, (0, 1), black_Y, outoffset)
             if logfn:
-                logfn(
-                    "Using transfer function for {}: {}".format(channel.upper(), tf[0][0])
-                )
+                logfn(f"Using transfer function for {channel.upper()}: {tf[0][0]}")
             gamma = tf[0][1]
             if gamma > 0 and black_Y:
                 # Calculate effective gamma
                 gamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
                 if logfn:
-                    logfn("Effective gamma = {:.2f}".format(round(gamma, 2)))
+                    logfn(f"Effective gamma = {round(gamma, 2):.2f}")
             optcurves.append([v / 65535.0 * curves[i][-1] for v in trc])
         curves = optcurves
 
@@ -5067,7 +5065,7 @@ END_DATA
             lut.append(["DOMAIN_MIN 0.0 0.0 0.0"])
             fp_offset = str(maxval).find(".")
             domain_max = "DOMAIN_MAX {} {} {}".format(
-                (f"{{:.{len(str(maxval)[fp_offset + 1 :]):d}f}}",) * 3
+                *((f"{{:.{len(str(maxval)[fp_offset + 1 :]):d}f}}",) * 3)
             )
             lut.append([domain_max.format((maxval,) * 3)])
             lut.append([])
@@ -6289,7 +6287,7 @@ BEGIN_DATA
                     if not self.madtpg_bw_lvl:
                         self.log("madVR_GetBlackAndWhiteLevel failed")
                     else:
-                        self.log("Output levels: {}-{}".format(self.madtpg_bw_lvl))
+                        self.log("Output levels: {}-{}".format(*self.madtpg_bw_lvl))
                     # Get pattern config
                     patternconfig = self.madtpg.get_pattern_config()
                     if (
@@ -9115,7 +9113,7 @@ usage: spotread [-options] [logfile]
                         numinstalled += 1
                     else:
                         rawlen -= len(
-                            '{"n":"{}", "s":{:d}},'.format(
+                            '{{"n":"{}", "s":{:d}}},'.format(
                                 table["n"], table.get("s", 0)
                             )
                         )
@@ -12264,10 +12262,7 @@ usage: spotread [-options] [logfile]
 
     def is_working(self):
         """Check if any Worker instance is busy. Return True or False."""
-        for worker in workers:
-            if not getattr(worker, "finished", True):
-                return True
-        return False
+        return any(not getattr(worker, "finished", True) for worker in workers)
 
     def start_measurement(
         self,
@@ -14328,10 +14323,7 @@ usage: spotread [-options] [logfile]
                     os.path.join(dir_, "ArgyllCMS", name) for dir_ in paths2
                 )
         searchpaths.extend(os.path.join(dir_, "color", name) for dir_ in paths)
-        for searchpath in searchpaths:
-            if os.path.isfile(searchpath):
-                return True
-        return False
+        return any(os.path.isfile(searchpath) for searchpath in searchpaths)
 
     def spyder2_firmware_exists(self, scope=None):
         """Check if the Spyder 2 firmware file exists in any of the known
@@ -15183,7 +15175,7 @@ usage: spotread [-options] [logfile]
             )
             logfiles.write(
                 "RGB black after inverse forward lookup {:6.4f} {:6.4f} {:6.4f}\n".format(
-                    RGBscaled[0]
+                    *RGBscaled[0]
                 )
             )
             logfiles.write(
@@ -16197,13 +16189,14 @@ BEGIN_DATA
                 tmp_fd, tmp_download_path = mksfile(download_path + ".download")
             except EnvironmentError as mksfile_exception:
                 response.close()
-                for fd, pth in [(fd, download_path), (tmp_fd, tmp_download_path)]:
-                    if fd:
-                        os.close(fd)
-                        try:
-                            os.remove(download_path)
-                        except EnvironmentError as exception:
-                            print(exception)
+                for fd_, pth in [(fd, download_path), (tmp_fd, tmp_download_path)]:
+                    if not fd_:
+                        continue
+                    os.close(fd_)
+                    try:
+                        os.remove(download_path)
+                    except EnvironmentError as exception:
+                        print(exception)
                 return mksfile_exception
             print(lang.getstr("downloading"), uri, "\u2192", download_path)
             self.recent.write(lang.getstr(f"downloading {filename}\n"))

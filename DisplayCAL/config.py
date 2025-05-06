@@ -244,10 +244,7 @@ def is_special_display(
     """
     if not isinstance(display, str):
         display = get_display_name(display)
-    for test in tests:
-        if re.match(test, display):
-            return True
-    return False
+    return any(re.match(test, display) for test in tests)
 
 
 def is_uncalibratable_display(display: Optional[str] = None) -> bool:

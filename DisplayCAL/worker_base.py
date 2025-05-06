@@ -254,9 +254,8 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
     fn(f"  {cmd}")
-    i = 0
     lines = []
-    for item in args:
+    for i, item in enumerate(args):
         # convert all args to str
         if not isinstance(item, str):
             if isinstance(item, bytes):
@@ -274,7 +273,6 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
         else:
             item = shlex.quote(item)
         lines.append(item)
-        i += 1
     for line in lines:
         fn(
             textwrap.fill(

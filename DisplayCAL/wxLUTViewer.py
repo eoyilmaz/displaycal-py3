@@ -1250,7 +1250,7 @@ class LUTFrame(BaseFrame):
             result = self.worker.save_current_video_lut(
                 self.worker.get_display(),
                 outfilename,
-                silent=not __name__ == "__main__",
+                silent=__name__ != "__main__",
             )
             if not isinstance(result, Exception) and result:
                 profile = cal_to_fake_profile(outfilename)

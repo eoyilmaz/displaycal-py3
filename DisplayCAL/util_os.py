@@ -15,7 +15,8 @@ import subprocess as sp
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Iterator, Optional, Union
+from collections.abc import Iterator
+from typing import Any, Callable, Optional, Union
 
 from DisplayCAL.encoding import get_encodings
 

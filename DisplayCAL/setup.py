@@ -1654,7 +1654,7 @@ def setup_do_py2exe():
         # no build path setup, no worries.
         pass
     origIsSystemDLL = py2exe.build_exe.isSystemDLL
-    systemroot = os.getenv("SystemRoot").lower()
+    systemroot = os.getenv("SYSTEMROOT").lower()
 
     def isSystemDLL(pathname):
         if (

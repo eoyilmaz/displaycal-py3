@@ -2050,8 +2050,10 @@ class spawn_windows(spawn_unix):
         self.wtty.setwinsize(r, c)
 
     # Prototype changed
-    def interact(self, escape_character=chr(29), input_filter=None, output_filter=None):
-        """Makes the child console visible for interaction"""
+    def interact(self, escape_character=None, input_filter=None, output_filter=None):
+        """Make the child console visible for interaction. """
+        if escape_character is None:
+            escape_character = chr(29)
         self.wtty.interact()
 
     # Prototype changed

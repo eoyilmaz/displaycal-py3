@@ -1716,10 +1716,10 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                 return
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except ICCProfileInvalidError:
                 if not silent:
                     show_result_dialog(
-                        Error(lang.getstr("profile.invalid") + "\n" + path), parent=self
+                        Error(f"{lang.getstr('profile.invalid')}\n{path}"), parent=self
                     )
             except IOError as exception:
                 if not silent:

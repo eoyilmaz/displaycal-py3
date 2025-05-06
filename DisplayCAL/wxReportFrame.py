@@ -502,11 +502,10 @@ class ReportFrame(BaseFrame):
             if not profile:
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except ICCProfileInvalidError:
                     if not silent:
                         show_result_dialog(
-                            Error(
-                                f"{lang.getstr('profile.invalid')}\n{path}"),
+                            Error(f"{lang.getstr('profile.invalid')}\n{path}"),
                             parent=self,
                         )
                 except IOError as exception:
@@ -951,7 +950,7 @@ class ReportFrame(BaseFrame):
                 min(prop[i] * v, 20) for i, v in enumerate(integration_time)
             ]
             # Get time per patch (tpp)
-            tpp = [v for v in integration_time]
+            tpp = list(integration_time)
             if (
                 "plasma" in tech
                 or "crt" in tech

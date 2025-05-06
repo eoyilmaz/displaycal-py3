@@ -13493,9 +13493,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 args.extend(
                     [
                         "-t",
-                        dict((v, k) for k, v in technology_strings.items()).get(
-                            tech, "u"
-                        ),
+                        {v: k for k, v in technology_strings.items()}.get(tech, "u"),
                     ]
                 )
             else:

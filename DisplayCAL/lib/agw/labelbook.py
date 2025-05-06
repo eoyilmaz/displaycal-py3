@@ -1838,9 +1838,7 @@ class LabelContainer(ImageContainerBase):
         font.SetPointSize(
             int(font.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            font.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif (
+        if self.GetParent().GetFontBold() or (
             self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
             and self._nIndex == index
         ):
@@ -2188,9 +2186,7 @@ class LabelContainer(ImageContainerBase):
         underLinedFont.SetPointSize(
             int(underLinedFont.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION) and selected:
+        if self.GetParent().GetFontBold() or self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION) and selected:
             underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
 
         underLinedFont.SetUnderlined(True)
@@ -2331,9 +2327,7 @@ class LabelContainer(ImageContainerBase):
         font.SetPointSize(
             int(font.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            font.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif (
+        if self.GetParent().GetFontBold() or (
             self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
             and self._nIndex == self._nHoveredImgIdx
         ):

@@ -383,7 +383,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         cat_choices_ab = dict(
             get_mapping(((k, k) for k in colormath.cat_matrices), cat_choices)
         )
-        cat_choices_ba = dict((v, k) for k, v in cat_choices_ab.items())
+        cat_choices_ba = {v: k for k, v in cat_choices_ab.items()}
         cat_ctrl = wx.Choice(dlg, -1, choices=list(cat_choices_ab.values()))
         cat_ctrl.SetStringSelection(cat_choices_ab[self.cat])
         dlg.sizer3.Add(cat_ctrl, 0, flag=wx.TOP | wx.ALIGN_LEFT, border=8)

@@ -3111,7 +3111,7 @@ def split_command_line(command_line):
         ):  # Escape the next character
             state_backup = state
             state = state_esc
-        elif state == state_basic or state == state_whitespace:
+        elif state in [state_basic, state_whitespace]:
             if c == r"'":  # Handle single quote
                 state = state_singlequote
             elif c == r'"':  # Handle double quote

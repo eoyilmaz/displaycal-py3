@@ -3008,7 +3008,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                     wx = ux
                     wf = uf  # New 2nd best from latest
                 elif (
-                    uf <= vf or vx == xx or vx == wx
+                    uf <= vf or vx in [xx, wx]
                 ):  # New 3rd best, or equal 1st & 2nd
                     vx = ux
                     vf = uf  # New previous 2nd best from latest

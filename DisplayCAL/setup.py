@@ -363,7 +363,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         # modifying the src_dir is not working with py2app, so disabling it.
         # src_dir = os.path.join(src_dir, pkgname)
         if subkey:
-            files = files[subkey] if subkey in files else []
+            files = files.get(subkey, [])
     data = []
     for pth in files:
         if not [exclude for exclude in excludes or [] if fnmatch(pth, exclude)]:

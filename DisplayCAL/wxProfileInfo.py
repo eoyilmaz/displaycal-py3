@@ -1606,7 +1606,7 @@ class ProfileInfoFrame(LUTFrame):
                     r"[^0-9A-Za-z]+",
                     "_",
                     strtr(line[j], {"\u0394E": "Delta E"}).lower().strip(),
-                    0,
+                    count=0,
                 ).strip("_")
                 val = lang.getstr(key)
                 if key != val:

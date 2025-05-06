@@ -6652,7 +6652,7 @@ BEGIN_DATA
                     "Warning - error during shell script creation:", str(exception)
                 )
         cmdline = [safe_str(arg, fs_enc) for arg in cmdline]
-        working_dir = None if not working_dir else working_dir
+        working_dir = working_dir if working_dir else None
         try:
             if not self.measure_cmd and self.argyll_version >= [1, 2]:
                 # Argyll tools will no longer respond to keys
@@ -14485,11 +14485,7 @@ usage: spotread [-options] [logfile]
                 if not resume:
                     if isinstance(self.progress_wnd, SimpleTerminal):
                         self.progress_wnd.console.SetValue("")
-                    elif (
-                        isinstance(self.progress_wnd, DisplayAdjustmentFrame)
-                        or isinstance(self.progress_wnd, DisplayUniformityFrame)
-                        or isinstance(self.progress_wnd, UntetheredFrame)
-                    ):
+                    elif isinstance(self.progress_wnd, (DisplayAdjustmentFrame, DisplayUniformityFrame, UntetheredFrame)):
                         self.progress_wnd.reset()
                 self.progress_wnd.stop_timer()
                 self.progress_wnd.Resume()
@@ -14844,11 +14840,10 @@ usage: spotread [-options] [logfile]
                         tmpfilename = make_win32_compatible_long_path(tmpfilename)
                     if getcfg("vrml.compress"):
                         # Compress gam and wrl files using gzip
-                        with GzipFileProper(gzfilename, "wb") as gz:
+                        with GzipFileProper(gzfilename, "wb") as gz, open(tmpfilename, "rb") as infile:
                             # Always use original filename with '.gz' extension,
                             # that way the filename in the header will be correct
-                            with open(tmpfilename, "rb") as infile:
-                                gz.write(tweak_vrml(infile.read()))
+                            gz.write(tweak_vrml(infile.read()))
                         # Remove uncompressed file
                         os.remove(tmpfilename)
                         tmpfilename = gzfilename
@@ -15602,7 +15597,7 @@ BEGIN_DATA
         #
         # Under older ArgyllCMS versions, we have to use DeviceLink profile with
         # icclu, because older xicclu cannot handle devicelink
-        use_icclu = False if pcs or self.argyll_version >= [1, 6] else True
+        use_icclu = not (pcs or self.argyll_version >= [1, 6])
 
         input_encoding = None
         output_encoding = None

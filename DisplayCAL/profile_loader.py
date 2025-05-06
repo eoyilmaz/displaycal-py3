@@ -1211,11 +1211,9 @@ class ProfileLoader:
             config.getcfg("profile_loader.reset_gamma_ramps")
         )
         self._known_apps = set(
-            [
-                known_app.lower()
-                for known_app in config.defaults["profile_loader.known_apps"].split(";")
-                + config.getcfg("profile_loader.known_apps").split(";")
-            ]
+            known_app.lower()
+            for known_app in config.defaults["profile_loader.known_apps"].split(";")
+            + config.getcfg("profile_loader.known_apps").split(";")
         )
         self._known_window_classes = set(
             config.defaults["profile_loader.known_window_classes"].split(";")

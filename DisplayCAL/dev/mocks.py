@@ -7,8 +7,9 @@ well to check if the method was called (or not).
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Generator
 from types import ModuleType
-from typing import Any, Generator, overload
+from typing import Any, overload
     
 from _pytest.monkeypatch import MonkeyPatch
 

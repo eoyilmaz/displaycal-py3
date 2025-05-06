@@ -1244,10 +1244,7 @@ def create_synthetic_hdr_clut_profile(
                         Cp2 = Cp * f + Cp2 * (1 - f)
                         I2 = I * f + I2 * (1 - f)
                     X, Y, Z = colormath.ICtCp2XYZ(I2, Ct2, Cp2)
-                    RGB_ICtCp_XYZ = list((X, Y, Z))
-                else:
-                    # RGB_ICtCp_XYZ = [v / maxv for v in (X, Y, Z)]
-                    RGB_ICtCp_XYZ = [X, Y, Z]
+                RGB_ICtCp_XYZ = [X, Y, Z]
                 # X, Y, Z = (v / maxv for v in (X, Y, Z))
                 HDR_XYZ.append((RGB_in[-1], [X, Y, Z], RGB_ICtCp_XYZ))
                 HDR_min_I.append(min_I)

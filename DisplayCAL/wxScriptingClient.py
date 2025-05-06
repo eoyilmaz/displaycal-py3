@@ -408,7 +408,7 @@ class ScriptingClientFrame(SimpleTerminal):
                 # works for single-line TextCtrls
                 commonpart = lastline[2:endcol]
                 candidates = []
-                for command in sorted(list(set(self.commands + self.get_commands()))):
+                for command in sorted(set(self.commands + self.get_commands())):
                     command = command.split()[0]
                     if command.startswith(commonpart):
                         candidates.append(command)

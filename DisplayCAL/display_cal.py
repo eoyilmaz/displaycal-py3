@@ -30,6 +30,7 @@ import socket
 import subprocess as sp
 import sys
 import threading
+import requests
 import traceback
 import urllib.error
 import urllib.parse
@@ -317,6 +318,39 @@ def swap_dict_keys_values(mydict):
     """Swap dictionary keys and values"""
     return dict([(v, k) for (k, v) in mydict.items()])
 
+def is_new_update():
+    """Check for new updates on GitHub. Returns a boolean"""
+    try:
+        print("Checking for updates...")
+        response = requests.get("https://api.github.com/repos/eoyilmaz/displaycal-py3/releases/latest", timeout=10)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+
+        data = response.json()
+        latest_version_string = data["tag_name"]
+        latest_version = latest_version_string.split('.')
+        latest_version_tuple = tuple(int(n) for n in latest_version)
+        current_version = str(VERSION[0]) + str(VERSION[1]) + str(VERSION[2])
+
+        # Compare version numbers
+        for latest, current in zip(latest_version, current_version):
+            if int(latest) > int(current):
+                print("New updates available!")
+                return latest_version_tuple
+            elif int(latest) < int(current):
+                print("No new updates available.")
+                return False
+
+        # If we've gotten here, the versions are equal
+        print("No new updates available.")
+        return False
+
+    except requests.RequestException as e:
+        print(f"Error checking for updates: Network error - {str(e)}")
+    except (KeyError, ValueError, IndexError) as e:
+        print(f"Error checking for updates: Parsing error - {str(e)}")
+    except Exception as e:
+        print(f"Error checking for updates: Unexpected error - {str(e)}")
+    return False
 
 def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
     """Check for application update. Show an error dialog if a failure
@@ -343,14 +377,7 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
         curversion_tuple = VERSION_BASE
         version_file = "VERSION"
         chglog_file = "CHANGES.html"
-    resp = http_request(
-        parent,
-        DOMAIN,
-        "GET",
-        "/" + version_file,
-        failure_msg=lang.getstr("update_check.fail"),
-        silent=silent,
-    )
+    resp = is_new_update()
     if resp is False:
         if silent:
             # Check if we need to run instrument setup
@@ -358,11 +385,10 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
                 parent.check_instrument_setup, check_donation, (parent, snapshot)
             )
         return
-    data = resp.read()
     if not wx.GetApp():
         return
     try:
-        newversion_tuple = tuple(int(n) for n in data.decode().split("."))
+        newversion_tuple = resp
     except ValueError:
         print(lang.getstr("update_check.fail.version", DOMAIN))
         if not silent:

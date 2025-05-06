@@ -426,10 +426,8 @@ def center(text, width=None):
         for line in text:
             if len(line) > width:
                 width = len(line)
-    i = 0
-    for line in text:
+    for i, line in enumerate(text):
         text[i] = line.center(width)
-        i += 1
     return "\n".join(text)
 
 

@@ -2487,11 +2487,9 @@ class BaseInteractiveDialog(wx.Dialog):
         self._msg = msg
         if parent:
             pos = list(pos)
-            i = 0
-            for coord in pos:
+            for i, coord in enumerate(pos):
                 if coord > -1:
                     pos[i] += parent.GetScreenPosition()[i]
-                i += 1
             pos = tuple(pos)
             if title == appname:
                 appid = get_appid_from_window_hierarchy(parent)

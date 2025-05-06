@@ -1616,16 +1616,16 @@ def setup():
             if sys.platform == "win32":
                 path = os.path.join(cmd.install_lib, name)
                 # Using sys.version in this way is consistent with setuptools
-                for path in safe_glob(path) + safe_glob(
+                for path_ in safe_glob(path) + safe_glob(
                     os.path.join(
                         f"{path}-{version}-py{sys.version[:3]}*.egg",
                         name,
                     )
                 ):
                     if cmd.root:
-                        postinstall(prefix=change_root(cmd.root, path))
+                        postinstall(prefix=change_root(cmd.root, path_))
                     else:
-                        postinstall(prefix=path)
+                        postinstall(prefix=path_)
 
             elif cmd.root:
                 postinstall(prefix=change_root(cmd.root, cmd.prefix))

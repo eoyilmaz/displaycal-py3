@@ -2197,7 +2197,7 @@ class Wtty:
             ")".format(
                 # this fixes running Argyll commands through py2exe frozen python
                 (
-                    "setattr(sys, 'frozen', '{}'); ".format(getattr(sys, "frozen"))
+                    f"setattr(sys, 'frozen', '{sys.frozen}'); "
                     if hasattr(sys, "frozen")
                     else ""
                 ),

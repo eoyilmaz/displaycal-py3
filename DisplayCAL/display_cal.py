@@ -17170,14 +17170,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
         self.testcharts = ["auto"] + natsort(self.testcharts)
         self.testchart_names = []
-        i = 0
-        for chart in self.testcharts:
+        for i, chart in enumerate(self.testcharts):
             chart = chart.split(os.pathsep)
             chart.reverse()
             self.testcharts[i] = os.path.join(*chart)
             testchart_name = "auto_optimized" if chart[-1] == "auto" else chart[-1]
             self.testchart_names.append(lang.getstr(testchart_name))
-            i += 1
         return self.testchart_names
 
     def set_argyll_bin_handler(

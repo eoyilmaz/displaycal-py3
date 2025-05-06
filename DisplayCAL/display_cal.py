@@ -329,7 +329,7 @@ def is_new_update():
         latest_version_string = data["tag_name"]
         latest_version = latest_version_string.split('.')
         latest_version_tuple = tuple(int(n) for n in latest_version)
-        current_version = str(VERSION[0]) + str(VERSION[1]) + str(VERSION[2])
+        current_version = VERSION[0], VERSION[1], VERSION[2]
 
         # Compare version numbers
         for latest, current in zip(latest_version, current_version):

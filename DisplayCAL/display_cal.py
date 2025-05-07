@@ -9302,7 +9302,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         v = float2dec(math.pow(step * i / 100.0, vcgt[name + "Gamma"]))
                         vmax = float2dec(vcgt[name + "Max"] * 255)
                         rgb[j].append(float2dec(vmin + v * (vmax - vmin), 8))
-            cal_rgblevels = [len(set(round(n) for n in channel)) for channel in rgb]
+            cal_rgblevels = [len({round(n) for n in channel}) for channel in rgb]
         else:
             # Assume linear with all steps
             cal_rgblevels = [256, 256, 256]

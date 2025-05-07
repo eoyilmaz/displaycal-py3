@@ -380,7 +380,7 @@ class LUTCanvas(plot.PlotCanvas):
         for channel in points:
             values = points[channel]
             self.unique[channel] = len(
-                set(round(float(y) / axis_y * irange[-1]) for x, y in values)
+                {round(float(y) / axis_y * irange[-1]) for x, y in values}
             )
 
         legend = []

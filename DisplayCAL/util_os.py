@@ -37,47 +37,6 @@ if sys.platform != "win32":
     import grp
     import pwd
 
-try:
-    reloaded  # type: ignore
-except NameError:
-    # First import. All fine
-    reloaded = 0
-else:
-    # Module is being reloaded. NOT recommended.
-    reloaded += 1  # type: ignore
-    import warnings
-
-    warnings.warn(
-        f"Module {__name__} is being reloaded. This is NOT recommended.",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    warnings.warn(
-        "Implicitly reloading builtins",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    if sys.platform == "win32":
-        importlib.reload(builtins)
-    warnings.warn(
-        "Implicitly reloading os",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    importlib.reload(os)
-    warnings.warn(
-        "Implicitly reloading os.path",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    importlib.reload(os.path)
-    if sys.platform == "win32":
-        warnings.warn(
-            "Implicitly reloading win32api",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-        importlib.reload(win32api)
 
 # Cache used for safe_shell_filter() function
 _cache = {}

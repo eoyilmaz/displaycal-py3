@@ -15,10 +15,8 @@ if sys.stdout and hasattr(sys.stdout, "isatty") and not sys.stdout.isatty():
     sys.stdout = StringIO()
 
 if sys.platform == "win32":
-    try:
-        create_shortcut
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "create_shortcut" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
             from pythoncom import (
                 CoCreateInstance,
@@ -52,18 +50,14 @@ if sys.platform == "win32":
                 shortcut.SetShowCmd(win32con.SW_SHOWNORMAL)
                 shortcut.QueryInterface(IID_IPersistFile).Save(args[2], 0)
 
-    try:
-        directory_created
-    # this function is only available within bdist_wininst installers
-    except NameError:
-
+    if "directory_created" not in globals():
+        # this function is only available within bdist_wininst installers
+    
         def directory_created(path):
             pass
 
-    try:
-        file_created
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "file_created" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
             import win32api
         except ImportError:
@@ -74,30 +68,29 @@ if sys.platform == "win32":
         else:
 
             def file_created(path):
+                if not os.path.exists(recordfile_name):
+                    return
+                installed_files = []
                 if os.path.exists(recordfile_name):
-                    installed_files = []
-                    if os.path.exists(recordfile_name):
-                        recordfile = open(recordfile_name)
-                        installed_files.extend(line.rstrip("\n") for line in recordfile)
-                        recordfile.close()
-                    try:
-                        path.encode("ASCII")
-                    except (UnicodeDecodeError, UnicodeEncodeError):
-                        # the contents of the record file used by distutils
-                        # must be ASCII GetShortPathName allows us to avoid
-                        # any issues with encoding because it returns the
-                        # short path as 7-bit string (while still being a
-                        # valid path)
-                        path = win32api.GetShortPathName(path)
-                    installed_files.append(path)
-                    recordfile = open(recordfile_name, "w")
-                    recordfile.write("\n".join(installed_files))
+                    recordfile = open(recordfile_name)
+                    installed_files.extend(line.rstrip("\n") for line in recordfile)
                     recordfile.close()
+                try:
+                    path.encode("ASCII")
+                except (UnicodeDecodeError, UnicodeEncodeError):
+                    # the contents of the record file used by distutils
+                    # must be ASCII GetShortPathName allows us to avoid
+                    # any issues with encoding because it returns the
+                    # short path as 7-bit string (while still being a
+                    # valid path)
+                    path = win32api.GetShortPathName(path)
+                installed_files.append(path)
+                recordfile = open(recordfile_name, "w")
+                recordfile.write("\n".join(installed_files))
+                recordfile.close()
 
-    try:
-        get_special_folder_path
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "get_special_folder_path" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
             from win32com.shell import shell, shellcon
         except ImportError:

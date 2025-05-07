@@ -77,7 +77,7 @@ if sys.platform == "win32":
                 if os.path.exists(recordfile_name):
                     installed_files = []
                     if os.path.exists(recordfile_name):
-                        recordfile = open(recordfile_name, "r")
+                        recordfile = open(recordfile_name)
                         installed_files.extend(line.rstrip("\n") for line in recordfile)
                         recordfile.close()
                     try:

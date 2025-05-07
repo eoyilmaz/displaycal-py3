@@ -287,7 +287,7 @@ def create_app_symlinks(dist_dir, scripts):
                     tgt = os.path.join(toolcontents, entry, subentry)
                     if subentry == "main.py":
                         # py2app
-                        with open(src, "r") as main_in:
+                        with open(src) as main_in:
                             py = main_in.read()
                         py = py.replace("main()", "main(%r)" % script[len(name) + 1 :])
                         with open(tgt, "wb") as main_out:
@@ -1312,7 +1312,7 @@ def setup():
                     if cmd.root
                     else line.rstrip("\n")
                 )
-                for line in open(recordfile_name, "r")
+                for line in open(recordfile_name)
             ]
         else:
             paths = []

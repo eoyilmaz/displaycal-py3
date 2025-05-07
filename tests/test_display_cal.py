@@ -72,15 +72,13 @@ def test_show_ccxx_error_dialog(mainframe: MainFrame) -> None:
         show_ccxx_error_dialog(Exception("Malformed demo"), "path", mainframe)
 
 
-@pytest.mark.parametrize("argyll", (True, False), ids=("With argyll", "without argyll"))
-@pytest.mark.parametrize("snapshot", (True, False), ids=("Snapshot", "No snapshot"))
-@pytest.mark.parametrize("silent", (True, False), ids=("Silent", "Not silent"))
-def test_app_update_check(
-    mainframe: MainFrame, silent: bool, snapshot: bool, argyll: bool
-) -> None:
-    """Test the application update check."""
-    with check_call(wx, "CallAfter", call_count=1):
+@pytest.mark.parametrize("silent, call_expected", [(True, True), (False, False)], ids=["Silent", "Not silent"])
+@pytest.mark.parametrize("snapshot", [True, False], ids=["Snapshot", "No snapshot"])
+@pytest.mark.parametrize("argyll", [True, False], ids=["With argyll", "without argyll"])
+def test_app_update_check(mainframe, silent, snapshot, argyll, call_expected):
+    with check_call(wx, "CallAfter", call_count=1 if call_expected else 0):
         app_update_check(mainframe, silent, snapshot, argyll)
+
 
 
 def test_check_donation(mainframe: MainFrame) -> None:

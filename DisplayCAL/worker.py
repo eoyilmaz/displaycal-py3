@@ -11484,12 +11484,10 @@ usage: spotread [-options] [logfile]
         # Quantize RGB to make lookup easier
         # XXX Note that round(50 * 2.55) = 127, but
         # round(50 / 100 * 255) = 128 (the latter is what we want)!
-        remaining = dict(
-            [
-                (tuple(round(k / 100.0 * 255) for k in RGB), XYZ)
-                for RGB, XYZ in remaining.items()
-            ]
-        )
+        remaining = {
+            tuple(round(k / 100.0 * 255) for k in RGB): XYZ
+            for RGB, XYZ in remaining.items()
+        }
 
         # Need to sort so columns increase (fastest to slowest) B G R
         remaining = dict_sort(remaining)

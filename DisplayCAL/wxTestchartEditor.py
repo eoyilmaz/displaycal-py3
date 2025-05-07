@@ -56,6 +56,7 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
+from DisplayCAL.util_dict import swap_dict_keys_values
 from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
 from DisplayCAL.worker import (
     Error,
@@ -78,10 +79,6 @@ from DisplayCAL.wxwindows import (
     InfoDialog,
     get_gradient_panel,
 )
-
-
-def swap_dict_keys_values(mydict):
-    return dict([(v, k) for (k, v) in mydict.items()])
 
 
 class TestchartEditor(BaseFrame):

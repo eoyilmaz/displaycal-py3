@@ -46,3 +46,8 @@ def dict_sort(obj, key=None):
     for k in sorted(obj, key=key):
         new_dict[k] = obj[k]
     return new_dict
+
+
+def swap_dict_keys_values(mydict):
+    """Swap dictionary keys and values"""
+    return {v: k for k, v in mydict.items()}

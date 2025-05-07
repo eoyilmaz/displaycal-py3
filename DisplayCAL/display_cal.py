@@ -4254,20 +4254,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # if self.get_instrument_type() == "spect":
         # measurement_mode = strtr(measurement_mode, {"c": "", "l": ""})
         if instrument_name != "DTP92":
-            measurement_modes = dict(
-                {
-                    instrument_type: [
-                        lang.getstr("measurement_mode.refresh"),
-                        lang.getstr("measurement_mode.lcd"),
-                    ]
-                }
-            )
-            measurement_modes_ab = dict({instrument_type: ["c", "l"]})
+            measurement_modes = {
+                instrument_type: [
+                    lang.getstr("measurement_mode.refresh"),
+                    lang.getstr("measurement_mode.lcd"),
+                ]
+            }
+            measurement_modes_ab = {instrument_type: ["c", "l"]}
         else:
-            measurement_modes = dict(
-                {instrument_type: [lang.getstr("measurement_mode.refresh")]}
-            )
-            measurement_modes_ab = dict({instrument_type: ["c"]})
+            measurement_modes = {
+                instrument_type: [lang.getstr("measurement_mode.refresh")]
+            }
+            measurement_modes_ab = {instrument_type: ["c"]}
         instrument_features = self.worker.get_instrument_features(instrument_name)
         if (
             instrument_name in ("Spyder4", "Spyder5")

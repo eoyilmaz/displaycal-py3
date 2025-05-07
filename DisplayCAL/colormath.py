@@ -4082,10 +4082,7 @@ def test():
             XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
             wp = " ".join([str(v) for v in XYZ])
         print(
-            (
-                "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s"
-                % wp
-            )
+            "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s" % wp
         )
         for name in rgb_spaces:
             spc = rgb_spaces[name]

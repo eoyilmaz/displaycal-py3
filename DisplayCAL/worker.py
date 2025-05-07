@@ -10252,10 +10252,9 @@ usage: spotread [-options] [logfile]
             )
             if lang.getcode() != "en":
                 desktop_file_buffer.append(
-                    (
-                        "Comment[{}]={}".format(
-                            lang.getcode(), lang.getstr("calibrationloader.description")
-                        )
+                    "Comment[{}]={}".format(
+                        lang.getcode(),
+                        lang.getstr("calibrationloader.description"),
                     )
                 )
             pyw = os.path.normpath(

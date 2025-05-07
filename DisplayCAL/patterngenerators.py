@@ -626,7 +626,7 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
             except error:
                 host = gethostname()
             self.logfile.write(
-                ("{} {}:{}\n".format(lang.getstr("webserver.waiting"), host, self.port))
+                "{} {}:{}\n".format(lang.getstr("webserver.waiting"), host, self.port)
             )
         self.socket.settimeout(1)
         while self.listening:

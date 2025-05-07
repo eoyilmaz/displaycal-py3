@@ -8083,7 +8083,7 @@ def test():
     app = BaseApp(0)
     style = wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_CAN_ABORT | wx.PD_SMOOTH
     p = ProgressDialog(
-        msg="".join(("Test " * 5)),
+        msg="".join("Test " * 5),
         maximum=10000,
         style=style,
         pauseable=True,

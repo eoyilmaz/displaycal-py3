@@ -129,14 +129,12 @@ if __name__ == "__main__":
     pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
     for handle in get_process_handles(pid):
         print(
-            (
-                "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
-                % (
-                    handle.HandleValue,
-                    handle.ObjectTypeIndex,
-                    get_handle_type(handle),
-                    handle.GrantedAccess,
-                    get_handle_name(handle),
-                )
+            "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
+            % (
+                handle.HandleValue,
+                handle.ObjectTypeIndex,
+                get_handle_type(handle),
+                handle.GrantedAccess,
+                get_handle_name(handle),
             )
         )

@@ -3101,9 +3101,9 @@ class ProfileLoader:
         print("-" * 80)
         print("Enumerating display adapters and devices:")
         print("")
-        self.adapters = dict(
-            [(device.DeviceName, device) for device in get_display_devices(None)]
-        )
+        self.adapters = {
+            device.DeviceName: device for device in get_display_devices(None)
+        }
         self.monitors = []
         self.display_devices = dict()
         self.child_devices_count = {}

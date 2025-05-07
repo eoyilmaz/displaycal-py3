@@ -172,7 +172,7 @@ from DisplayCAL.options import (
 )
 from DisplayCAL.patterngenerators import WebWinHTTPPatternGeneratorServer
 from DisplayCAL.util_decimal import float2dec, stripzeros
-from DisplayCAL.util_dict import dict_sort
+from DisplayCAL.util_dict import dict_sort, swap_dict_keys_values
 from DisplayCAL.util_io import LineCache, TarFileProper
 from DisplayCAL.util_list import index_fallback_ignorecase, intlist, natsort
 from DisplayCAL.util_os import (
@@ -335,11 +335,6 @@ def show_ccxx_error_dialog(exception, path, parent):
         fn, ext = os.path.splitext(path)
         msg = lang.getstr("error.malformed_cgats", (ext[1:].upper(), path))
     show_result_dialog(msg, parent)
-
-
-def swap_dict_keys_values(mydict):
-    """Swap dictionary keys and values"""
-    return dict([(v, k) for (k, v) in mydict.items()])
 
 
 def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):

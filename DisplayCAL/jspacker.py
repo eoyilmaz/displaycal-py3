@@ -200,13 +200,13 @@ class JavaScriptPacker:
     def getEncoder(self, ascii):
         mapping = {}
         base = ord("0")
-        mapping.update(dict([(i, chr(i + base)) for i in range(10)]))
+        mapping.update({i: chr(i + base) for i in range(10)})
         base = ord("a")
-        mapping.update(dict([(i + 10, chr(i + base)) for i in range(26)]))
+        mapping.update({i + 10: chr(i + base) for i in range(26)})
         base = ord("A")
-        mapping.update(dict([(i + 36, chr(i + base)) for i in range(26)]))
+        mapping.update({i + 36: chr(i + base) for i in range(26)})
         base = 161
-        mapping.update(dict([(i + 62, chr(i + base)) for i in range(95)]))
+        mapping.update({i + 62: chr(i + base) for i in range(95)})
 
         # zero encoding
         # characters: 0123456789

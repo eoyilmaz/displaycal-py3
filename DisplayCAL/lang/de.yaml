@@ -914,6 +914,8 @@
   DLP-Projektor mit RGB-Farbrad
 "display.tech.DLP Projector RGBCMY Filter Wheel": |-
   DLP-Projektor mit RGBCMY-Farbrad
+"display.tech.DLP Projector RGBW Filter Wheel": |-
+  DLP-Projektor mit RGBW-Farbrad
 "display.tech.DPL Projector RGBW Filter Wheel": |-
   DLP-Projektor mit RGBW-Farbrad
 "display.tech.LCD": |-
@@ -924,6 +926,8 @@
   LCD CCFL IPS
 "display.tech.LCD CCFL TFT": |-
   LCD CCFL TFT
+"display.tech.LCD CCFL PVA": |-
+  LCD CCFL PVA
 "display.tech.LCD CCFL VPA": |-
   LCD CCFL PVA
 "display.tech.LCD CCFL Wide Gamut": |-
@@ -932,6 +936,8 @@
   LCD CCFL mit erweitertem Farbumfang IPS
 "display.tech.LCD CCFL Wide Gamut TFT": |-
   LCD CCFL mit erweitertem Farbumfang TFT
+"display.tech.LCD CCFL Wide Gamut PVA": |-
+  LCD CCFL mit erweitertem Farbumfang PVA
 "display.tech.LCD CCFL Wide Gamut VPA": |-
   LCD CCFL mit erweitertem Farbumfang PVA
 "display.tech.LCD GB-R Phosphor": |-
@@ -940,6 +946,8 @@
   LCD GB-r-LED IPS
 "display.tech.LCD GB-R Phosphor TFT": |-
   LCD GB-r-LED TFT
+"display.tech.LCD GB-R Phosphor PVA": |-
+  LCD GB-r-LED PVA
 "display.tech.LCD GB-R Phosphor VPA": |-
   LCD GB-r-LED PVA
 "display.tech.LCD PFS Phosphor": |-
@@ -948,6 +956,8 @@
   LCD PFS-Leuchtstoff-WLED IPS
 "display.tech.LCD PFS Phosphor TFT": |-
   LCD PFS-Leuchtstoff-WLED TFT
+"display.tech.LCD PFS Phosphor PVA": |-
+  LCD PFS-Leuchtstoff-WLED PVA
 "display.tech.LCD PFS Phosphor VPA": |-
   LCD PFS-Leuchtstoff-WLED PVA
 "display.tech.LCD RG Phosphor": |-
@@ -956,6 +966,8 @@
   LCD RG-Leuchtstoff-LED IPS
 "display.tech.LCD RG Phosphor TFT": |-
   LCD RG-Leuchtstoff-LED TFT
+"display.tech.LCD RG Phosphor PVA": |-
+  LCD RG-Leuchtstoff-LED PVA
 "display.tech.LCD RG Phosphor VPA": |-
   LCD RG-Leuchtstoff-LED PVA
 "display.tech.LCD RGB LED": |-
@@ -964,6 +976,8 @@
   LCD RGB-LED IPS
 "display.tech.LCD RGB LED TFT": |-
   LCD RGB-LED TFT
+"display.tech.LCD RGB LED PVA": |-
+  LCD RGB-LED PVA
 "display.tech.LCD RGB LED VPA": |-
   LCD RGB-LED PVA
 "display.tech.LCD White LED": |-
@@ -972,6 +986,8 @@
   LCD Weiße LED IPS
 "display.tech.LCD White LED TFT": |-
   LCD Weiße LED TFT
+"display.tech.LCD White LED PVA": |-
+  LCD Weiße LED PVA
 "display.tech.LCD White LED VPA": |-
   LCD Weiße LED PVA
 "display.tech.LED AMOLED": |-

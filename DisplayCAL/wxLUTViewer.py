@@ -8,12 +8,12 @@ import sys
 import numpy
 
 from DisplayCAL import (
-    ICCProfile as ICCP,
     colormath,
     config,
     localization as lang,
     wxenhancedplot as plot,
 )
+from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
     fs_enc,
@@ -26,6 +26,17 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
+from DisplayCAL.icc_profile import (
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    LUT16Type,
+    ParametricCurveType,
+    TextDescriptionType,
+    VideoCardGammaTableType,
+    VideoCardGammaType,
+    WcsProfilesTagType,
+)
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
@@ -34,7 +45,6 @@ from DisplayCAL.worker import (
     Error,
     UnloggedError,
     Worker,
-    make_argyll_compatible_path,
     show_result_dialog,
 )
 from DisplayCAL.wxMeasureFrame import MeasureFrame
@@ -114,7 +124,7 @@ class CoordinateType(list):
             xp.append(x)
             fp.append(y)
         interp = colormath.Interp(xp, fp, use_numpy=True)
-        otrc = ICCP.CurveType(profile=self.profile)
+        otrc = CurveType(profile=self.profile)
         for i in range(len(self)):
             otrc.append(interp(i / (len(self) - 1.0) * 255) / 100 * 65535)
         match = otrc.get_transfer_function(best, slice, outoffset=outoffset)
@@ -272,8 +282,8 @@ class LUTCanvas(plot.PlotCanvas):
             data = list(vcgt["data"])
             while len(data) < len(channels):
                 data.append(data[0])
-            if not isinstance(vcgt, ICCP.VideoCardGammaTableType) and not isinstance(
-                data[0], ICCP.CurveType
+            if not isinstance(vcgt, VideoCardGammaTableType) and not isinstance(
+                data[0], CurveType
             ):
                 # Coordinate list
                 irange = list(range(0, len(data[0])))
@@ -1072,8 +1082,8 @@ class LUTFrame(BaseFrame):
                 profile = None
         else:
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=f"{lang.getstr('profile.invalid')}\n{path}",
@@ -1305,9 +1315,9 @@ class LUTFrame(BaseFrame):
                 not ("B2A0" in self.profile.tags or "A2B0" in self.profile.tags)
                 or not self.toggle_clut.GetValue()
             )
-            and isinstance(self.rTRC, ICCP.CurveType)
-            and isinstance(self.gTRC, ICCP.CurveType)
-            and isinstance(self.bTRC, ICCP.CurveType)
+            and isinstance(self.rTRC, CurveType)
+            and isinstance(self.gTRC, CurveType)
+            and isinstance(self.bTRC, CurveType)
             and len(self.rTRC) == len(self.gTRC) == len(self.bTRC)
         )
         has_same_trc = self.rTRC == self.gTRC == self.bTRC
@@ -1631,18 +1641,18 @@ class LUTFrame(BaseFrame):
                 self.load_lut(get_display_profile())
 
     def LoadProfile(self, profile):
-        if profile and not isinstance(profile, ICCP.ICCProfile):
+        if profile and not isinstance(profile, ICCProfile):
             try:
-                profile = ICCP.ICCProfile(profile)
-            except (IOError, ICCP.ICCProfileInvalidError) as exception:
+                profile = ICCProfile(profile)
+            except (IOError, ICCProfileInvalidError) as exception:
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
                 profile = None
         if not profile:
-            profile = ICCP.ICCProfile()
+            profile = ICCProfile()
             profile._data = "\0" * 128
-            profile._tags.desc = ICCP.TextDescriptionType(b"", "desc")
+            profile._tags.desc = TextDescriptionType(b"", "desc")
             profile.size = len(profile.data)
             profile.is_loaded = True
         center = False
@@ -1661,7 +1671,7 @@ class LUTFrame(BaseFrame):
         self.profile = profile
         for channel in "rgb":
             trc = profile.tags.get(f"{channel}TRC", profile.tags.get("kTRC"))
-            if isinstance(trc, ICCP.ParametricCurveType):
+            if isinstance(trc, ParametricCurveType):
                 trc = trc.get_trc()
             setattr(self, f"{channel}TRC", trc)
             setattr(self, f"tf_{channel}TRC", trc)
@@ -1702,22 +1712,22 @@ class LUTFrame(BaseFrame):
 
     def add_shaper_curves(self, curves):
         if getcfg("show_advanced_options"):
-            if isinstance(self.profile.tags.get("A2B0"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("A2B0"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.A2B0.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.A2B0.shaper_curves.output"))
-            if isinstance(self.profile.tags.get("A2B1"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("A2B1"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.A2B1.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.A2B1.shaper_curves.output"))
-            if isinstance(self.profile.tags.get("A2B2"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("A2B2"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.A2B2.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.A2B2.shaper_curves.output"))
-            if isinstance(self.profile.tags.get("B2A0"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("B2A0"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.B2A0.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.B2A0.shaper_curves.output"))
-            if isinstance(self.profile.tags.get("B2A1"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("B2A1"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.B2A1.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.B2A1.shaper_curves.output"))
-            if isinstance(self.profile.tags.get("B2A2"), ICCP.LUT16Type):
+            if isinstance(self.profile.tags.get("B2A2"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.B2A2.shaper_curves.input"))
                 curves.append(lang.getstr("profile.tags.B2A2.shaper_curves.output"))
         return curves
@@ -1793,19 +1803,19 @@ class LUTFrame(BaseFrame):
                     )
         elif (
             self.plot_mode_select.GetStringSelection() == lang.getstr("[rgb]TRC")
-            and isinstance(self.tf_rTRC, (ICCP.CurveType, CoordinateType))
+            and isinstance(self.tf_rTRC, (CurveType, CoordinateType))
             and len(self.tf_rTRC) > 1
-            and isinstance(self.tf_gTRC, (ICCP.CurveType, CoordinateType))
+            and isinstance(self.tf_gTRC, (CurveType, CoordinateType))
             and len(self.tf_gTRC) > 1
-            and isinstance(self.tf_bTRC, (ICCP.CurveType, CoordinateType))
+            and isinstance(self.tf_bTRC, (CurveType, CoordinateType))
             and len(self.tf_bTRC) > 1
         ):
             transfer_function = None
             if not getattr(self, "trc", None) and len(self.tf_rTRC) == len(
                 self.tf_gTRC
             ) == len(self.tf_bTRC):
-                if isinstance(self.tf_rTRC, ICCP.CurveType):
-                    self.trc = ICCP.CurveType(profile=self.profile)
+                if isinstance(self.tf_rTRC, CurveType):
+                    self.trc = CurveType(profile=self.profile)
                     for i in range(len(self.tf_rTRC)):
                         self.trc.append(
                             (self.tf_rTRC[i] + self.tf_gTRC[i] + self.tf_bTRC[i]) / 3.0
@@ -1879,7 +1889,7 @@ class LUTFrame(BaseFrame):
                 # Convert calibration information from embedded WCS profile
                 # (if present) to VideCardFormulaType if the latter is not present
                 if (
-                    isinstance(self.profile.tags.get("MS00"), ICCP.WcsProfilesTagType)
+                    isinstance(self.profile.tags.get("MS00"), WcsProfilesTagType)
                     and "vcgt" not in self.profile.tags
                 ):
                     vcgt = self.profile.tags["MS00"].get_vcgt()
@@ -1891,9 +1901,9 @@ class LUTFrame(BaseFrame):
                     curves = None
             elif self.plot_mode_select.GetStringSelection() == lang.getstr("[rgb]TRC"):
                 if not (
-                    isinstance(self.rTRC, (ICCP.CurveType, CoordinateType))
-                    and isinstance(self.gTRC, (ICCP.CurveType, CoordinateType))
-                    and isinstance(self.bTRC, (ICCP.CurveType, CoordinateType))
+                    isinstance(self.rTRC, (CurveType, CoordinateType))
+                    and isinstance(self.gTRC, (CurveType, CoordinateType))
+                    and isinstance(self.bTRC, (CurveType, CoordinateType))
                 ):
                     curves = None
                 elif (
@@ -2098,9 +2108,9 @@ class LUTFrame(BaseFrame):
         self.toggle_clut.Enable(
             self.profile.connectionColorSpace != b"RGB"
             and self.plot_mode_select.GetStringSelection() == lang.getstr("[rgb]TRC")
-            and isinstance(self.profile.tags.get("rTRC"), ICCP.CurveType)
-            and isinstance(self.profile.tags.get("gTRC"), ICCP.CurveType)
-            and isinstance(self.profile.tags.get("bTRC"), ICCP.CurveType)
+            and isinstance(self.profile.tags.get("rTRC"), CurveType)
+            and isinstance(self.profile.tags.get("gTRC"), CurveType)
+            and isinstance(self.profile.tags.get("bTRC"), CurveType)
         )
         self.save_plot_btn.Enable(bool(curves))
         if hasattr(self, "reload_vcgt_btn"):
@@ -2115,7 +2125,7 @@ class LUTFrame(BaseFrame):
             enable_bpc = (
                 self.plot_mode_select.GetStringSelection() == lang.getstr("vcgt")
                 and bool(self.profile)
-                and isinstance(self.profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                and isinstance(self.profile.tags.get("vcgt"), VideoCardGammaType)
             )
             if enable_bpc:
                 values = self.profile.tags.vcgt.getNormalizedValues()
@@ -2127,7 +2137,7 @@ class LUTFrame(BaseFrame):
             self.install_vcgt_btn.Enable(
                 self.plot_mode_select.GetStringSelection() == lang.getstr("vcgt")
                 and bool(self.profile)
-                and isinstance(self.profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                and isinstance(self.profile.tags.get("vcgt"), VideoCardGammaType)
             )
             self.install_vcgt_btn.Show(
                 self.plot_mode_select.GetStringSelection() == lang.getstr("vcgt")
@@ -2136,7 +2146,7 @@ class LUTFrame(BaseFrame):
             self.save_vcgt_btn.Enable(
                 self.plot_mode_select.GetStringSelection() == lang.getstr("vcgt")
                 and bool(self.profile)
-                and isinstance(self.profile.tags.get("vcgt"), ICCP.VideoCardGammaType)
+                and isinstance(self.profile.tags.get("vcgt"), VideoCardGammaType)
             )
             self.save_vcgt_btn.Show(
                 self.plot_mode_select.GetStringSelection() == lang.getstr("vcgt")

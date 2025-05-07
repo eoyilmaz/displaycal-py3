@@ -1061,6 +1061,7 @@ class PathDialogBase(wx.Dialog):
     def OnDestroy(self, event):
         self.filedialog.Destroy()
         event.Skip()
+        return 0
 
     def Show(self, show=True):
         self._isshown = show
@@ -1157,7 +1158,7 @@ wx.ScrolledWindow = ScrolledWindow
 ScrolledPanel.ScrollChildIntoView = ScrolledWindow.ScrollChildIntoView
 
 
-class GenButton(object):
+class GenButton:
     """A generic button, based on wx.lib.buttons.GenButton.
 
     Fixes wx.lib.buttons.ThemedGenButton not taking into account backgroun
@@ -1613,7 +1614,7 @@ if not hasattr(PlateButton, "_SetState"):
     PlateButton._SetState = PlateButton.SetState
 
 
-class TempXmlResource(object):
+class TempXmlResource:
     _temp = None
 
     def __init__(self, xmlpath):

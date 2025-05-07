@@ -15,16 +15,16 @@ appname = "DisplayCAL"
 
 if getattr(sys, "frozen", False):
     args = [
-        os.path.join(os.path.dirname(sys.executable), appname + "-apply-profiles.exe")
+        os.path.join(os.path.dirname(sys.executable), f"{appname}-apply-profiles.exe")
     ]
 else:
     args = [sys.executable]
     dirname = os.path.dirname(__file__)
-    pyw = os.path.join(dirname, "..", appname + "-apply-profiles.pyw")
+    pyw = os.path.join(dirname, "..", f"{appname}-apply-profiles.pyw")
     if os.path.isfile(pyw):
         args.append(os.path.normpath(pyw))
     else:
-        args.append(os.path.join(dirname, appname.lower() + "-apply-profiles"))
+        args.append(os.path.join(dirname, f"{appname.lower()}-apply-profiles"))
 
 args.append("--task")
 if "--oneshot" in sys.argv[1:]:

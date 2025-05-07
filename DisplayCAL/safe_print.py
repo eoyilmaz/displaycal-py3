@@ -36,7 +36,7 @@ def _get_console_width():
     return _conwidth
 
 
-class SafePrinter(object):
+class SafePrinter:
     def __init__(
         self,
         pad=False,

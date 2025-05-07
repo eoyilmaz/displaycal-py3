@@ -384,7 +384,7 @@ def spawn(
         )
 
 
-class spawn_unix(object):
+class spawn_unix:
     """The main class interface for Pexpect.
 
     Use this class to start and control child applications.
@@ -1369,7 +1369,7 @@ class spawn_unix(object):
             else:
                 raise TypeError(
                     "Argument must be one of StringTypes, EOF, TIMEOUT, "
-                    "SRE_Pattern, or a list of those type. {}".format(type(p))
+                    f"SRE_Pattern, or a list of those type. {type(p)}"
                 )
 
         return compiled_pattern_list
@@ -2064,7 +2064,7 @@ class spawn_windows(spawn_unix):
         self.wtty.stop_interact()
 
 
-class Wtty(object):
+class Wtty:
     """"""
 
     def __init__(self, timeout=30, codepage=None, columns=None, rows=None, cwd=None):
@@ -2638,7 +2638,7 @@ class Wtty(object):
         self.switchBack()
 
 
-class ConsoleReader(object):
+class ConsoleReader:
     def __init__(self, path, pid, tid, env=None, cp=None, c=None, r=None, logdir=None):
         self.logdir = logdir
         log("=" * 80, "consolereader", logdir)
@@ -2790,7 +2790,7 @@ class ConsoleReader(object):
         ResumeThread(handle)
 
 
-class searcher_string(object):
+class searcher_string:
     """This is a plain string search helper for the spawn.expect_any() method.
 
     Attributes:
@@ -2882,7 +2882,7 @@ class searcher_string(object):
         return best_index
 
 
-class searcher_re(object):
+class searcher_re:
     """Regular expression string search helper for the spawn.expect_any() method.
 
     Attributes:

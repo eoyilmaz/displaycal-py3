@@ -6,15 +6,11 @@ __pycache__/
 .vscode/
 *.blend1
 *.code-workspace
-/.coverage
+/.coverage*
 /.pytest_cache/
 /.venv/
+/*.egg-info/
 /build/
-/DisplayCAL.egg-info/dependency_links.txt
-/DisplayCAL.egg-info/PKG-INFO
-/DisplayCAL.egg-info/requires.txt
-/DisplayCAL.egg-info/SOURCES.txt
-/DisplayCAL.egg-info/top_level.txt
 /DisplayCAL/__version__.py
 /DisplayCAL/ref/*.log
 /dist/
@@ -25,5 +21,6 @@ __pycache__/
 /venv/
 /VERSION
 cacert.pem
+htmlcov
 main.py
 MANIFEST.in

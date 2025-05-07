@@ -7,13 +7,18 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL.colormath import (
     RGB2XYZ,
     convert_range,
     get_rgb_space,
     get_whitepoint,
     specialpow,
+)
+from DisplayCAL.icc_profile import (
+    create_synthetic_clut_profile,
+    ICCProfile,
+    LUT16Type,
+    XYZType,
 )
 
 
@@ -34,7 +39,7 @@ def create_rendering_intent_test_profile(
         rgb_space = srgb
     clutres = 9  # Minimum 9 because we require f >= 2
     f = int(round((clutres - 1) / 4.0))
-    p = ICCP.create_synthetic_clut_profile(rgb_space, desc, clutres=clutres)
+    p = create_synthetic_clut_profile(rgb_space, desc, clutres=clutres)
     tagnames = ["A2B"]
     if generate_B2A_tables:
         p.tags.B2A0.clut = []
@@ -44,7 +49,7 @@ def create_rendering_intent_test_profile(
     for i in range(1, 3):
         for tagname in tagnames:
             tag0 = p.tags[tagname + "0"]
-            tag = p.tags[tagname + "%i" % i] = ICCP.LUT16Type()
+            tag = p.tags[tagname + "%i" % i] = LUT16Type()
             for component_name in ("matrix", "input", "clut", "output"):
                 component = getattr(tag0, component_name)
                 if component_name == "clut":
@@ -130,7 +135,7 @@ def create_rendering_intent_test_profile(
             if tagname == "A2B":
                 tag.clut_writecgats(filename[:-3] + tagname + "%i.CLUT.ti3" % i)
     if add_fallback_matrix:
-        srgb_icc = ICCP.ICCProfile.from_rgb_space(srgb, "sRGB")
+        srgb_icc = ICCProfile.from_rgb_space(srgb, "sRGB")
         p.tags.rTRC = srgb_icc.tags.rTRC
         p.tags.gTRC = srgb_icc.tags.gTRC
         p.tags.bTRC = srgb_icc.tags.bTRC
@@ -141,8 +146,8 @@ def create_rendering_intent_test_profile(
         #         v /= 65535.0
         #         p.tags.rTRC[i] = p.tags.gTRC[i] = max(convert_range(v, t, 1, 0, 1), 0) * 65535
         #         p.tags.bTRC[i] = min(convert_range(v, 0, t, 0, 1), 1) * 65535
-        p.tags.rXYZ = ICCP.XYZType()  # Map red to black
-        p.tags.gXYZ = ICCP.XYZType()  # Map green to black
+        p.tags.rXYZ = XYZType()  # Map red to black
+        p.tags.gXYZ = XYZType()  # Map green to black
         p.tags.bXYZ = srgb_icc.tags.wtpt.pcs  # Map blue to white
     p.calculateID()
     p.write(filename)

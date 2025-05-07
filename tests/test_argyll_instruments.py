@@ -8,7 +8,7 @@ from DisplayCAL.argyll_instruments import (
     get_canonical_instrument_name,
     remove_vendor_names,
 )
-from DisplayCAL.CGATS import CGATS
+from DisplayCAL.cgats import CGATS
 
 INSTR_STR = "i1 DisplayPro, ColorMunki Display"
 INSTR_STR_INVERSE = "eye-one displayPro, ColorMunki Display"

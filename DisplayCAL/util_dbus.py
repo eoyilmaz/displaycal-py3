@@ -38,7 +38,7 @@ BUSTYPE_SESSION = 1
 BUSTYPE_SYSTEM = 2
 
 
-class DBusObjectInterfaceMethod(object):
+class DBusObjectInterfaceMethod:
     def __init__(self, iface, method_name):
         self._iface = iface
         self._method_name = method_name
@@ -58,16 +58,16 @@ class DBusObjectInterfaceMethod(object):
                 elif isinstance(arg, float):
                     format_string += "f"
                 else:
-                    raise TypeError("Unsupported argument type: %s" % type(arg))
+                    raise TypeError(f"Unsupported argument type: {type(arg)}")
                 value.append(arg)
-            args = ["(%s)" % format_string]
+            args = [f"({format_string})"]
             args.extend(value)
         if "timeout" not in kwargs:
             kwargs["timeout"] = 500
         return getattr(self._iface, self._method_name)(*args, **kwargs)
 
 
-class DBusObject(object):
+class DBusObject:
     def __init__(self, bus_type, bus_name, object_path=None, iface_name=None):
         self._bus_type = bus_type
         self._bus_name = bus_name

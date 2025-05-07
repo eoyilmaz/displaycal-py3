@@ -26,7 +26,7 @@ build:
 	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
 	pip install uv; \
 	uv pip install -r requirements.txt -r requirements-dev.txt; \
-	python -m build;
+	uv build;
 
 install:
 	@printf "\n\033[36m--- $@: Installing displaycal to virtualenv at '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
@@ -54,9 +54,11 @@ clean-all: clean
 	-rm -f setuptools-*.egg
 	-rm -f use-distutils
 	-rm -f main.py
+	-rm -Rf htmlcov
+	-rm .coverage.*
 	-rm MANIFEST.in
 	-rm VERSION
-	-rm -Rf DisplayCAL.egg-info
+	-rm -Rf displaycal.egg-info
 	-rm DisplayCAL/__version__.py
 	-rm -Rf $(VIRTUALENV_DIR)
 
@@ -77,7 +79,7 @@ new-release:
 	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
 	uv pip install -r requirements.txt; \
 	uv pip install -r requirements-dev.txt; \
-	python -m build; \
+	uv build; \
 	twine check dist/DisplayCAL-$(VERSION).tar.gz; \
 	twine upload dist/DisplayCAL-$(VERSION).tar.gz;
 
@@ -87,7 +89,7 @@ tests:
 	echo -e "\n\033[36m--- $@: Using virtualenv at '$(VIRTUALENV_DIR)' ---\033[0m\n";
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
-	pytest -v -n auto -W ignore --color=yes --cov-report term;
+	pytest -n auto -W ignore --color=yes --cov-report term;
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 FORCE:

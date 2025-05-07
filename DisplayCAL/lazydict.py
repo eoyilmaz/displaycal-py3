@@ -614,7 +614,7 @@ def test():
         try:
             return yaml.safe_load(StringIO(doc))
         except Exception as e:
-            print("%s:" % e.__class__.__name__, e)
+            print(f"{e.__class__.__name__}:", e)
             traceback.print_exc()
             return e
 
@@ -623,7 +623,7 @@ def test():
         try:
             l.parse(StringIO(doc))
         except Exception as e:
-            print("%s:" % e.__class__.__name__, e)
+            print(f"{e.__class__.__name__}:", e)
             traceback.print_exc()
             return e
         return l

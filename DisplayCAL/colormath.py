@@ -175,7 +175,7 @@ def DICOM(j, inverse=False):
         )
 
 
-class HLG(object):
+class HLG:
     """Hybrid Log Gamma (HLG) as defined in Rec BT.2100
     and BT.2390-4
 
@@ -3248,7 +3248,7 @@ def xicc_tech_gamma(egamma, off, outoffset=0.0):
     return op[0]
 
 
-class gam_fits(object):
+class gam_fits:
     # Adapted from ArgyllCMS xicc/xicc.c
 
     def __init__(self, wp=1.0, thyr=0.2, bp=0.0):
@@ -3257,7 +3257,7 @@ class gam_fits(object):
         self.bp = bp  # 0% input target
 
 
-class Interp(object):
+class Interp:
     def __init__(self, xp, fp, left=None, right=None, use_numpy=False):
         if use_numpy:
             # Use numpy for speed
@@ -3287,7 +3287,7 @@ class Interp(object):
             return interp(x, self.xp, self.fp, self.left, self.right)
 
 
-class BT1886(object):
+class BT1886:
     # Adapted from ArgyllCMS xicc/xicc.c
 
     """BT.1886 like transfer function"""
@@ -3405,7 +3405,7 @@ class BT1886(object):
         return out
 
 
-class BT2390(object):
+class BT2390:
     """Roll-off for SMPTE 2084 (PQ) according to Report ITU-R BT.2390-2 HDR TV"""
 
     def __init__(

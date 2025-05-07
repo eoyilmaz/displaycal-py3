@@ -17,7 +17,7 @@ This project is based on the ``HEAD`` of the Sourceforge version, which had 5 ex
 commits that Florian has created over the ``3.8.9.3`` release on 14 Jan 2020.
 
 Thanks to all the efforts put by the community DisplayCAL is now working with Python
-3.8+:
+3.9+:
 
 ![image](screenshots/DisplayCAL-screenshot-GNOME-3.9.5-running_on_python3.10.png)
 

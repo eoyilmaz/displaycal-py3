@@ -253,7 +253,7 @@ def Sound(filename, loop=False, raise_exceptions=False):
         return sound
 
 
-class DummySound(object):
+class DummySound:
     """Dummy sound wrapper class"""
 
     def __init__(self, filename=None, loop=False):
@@ -301,7 +301,7 @@ class Mix_Chunk(Structure):
     ]
 
 
-class _Sound(object):
+class _Sound:
     """Sound wrapper class."""
 
     def __init__(self, filename, loop=False):

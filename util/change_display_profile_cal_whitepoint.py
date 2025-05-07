@@ -9,11 +9,11 @@ sys.stdout = sys.stderr
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import colormath as cm
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import worker
+from DisplayCAL.icc_profile import ICCProfile, get_display_profile
 from DisplayCAL.wxwindows import BaseApp, wx
 
 # Environment sets defaults
@@ -72,7 +72,7 @@ def main(*args, **kwargs):
             state = None
         elif os.path.isfile(arg) and i < len(args) - 1:
             print("Reading profile:", arg)
-            profile = ICCP.ICCProfile(arg)
+            profile = ICCProfile(arg)
         else:
             outfilename = os.path.abspath(arg)
     if not xy or not outfilename:
@@ -82,7 +82,7 @@ def main(*args, **kwargs):
         )
     if not profile:
         print("Reading display profile")
-        profile = ICCP.get_display_profile()
+        profile = get_display_profile()
     # Setup
     config.initcfg()
     lang.init()

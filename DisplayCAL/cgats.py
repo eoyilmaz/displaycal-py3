@@ -295,7 +295,7 @@ class CGATS(dict):
                         # assume text
                         cgats = io.StringIO(cgats)
 
-                from DisplayCAL.ICCProfile import ICCProfileTag
+                from DisplayCAL.icc_profile import ICCProfileTag
 
                 if isinstance(cgats, bytes):
                     # assume text
@@ -306,7 +306,7 @@ class CGATS(dict):
                     self.filename = cgats.absolute()
                     cgats = open(cgats, "rb")
                 elif not isinstance(cgats, (StringIO, io.BytesIO, io.BufferedReader)):
-                    raise CGATSInvalidError("Unsupported type: %s" % type(cgats))
+                    raise CGATSInvalidError(f"Unsupported type: {type(cgats)}")
 
                 if self.filename:
                     self.mtime = os.stat(self.filename).st_mtime
@@ -495,11 +495,10 @@ class CGATS(dict):
             return colorants
 
     def get_descriptor(self, localized=True):
-        """Return CGATS description as string, based on metadata
+        """Return CGATS description as string, based on metadata.
 
         If 'localized' is True (default), include localized technology
         description for CCSS files.
-
         """
         desc = self.queryv1("DESCRIPTOR")
         is_ccss = self.get(0, self).type == b"CCSS"
@@ -525,23 +524,22 @@ class CGATS(dict):
                         from DisplayCAL import localization as lang
 
                         tech = tech.decode()
-                        tech = lang.getstr("display.tech." + tech, default=tech)
+                        tech = lang.getstr(f"display.tech.{tech}", default=tech)
                         if display:
-                            # Localized tech will be unicode always, need to
-                            # make sure display is as well
+                            # Localized `tech` will always be a str,
+                            # need to make sure `display` is as well.
                             display = (
                                 display.decode("utf-8")
                                 if isinstance(display, bytes)
                                 else display
                             )
                     if display:
-                        tech += f" ({display})"
-                if isinstance(tech, str):
-                    desc = tech.encode("utf-8")
+                        tech = f"{tech} ({display})"
+                desc = tech.encode("utf-8") if isinstance(tech, str) else tech
         if not desc and self.filename:
             # With Python 3.6+ the encoding is always "utf-8" independent of the OS.
             desc = bytes(
-                str(os.path.splitext(os.path.basename(self.filename))[0]), "UTF-8"
+                str(os.path.splitext(os.path.basename(self.filename))[0]), "utf-8"
             )
         return desc
 
@@ -1075,8 +1073,8 @@ class CGATS(dict):
                                 value = float(value)
                             except ValueError:
                                 raise CGATSValueError(
-                                    "Invalid data type for %s (expected float, got %s)"
-                                    % (item, type(value))
+                                    f"Invalid data type for {item} "
+                                    f"(expected float, got {type(value)})"
                                 )
                             else:
                                 strval = bytes(str(abs(value)), "UTF-8")
@@ -1146,9 +1144,8 @@ class CGATS(dict):
                 context = context.add_data(data, key)
             else:
                 raise CGATSTypeError(
-                    "Invalid data type for %s "
-                    "(expected str or unicode without line endings, got %s)"
-                    % (self.type, type(data))
+                    f"Invalid data type for {self.type} "
+                    f"(expected str or unicode without line endings, got {type(data)})"
                 )
         elif self.type == b"SECTION":
             if isinstance(data, bytes):
@@ -1161,8 +1158,8 @@ class CGATS(dict):
                 self[key] = data
             else:
                 raise CGATSTypeError(
-                    "Invalid data type for %s "
-                    "(expected bytes or str, got %s)" % (self.type, type(data))
+                    f"Invalid data type for {self.type} "
+                    f"(expected bytes or str, got {type(data)})"
                 )
         elif self.type in (b"DATA_FORMAT", b"KEYWORDS") or (
             self.parent and self.parent.type == b"ROOT"
@@ -1233,17 +1230,18 @@ class CGATS(dict):
                                         value = int(value)
                                     if self.type in (b"DATA_FORMAT", b"KEYWORDS"):
                                         raise CGATSTypeError(
-                                            "Invalid data type for %s (expected bytes "
-                                            "or str, got %s)" % (self.type, type(value))
+                                            f"Invalid data type for {self.type} "
+                                            "(expected bytes or str, "
+                                            f"got {type(value)})"
                                         )
                             self[key] = value
             else:
                 raise CGATSTypeError(
-                    "Invalid data type for %s (expected "
-                    "CGATS, dict, list or tuple, got %s)" % (self.type, type(data))
+                    f"Invalid data type for {self.type} (expected "
+                    f"CGATS, dict, list or tuple, got {type(data)})"
                 )
         else:
-            raise CGATSInvalidOperationError("Cannot add data to %s" % self.type)
+            raise CGATSInvalidOperationError(f"Cannot add data to {self.type}")
         return context
 
     def export_3d(
@@ -1838,7 +1836,7 @@ Transform {
                 match_count = 0
                 for query_key in query:
                     if query_key in item or (
-                        type(item) is CGATS
+                        isinstance(item, CGATS)
                         and (
                             (query_key == "NUMBER_OF_FIELDS" and "DATA_FORMAT" in item)
                             or (query_key == "NUMBER_OF_SETS" and "DATA" in item)
@@ -1921,7 +1919,7 @@ Transform {
             key = item
         maxindex = len(self) - 1
         result = self[key]
-        if type(key) == int and key != maxindex:
+        if isinstance(key, int) and key != maxindex:
             self.moveby1(key + 1, -1)
         name = len(self) - 1
         dict.pop(self, name)

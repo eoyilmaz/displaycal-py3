@@ -126,7 +126,7 @@ class Menu(wx.EvtHandler):
         item.Enabled = enable
 
 
-class MenuItem(object):
+class MenuItem:
     def __init__(
         self, menu, id=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
     ):
@@ -271,16 +271,20 @@ class SysTrayIcon(wx.EvtHandler):
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         print(
-            "SysTrayIcon.OnCommand(hwnd=%r, msg=%r, wparam=%r, lparam=%r)"
-            % (hwnd, msg, wparam, lparam)
+            "SysTrayIcon.OnCommand(hwnd={}, msg={}, wparam={}, lparam={})".format(
+                repr(hwnd), repr(msg), repr(wparam), repr(lparam)
+            )
         )
         if not self.menu:
             print("Warning: Don't have menu")
-            return
+            return 0
+        if wparam is None:
+            print("Warning: No menu item is selected")
+            return 0
         item = _get_selected_menu_item(wparam, self.menu)
         if not item:
-            print("Warning: Don't have menu item ID %s" % wparam)
-            return
+            print(f"Warning: Don't have menu item ID {wparam}")
+            return 0
         if debug or verbose > 1:
             print(
                 item.__class__.__name__,
@@ -295,11 +299,13 @@ class SysTrayIcon(wx.EvtHandler):
         elif item.Kind == wx.ITEM_CHECK:
             event.SetInt(int(not item.Checked))
         item.Menu.ProcessEvent(event)
+        return 0
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         self.Destroy()
         if not wx.GetApp() or not wx.GetApp().IsMainLoopRunning():
             win32gui.PostQuitMessage(0)
+        return 0
 
     def Destroy(self):
         if self.menu:

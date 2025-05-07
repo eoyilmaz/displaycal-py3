@@ -194,7 +194,7 @@ def pool_slice(
     return data_out
 
 
-class WorkerFunc(object):
+class WorkerFunc:
     def __init__(self, func, exit=False):
         self.func = func
         self.exit = exit
@@ -243,7 +243,7 @@ class WorkerFunc(object):
                     logging.shutdown()
 
 
-class Mapper(object):
+class Mapper:
     """Wrap 'func' with optional arguments.
 
     To be used as function argument for Pool.map
@@ -281,7 +281,7 @@ class NonDaemonicPool(mp.pool.Pool):
         return proc
 
 
-class FakeManager(object):
+class FakeManager:
     """Fake manager"""
 
     def Queue(self):
@@ -294,7 +294,7 @@ class FakeManager(object):
         pass
 
 
-class FakePool(object):
+class FakePool:
     """Fake pool."""
 
     def __init__(
@@ -318,7 +318,7 @@ class FakePool(object):
         pass
 
 
-class FakeQueue(object):
+class FakeQueue:
     """Fake queue."""
 
     def __init__(self):
@@ -337,7 +337,7 @@ class FakeQueue(object):
         self.queue.append(item)
 
 
-class Result(object):
+class Result:
     """Result proxy."""
 
     def __init__(self, result):

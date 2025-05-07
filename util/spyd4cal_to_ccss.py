@@ -64,7 +64,7 @@ def readcals(filename):
     return cals
 
 
-class Spyd4Cal(object):
+class Spyd4Cal:
     def __init__(self, buf, display, tech):
         self.display = display
         self.tech = tech

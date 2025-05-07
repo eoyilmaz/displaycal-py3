@@ -6,11 +6,12 @@ import shutil
 import sys
 import traceback
 
+from DisplayCAL.argyll import check_set_argyll_bin
+
 if sys.platform == "win32":
     import win32api
 
 from DisplayCAL import (
-    ICCProfile as ICCP,
     colormath,
     config,
     floatspin,
@@ -33,6 +34,14 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
+from DisplayCAL.icc_profile import (
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    DictType,
+    LUT16Type,
+    VideoCardGammaType,
+)
 from DisplayCAL.meta import name as appname, version
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
@@ -43,7 +52,6 @@ from DisplayCAL.worker import (
     Info,
     UnloggedInfo,
     UnloggedWarning,
-    check_set_argyll_bin,
     get_current_profile_path,
     get_options_from_profile,
     show_result_dialog,
@@ -62,7 +70,7 @@ from DisplayCAL.wxwindows import (
 from wx import xrc
 
 
-class LUT3DMixin(object):
+class LUT3DMixin:
     """Mixin class that adds some ``lut3d_`` functions to the mixed-in class."""
 
     def lut3d_bind_event_handlers(self):
@@ -369,7 +377,7 @@ class LUT3DMixin(object):
             if (
                 profile
                 and "meta" in profile.tags
-                and isinstance(profile.tags.meta, ICCP.DictType)
+                and isinstance(profile.tags.meta, DictType)
                 and "EDID_model" in profile.tags.meta
             ):
                 devicename = profile.tags.meta["EDID_model"]
@@ -512,8 +520,8 @@ class LUT3DMixin(object):
                 return
 
             try:
-                profile_in = ICCP.ICCProfile(profile_in_path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile_in = ICCProfile(profile_in_path)
+            except (IOError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(lang.getstr("profile.invalid") + "\n" + profile_in_path),
                     parent=self,
@@ -844,7 +852,7 @@ class LUT3DMixin(object):
     def lut3d_create_producer(self, profile_in, profile_abst, profile_out, path):
         apply_cal = (
             profile_out
-            and isinstance(profile_out.tags.get("vcgt"), ICCP.VideoCardGammaType)
+            and isinstance(profile_out.tags.get("vcgt"), VideoCardGammaType)
             and (
                 self.getcfg("3dlut.output.profile.apply_cal")
                 or not hasattr(self, "lut3d_apply_cal_cb")
@@ -895,7 +903,7 @@ class LUT3DMixin(object):
         try:
             # We need to make sure the link between the original profile object
             # and the one we're eventually going to change is broken
-            profile_in = ICCP.ICCProfile(profile_in.fileName)
+            profile_in = ICCProfile(profile_in.fileName)
             self.worker.create_3dlut(
                 profile_in,
                 path,
@@ -1724,8 +1732,8 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                     )
                 return
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 if not silent:
                     show_result_dialog(
                         Error(lang.getstr("profile.invalid") + "\n" + path), parent=self
@@ -1877,7 +1885,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                                             self.XYZbpout = [0, 0, 0]
                             self.Freeze()
                             enable_apply_cal = isinstance(
-                                profile.tags.get("vcgt"), ICCP.VideoCardGammaType
+                                profile.tags.get("vcgt"), VideoCardGammaType
                             )
                             self.lut3d_apply_cal_cb.SetValue(
                                 enable_apply_cal
@@ -1887,7 +1895,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                             self.gamut_mapping_inverse_a2b.Enable()
                             allow_b2a_gamap = (
                                 "B2A0" in profile.tags
-                                and isinstance(profile.tags.B2A0, ICCP.LUT16Type)
+                                and isinstance(profile.tags.B2A0, LUT16Type)
                                 and profile.tags.B2A0.clut_grid_steps >= 17
                             )
                             # Allow using B2A instead of inverse A2B?
@@ -1987,7 +1995,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             and self.input_profile.tags.rTRC
             == self.input_profile.tags.gTRC
             == self.input_profile.tags.bTRC
-            and isinstance(self.input_profile.tags.rTRC, ICCP.CurveType)
+            and isinstance(self.input_profile.tags.rTRC, CurveType)
         ):
             tf = self.input_profile.tags.rTRC.get_transfer_function(outoffset=1.0)
             if self.getcfg("3dlut.input.profile") != self.input_profile.fileName:
@@ -2031,12 +2039,12 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             self.lut3d_update_trc_controls()
         elif (
             hasattr(self, "input_profile")
-            and isinstance(self.input_profile.tags.get("A2B0"), ICCP.LUT16Type)
+            and isinstance(self.input_profile.tags.get("A2B0"), LUT16Type)
             and isinstance(
-                self.input_profile.tags.get("A2B1", ICCP.LUT16Type()), ICCP.LUT16Type
+                self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type
             )
             and isinstance(
-                self.input_profile.tags.get("A2B2", ICCP.LUT16Type()), ICCP.LUT16Type
+                self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type
             )
         ):
             self.lut3d_trc_apply_black_offset_ctrl.Enable(self.XYZbpin != self.XYZbpout)

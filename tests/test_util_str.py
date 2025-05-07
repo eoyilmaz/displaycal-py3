@@ -9,7 +9,7 @@ from DisplayCAL.util_str import (
     safe_str,
     strtr,
 )
-from DisplayCAL.ICCProfile import TextDescriptionType
+from DisplayCAL.icc_profile import TextDescriptionType
 
 
 def test_asciize_working_properly_1():
@@ -75,7 +75,7 @@ def test_safe_basestring_6():
 def test_safe_basestring_7():
     """testing if safe_basestring() is working properly"""
 
-    class TestObj(object):
+    class TestObj:
         def __init__(self):
             self.filename = "TestValue.ti3"
 

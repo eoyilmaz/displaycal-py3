@@ -4,9 +4,8 @@
 """
 
 import random
+from io import BytesIO
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-
-from six import BytesIO
 
 
 from DisplayCAL.lib.agw.fmresources import (
@@ -67,7 +66,7 @@ if wx.Platform == "__WXMSW__":
         _libimported = None
 
 
-class DCSaver(object):
+class DCSaver:
     """Construct a DC saver.
 
     The dc is copied as-is.
@@ -93,7 +92,7 @@ class DCSaver(object):
 # ------------------------------------------------------------------------------------ #
 
 
-class RendererBase(object):
+class RendererBase:
     """Base class for all theme renderers."""
 
     def DrawButtonBorders(

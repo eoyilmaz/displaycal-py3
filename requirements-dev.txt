@@ -17,6 +17,7 @@ pytest-github-actions-annotate-failures
 pytest-xdist
 ruff
 snowballstemmer
+tox
 twine
 uv
 wheel

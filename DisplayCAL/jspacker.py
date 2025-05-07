@@ -13,7 +13,7 @@ import re
 import sys
 
 
-class Pattern(object):
+class Pattern:
     """a multi-pattern parser"""
 
     def __init__(self, expression, replacement, length):
@@ -30,7 +30,7 @@ class Patterns(list):
         return "|".join([str(e) for e in self])
 
 
-class ParseMaster(object):
+class ParseMaster:
     # constants
     EXPRESSION = 0
     REPLACEMENT = 1

@@ -937,13 +937,18 @@ class DisplayAdjustmentFrame(windowcls):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
-        if hasattr(wx.Window, "UnreserveControlId"):
-            for id in self.id_to_keycode.keys():
-                if id < 0:
-                    try:
-                        wx.Window.UnreserveControlId(id)
-                    except wx.wxAssertionError as exception:
-                        print(exception)
+        if not hasattr(wx.Window, "UnreserveControlId"):
+            return 0
+
+        for id in self.id_to_keycode.keys():
+            if id >= 0:
+                continue
+            try:
+                wx.Window.UnreserveControlId(id)
+            except wx.wxAssertionError as exception:
+                print(exception)
+
+        return 0
 
     def OnMove(self, event):
         if (
@@ -1637,11 +1642,11 @@ if __name__ == "__main__":
     from _thread import start_new_thread
     from time import sleep
 
-    class Subprocess(object):
+    class Subprocess:
         def send(self, bytes_):
             start_new_thread(test, (bytes_,))
 
-    class Worker(object):
+    class Worker:
         def __init__(self):
             self.subprocess = Subprocess()
 

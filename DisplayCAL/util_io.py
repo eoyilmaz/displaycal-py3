@@ -13,7 +13,7 @@ from time import time
 from DisplayCAL.util_str import universal_newlines
 
 
-class EncodedWriter(object):
+class EncodedWriter:
     """Decode data with data_encoding and encode it with file_encoding before
     writing it to file_obj.
 
@@ -39,7 +39,7 @@ class EncodedWriter(object):
         self.file.write(data.decode())
 
 
-class Files(object):
+class Files:
     """Read and/or write from/to several files at once."""
 
     def __init__(self, files, mode="r"):
@@ -137,7 +137,7 @@ class GzipFileProper(gzip.GzipFile):
         self.close()
 
 
-class LineBufferedStream(object):
+class LineBufferedStream:
     """Buffer lines and only write them to stream if line separator is detected"""
 
     def __init__(

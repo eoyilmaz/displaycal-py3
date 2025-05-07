@@ -1582,7 +1582,7 @@ defaults = {
     "x3dom.cache": 1,
     "x3dom.embed": 0,
 }
-lcode, lenc = locale.getdefaultlocale()
+lcode, lenc = locale.getlocale()
 if lcode:
     defaults["lang"] = lcode.split("_")[0].lower()
 
@@ -1629,7 +1629,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             elif (
                 (name != "trc" or value not in valid_values["trc"])
                 and hasdef
-                and deftype in (Decimal, int, float)
+                and isinstance(defval, (Decimal, int, float))
             ):
                 try:
                     value = deftype(value)
@@ -1772,11 +1772,11 @@ def get_current_profile(include_display_profile=False):
     """Get the currently selected profile (if any)."""
     path = getcfg("calibration.file", False)
     if path:
-        from DisplayCAL import ICCProfile as ICCP
+        from DisplayCAL.icc_profile import ICCProfile, ICCProfileInvalidError
 
         try:
-            profile = ICCP.ICCProfile(path, use_cache=True)
-        except (IOError, ICCP.ICCProfileInvalidError):
+            profile = ICCProfile(path, use_cache=True)
+        except (IOError, ICCProfileInvalidError):
             return
         return profile
     elif include_display_profile:
@@ -1788,14 +1788,14 @@ def get_display_profile(display_no=None):
         display_no = max(getcfg("display.number") - 1, 0)
     if is_virtual_display(display_no):
         return None
-    from DisplayCAL import ICCProfile as ICCP
+    from DisplayCAL.icc_profile import get_display_profile
 
     try:
-        return ICCP.get_display_profile(display_no)
+        return get_display_profile(display_no)
     except Exception:
         from DisplayCAL.log import log
 
-        print(f"ICCP.get_display_profile({display_no}):", file=log)
+        print(f"DisplayCAL.icc_profile.get_display_profile({display_no}):", file=log)
 
 
 standard_profiles = []
@@ -1803,7 +1803,7 @@ standard_profiles = []
 
 def get_standard_profiles(paths_only=False):
     if not standard_profiles:
-        from DisplayCAL import ICCProfile as ICCP
+        from DisplayCAL.icc_profile import ICCProfile
 
         # Reference profiles (Argyll + DisplayCAL)
         ref_icc = get_data_path("ref", r"\.ic[cm]$") or []
@@ -1854,7 +1854,7 @@ def get_standard_profiles(paths_only=False):
 
         for path in ref_icc + other_icc:
             try:
-                profile = ICCP.ICCProfile(path, load=False, use_cache=True)
+                profile = ICCProfile(path, load=False, use_cache=True)
             except EnvironmentError:
                 pass
             except Exception as exception:
@@ -1990,11 +1990,11 @@ def is_profile(filename=None, include_display_profile=False):
     filename = filename or getcfg("calibration.file", False)
     if filename:
         if os.path.exists(filename):
-            from DisplayCAL import ICCProfile as ICCP
+            from DisplayCAL.icc_profile import ICCProfile, ICCProfileInvalidError
 
             try:
-                ICCP.ICCProfile(filename, use_cache=True)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                ICCProfile(filename, use_cache=True)
+            except (IOError, ICCProfileInvalidError):
                 pass
             else:
                 return True

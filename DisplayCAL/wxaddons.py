@@ -447,7 +447,7 @@ class BetterCallLater(wx.CallLater):
                 _global_timer_lock.release()
 
 
-class ThreadedTimer(object):
+class ThreadedTimer:
     """A wx.Timer replacement that uses threads instead of actual timers
     which are a limited resource"""
 
@@ -560,7 +560,7 @@ class ThreadedCallLater(ThreadedTimer):
     Restart = Start
 
 
-class BetterWindowDisabler(object):
+class BetterWindowDisabler:
     """Also disables child windows instead of only top level windows. This is
     actually needed under Mac OS X where disabling a top level window will
     not prevent interaction with its children.
@@ -655,10 +655,8 @@ class BetterWindowDisabler(object):
                 w.Enable(False)
                 if hasattr(w, "Disable"):
                     w._BetterWindowDisabler_Disable = w.Disable
-                    # w.Disable = types.MethodType(Disable, w, type(w))
                     w.Disable = types.MethodType(Disable, w)
                 w._BetterWindowDisabler_Enable = w.Enable
-                # w.Enable = types.MethodType(Enable, w, type(w))
                 w.Enable = types.MethodType(Enable, w)
                 w.Enable(enabled)
             return
@@ -687,7 +685,7 @@ class CustomGridCellEvent(CustomEvent):
         return self.Col
 
 
-class PopupMenu(object):
+class PopupMenu:
     """A collection of menus that has a wx.MenuBar-like interface."""
 
     def __init__(self, parent):
@@ -847,7 +845,7 @@ class FileDrop(wx.FileDropTarget):
             self.drophandlers[ext](filename)
 
 
-class IdFactory(object):
+class IdFactory:
     """Inspired by wxPython 4 (Phoenix) wx.IdManager"""
 
     CurrentId = 100

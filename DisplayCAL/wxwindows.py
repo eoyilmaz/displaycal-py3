@@ -25,7 +25,6 @@ import zipfile
 
 from DisplayCAL import demjson_compat as demjson
 
-from DisplayCAL import ICCProfile as ICCP
 from DisplayCAL import audio
 from DisplayCAL import config
 from DisplayCAL.config import (
@@ -55,6 +54,10 @@ from DisplayCAL.debughelpers import (
     getevtobjname,
     getevttype,
     handle_error,
+)
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileInvalidError,
 )
 from DisplayCAL.log import log as log_
 from DisplayCAL.meta import name as appname
@@ -302,6 +305,7 @@ class AnimatedBitmap(wx.PyControl):
     def OnDestroy(self, event):
         self._timer.Stop()
         del self._timer
+        return 0
 
     def DoGetBestSize(self):
         return self._minsize
@@ -844,13 +848,14 @@ class BaseApp(wx.App):
                 print("Running application exit handlers")
                 BaseApp._run_exitfuncs()
         if hasattr(wx.App, "OnExit"):
-            return wx.App.OnExit(self)
+            result = wx.App.OnExit(self)
+            return result if result is not None else 0
         else:
             return 0
 
     @staticmethod
     def _run_exitfuncs():
-        """run any registered exit functions
+        """Run any registered exit functions.
 
         _exithandlers is traversed in reverse order so functions are executed
         last in, first out.
@@ -877,6 +882,8 @@ class BaseApp(wx.App):
         if exc_info is not None:
             raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
 
+        return 0
+
     @staticmethod
     def register_exitfunc(func, *args, **kwargs):
         BaseApp._exithandlers.append((func, args, kwargs))
@@ -891,7 +898,8 @@ class BaseApp(wx.App):
             if not isinstance(self.TopWindow, wx.Dialog):
                 print("Trying to close main top-level application window...")
                 if self.TopWindow.Close(force=not event.CanVeto()):
-                    self.TopWindow.listening = False
+                    if self.TopWindow is not None:
+                        self.TopWindow.listening = False
                     self._query_end_session = self.TopWindow
                     print("Main top-level application window processed close event")
                     return
@@ -943,6 +951,7 @@ class BaseFrame(wx.Frame):
         if event.GetEventObject() is self:
             self.listening = False
         event.Skip()
+        return 0
 
     def close_all(self):
         windows = list(wx.GetTopLevelWindows())
@@ -3202,8 +3211,8 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         name = None
         if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
             try:
-                profile = ICCP.ICCProfile(path)
-            except (IOError, ICCP.ICCProfileInvalidError):
+                profile = ICCProfile(path)
+            except (IOError, ICCProfileInvalidError):
                 pass
             else:
                 name = profile.getDescription()
@@ -3370,6 +3379,8 @@ class PathDialog(ConfirmDialog):
     def OnDestroy(self, event):
         self.filedialog.Destroy()
         event.Skip()
+
+        return 0
 
     def __getattr__(self, name):
         return getattr(self.filedialog, name)
@@ -5034,7 +5045,7 @@ class CustomCellBoolRenderer(CustomCellRenderer):
         return self._bitmap.Size
 
 
-class CustomColLabelRenderer(object):
+class CustomColLabelRenderer:
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5117,7 +5128,7 @@ class CustomColLabelRenderer(object):
             dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect)
 
 
-class CustomRowLabelRenderer(object):
+class CustomRowLabelRenderer:
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5316,6 +5327,8 @@ class BetterPyGauge(pygauge.PyGauge):
         self._timer.Stop()
         del self._timer
 
+        return 0
+
     def OnPaint(self, event):
         """Handles the ``wx.EVT_PAINT`` event for L{PyGauge}.
 
@@ -5440,7 +5453,7 @@ class BetterPyGauge(pygauge.PyGauge):
         """
         self._indeterminate = False
 
-        if type(value) != type([]):
+        if not isinstance(value, list):
             value = [value]
 
         if len(value) != len(self._value):
@@ -5464,7 +5477,7 @@ class BetterPyGauge(pygauge.PyGauge):
             self._update_step.append((float(value[i]) - v) / (time / 50))
 
 
-class BetterStaticFancyTextBase(object):
+class BetterStaticFancyTextBase:
     def GetLabel(self):
         return self._rawlabel
 
@@ -5924,6 +5937,8 @@ class LogWindow(InvincibleFrame):
     def OnDestroy(self, event):
         event.Skip()
 
+        return 0
+
     def OnMove(self, event=None):
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
@@ -6351,13 +6366,17 @@ class ProgressDialog(wx.Dialog):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
-        if hasattr(wx.Window, "UnreserveControlId"):
-            for id in self.id_to_keycode.keys():
-                if id < 0:
-                    try:
-                        wx.Window.UnreserveControlId(id)
-                    except wx.wxAssertionError as exception:
-                        print(exception)
+        if not hasattr(wx.Window, "UnreserveControlId"):
+            return 0
+        for id in self.id_to_keycode.keys():
+            if id >= 0:
+                continue
+            try:
+                wx.Window.UnreserveControlId(id)
+            except wx.wxAssertionError as exception:
+                print(exception)
+
+        return 0
 
     def OnMove(self, event):
         if (
@@ -6945,6 +6964,7 @@ class SimpleTerminal(InvincibleFrame):
     def OnDestroy(self, event):
         self.stop_timer()
         del self.timer
+        return 0
 
     def OnMove(self, event):
         if (

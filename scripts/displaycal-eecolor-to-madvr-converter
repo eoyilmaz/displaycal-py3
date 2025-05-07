@@ -6,8 +6,16 @@ import os
 import signal
 import sys
 
-from DisplayCAL import ICCProfile as ICCP, config, colormath, madvr, worker_base
+from DisplayCAL import config, colormath, madvr, worker_base
+from DisplayCAL.safe_print import safe_print
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    LUT16Type,
+    TextDescriptionType,
+    TextType,
+)
 from DisplayCAL.madvr import icc_device_link_to_madvr
+
 
 
 def sigbreak_handler(sig, frame):
@@ -52,13 +60,13 @@ def eecolor_to_icc_devicelink(eecolor_3dlut_filename, unity=False):
 
         # Create ICC device link profile from eeColor 3D LUT data
         safe_print("Creating device link from eeColor 3D LUT data...")
-        link = ICCP.ICCProfile()
+        link = ICCProfile()
         link.connectionColorSpace = b"RGB"
         link.profileClass = b"link"
-        link.tags.desc = ICCP.TextDescriptionType()
+        link.tags.desc = TextDescriptionType()
         link.tags.desc.ASCII = os.path.basename(filename)
-        link.tags.cprt = ICCP.TextType(b"text\0\0\0\0No copyright", b"cprt")
-        link.tags.A2B0 = ICCP.LUT16Type()
+        link.tags.cprt = TextType(b"text\0\0\0\0No copyright", b"cprt")
+        link.tags.A2B0 = LUT16Type()
         link.tags.A2B0.input = link.tags.A2B0.output = [[0, 65535]] * 3
         link.tags.A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         link.tags.A2B0.clut = []

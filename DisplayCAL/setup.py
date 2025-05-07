@@ -934,7 +934,6 @@ def setup():
             "Intended Audience :: End Users/Desktop",
             "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
             "Operating System :: OS Independent",
-            "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
@@ -1610,7 +1609,7 @@ def setup():
 
         if (
             (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
-        ) and sys.version_info[:2] >= (2, 6):
+        ):
             from vc90crt import name as vc90crt_name, vc90crt_copy_files
 
             if do_py2exe:

@@ -808,7 +808,7 @@ class GamutViewOptions(wx_Panel):
         self.options_sizer.Add(
             self.comparison_profile_label, flag=wx.ALIGN_CENTER_VERTICAL
         )
-        self.comparison_profiles = dict([(lang.getstr("calibration.file.none"), None)])
+        self.comparison_profiles = {lang.getstr("calibration.file.none"): None}
         srgb = None
         try:
             srgb = ICCProfile(get_data_path("ref/sRGB.icm"))

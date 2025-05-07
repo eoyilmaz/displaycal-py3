@@ -13215,9 +13215,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             }
             for _i in required:
                 values = required[_i]
-                patch = dict(
-                    [("RGB_R", values[0]), ("RGB_G", values[1]), ("RGB_B", values[2])]
-                )
+                patch = {
+                    "RGB_R": values[0],
+                    "RGB_G": values[1],
+                    "RGB_B": values[2],
+                }
                 devicecombination = " ".join(
                     ["=".join([key, f"{value:.0f}"]) for key, value in patch.items()]
                 )

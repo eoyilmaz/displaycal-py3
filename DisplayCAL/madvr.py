@@ -1507,17 +1507,15 @@ class MadTPG_Net(MadTPGBase):
         datalen = struct.unpack("<i", blob[4:8])[0]
         if len(blob) < datalen + 12:
             return None, blob
-        record = dict(
-            [
-                ("magic", blob[0:4]),
-                ("len", struct.unpack("<i", blob[4:8])[0]),
-                ("crc", struct.unpack("<i", blob[8:12])[0]),
-                ("processId", struct.unpack("<i", blob[12:16])[0]),
-                ("module", struct.unpack("<q", blob[16:24])[0]),
-                ("commandNo", struct.unpack("<i", blob[24:28])[0]),
-                ("sizeOfComponent", struct.unpack("<i", blob[28:32])[0]),
-            ]
-        )
+        record = {
+            "magic": blob[0:4],
+            "len": struct.unpack("<i", blob[4:8])[0],
+            "crc": struct.unpack("<i", blob[8:12])[0],
+            "processId": struct.unpack("<i", blob[12:16])[0],
+            "module": struct.unpack("<q", blob[16:24])[0],
+            "commandNo": struct.unpack("<i", blob[24:28])[0],
+            "sizeOfComponent": struct.unpack("<i", blob[28:32])[0],
+        }
         a = 32
         b = a + record["sizeOfComponent"]
         if b > len(blob):

@@ -122,10 +122,7 @@ class GzipFileProper(gzip.GzipFile):
                 # force the name to lowercase
                 fname = fname.lower()
             self.fileobj.write(
-                fname.encode("ISO-8859-1", "replace").replace(
-                    "?".encode(), "_".encode()
-                )
-                + b"\000"
+                fname.encode("ISO-8859-1", "replace").replace(b"?", b"_") + b"\000"
             )
 
     def __enter__(self):

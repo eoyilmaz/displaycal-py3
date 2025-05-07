@@ -3158,7 +3158,7 @@ class Worker(WorkerBase):
         try:
             with open(ti1_path, "wb") as ti1:
                 ti1.write(
-                    """CTI1
+                    b"""CTI1
 
 DESCRIPTOR "Argyll Calibration Target chart information 1"
 ORIGINATOR "Argyll targen"
@@ -3177,7 +3177,7 @@ BEGIN_DATA
 2 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000
 3 6.2500 6.2500 6.2500 0.2132 0.2241 0.2443
 END_DATA
-""".encode()
+"""
                 )
         except Exception as exception:
             return exception
@@ -6553,7 +6553,7 @@ BEGIN_DATA
                     " ".join(quote_args(cmdline))
                     .replace(cmd, cmdname)
                     .encode(enc, "safe_asciize")
-                    + "\n".encode()
+                    + b"\n"
                 )
                 if sys.platform == "win32":
                     cmdfiles.write("set exitcode=%errorlevel%\n")

@@ -1742,7 +1742,7 @@ class LUTFrame(BaseFrame):
         ):
             if "R" in colorants or "G" in colorants or "B" in colorants:
                 legend.append(lang.getstr("tone_values"))
-                if "=" in colorants and 0:  # NEVER
+                if False: # "=" in colorants:  # NEVER
                     unique = []
                     if 0 in self.client.unique:  # Red
                         unique.append(self.client.unique[0])

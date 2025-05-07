@@ -7983,7 +7983,7 @@ BEGIN_DATA
                     break
 
             XYZrgb = []
-            if not pcs_candidate and False:  # NEVER?
+            if False:  # if not pcs_candidate:  # NEVER?
                 # Create quick medium quality shaper+matrix profile and use the
                 # matrix from that
                 if logfile:
@@ -8157,7 +8157,7 @@ BEGIN_DATA
                 logfile.write(f"\r{j / maxval:0.0%}")
         if logfile:
             logfile.write("\n")
-        if False and method and not bpc:
+        if False:  # if method and not bpc:
             # Force the blackpoint - NEVER
             if logfile:
                 logfile.write("Forcing B2A input curve blackpoint...\n")
@@ -9609,7 +9609,7 @@ usage: spotread [-options] [logfile]
         Return the profile path, an error or False
 
         """
-        if sys.platform == "darwin" and False:  # NEVER
+        if False:  # if sys.platform == "darwin":  # NEVER
             # Alternate way of 'installing' the profile under OS X by just
             # copying it
             profiles = os.path.join("Library", "ColorSync", "Profiles")
@@ -9748,7 +9748,7 @@ usage: spotread [-options] [logfile]
                             else:
                                 result = True
                         break
-                    elif sys.platform == "darwin" and False:  # NEVER
+                    elif False:  # if sys.platform == "darwin":  # NEVER
                         # After 'installing' a profile under Mac OS X by just
                         # copying it, show system preferences
                         applescript = [
@@ -15659,7 +15659,7 @@ BEGIN_DATA
                         # set cie in odata to a=b=0
                         odata[i] = cie
 
-        if igray and False:  # NEVER?
+        if False:  # if igray:  # NEVER?
             # lookup cie->device values for grays through profile using xicclu
             gray = []
             ogray = self.xicclu(profile, igray, "r", "b", pcs="l", scale=100)
@@ -16118,7 +16118,7 @@ BEGIN_DATA
             uri = response.geturl()
             filename = Path(Path(uri).name)
             actualhash = sha256()
-            if hashes and False:  # skip this for now
+            if False:  # if hashes:  # skip this for now
                 # Read max. 64 KB hashes
                 hashesdata = hashes.read(1024 * 64)
                 hashes.close()
@@ -16345,7 +16345,7 @@ BEGIN_DATA
                         if not chunk:
                             break
                         actualhash.update(chunk)
-        if hashes and False:  # skip this for now
+        if False:  # if hashes:  # skip this for now
             # Verify hash. Compare to expected hash
             actualhash_hex = actualhash.hexdigest()
             if actualhash_hex != expectedhash_hex.decode():

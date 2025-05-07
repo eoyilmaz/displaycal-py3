@@ -258,7 +258,7 @@ def icc_device_link_to_madvr(
         #    4 byte bytes per entry = 2
         #    [3][256] 2 byte entry values. Tables are in RGB order
 
-        raw.write("cal1".encode())
+        raw.write(b"cal1")
         raw.write(struct.pack("<I", 1))
         raw.write(struct.pack("<I", 256))
         raw.write(struct.pack("<I", 2))

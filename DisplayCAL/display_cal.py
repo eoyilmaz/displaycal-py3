@@ -13920,7 +13920,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ):
                     cgats = re.sub(
                         rb'(\nREFERENCE\s+"[^"]*"\n)',
-                        (f'\\1FIT_{label} "{fit_error:.6f}"\n').encode("utf-8"),
+                        (f'\\1FIT_{label} "{fit_error:.6f}"\n').encode("utf-8"),  # noqa: UP012
                         cgats,
                     )
             metadata = []
@@ -13986,7 +13986,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
                 cgats = re.sub(
                     rb'(\nORIGINATOR\s+)"Argyll[^"]+"',
-                    (rf'\1"{appname} {version}"').encode("utf-8"),
+                    (rf'\1"{appname} {version}"').encode("utf-8"),  # noqa: UP012
                     cgats,
                 )
                 metadata.append('FIT_METHOD "xy"')

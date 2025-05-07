@@ -642,11 +642,11 @@ def app_update_confirm(
             consumer = worker.process_download
             dlname = appname
             sep = "-"
-            domain = DOMAIN
+            domain = github_api_url
             if argyll:
                 consumer = worker.process_argyll_download
                 # force Argyll downloads
-                domain = config.defaults.get("argyll.domain").split("/")[-1]
+                domain = f"https://{config.defaults.get('argyll.domain').split('/')[-1]}"
                 dlname = "Argyll"
                 sep = "_V"
                 if sys.platform == "win32":
@@ -691,7 +691,7 @@ def app_update_confirm(
                 consumer,
                 worker.download,
                 ckwargs={"exit": dlname == appname},
-                wargs=(f"https://{domain}/{folder}/{dlname}{sep}{newversion}{suffix}",),
+                wargs=(f"{domain}/{folder}/{dlname}{sep}{newversion}{suffix}",),
                 progress_msg=lang.getstr("downloading"),
                 fancy=False,
             )

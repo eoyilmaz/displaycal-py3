@@ -418,7 +418,7 @@ def load_pnp_id_cache() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8", errors="replace") as pnp_ids:
+            with open(path, encoding="utf-8", errors="replace") as pnp_ids:
                 lines = pnp_ids.readlines()
         except (IOError, OSError):
             continue

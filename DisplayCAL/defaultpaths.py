@@ -228,7 +228,7 @@ else:
         @staticmethod
         def process_config_file(path, fn):
             try:
-                with open(path, "r") as f:
+                with open(path) as f:
                     for key, value in XDG.config_file_parser(f):
                         fn(key, value)
             except EnvironmentError as exception:

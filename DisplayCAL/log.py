@@ -228,7 +228,7 @@ def get_file_logger(
         lockfilepath = os.path.join(confighome, lockbasename + ".lock")
         if os.path.isfile(lockfilepath):
             try:
-                with open(lockfilepath, "r") as lockfile:
+                with open(lockfilepath) as lockfile:
                     instances = len(lockfile.read().splitlines())
             except Exception:
                 pass

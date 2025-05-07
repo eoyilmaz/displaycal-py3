@@ -5776,26 +5776,21 @@ END_DATA
                 gnome_sm_flags = 1 | 2 | 4 | 8
                 ifaces = getattr(self, "dbus_ifaces", None)
                 if not ifaces:
-                    ifaces = dict(
-                        [
-                            (
-                                gnome_sm,
-                                {
-                                    "args": (
-                                        gnome_sm_xid,
-                                        inhibit_reason,
-                                        gnome_sm_flags,
-                                    ),
-                                    "uninhibit": "uninhibit",
-                                },
+                    ifaces = {
+                        gnome_sm:
+                        {
+                            "args": (
+                                gnome_sm_xid,
+                                inhibit_reason,
+                                gnome_sm_flags,
                             ),
-                            ("org.freedesktop.ScreenSaver", {"precedence": [gnome_sm]}),
-                            (
-                                "org.freedesktop.PowerManagement.Inhibit",
-                                {"precedence": [gnome_sm]},
-                            ),
-                        ]
-                    )
+                            "uninhibit": "uninhibit",
+                        },
+                        "org.freedesktop.ScreenSaver": {"precedence": [gnome_sm]},
+                        "org.freedesktop.PowerManagement.Inhibit": {
+                            "precedence": [gnome_sm]
+                        },
+                    }
                     self.dbus_ifaces = ifaces
                 for bus_name in ifaces:
                     iface_dict = ifaces[bus_name]
@@ -15892,9 +15887,9 @@ BEGIN_DATA
             wp = [n * 100.0 for n in list(profile.tags.wtpt.values())]
             if color_rep == "LAB":
                 wp = colormath.XYZ2Lab(*wp)
-                wp = dict((("L", wp[0]), ("a", wp[1]), ("b", wp[2])))
+                wp = {"L": wp[0], "a": wp[1], "b": wp[2]}
             else:
-                wp = dict((("X", wp[0]), ("Y", wp[1]), ("Z", wp[2])))
+                wp = {"X": wp[0], "Y": wp[1], "Z": wp[2]}
             wp = [wp] * int(add_white_patches)
             print(f"Added {add_white_patches:d} white patches")
         else:

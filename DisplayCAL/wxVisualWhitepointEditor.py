@@ -2408,7 +2408,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.newColourPanel.Size = w, h
         self.bgPanel.MinSize = w + s(24), h + s(24)
         bg_w, bg_h = (float(v) for v in self.bgPanel.Size)
-        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int(((bg_h - (h)) * y))
+        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int((bg_h - (h)) * y)
         if event:
             event.Skip()
         if event and event.GetEventType() == wx.EVT_SIZE.evtType[0]:

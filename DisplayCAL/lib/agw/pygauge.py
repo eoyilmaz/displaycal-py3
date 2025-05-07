@@ -434,7 +434,7 @@ class PyGauge(wx.Window):
                 formatString.format(12.345)
                 error_occurred = False
             except Exception as e:
-                print(("We have exception: %s" % e))
+                print("We have exception: %s" % e)
 
             if error_occurred:
                 formatString = None

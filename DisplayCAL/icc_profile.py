@@ -1960,7 +1960,7 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
                     }
                     device_ids = [device_ids[display_no]]
     if edid_:
-        for device_id in dict.fromkeys(device_ids).keys():
+        for device_id in dict.fromkeys(device_ids):
             if device_id:
                 try:
                     profile = colord.get_default_profile(device_id)

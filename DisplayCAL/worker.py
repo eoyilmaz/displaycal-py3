@@ -9832,7 +9832,7 @@ usage: spotread [-options] [logfile]
                     omit_manufacturer=True,
                 ),
             ]
-            for device_id in dict.fromkeys(device_ids).keys():
+            for device_id in dict.fromkeys(device_ids):
                 if device_id:
                     # NOTE: This can block
                     result = self._install_profile_colord(profile, device_id)

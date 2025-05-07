@@ -1961,10 +1961,12 @@ class spawn_windows(spawn_unix):
         return s
 
     def send(self, s):
-        """This sends a string to the child process. This returns the number of
-        bytes written. If a log file was set then the data is also written to
-        the log."""
-        (self.delaybeforesend)
+        """Send a string to the child process.
+        
+        This returns the number of bytes written. If a log file was set then
+        the data is also written to the log.
+        """
+        time.sleep(self.delaybeforesend)
         if self.logfile is not None:
             self.logfile.write(s)
             self.logfile.flush()
@@ -3118,9 +3120,7 @@ def split_command_line(command_line):
                 state = state_doublequote
             elif c.isspace():
                 # Add arg to arg_list if we aren't in the middle of whitespace.
-                if state == state_whitespace:
-                    None  # Do nothing.
-                else:
+                if state != state_whitespace:
                     arg_list.append(arg)
                     arg = ""
                     state = state_whitespace

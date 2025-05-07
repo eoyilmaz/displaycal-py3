@@ -49,6 +49,13 @@ def fixture_mainframe() -> MainFrame:
     worker = Worker()
     return display_cal.MainFrame(worker=worker)
 
+@pytest.fixture(scope="session", autouse=True)
+def ensure_wx_app():
+    """Ensure wx.App is created for the tests, even when headless."""
+    if not wx.GetApp():
+        app = wx.App(False)
+        yield app
+
 
 def test_update_colorimeter_correction_matrix_ctrl_items_1(
     mainframe: MainFrame,

@@ -1210,21 +1210,21 @@ class ProfileLoader:
         self._reset_gamma_ramps = bool(
             config.getcfg("profile_loader.reset_gamma_ramps")
         )
-        self._known_apps = set(
+        self._known_apps = {
             known_app.lower()
             for known_app in config.defaults["profile_loader.known_apps"].split(";")
             + config.getcfg("profile_loader.known_apps").split(";")
-        )
+        }
         self._known_window_classes = set(
             config.defaults["profile_loader.known_window_classes"].split(";")
             + config.getcfg("profile_loader.known_window_classes").split(";")
         )
-        self._buggy_video_drivers = set(
+        self._buggy_video_drivers = {
             buggy_video_driver.lower()
             for buggy_video_driver in config.getcfg(
                 "profile_loader.buggy_video_drivers"
             ).split(";")
-        )
+        }
         self._set_exceptions()
         self._madvr_instances = []
         self._madvr_reset_cal = {}
@@ -1736,9 +1736,9 @@ class ProfileLoader:
                             print("Clearing exceptions")
                         config.setcfg("profile_loader.exceptions", ";".join(exceptions))
                         self.pl._exceptions = dlg._exceptions
-                        self.pl._exception_names = set(
+                        self.pl._exception_names = {
                             os.path.basename(key) for key in dlg._exceptions
-                        )
+                        }
                         self.pl.writecfg()
                     else:
                         print("Cancelled setting exceptions")

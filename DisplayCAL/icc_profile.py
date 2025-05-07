@@ -5222,9 +5222,9 @@ class VideoCardGammaType(ICCProfileTag, ADict):
 
     def get_unique_values(self, r=True, g=True, b=True):
         r_points, g_points, b_points, linear_points = self.get_values()
-        r_unique = set(round(y) for x, y in r_points)
-        g_unique = set(round(y) for x, y in g_points)
-        b_unique = set(round(y) for x, y in b_points)
+        r_unique = {round(y) for x, y in r_points}
+        g_unique = {round(y) for x, y in g_points}
+        b_unique = {round(y) for x, y in b_points}
         return r_unique, g_unique, b_unique
 
     def get_values(self, r=True, g=True, b=True):

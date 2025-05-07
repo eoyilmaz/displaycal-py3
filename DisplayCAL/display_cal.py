@@ -131,6 +131,7 @@ from DisplayCAL.meta import (
     VERSION_BASE,
     author,
     development_home_page,
+    github_api_url,
     get_latest_changelog_entry,
     name as appname,
     version,
@@ -319,10 +320,12 @@ def swap_dict_keys_values(mydict):
     return dict([(v, k) for (k, v) in mydict.items()])
 
 def is_new_update():
-    """Check for new updates on GitHub. Returns a boolean"""
+    """Check for new updates on GitHub. 
+    Returns the latest version tuple if a new update is found,
+    returns false otherwise."""
     try:
         print("Checking for updates...")
-        response = requests.get("https://api.github.com/repos/eoyilmaz/displaycal-py3/releases/latest", timeout=10)
+        response = requests.get(f"{github_api_url}/releases/latest", timeout=10)
         response.raise_for_status()  # Raises an HTTPError for bad responses
 
         data = response.json()
@@ -690,17 +693,7 @@ def app_update_confirm(
             )
         return
     elif result != wx.ID_CANCEL:
-        path = "/"
-        if argyll:
-            path += "argyll"
-            if sys.platform == "darwin":
-                path += "-mac"
-            elif sys.platform == "win32":
-                path += "-win"
-            else:
-                # Linux
-                path += "-linux"
-        launch_file(f"https://{DOMAIN}{path}")
+        launch_file(f"{development_home_page}/releases/tag/{newversion}")
     elif not argyll:
         # Check for Argyll update
         if check_argyll_bin():

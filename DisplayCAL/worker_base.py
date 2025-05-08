@@ -597,7 +597,8 @@ class Xicclu(WorkerBase):
             if self.convert_video_rgb_to_clut65:
                 devi_devip = self.devi_devip
             else:
-                devi_devip = lambda v: v
+                def devi_devip(v):
+                    return v
             scale = float(self.scale)
             idata = list(idata)  # Make a copy
             for i, v in enumerate(idata):
@@ -711,7 +712,8 @@ class Xicclu(WorkerBase):
         if self.convert_video_rgb_to_clut65:
             devop_devo = VidRGB_to_eeColor
         else:
-            devop_devo = lambda v: v
+            def devop_devo(v):
+                return v
 
         fmt = ""
         maxv = ""

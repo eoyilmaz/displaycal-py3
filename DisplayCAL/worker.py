@@ -4971,10 +4971,12 @@ END_DATA
                 input_bits = output_bits
             # Note: We only round up for the input values, output values
             # are rounded to nearest integer
-            quantizer = lambda v: int(math.ceil(v * (2**input_bits - 1)))
+            def quantizer(v):
+                return int(math.ceil(v * (2**input_bits - 1)))
             scale = quantizer(1.0)
         else:
-            quantizer = lambda v: v
+            def quantizer(v):
+                return v
             scale = 1.0
         step = 1.0 / (size - 1)
         RGB_triplet = [0.0, 0.0, 0.0]

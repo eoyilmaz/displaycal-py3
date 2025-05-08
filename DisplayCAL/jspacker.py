@@ -80,7 +80,8 @@ class ParseMaster:
                 # build a function to do the lookup
                 i = length
                 r = replacement
-                replacement = lambda a, o: self._repl(a, o, r, i)
+                def replacement(a, o):
+                    return self._repl(a, o, r, i)
         # pass the modified arguments
         self._patterns.append(Pattern(expression, replacement, length))
 

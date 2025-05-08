@@ -4069,7 +4069,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     or False in [name.find(item) != 0 for item in include]
                 ) and (
                     len(exclude) == 0
-                    or not (False in [name.find(item) != 0 for item in exclude])
+                    or (False not in [name.find(item) != 0 for item in exclude])
                 ):
                     if name.endswith(".backup"):
                         if name == "measurement_mode.backup":
@@ -4085,7 +4085,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 len(include) == 0 or False in [name.find(item) != 0 for item in include]
             ) and (
                 len(exclude) == 0
-                or not (False in [name.find(item) != 0 for item in exclude])
+                or (False not in [name.find(item) != 0 for item in exclude])
             ):
                 setcfg(name, override[name])
         if event:
@@ -13304,7 +13304,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if (
             manufacturer
             and display
-            and not quirk_manufacturer.lower() in display.lower()
+            and quirk_manufacturer.lower() not in display.lower()
         ):
             manufacturer_display = " ".join([quirk_manufacturer, display])
         elif display:

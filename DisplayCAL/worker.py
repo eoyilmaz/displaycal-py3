@@ -10669,7 +10669,7 @@ usage: spotread [-options] [logfile]
                         self.log(exception)
                     else:
                         if (
-                            not "A2B0" in gamap_profile.tags
+                            "A2B0" not in gamap_profile.tags
                             and "rXYZ" in gamap_profile.tags
                             and "gXYZ" in gamap_profile.tags
                             and "bXYZ" in gamap_profile.tags
@@ -15932,23 +15932,21 @@ BEGIN_DATA
                 if (
                     olabels[0] not in list(ti3v.DATA_FORMAT.values())
                     and olabels[1] not in list(ti3v.DATA_FORMAT.values())
-                    and not olabels[2] in list(ti3v.DATA_FORMAT.values())
+                    and olabels[2] not in list(ti3v.DATA_FORMAT.values())
                     and (
                         ocolor == b"RGB"
                         or (
                             ocolor == b"CMYK"
-                            and not olabels[3] in list(ti3v.DATA_FORMAT.values())
+                            and olabels[3] not in list(ti3v.DATA_FORMAT.values())
                         )
                     )
                 ):
                     ti3v.DATA_FORMAT.add_data(olabels)
                 # add required fields to DATA_FORMAT if not yet present
                 if (
-                    not bytes(required[0], "utf-8") in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[1], "utf-8")
-                    in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[2], "utf-8")
-                    in list(ti3v.DATA_FORMAT.values())
+                    bytes(required[0], "utf-8") not in list(ti3v.DATA_FORMAT.values())
+                    and bytes(required[1], "utf-8") not in list(ti3v.DATA_FORMAT.values())
+                    and bytes(required[2], "utf-8") not in list(ti3v.DATA_FORMAT.values())
                 ):
                     ti3v.DATA_FORMAT.add_data(required)
                 ti1out.write(b'KEYWORD "COLOR_REP"\n')

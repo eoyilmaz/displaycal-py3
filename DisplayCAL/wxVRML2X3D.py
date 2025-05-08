@@ -1,3 +1,4 @@
+from functools import partial
 import os
 import sys
 
@@ -62,8 +63,8 @@ if gui:
                 ),
             )
             self.droptarget = FileDrop(self)
-            vrml_drop_handler = lambda vrmlpath: vrmlfile2x3dfile(
-                vrmlpath,
+            vrml_drop_handler = partial(
+                vrmlfile2x3dfile,
                 html=html,
                 embed=embed,
                 view=view,

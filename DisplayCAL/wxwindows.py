@@ -1926,7 +1926,8 @@ class BaseFrame(wx.Frame):
             or response != "ok"
         ):
             # No interaction with UI
-            relayfunc = lambda func, *args: func(*args)
+            def relayfunc(func, *args):
+                func(*args)
         else:
             # Interaction with UI
             # Prevent actual file dialogs blocking the UI - need to restore
@@ -1935,7 +1936,8 @@ class BaseFrame(wx.Frame):
             wx.FileDialog = FileDialog
             # Use CallLater so GUI methods have a chance to run before we send
             # our response
-            relayfunc = lambda func, *args: wx.CallLater(55, func, *args)
+            def relayfunc(func, *args):
+                wx.CallLater(55, func, *args)
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win

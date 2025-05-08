@@ -784,7 +784,8 @@ def create_synthetic_hdr_clut_profile(
             bt2390s = colormath.BT2390(black_cdm2, white_cdm2, master_black_cdm2, 10000)
 
         maxv = white_cdm2 / 10000.0
-        eotf = lambda v: colormath.specialpow(v, -2084)
+        def eotf(v):
+            return colormath.specialpow(v, -2084)
         oetf = eotf_inverse = lambda v: colormath.specialpow(v, 1.0 / -2084)
         eetf = bt2390.apply
 
@@ -828,11 +829,14 @@ def create_synthetic_hdr_clut_profile(
 
         maxv = 1.0
         eotf = hlg.eotf
-        eotf_inverse = lambda v: hlg.eotf(v, True)
+        def eotf_inverse(v):
+            return hlg.eotf(v, True)
         oetf = hlg.oetf
-        eetf = lambda v: v
+        def eetf(v):
+            return v
 
-        encf = lambda v: v
+        def encf(v):
+            return v
     else:
         raise NotImplementedError(f"Unknown HDR format {repr(hdr_format)}")
 

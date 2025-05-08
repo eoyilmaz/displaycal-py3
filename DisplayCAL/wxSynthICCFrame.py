@@ -1,3 +1,4 @@
+from functools import partial
 import math
 import os
 import sys
@@ -842,9 +843,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         class_i = self.profile_class_ctrl.GetSelection()
         tech_i = self.tech_ctrl.GetSelection()
         ciis_i = self.ciis_ctrl.GetSelection()
-        consumer = lambda result: (
-            isinstance(result, Exception) and show_result_dialog(result, self)
-        )
+        def consumer(result, parent):
+            if isinstance(result, Exception):
+                show_result_dialog(result, parent)
         wargs = (XYZ, trc, path)
         wkwargs = {
             "rgb": self.colorspace_rgb_ctrl.Value,
@@ -858,7 +859,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             msg = "smpte2084.rolloffclip" if trc == -2084 else "hlg"
             self.worker.recent.write(lang.getstr("trc." + msg) + "\n")
             self.worker.start(
-                consumer,
+                partial(consumer, parent=self),
                 self.create_profile,
                 wargs=(XYZ, trc, path),
                 wkwargs=wkwargs,

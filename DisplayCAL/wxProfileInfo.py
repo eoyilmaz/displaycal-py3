@@ -448,8 +448,8 @@ class GamutCanvas(LUTCanvas):
             check = self.profiles.get(i)
             if (
                 check
-                and check.fileName == profile.fileName
-                and check.ID == profile.calculateID(False)
+                and profile.fileName == check.fileName
+                and profile.calculateID(False) == check.ID
                 and intent == self.intent
                 and direction == self.direction
                 and order == self.order

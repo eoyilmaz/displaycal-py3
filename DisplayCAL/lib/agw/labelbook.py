@@ -2064,7 +2064,7 @@ class LabelContainer(ImageContainerBase):
             event (wx.MouseEvent): a :class:`MouseEvent` event to be processed.
         """
         imgIdx, where = self.HitTest(event.GetPosition())
-        if IMG_OVER_EW_BORDER != where or self._bCollapsed:
+        if where != IMG_OVER_EW_BORDER or self._bCollapsed:
             return
 
         if not self._sashRect.IsEmpty():
@@ -2106,7 +2106,7 @@ class LabelContainer(ImageContainerBase):
 
         imgIdx, where = self.HitTest(event.GetPosition())
 
-        if IMG_OVER_EW_BORDER == where and not self._bCollapsed:
+        if where == IMG_OVER_EW_BORDER and not self._bCollapsed:
             if not self._sashRect.IsEmpty():
                 ArtManager.Get().DrawDragSash(self._sashRect)
             else:

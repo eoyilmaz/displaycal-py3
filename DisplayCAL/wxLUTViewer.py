@@ -1561,7 +1561,7 @@ class LUTFrame(BaseFrame):
             yi = numpy.interp(x, xi, y)
             prev = getattr(self, f"tf_{sig}")
             for Y, v in zip(yi, x):
-                if Y <= yp[0]:
+                if Y <= yp[0]:  # noqa: SIM300
                     Y = yp[0]
                 prev.append([Y, v])
 
@@ -2000,7 +2000,7 @@ class LUTFrame(BaseFrame):
                         yi = yp
                     xy = []
                     for Y, v in zip(yi, lin):
-                        if Y <= yp[0]:
+                        if Y <= yp[0]:  # noqa: SIM300
                             Y = yp[0]
                         xy.append([v, Y])
                     data.append(xy)

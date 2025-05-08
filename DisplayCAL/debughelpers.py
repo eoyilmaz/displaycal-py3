@@ -74,7 +74,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         try:
             from DisplayCAL.wxaddons import wx
 
-            if wx.VERSION < wx_recversion:
+            if wx.VERSION < wx_recversion:  # noqa: SIM300
                 msg += (
                     "\n\nWARNING: Your version of wxPython (%s) is outdated "
                     "and no longer supported. You should consider updating "

@@ -258,7 +258,7 @@ class HLG:
         beta = black_cdm2 / self.white_cdm2
         Y = 0.2627 * R + 0.6780 * G + 0.0593 * B
         if inverse:
-            if Y > beta:
+            if beta < Y:
                 R, G, B = (
                     ((Y - beta) / alpha) ** ((1 - self.gamma) / self.gamma)
                     * ((v - beta) / alpha)

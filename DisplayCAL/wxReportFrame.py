@@ -353,7 +353,7 @@ class ReportFrame(BaseFrame):
                     self.fields_ctrl.SetItems(values)
                     self.fields_ctrl.GetContainingSizer().Layout()
                     self.panel.Thaw()
-                    fields = getcfg("measurement_report.chart.fields")
+                    _fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
                     elif "RGB" in values and ext.lower() != ".cie":

@@ -2576,7 +2576,7 @@ class BaseInteractiveDialog(wx.Dialog):
             )
         self.sizer3.Add(self.message)
 
-        btnwidth = 80
+        # btnwidth = 80
 
         self.ok = wx.Button(self.buttonpanel, wx.ID_OK, ok)
         self.sizer2.Add((-1, 1), 1)
@@ -4154,7 +4154,7 @@ class CustomGrid(wx.grid.Grid):
             self.SetGridCursor(event.Row, event.Col)
 
     def OnCellSelect(self, event):
-        row, col = event.GetRow(), event.GetCol()
+        row, _ = event.GetRow(), event.GetCol()
         self._anchor_row = row
         self._overwrite_cell_values = True
         self.SelectBlock(event.Row, event.Col, event.Row, event.Col)
@@ -5072,7 +5072,7 @@ class CustomColLabelRenderer:
             else:
                 color = grid.GetLabelTextColour()
             dc.SetTextForeground(color)
-            align = grid.GetColLabelAlignment()
+            # align = grid.GetColLabelAlignment()
             # if align[1] == wx.ALIGN_CENTER:
             #     align = align[0], wx.ALIGN_CENTER_VERTICAL
             # dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect, align[0] | align[1])
@@ -7107,8 +7107,6 @@ class TabButton(PlateButton):
         else:
             return False
 
-        rad = 0 if self._style & platebtn.PB_STYLE_SQUARE else (height - 3) / 2
-
         gc.SetPen(wx.TRANSPARENT_PEN)
 
         if self._style & platebtn.PB_STYLE_GRADIENT:
@@ -7121,6 +7119,7 @@ class TabButton(PlateButton):
         else:
             gc.SetBrush(wx.Brush(color))
 
+        # rad = 0 if self._style & platebtn.PB_STYLE_SQUARE else (height - 3) / 2
         # gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, rad)
         gc.DrawRectangle(
             0, int(height + 10 * self.dpiscale), int(width), int(8 * self.dpiscale)
@@ -8074,7 +8073,7 @@ def test():
 
     app = BaseApp(0)
     style = wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_CAN_ABORT | wx.PD_SMOOTH
-    p = ProgressDialog(
+    _ = ProgressDialog(
         msg="".join("Test " * 5),
         maximum=10000,
         style=style,

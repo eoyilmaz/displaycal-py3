@@ -878,30 +878,29 @@ def setup():
             )
         )
 
-    sources = []
-    if sys.platform == "win32":
-        macros = [("NT", None)]
-        libraries = ["user32", "gdi32"]
-        link_args = None
-    elif sys.platform == "darwin":
-        macros = [("__APPLE__", None), ("UNIX", None)]
-        libraries = None
-        # XXX: Not sure which macOS version exactly removed the need
-        # to specify -framework
-        if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
-            link_args = None
-        else:
-            link_args = [
-                "-framework Carbon",
-                "-framework CoreFoundation",
-                "-framework Python",
-                "-framework IOKit",
-            ]
-
-    else:
-        macros = [("UNIX", None)]
-        libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
-        link_args = None
+    # sources = []
+    # if sys.platform == "win32":
+    #     macros = [("NT", None)]
+    #     libraries = ["user32", "gdi32"]
+    #     link_args = None
+    # elif sys.platform == "darwin":
+    #     macros = [("__APPLE__", None), ("UNIX", None)]
+    #     libraries = None
+    #     # XXX: Not sure which macOS version exactly removed the need
+    #     # to specify -framework
+    #     if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
+    #         link_args = None
+    #     else:
+    #         link_args = [
+    #             "-framework Carbon",
+    #             "-framework CoreFoundation",
+    #             "-framework Python",
+    #             "-framework IOKit",
+    #         ]
+    # else:
+    #     macros = [("UNIX", None)]
+    #     libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
+    #     link_args = None
 
     ext_modules = []
 
@@ -1687,7 +1686,7 @@ def setup_do_py2exe():
     except ImportError:
         # no build path setup, no worries.
         pass
-    origIsSystemDLL = py2exe.build_exe.isSystemDLL
+    _orig_is_system_dll = py2exe.build_exe.isSystemDLL
     systemroot = os.getenv("SYSTEMROOT").lower()
 
     def isSystemDLL(pathname):

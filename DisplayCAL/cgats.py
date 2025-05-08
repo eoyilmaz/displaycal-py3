@@ -84,7 +84,8 @@ def sort_RGB_to_top_factory(i1, i2, i3, i4):
 
 
 def sort_RGB_white_to_top(a, b):
-    sum1, sum2 = sum(a[:3]), sum(b[:3])
+    sum1 = sum(a[:3])
+    # sum2 = sum(b[:3])
     return -1 if sum1 == 300 else 0
 
 

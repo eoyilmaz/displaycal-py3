@@ -2209,7 +2209,7 @@ class LUTFrame(BaseFrame):
                 self.Refresh()
 
     def OnWheel(self, event):
-        xy = wx.GetMousePosition()
+        _xy = wx.GetMousePosition()
         if self.client.last_draw:
             direction = 1.0 if event.WheelRotation < 0 else -1.0
             self.client.zoom(direction)
@@ -2482,7 +2482,7 @@ class LUTFrame(BaseFrame):
 def main():
     config.initcfg("curve-viewer")
     # Backup display config
-    cfg_display = getcfg("display.number")
+    _cfg_display = getcfg("display.number")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

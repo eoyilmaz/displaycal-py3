@@ -831,7 +831,7 @@ def create_shaper_curves(
         "g": colormath.Interp([], []),
         "b": colormath.Interp([], []),
     }
-    RGBwp = bwd_mtx * XYZwp
+    # RGBwp = bwd_mtx * XYZwp
     for n in range(numentries):
         n /= maxval
         if numentries < final:
@@ -7891,7 +7891,7 @@ BEGIN_DATA
             # primaries
             if logfile:
                 logfile.write("Checking for suitable PCS candidate...\n")
-            pcs_candidate = None
+            # pcs_candidate = None
             pcs_candidates = []
             XYZsrgb = []
             for channel, components in rgb:
@@ -8015,7 +8015,7 @@ BEGIN_DATA
                                 "profile.required_tags_missing", "rXYZ/gXYZ/bXYZ"
                             )
                         )
-                pcs_candidate = "BestFit"
+                # pcs_candidate = "BestFit"
             else:
                 # If clutres is -1 (auto), set it depending on area coverage
                 if clutres == -1:
@@ -8035,7 +8035,7 @@ BEGIN_DATA
                     logfile.write(f"Using primaries: {rgb_space[-1]}\n")
                 for channel, components in rgb:
                     XYZrgb.append(colormath.RGB2XYZ(*components, rgb_space=rgb_space))
-                pcs_candidate = rgb_space[-1]
+                # pcs_candidate = rgb_space[-1]
 
             for i in range(3):
                 logfile.write(
@@ -11371,12 +11371,12 @@ usage: spotread [-options] [logfile]
         # Check if we have calibration, if so, add vcgt
         vcgt = False
         options_dispcal = []
-        is_hq_cal = False
+        # is_hq_cal = False
         for cgats in ti3.values():
             if cgats.type == b"CAL":
                 vcgt = cal_to_vcgt(cgats)
                 options_dispcal = get_options_from_cal(cgats)[0]
-                is_hq_cal = "qh" in options_dispcal
+                # is_hq_cal = "qh" in options_dispcal
 
         dEs = []
         RGB_XYZ = dict_sort(RGB_XYZ)
@@ -11552,7 +11552,7 @@ usage: spotread [-options] [logfile]
                         # round(50 / 100 * 255) = 128 (the latter is what we want)!
                         RGB = tuple(round((k * step) / 100.0 * 255) for k in (a, b, c))
                         # Prefer actual measurements over interpolated values
-                        prev_actual = actual
+                        # prev_actual = actual
                         XYZ = remaining.get(RGB)
                         i += 1
                         if not XYZ:

@@ -1474,11 +1474,11 @@ class ProfileInfoFrame(LUTFrame):
         cinfo = []
         vinfo = []
         if "meta" in profile.tags:
-            for key in ("avg", "max", "rms"):
-                try:
-                    dE = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
-                except (TypeError, ValueError):
-                    pass
+            # for key in ("avg", "max", "rms"):
+            #     try:
+            #         dE = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
+            #     except (TypeError, ValueError):
+            #         pass
 
             gamuts = (
                 ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
@@ -2173,8 +2173,6 @@ class ProfileInfoFrame(LUTFrame):
 
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
-
-        item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

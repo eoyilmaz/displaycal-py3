@@ -386,7 +386,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         if isinstance(validate, dict):
             data = json.loads(raw)
             components = urllib.parse.urlparse(url)
-            api = components.path[1:]
+            # api = components.path[1:]
             query = urllib.parse.parse_qs(components.query)
             if b"m" in query:
                 method = query[b"m"][0]

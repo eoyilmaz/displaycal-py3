@@ -16560,15 +16560,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def check_profile_name(self, profile_name=None):
         if profile_name is None:
             profile_name = self.profile_name_textctrl.GetValue()
-        if (
+        return (
             re.match(r"^[^\\/:;*?\"<>|]+$", profile_name)
             and not profile_name.startswith("-")
             # Windows silently strips any combination of trailing spaces and dots
             and profile_name == profile_name.rstrip(" .")
-        ):
-            return True
-        else:
-            return False
+        )
 
     def get_ambient(self):
         if self.ambient_viewcond_adjust_cb.GetValue():

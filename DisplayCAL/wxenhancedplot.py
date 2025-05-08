@@ -2634,10 +2634,7 @@ class PlotPrintout(wx.Printout):
         self.graph = graph
 
     def HasPage(self, page):
-        if page == 1:
-            return True
-        else:
-            return False
+        return page == 1
 
     def GetPageInfo(self):
         return (1, 1, 1, 1)  # disable page numbers

@@ -1087,12 +1087,9 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
         pt = event.GetPosition()
 
         if self.GetMode(pt):
-            barSize = self._GetSashSize()
-
+            _barSize = self._GetSashSize()
             winborder, titlebar = get_platform_window_decoration_size()
-
             win0w = self.GetTopLeft().Size[0]
-
             self.Freeze()
             TwoWaySplitter.OnLeftDClick(self, event)
             if self._expanded < 0:

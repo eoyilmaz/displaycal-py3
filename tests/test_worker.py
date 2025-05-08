@@ -7,7 +7,6 @@ import os
 import shutil
 import sys
 import tempfile
-import wx
 from typing import Tuple, Dict
 from urllib.error import URLError
 
@@ -37,14 +36,6 @@ from DisplayCAL.worker import (
     Worker,
 )
 from tests.data.display_data import DisplayData
-
-
-@pytest.fixture(scope="session", autouse=True)
-def ensure_wx_app():
-    """Ensure wx.App is created for the tests, even when headless."""
-    if not wx.GetApp():
-        app = wx.App(False)
-        yield app
 
 def test_get_options_from_profile_1(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function"""

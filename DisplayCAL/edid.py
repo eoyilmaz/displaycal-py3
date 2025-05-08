@@ -16,9 +16,6 @@ import sys
 from hashlib import md5
 from typing import Optional, Union
 
-from DisplayCAL import config
-from DisplayCAL.util_str import safe_str
-
 if sys.platform == "win32":
     from DisplayCAL import util_win
     import threading

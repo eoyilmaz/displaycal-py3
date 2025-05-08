@@ -14192,10 +14192,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     break
             setattr(dlg, name, wx.CheckBox(dlg, -1, desc))
             for instrument in instruments_:
-                if name == "spyd4":
-                    check = self.worker.spyder4_cal_exists()
-                else:
-                    check = False
+                check = self.worker.spyder4_cal_exists() if name == "spyd4" else False
                 if instrument in self.worker.instruments and not check:
                     getattr(dlg, name).SetValue(True)
                     break

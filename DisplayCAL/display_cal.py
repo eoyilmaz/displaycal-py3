@@ -723,17 +723,7 @@ def app_update_confirm(
             )
         return
     elif result != wx.ID_CANCEL:
-        path = "/"
-        if argyll:
-            path += "argyll"
-            if sys.platform == "darwin":
-                path += "-mac"
-            elif sys.platform == "win32":
-                path += "-win"
-            else:
-                # Linux
-                path += "-linux"
-        launch_file(f"https://{DOMAIN}{path}")
+        launch_file(development_home_page)
     elif not argyll:
         # Check for Argyll update
         if check_argyll_bin():

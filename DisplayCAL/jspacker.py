@@ -625,7 +625,6 @@ function _bar(_ocalvar) {
     test_scripts.append(("cssQuery.js", 0, False, True, "cssQuery-p3.js"))
     test_scripts.append(("cssQuery.js", 62, False, True, "cssQuery-p4.js"))
 
-    import difflib
 
     p = JavaScriptPacker()
     for script, encoding, fastDecode, specialChars, expected in test_scripts:

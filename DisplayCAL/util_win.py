@@ -2,32 +2,25 @@
 features, such as display devices, process management, and color management.
 """
 
-import ctypes
-from ctypes import POINTER, byref, sizeof, windll, wintypes
-from ctypes.wintypes import DWORD, HANDLE, LPWSTR
 import _ctypes
+import ctypes
 import platform
 import struct
 import sys
-from typing import Any, Optional, TYPE_CHECKING
-
+import winreg
+from ctypes import POINTER, byref, sizeof, windll, wintypes
+from ctypes.wintypes import DWORD, HANDLE, LPWSTR
+from typing import TYPE_CHECKING, Any, Optional
 
 import pywintypes
-
 import win32api
-
-from win32comext.shell import shell as win32com_shell
-
 import win32con
-
 import win32process
-
 import winerror
-import winreg
+from win32comext.shell import shell as win32com_shell
 
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.win_structs import UNICODE_STRING
-
 
 if TYPE_CHECKING:
     from _win32typing import PyDISPLAY_DEVICE
@@ -47,7 +40,7 @@ if sys.getwindowsversion() >= (6,):
 
 try:
     psapi = ctypes.windll.psapi
-except WindowsError:
+except OSError:
     psapi = None
 
 
@@ -573,7 +566,7 @@ def per_user_profiles_isenabled(
             with _get_icm_display_device_key(devicekey) as key:
                 try:
                     return bool(winreg.QueryValueEx(key, "UsePerUserProfiles")[0])
-                except WindowsError as exception:
+                except OSError as exception:
                     if exception.args[0] == winerror.ERROR_FILE_NOT_FOUND:
                         return False
                     raise
@@ -785,7 +778,7 @@ class MSCMS(UnloadableWinDLL):
                 # Need to free icm32 first, otherwise mscms won't unload
                 try:
                     _free_library(self._icm32_handle)
-                except WindowsError as exception:
+                except OSError as exception:
                     if exception.args[0] != winerror.ERROR_MOD_NOT_FOUND:
                         raise
             UnloadableWinDLL.unload(self)

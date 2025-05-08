@@ -1,5 +1,3 @@
-from codecs import EncodedFile
-from hashlib import md5
 import atexit
 import logging
 import logging.handlers
@@ -7,13 +5,17 @@ import os
 import re
 import sys
 import warnings
+from codecs import EncodedFile
+from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
 
-from DisplayCAL.meta import name as appname, script2pywname
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug
-from DisplayCAL.safe_print import SafePrinter, safe_print as _safe_print
+from DisplayCAL.safe_print import SafePrinter
+from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
 
 logging.raiseExceptions = 0

@@ -4,13 +4,10 @@ import sys
 import time
 import warnings
 
-from DisplayCAL import (
-    config,
-    localization as lang,
-)
+from DisplayCAL import config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     defaults,
-    enc,
     get_argyll_display_number,
     get_default_dpi,
     get_display_number,

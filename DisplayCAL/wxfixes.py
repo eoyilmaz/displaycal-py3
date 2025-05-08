@@ -5,7 +5,8 @@ import shutil
 import sys
 import tempfile
 
-from DisplayCAL.meta import name as appname, wx_minversion
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import wx_minversion
 
 if os.getenv("GTK_CSD", "0") != "0":
     # Work-around double window decorations, see
@@ -25,7 +26,6 @@ else:
             pass
 
 import wx
-from wx import __version__ as wx_version
 
 if wx.VERSION < wx_minversion:  # noqa: SIM300
     app = wx.GetApp() or wx.App(0)
@@ -46,15 +46,14 @@ if wx.VERSION < wx_minversion:  # noqa: SIM300
     app.MainLoop()
     sys.exit()
 import wx.grid
-from wx.lib.buttons import GenBitmapButton as _GenBitmapButton
-from wx.lib.buttons import ThemedGenButton as _ThemedGenButton
-from wx.lib.buttons import GenBitmapTextButton as _GenBitmapTextButton
-from wx.lib.scrolledpanel import ScrolledPanel
-from wx.lib import platebtn
 from wx import xrc
+from wx.lib import platebtn
+from wx.lib.buttons import GenBitmapButton as _GenBitmapButton
+from wx.lib.buttons import GenBitmapTextButton as _GenBitmapTextButton
+from wx.lib.buttons import ThemedGenButton as _ThemedGenButton
+from wx.lib.scrolledpanel import ScrolledPanel
 
 from DisplayCAL.colormath import convert_range
-
 
 if not hasattr(wx.Window, "HasFocus"):
     # wxPython < 3.0
@@ -77,9 +76,9 @@ if not hasattr(platebtn, "PB_STYLE_DROPARROW"):
 if "phoenix" in wx.PlatformInfo:
     # Phoenix compatibility
 
-    from wx.lib.agw import aui
-    from wx.lib import embeddedimage
     import wx.adv
+    from wx.lib import embeddedimage
+    from wx.lib.agw import aui
 
     # Deprecated items
 

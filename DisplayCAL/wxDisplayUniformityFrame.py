@@ -1,40 +1,37 @@
 """Interactive display calibration UI."""
 
-from time import sleep, strftime
 import os
 import re
 import sys
+from time import sleep, strftime
 
-from DisplayCAL.debughelpers import Error
-from DisplayCAL.wxaddons import wx
-
+from DisplayCAL import config, report
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    getbitmap,
-    getcfg,
-    get_icon_bundle,
     get_display_number,
     get_display_rects,
+    get_icon_bundle,
     get_verified_path,
+    getbitmap,
+    getcfg,
     setcfg,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname, version as appversion
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version as appversion
 from DisplayCAL.util_os import launch_file, waccess
-from DisplayCAL.wxaddons import CustomEvent
+from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import report
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 
@@ -439,7 +436,7 @@ class DisplayUniformityFrame(BaseFrame):
                             getcfg("report.pack_js"),
                             "uniformity",
                         )
-                    except (IOError, OSError) as exception:
+                    except OSError as exception:
                         from DisplayCAL.worker import show_result_dialog
 
                         show_result_dialog(exception, self)

@@ -1,5 +1,4 @@
 import codecs
-import locale
 import re
 import string
 import sys

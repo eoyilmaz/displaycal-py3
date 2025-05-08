@@ -2,15 +2,17 @@ import math
 import os
 from time import gmtime, strftime
 
+from wx import xrc
+
 from DisplayCAL import (
     config,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_fancytext,
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
@@ -22,9 +24,7 @@ from DisplayCAL.cgats import (
 from DisplayCAL.config import (
     get_data_path,
     getcfg,
-    geticon,
     hascfg,
-    initcfg,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -36,13 +36,10 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
-from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
-
-from wx import xrc
+from DisplayCAL.wxTestchartEditor import TestchartEditor
+from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, wx
 
 
 class ReportFrame(BaseFrame):
@@ -326,14 +323,7 @@ class ReportFrame(BaseFrame):
         values = []
         try:
             cgats = CGATS(chart)
-        except (
-            IOError,
-            CGATSInvalidError,
-            CGATSInvalidOperationError,
-            CGATSKeyError,
-            CGATSTypeError,
-            CGATSValueError,
-        ) as exception:
+        except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
             show_result_dialog(exception, self)
         else:
             data_format = cgats.queryv1("DATA_FORMAT")
@@ -508,7 +498,7 @@ class ReportFrame(BaseFrame):
                             Error(f"{lang.getstr('profile.invalid')}\n{path}"),
                             parent=self,
                         )
-                except IOError as exception:
+                except OSError as exception:
                     if not silent:
                         show_result_dialog(exception, parent=self)
             if profile:

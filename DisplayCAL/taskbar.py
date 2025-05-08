@@ -67,9 +67,8 @@ Here is the code for future reference:
                 self.taskbar.contents.SetProgressState(hwnd, state)
 
 """
-import comtypes.gen.TaskbarLib as tbl
 import comtypes.client as cc
-
+import comtypes.gen.TaskbarLib as tbl
 
 TBPF_NOPROGRESS = 0
 TBPF_INDETERMINATE = 0x1

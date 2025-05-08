@@ -75,43 +75,20 @@ import time
 import traceback
 
 if sys.platform != "win32":
-    import pty
-    import tty
-    import termios
-    import resource
     import fcntl
+    import pty
+    import resource
+    import termios
+    import tty
 else:
-    from io import StringIO
     from ctypes import windll
+    from io import StringIO
+
     import pywintypes
-    from win32com.shell.shellcon import CSIDL_APPDATA
+    import win32api
+    import win32file
     from win32com.shell.shell import SHGetSpecialFolderPath
-    from win32console import (
-        AllocConsole,
-        AttachConsole,
-        FreeConsole,
-        GetConsoleProcessList,
-        GetConsoleWindow,
-        GetStdHandle,
-        KEY_EVENT,
-        PyConsoleScreenBufferType,
-        PyCOORDType,
-        PyINPUT_RECORDType,
-        PySMALL_RECTType,
-        SetConsoleOutputCP,
-        SetConsoleTitle,
-        STD_INPUT_HANDLE,
-    )
-    from win32process import (
-        CreateProcess,
-        GetCurrentProcessId,
-        GetExitCodeProcess,
-        GetStartupInfo,
-        GetWindowThreadProcessId,
-        ResumeThread,
-        SuspendThread,
-        TerminateProcess,
-    )
+    from win32com.shell.shellcon import CSIDL_APPDATA
     from win32con import (
         CREATE_NEW_CONSOLE,
         CREATE_NEW_PROCESS_GROUP,
@@ -124,20 +101,43 @@ else:
         PM_REMOVE,
         PROCESS_QUERY_INFORMATION,
         PROCESS_TERMINATE,
-        SW_HIDE,
-        SW_SHOW,
         STARTF_USESHOWWINDOW,
         STILL_ACTIVE,
+        SW_HIDE,
+        SW_SHOW,
         THREAD_SUSPEND_RESUME,
         WM_USER,
+    )
+    from win32console import (
+        KEY_EVENT,
+        STD_INPUT_HANDLE,
+        AllocConsole,
+        AttachConsole,
+        FreeConsole,
+        GetConsoleProcessList,
+        GetConsoleWindow,
+        GetStdHandle,
+        PyConsoleScreenBufferType,
+        PyCOORDType,
+        PyINPUT_RECORDType,
+        PySMALL_RECTType,
+        SetConsoleOutputCP,
+        SetConsoleTitle,
     )
     from win32gui import (
         PeekMessage,
         ShowWindow,
     )
-    import win32api
-    import win32file
-    import winerror
+    from win32process import (
+        CreateProcess,
+        GetCurrentProcessId,
+        GetExitCodeProcess,
+        GetStartupInfo,
+        GetWindowThreadProcessId,
+        ResumeThread,
+        SuspendThread,
+        TerminateProcess,
+    )
 
 
 __version__ = "2.3"
@@ -1672,7 +1672,7 @@ class spawn_unix:
         while True:
             try:
                 return select.select(iwtd, owtd, ewtd, timeout)
-            except select.error as e:
+            except OSError as e:
                 if e[0] == errno.EINTR:
                     # if we loop back we have to subtract the amount of time we already waited.
                     if timeout is not None:

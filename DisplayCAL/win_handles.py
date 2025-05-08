@@ -1,7 +1,7 @@
-from ctypes import wintypes
 import ctypes
 import os
 import sys
+from ctypes import wintypes
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -62,7 +62,7 @@ try:
         wintypes.ULONG,  # SystemInformationLength
         PULONG,
     )  # ReturnLength
-except WindowsError:
+except OSError:
     # Just in case
     ntdll = None
 

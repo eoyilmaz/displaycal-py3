@@ -1,9 +1,6 @@
 import traceback
 
-from DisplayCAL import config
-from DisplayCAL.config import fs_enc
-from DisplayCAL.log import logbuffer
-from DisplayCAL.meta import name as appname, wx_recversion
+from DisplayCAL.meta import wx_recversion
 from DisplayCAL.options import debug
 from DisplayCAL.util_str import box
 

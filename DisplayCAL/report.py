@@ -1,14 +1,14 @@
-from time import strftime
 import codecs
 import os
 import re
 import shutil
 import sys
+from time import strftime
 
-from DisplayCAL.config import get_data_path, initcfg
-from DisplayCAL.meta import version_short
 from DisplayCAL import jspacker
 from DisplayCAL import localization as lang
+from DisplayCAL.config import get_data_path, initcfg
+from DisplayCAL.meta import version_short
 
 
 def create(report_path, placeholders2data, pack=True, templatename="report"):
@@ -17,7 +17,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
     templatefilename = f"{templatename}.html"
     report_html_template_path = get_data_path(os.path.join("report", templatefilename))
     if not report_html_template_path:
-        raise IOError(lang.getstr("file.missing", templatefilename))
+        raise OSError(lang.getstr("file.missing", templatefilename))
     try:
         report_html_template = codecs.open(report_html_template_path, "r", "UTF-8")
     except OSError as exception:
@@ -46,7 +46,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
     ):
         path = get_data_path(os.path.join("report", include))
         if not path:
-            raise IOError(lang.getstr("file.missing", include))
+            raise OSError(lang.getstr("file.missing", include))
         try:
             f = codecs.open(path, "r", "UTF-8")
         except OSError as exception:

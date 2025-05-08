@@ -4,9 +4,9 @@ import struct
 import time
 import zlib
 
-from DisplayCAL.meta import name as appname, version
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version
 from DisplayCAL.util_str import safe_str
-
 
 TIFF_TAG_TYPE_BYTE = 1
 TIFF_TAG_TYPE_ASCII = 2

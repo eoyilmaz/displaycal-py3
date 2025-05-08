@@ -1,35 +1,24 @@
-from functools import partial
 import math
 import os
 import sys
+from functools import partial
+
+from wx import xrc
 
 from DisplayCAL import (
     colormath,
     config,
     floatspin,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_floatspin,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
 )
-from DisplayCAL.icc_profile import (
-    CIIS,
-    create_synthetic_hdr_clut_profile,
-    CurveType,
-    ICCProfile,
-    ICCProfileInvalidError,
-    PROFILE_CLASS,
-    s15f16_is_equal,
-    SignatureType,
-    TECH,
-    Text,
-    XYZType,
-)
-from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
     get_data_path,
@@ -40,30 +29,39 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.debughelpers import Error
+from DisplayCAL.icc_profile import (
+    CIIS,
+    PROFILE_CLASS,
+    TECH,
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    SignatureType,
+    Text,
+    XYZType,
+    create_synthetic_hdr_clut_profile,
+    s15f16_is_equal,
+)
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files
 from DisplayCAL.util_os import waccess
-from DisplayCAL.util_str import safe_str
 from DisplayCAL.worker import (
     FilteredStream,
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
 from DisplayCAL.wxfixes import TempXmlResource
+from DisplayCAL.wxLUT3DFrame import LUT3DMixin
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
-
-from wx import xrc
 
 
 class SynthICCFrame(BaseFrame, LUT3DMixin):
@@ -430,7 +428,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """ICC profile dropped"""
         try:
             profile = ICCProfile(path)
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError):
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + path), self
             )
@@ -515,7 +513,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """TI3 file dropped"""
         try:
             ti3 = CGATS(path)
-        except (IOError, CGATSInvalidError) as exception:
+        except (OSError, CGATSInvalidError):
             show_result_dialog(
                 Error(lang.getstr("error.measurement.file_invalid", path)), self
             )

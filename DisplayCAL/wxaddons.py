@@ -1,14 +1,13 @@
-from time import sleep
 import os
 import sys
 import threading
 import types
+from time import sleep
 
-from DisplayCAL.colormath import specialpow
-from DisplayCAL.wxfixes import wx, GenButton, PlateButton, get_dialogs
-
-from DisplayCAL.lib.agw.gradientbutton import GradientButton
 from DisplayCAL import floatspin
+from DisplayCAL.colormath import specialpow
+from DisplayCAL.lib.agw.gradientbutton import GradientButton
+from DisplayCAL.wxfixes import GenButton, PlateButton, get_dialogs, wx
 
 
 def AdjustMinMax(self, minvalue=0.0, maxvalue=1.0):

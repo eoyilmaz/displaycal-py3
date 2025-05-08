@@ -1,24 +1,17 @@
 # stdlib
-import codecs
-from binascii import hexlify
 import atexit
+import codecs
 import ctypes
 import datetime
-
-from functools import partial
 import getpass
 import http.client
 import math
 import mimetypes
 import os
-from io import BytesIO
-from pathlib import Path
-
-import distro
 import platform
 import re
-import socket
 import shutil
+import socket
 import string
 import struct
 import subprocess as sp
@@ -27,21 +20,25 @@ import tempfile
 import textwrap
 import threading
 import traceback
-import urllib.request
-import urllib.parse
 import urllib.error
+import urllib.parse
+import urllib.request
 import warnings
 import zipfile
 import zlib
+from binascii import hexlify
 from collections import UserString
+from functools import partial
 from hashlib import md5, sha256
+from io import BytesIO
+from pathlib import Path
 from threading import currentThread
 from time import sleep, strftime, time
 
+import distro
 from send2trash import send2trash
 
 if sys.platform == "darwin":
-    from platform import mac_ver
     from _thread import start_new_thread
 elif sys.platform == "win32":
     from ctypes import windll
@@ -50,36 +47,17 @@ else:
 
 # 3rd party
 if sys.platform == "win32":
-    from win32com.shell import shell as win32com_shell
     import pythoncom
+    import pywintypes
     import win32api
     import win32con
     import win32event
-    import pywintypes
     import winerror
+    from win32com.shell import shell as win32com_shell
 
 # custom
-from DisplayCAL.cgats import (
-    CGATS,
-    CGATSError,
-    CGATSInvalidError,
-    CGATSInvalidOperationError,
-    CGATSKeyError,
-    CGATSTypeError,
-    CGATSValueError,
-    rpad,
-    stable_sort_by_L,
-    sort_by_rec709_luma,
-    sort_by_RGB,
-    sort_by_RGB_sum,
-)
-from DisplayCAL import audio
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import defaultpaths
-from DisplayCAL import imfile
+from DisplayCAL import audio, colormath, config, defaultpaths, imfile, madvr, wexpect
 from DisplayCAL import localization as lang
-from DisplayCAL import wexpect
 from DisplayCAL.argyll import (
     check_argyll_bin,
     check_set_argyll_bin,
@@ -105,41 +83,57 @@ from DisplayCAL.argyll_cgats import (
 )
 from DisplayCAL.argyll_instruments import (
     get_canonical_instrument_name,
+)
+from DisplayCAL.argyll_instruments import (
     instruments as all_instruments,
 )
 from DisplayCAL.argyll_names import (
-    viewconds,
     intents,
     observers,
+    viewconds,
+)
+from DisplayCAL.cgats import (
+    CGATS,
+    CGATSError,
+    CGATSInvalidError,
+    CGATSInvalidOperationError,
+    CGATSKeyError,
+    CGATSTypeError,
+    CGATSValueError,
+    rpad,
+    sort_by_rec709_luma,
+    sort_by_RGB,
+    sort_by_RGB_sum,
+    stable_sort_by_L,
 )
 from DisplayCAL.colormath import VidRGB_to_eeColor, eeColor_to_VidRGB
 from DisplayCAL.config import (
+    appbasename,
     autostart,
     autostart_home,
-    script_ext,
     defaults,
     enc,
     exe,
-    exedir,
     exe_ext,
+    exedir,
     fs_enc,
-    getcfg,
-    geticon,
     get_data_path,
     get_total_patches,
-    isapp,
+    getcfg,
+    geticon,
     is_ccxx_testchart,
+    isapp,
     profile_ext,
     pydir,
+    script_ext,
     setcfg,
     setcfg_cond,
     split_display_name,
     writecfg,
-    appbasename,
 )
 from DisplayCAL.debughelpers import (
-    Error,
     DownloadError,
+    Error,
     Info,
     UnloggedError,
     UnloggedInfo,
@@ -149,43 +143,44 @@ from DisplayCAL.debughelpers import (
     handle_error,
 )
 from DisplayCAL.defaultpaths import (
-    cache,
-    iccprofiles_home,
-    iccprofiles_display_home,
     appdata,
+    cache,
+    iccprofiles_display_home,
+    iccprofiles_home,
 )
 from DisplayCAL.edid import WMIError, get_edid
 from DisplayCAL.icc_profile import (
-    _mp_apply,
-    chromaticAdaptionTag,
+    GAMUT_VOLUME_SRGB,
     ChromaticityType,
-    create_RGB_A2B_XYZ,
-    create_synthetic_hdr_clut_profile,
     CRInterpolation,
     CurveType,
     DictType,
     ICCProfile,
     ICCProfileInvalidError,
     ICCProfileTag,
-    GAMUT_VOLUME_SRGB,
-    get_display_profile,
     LUT16Type,
     MultiLocalizedUnicodeType,
     ProfileSequenceDescType,
-    s15Fixed16Number,
-    s15Fixed16Number_tohex,
-    set_display_profile,
     Text,
     TextDescriptionType,
     TextType,
     VideoCardGammaTableType,
     VideoCardGammaType,
     XYZType,
+    _mp_apply,
+    chromaticAdaptionTag,
+    create_RGB_A2B_XYZ,
+    create_synthetic_hdr_clut_profile,
+    get_display_profile,
+    s15Fixed16Number,
+    s15Fixed16Number_tohex,
+    set_display_profile,
 )
 from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
-from DisplayCAL import madvr
-from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version
+from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, version
+from DisplayCAL.meta import name as appname
 from DisplayCAL.multiprocess import cpu_count, pool_slice
+from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.options import (
     always_fail_download,
     debug,
@@ -196,12 +191,10 @@ from DisplayCAL.options import (
     test_require_sensor_cal,
     verbose,
 )
-
-from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.patterngenerators import (
     PrismaPatternGeneratorClient,
-    ResolveLSPatternGeneratorServer,
     ResolveCMPatternGeneratorServer,
+    ResolveLSPatternGeneratorServer,
     WebWinHTTPPatternGeneratorServer,
 )
 from DisplayCAL.util_decimal import stripzeros
@@ -213,18 +206,18 @@ from DisplayCAL.util_io import (
     GzipFileProper,
     LineBufferedStream,
     LineCache,
-    StringIOu as StringIO,
     TarFileProper,
 )
+from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_list import intlist, natsort
 
 if sys.platform == "darwin":
     from DisplayCAL.util_mac import (
+        get_model_id,
         mac_app_activate,
         mac_terminal_do_script,
         mac_terminal_set_colors,
         osascript,
-        get_model_id,
     )
 elif sys.platform == "win32":
     from DisplayCAL import util_win
@@ -241,10 +234,10 @@ else:
 
     try:
         from DisplayCAL.util_dbus import (
-            DBusObject,
-            DBusException,
-            DBusObjectError,
             BUSTYPE_SESSION,
+            DBusException,
+            DBusObject,
+            DBusObjectError,
             dbus_session,
             dbus_system,
         )
@@ -261,7 +254,6 @@ from DisplayCAL.util_os import (
     mksfile,
     mkstemp_bypath,
     quote_args,
-    safe_glob,
     which,
 )
 
@@ -272,8 +264,8 @@ if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
 
 from DisplayCAL.util_str import (
     make_filename_safe,
-    safe_basestring,
     safe_asciize,
+    safe_basestring,
     safe_str,
     strtr,
     universal_newlines,
@@ -287,6 +279,9 @@ from DisplayCAL.worker_base import (
     printcmdline,
 )
 from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
+from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
+from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
+from DisplayCAL.wxUntetheredFrame import UntetheredFrame
 from DisplayCAL.wxwindows import (
     ConfirmDialog,
     HtmlInfoDialog,
@@ -295,9 +290,6 @@ from DisplayCAL.wxwindows import (
     SimpleTerminal,
     show_result_dialog,
 )
-from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxUntetheredFrame import UntetheredFrame
 
 RDSMM = None
 if sys.platform not in ("darwin", "win32"):
@@ -306,7 +298,6 @@ if sys.platform not in ("darwin", "win32"):
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning, stacklevel=2)
 import wx.lib.delayedresult as delayedresult
-
 
 INST_CAL_MSGS = [
     "Do a reflective white calibration",
@@ -1331,7 +1322,7 @@ def get_default_headers():
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)
-        oscpu = f"Mac OS X {mac_ver()[0]}; {mac_ver()[-1]}"
+        oscpu = f"Mac OS X {platform.mac_ver()[0]}; {platform.mac_ver()[-1]}"
     elif sys.platform == "win32":
         machine = platform.machine()
         oscpu = "{}; {}".format(
@@ -1392,7 +1383,7 @@ def http_request(
     try:
         conn.request(request_type, path, params, headers)
         resp = conn.getresponse()
-    except (socket.error, http.client.HTTPException) as exception:
+    except (OSError, http.client.HTTPException) as exception:
         msg = " ".join(
             [
                 failure_msg,
@@ -2261,7 +2252,7 @@ class Worker(WorkerBase):
                     return result
                 try:
                     cgats = CGATS(ccmx)
-                except (IOError, CGATSError) as exception:
+                except (OSError, CGATSError) as exception:
                     return exception
                 else:
                     ccxx_instrument_from_cgats = cgats.queryv1("INSTRUMENT") or b""
@@ -2966,7 +2957,7 @@ class Worker(WorkerBase):
                         )
                         # Read three entries black cal
                         spydx_bcal = spydx_cal.read(spydx_cal_int_bytes * 3)
-                except EnvironmentError as exception:
+                except OSError as exception:
                     self.log(
                         f"{appname}: Warning - could not read SpyderX sensor cal:",
                         exception,
@@ -3193,7 +3184,7 @@ END_DATA
         ti3_path = os.path.join(tempdir, "0_16.ti3")
         try:
             ti3 = CGATS(ti3_path)
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             return exception
         try:
             verify_ti1_rgb_xyz(ti3)
@@ -5622,7 +5613,7 @@ END_DATA
                         if tmp and os.path.isfile(tmp_cal):
                             try:
                                 os.remove(tmp_cal)
-                            except EnvironmentError as exception:
+                            except OSError as exception:
                                 print(exception)
                         lut_access.append(retcode == 0)
                         if verbose >= 1:
@@ -6097,17 +6088,14 @@ BEGIN_DATA
                                 # .cal file
                                 try:
                                     cal = CGATS(calfilename)
-                                except (IOError, CGATSError) as exception:
+                                except (OSError, CGATSError) as exception:
                                     self.madtpg_disconnect(False)
                                     return exception
                             else:
                                 # ICC profile
                                 try:
                                     profile = ICCProfile(calfilename)
-                                except (
-                                    IOError,
-                                    ICCProfileInvalidError,
-                                ) as exception:
+                                except (OSError, ICCProfileInvalidError) as exception:
                                     self.madtpg_disconnect(False)
                                     return exception
                         if profile:
@@ -7077,7 +7065,7 @@ BEGIN_DATA
                 if not silent and len(self.errors):
                     errstr = "".join(self.errors).strip()
                     self.log(errstr)
-        except (Error, socket.error, EnvironmentError, RuntimeError) as exception:
+        except (OSError, Error, RuntimeError) as exception:
             return exception
         except Exception:
             if debug:
@@ -7133,7 +7121,7 @@ BEGIN_DATA
                                     self.patterngenerator.send(
                                         (0,) * 3, x=0, y=0, w=1, h=1
                                     )
-                                except socket.error:
+                                except OSError:
                                     pass
                         else:
                             self.patterngenerator.disconnect_client()
@@ -8547,7 +8535,7 @@ BEGIN_DATA
             host = getcfg("patterngenerator.prisma.host")
             try:
                 host = socket.gethostbyname(host)
-            except socket.error:
+            except OSError:
                 pass
             return f"prisma:{host}"
         if display_name.startswith("Chromecast "):
@@ -8700,14 +8688,7 @@ BEGIN_DATA
             # different sources
             try:
                 ti3_options_colprof = get_options_from_ti3(ti3)[1]
-            except (
-                IOError,
-                CGATSInvalidError,
-                CGATSInvalidOperationError,
-                CGATSKeyError,
-                CGATSTypeError,
-                CGATSValueError,
-            ) as exception:
+            except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
                 print(exception)
                 ti3_options_colprof = []
             for option in ti3_options_colprof:
@@ -9207,7 +9188,7 @@ usage: spotread [-options] [logfile]
         profile = None
         try:
             profile = ICCProfile(profile_path)
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError) as exception:
             return exception
         device_id = self.get_device_id(quirk=False, query=True)
         if (
@@ -9675,7 +9656,7 @@ usage: spotread [-options] [logfile]
                                 )
                 if "-Sl" in args and (
                     sys.platform != "darwin"
-                    or intlist(mac_ver()[0].split(".")) >= [10, 6]
+                    or intlist(platform.mac_ver()[0].split(".")) >= [10, 6]
                 ):
                     # If a 'system' install is requested under Linux,
                     # Mac OS X >= 10.6 or Windows,
@@ -9720,7 +9701,7 @@ usage: spotread [-options] [logfile]
                     if (
                         sys.platform == "darwin"
                         and "-Sl" in args
-                        and intlist(mac_ver()[0].split(".")) < [10, 6]
+                        and intlist(platform.mac_ver()[0].split(".")) < [10, 6]
                     ):
                         # The profile has been installed, but we need a little
                         # help from AppleScript to actually make it the default
@@ -10222,7 +10203,7 @@ usage: spotread [-options] [logfile]
         if os.path.exists(desktop_file_path):
             try:
                 os.remove(desktop_file_path)
-            except Exception as exception:
+            except Exception:
                 result = Warning(
                     lang.getstr("error.autostart_remove_old", desktop_file_path)
                 )
@@ -10556,7 +10537,7 @@ usage: spotread [-options] [logfile]
                 if not isinstance(result, Exception) and result:
                     try:
                         profile = ICCProfile(profile_path)
-                    except (IOError, ICCProfileInvalidError):
+                    except (OSError, ICCProfileInvalidError):
                         result = Error(
                             lang.getstr("profile.invalid") + "\n" + profile_path
                         )
@@ -10637,7 +10618,7 @@ usage: spotread [-options] [logfile]
             try:
                 if not profile:
                     profile = ICCProfile(profile_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 result = Error(lang.getstr("profile.invalid") + "\n" + profile_path)
             else:
                 # Do we have a B2A0 table?
@@ -10667,7 +10648,7 @@ usage: spotread [-options] [logfile]
                     gamap_profile_filename = getcfg("gamap_profile")
                     try:
                         gamap_profile = ICCProfile(gamap_profile_filename)
-                    except (IOError, ICCProfileInvalidError) as exception:
+                    except (OSError, ICCProfileInvalidError) as exception:
                         self.log(exception)
                     else:
                         if (
@@ -10793,7 +10774,7 @@ usage: spotread [-options] [logfile]
                             if pcs:
                                 try:
                                     gamap_profile = ICCProfile(pcs)
-                                except (IOError, ICCProfileInvalidError) as exception:
+                                except (OSError, ICCProfileInvalidError) as exception:
                                     self.log(exception)
                             else:
                                 missing = lang.getstr(
@@ -10873,7 +10854,7 @@ usage: spotread [-options] [logfile]
                         if not isinstance(result, Exception) and result:
                             try:
                                 link_profile = ICCProfile(link_profile)
-                            except (IOError, ICCProfileInvalidError) as exception:
+                            except (OSError, ICCProfileInvalidError) as exception:
                                 self.log(exception)
                                 continue
                             table = f"B2A{tableno:d}"
@@ -11695,7 +11676,7 @@ usage: spotread [-options] [logfile]
         # Strip potential CAL from Ti3
         try:
             oti3 = CGATS(outname + ".ti3")
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             return exception
         else:
             if 0 in oti3:
@@ -11815,7 +11796,7 @@ usage: spotread [-options] [logfile]
                 fakeout = f"{outname}.{ti1name}"
                 try:
                     shutil.copyfile(ti1, f"{fakeout}.ti1")
-                except EnvironmentError as exception:
+                except OSError as exception:
                     return exception
                 # Lookup ti1 through ti3
                 result = self.exec_cmd(
@@ -11827,7 +11808,7 @@ usage: spotread [-options] [logfile]
                 )
                 try:
                     os.remove(f"{fakeout}.ti1")
-                except EnvironmentError as exception:
+                except OSError as exception:
                     self.log(exception)
                 if not result:
                     return UnloggedError("\n".join(self.errors))
@@ -11835,7 +11816,7 @@ usage: spotread [-options] [logfile]
                     return result
                 try:
                     os.remove(f"{outname}.0.ti3")
-                except EnvironmentError as exception:
+                except OSError as exception:
                     self.log(exception)
             else:
                 # Use gray+primaries from existing ti3
@@ -11847,13 +11828,13 @@ usage: spotread [-options] [logfile]
             )
             try:
                 os.remove(f"{fakeout}.ti3")
-            except EnvironmentError as exception:
+            except OSError as exception:
                 self.log(exception)
             if isinstance(result, Exception) or not result:
                 return result
             try:
                 matrix_profile = ICCProfile(fakeout + profile_ext)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 return Error(
                     lang.getstr("profile.invalid") + "\n" + fakeout + profile_ext
                 )
@@ -11875,7 +11856,7 @@ usage: spotread [-options] [logfile]
                 profile.fileName = outname + profile_ext
             try:
                 os.remove(fakeout + profile_ext)
-            except EnvironmentError as exception:
+            except OSError as exception:
                 self.log(exception)
         return profile
 
@@ -11897,7 +11878,7 @@ usage: spotread [-options] [logfile]
             profile_path = profile
             try:
                 profile = ICCProfile(profile_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 return Error(lang.getstr("profile.invalid") + "\n" + profile_path)
         else:
             profile_path = profile.fileName
@@ -12707,7 +12688,7 @@ usage: spotread [-options] [logfile]
                     self.patterngenerator_send(
                         (0.5,) * 3, raise_exceptions=True, increase_sent_count=False
                     )
-                except (socket.error, http.client.HTTPException) as exception:
+                except (OSError, http.client.HTTPException) as exception:
                     self.log(exception)
                     self.patterngenerator.disconnect_client()
         elif pgname == "Prisma":
@@ -12885,7 +12866,7 @@ usage: spotread [-options] [logfile]
                     return Error(
                         lang.getstr("profile.invalid") + "\n" + getcfg("gamap_profile")
                     )
-                except IOError as exception:
+                except OSError as exception:
                     return exception
                 if (
                     getcfg("profile.type") != "l"
@@ -13313,7 +13294,7 @@ usage: spotread [-options] [logfile]
                 if ext.lower() in (".icc", ".icm"):
                     try:
                         profile = ICCProfile(filename + ext)
-                    except (IOError, ICCProfileInvalidError):
+                    except (OSError, ICCProfileInvalidError):
                         return (
                             Error(
                                 lang.getstr(
@@ -13396,14 +13377,7 @@ usage: spotread [-options] [logfile]
                 # Get dispcal options if present
                 try:
                     options_dispcal = get_options_from_cal(cal)[0]
-                except (
-                    IOError,
-                    CGATSInvalidError,
-                    CGATSInvalidOperationError,
-                    CGATSKeyError,
-                    CGATSTypeError,
-                    CGATSValueError,
-                ) as exception:
+                except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
                     return exception, None
                 if not os.path.exists(calcopy):
                     try:
@@ -13432,7 +13406,7 @@ usage: spotread [-options] [logfile]
                     return None, None
                 try:
                     profile = ICCProfile(filename + ext)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     profile = None
                 if profile:
                     ti3 = StringIO(
@@ -13601,7 +13575,7 @@ usage: spotread [-options] [logfile]
                     return None, None
                 try:
                     profile = ICCProfile(profile_path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     return (
                         Error(lang.getstr("profile.invalid") + "\n" + profile_path),
                         None,
@@ -14244,14 +14218,7 @@ usage: spotread [-options] [logfile]
         if not isinstance(cgats, CGATS):
             try:
                 cgats = CGATS(cgats)
-            except (
-                IOError,
-                CGATSInvalidError,
-                CGATSInvalidOperationError,
-                CGATSKeyError,
-                CGATSTypeError,
-                CGATSValueError,
-            ) as exception:
+            except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
                 return exception
         self.terminal.cgats = cgats
 
@@ -14926,7 +14893,7 @@ usage: spotread [-options] [logfile]
                     if not isinstance(result, Exception) and result:
                         try:
                             profile = ICCProfile(profile_path)
-                        except (IOError, ICCProfileInvalidError):
+                        except (OSError, ICCProfileInvalidError):
                             result = Error(
                                 lang.getstr("profile.invalid") + "\n" + profile_path
                             )
@@ -15012,7 +14979,7 @@ usage: spotread [-options] [logfile]
         # Wayland does not support videoLUT access (only by installing a
         # profile via colord)
         return (
-            sys.platform != "darwin" or intlist(mac_ver()[0].split(".")) < [10, 6]
+            sys.platform != "darwin" or intlist(platform.mac_ver()[0].split(".")) < [10, 6]
         ) and os.getenv("XDG_SESSION_TYPE") != "wayland"
 
     @property
@@ -15270,7 +15237,7 @@ BEGIN_DATA
                 # Get measurement data
                 try:
                     cti3 = CGATS(profile.tags.targ)
-                except (IOError, CGATSError):
+                except (OSError, CGATSError):
                     pass
                 else:
                     if 0 not in cti3 or cti3[0].type.strip() != b"CTI3":
@@ -16084,13 +16051,7 @@ BEGIN_DATA
                     noredir = urllib.request.build_opener(NoHTTPRedirectHandler)
                     noredir.addheaders = list(get_default_headers().items())
                     hashes = noredir.open(f"https://{DOMAIN}/sha256sums.txt")
-            except (
-                socket.error,
-                urllib.error.URLError,
-                http.client.HTTPException,
-                CertificateError,
-                SSLError,
-            ) as exception:
+            except (OSError, urllib.error.URLError, http.client.HTTPException, CertificateError, SSLError) as exception:
                 if response:
                     response.close()
                 if "CERTIFICATE_VERIFY_FAILED" in safe_str(exception):
@@ -16178,7 +16139,7 @@ BEGIN_DATA
             try:
                 fd, download_path = mksfile(download_path)
                 tmp_fd, tmp_download_path = mksfile(download_path + ".download")
-            except EnvironmentError as mksfile_exception:
+            except OSError as mksfile_exception:
                 response.close()
                 for fd_, pth in [(fd, download_path), (tmp_fd, tmp_download_path)]:
                     if not fd_:
@@ -16186,7 +16147,7 @@ BEGIN_DATA
                     os.close(fd_)
                     try:
                         os.remove(download_path)
-                    except EnvironmentError as exception:
+                    except OSError as exception:
                         print(exception)
                 return mksfile_exception
             print(lang.getstr("downloading"), uri, "\u2192", download_path)
@@ -16308,7 +16269,7 @@ BEGIN_DATA
                                     download_file.write(chunk)
                                     if hashes:
                                         actualhash.update(chunk)
-                        except EnvironmentError as download_file_exception:
+                        except OSError as download_file_exception:
                             return download_file_exception
                         print(lang.getstr("success"))
             finally:
@@ -16318,7 +16279,7 @@ BEGIN_DATA
                     # writing destination
                     try:
                         os.remove(tmp_download_path)
-                    except EnvironmentError as exception:
+                    except OSError as exception:
                         print(exception)
                 if self.thread_abort or download_file_exception:
                     # Remove destination file if download aborted or error
@@ -16328,7 +16289,7 @@ BEGIN_DATA
                         os.close(fd)
                     try:
                         os.remove(download_path)
-                    except EnvironmentError as exception:
+                    except OSError as exception:
                         print(exception)
         else:
             # File already exists

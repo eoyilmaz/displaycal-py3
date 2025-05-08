@@ -1,4 +1,13 @@
-from socketserver import TCPServer
+import errno
+import http.client
+import json
+import select
+import struct
+import sys
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
 from socket import (
     AF_INET,
     SHUT_RDWR,
@@ -7,29 +16,18 @@ from socket import (
     SOCK_DGRAM,
     SOCK_STREAM,
     SOL_SOCKET,
-    error,
-    gethostname,
     gethostbyname,
+    gethostname,
     socket,
     timeout,
 )
+from socketserver import TCPServer
 from time import sleep
-import errno
-import http.client
-import json
-import select
-import struct
-import sys
-import threading
-import urllib.request
-import urllib.error
-import urllib.parse
 
 from DisplayCAL import localization as lang
+from DisplayCAL import webwin
 from DisplayCAL.network import get_network_addr
 from DisplayCAL.util_http import encode_multipart_formdata
-from DisplayCAL import webwin
-
 
 _lock = threading.RLock()
 
@@ -39,7 +37,7 @@ def _eintr_retry(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, select.error) as e:
+        except OSError as e:
             if e.args[0] != errno.EINTR:
                 raise
 
@@ -49,7 +47,7 @@ def _shutdown(sock, addr):
         # Will fail if the socket isn't connected, i.e. if there
         # was an error during the call to connect()
         sock.shutdown(SHUT_RDWR)
-    except error as exception:
+    except OSError as exception:
         if exception.errno != errno.ENOTCONN:
             print("PatternGenerator: SHUT_RDWR for %s:%i failed:" % addr[:2], exception)
     sock.close()
@@ -75,7 +73,7 @@ class GenHTTPPatternGeneratorClient:
         try:
             self.conn.request(method, url, params, headers or {})
             resp = self.conn.getresponse()
-        except (error, http.client.HTTPException) as exception:
+        except (OSError, http.client.HTTPException) as exception:
             # TODO: What is the point of having the except clause here?
             raise exception
         else:
@@ -97,7 +95,7 @@ class GenHTTPPatternGeneratorClient:
         self.conn = http.client.HTTPConnection(self.ip, self.port)
         try:
             self.conn.connect()
-        except (error, http.client.HTTPException):
+        except (OSError, http.client.HTTPException):
             del self.conn
             raise
 
@@ -144,7 +142,7 @@ class GenTCPSockPatternGeneratorServer:
         if self.logfile:
             try:
                 host = get_network_addr()
-            except error:
+            except OSError:
                 host = gethostname()
             self.logfile.write(
                 "{} {}:{}\n".format(lang.getstr("connection.waiting"), host, self.port)
@@ -191,7 +189,7 @@ class GenTCPSockPatternGeneratorServer:
         if hasattr(self, "conn"):
             try:
                 self.conn.shutdown(SHUT_RDWR)
-            except error as exception:
+            except OSError as exception:
                 if exception.errno != errno.ENOTCONN:
                     print(
                         "Warning - could not shutdown pattern generator connection:",
@@ -258,7 +256,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             )
             self._threads.append(thread)
             thread.start()
-        except error as exception:
+        except OSError as exception:
             print(f"PrismaPatternGeneratorClient: UDP Port {port:d}: {exception:s}")
 
     def _cast_receive_handler(self, sock, host, port):
@@ -279,7 +277,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                     exception,
                 )
                 continue
-            except error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -623,7 +621,7 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
         if self.logfile:
             try:
                 host = get_network_addr()
-            except error:
+            except OSError:
                 host = gethostname()
             self.logfile.write(
                 "{} {}:{}\n".format(lang.getstr("webserver.waiting"), host, self.port)

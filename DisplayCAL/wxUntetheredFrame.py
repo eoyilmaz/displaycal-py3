@@ -4,13 +4,15 @@ import re
 import sys
 import time
 
+from DisplayCAL import audio, colormath, config
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import (
+    get_data_path,
+    get_icon_bundle,
     getbitmap,
     getcfg,
     geticon,
-    get_data_path,
-    get_icon_bundle,
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
@@ -24,15 +26,11 @@ from DisplayCAL.wxwindows import (
     CustomCheckBox,
     CustomGrid,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 FGCOLOUR = wx.Colour(0x99, 0x99, 0x99)
@@ -750,12 +748,13 @@ class UntetheredFrame(BaseFrame):
 
 
 if __name__ == "__main__":
+    import random
     from _thread import start_new_thread
     from time import sleep
-    import random
+
+    from DisplayCAL import worker
     from DisplayCAL.icc_profile import ICCProfile
     from DisplayCAL.util_io import Files
-    from DisplayCAL import worker
 
     class Subprocess:
         def send(self, bytes_):

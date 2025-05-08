@@ -16,26 +16,25 @@ from DisplayCAL import (
     config,
     floatspin,
     imfile,
-    localization as lang,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
+from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ as argyll_RGB2XYZ
 from DisplayCAL.argyll_RGB2XYZ import (
-    RGB2XYZ as argyll_RGB2XYZ,
     XYZ2RGB as argyll_XYZ2RGB,
 )
-from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,
     CGATSKeyError,
     rpad,
-    stable_sort_by_L,
     sort_by_rec709_luma,
     sort_by_RGB,
     sort_by_RGB_sum,
+    stable_sort_by_L,
 )
 from DisplayCAL.config import (
     defaults,
-    get_current_profile,
     get_data_path,
     get_display_name,
     get_total_patches,
@@ -44,7 +43,6 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     hascfg,
-    profile_ext,
     setcfg,
     writecfg,
 )
@@ -57,7 +55,7 @@ from DisplayCAL.icc_profile import (
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
 from DisplayCAL.util_dict import swap_dict_keys_values
-from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
+from DisplayCAL.util_os import is_superuser, launch_file, waccess
 from DisplayCAL.worker import (
     Error,
     Worker,
@@ -66,9 +64,8 @@ from DisplayCAL.worker import (
     get_current_profile_path,
     show_result_dialog,
 )
+from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import get_default_size
-from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -76,7 +73,6 @@ from DisplayCAL.wxwindows import (
     CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
-    InfoDialog,
     get_gradient_panel,
 )
 
@@ -1922,7 +1918,7 @@ END_DATA"""
     def tc_add_saturation_sweeps_handler(self, event):
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
         else:
             rgb_space = profile.get_rgb_space()
@@ -1985,7 +1981,7 @@ END_DATA"""
     def tc_add_ti3_handler(self, event, chart=None):
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
             return
 
@@ -2311,7 +2307,7 @@ END_DATA"""
                         (chart.filename, "DATA_FORMAT"),
                     )
                 )
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             return exception
         finally:
             path = None

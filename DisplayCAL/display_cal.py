@@ -41,6 +41,14 @@ from io import BytesIO, StringIO
 from time import localtime, sleep, strftime, strptime, struct_time
 from zlib import crc32
 
+from send2trash import send2trash
+
+# wxPython
+from wx import xrc
+from wx.lib import delayedresult, platebtn
+from wx.lib.art import flagart
+from wx.lib.scrolledpanel import ScrolledPanel
+
 # Custom modules
 from DisplayCAL import (
     audio,
@@ -49,26 +57,23 @@ from DisplayCAL import (
     colormath,
     config,
     floatspin,
-    localization as lang,
     madvr,
-    pyi_md5pickuphelper,
     report,
     util_x,
-    wexpect,
-    wxenhancedplot as plot,
     xh_bitmapctrls,
     xh_fancytext,
     xh_filebrowsebutton,
     xh_floatspin,
     xh_hstretchstatbmp,
 )
+from DisplayCAL import localization as lang
 from DisplayCAL.argyll import (
     check_set_argyll_bin,
     get_argyll_instrument_config,
     get_argyll_latest_version,
     get_argyll_version,
     make_argyll_compatible_path,
-    set_argyll_bin
+    set_argyll_bin,
 )
 from DisplayCAL.argyll_cgats import (
     cal_to_fake_profile,
@@ -89,18 +94,16 @@ from DisplayCAL.cgats import (
     CGATSValueError,
 )
 from DisplayCAL.colormath import (
-    CIEDCCT2xyY,
     XYZ2CCT,
+    CIEDCCT2xyY,
     XYZ2Lab,
     XYZ2xyY,
     planckianCT2xyY,
     xyY2CCT,
 )
 from DisplayCAL.config import (
-    appbasename,
     autostart,
     autostart_home,
-    build,
     defaults,
     enc,
     exe,
@@ -119,7 +122,6 @@ from DisplayCAL.config import (
     initcfg,
     is_ccxx_testchart,
     is_profile,
-    isapp,
     isexe,
     profile_ext,
     pydir,
@@ -130,27 +132,26 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.debughelpers import (
-    ResourceError,
     getevtobjname,
     getevttype,
     handle_error,
 )
-from DisplayCAL.edid import get_manufacturer_name, PNP_ID_CACHE
+from DisplayCAL.edid import PNP_ID_CACHE, get_manufacturer_name
 from DisplayCAL.icc_profile import (
+    GAMUT_VOLUME_ADOBERGB,
+    GAMUT_VOLUME_SMPTE431_P3,
+    GAMUT_VOLUME_SRGB,
     CurveType,
-    chromaticAdaptionTag,
     DictType,
     ICCProfile,
     ICCProfileInvalidError,
-    GAMUT_VOLUME_ADOBERGB,
-    GAMUT_VOLUME_SRGB,
-    GAMUT_VOLUME_SMPTE431_P3,
     LUT16Type,
     TextDescriptionType,
     TextType,
-    XYZType,
     VideoCardGammaTableType,
     VideoCardGammaType,
+    XYZType,
+    chromaticAdaptionTag,
 )
 from DisplayCAL.log import logbuffer
 from DisplayCAL.meta import (
@@ -160,9 +161,11 @@ from DisplayCAL.meta import (
     author,
     development_home_page,
     get_latest_changelog_entry,
-    name as appname,
     version,
     version_short,
+)
+from DisplayCAL.meta import (
+    name as appname,
 )
 from DisplayCAL.options import (
     debug,
@@ -223,21 +226,14 @@ from DisplayCAL.worker import (
     parse_argument_string,
     show_result_dialog,
 )
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-from DisplayCAL.wxMeasureFrame import MeasureFrame, get_default_size
-from DisplayCAL.wxReportFrame import ReportFrame
-from DisplayCAL.wxSynthICCFrame import SynthICCFrame
-from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxVisualWhitepointEditor import VisualWhitepointEditor
 from DisplayCAL.wxaddons import (
-    BetterWindowDisabler,
     CustomEvent,
     CustomGridCellEvent,
     IdFactory,
     PopupMenu,
     wx,
 )
+from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
 from DisplayCAL.wxfixes import (
     BitmapWithThemedButton,
     PlateButton,
@@ -248,13 +244,17 @@ from DisplayCAL.wxfixes import (
     set_maxsize,
     wx_Panel,
 )
+from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wxMeasureFrame import MeasureFrame, get_default_size
+from DisplayCAL.wxReportFrame import ReportFrame
+from DisplayCAL.wxSynthICCFrame import SynthICCFrame
+from DisplayCAL.wxTestchartEditor import TestchartEditor
+from DisplayCAL.wxVisualWhitepointEditor import VisualWhitepointEditor
 from DisplayCAL.wxwindows import (
     AboutDialog,
     AuiBetterTabArt,
-    AutocompleteComboBox,
     BaseApp,
     BaseFrame,
-    BetterStaticFancyText,
     BitmapBackgroundPanel,
     BitmapBackgroundPanelText,
     BorderGradientButton,
@@ -263,29 +263,19 @@ from DisplayCAL.wxwindows import (
     CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
-    FlatShadedButton,
     HtmlWindow,
     HyperLinkCtrl,
     InfoDialog,
     LogWindow,
-    ProgressDialog,
     TabButton,
     TooltipWindow,
     get_dialogs,
-    get_gradient_panel,
 )
 
-from send2trash import send2trash
-
-# wxPython
-from wx import xrc
-from wx.lib import delayedresult, platebtn
-from wx.lib.art import flagart
-from wx.lib.scrolledpanel import ScrolledPanel
-
 if sys.platform == "win32":
-    from DisplayCAL import util_win
     import winreg
+
+    from DisplayCAL import util_win
 elif sys.platform == "darwin":
     from DisplayCAL import util_mac
 
@@ -638,7 +628,7 @@ def app_update_confirm(
                     )
                     try:
                         value = winreg.QueryValueEx(key, "PROCESSOR_ARCHITECTURE")[0]
-                    except WindowsError:
+                    except OSError:
                         value = "x86"
                     finally:
                         winreg.CloseKey(key)
@@ -1037,7 +1027,7 @@ def colorimeter_correction_check_overwrite(
     try:
         with open(path, "wb") as cgatsfile:
             cgatsfile.write(cgats.rstrip(b"\n") + b"\n")
-    except EnvironmentError as exception:
+    except OSError as exception:
         show_result_dialog(exception, parent)
         return False
     if getcfg("colorimeter_correction_matrix_file").split(":")[0] != "AUTO":
@@ -1486,7 +1476,7 @@ class GamapFrame(BaseFrame):
         if p and c:
             try:
                 profile = ICCProfile(v)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 p = False
                 InfoDialog(
                     self,
@@ -4590,7 +4580,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             elif os.path.isfile(path):
                 try:
                     cgats = CGATS(path, strict=True)
-                except (IOError, CGATSError) as exception:
+                except (OSError, CGATSError) as exception:
                     print(exception)
                     if isinstance(exception, CGATSInvalidError):
                         malformed_ccxx.append(path)
@@ -4712,7 +4702,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 try:
                     if not cgats:
                         cgats = CGATS(ccmx[1], strict=True)
-                except (IOError, CGATSError) as exception:
+                except (OSError, CGATSError) as exception:
                     if isinstance(exception, CGATSInvalidError) and ccmx[
                         1
                     ] in self.get_argyll_data_files(
@@ -4834,7 +4824,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 if not cgats:
                     cgats = CGATS(ccmx[1], strict=True)
-            except (IOError, CGATSError) as exception:
+            except (OSError, CGATSError) as exception:
                 show_ccxx_error_dialog(exception, ccmx[1], self)
                 ccmx = ["", ""]
                 index = 0
@@ -6103,7 +6093,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if profile_filename:
                 try:
                     profile = ICCProfile(profile_filename)
-                except (IOError, ICCProfileInvalidError) as exception:
+                except (OSError, ICCProfileInvalidError) as exception:
                     print(f"{profile_filename}:", exception)
                 else:
                     if profile_filename not in list(self.input_profiles.values()):
@@ -6248,7 +6238,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             else:
                 try:
                     profile = ICCProfile(lut3d_input_profile)
-                except (IOError, ICCProfileInvalidError) as exception:
+                except (OSError, ICCProfileInvalidError) as exception:
                     print(f"{lut3d_input_profile}:", exception)
                 else:
                     desc = profile.getDescription()
@@ -6558,7 +6548,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # Disable 3D LUT
             try:
                 self.worker.patterngenerator.disable_processing()
-            except socket.error as exception:
+            except OSError as exception:
                 show_result_dialog(exception)
                 return
         pos = self.GetDisplay().ClientArea[:2]
@@ -7868,7 +7858,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Save profile
         try:
             profile.write()
-        except EnvironmentError as exception:
+        except OSError as exception:
             show_result_dialog(exception, self)
         if result != wx.ID_OK:
             return
@@ -8094,7 +8084,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not isinstance(result, Exception) and result:
             try:
                 profile = ICCProfile(profile_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + profile_path,
@@ -8178,7 +8168,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     if verbose >= 1:
                         print(lang.getstr("failure"))
                     InfoDialog(
@@ -8254,7 +8244,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             elif cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
                 try:
                     profile = ICCProfile(cal)
-                except (IOError, ICCProfileInvalidError) as exception:
+                except (OSError, ICCProfileInvalidError) as exception:
                     show_result_dialog(exception, self)
                     profile = None
             else:
@@ -8538,7 +8528,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 return
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     parent,
                     msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -8587,7 +8577,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         chart = getcfg("measurement_report.chart")
         try:
             chart = CGATS(chart, True)
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             show_result_dialog(exception, getattr(self, "reportframe", self))
             return
 
@@ -8628,7 +8618,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         for i, profilepath in enumerate(paths):
             try:
                 profile = ICCProfile(profilepath)
-            except (IOError, ICCProfileInvalidError) as exception:
+            except (OSError, ICCProfileInvalidError) as exception:
                 if isinstance(exception, ICCProfileInvalidError):
                     msg = "{}\n{}".format(lang.getstr("profile.invalid"), profilepath)
                 else:
@@ -8954,7 +8944,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 with open(ti3_path, "wb") as ti3_file:
                     ti3_file.write(bytes(ti3))
-            except EnvironmentError:
+            except OSError:
                 InfoDialog(
                     getattr(self, "reportframe", self),
                     msg=lang.getstr("error.file.create", ti3_path),
@@ -9053,7 +9043,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         try:
             with open(ti1_path, "wb") as ti1_file:
                 ti1_file.write(bytes(ti1))
-        except EnvironmentError:
+        except OSError:
             traceback.print_exc()
             InfoDialog(
                 getattr(self, "reportframe", self),
@@ -9151,14 +9141,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # get item 0 of the ti3 to strip the CAL part from the measured data
             try:
                 ti3_measured = CGATS(ti3_path)[0]
-            except (
-                IOError,
-                CGATSInvalidError,
-                CGATSInvalidOperationError,
-                CGATSKeyError,
-                CGATSTypeError,
-                CGATSValueError,
-            ) as exc:
+            except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exc:
                 result = exc
             else:
                 print(lang.getstr("success"))
@@ -9459,7 +9442,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ccmx = os.path.basename(ccmx[1])
                 try:
                     cgats = CGATS(ccmxpath)
-                except (IOError, CGATSError) as exception:
+                except (OSError, CGATSError) as exception:
                     print(f"{ccmxpath}:", exception)
                 else:
                     filename, ext = os.path.splitext(ccmx)
@@ -9600,7 +9583,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
                         try:
                             profile = ICCProfile(cal)
-                        except (IOError, ICCProfileInvalidError) as exception:
+                        except (OSError, ICCProfileInvalidError) as exception:
                             print(exception)
                             profile = None
                     else:
@@ -9982,7 +9965,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ip = socket.gethostbyname(host)
                     self.worker.patterngenerator.host = ip
                     self.worker.patterngenerator.connect()
-                except socket.error as exception:
+                except OSError as exception:
                     result = exception
                 else:
                     result = ip
@@ -10560,7 +10543,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.worker.options_dispcal = []
                 try:
                     profile = ICCProfile(cal)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + cal,
@@ -10746,7 +10729,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             print("Using factory calibration", path)
                             try:
                                 cgats = CGATS(path)
-                            except (IOError, CGATSError) as exception:
+                            except (OSError, CGATSError) as exception:
                                 print(exception)
                             else:
                                 white = cgats.queryi1(
@@ -10999,7 +10982,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             has_cal = False
             try:
                 profile = ICCProfile(profile_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + profile_path,
@@ -11721,7 +11704,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return "fail"
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     return "fail"
             wx.CallAfter(self.init_lut_viewer, profile=profile, show=True)
         elif data[0] == "profile-info" and len(data) < 3:
@@ -11735,7 +11718,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return "fail"
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     return "fail"
             wx.CallAfter(self.profile_info_handler, profile=profile)
         elif data[0] == "synthprofile" and len(data) < 3:
@@ -11923,7 +11906,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if ext.lower() in (".icc", ".icm"):
                         try:
                             profile = ICCProfile(path)
-                        except (IOError, ICCProfileInvalidError):
+                        except (OSError, ICCProfileInvalidError):
                             msg = lang.getstr("profile.invalid") + "\n" + path
                             if event or not lut_viewer:
                                 show_result_dialog(Error(msg), self)
@@ -12492,7 +12475,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     if os.path.isfile(ti3):
                         try:
                             cgats = CGATS(ti3)
-                        except (IOError, CGATSError) as exception:
+                        except (OSError, CGATSError) as exception:
                             show_result_dialog(exception, dlg)
                             cgats = CGATS()
                         cgats_instrument = cgats.queryv1("TARGET_INSTRUMENT")
@@ -13009,15 +12992,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if not ccxx_testchart:
                 raise Error(lang.getstr("not_found", lang.getstr("ccxx.ti1")))
             ccxx = CGATS(ccxx_testchart)
-        except (
-            Error,
-            IOError,
-            CGATSInvalidError,
-            CGATSInvalidOperationError,
-            CGATSKeyError,
-            CGATSTypeError,
-            CGATSValueError,
-        ) as exception:
+        except (OSError, Error, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
             show_result_dialog(exception, self)
             return
         cgats_list = []
@@ -13115,7 +13090,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         cgats = CGATS(path)
                     if not cgats.queryv1("DATA"):
                         raise CGATSError("Missing DATA")
-                except Exception as exception:
+                except Exception:
                     traceback.print_exc()
                     InfoDialog(
                         self,
@@ -15357,7 +15332,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if ext.lower() != ".ti3":
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     show_result_dialog(
                         Error(lang.getstr("profile.invalid") + "\n" + path), self
                     )
@@ -15436,7 +15411,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 return
                             try:
                                 ti3.write(path)
-                            except EnvironmentError as exception:
+                            except OSError as exception:
                                 show_result_dialog(exception, self)
                 else:
                     show_result_dialog(
@@ -15463,7 +15438,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if not isinstance(ti3, CGATS):
                 ti3 = CGATS(ti3)
             ti3_1 = verify_ti1_rgb_xyz(ti3)
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             show_result_dialog(exception, self)
             return False
         suspicious = check_ti3(ti3_1)
@@ -15504,7 +15479,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if ti3.filename and os.path.exists(ti3.filename) and not force:
                     try:
                         ti3.write()
-                    except EnvironmentError as exception:
+                    except OSError as exception:
                         show_result_dialog(exception, self)
                         return False
                     print("Written updated TI3 to", ti3.filename)
@@ -15932,7 +15907,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if source_ext.lower() != ".ti3":
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -16633,7 +16608,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if include_lastmod:
                 try:
                     lastmod = os.stat(filename).st_mtime
-                except EnvironmentError:
+                except OSError:
                     lastmod = -1
                 data_files.append((filename, lastmod))
             else:
@@ -16811,7 +16786,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if ext.lower() in (".icc", ".icm"):
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except (OSError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
                         msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -17526,7 +17501,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if ext.lower() in (".icc", ".icm"):
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=lang.getstr("profile.invalid") + "\n" + path,
@@ -17678,7 +17653,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             try:
                 options_dispcal, options_colprof = get_options_from_cal(path)
-            except (IOError, CGATSError):
+            except (OSError, CGATSError):
                 InfoDialog(
                     self,
                     msg="{}\n{}".format(lang.getstr("calibration.file.invalid"), path),

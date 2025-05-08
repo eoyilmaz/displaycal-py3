@@ -3,9 +3,6 @@ import re
 import subprocess as sp
 from time import sleep
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import verbose
-
 
 def get_osascript_args(applescript):
     """Return arguments ready to use for osascript"""

@@ -6,14 +6,15 @@ import random
 from io import BytesIO
 from typing import Callable, Optional, Union
 
+import wx
 
 from DisplayCAL.lib.agw.fmresources import (
     BU_EXT_LEFT_ALIGN_STYLE,
     BU_EXT_RIGHT_ALIGN_STYLE,
     BU_EXT_RIGHT_TO_LEFT_STYLE,
+    CS_DROPSHADOW,
     BottomShadow,
     BottomShadowFull,
-    CS_DROPSHADOW,
     ControlDisabled,
     ControlFocus,
     ControlPressed,
@@ -33,8 +34,6 @@ from DisplayCAL.lib.agw.fmresources import (
     shadow_right_top_xpm,
     shadow_right_xpm,
 )
-
-import wx
 
 # ------------------------------------------------------------------------------------ #
 # Class DCSaver

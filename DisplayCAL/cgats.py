@@ -7,14 +7,15 @@ Copyright (C) 2008 Florian Hoech
 import functools
 import io
 import math
-import re
 import os
+import re
 from pathlib import Path
 
 from DisplayCAL import colormath
 from DisplayCAL.log import safe_print
-from DisplayCAL.options import debug, verbose
-from DisplayCAL.util_io import GzipFileProper, StringIOu as StringIO
+from DisplayCAL.options import debug
+from DisplayCAL.util_io import GzipFileProper
+from DisplayCAL.util_io import StringIOu as StringIO
 
 
 def get_device_value_labels(color_rep=None):

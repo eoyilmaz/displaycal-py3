@@ -22,17 +22,17 @@ the wrapper script in the root directory of the source tar.gz/zip
 
 import codecs
 import ctypes.util
-from configparser import ConfigParser
-from distutils.command.install import install
 import distutils.core
-from distutils.util import change_root, get_platform
-from fnmatch import fnmatch
 import functools
 import os
 import platform
 import re
 import shutil
 import sys
+from configparser import ConfigParser
+from distutils.command.install import install
+from distutils.util import change_root, get_platform
+from fnmatch import fnmatch
 from time import strftime
 
 
@@ -68,13 +68,13 @@ distutils.filelist.findall = findall  # Fix findall bug in distutils
 
 from DisplayCAL.defaultpaths import autostart, autostart_home
 from DisplayCAL.meta import (
+    DOMAIN,
     appstream_id,
     author,
     author_ascii,
     author_email,
     description,
     development_home_page,
-    DOMAIN,
     longdesc,
     name,
     py_maxversion,
@@ -463,7 +463,7 @@ def setup():
         if "--use-setuptools" in sys.argv[1:] and not os.path.exists("use-setuptools"):
             open("use-setuptools", "w").close()
         try:
-            from setuptools import setup, find_packages
+            from setuptools import find_packages, setup
 
             setuptools = True
             print("using setuptools")
@@ -495,7 +495,7 @@ def setup():
         distutils.filelist.findall = findall
 
     if not setuptools:
-        from distutils.core import setup, Extension
+        from distutils.core import setup
 
         print("using distutils")
 
@@ -1636,7 +1636,7 @@ def setup():
         if (
             (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
         ):
-            from vc90crt import name as vc90crt_name, vc90crt_copy_files
+            from vc90crt import vc90crt_copy_files
 
             if do_py2exe:
                 vc90crt_copy_files(dist_dir)

@@ -38,7 +38,6 @@ Create a new task to be run under the current user account at logon:
 import codecs
 import os
 import subprocess as sp
-import sys
 import tempfile
 
 import pywintypes
@@ -46,10 +45,8 @@ import winerror
 
 from DisplayCAL.meta import name as appname
 from DisplayCAL.safe_print import enc
-from DisplayCAL.util_os import getenvu
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin
-
 
 RUNLEVEL_HIGHESTAVAILABLE = "HighestAvailable"
 RUNLEVEL_LEASTPRIVILEGE = "LeastPrivilege"
@@ -492,7 +489,7 @@ if __name__ == "__main__":
             try:
                 print(attr(*args))
             except pywintypes.com_error as exception:
-                print(WindowsError(*exception.args))
+                print(OSError(*exception.args))
             except TypeError as exception:
                 print(exception)
         else:

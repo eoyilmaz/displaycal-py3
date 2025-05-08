@@ -1,9 +1,7 @@
-import locale
 import os
 import sys
 
 from DisplayCAL.encoding import get_encodings
-
 
 original_codepage = None
 enc, fs_enc = get_encodings()
@@ -16,8 +14,8 @@ def _get_console_width():
         _conwidth = 80
         try:
             if sys.platform == "win32":
-                from ctypes import windll, create_string_buffer
                 import struct
+                from ctypes import create_string_buffer, windll
 
                 # Use stderr handle so that pipes don't affect the reported size
                 stderr_handle = windll.kernel32.GetStdHandle(-12)
@@ -116,7 +114,7 @@ class SafePrinter:
                 file_.write(line)
                 if end:
                     file_.write(end)
-            except IOError:
+            except OSError:
                 pass
 
 

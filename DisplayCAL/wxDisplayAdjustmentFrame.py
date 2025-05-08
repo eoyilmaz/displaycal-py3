@@ -5,27 +5,8 @@ import platform
 import re
 import sys
 
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.lib.agw import labelbook
-from DisplayCAL.lib.agw.fmresources import (
-    INB_BOTTOM,
-    INB_LEFT,
-    INB_RIGHT,
-    INB_TOP,
-    INB_BORDER,
-    INB_SHOW_ONLY_TEXT,
-    INB_SHOW_ONLY_IMAGES,
-    INB_FIT_BUTTON,
-    INB_USE_PIN_BUTTON,
-    INB_WEB_HILITE,
-    INB_FIT_LABELTEXT,
-    IMG_OVER_IMG,
-    IMG_OVER_PIN,
-    IMG_OVER_EW_BORDER,
-    IMG_NONE,
-)
-from DisplayCAL.lib.agw.pygauge import PyGauge
-
+from DisplayCAL import audio, config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     get_data_path,
     get_default_dpi,
@@ -35,23 +16,40 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
+from DisplayCAL.lib.agw import labelbook
+from DisplayCAL.lib.agw.fmresources import (
+    IMG_NONE,
+    IMG_OVER_EW_BORDER,
+    IMG_OVER_IMG,
+    IMG_OVER_PIN,
+    INB_BORDER,
+    INB_BOTTOM,
+    INB_FIT_BUTTON,
+    INB_FIT_LABELTEXT,
+    INB_LEFT,
+    INB_RIGHT,
+    INB_SHOW_ONLY_IMAGES,
+    INB_SHOW_ONLY_TEXT,
+    INB_TOP,
+    INB_USE_PIN_BUTTON,
+    INB_WEB_HILITE,
+)
+from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap
+from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 BORDERCOLOUR = wx.Colour(0x22, 0x22, 0x22)

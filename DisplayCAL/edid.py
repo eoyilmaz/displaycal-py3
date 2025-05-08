@@ -12,16 +12,16 @@ import string
 import struct
 import subprocess
 import sys
-
 from hashlib import md5
 from typing import Optional, Union
 
 if sys.platform == "win32":
-    from DisplayCAL import util_win
     import threading
 
     # Use registry as fallback for Win2k/XP/2003
     import winreg
+
+    from DisplayCAL import util_win
 
     wmi = None
     if sys.getwindowsversion() >= (6,):
@@ -35,15 +35,13 @@ if sys.platform == "win32":
     else:
         # Use registry as fallback for Win2k/XP/2003
         import winreg
-    import pywintypes
-    import win32api
 elif sys.platform == "darwin":
     import binascii
 
-from DisplayCAL import config
 from DisplayCAL import RealDisplaySizeMM as RDSMM
+from DisplayCAL import config
 from DisplayCAL.util_os import which
-from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
+from DisplayCAL.util_str import safe_str
 
 HEADER = (0, 8)
 MANUFACTURER_ID = (8, 10)
@@ -234,7 +232,7 @@ def get_edid_windows_registry(id, device):
 
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
-    except WindowsError:
+    except OSError:
         # Registry error
         print(
             "Windows registry error: Key",
@@ -251,7 +249,7 @@ def get_edid_windows_registry(id, device):
 
         try:
             test = winreg.QueryValueEx(hk, "Driver")[0]
-        except WindowsError:
+        except OSError:
             # No Driver entry
             continue
 
@@ -264,7 +262,7 @@ def get_edid_windows_registry(id, device):
                 winreg.HKEY_LOCAL_MACHINE,
                 "\\".join([subkey, hkname, "Device Parameters"]),
             )
-        except WindowsError:
+        except OSError:
             # No Device Parameters (registry error?)
             print(
                 "Windows registry error: Key",
@@ -275,7 +273,7 @@ def get_edid_windows_registry(id, device):
 
         try:
             edid = winreg.QueryValueEx(devparms, "EDID")[0]
-        except WindowsError:
+        except OSError:
             # No EDID entry
             pass
         else:
@@ -417,7 +415,7 @@ def load_pnp_id_cache() -> None:
         try:
             with open(path, encoding="utf-8", errors="replace") as pnp_ids:
                 lines = pnp_ids.readlines()
-        except (IOError, OSError):
+        except OSError:
             continue
 
         if path.endswith("hwdb"):

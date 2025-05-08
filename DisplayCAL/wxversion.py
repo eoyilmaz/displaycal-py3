@@ -77,12 +77,11 @@ found at: http://wiki.wxpython.org/index.cgi/MultiVersionInstalls
 
 """
 
+import fnmatch
+import glob
+import os
 import re
 import sys
-import os
-import glob
-import fnmatch
-
 
 _selected = None
 
@@ -222,8 +221,9 @@ def ensureMinimal(minVersion, optionsRequired=False):
         if _EM_DEBUG:  # We'll do it this way just for the test code below
             raise VersionError("Requested version of wxPython not found")
 
-        import wx
         import webbrowser
+
+        import wx
 
         versions = "\n".join(["      " + ver for ver in getInstalled()])
         app = wx.App()

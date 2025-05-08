@@ -1,35 +1,31 @@
-import re
 import os
+import re
 import sys
-
 import traceback
 
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import colormath, config, x3dom
 from DisplayCAL import localization as lang
-from DisplayCAL import x3dom
+from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     defaults,
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
     get_display_rects,
+    get_verified_path,
     getbitmap,
     getcfg,
     geticon,
-    get_verified_path,
     profile_ext,
     setcfg,
     writecfg,
 )
 from DisplayCAL.icc_profile import (
-    CurveType,
-    GAMUT_VOLUME_SRGB,
     GAMUT_VOLUME_ADOBERGB,
     GAMUT_VOLUME_SMPTE431_P3,
+    GAMUT_VOLUME_SRGB,
+    CurveType,
     ICCProfile,
     ICCProfileInvalidError,
     NamedColor2Type,
@@ -50,6 +46,8 @@ from DisplayCAL.worker import (
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wxfixes import set_maxsize, wx_Panel
 from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
 from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile
 from DisplayCAL.wxwindows import (
@@ -64,7 +62,6 @@ from DisplayCAL.wxwindows import (
     SimpleBook,
     TwoWaySplitter,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel, set_maxsize
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -812,7 +809,7 @@ class GamutViewOptions(wx_Panel):
         srgb = None
         try:
             srgb = ICCProfile(get_data_path("ref/sRGB.icm"))
-        except EnvironmentError:
+        except OSError:
             pass
         except Exception as exception:
             print(exception)
@@ -1461,7 +1458,7 @@ class ProfileInfoFrame(LUTFrame):
         if not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
@@ -2003,7 +2000,7 @@ class ProfileInfoFrame(LUTFrame):
                 return
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{path}"), self
                 )

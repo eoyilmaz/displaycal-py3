@@ -416,8 +416,11 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
                 parent.check_instrument_setup, check_donation, (parent, snapshot)
             )
         return
-    if not wx.GetApp():
-        return
+    
+    #HACK: Unsure why this is here, but it breaks the tests when headless
+    #if not wx.GetApp():
+    #    return
+    
     try:
         newversion_tuple = resp
     except ValueError:

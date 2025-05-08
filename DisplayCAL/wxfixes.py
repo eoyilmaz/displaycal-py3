@@ -238,7 +238,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.TextCtrl.PositionToXY = lambda self, pos: PositionToXY(self, pos)[1:]
 
     def TabFrame__init__(self, parent):
-        pre = wx.Window.__init__(self)
+        wx.Window.__init__(self)
 
         self._tabs = None
         self._rect = wx.Rect(0, 0, 200, 200)

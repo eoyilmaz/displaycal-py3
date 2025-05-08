@@ -201,7 +201,7 @@ def vrmlfile2x3dfile(
                 print("%r is not a file." % vrmlpath)
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         defaultDir, defaultFile = config.get_verified_path("last_vrml_path")
         dlg = wx.FileDialog(
             None,
@@ -233,7 +233,7 @@ def vrmlfile2x3dfile(
                 print(f"{repr(dirname)} is not writable.")
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         if x3dpath:
             defaultDir, defaultFile = os.path.split(x3dpath)
         else:

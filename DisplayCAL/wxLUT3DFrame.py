@@ -121,7 +121,7 @@ class LUT3DMixin:
         )
         for color in ("white", "red", "green", "blue"):
             for coord in "xy":
-                v = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
+                _ = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
                 getattr(self, "lut3d_content_colorspace_%s_%s" % (color, coord)).Bind(
                     floatspin.EVT_FLOATSPIN, self.lut3d_content_colorspace_xy_handler
                 )

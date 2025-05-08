@@ -276,7 +276,7 @@ def build_py2exe():
     setuptools = True
     debug = False
     dry_run = False
-    do_full_install = False
+    # do_full_install = False
 
     doc = "."
     data = "."

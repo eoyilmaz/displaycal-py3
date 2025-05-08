@@ -1352,7 +1352,7 @@ END_DATA"""
     def tc_grid_label_left_dclick_handler(self, event):
         row, col = event.GetRow(), event.GetCol()
         if col == -1:  # row label clicked
-            data = self.ti1.queryv1("DATA")
+            _data = self.ti1.queryv1("DATA")
             wp = self.ti1.queryv1("APPROX_WHITE_POINT")
             if wp:
                 wp = [float(v) for v in wp.split()]
@@ -1729,7 +1729,6 @@ END_DATA"""
                 black_patches = self.ti1.queryv1("BLACK_COLOR_PATCHES")
         if single_channel_patches is None:
             single_channel_patches = self.tc_single_channel_patches.GetValue()
-        single_channel_patches_total = single_channel_patches * 3
         if gray_patches is None:
             gray_patches = self.tc_gray_patches.GetValue()
         if (
@@ -1887,7 +1886,7 @@ END_DATA"""
         self.tc_enable_add_precond_controls()
 
     def tc_enable_add_precond_controls(self):
-        tc_algo = getcfg("tc_algo")
+        _tc_algo = getcfg("tc_algo")
         add_preconditioned_enable = hasattr(self, "ti1") and bool(
             getcfg("tc_precond_profile")
         )
@@ -1951,7 +1950,7 @@ END_DATA"""
             rows = self.grid.GetSelectionRows()
             row = rows[-1] if rows else self.grid.GetNumberRows() - 1
             for i in range(maxv):
-                saturation = 1.0 / (maxv - 1) * i
+                _saturation = 1.0 / (maxv - 1) * i
                 RGB, xyY = colormath.RGBsaturation(
                     R, G, B, 1.0 / (maxv - 1) * i, rgb_space
                 )
@@ -2110,7 +2109,7 @@ END_DATA"""
                     and "XYZ_Z" in data_format
                 )
                 if getcfg("tc_add_ti3_relative"):
-                    adapted = chart.adapt()
+                    _ = chart.adapt()
                 ti1, ti3, void = self.worker.chart_lookup(
                     chart, profile, as_ti3, intent=intent, white_patches=False
                 )
@@ -4330,7 +4329,7 @@ END_DATA"""
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
 
-        item_selected = False
+        # item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

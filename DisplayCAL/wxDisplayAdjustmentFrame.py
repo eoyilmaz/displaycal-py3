@@ -307,10 +307,10 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             else:
                 buttonRect = wx.Rect(pos, 1, modRectWidth, modRectHeight)
 
-            if bUseYcoord:
-                rect = wx.Rect(0, pos, rectWidth, rectWidth)
-            else:
-                rect = wx.Rect(pos, 0, rectWidth, rectWidth)
+            # if bUseYcoord:
+            #     rect = wx.Rect(0, pos, rectWidth, rectWidth)
+            # else:
+            #     rect = wx.Rect(pos, 0, rectWidth, rectWidth)
 
             # Incase user set both flags:
             # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
@@ -966,8 +966,8 @@ class DisplayAdjustmentFrame(windowcls):
                 setcfg("position.progress.y", y)
 
     def OnPageChanging(self, event):
-        oldsel = event.GetOldSelection()
-        newsel = event.GetSelection()
+        _oldsel = event.GetOldSelection()
+        _newsel = event.GetSelection()
         self.abort()
         event.Skip()
 

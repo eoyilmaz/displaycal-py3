@@ -184,7 +184,7 @@ class SysTrayIcon(wx.EvtHandler):
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map
 
-        classAtom = win32gui.RegisterClass(wc)
+        _classAtom = win32gui.RegisterClass(wc)
 
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = win32gui.CreateWindow(
@@ -400,7 +400,7 @@ def _get_selected_menu_item(id, menu):
 
 
 def main():
-    app = wx.App(0)
+    _app = wx.App(0)
     hinst = win32gui.GetModuleHandle(None)
     try:
         hicon = win32gui.LoadImage(

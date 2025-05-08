@@ -1195,7 +1195,7 @@ class FloatSpin(wx.PyControl):
 
         if curr:
             try:
-                curro = float(curr)
+                # curro = float(curr)
                 curr = FixedPoint(curr, 20)
             except Exception:
                 self.SetValue(self._value)

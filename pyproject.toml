@@ -180,6 +180,7 @@ select = [
     # McCabe complexity
     "C",
 ]
+extend-ignore = ["E741"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 12

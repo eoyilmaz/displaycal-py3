@@ -1088,8 +1088,8 @@ class CGATS(dict):
                         if isinstance(data, dict):
                             try:
                                 value = data[item.decode()]
-                            except KeyError:
-                                raise CGATSKeyError(item)
+                            except KeyError as e:
+                                raise CGATSKeyError(item) from e
                         else:
                             value = data[i]
                         if item.upper() in (b"INDEX", b"SAMPLE_ID", b"SAMPLEID"):
@@ -1115,11 +1115,11 @@ class CGATS(dict):
                         ):
                             try:
                                 value = float(value)
-                            except ValueError:
+                            except ValueError as e:
                                 raise CGATSValueError(
                                     f"Invalid data type for {item} "
-                                    f"(expected float, got {type(value)})"
-                                )
+                                    f"(expected float, got {value.__class__.__name__})"
+                                ) from e
                             else:
                                 strval = bytes(str(abs(value)), "UTF-8")
                                 if (

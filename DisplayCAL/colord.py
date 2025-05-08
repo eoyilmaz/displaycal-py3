@@ -140,7 +140,7 @@ def device_connect(client, device_id):
     try:
         device = client.find_device_sync(device_id, cancellable)
     except Exception as exception:
-        raise CDError(exception.args[0])
+        raise CDError(exception.args[0]) from exception
 
     # Connect to device
     if not device.connect_sync(cancellable):
@@ -217,10 +217,10 @@ def find(what, search):
     except Exception as exception:
         if hasattr(exception, "get_dbus_name"):
             if exception.get_dbus_name() == "org.freedesktop.ColorManager.NotFound":
-                raise CDObjectNotFoundError(safe_str(exception))
+                raise CDObjectNotFoundError(safe_str(exception)) from exception
             else:
-                raise CDObjectQueryError(safe_str(exception))
-        raise CDError(safe_str(exception))
+                raise CDObjectQueryError(safe_str(exception)) from exception
+        raise CDError(safe_str(exception)) from exception
 
 
 def get_default_profile(device_id):
@@ -232,7 +232,7 @@ def get_default_profile(device_id):
     try:
         properties = device.properties
     except Exception as exception:
-        raise CDError(safe_str(exception))
+        raise CDError(safe_str(exception)) from exception
     else:
         if properties.get("ProfilingInhibitors"):
             return None
@@ -353,7 +353,7 @@ def install_profile(
                     p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
                     stdout, stderr = p.communicate()
                 except Exception as exception:
-                    raise CDError(safe_str(exception))
+                    raise CDError(safe_str(exception)) from exception
                 if logfn and stdout.strip():
                     logfn(stdout.strip())
                 if p.returncode == 0 or os.path.isfile(profile_install_name):
@@ -429,7 +429,7 @@ def install_profile(
             p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
             stdout, stderr = p.communicate()
         except Exception as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         if logfn and stdout.strip():
             logfn(stdout.strip())
 
@@ -446,7 +446,7 @@ def install_profile(
             p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
             stdout, stderr = p.communicate()
         except Exception as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         else:
             if p.returncode != 0:
                 raise CDError(stdout.strip() or errmsg)
@@ -489,7 +489,7 @@ class Object(DBusObject):
                 object_type,
             )
         except DBusException as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         self._object_type = object_type
 
     _properties = DBusObject.properties
@@ -505,7 +505,7 @@ class Object(DBusObject):
                 properties[key] = value
             return properties
         except DBusException as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
 
 
 class Device(Object):

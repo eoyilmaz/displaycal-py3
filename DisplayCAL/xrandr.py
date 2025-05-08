@@ -15,16 +15,16 @@ if not libx11pth:
     raise ImportError("Couldn't find libX11")
 try:
     libx11 = cdll.LoadLibrary(libx11pth)
-except OSError:
-    raise ImportError("Couldn't load libX11")
+except OSError as e:
+    raise ImportError("Couldn't load libX11") from e
 
 libxrandrpth = util.find_library("Xrandr")
 if not libxrandrpth:
     raise ImportError("Couldn't find libXrandr")
 try:
     libxrandr = cdll.LoadLibrary(libxrandrpth)
-except OSError:
-    raise ImportError("Couldn't load libXrandr")
+except OSError as e:
+    raise ImportError("Couldn't load libXrandr") from e
 
 import os
 import sys
@@ -62,7 +62,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError(f"libX11: {exception}")
+    raise ImportError(f"libX11: {exception}") from exception
 
 try:
     libxrandr.XRRGetOutputProperty.restype = c_int
@@ -82,7 +82,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError(f"libXrandr: {exception}")
+    raise ImportError(f"libXrandr: {exception}") from exception
 
 
 class XDisplay:

@@ -1569,10 +1569,10 @@ class FixedPoint:
 
         try:
             p = int(precision)
-        except Exception:
-            raise TypeError("precision not convertable to int: " + repr(precision))
+        except Exception as e:
+            raise TypeError(f"precision not convertable to int: {repr(precision)}") from e
         if p < 0:
-            raise ValueError("precision must be >= 0: " + repr(precision))
+            raise ValueError(f"precision must be >= 0: {repr(precision)}")
 
         if p > self.p:
             self.n = self.n * _tento(p - self.p)

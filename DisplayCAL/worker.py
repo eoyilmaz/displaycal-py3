@@ -6822,7 +6822,7 @@ BEGIN_DATA
                             )
                         except wexpect.ExceptionPexpect as exception:
                             self.retcode = -1
-                            raise Error(str(exception))
+                            raise Error(str(exception)) from exception
 
                         if sys.platform == "darwin" and self.measure_cmd:
                             # Caffeinate (prevent sleep/screensaver)
@@ -7002,7 +7002,7 @@ BEGIN_DATA
                             )
                     except Exception as exception:
                         self.retcode = -1
-                        raise Error(str(exception))
+                        raise Error(str(exception)) from exception
                     self.retcode = self.subprocess.wait()
                     if stdin != sp.PIPE and not getattr(stdin, "closed", True):
                         stdin.close()
@@ -15467,15 +15467,15 @@ BEGIN_DATA
         ti1_filename = ti1.filename
         try:
             ti1 = verify_cgats(ti1, required, True)
-        except CGATSInvalidError:
-            raise ValueError(lang.getstr("error.testchart.invalid", ti1_filename))
-        except CGATSKeyError:
+        except CGATSInvalidError as e:
+            raise ValueError(lang.getstr("error.testchart.invalid", ti1_filename)) from e
+        except CGATSKeyError as e:
             raise ValueError(
                 lang.getstr(
                     "error.testchart.missing_fields",
                     (ti1_filename, ", ".join(required)),
                 )
-            )
+            ) from e
 
         # read device values from ti1
         data = ti1.queryv1("DATA")
@@ -15781,10 +15781,9 @@ BEGIN_DATA
             ti3v = verify_cgats(ti3, labels, True)
         except CGATSInvalidError as exception:
             raise ValueError(
-                lang.getstr("error.testchart.invalid", ti3_filename)
-                + "\n"
-                + lang.getstr(str(exception))
-            )
+                f"{lang.getstr('error.testchart.invalid', ti3_filename)}\n"
+                f"{lang.getstr(str(exception))}"
+            ) from exception
         except CGATSKeyError:
             try:
                 if fields:
@@ -15792,15 +15791,15 @@ BEGIN_DATA
                 else:
                     labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
                 ti3v = verify_cgats(ti3, labels, True)
-            except CGATSKeyError:
+            except CGATSKeyError as e:
                 missing = ", ".join(labels)
                 if not fields:
-                    missing += " " + lang.getstr("or") + " LAB_L, LAB_A, LAB_B"
+                    missing = f"{missing} {lang.getstr('or')} LAB_L, LAB_A, LAB_B"
                 raise ValueError(
                     lang.getstr(
                         "error.testchart.missing_fields", (ti3_filename, missing)
                     )
-                )
+                ) from e
             else:
                 color_rep = "XYZ"
         else:

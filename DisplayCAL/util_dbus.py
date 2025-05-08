@@ -96,7 +96,7 @@ class DBusObject:
                     self._proxy = bus.get_object(bus_name, object_path)
                     self._iface = dbus.Interface(self._proxy, dbus_interface=interface)
             except (TypeError, ValueError, DBusException) as exception:
-                raise DBusObjectError(exception, self._bus_name)
+                raise DBusObjectError(exception, self._bus_name) from exception
         self._introspectable = None
 
     def __getattr__(self, name):
@@ -104,7 +104,7 @@ class DBusObject:
         try:
             return DBusObjectInterfaceMethod(self._iface, name)
         except (AttributeError, TypeError, ValueError, DBusException) as exception:
-            raise DBusObjectError(exception, self._bus_name)
+            raise DBusObjectError(exception, self._bus_name) from exception
 
     @property
     def properties(self):
@@ -128,7 +128,7 @@ class DBusObject:
                 iface = dbus.Interface(self._proxy, "org.freedesktop.DBus.Properties")
             return DBusObjectInterfaceMethod(iface, "GetAll")(interface)
         except (TypeError, ValueError, DBusException) as exception:
-            raise DBusObjectError(exception, self._bus_name)
+            raise DBusObjectError(exception, self._bus_name) from exception
 
     def introspect(self):
         if not self._introspectable:

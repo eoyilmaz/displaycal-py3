@@ -56,8 +56,8 @@ if sys.platform == "win32":
         library_home = appdata = SHGetSpecialFolderPath(0, CSIDL_APPDATA, 1)
     except Exception as exception:
         raise Exception(
-            "FATAL - Could not get/create user application data folder: %s" % exception
-        )
+            f"FATAL - Could not get/create user application data folder: {exception}"
+        ) from exception
     try:
         localappdata = SHGetSpecialFolderPath(0, CSIDL_LOCAL_APPDATA, 1)
     except Exception:
@@ -76,16 +76,16 @@ if sys.platform == "win32":
             commonappdata = [SHGetSpecialFolderPath(0, CSIDL_COMMON_APPDATA, 1)]
         except Exception as exception:
             raise Exception(
-                "FATAL - Could not get/create common application data folder: %s"
-                % exception
-            )
+                "FATAL - Could not get/create common application data folder: "
+                f"{exception}"
+            ) from exception
     library = commonappdata[0]
     try:
         commonprogramfiles = SHGetSpecialFolderPath(0, CSIDL_PROGRAM_FILES_COMMON, 1)
     except Exception as exception:
         raise Exception(
-            "FATAL - Could not get/create common program files folder: %s" % exception
-        )
+            f"FATAL - Could not get/create common program files folder: {exception}"
+        ) from exception
     try:
         autostart = SHGetSpecialFolderPath(0, CSIDL_COMMON_STARTUP, 1)
     except Exception:
@@ -101,7 +101,7 @@ if sys.platform == "win32":
             )
         ]
     except Exception as exception:
-        raise Exception("FATAL - Could not get system folder: %s" % exception)
+        raise Exception(f"FATAL - Could not get system folder: {exception}") from exception
     iccprofiles_home = iccprofiles
     try:
         programs = SHGetSpecialFolderPath(0, CSIDL_PROGRAMS, 1)

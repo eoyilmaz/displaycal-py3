@@ -13,10 +13,6 @@ if not getattr(sys, "frozen", False):
         ):
             if "google" in sys.modules:
                 del sys.modules["google"]
-            try:
-                import pkg_resources
-            except ImportError:
-                pass
             syspath = sys.path[:]
             sys.path[:] = [pth]
 

@@ -149,6 +149,7 @@ from DisplayCAL.icc_profile import (
     TextDescriptionType,
     TextType,
     XYZType,
+    VideoCardGammaTableType,
     VideoCardGammaType,
 )
 from DisplayCAL.log import logbuffer
@@ -16226,7 +16227,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         elif result:
             if isinstance(result, tuple):
                 profile.set_gamut_metadata(result[0], result[1])
-                profile.tags.meta.getvalue("prefix", b"", None)
+                prefix = profile.tags.meta.getvalue("prefix", b"", None)
                 if isinstance(prefix, bytes):
                     prefix = prefix.decode("utf-8")
                 prefixes = prefix.split(",")

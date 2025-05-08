@@ -1117,10 +1117,7 @@ class BaseFrame(wx.Frame):
                             else:
                                 response = "invalid"
                         elif data[0] == "getdefaults" and len(data) == 1:
-                            if responseformats[conn] != "plain":
-                                response = []
-                            else:
-                                response = {}
+                            response = [] if responseformats[conn] != "plain" else {}
                             for name in sorted(defaults):
                                 if responseformats[conn] != "plain":
                                     response.append(

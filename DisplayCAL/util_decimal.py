@@ -1,3 +1,4 @@
+import contextlib
 import decimal
 import math
 
@@ -22,8 +23,6 @@ def stripzeros(n):
     n = "%.10f" % n if isinstance(n, (float, int)) else str(n)
     if "." in n:
         n = n.rstrip("0").rstrip(".")
-    try:
+    with contextlib.suppress(decimal.InvalidOperation):
         n = decimal.Decimal(n)
-    except decimal.InvalidOperation:
-        pass
     return n

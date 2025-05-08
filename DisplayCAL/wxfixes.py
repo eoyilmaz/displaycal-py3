@@ -1,3 +1,4 @@
+import contextlib
 import os
 import platform
 import re
@@ -20,10 +21,8 @@ except ImportError:
     pass
 else:
     if not getattr(sys, "frozen", False) and "wx" not in sys.modules:
-        try:
+        with contextlib.suppress(wxversion.VersionError):
             wxversion.select(["4.0", "3.0", "%i.%i.%i" % wx_minversion[:3]])
-        except wxversion.VersionError:
-            pass
 
 import wx
 
@@ -837,10 +836,8 @@ def get_dc_font_size(size, dc):
 
 def get_gcdc_font_size(size):
     dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-    try:
+    with contextlib.suppress(Exception):
         dc = wx.GCDC(dc)
-    except Exception:
-        pass
     return get_dc_font_size(size, dc)
 
 
@@ -1623,10 +1620,8 @@ class TempXmlResource:
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1)
         if scale > 1 or "gtk3" in wx.PlatformInfo:
             if not TempXmlResource._temp:
-                try:
+                with contextlib.suppress(Exception):
                     TempXmlResource._temp = tempfile.mkdtemp(prefix=appname + "-XRC-")
-                except Exception:
-                    pass
             if TempXmlResource._temp and os.path.isdir(TempXmlResource._temp):
                 # Read original XML
                 with open(xmlpath, "rb") as xmlfile:

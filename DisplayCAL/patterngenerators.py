@@ -1,3 +1,4 @@
+import contextlib
 import errno
 import http.client
 import json
@@ -376,10 +377,8 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         return self._request("GET", url, validate=validate)
 
     def _shutdown(self):
-        try:
+        with contextlib.suppress(Exception):
             self.invoke("window", "off", {"sz": 10})
-        except Exception:
-            pass
 
     def _validate(self, resp, url, validate):
         raw = resp.read()

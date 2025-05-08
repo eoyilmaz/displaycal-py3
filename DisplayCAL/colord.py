@@ -1,3 +1,4 @@
+import contextlib
 import os
 import subprocess as sp
 import sys
@@ -316,11 +317,9 @@ def install_profile(
         client = client_connect()
     else:
         # Query colord for profile
-        try:
+        with contextlib.suppress(CDObjectQueryError):
             cdprofile = get_object_path(profile_id, "profile")
-        except CDObjectQueryError:
-            # Profile not found
-            pass
+            # If profile not found, it will raise a CDObjectQueryError
 
         colormgr = which("colormgr")
         if not colormgr:

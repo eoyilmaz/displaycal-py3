@@ -3,6 +3,7 @@ from datetime import datetime
 from html.parser import HTMLParser
 
 htmlparser = HTMLParser()
+import contextlib
 import errno
 import math
 import os
@@ -900,14 +901,12 @@ class BaseApp(wx.App):
         self.ExitMainLoop()
         # We may need to call OnExit() explicitly because there is not
         # guaranteed to be a next iteration of the main event loop
-        try:
-            self.OnExit()
-        except Exception:
+        with contextlib.suppress(Exception):
             # Yes, this can fail with a TypeError, amazingly enough :-(
             # Apparently sometimes, wx already shuts down the application
             # and OnExit will be None. We assume in this case that OnExit
             # already ran.
-            pass
+            self.OnExit()
         # Calling sys.exit makes sure that exit handlers registered by atexit
         # will run
         print("Calling sys.exit(0)")
@@ -980,10 +979,8 @@ class BaseFrame(wx.Frame):
         if isinstance(getattr(sys, "_appsocket", None), socket.socket):
             addr, port = sys._appsocket.getsockname()
             if addr == "0.0.0.0":
-                try:
+                with contextlib.suppress(OSError):
                     addr = get_network_addr()
-                except OSError:
-                    pass
             print(lang.getstr("app.listening", (addr, port)))
             self.listening = True
             self.listener = threading.Thread(
@@ -1840,6 +1837,7 @@ class BaseFrame(wx.Frame):
                         response = "ok"
         elif data[0] == "setcfg" and len(data) == 3:
             # Set configuration option
+            value = None
             if data[1] in defaults:
                 value = data[2]
                 if value == "null":
@@ -1849,10 +1847,8 @@ class BaseFrame(wx.Frame):
                 elif value == "true":
                     value = 1
                 elif defaults[data[1]] is not None:
-                    try:
+                    with contextlib.suppress(ValueError):
                         value = type(defaults[data[1]])(value)
-                    except ValueError:
-                        pass
                 setcfg(data[1], value)
                 if getcfg(data[1], False) != value:
                     response = "failed"
@@ -2831,10 +2827,8 @@ class BitmapBackgroundBitmapButton(wx.BitmapButton):
 
     def OnPaint(self, dc):
         dc = wx.PaintDC(self)
-        try:
+        with contextlib.suppress(Exception):
             dc = wx.GCDC(dc)
-        except Exception:
-            pass
         dc.DrawBitmap(self.Parent.GetBitmap(), 0, -self.GetPosition()[1])
         dc.DrawBitmap(self.GetBitmapLabel(), 0, 0)
 
@@ -2983,10 +2977,8 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
         if self.use_gcdc:
             # NOTE: Drawing text to wx.GCDC has problems with unicode chars
             # being replaced with boxes under wxGTK
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception:
-                pass
         font.SetPointSize(get_dc_font_size(font.GetPointSize(), dc))
         dc.SetFont(font)
         return dc
@@ -3454,10 +3446,8 @@ class FlatShadedButton(GradientButton):
             label = self.GetLabel() or dummy
 
             dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception:
-                pass
             dc.SetFont(self.GetFont())
             retWidth, retHeight = dc.GetTextExtent(label)
             if label == dummy:
@@ -3744,10 +3734,8 @@ class BorderGradientButton(GradientButton):
             return wx.Size(112, 48)
 
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-        try:
+        with contextlib.suppress(Exception):
             dc = wx.GCDC(dc)
-        except Exception:
-            pass
         dc.SetFont(self.GetFont())
         retWidth, retHeight = dc.GetTextExtent(label)
 
@@ -7818,10 +7806,8 @@ def get_widget(win, id_name_label):
             return child
     else:
         # ID or label
-        try:
+        with contextlib.suppress(ValueError):
             id_name_label = int(id_name_label)
-        except ValueError:
-            pass
         for child in list(win.GetAllChildren()):
             if is_scripting_allowed(win, child) and (
                 child.Id == id_name_label
@@ -7832,10 +7818,8 @@ def get_widget(win, id_name_label):
 
 
 def get_toplevel_window(id_name_label):
-    try:
+    with contextlib.suppress(ValueError):
         id_name_label = int(id_name_label)
-    except ValueError:
-        pass
     for win in reversed(list(wx.GetTopLevelWindows())):
         if (
             win

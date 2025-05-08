@@ -107,7 +107,7 @@ Zooming controls with mouse (when enabled):
     Left mouse double click - reset zoom.
     Right mouse click - zoom out centred on click location.
 """
-
+import contextlib
 import functools
 import string as _string
 
@@ -1785,10 +1785,8 @@ class PlotCanvas(wx.Panel):
         dc.SetBackgroundMode(wx.SOLID)
         dc.Clear()
         if self._antiAliasingEnabled:
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception:
-                pass
         dc.SetTextForeground(self.GetForegroundColour())
         dc.SetTextBackground(self.GetBackgroundColour())
         self.last_draw = None
@@ -1966,10 +1964,8 @@ class PlotCanvas(wx.Panel):
             self.last_PointLabel = None
         dc = wx.BufferedPaintDC(self.canvas, self._Buffer)
         if self._antiAliasingEnabled:
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception:
-                pass
 
     def OnSize(self, event):
         # The Buffer init is done here, to make sure the buffer is always

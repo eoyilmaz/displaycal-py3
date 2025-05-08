@@ -1,4 +1,5 @@
 import atexit
+import contextlib
 import logging
 import logging.handlers
 import os
@@ -268,10 +269,8 @@ def get_file_logger(
             for lockfilepath in safe_glob(
                 os.path.join(confighome, lockbasename + ".mp-worker-*.lock")
             ):
-                try:
+                with contextlib.suppress(Exception):
                     os.remove(lockfilepath)
-                except Exception:
-                    pass
         else:
             # Running as child from multiprocessing under Windows
             lockbasename += ".mp-worker-"

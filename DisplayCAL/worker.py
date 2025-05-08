@@ -1,6 +1,7 @@
 # stdlib
 import atexit
 import codecs
+import contextlib
 import ctypes
 import datetime
 import getpass
@@ -912,20 +913,16 @@ def _create_optimized_shaper_curves(
             calgarg[1][1:], calgamma
         )
         if not calgamma:
-            try:
+            with contextlib.suppress(ValueError):
+                # Not a gamma value, if it raises a ValueError, ignore
                 calgamma = float(calgarg[1][1:])
-            except ValueError:
-                # Not a gamma value
-                pass
         if calgamma:
             gamma_type = calgarg[1][0]
             outoffset = defaults["calibration.black_output_offset"]
             calfarg = get_arg("f", options_dispcal)
             if calfarg:
-                try:
+                with contextlib.suppress(ValueError):
                     outoffset = float(calfarg[1][1:])
-                except ValueError:
-                    pass
             caltrc = CurveType(profile=profile)
             if calgamma > 0:
                 caltrc.set_bt1886_trc(black_Y, outoffset, calgamma, gamma_type)
@@ -7115,12 +7112,10 @@ BEGIN_DATA
                         if config.get_display_name() == "Resolve":
                             # Send fullscreen black to prevent burn-in
                             if finished:
-                                try:
+                                with contextlib.suppress(OSError):
                                     self.patterngenerator.send(
                                         (0,) * 3, x=0, y=0, w=1, h=1
                                     )
-                                except OSError:
-                                    pass
                         else:
                             self.patterngenerator.disconnect_client()
                     except Exception as exception:
@@ -8531,10 +8526,8 @@ BEGIN_DATA
                 return "1"
         if display_name == "Prisma":
             host = getcfg("patterngenerator.prisma.host")
-            try:
+            with contextlib.suppress(OSError):
                 host = socket.gethostbyname(host)
-            except OSError:
-                pass
             return f"prisma:{host}"
         if display_name.startswith("Chromecast "):
             return "cc:{}".format(display_name.split(":")[0].split(None, 1)[1].strip())
@@ -13739,10 +13732,8 @@ usage: spotread [-options] [logfile]
         # to the progress window
         if re.match(r"\s*\d+%\s*(?:[^=]+)?$", lastmsg):
             # colprof, download progress
-            try:
+            with contextlib.suppress(ValueError):
                 percentage = int(self.lastmsg.read().split("%")[0])
-            except ValueError:
-                pass
         elif re.match(r"Patch \d+ of \d+", lastmsg, re.I):
             # dispcal/dispread
             components = lastmsg.split()
@@ -14593,10 +14584,8 @@ usage: spotread [-options] [logfile]
                 # exit
                 self.abort_subprocess(True)
                 return
-            try:
+            with contextlib.suppress(Exception):
                 self.safe_send(chr(keycode))
-            except Exception:
-                pass
 
     def calculate_gamut(
         self,

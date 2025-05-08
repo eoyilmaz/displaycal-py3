@@ -18,6 +18,7 @@ this program; if not, see <http://www.gnu.org/licenses/>
 """
 
 # Standard modules
+import contextlib
 import datetime
 import json as json_module
 import math
@@ -909,10 +910,8 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
                         datetmp.groups()[1],
                         datetmp.groups()[2],
                     )
-                    try:
+                    with contextlib.suppress(ValueError):
                         created = strptime(datetmp, "%Y-%m-%d %H:%M:%S")
-                    except ValueError:
-                        pass
             if isinstance(created, struct_time):
                 created = strftime("%Y-%m-%d %H:%M:%S", created)
         dlg_list_ctrl.SetStringItem(
@@ -8294,10 +8293,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if sys.platform == "win32" and event:
             prev = self.send_command("apply-profiles", "getcfg profile.load_on_login")
             if prev:
-                try:
+                with contextlib.suppress(Exception):
                     prev = int(prev.split()[-1])
-                except Exception:
-                    pass
                 result = self.send_command(
                     "apply-profiles",
                     "setcfg profile.load_on_login {:.0f}".format(
@@ -14927,10 +14924,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             current = os.getenv(f"ARGYLL_{name.upper()}")
             if backup or current:
                 valuetype = type(defaults[f"measure.{name}"])
-                try:
+                with contextlib.suppress(TypeError, ValueError):
                     spinvalue = valuetype(backup or current)
-                except (TypeError, ValueError):
-                    pass
         spinctrl.SetValue(spinvalue)
 
     def display_lut_ctrl_handler(self, event):
@@ -14966,12 +14961,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         lut_no = -1
         if link:
             self.display_lut_link_ctrl.SetBitmapLabel(bitmap_link)
-            try:
+            with contextlib.suppress(ValueError):
                 lut_no = self.display_lut_ctrl.Items.index(
                     self.display_ctrl.GetStringSelection()
                 )
-            except ValueError:
-                pass
         else:
             self.display_lut_link_ctrl.SetBitmapLabel(bitmap_unlink)
         set_bitmap_labels(self.display_lut_link_ctrl)
@@ -15680,19 +15673,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             path = dlg.GetPath()
             profile_save_dir = os.path.join(path, profile_name)
             if not os.path.isdir(profile_save_dir):
-                try:
-                    os.makedirs(profile_save_dir)
-                except Exception:
-                    pass
+                os.makedirs(profile_save_dir, exist_ok=True)
             if not waccess(os.path.join(profile_save_dir, profile_name), os.W_OK):
                 show_result_dialog(
                     Error(lang.getstr("error.access_denied.write", path)), self
                 )
                 return
-            try:
+            with contextlib.suppress(Exception):
                 os.rmdir(profile_save_dir)
-            except Exception:
-                pass
             setcfg("profile.save_path", path)
             self.update_profile_name()
         dlg.Destroy()
@@ -16462,12 +16450,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
         for directive in directives:
             if f"%{directive}" in profile_name:
-                try:
+                with contextlib.suppress(UnicodeDecodeError):
                     profile_name = profile_name.replace(
                         f"%{directive}", strftime(f"%{directive}")
                     )
-                except UnicodeDecodeError:
-                    pass
 
         # All whitespace to space
         profile_name = re.sub(r"\s", " ", profile_name)
@@ -16661,15 +16647,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
         elif self.whitepoint_ctrl.GetSelection() == 2:
             x = self.whitepoint_x_textctrl.GetValue()
-            try:
+            with contextlib.suppress(ValueError):
                 x = round(x, 4)
-            except ValueError:
-                pass
             y = self.whitepoint_y_textctrl.GetValue()
-            try:
+            with contextlib.suppress(ValueError):
                 y = round(y, 4)
-            except ValueError:
-                pass
             return str(stripzeros(x)) + "," + str(stripzeros(y))
 
     def get_whitepoint_locus(self):
@@ -18130,10 +18112,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         if cfgvalue is None:
                             continue
                         cfgvalue = str(cfgvalue)
-                        try:
+                        with contextlib.suppress(ValueError):
                             cfgvalue = round(float(cfgvalue), 4)
-                        except ValueError:
-                            pass
                         setcfg(
                             f"3dlut.content.colorspace.{color}.{coord}",
                             cfgvalue,

@@ -1,3 +1,4 @@
+import contextlib
 import errno
 import logging
 import math
@@ -30,10 +31,8 @@ def cpu_count(limit_by_total_vmem=True):
             # We use total instead of available because we assume the system is
             # smart enough to swap memory used by inactive processes to disk to
             # free up more physical RAM for active processes.
-            try:
+            with contextlib.suppress(Exception):
                 max_cpus = int(psutil.virtual_memory().total / (1024**3) - 1)
-            except Exception:
-                pass
     try:
         return max(min(mp.cpu_count(), max_cpus), 1)
     except Exception:

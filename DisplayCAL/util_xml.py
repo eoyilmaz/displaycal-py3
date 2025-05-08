@@ -1,7 +1,7 @@
-try:
+import contextlib
+
+with contextlib.suppress(ImportError):
     from xml.etree import ElementTree as ET
-except ImportError:
-    pass
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):

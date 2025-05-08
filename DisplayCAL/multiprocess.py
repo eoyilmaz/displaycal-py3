@@ -318,8 +318,8 @@ class FakeQueue:
     def get(self, block=True, timeout=None):
         try:
             return self.queue.pop()
-        except Exception:
-            raise Empty
+        except Exception as e:
+            raise Empty from e
 
     def join(self):
         pass

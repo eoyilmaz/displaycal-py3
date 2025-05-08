@@ -672,7 +672,7 @@ class spawn_unix:
             try:
                 self.pid, self.child_fd = pty.fork()
             except OSError as e:
-                raise ExceptionPexpect("Error! pty.fork() failed: " + str(e))
+                raise ExceptionPexpect(f"Error! pty.fork() failed: {e}") from e
         else:  # Use internal __fork_pty
             self.pid, self.child_fd = self.__fork_pty()
 
@@ -966,11 +966,11 @@ class spawn_unix:
         if self.child_fd in r:
             try:
                 s = os.read(self.child_fd, size)
-            except OSError:  # Linux does this
+            except OSError as e:  # Linux does this
                 self.flag_eof = True
                 raise EOF(
                     "End Of File (EOF) in read_nonblocking(). Exception style platform."
-                )
+                ) from e
             if s == b"":  # BSD style
                 self.flag_eof = True
                 raise EOF(
@@ -1250,7 +1250,7 @@ class spawn_unix:
                     'isalive() encountered condition where "terminated" is 0, '
                     "but there was no child process. "
                     "Did someone else call waitpid() on our process?"
-                )
+                ) from e
             else:
                 raise e
 
@@ -1268,7 +1268,7 @@ class spawn_unix:
                         "isalive() encountered condition that should never happen. "
                         "There was no child process. "
                         "Did someone else call waitpid() on our process?"
-                    )
+                    ) from e
                 else:
                     raise e
 
@@ -1522,7 +1522,7 @@ class spawn_unix:
             else:
                 self.match = None
                 self.match_index = None
-                raise EOF(str(e) + "\n" + str(self))
+                raise EOF(str(e) + "\n" + str(self)) from e
         except TIMEOUT as e:
             self.buffer = incoming
             self.before = incoming
@@ -1535,7 +1535,7 @@ class spawn_unix:
             else:
                 self.match = None
                 self.match_index = None
-                raise TIMEOUT(str(e) + "\n" + str(self))
+                raise TIMEOUT(str(e) + "\n" + str(self)) from e
         except Exception:
             self.before = incoming
             self.after = None
@@ -2504,7 +2504,7 @@ class Wtty:
             log(e, "_exceptions")
             log("End Of File (EOF) in Wtty.read_nonblocking().")
             self.switchBack()
-            raise EOF("End Of File (EOF) in Wtty.read_nonblocking().")
+            raise EOF("End Of File (EOF) in Wtty.read_nonblocking().") from e
 
     def refreshConsole(self):
         """Clears the console after pausing the child and

@@ -2999,7 +2999,7 @@ class LazyLoadTagAODict(AODict):
                 f"(type {repr(typeSignature)}, "
                 f"offset {int(tagDataOffset):d}, "
                 f"size {int(tagDataSize):d}): {repr(exception)}"
-            )
+            ) from exception
         self[key] = tag
         return tag
 
@@ -6222,8 +6222,8 @@ class ICCProfile:
                 for _event, elem in it:
                     # Strip all namespaces
                     elem.tag = elem.tag.split("}", 1)[-1]
-            except ElementTree.ParseError:
-                raise ICCProfileInvalidError("Invalid WCS profile")
+            except ElementTree.ParseError as e:
+                raise ICCProfileInvalidError("Invalid WCS profile") from e
             desc = it.root.find(b"Description")
             if desc is not None:
                 desc = desc.find(b"Text")
@@ -6246,8 +6246,8 @@ class ICCProfile:
                         for component in b"XYZ":
                             try:
                                 XYZ.append(float(prim.get(component)) / 100.0)
-                            except (TypeError, ValueError):
-                                raise ICCProfileInvalidError("Invalid WCS profile")
+                            except (TypeError, ValueError) as e:
+                                raise ICCProfileInvalidError("Invalid WCS profile") from e
                         if color == b"White":
                             tag_name = "wtpt"
                         elif color == b"Black":
@@ -6274,14 +6274,14 @@ class ICCProfile:
                         for att in list(params.keys()):
                             try:
                                 params[att] = float(gamma.get(att))
-                            except (TypeError, ValueError):
+                            except (TypeError, ValueError) as e:
                                 if (
                                     att not in ("LinearGain", "TransitionPoint")
                                     or gamma.tag != "GammaOffsetGain"
                                 ):
                                     raise ICCProfileInvalidError(
                                         "Invalid WCS profile"
-                                    )
+                                    ) from e
 
                         def power(a):
                             if a <= params["TransitionPoint"]:
@@ -6298,8 +6298,8 @@ class ICCProfile:
                         if gamma is not None:
                             try:
                                 power = float(gamma.get("value"))
-                            except (TypeError, ValueError):
-                                raise ICCProfileInvalidError("Invalid WCS profile")
+                            except (TypeError, ValueError) as e:
+                                raise ICCProfileInvalidError("Invalid WCS profile") from e
                     if gamma is not None:
                         self.set_trc_tags(True, power)
             if it.root.tag == "ColorDeviceModel":
@@ -6335,8 +6335,8 @@ class ICCProfile:
         self.connectionColorSpace = header[20:24].strip()
         try:
             self.dateTime = dateTimeNumber(header[24:36])
-        except ValueError:
-            raise ICCProfileInvalidError("Profile creation date/time invalid")
+        except ValueError as e:
+            raise ICCProfileInvalidError("Profile creation date/time invalid") from e
         self.platform = header[40:44]
         flags = uInt32Number(header[44:48])
         self.embedded = flags & 1 != 0

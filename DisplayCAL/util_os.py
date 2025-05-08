@@ -1284,7 +1284,7 @@ class FileLock:
         try:
             fn(*args)
         except FileLock._exception_cls as exception:
-            raise exception_cls(*exception.args)
+            raise exception_cls(*exception.args) from exception
 
 
 class Error(Exception):

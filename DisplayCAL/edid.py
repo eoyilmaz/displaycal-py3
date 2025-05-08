@@ -190,7 +190,7 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
     except Exception as exception:
         if not_main_thread:
             pythoncom.CoUninitialize()
-        raise WMIError(safe_str(exception))
+        raise WMIError(safe_str(exception)) from exception
 
     for msmonitor in msmonitors:
         if msmonitor.InstanceName.split("\\")[1] == id:

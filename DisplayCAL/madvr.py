@@ -609,8 +609,8 @@ class MadTPG(MadTPGBase):
                 winreg.HKEY_CLASSES_ROOT, r"CLSID\%s\InprocServer32" % clsid
             )
             value, valuetype = winreg.QueryValueEx(key, "")
-        except Exception:
-            raise RuntimeError(lang.getstr("madvr.not_found"))
+        except Exception as e:
+            raise RuntimeError(lang.getstr("madvr.not_found")) from e
         bits = 64 if platform.architecture()[0] == "64bit" else 32
         self.dllpath = os.path.join(os.path.split(value)[0], f"madHcNet{bits}.dll")
         if not value or not os.path.isfile(self.dllpath):
@@ -639,13 +639,13 @@ class MadTPG(MadTPGBase):
                     ctypes.c_int,
                     ctypes.c_bool,
                 ]
-        except AttributeError:
+        except AttributeError as e:
             raise RuntimeError(
                 lang.getstr(
                     "madhcnet.outdated",
                     tuple(reversed(os.path.split(self.dllpath))) + min_version,
                 )
-            )
+            ) from e
 
     def __del__(self):
         if hasattr(self, "mad"):

@@ -24,7 +24,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
     except OSError as exception:
         raise exception.__class__(
             lang.getstr("error.file.open", report_html_template_path)
-        )
+        ) from exception
 
     # create report
     for placeholder in placeholders2data:
@@ -59,7 +59,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
                 else:
                     report_html = report_html.replace(f'@import "{include}";', f.read().strip())
         except OSError as exception:
-            raise exception.__class__(lang.getstr("error.file.open", path))
+            raise exception.__class__(lang.getstr("error.file.open", path)) from exception
 
     # write report
     try:
@@ -68,7 +68,7 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
     except OSError as exception:
         raise exception.__class__(
             "{}\n\n{}".format(lang.getstr("error.file.create", report_path), exception)
-        )
+        ) from exception
 
 
 def update(report_path, pack=True):
@@ -82,7 +82,7 @@ def update(report_path, pack=True):
         with codecs.open(report_path, "r", "UTF-8") as orig_report:
             orig_report_html = orig_report.read()
     except OSError as exception:
-        raise exception.__class__(lang.getstr("error.file.open", report_path))
+        raise exception.__class__(lang.getstr("error.file.open", report_path)) from exception
 
     data = (
         ("${PLANCKIAN}", r'id="FF_planckian"\s*(.*?)\s*disabled="disabled"', 0),

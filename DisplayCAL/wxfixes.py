@@ -1636,15 +1636,14 @@ class TempXmlResource:
                 for tag in ("border", "hgap", "vgap"):
                     xml = re.sub(
                         r"<%s>(\d+)</%s>" % (tag, tag),
-                        lambda match: "<%s>%i</%s>"
+                        lambda match, tag=tag: "<%s>%i</%s>"
                         % (tag, round(int(match.group(1)) * scale), tag),
                         xml,
                     )
                 for tag in ("size",):
                     xml = re.sub(
                         r"<%s>(-?\d+)\s*,\s*(-?\d+)</%s>" % (tag, tag),
-                        lambda match: "<%s>%i,%i</%s>"
-                        % (
+                        lambda match, tag=tag: "<%s>%i,%i</%s>" % (
                             (tag,)
                             + tuple(
                                 round(int(v) * scale) if int(v) > 0 else int(v)

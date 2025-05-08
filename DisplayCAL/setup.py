@@ -317,7 +317,7 @@ def create_app_symlinks(dist_dir, scripts):
                 # CFBundleName / CFBundleDisplayName
                 infoxml = re.sub(
                     r"(Name</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + toolname,
+                    lambda match, toolname=toolname: match.group(1) + toolname,
                     infoxml,
                 )
                 # CFBundleIdentifier
@@ -329,7 +329,7 @@ def create_app_symlinks(dist_dir, scripts):
                 # CFBundleExecutable
                 infoxml = re.sub(
                     r"(Executable</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + script,
+                    lambda match, script=script: match.group(1) + script,
                     infoxml,
                 )
                 with codecs.open(

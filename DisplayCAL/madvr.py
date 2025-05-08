@@ -196,8 +196,8 @@ def icc_device_link_to_madvr(
     h3d_stream = StringIO(H3D_HEADER)
     h3dlut = H3DLUT(h3d_stream, check_lut_size=False)
     h3dlut.parametersData = h3d_params
-    h3dlut.write(filename + ".3dlut")
-    raw = open(filename + ".3dlut", "r+b")
+    h3dlut.write(f"{filename}.3dlut")
+    raw = open(f"{filename}.3dlut", "r+b")  # noqa: SIM115
     raw.seek(h3dlut.lutFileOffset)
     # Make sure no longer needed h3DLUT instance can be garbage collected
     del h3dlut
@@ -442,7 +442,7 @@ class H3DLUT:
             if ext:
                 stream_or_filename = os.path.splitext(stream_or_filename)[0] + ext
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")
+            stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:
             stream = stream_or_filename
         return stream

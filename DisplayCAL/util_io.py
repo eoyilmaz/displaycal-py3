@@ -50,7 +50,7 @@ class Files:
         self.files = []
         for item in files:
             if isinstance(item, str):
-                self.files.append(open(item, mode))
+                self.files.append(open(item, mode))  # noqa: SIM115
             else:
                 self.files.append(item)
 

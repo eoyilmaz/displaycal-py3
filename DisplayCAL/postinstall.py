@@ -72,9 +72,8 @@ if sys.platform == "win32":
                     return
                 installed_files = []
                 if os.path.exists(recordfile_name):
-                    recordfile = open(recordfile_name)
-                    installed_files.extend(line.rstrip("\n") for line in recordfile)
-                    recordfile.close()
+                    with open(recordfile_name) as recordfile:
+                        installed_files.extend(line.rstrip("\n") for line in recordfile)
                 try:
                     path.encode("ASCII")
                 except (UnicodeDecodeError, UnicodeEncodeError):
@@ -85,9 +84,8 @@ if sys.platform == "win32":
                     # valid path)
                     path = win32api.GetShortPathName(path)
                 installed_files.append(path)
-                recordfile = open(recordfile_name, "w")
-                recordfile.write("\n".join(installed_files))
-                recordfile.close()
+                with open(recordfile_name, "w") as recordfile:
+                    recordfile.write("\n".join(installed_files))
 
     if "get_special_folder_path" not in globals():
         # this function is only available within bdist_wininst installers

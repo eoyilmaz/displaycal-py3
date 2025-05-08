@@ -1183,12 +1183,12 @@ class BaseFrame(wx.Frame):
         conn.close()
         responseformats.pop(conn)
 
-    def get_app_state(self, format):
+    def get_app_state(self, file_format):
         win = self.get_top_window()
         if isinstance(win, wx.Dialog) and win.IsShown():
             if isinstance(win, (DirDialog, FileDialog)):
-                response = format_ui_element(win, format)
-                if format != "plain":
+                response = format_ui_element(win, file_format)
+                if file_format != "plain":
                     response.update({"message": win.Message, "path": win.Path})
                 else:
                     response = [
@@ -1198,11 +1198,11 @@ class BaseFrame(wx.Frame):
                         demjson.encode(win.Path),
                     ]
             elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)):
-                response = format_ui_element(win, format)
-                if format == "plain":
+                response = format_ui_element(win, file_format)
+                if file_format == "plain":
                     response = [response]
                 if hasattr(win, "message") and win.message:
-                    if format != "plain":
+                    if file_format != "plain":
                         response["message"] = win.message.Label
                     else:
                         response.append(demjson.encode(win.message.Label))
@@ -1215,7 +1215,7 @@ class BaseFrame(wx.Frame):
                         and child.IsShownOnScreen()
                         and child.IsEnabled()
                     ):
-                        if format != "plain":
+                        if file_format != "plain":
                             if "buttons" not in response:
                                 response["buttons"] = []
                             response["buttons"].append(child.Label)
@@ -1224,12 +1224,12 @@ class BaseFrame(wx.Frame):
                                 response.append("buttons")
                             response.append(demjson.encode(child.Label))
             elif win.__class__ is wx.Dialog:
-                response = format_ui_element(win, format)
-                if format == "plain":
+                response = format_ui_element(win, file_format)
+                if file_format == "plain":
                     response = [response]
             else:
                 return "blocked"
-            if format == "plain":
+            if file_format == "plain":
                 response = " ".join(response)
             return response
         if hasattr(self, "worker") and self.worker.is_working():
@@ -5930,9 +5930,8 @@ class LogWindow(InvincibleFrame):
                         return
             setcfg("last_filedialog_path", path)
             try:
-                file_ = open(path, "w")
-                file_.write(self.log_txt.GetValue().encode("UTF-8", "replace"))
-                file_.close()
+                with open(path, "w") as file_:
+                    file_.write(self.log_txt.GetValue().encode("UTF-8", "replace"))
             except Exception as exception:
                 InfoDialog(
                     self,
@@ -5978,11 +5977,11 @@ class LogWindow(InvincibleFrame):
                 )
                 return
             filename, ext = os.path.splitext(path)
-            format = "tgz" if path.lower().endswith(".tar.gz") else ext[1:]
-            if ext.lower() != "." + format and (
-                format != "tgz" or not path.lower().endswith(".tar.gz")
+            file_format = "tgz" if path.lower().endswith(".tar.gz") else ext[1:]
+            if ext.lower() != "." + file_format and (
+                file_format != "tgz" or not path.lower().endswith(".tar.gz")
             ):
-                path += "." + format
+                path += "." + file_format
                 if os.path.exists(path):
                     dlg = ConfirmDialog(
                         self,
@@ -5996,7 +5995,7 @@ class LogWindow(InvincibleFrame):
                     if result != wx.ID_OK:
                         return
             setcfg("last_filedialog_path", path)
-            if format == "tgz":
+            if file_format == "tgz":
                 # Create gzipped tar archive
                 with tarfile.open(path, "w:gz", encoding="UTF-8") as tar:
                     tar.add(logdir, arcname=os.path.basename(path))
@@ -7873,7 +7872,7 @@ def is_scripting_allowed(win, child):
 _elementtable = {}
 
 
-def format_ui_element(child, format="plain"):
+def format_ui_element(child, file_format="plain"):
     if child.TopLevelParent:
         if not hasattr(child.TopLevelParent, "_win2name"):
             child.TopLevelParent._win2name = {}
@@ -7905,7 +7904,7 @@ def format_ui_element(child, format="plain"):
     if isinstance(child, wx.grid.Grid):
         for col in range(child.GetNumberCols()):
             cols.append(child.GetColLabelValue(col))
-    if format != "plain":
+    if file_format != "plain":
         uielement = {
             "class": child.__class__.__name__,
             "name": name,

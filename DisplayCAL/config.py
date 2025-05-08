@@ -2386,22 +2386,21 @@ def writecfg(
         else:
             cfgfilename = cfgfilename1
         try:
-            cfgfile = open(cfgfilename, "wb")
             if getcfg("argyll.dir"):
-                cfgfile.write(
-                    (
-                        "{}{}".format(
-                            os.linesep.join(
-                                [
-                                    "[Default]",
-                                    f"argyll.dir = {getcfg('argyll.dir')}",
-                                ]
-                            ),
-                            os.linesep,
-                        )
-                    ).encode()
-                )
-            cfgfile.close()
+                with open(cfgfilename, "wb") as cfgfile:
+                    cfgfile.write(
+                        (
+                            "{}{}".format(
+                                os.linesep.join(
+                                    [
+                                        "[Default]",
+                                        f"argyll.dir = {getcfg('argyll.dir')}",
+                                    ]
+                                ),
+                                os.linesep,
+                            )
+                        ).encode()
+                    )
             if sys.platform != "win32":
                 # on Linux and OS X, we write the file to the user's config dir
                 # then 'su mv' it to the system-wide config dir

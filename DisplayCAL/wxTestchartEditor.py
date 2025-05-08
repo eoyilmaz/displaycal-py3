@@ -2866,7 +2866,7 @@ END_DATA"""
                 os.path.splitext(target)[0],
                 {0: ".png", 1: ".png", 2: ".tif", 3: ".tif", 4: ".dpx"}[filter_index],
             )
-            format = {".dpx": "DPX", ".png": "PNG", ".tif": "TIFF"}[ext]
+            file_format = {".dpx": "DPX", ".png": "PNG", ".tif": "TIFF"}[ext]
             bitdepth = {0: 8, 1: 16, 2: 8, 3: 16, 4: 10}[filter_index]
             vscale = 2**bitdepth - 1
             repeatmax = getcfg("tc_export_repeat_patch_max")
@@ -2940,7 +2940,7 @@ END_DATA"""
                 [[color]],
                 filename,
                 bitdepth,
-                format,
+                file_format,
                 dimensions,
                 {
                     "original_width": sw,
@@ -2968,12 +2968,12 @@ END_DATA"""
                 for j in range(repeat - 1):
                     count += 1
                     filecopyname = filenameformat % (name, count, ext)
-                    if format == "DPX":
+                    if file_format == "DPX":
                         imfile.write(
                             [[color]],
                             filecopyname,
                             bitdepth,
-                            format,
+                            file_format,
                             dimensions,
                             {
                                 "original_width": sw,
@@ -2991,7 +2991,7 @@ END_DATA"""
                             },
                         )
                     secs += 1
-                    if format == "DPX":
+                    if file_format == "DPX":
                         continue
                     if os.path.isfile(filecopyname):
                         os.unlink(filecopyname)
@@ -3057,9 +3057,8 @@ END_DATA"""
                     return
             setcfg("last_ti1_path", path)
             try:
-                file_ = open(path, "wb")
-                file_.write(bytes(self.ti1))
-                file_.close()
+                with open(path, "wb") as file_:
+                    file_.write(bytes(self.ti1))
                 self.ti1.filename = path
                 self.ti1.root.setmodified(False)
                 if not self.IsBeingDeleted():
@@ -3213,7 +3212,7 @@ END_DATA"""
                         RGB_black_offset=getcfg("tc_vrml_black_offset"),
                         normalize_RGB_white=getcfg("tc_vrml_use_D50"),
                         compress=formatext == ".wrz",
-                        format=view_3d_format,
+                        file_format=view_3d_format,
                     )
                 except Exception as exception:
                     handle_error(

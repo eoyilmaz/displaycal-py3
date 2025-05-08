@@ -2536,7 +2536,7 @@ class PlotCanvas(wx.Panel):
                     factor = f
             grid = factor * 10.0**power
         if self._useScientificNotation and (power > 4 or power < -4):
-            format = "%+7.1e"
+            file_format = "%+7.1e"
         else:
             if ideal > int(ideal):
                 fdigits = len(str(round(ideal, 4)).split(".")[-1][:4].rstrip("0"))
@@ -2544,16 +2544,16 @@ class PlotCanvas(wx.Panel):
                 fdigits = 0
             if power >= 0:
                 digits = max(1, int(power))
-                format = "%" + repr(digits) + "." + repr(fdigits) + "f"
+                file_format = "%" + repr(digits) + "." + repr(fdigits) + "f"
             else:
                 digits = -int(power)
-                format = "%" + repr(digits + 2) + "." + repr(fdigits) + "f"
+                file_format = "%" + repr(digits + 2) + "." + repr(fdigits) + "f"
         ticks = []
         t = -grid * np.floor(-lower / grid)
         while t <= upper:
             if t == -0:
                 t = 0
-            ticks.append((t, format % (t,)))
+            ticks.append((t, file_format % (t,)))
             t = t + grid
         return ticks
 

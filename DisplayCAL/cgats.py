@@ -16,7 +16,6 @@ from DisplayCAL.icc_profile import ICCProfileTag
 from DisplayCAL.log import safe_print
 from DisplayCAL.options import debug
 from DisplayCAL.util_io import GzipFileProper
-from DisplayCAL.util_io import StringIOu as StringIO
 
 
 def get_device_value_labels(color_rep=None):

@@ -536,8 +536,8 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.GetSizer().Add(self.title_txt)
         self.sizer = wx.FlexGridSizer(0, 2, 0, 0)
         self.GetSizer().Add(self.sizer, flag=wx.TOP, border=8)
-        self.gauges = dict()
-        self.txt = dict()
+        self.gauges = {}
+        self.txt = {}
         if ctrltype == "check_all":
             txt = wx.StaticText(
                 self,

@@ -6723,7 +6723,7 @@ BEGIN_DATA
                     stdin = sp.PIPE
             else:
                 data_encoding = self.pty_encoding
-                kwargs = dict(timeout=20, cwd=working_dir, env=os.environ)
+                kwargs = {"timeout": 20, "cwd": working_dir, "env": os.environ}
                 if sys.platform == "win32":
                     # FIX: stdio cp1252 vs utf-8 (cp65001) issue under Windows 10/11+
                     # os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
@@ -8741,7 +8741,7 @@ BEGIN_DATA
             features = self.get_instrument_features()
             instrument_id = features.get("id", self.get_instrument_name())
         if instrument_id:
-            measurement_modes = self.measurement_modes.get(instrument_id, dict())
+            measurement_modes = self.measurement_modes.get(instrument_id, {})
             if not measurement_modes:
                 result = self.exec_cmd(
                     get_argyll_util("spotread"),
@@ -8923,8 +8923,8 @@ usage: spotread [-options] [logfile]
         if isinstance(result, Exception):
             traceback.print_exc()
             print(result)
-            return dict()
-        technology_strings = dict()
+            return {}
+        technology_strings = {}
         in_tech = False
         for line in self.output:
             if not (parts := line.strip().split(None, 1)):

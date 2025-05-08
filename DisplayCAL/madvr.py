@@ -134,7 +134,7 @@ def icc_device_link_to_madvr(
 
     filename, ext = os.path.splitext(icc_device_link_filename)
 
-    h3d_params = dict()
+    h3d_params = {}
 
     if filename.endswith(".HDR") or hdr == 2:
         name = os.path.splitext(filename)[0]
@@ -343,7 +343,7 @@ class H3DLUT:
             )
         self.lutCompressedSize = struct.unpack("<l", data[88:92])[0]
         self.lutUncompressedSize = struct.unpack("<l", data[92:96])[0]
-        self.parametersData = dict()
+        self.parametersData = {}
         for line in (
             data[self.parametersFileOffset : self.parametersFileOffset + parametersSize]
             .rstrip(b"\0")
@@ -772,7 +772,7 @@ class MadTPG_Net(MadTPGBase):
         MadTPGBase.__init__(self)
         self._cast_sockets = {}
         self._casts = []
-        self._client_sockets = dict()
+        self._client_sockets = {}
         self._commandno = 0
         self._commands = {}
         self._host = get_network_addr()
@@ -784,7 +784,7 @@ class MadTPG_Net(MadTPGBase):
         self._threads = []
         # self.broadcast_ports = (39568, 41513, 45817, 48591, 48912)
         self.broadcast_ports = (37018, 10658, 63922, 53181, 4287)
-        self.clients = dict()
+        self.clients = {}
         self.debug = 0
         self.listening = False
         # self.multicast_ports = (34761, )
@@ -1300,7 +1300,7 @@ class MadTPG_Net(MadTPGBase):
         commandno = record["commandNo"]
         component = record["component"]
         params = record["params"]
-        client = dict()
+        client = {}
         client["processId"] = record["processId"]
         client["module"] = record["module"]
         client["component"] = component

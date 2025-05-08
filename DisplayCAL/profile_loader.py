@@ -3104,7 +3104,7 @@ class ProfileLoader:
             device.DeviceName: device for device in get_display_devices(None)
         }
         self.monitors = []
-        self.display_devices = dict()
+        self.display_devices = {}
         self.child_devices_count = {}
         # Enumerate per-adapter devices
         for adapter in self.adapters:

@@ -856,5 +856,5 @@ or hit Esc or Q to abort:"""
                 wx.CallAfter(files.write, line)
                 print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

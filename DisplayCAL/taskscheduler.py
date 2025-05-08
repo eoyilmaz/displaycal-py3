@@ -203,7 +203,7 @@ class Task(_Dict2XML):
     ):
         kwargs = locals()
         idle_keys = ("duration", "wait_timeout", "stop_on_idle_end", "restart_on_idle")
-        idle_settings = dict()
+        idle_settings = {}
         for key in idle_keys:
             idle_settings[key] = kwargs[key]
         for key in (
@@ -219,7 +219,7 @@ class Task(_Dict2XML):
             del kwargs[key]
         settings = _Dict2XML(kwargs, cls_name="Settings")
         settings["idle_settings"] = _Dict2XML(idle_settings, cls_name="IdleSettings")
-        kwargs = dict()
+        kwargs = {}
         kwargs["registration_info"] = _Dict2XML(
             author=author,
             description=description,

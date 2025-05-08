@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import platform
 import re
 import shutil
 import sys
@@ -468,16 +469,19 @@ else:
     wx_Panel = wx.Panel
 
 
-wx.BitmapButton._SetBitmapLabel = wx.BitmapButton.SetBitmapLabel
-
+wx.AnyButton._SetBitmapLabel = wx.AnyButton.SetBitmapLabel
 
 def SetBitmapLabel(self, bitmap):
-    """Replacement for SetBitmapLabel which avoids flickering"""
+    """Override the SetBitmapLabel to avoid flickering."""
     if self.GetBitmapLabel() != bitmap:
-        self._SetBitmapLabel(bitmap)
+        try:
+            self._SetBitmapLabel(bitmap)
+        except TypeError:
+            print("Handled TypeError in SetBitmapLabel!")
+            print(f"self._SetBitmapLabel: {self._SetBitmapLabel}")
+            print(f"bitmap: {bitmap}")
 
-
-wx.BitmapButton.SetBitmapLabel = SetBitmapLabel
+wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 
 
 def BitmapButtonEnable(self, enable=True):
@@ -982,15 +986,12 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
         if -1 in size:
             size = (16, 16)
         bitmap = wx.ArtProvider.GetBitmap(wx.ART_MISSING_IMAGE, size=size)
+        # Ensure the normal bitmap is set first, fixes #507
+        btn.SetBitmapLabel(bitmap)
 
     # Disabled
     if disabled:
-        try:
-            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
-        except wx._core.wxAssertionError:
-            # must set normal bitmap first, fixes #507
-            btn.SetBitmapLabel(bitmap)
-            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
+        btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
 
     # Focus/Hover
     if sys.platform != "darwin" and focus is not False:

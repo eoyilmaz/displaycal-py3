@@ -10,6 +10,7 @@ import math
 import os
 import re
 from pathlib import Path
+from typing import Union
 
 from DisplayCAL import colormath
 from DisplayCAL.icc_profile import ICCProfileTag
@@ -284,11 +285,11 @@ class CGATS(dict):
 
         self.parse_raw_data(strict, raw_lines)
 
-    def read_raw_data(self, cgats: str | bytes | list | Path | io.IOBase) -> list:
+    def read_raw_data(self, cgats: Union[str, bytes, list, Path, io.IOBase]) -> list:
         """Read raw CGATS data.
 
         Args:
-            cgats (str | bytes | list | Path | io.IOBase): CGATS data to parse.
+            cgats (Union[str, bytes, list, Path, io.IOBase]): CGATS data to parse.
 
         Raises:
             CGATSInvalidError: If the type of cgats is unsupported.

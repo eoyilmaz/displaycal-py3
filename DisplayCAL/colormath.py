@@ -3499,7 +3499,7 @@ class Matrix3x3(list):
     """Simple 3x3 matrix"""
 
     def __init__(self, matrix=None):
-        super(Matrix3x3, self).__init__()
+        super().__init__()
         if matrix:
             self.update(matrix)
         else:

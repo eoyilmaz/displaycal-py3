@@ -524,7 +524,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 class DisplayAdjustmentPanel(wx_Panel):
     def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):
         # wx_Panel.__init__(self, parent, id)
-        super(DisplayAdjustmentPanel, self).__init__(parent, id)
+        super().__init__(parent, id)
         self.ctrltype = ctrltype
         self.SetBackgroundColour(BGCOLOUR)
         self.SetForegroundColour(FGCOLOUR)
@@ -740,7 +740,7 @@ class DisplayAdjustmentFrame(windowcls):
         #                    lang.getstr("calibration.interactive_display_adjustment"),
         #                    style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
         #                    name="displayadjustmentframe")
-        super(DisplayAdjustmentFrame, self).__init__(
+        super().__init__(
             parent,
             wx.ID_ANY,
             lang.getstr("calibration.interactive_display_adjustment"),

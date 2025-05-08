@@ -274,7 +274,7 @@ class CGATS(dict):
 
         file_identifier is used as fallback if no file identifier is present
         """
-        super(CGATS, self).__init__()
+        super().__init__()
 
         self.normalize_fields = normalize_fields
         self.file_identifier = file_identifier.strip()

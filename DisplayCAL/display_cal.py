@@ -18926,7 +18926,7 @@ else:
 
 class StartupFrame(start_cls):
     def __init__(self):
-        super(StartupFrame, self).__init__()
+        super().__init__()
         title = f"{appname} {version_short}"
         if VERSION > VERSION_BASE:
             title += " Beta"

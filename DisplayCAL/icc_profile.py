@@ -2942,7 +2942,7 @@ class ADict(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ADict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
         if name in self:
@@ -2956,7 +2956,7 @@ class ADict(dict):
 
 class AODict(ADict):
     def __init__(self, *args, **kwargs):
-        super(AODict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setattr__(self, name, value):
         if name == "_keys":
@@ -3044,7 +3044,7 @@ class ICCProfileTag:
 
 class Text(ICCProfileTag, bytes):
     def __init__(self, seq):
-        super(Text, self).__init__(tagData=seq, tagSignature=b"")
+        super().__init__(tagData=seq, tagSignature=b"")
         self.data = seq
 
     def __str__(self):
@@ -3146,14 +3146,14 @@ class Colorant:
 
 class Geometry(ADict):
     def __init__(self, binaryString):
-        super(Geometry, self).__init__()
+        super().__init__()
         self.type = uInt32Number(binaryString)
         self.description = GEOMETRY[self.type]
 
 
 class Illuminant(ADict):
     def __init__(self, binaryString):
-        super(Illuminant, self).__init__()
+        super().__init__()
         self.type = uInt32Number(binaryString)
         self.description = ILLUMINANTS[self.type]
 
@@ -6166,7 +6166,7 @@ class ICCProfile:
             # Filename
             profile = open(profile, "rb")
 
-        self = super(ICCProfile, cls).__new__(cls)
+        self = super().__new__(cls)
 
         if use_cache and key:
             _iccprofilecache[key] = self

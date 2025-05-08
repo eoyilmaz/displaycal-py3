@@ -82,7 +82,7 @@ class CoordinateType(list):
     """
 
     def __init__(self, profile=None):
-        super(CoordinateType, self).__init__()
+        super().__init__()
         self.profile = profile
         self._transfer_function = {}
 

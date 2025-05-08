@@ -1649,13 +1649,13 @@ class ProfileInfoFrame(LUTFrame):
                 if color.groups()[0] == "Lab":
                     color = colormath.Lab2RGB(
                         *[float(v) for v in color.groups()[1].strip().split()],
-                        **dict(scale=255),
+                        **{"scale": 255},
                     )
                 else:
                     # XYZ
                     color = colormath.XYZ2RGB(
                         *[float(v) for v in color.groups()[1].strip().split()],
-                        **dict(scale=255),
+                        **{"scale": 255},
                     )
                 labelbgcolor = wx.Colour(*[int(round(v)) for v in color])
                 rowlabelrenderer = CustomRowLabelRenderer(labelbgcolor)

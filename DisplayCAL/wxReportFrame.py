@@ -632,11 +632,11 @@ class ReportFrame(BaseFrame):
                 "devlink_profile": "devicelink_profile",
                 "output_profile": "measurement_report_choose_profile",
             }.get(which, which)
-            kwargs = dict(
-                toolTip=lang.getstr(msg).rstrip(":"),
-                dialogTitle=lang.getstr(msg),
-                fileMask=wildcard,
-            )
+            kwargs = {
+                "toolTip": lang.getstr(msg).rstrip(":"),
+                "dialogTitle": lang.getstr(msg),
+                "fileMask": wildcard,
+            }
             ctrl = getattr(self, f"{which}_ctrl")
             for name in kwargs:
                 value = kwargs[name]

@@ -594,7 +594,7 @@ def app_update_confirm(
             else:
                 wx.GetApp().ExitMainLoop()
             if sys.platform == "win32":
-                kwargs = dict(stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+                kwargs = {"stdin": sp.PIPE, "stdout": sp.PIPE, "stderr": sp.PIPE}
             else:
                 kwargs = {}
             sp.Popen(
@@ -1433,12 +1433,12 @@ class GamapFrame(BaseFrame):
             id=self.b2a_smooth_cb.GetId(),
         )
 
-        self.viewconds_ab = dict()
+        self.viewconds_ab = {}
         self.viewconds_ba = {}
-        self.viewconds_out_ab = dict()
+        self.viewconds_out_ab = {}
 
-        self.intents_ab = dict()
-        self.intents_ba = dict()
+        self.intents_ab = {}
+        self.intents_ba = {}
 
         self.default_intent_ab = {}
         self.default_intent_ba = {}
@@ -6075,7 +6075,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.update_main_controls()
 
     def lut3d_init_input_profiles(self):
-        self.input_profiles = dict()
+        self.input_profiles = {}
         for profile_filename in [
             "ACES.icm",
             "ACEScg.icm",
@@ -9881,7 +9881,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def setup_observer_ctrl(self):
         """Setup observer control. Choice of available observers varies with
         ArgyllCMS version."""
-        self.observers_ab = dict()
+        self.observers_ab = {}
         for observer in config.valid_values["observer"]:
             self.observers_ab[observer] = lang.getstr("observer." + observer)
         self.observers_ba = swap_dict_keys_values(self.observers_ab)
@@ -13415,7 +13415,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             dlg.sizer3.Add(boxsizer, 1, flag=wx.TOP | wx.EXPAND, border=12)
             if sys.platform not in ("darwin", "win32"):
                 boxsizer.Add((1, 8))
-            loctech = dict()
+            loctech = {}
             techloc = {}
             for technology_string in list(technology_strings.values()):
                 loc = lang.getstr(
@@ -14145,7 +14145,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         spyd4en = None
         icd = None
         oeminst = get_argyll_util("oeminst")
-        importers = dict()
+        importers = {}
         if not oeminst:
             i1d3ccss = get_argyll_util("i1d3ccss")
             spyd4en = get_argyll_util("spyd4en")
@@ -15901,7 +15901,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     bitmap=geticon(32, "dialog-error"),
                 )
                 return
-            tags = dict()
+            tags = {}
             # Get filename and extension of source file
             source_filename, source_ext = os.path.splitext(path)
             if source_ext.lower() != ".ti3":
@@ -16593,7 +16593,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             data_files += safe_glob(os.path.join(config.appdata, "ArgyllCMS", wildcard))
         filenames = list(data_files)
         data_files = []
-        mapping = dict()
+        mapping = {}
         for filename in filenames:
             basename = os.path.basename(filename)
             if (
@@ -17200,8 +17200,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.check_update_controls_consumer,
                 self.check_update_controls_producer,
             )
-            kwargs = dict(
-                cargs=(
+            kwargs = {
+                "cargs": (
                     argyll_bin_dir,
                     argyll_version,
                     displays,
@@ -17210,7 +17210,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     callafter,
                     callafter_args,
                 ),
-                wkwargs={
+                "wkwargs": {
                     "silent": True,
                     "enumerate_ports": enumerate_ports,
                     "displays": displays,
@@ -17218,7 +17218,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         event, wx.DisplayChangedEvent
                     ),
                 },
-            )
+            }
             if silent:
                 self.thread = delayedresult.startWorker(*args, **kwargs)
             else:
@@ -18404,7 +18404,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     bitmap=geticon(32, "dialog-error"),
                 )
                 return
-            self.related_files = dict()
+            self.related_files = {}
             for entry in dircontents:
                 fn, ext = os.path.splitext(entry)
                 if ext.lower() in (".app", script_ext):

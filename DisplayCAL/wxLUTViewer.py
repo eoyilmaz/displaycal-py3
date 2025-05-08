@@ -2152,7 +2152,7 @@ class LUTFrame(BaseFrame):
         if self.client.last_PointLabel is not None:
             self.client._drawPointLabel(self.client.last_PointLabel)  # erase old
             self.client.last_PointLabel = None
-        channels = dict()
+        channels = {}
         for channel, toggle in enumerate(self.toggles):
             channels[channel] = (
                 toggle.IsShown() and toggle.GetValue() and toggle.Label or ""

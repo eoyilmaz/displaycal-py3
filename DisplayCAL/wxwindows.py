@@ -1093,7 +1093,7 @@ class BaseFrame(wx.Frame):
                                 if responseformats[conn] != "plain":
                                     response = []
                                 else:
-                                    response = dict()
+                                    response = {}
                                 for name in sorted(defaults):
                                     value = getcfg(name, False)
                                     if value is not None:
@@ -1120,7 +1120,7 @@ class BaseFrame(wx.Frame):
                             if responseformats[conn] != "plain":
                                 response = []
                             else:
-                                response = dict()
+                                response = {}
                             for name in sorted(defaults):
                                 if responseformats[conn] != "plain":
                                     response.append(

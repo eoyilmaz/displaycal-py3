@@ -226,7 +226,9 @@ class StrList(list):
     """It's a list. It's a string. It's a list of strings that behaves like a
     string! And like a list."""
 
-    def __init__(self, seq=tuple()):
+    def __init__(self, seq=None):
+        if seq is None:
+            seq = ()
         list.__init__(self, seq)
 
     def __iadd__(self, text):

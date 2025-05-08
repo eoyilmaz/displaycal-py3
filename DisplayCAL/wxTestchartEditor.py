@@ -2338,7 +2338,7 @@ END_DATA"""
                     return Error(
                         lang.getstr("error.generic", (-1, lang.getstr("unknown")))
                     )
-            colorsets = dict()
+            colorsets = {}
             weights = {}
             demph = getcfg("tc_dark_emphasis")
             # Select Lab color

@@ -1936,11 +1936,11 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                 "abstract": lang.getstr("3dlut.use_abstract_profile"),
                 "output": lang.getstr("output.profile"),
             }[which]
-            kwargs = dict(
-                toolTip=msg.rstrip(":"),
-                dialogTitle=msg,
-                fileMask=lang.getstr("filetype.icc") + "|*.icc;*.icm",
-            )
+            kwargs = {
+                "toolTip": msg.rstrip(":"),
+                "dialogTitle": msg,
+                "fileMask": lang.getstr("filetype.icc") + "|*.icc;*.icm",
+            }
             ctrl = getattr(self, "%s_profile_ctrl" % which)
             for name in kwargs:
                 value = kwargs[name]

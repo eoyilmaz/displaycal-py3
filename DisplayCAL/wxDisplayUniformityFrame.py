@@ -1119,5 +1119,5 @@ Hit ESC or Q to exit, any other key to take a reading:""",
             wx.CallAfter(app.TopWindow.write, line)
             print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

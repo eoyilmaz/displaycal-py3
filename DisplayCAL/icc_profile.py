@@ -1437,7 +1437,7 @@ def create_synthetic_hdr_clut_profile(
                 L, C, H = colormath.XYZ2DIN99dLCH(*(v * 100 for v in XYZc))
                 Ld, Cd, Hd = colormath.XYZ2DIN99dLCH(*(v * 100 for v in XYZdisp))
                 Cdmaxk = tuple(map(round, (Ld, Hd)))
-                if C > Cmax.get(Cdmaxk, -1):
+                if C > Cmax.get(Cdmaxk, -1): # noqa: SIM300
                     Cmax[Cdmaxk] = C
                 Cdiff.append(min(Cd / C, 1.0))
                 if Cd > Cdmax.get(Cdmaxk, -1):
@@ -1559,7 +1559,7 @@ def create_synthetic_hdr_clut_profile(
                 )
                 Ld, Cd, Hd = colormath.XYZ2DIN99dLCH(*(v * 100 for v in XYZdisp))
             Cdmaxk = tuple(map(round, (Ld, Hd), (2, 2)))
-            if C > Cmax.get(Cdmaxk, -1):
+            if C > Cmax.get(Cdmaxk, -1):  # noqa: SIM300
                 Cmax[Cdmaxk] = C
             if C:
                 # print(f"{Cd:6.3f} {C:6.3f}")
@@ -2727,7 +2727,7 @@ def _mp_hdr_tonemap(
                 Cp *= 0.99
                 # Update XYZ
                 X, Y, Z = colormath.ICtCp2XYZ(I, Ct, Cp)
-                if Y > XYZ[1]:
+                if Y > XYZ[1]:  # noqa: SIM300
                     # Desaturating CtCp increases Y!
                     # As we desaturate different amounts per color,
                     # restore initial Y if lower than adjusted Y
@@ -4912,7 +4912,7 @@ class ProfileSequenceDescType(ICCProfileTag, list):
                 if self.profile.version < 4:
                     # Other profile is v4
                     tag.ASCII = description.encode("ASCII", "asciize")
-                    if tag.ASCII != description:
+                    if description != tag.ASCII:
                         tag.Unicode = description
                 else:
                     # Other profile is v2
@@ -7413,8 +7413,8 @@ class ICCProfile:
         info["Checksum"] = f"0x{binascii.hexlify(self.ID).upper().decode()}"
         calculated_id = self.calculateID(False)
         if self.ID != b"\0" * 16:
-            info["    Checksum OK"] = {True: "Yes"}.get(self.ID == calculated_id, "No")
-        if self.ID != calculated_id:
+            info["    Checksum OK"] = {True: "Yes"}.get(calculated_id == self.ID, "No")
+        if calculated_id != self.ID:
             info["    Calculated checksum"] = (
                 f"0x{binascii.hexlify(calculated_id).upper().decode()}"
             )

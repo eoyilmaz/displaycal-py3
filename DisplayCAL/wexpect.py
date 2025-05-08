@@ -2335,7 +2335,7 @@ class Wtty:
             buff.append(s)
 
             startCo.X, startCo.Y = int(endPoint[0]), int(endPoint[1])
-            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):
+            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):  # noqa: SIM300
                 break
 
         return "".join(buff)
@@ -2465,7 +2465,7 @@ class Wtty:
         try:
             while True:
                 # Wait for child process to be paused
-                if cursorPos.Y > maxconsoleY:
+                if cursorPos.Y > maxconsoleY:  # noqa: SIM300
                     reset = True
                     time.sleep(0.2)
 
@@ -2697,7 +2697,7 @@ class ConsoleReader:
                     cursorPos = consinfo["CursorPosition"]
                     maxconsoleY = consinfo["Size"].Y / 2
 
-                    if cursorPos.Y > maxconsoleY and not paused:
+                    if cursorPos.Y > maxconsoleY and not paused:  # noqa: SIM300
                         # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
                         # log('suspendThread', 'consolereader', logdir)
                         self.suspendThread()
@@ -2706,7 +2706,7 @@ class ConsoleReader:
                         # Hide cursor
                         consout.SetConsoleCursorInfo(cursorinfo[0], 0)
 
-                    if cursorPos.Y <= maxconsoleY and paused:
+                    if cursorPos.Y <= maxconsoleY and paused:  # noqa: SIM300
                         # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
                         # log('resumeThread', 'consolereader', logdir)
                         self.resumeThread()

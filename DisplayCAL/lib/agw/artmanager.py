@@ -1655,7 +1655,7 @@ class ArtManager(wx.EvtHandler):
                     return
 
                 exstyle = win32api.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
-                if 0 == (exstyle & 0x80000):
+                if (exstyle & 0x80000) == 0:
                     win32api.SetWindowLong(
                         hwnd, win32con.GWL_EXSTYLE, exstyle | 0x80000
                     )

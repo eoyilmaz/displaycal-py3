@@ -678,7 +678,7 @@ def create_shaper_curves(
         if 100 > R > 0 and min(X, Y, Z) < 100.0 / 65535:
             # Skip non-black/non-white gray values not encodable in 16-bit
             continue
-        if 100 > R > 0 and G_Y and (Y < G_Y[-1] * 100 or Y > 100):
+        if 100 > R > 0 and G_Y and (Y < G_Y[-1] * 100 or Y > 100):  # noqa: SIM300
             # Skip values with negative Y increments,
             # or Y above 100 with RGB < 100
             if logfn:

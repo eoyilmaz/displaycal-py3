@@ -24,10 +24,10 @@ else:
         except wxversion.VersionError:
             pass
 
-from wx import __version__ as wx_version
 import wx
+from wx import __version__ as wx_version
 
-if wx.VERSION < wx_minversion:
+if wx.VERSION < wx_minversion:  # noqa: SIM300
     app = wx.GetApp() or wx.App(0)
     result = wx.MessageBox(
         "This application requires a version of wxPython "

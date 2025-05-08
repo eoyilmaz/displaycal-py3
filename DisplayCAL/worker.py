@@ -237,7 +237,6 @@ else:
             BUSTYPE_SESSION,
             DBusException,
             DBusObject,
-            DBusObjectError,
             dbus_session,
             dbus_system,
         )

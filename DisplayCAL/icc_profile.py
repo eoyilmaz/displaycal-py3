@@ -3329,7 +3329,7 @@ class LUT16Type(ICCProfileTag):
         if len(self.clut[0][0]) != 3:
             raise NotImplementedError("clut_writecgats: output channels != 3")
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")
+            stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:
             stream = stream_or_filename
         with stream:
@@ -6163,10 +6163,6 @@ class ICCProfile:
             if chk:
                 return chk
 
-        if isinstance(key, tuple):
-            # Filename
-            profile = open(profile, "rb")
-
         self = super().__new__(cls)
 
         if use_cache and key:
@@ -6187,181 +6183,186 @@ class ICCProfile:
         self.is_loaded = False
         self.size = 0
 
-        if profile is not None:
-            if isinstance(profile, bytes):
-                # Binary string
-                data = profile
-                self.is_loaded = True
-            else:
-                # File object
-                self._file = profile
-                self.fileName = self._file.name
-                self._file.seek(0)
-                data = self._file.read(128)
-                self.close()
+        if isinstance(key, tuple):
+            # Filename
+            profile = open(profile, "rb")  # noqa: SIM115
 
-            if not data or len(data) < 128:
-                raise ICCProfileInvalidError("Not enough data")
-
-            if data[:5] == b"<?xml" or data[:10] == b"<\0?\0x\0m\0l\0":
-                # Microsoft WCS profile
-                from io import BytesIO
-                from xml.etree import ElementTree
-
-                self.fileName = None
-                self._data = data
-                self.load()
-                data = self._data
-                self._data = b""
-                self.set_defaults()
-                it = ElementTree.iterparse(BytesIO(data))
-                try:
-                    for _event, elem in it:
-                        # Strip all namespaces
-                        elem.tag = elem.tag.split("}", 1)[-1]
-                except ElementTree.ParseError:
-                    raise ICCProfileInvalidError("Invalid WCS profile")
-                desc = it.root.find(b"Description")
-                if desc is not None:
-                    desc = desc.find(b"Text")
-                    if desc is not None:
-                        self.setDescription(str(desc.text, "UTF-8"))
-                author = it.root.find(b"Author")
-                if author is not None:
-                    author = author.find(b"Text")
-                    if author is not None:
-                        self.setCopyright(str(author.text, "UTF-8"))
-                device = it.root.find(b"RGBVirtualDevice")
-                if device is not None:
-                    measurement_data = device.find(b"MeasurementData")
-                    if measurement_data is not None:
-                        for color in (b"White", b"Red", b"Green", b"Blue", b"Black"):
-                            prim = measurement_data.find(color + b"Primary")
-                            if prim is None:
-                                continue
-                            XYZ = []
-                            for component in b"XYZ":
-                                try:
-                                    XYZ.append(float(prim.get(component)) / 100.0)
-                                except (TypeError, ValueError):
-                                    raise ICCProfileInvalidError("Invalid WCS profile")
-                            if color == b"White":
-                                tag_name = "wtpt"
-                            elif color == b"Black":
-                                tag_name = "bkpt"
-                            else:
-                                XYZ = colormath.adapt(
-                                    *XYZ,
-                                    whitepoint_source=list(self.tags.wtpt.values()),
-                                )
-                                tag_name = color[0].lower().decode() + "XYZ"
-                            tag = self.tags[tag_name] = XYZType(profile=self)
-                            tag.X, tag.Y, tag.Z = XYZ
-                        gamma = measurement_data.find(b"GammaOffsetGainLinearGain")
-                        if gamma is None:
-                            gamma = measurement_data.find(b"GammaOffsetGain")
-                        if gamma is not None:
-                            params = {
-                                "Gamma": 1,
-                                "Offset": 0,
-                                "Gain": 1,
-                                "LinearGain": 1,
-                                "TransitionPoint": -1,
-                            }
-                            for att in list(params.keys()):
-                                try:
-                                    params[att] = float(gamma.get(att))
-                                except (TypeError, ValueError):
-                                    if (
-                                        att not in ("LinearGain", "TransitionPoint")
-                                        or gamma.tag != "GammaOffsetGain"
-                                    ):
-                                        raise ICCProfileInvalidError(
-                                            "Invalid WCS profile"
-                                        )
-
-                            def power(a):
-                                if a <= params["TransitionPoint"]:
-                                    v = a / params["LinearGain"]
-                                else:
-                                    v = math.pow(
-                                        (a + params["Offset"]) * params["Gain"],
-                                        params["Gamma"],
-                                    )
-                                return v
-
-                        else:
-                            gamma = measurement_data.find("Gamma")
-                            if gamma is not None:
-                                try:
-                                    power = float(gamma.get("value"))
-                                except (TypeError, ValueError):
-                                    raise ICCProfileInvalidError("Invalid WCS profile")
-                        if gamma is not None:
-                            self.set_trc_tags(True, power)
-                if it.root.tag == "ColorDeviceModel":
-                    ms00 = WcsProfilesTagType(b"", "MS00", self)
-                    ms00["ColorDeviceModel"] = it.root
-                    vcgt = ms00.get_vcgt()
-                    if vcgt:
-                        self.tags["vcgt"] = vcgt
-                self.size = len(self.data)
-                return self
-
-            if data[36:40] != b"acsp":
-                raise ICCProfileInvalidError(
-                    "Profile signature mismatch - expected 'acsp', found '"
-                    + data[36:40].decode("utf-8")
-                    + "'"
-                )
-
-            # ICC profile
-            header = data[:128]
-            self.size = uInt32Number(header[0:4])
-            self.preferredCMM = header[4:8]
-            minorrev_bugfixrev = binascii.hexlify(header[8:12][1:2])
-            self.version = float(
-                "{}.{}".format(
-                    header[8:12][0],
-                    str(int(b"0x0" + minorrev_bugfixrev[0:1], 16))
-                    + str(int(b"0x0" + minorrev_bugfixrev[1:2], 16)),
-                )
-            )
-            self.profileClass = header[12:16]
-            self.colorSpace = header[16:20].strip()
-            self.connectionColorSpace = header[20:24].strip()
-            try:
-                self.dateTime = dateTimeNumber(header[24:36])
-            except ValueError:
-                raise ICCProfileInvalidError("Profile creation date/time invalid")
-            self.platform = header[40:44]
-            flags = uInt32Number(header[44:48])
-            self.embedded = flags & 1 != 0
-            self.independent = flags & 2 == 0
-            deviceAttributes = uInt32Number(header[56:60])
-
-            self.device = {
-                "manufacturer": header[48:52],
-                "model": header[52:56],
-                "attributes": {
-                    "reflective": deviceAttributes & 1 == 0,
-                    "glossy": deviceAttributes & 2 == 0,
-                    "positive": deviceAttributes & 4 == 0,
-                    "color": deviceAttributes & 8 == 0,
-                },
-            }
-            self.intent = uInt32Number(header[64:68])
-            self.illuminant = XYZNumber(header[68:80])
-            self.creator = header[80:84]
-            if header[84:100] != b"\0" * 16:
-                self.ID = header[84:100]
-
-            self._data = data[: self.size]
-
-            if load:
-                _ = self.tags
-        else:
+        if profile is None:
             self.set_defaults()
+            return self
+
+        if isinstance(profile, bytes):
+            # Binary string
+            data = profile
+            self.is_loaded = True
+        else:
+            # File object
+            self._file = profile
+            self.fileName = self._file.name
+            self._file.seek(0)
+            data = self._file.read(128)
+            self.close()
+
+        if not data or len(data) < 128:
+            raise ICCProfileInvalidError("Not enough data")
+
+        if data[:5] == b"<?xml" or data[:10] == b"<\0?\0x\0m\0l\0":
+            # Microsoft WCS profile
+            from io import BytesIO
+            from xml.etree import ElementTree
+
+            self.fileName = None
+            self._data = data
+            self.load()
+            data = self._data
+            self._data = b""
+            self.set_defaults()
+            it = ElementTree.iterparse(BytesIO(data))
+            try:
+                for _event, elem in it:
+                    # Strip all namespaces
+                    elem.tag = elem.tag.split("}", 1)[-1]
+            except ElementTree.ParseError:
+                raise ICCProfileInvalidError("Invalid WCS profile")
+            desc = it.root.find(b"Description")
+            if desc is not None:
+                desc = desc.find(b"Text")
+                if desc is not None:
+                    self.setDescription(str(desc.text, "UTF-8"))
+            author = it.root.find(b"Author")
+            if author is not None:
+                author = author.find(b"Text")
+                if author is not None:
+                    self.setCopyright(str(author.text, "UTF-8"))
+            device = it.root.find(b"RGBVirtualDevice")
+            if device is not None:
+                measurement_data = device.find(b"MeasurementData")
+                if measurement_data is not None:
+                    for color in (b"White", b"Red", b"Green", b"Blue", b"Black"):
+                        prim = measurement_data.find(color + b"Primary")
+                        if prim is None:
+                            continue
+                        XYZ = []
+                        for component in b"XYZ":
+                            try:
+                                XYZ.append(float(prim.get(component)) / 100.0)
+                            except (TypeError, ValueError):
+                                raise ICCProfileInvalidError("Invalid WCS profile")
+                        if color == b"White":
+                            tag_name = "wtpt"
+                        elif color == b"Black":
+                            tag_name = "bkpt"
+                        else:
+                            XYZ = colormath.adapt(
+                                *XYZ,
+                                whitepoint_source=list(self.tags.wtpt.values()),
+                            )
+                            tag_name = color[0].lower().decode() + "XYZ"
+                        tag = self.tags[tag_name] = XYZType(profile=self)
+                        tag.X, tag.Y, tag.Z = XYZ
+                    gamma = measurement_data.find(b"GammaOffsetGainLinearGain")
+                    if gamma is None:
+                        gamma = measurement_data.find(b"GammaOffsetGain")
+                    if gamma is not None:
+                        params = {
+                            "Gamma": 1,
+                            "Offset": 0,
+                            "Gain": 1,
+                            "LinearGain": 1,
+                            "TransitionPoint": -1,
+                        }
+                        for att in list(params.keys()):
+                            try:
+                                params[att] = float(gamma.get(att))
+                            except (TypeError, ValueError):
+                                if (
+                                    att not in ("LinearGain", "TransitionPoint")
+                                    or gamma.tag != "GammaOffsetGain"
+                                ):
+                                    raise ICCProfileInvalidError(
+                                        "Invalid WCS profile"
+                                    )
+
+                        def power(a):
+                            if a <= params["TransitionPoint"]:
+                                v = a / params["LinearGain"]
+                            else:
+                                v = math.pow(
+                                    (a + params["Offset"]) * params["Gain"],
+                                    params["Gamma"],
+                                )
+                            return v
+
+                    else:
+                        gamma = measurement_data.find("Gamma")
+                        if gamma is not None:
+                            try:
+                                power = float(gamma.get("value"))
+                            except (TypeError, ValueError):
+                                raise ICCProfileInvalidError("Invalid WCS profile")
+                    if gamma is not None:
+                        self.set_trc_tags(True, power)
+            if it.root.tag == "ColorDeviceModel":
+                ms00 = WcsProfilesTagType(b"", "MS00", self)
+                ms00["ColorDeviceModel"] = it.root
+                vcgt = ms00.get_vcgt()
+                if vcgt:
+                    self.tags["vcgt"] = vcgt
+            self.size = len(self.data)
+            return self
+
+        if data[36:40] != b"acsp":
+            raise ICCProfileInvalidError(
+                "Profile signature mismatch - expected 'acsp', found '"
+                + data[36:40].decode("utf-8")
+                + "'"
+            )
+
+        # ICC profile
+        header = data[:128]
+        self.size = uInt32Number(header[0:4])
+        self.preferredCMM = header[4:8]
+        minorrev_bugfixrev = binascii.hexlify(header[8:12][1:2])
+        self.version = float(
+            "{}.{}".format(
+                header[8:12][0],
+                str(int(b"0x0" + minorrev_bugfixrev[0:1], 16))
+                + str(int(b"0x0" + minorrev_bugfixrev[1:2], 16)),
+            )
+        )
+        self.profileClass = header[12:16]
+        self.colorSpace = header[16:20].strip()
+        self.connectionColorSpace = header[20:24].strip()
+        try:
+            self.dateTime = dateTimeNumber(header[24:36])
+        except ValueError:
+            raise ICCProfileInvalidError("Profile creation date/time invalid")
+        self.platform = header[40:44]
+        flags = uInt32Number(header[44:48])
+        self.embedded = flags & 1 != 0
+        self.independent = flags & 2 == 0
+        deviceAttributes = uInt32Number(header[56:60])
+
+        self.device = {
+            "manufacturer": header[48:52],
+            "model": header[52:56],
+            "attributes": {
+                "reflective": deviceAttributes & 1 == 0,
+                "glossy": deviceAttributes & 2 == 0,
+                "positive": deviceAttributes & 4 == 0,
+                "color": deviceAttributes & 8 == 0,
+            },
+        }
+        self.intent = uInt32Number(header[64:68])
+        self.illuminant = XYZNumber(header[68:80])
+        self.creator = header[80:84]
+        if header[84:100] != b"\0" * 16:
+            self.ID = header[84:100]
+
+        self._data = data[: self.size]
+
+        if load:
+            _ = self.tags
 
         return self
 
@@ -7322,7 +7323,7 @@ class ICCProfile:
         """
         if not self.is_loaded and self._file:
             if self._file.closed:
-                self._file = open(self._file.name, "rb")
+                self._file = open(self._file.name, "rb")  # noqa: SIM115
                 self._file.seek(len(self._data))
             read_size = self.size - len(self._data)
             if read_size > 0:
@@ -7777,7 +7778,7 @@ class ICCProfile:
                 if sig == "lumi":
                     info[name] = f"{self.tags.lumi.Y:.2f} cd/m²"
                 elif sig in ("bkpt", "wtpt"):
-                    format = {"bkpt": "{:6.4f}", "wtpt": "{:6.2f}"}[sig]
+                    file_format = {"bkpt": "{:6.4f}", "wtpt": "{:6.2f}"}[sig]
                     info[name] = ""
                     if self.profileClass == b"mntr" and sig == "wtpt":
                         info["    Is illuminant"] = "Yes"
@@ -7787,11 +7788,11 @@ class ICCProfile:
                         label = "PCS-relative"
                     # if self.connectionColorSpace == "Lab" and self.profileClass == "prtr":
                     if self.profileClass == b"prtr":
-                        color = [" ".join([format.format(v) for v in tag.ir.Lab])]
+                        color = [" ".join([file_format.format(v) for v in tag.ir.Lab])]
                         info[f"    {label} Lab"] = " ".join(color)
                     else:
                         color = [
-                            " ".join(format.format(v * 100) for v in list(tag.ir.values()))
+                            " ".join(file_format.format(v * 100) for v in list(tag.ir.values()))
                         ]
                         if list(tag.ir.values()) != [0, 0, 0]:
                             xy = " ".join(f"{v:6.4f}" for v in tag.ir.xyY[:2])
@@ -7816,7 +7817,7 @@ class ICCProfile:
                                 )
                     if "chad" in self.tags:
                         color = [
-                            " ".join(format.format(v * 100) for v in list(tag.pcs.values()))
+                            " ".join(file_format.format(v * 100) for v in list(tag.pcs.values()))
                         ]
                         if list(tag.pcs.values()) != [0, 0, 0]:
                             xy = " ".join(f"{v:6.4f}" for v in tag.pcs.xyY[:2])
@@ -8048,14 +8049,12 @@ class ICCProfile:
                     self.close()
             stream_or_filename = self.fileName
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")
-            if not self.fileName:
-                self.fileName = stream_or_filename
+            with open(stream_or_filename, "wb") as stream:
+                if not self.fileName:
+                    self.fileName = stream_or_filename
+                stream.write(self.data)
         else:
-            stream = stream_or_filename
-        stream.write(self.data)
-        if isinstance(stream_or_filename, str):
-            stream.close()
+            stream_or_filename.write(self.data)
 
     def __getattribute__(self, name):
         if name == "write" or name.startswith("set") or name.startswith("apply"):

@@ -575,8 +575,8 @@ class Xicclu(WorkerBase):
         self.closed = False
         self.output = []
         self.errors = []
-        self.stdout = tempfile.SpooledTemporaryFile()
-        self.stderr = tempfile.SpooledTemporaryFile()
+        self.stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
+        self.stderr = tempfile.SpooledTemporaryFile()  # noqa: SIM115
         self.subprocess = sp.Popen(
             self.args,
             stdin=sp.PIPE,

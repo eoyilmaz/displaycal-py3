@@ -1043,20 +1043,21 @@ def waccess(path: str, mode: int) -> bool:
     """
     if mode & os.R_OK:
         try:
-            test = open(path, "rb")
+            with open(path, "rb"):
+                pass
         except OSError:
             return False
-        test.close()
     if mode & os.W_OK:
         dir = path if os.path.isdir(path) else os.path.dirname(path)
         try:
             if os.path.isfile(path):
-                test = open(path, "ab")
+                with open(path, "ab"):
+                    pass
             else:
-                test = tempfile.TemporaryFile(prefix=".", dir=dir)
+                with tempfile.TemporaryFile(prefix=".", dir=dir):
+                    pass
         except OSError:
             return False
-        test.close()
     if mode & os.X_OK:
         return os.access(path, mode)
     return True

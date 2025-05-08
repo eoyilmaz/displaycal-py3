@@ -3737,7 +3737,7 @@ END_DATA
         profile_out=None,
         apply_cal=True,
         intent="r",
-        format="cube",
+        file_format="cube",
         size=17,
         input_bits=10,
         output_bits=12,
@@ -3959,7 +3959,7 @@ END_DATA
             in_rgb_space = profile_in.get_rgb_space()
             if in_rgb_space:
                 in_colors = colormath.get_rgb_space_primaries_wp_xy(in_rgb_space)
-                if format == "madVR":
+                if file_format == "madVR":
                     # Use a D65 white for the 3D LUT Input_Primaries as
                     # madVR can only deal correctly with D65
                     # Use the same D65 xy values as written by madVR
@@ -4166,7 +4166,7 @@ END_DATA
                 # raise Error("\n".join(self.errors) or lang.getstr("error"))
                 fd, gam_in_tiff = tempfile.mkstemp(".tif", "gam-in-", dir=cwd)
                 stream = os.fdopen(fd, "wb")
-                imfile.write_rgb_clut(stream, 65, format="TIFF")
+                imfile.write_rgb_clut(stream, 65, file_format="TIFF")
                 stream.close()
 
                 # Convert RGB image from source to destination to get source
@@ -4228,11 +4228,11 @@ END_DATA
                 profile_abst.write(os.path.join(cwd, "abstract.icc"))
                 args.extend(["-p", "abstract.icc"])
             if self.argyll_version >= [1, 6]:
-                if format == "madVR":
+                if file_format == "madVR":
                     args.append("-3m")
-                elif format == "eeColor" and not test:
+                elif file_format == "eeColor" and not test:
                     args.append("-3e")
-                elif format == "cube" and collink_version >= [1, 7] and not test:
+                elif file_format == "cube" and collink_version >= [1, 7] and not test:
                     args.append("-3c")
                 args.append(f"-e{input_encoding}")
                 args.append(f"-E{output_encoding}")
@@ -4270,7 +4270,7 @@ END_DATA
             xts = time()
             if use_xicclu:
                 # Create device link using xicclu
-                is_argyll_lut_format = format == "icc"
+                is_argyll_lut_format = file_format == "icc"
 
                 def clipVidRGB(RGB, black_hack=True):
                     """Clip a value to the RGB Video range 16..235 RGB.
@@ -4651,14 +4651,14 @@ END_DATA
                     and (
                         (
                             (
-                                format == "eeColor"
-                                or (format == "cube" and collink_version >= [1, 7])
+                                file_format == "eeColor"
+                                or (file_format == "cube" and collink_version >= [1, 7])
                             )
                             and not test
                         )
-                        or format == "madVR"
+                        or file_format == "madVR"
                     )
-                    or format == "icc"
+                    or file_format == "icc"
                 )
                 result = self.exec_cmd(
                     collink,
@@ -4713,7 +4713,7 @@ END_DATA
                 profile_link.tags.A2B0.clut_writepng(f"{filename}.A2B0.CLUT.png")
                 del profile_link
 
-                if use_xicclu and format == "madVR":
+                if use_xicclu and file_format == "madVR":
                     # We need to up-interpolate the device link ourself
                     # Call this in a separate process so I/O congestion
                     # doesn't interfere with UI updates and audio
@@ -4811,7 +4811,7 @@ END_DATA
                         h3d.write_devicelink(filename + ".3dlut" + profile_ext)
 
             if result and not isinstance(result, Exception):
-                if format == "madVR" and is_argyll_lut_format:
+                if file_format == "madVR" and is_argyll_lut_format:
                     # We need to update Input_Primaries, otherwise the
                     # madVR 3D LUT won't work correctly! (collink fills
                     # Input_Primaries from a lookup through the input
@@ -4880,10 +4880,10 @@ END_DATA
                             )
                         )
 
-            if is_argyll_lut_format or (use_xicclu and format == "madVR"):
+            if is_argyll_lut_format or (use_xicclu and file_format == "madVR"):
                 # Collink has already written the 3DLUT for us,
                 # or we have written the madVR 3D LUT
-                if format == "cube":
+                if file_format == "cube":
                     if maxval is None:
                         maxval = 1.0
                     # Strip any leading whitespace from each line (although
@@ -4940,19 +4940,19 @@ END_DATA
                 raise UnloggedError(lang.getstr("aborted"))
 
         # We have to create the 3DLUT ourselves
-        logfiles.write(f"Generating {format} 3D LUT...\n")
+        logfiles.write(f"Generating {file_format} 3D LUT...\n")
 
         # Create input RGB values
         RGB_oin = []
         RGB_in = []
         RGB_indexes = []
         seen = {}
-        if format == "eeColor":
+        if file_format == "eeColor":
             # Fixed size
             size = 65
-        elif format == "ReShade":
-            format = "png"
-        if format == "3dl":
+        elif file_format == "ReShade":
+            file_format = "png"
+        if file_format == "3dl":
             if maxval is None:
                 maxval = 1023
             if output_bits is None:
@@ -4972,24 +4972,24 @@ END_DATA
         RGB_triplet = [0.0, 0.0, 0.0]
         RGB_index = [0, 0, 0]
         # Set the fastest and slowest changing columns, from right to left
-        if format in ("3dl", "mga", "spi3d") or (
-            format == "png" and getcfg("3dlut.image.order") == "bgr"
+        if file_format in ("3dl", "mga", "spi3d") or (
+            file_format == "png" and getcfg("3dlut.image.order") == "bgr"
         ):
             columns = (0, 1, 2)
-        elif format == "eeColor":
+        elif file_format == "eeColor":
             columns = (2, 0, 1)
         else:
             columns = (2, 1, 0)
         for i in range(0, size):
             # Red
-            if format == "eeColor" and not eecolor65 and i == size - 1:
+            if file_format == "eeColor" and not eecolor65 and i == size - 1:
                 # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                 continue
             RGB_triplet[columns[0]] = quantizer(step * i)
             RGB_index[columns[0]] = i
             for j in range(0, size):
                 # Green
-                if format == "eeColor" and not eecolor65 and j == size - 1:
+                if file_format == "eeColor" and not eecolor65 and j == size - 1:
                     # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                     continue
                 RGB_triplet[columns[1]] = quantizer(step * j)
@@ -4998,13 +4998,13 @@ END_DATA
                     # Blue
                     if self.thread_abort:
                         raise Info(lang.getstr("aborted"))
-                    if format == "eeColor" and not eecolor65 and k == size - 1:
+                    if file_format == "eeColor" and not eecolor65 and k == size - 1:
                         # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                         continue
                     RGB_triplet[columns[2]] = quantizer(step * k)
                     RGB_oin.append(list(RGB_triplet))
                     RGB_copy = list(RGB_triplet)
-                    if format == "eeColor":
+                    if file_format == "eeColor":
                         for l in range(3):
                             RGB_copy[l] = eeColor_to_VidRGB(RGB_copy[l])
                             if input_encoding in ("t", "T"):
@@ -5020,7 +5020,7 @@ END_DATA
             link_filename, RGB_in, scale=scale, use_icclu=True, logfile=logfiles
         )
 
-        if format == "eeColor" and output_encoding == "n":
+        if file_format == "eeColor" and output_encoding == "n":
             RGBw = self.xicclu(link_filename, [[1, 1, 1]], use_icclu=True)[0]
 
         # Remove temporary files, move log file
@@ -5030,12 +5030,12 @@ END_DATA
             raise result
 
         valsep = " "
-        if format not in ("dcl", "png"):
+        if file_format not in ("dcl", "png"):
             lut = [[f"# Created with {appname} {version}"]]
             linesep = "\n"
-        if format in ("3dl", "dcl"):
+        if file_format in ("3dl", "dcl"):
             maxval = math.pow(2, output_bits) - 1
-            if format == "3dl":
+            if file_format == "3dl":
                 lut.append([f"# INPUT RANGE: {input_bits:d}"])
                 lut.append([f"# OUTPUT RANGE: {output_bits:d}"])
                 lut.append([])
@@ -5051,7 +5051,7 @@ END_DATA
                     lut[-1].append(
                         f"{int(round(RGB_triplet[component] / scale * maxval)):d}"
                     )
-        elif format == "cube":
+        elif file_format == "cube":
             if maxval is None:
                 maxval = 1.0
             lut.append([f"LUT_3D_SIZE {size:d}"])
@@ -5066,7 +5066,7 @@ END_DATA
                 lut.append([])
                 for component in (0, 1, 2):
                     lut[-1].append(f"{RGB_triplet[component] * maxval:.6f}")
-        elif format == "spi3d":
+        elif file_format == "spi3d":
             if maxval is None:
                 maxval = 1.0
             lut = [["SPILUT 1.0"]]
@@ -5076,7 +5076,7 @@ END_DATA
                 lut.append([str(index) for index in RGB_indexes[i]])
                 for component in (0, 1, 2):
                     lut[-1].append(f"{RGB_triplet[component] * maxval:.6f}")
-        elif format == "eeColor":
+        elif file_format == "eeColor":
             if maxval is None:
                 maxval = 1.0
             lut = []
@@ -5095,7 +5095,7 @@ END_DATA
                     v = VidRGB_to_eeColor(v)
                     lut[-1].append(f"{v:.6f}")
             linesep = "\r\n"
-        elif format == "mga":
+        elif file_format == "mga":
             lut = [
                 ["#HEADER"],
                 [f"#filename: {os.path.basename(path)}"],
@@ -5120,7 +5120,7 @@ END_DATA
                 for component in (0, 1, 2):
                     lut[-1].append(f"{int(round(RGB_triplet[component] * maxval))}")
             valsep = "\t"
-        elif format == "png":
+        elif file_format == "png":
             lut = [[]]
             if output_bits > 8:
                 # PNG only supports 8 and 16 bit
@@ -5143,22 +5143,21 @@ END_DATA
                     for j in range(size):
                         lut[-1].extend(lutv[i + size * j])
 
-        if format != "png":
+        if file_format != "png":
             lut.append([])
             for i, line in enumerate(lut):
                 lut[i] = valsep.join(line)
             result = linesep.join(lut)
 
         # Write 3DLUT
-        lut_file = open(path, "wb")
-        if format != "png":
-            lut_file.write(result.encode())
-        else:
-            im = imfile.Image(lut, output_bits)
-            im.write(lut_file)
-        lut_file.close()
+        with open(path, "wb") as lut_file:
+            if file_format != "png":
+                lut_file.write(result.encode())
+            else:
+                im = imfile.Image(lut, output_bits)
+                im.write(lut_file)
 
-        if format == "eeColor":
+        if file_format == "eeColor":
             # Write eeColor 1D LUTs
             for i, color in enumerate(["red", "green", "blue"]):
                 for count, inout in [(1024, "first"), (8192, "second")]:
@@ -6501,8 +6500,8 @@ BEGIN_DATA
                 )
                 first = not os.path.exists(allfilename)
                 last = cmdname == get_argyll_utilname("dispwin")
-                cmdfile = open(cmdfilename, "w")
-                allfile = open(allfilename, "a")
+                cmdfile = open(cmdfilename, "w")  # noqa: SIM115
+                allfile = open(allfilename, "a")  # noqa: SIM115
                 cmdfiles = Files((cmdfile, allfile))
                 context = cmdfiles if first else cmdfile
                 if sys.platform == "win32":
@@ -6706,9 +6705,9 @@ BEGIN_DATA
                 startupinfo = None
             if not use_pty:
                 data_encoding = enc
-                stderr = sp.STDOUT if silent else tempfile.SpooledTemporaryFile()
+                stderr = sp.STDOUT if silent else tempfile.SpooledTemporaryFile()  # noqa: SIM115
                 if capture_output:
-                    stdout = tempfile.SpooledTemporaryFile()
+                    stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
                 elif (
                     sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
                 ):
@@ -6716,7 +6715,7 @@ BEGIN_DATA
                 else:
                     stdout = sp.PIPE
                 if sudo:
-                    stdin = tempfile.SpooledTemporaryFile()
+                    stdin = tempfile.SpooledTemporaryFile()  # noqa: SIM115
                     stdin.write(self.pwd.encode(enc, "replace") + os.linesep)
                     stdin.seek(0)
                 else:
@@ -6806,7 +6805,7 @@ BEGIN_DATA
                         self.subprocess = WPopen(
                             cmdline,
                             stdin=sp.PIPE,
-                            stdout=tempfile.SpooledTemporaryFile(),
+                            stdout=tempfile.SpooledTemporaryFile(),  # noqa: SIM115
                             stderr=sp.STDOUT,
                             shell=shell,
                             cwd=working_dir,
@@ -7038,7 +7037,7 @@ BEGIN_DATA
                             ):
                                 self.errors.append(line)
                     if tries > 0 and not use_pty:
-                        stderr = tempfile.SpooledTemporaryFile()
+                        stderr = tempfile.SpooledTemporaryFile()  # noqa: SIM115
                 if capture_output or use_pty:
                     stdout.seek(0)
                     stdout_readlines = stdout.readlines()
@@ -7060,7 +7059,7 @@ BEGIN_DATA
                         ):
                             wx.CallAfter(self.owner.infoframe_toggle_handler, show=True)
                     if tries > 0 and not use_pty:
-                        stdout = tempfile.SpooledTemporaryFile()
+                        stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
                 if not silent and len(self.errors):
                     errstr = "".join(self.errors).strip()
                     self.log(errstr)
@@ -11284,15 +11283,14 @@ usage: spotread [-options] [logfile]
                     profile.write()
                 except Exception as exception:
                     return exception
-            if os.path.isfile(args[-1] + ".ti3.backup") and os.path.isfile(
-                args[-1] + ".ti3"
+            if os.path.isfile(f"{args[-1]}.ti3.backup") and os.path.isfile(
+                f"{args[-1]}.ti3"
             ):
                 # Restore backed up TI3
-                os.rename(args[-1] + ".ti3", args[-1] + ".bpc.ti3")
-                os.rename(args[-1] + ".ti3.backup", args[-1] + ".ti3")
-                ti3_file = open(args[-1] + ".ti3", "rb")
-                ti3 = ti3_file.read()
-                ti3_file.close()
+                os.rename(f"{args[-1]}.ti3", f"{args[-1]}.bpc.ti3")
+                os.rename(f"{args[-1]}.ti3.backup", f"{args[-1]}.ti3")
+                with open(f"{args[-1]}.ti3", "rb") as ti3_file:
+                    ti3 = ti3_file.read()
             elif not is_regular_grid and not is_primaries_only:
                 ti3 = None
             if not isinstance(result, Exception) and result:
@@ -13306,10 +13304,24 @@ usage: spotread [-options] [logfile]
                         profile.tags.get("CIED", b"") or profile.tags.get("targ", b"")
                     )
                 elif ext.lower() == ".ti1":
-                    shutil.copyfile(filename + ext, f"{inoutfile}.ti1")
+                    shutil.copyfile(f"{filename}{ext}", f"{inoutfile}.ti1")
                 else:  # ti3
                     try:
-                        ti3 = open(filename + ext, "rb")
+                        if ext.lower() != ".ti1":
+                            with open(f"{filename}{ext}", "rb") as ti3:
+                                ti3_lines = [line.strip() for line in ti3]
+                            if b"CTI3" not in ti3_lines:
+                                return (
+                                    Error(
+                                        lang.getstr(
+                                            "error.testchart.invalid",
+                                            getcfg("testchart.file")
+                                        )
+                                    ),
+                                    None,
+                                )
+                            with open(f"{inoutfile}.ti1", "wb") as ti1:
+                                ti1.write(ti3_to_ti1(ti3_lines))
                     except Exception:
                         return (
                             Error(
@@ -13319,21 +13331,6 @@ usage: spotread [-options] [logfile]
                             ),
                             None,
                         )
-                if ext.lower() != ".ti1":
-                    ti3_lines = [line.strip() for line in ti3]
-                    ti3.close()
-                    if b"CTI3" not in ti3_lines:
-                        return (
-                            Error(
-                                lang.getstr(
-                                    "error.testchart.invalid", getcfg("testchart.file")
-                                )
-                            ),
-                            None,
-                        )
-
-                    with open(f"{inoutfile}.ti1", "wb") as ti1:
-                        ti1.write(ti3_to_ti1(ti3_lines))
             except Exception as exception:
                 localized_error_message = lang.getstr(
                     "error.testchart.creation_failed", f"{inoutfile}.ti1"
@@ -13420,9 +13417,8 @@ usage: spotread [-options] [logfile]
                 if "CTI3" not in ti3_lines:
                     return Error(lang.getstr("error.cal_extraction", (cal))), None
                 try:
-                    tmpcal = open(calcopy, "w")
-                    tmpcal.write(extract_cal_from_ti3(ti3_lines))
-                    tmpcal.close()
+                    with open(calcopy, "w") as tmpcal:
+                        tmpcal.write(extract_cal_from_ti3(ti3_lines))
                 except Exception as exception:
                     return (
                         Error(

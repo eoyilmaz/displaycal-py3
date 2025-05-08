@@ -14027,38 +14027,39 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.sizer2.Insert(0, (32 + 7, 1))
         result = dlg.ShowWindowModalBlocking()
         dlg.Destroy()
-        if result == wx.ID_OK:
-            ccxx = CGATS(cgats)
-            # Remove platform-specific/potentially sensitive information
-            cgats = re.sub(
-                rb'\n(?:REFERENCE|TARGET)_FILENAME\s+"[^"]+"\n', b"\n", cgats
-            )
-            params = {"cgats": cgats}
-            # Also upload reference and target CGATS (if available)
-            for label in ("REFERENCE", "TARGET"):
-                filename = (ccxx.queryv1(f"{label}_FILENAME") or b"").decode("utf-8")
-                algo_hash = (
-                    (ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")
-                ).split(":", 1)
-                if filename and os.path.isfile(filename) and algo_hash[0] in globals():
-                    meas = bytes(CGATS(filename)).strip()
-                    # Check hash
-                    if globals()[algo_hash[0]](meas).hexdigest() == algo_hash[-1]:
-                        params[label.lower() + "_cgats"] = meas
-            if debug or test:
-                print(list(params.keys()))
-            # Upload correction
-            self.worker.interactive = False
-            self.worker.start(
-                lambda result: result,
-                upload_colorimeter_correction,
-                wargs=(self, params),
-                progress_msg=lang.getstr("colorimeter_correction.upload"),
-                stop_timers=False,
-                cancelable=False,
-                show_remaining_time=False,
-                fancy=False,
-            )
+        if result != wx.ID_OK:
+            return
+        ccxx = CGATS(cgats)
+        # Remove platform-specific/potentially sensitive information
+        cgats = re.sub(
+            rb'\n(?:REFERENCE|TARGET)_FILENAME\s+"[^"]+"\n', b"\n", cgats
+        )
+        params = {"cgats": cgats}
+        # Also upload reference and target CGATS (if available)
+        for label in ("REFERENCE", "TARGET"):
+            filename = (ccxx.queryv1(f"{label}_FILENAME") or b"").decode("utf-8")
+            algo_hash = (
+                (ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")
+            ).split(":", 1)
+            if filename and os.path.isfile(filename) and algo_hash[0] in globals():
+                meas = bytes(CGATS(filename)).strip()
+                # Check hash
+                if globals()[algo_hash[0]](meas).hexdigest() == algo_hash[-1]:
+                    params[label.lower() + "_cgats"] = meas
+        if debug or test:
+            print(list(params.keys()))
+        # Upload correction
+        self.worker.interactive = False
+        self.worker.start(
+            lambda result: result,
+            upload_colorimeter_correction,
+            wargs=(self, params),
+            progress_msg=lang.getstr("colorimeter_correction.upload"),
+            stop_timers=False,
+            cancelable=False,
+            show_remaining_time=False,
+            fancy=False,
+        )
 
     def upload_colorimeter_correction_handler(self, event):
         """Let user choose a ccss/ccmx file to upload"""
@@ -14076,25 +14077,25 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
-        if path:
-            setcfg("last_filedialog_path", path)
-            # Important: Do not use parsed CGATS, order of keywords may be
-            # different than raw data so MD5 will be different
-            cgatsfile = open(path, "rb")
+        if not path:
+            return
+        setcfg("last_filedialog_path", path)
+        # Important: Do not use parsed CGATS, order of keywords may be
+        # different than raw data so MD5 will be different
+        with open(path, "rb") as cgatsfile:
             cgats = cgatsfile.read().decode()
-            cgatsfile.close()
-            originator = re.search(r'\nORIGINATOR\s+"Argyll', cgats)
-            if not originator:
-                originator = re.search(r'\nORIGINATOR\s+"' + appname, cgats)
-            if not originator:
-                InfoDialog(
-                    self,
-                    msg=lang.getstr("colorimeter_correction.upload.deny"),
-                    ok=lang.getstr("cancel"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
-            else:
-                self.upload_colorimeter_correction(cgats)
+        originator = re.search(r'\nORIGINATOR\s+"Argyll', cgats)
+        if not originator:
+            originator = re.search(r'\nORIGINATOR\s+"' + appname, cgats)
+        if not originator:
+            InfoDialog(
+                self,
+                msg=lang.getstr("colorimeter_correction.upload.deny"),
+                ok=lang.getstr("cancel"),
+                bitmap=geticon(32, "dialog-error"),
+            )
+        else:
+            self.upload_colorimeter_correction(cgats)
 
     def comport_ctrl_handler(self, event=None, force=False):
         if debug and event:
@@ -14183,24 +14184,25 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ),
             ("spyd4", "Spyder4/5", ("Spyder4", "Spyder5"), spyd4en or oeminst),
         ]:
-            if importer:
-                for instrument in instruments_:
-                    if instrument not in desc:
-                        desc += " ({})".format(", ".join(instruments_))
-                        break
-                setattr(dlg, name, wx.CheckBox(dlg, -1, desc))
-                for instrument in instruments_:
-                    if name == "spyd4":
-                        check = self.worker.spyder4_cal_exists()
-                    else:
-                        check = False
-                    if instrument in self.worker.instruments and not check:
-                        getattr(dlg, name).SetValue(True)
-                        break
-                dlg.sizer3.Add(
-                    getattr(dlg, name), flag=wx.TOP | wx.ALIGN_LEFT, border=8
-                )
-                getattr(dlg, name).Bind(wx.EVT_CHECKBOX, check_importers)
+            if not importer:
+                continue
+            for instrument in instruments_:
+                if instrument not in desc:
+                    desc += " ({})".format(", ".join(instruments_))
+                    break
+            setattr(dlg, name, wx.CheckBox(dlg, -1, desc))
+            for instrument in instruments_:
+                if name == "spyd4":
+                    check = self.worker.spyder4_cal_exists()
+                else:
+                    check = False
+                if instrument in self.worker.instruments and not check:
+                    getattr(dlg, name).SetValue(True)
+                    break
+            dlg.sizer3.Add(
+                getattr(dlg, name), flag=wx.TOP | wx.ALIGN_LEFT, border=8
+            )
+            getattr(dlg, name).Bind(wx.EVT_CHECKBOX, check_importers)
         dlg.install_user = wx.RadioButton(
             dlg, -1, lang.getstr("install_user"), style=wx.RB_GROUP
         )
@@ -15323,100 +15325,104 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if result == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
-        if path:
-            if not os.path.exists(path):
-                show_result_dialog(Error(lang.getstr("file.missing", path)), self)
-                return
-            # Get filename and extension of file
-            filename, ext = os.path.splitext(path)
-            if ext.lower() != ".ti3":
-                try:
-                    profile = ICCProfile(path)
-                except (OSError, ICCProfileInvalidError):
-                    show_result_dialog(
-                        Error(lang.getstr("profile.invalid") + "\n" + path), self
-                    )
-                    return
-                if (profile.tags.get("CIED", "") or profile.tags.get("targ", ""))[
-                    0:4
-                ] != "CTI3":
-                    show_result_dialog(
-                        Error(lang.getstr("profile.no_embedded_ti3") + "\n" + path),
-                        self,
-                    )
-                    return
-                ti3 = BytesIO(
-                    profile.tags.get("CIED", "") or profile.tags.get("targ", "")
+        if not path:
+            return
+        if not os.path.exists(path):
+            show_result_dialog(Error(lang.getstr("file.missing", path)), self)
+            return
+        # Get filename and extension of file
+        filename, ext = os.path.splitext(path)
+        if ext.lower() != ".ti3":
+            try:
+                profile = ICCProfile(path)
+            except (OSError, ICCProfileInvalidError):
+                show_result_dialog(
+                    Error(lang.getstr("profile.invalid") + "\n" + path), self
                 )
-            else:
-                profile = None
-                try:
-                    ti3 = open(path, "rb")
-                except Exception:
-                    show_result_dialog(
-                        Error(lang.getstr("error.file.open", path)), self
-                    )
+                return
+            if (profile.tags.get("CIED", "") or profile.tags.get("targ", ""))[
+                0:4
+            ] != "CTI3":
+                show_result_dialog(
+                    Error(lang.getstr("profile.no_embedded_ti3") + "\n" + path),
+                    self,
+                )
+                return
+            ti3 = BytesIO(
+                profile.tags.get("CIED", "") or profile.tags.get("targ", "")
+            )
+        else:
+            profile = None
+            try:
+                ti3 = open(path, "rb")  # noqa: SIM115
+            except Exception:
+                show_result_dialog(
+                    Error(lang.getstr("error.file.open", path)), self
+                )
+                return
+        setcfg("last_ti3_path", path)
+        ti3 = CGATS(ti3)
+        if not self.measurement_file_check_confirm(ti3, True):
+            return
+        if not ti3.modified:
+            show_result_dialog(
+                UnloggedInfo(lang.getstr("errors.none_found")), self
+            )
+            return
+
+        if profile:
+            # Regenerate the profile?
+            dlg = ConfirmDialog(
+                self,
+                msg=lang.getstr("profile.confirm_regeneration"),
+                ok=lang.getstr("ok"),
+                cancel=lang.getstr("cancel"),
+                bitmap=geticon(32, "dialog-information"),
+            )
+            dlg.Center()
+            result = dlg.ShowModal()
+            if result == wx.ID_OK:
+                self.worker.wrapup(False)
+                tmp_working_dir = self.worker.create_tempdir()
+                if isinstance(tmp_working_dir, Exception):
+                    show_result_dialog(tmp_working_dir, self)
                     return
-            setcfg("last_ti3_path", path)
-            ti3 = CGATS(ti3)
-            if self.measurement_file_check_confirm(ti3, True):
-                if ti3.modified:
-                    if profile:
-                        # Regenerate the profile?
-                        dlg = ConfirmDialog(
-                            self,
-                            msg=lang.getstr("profile.confirm_regeneration"),
-                            ok=lang.getstr("ok"),
-                            cancel=lang.getstr("cancel"),
-                            bitmap=geticon(32, "dialog-information"),
-                        )
-                        dlg.Center()
-                        result = dlg.ShowModal()
-                        if result == wx.ID_OK:
-                            self.worker.wrapup(False)
-                            tmp_working_dir = self.worker.create_tempdir()
-                            if isinstance(tmp_working_dir, Exception):
-                                show_result_dialog(tmp_working_dir, self)
-                                return
-                            profile.tags.targ = TextType(
-                                b"text\0\0\0\0" + ti3 + b"\0", b"targ"
-                            )
-                            profile.tags.DevD = profile.tags.CIED = profile.tags.targ
-                            tmp_path = os.path.join(
-                                tmp_working_dir, os.path.basename(path)
-                            )
-                            profile.write(tmp_path)
-                            self.create_profile_handler(None, tmp_path, True)
-                    else:
-                        dlg = wx.FileDialog(
-                            self,
-                            lang.getstr("save_as"),
-                            os.path.dirname(path),
-                            os.path.basename(path),
-                            wildcard=lang.getstr("filetype.ti3") + "|*.ti3",
-                            style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
-                        )
-                        dlg.Center(wx.BOTH)
-                        result = dlg.ShowModal()
-                        path = dlg.GetPath()
-                        dlg.Destroy()
-                        if result == wx.ID_OK:
-                            if not waccess(path, os.W_OK):
-                                show_result_dialog(
-                                    Error(
-                                        lang.getstr("error.access_denied.write", path)
-                                    ),
-                                    self,
-                                )
-                                return
-                            try:
-                                ti3.write(path)
-                            except OSError as exception:
-                                show_result_dialog(exception, self)
-                else:
-                    show_result_dialog(
-                        UnloggedInfo(lang.getstr("errors.none_found")), self
-                    )
+                profile.tags.targ = TextType(
+                    b"text\0\0\0\0" + ti3 + b"\0", b"targ"
+                )
+                profile.tags.DevD = profile.tags.CIED = profile.tags.targ
+                tmp_path = os.path.join(
+                    tmp_working_dir, os.path.basename(path)
+                )
+                profile.write(tmp_path)
+                self.create_profile_handler(None, tmp_path, True)
+        else:
+            dlg = wx.FileDialog(
+                self,
+                lang.getstr("save_as"),
+                os.path.dirname(path),
+                os.path.basename(path),
+                wildcard=lang.getstr("filetype.ti3") + "|*.ti3",
+                style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
+            )
+            dlg.Center(wx.BOTH)
+            result = dlg.ShowModal()
+            path = dlg.GetPath()
+            dlg.Destroy()
+            if result != wx.ID_OK:
+                return
+            if not waccess(path, os.W_OK):
+                show_result_dialog(
+                    Error(
+                        lang.getstr("error.access_denied.write", path)
+                    ),
+                    self,
+                )
+                return
+            try:
+                ti3.write(path)
+            except OSError as exception:
+                show_result_dialog(exception, self)
 
     def measurement_file_check_confirm(self, ti3=None, force=False, parent=None):
         if not getcfg("ti3.check_sanity.auto") and not force:
@@ -15902,6 +15908,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 return
             tags = {}
+            ti3_lines = []
             # Get filename and extension of source file
             source_filename, source_ext = os.path.splitext(path)
             if source_ext.lower() != ".ti3":
@@ -15925,16 +15932,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         bitmap=geticon(32, "dialog-error"),
                     )
                     return
-                ti3 = BytesIO(
+                with BytesIO(
                     profile.tags.get("CIED", "") or profile.tags.get("targ", "")
-                )
+                ) as ti3:
+                    ti3_lines = [line.strip() for line in ti3]
                 # Preserve custom tags
                 for tagname in ("mmod", "meta"):
                     if tagname in profile.tags:
                         tags[tagname] = profile.tags[tagname]
             else:
                 try:
-                    ti3 = open(path, "rb")
+                    with open(path, "rb") as ti3:
+                        ti3_lines = [line.strip() for line in ti3]
                 except Exception:
                     InfoDialog(
                         self,
@@ -15943,8 +15952,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         bitmap=geticon(32, "dialog-error"),
                     )
                     return
-            ti3_lines = [line.strip() for line in ti3]
-            ti3.close()
             if b"CAL" not in ti3_lines:
                 dlg = ConfirmDialog(
                     self,
@@ -16030,7 +16037,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return
                 # Copy ti3 to temp dir
                 ti3_tmp_path = os.path.join(
-                    tmp_working_dir, make_argyll_compatible_path(profile_name + ".ti3")
+                    tmp_working_dir, make_argyll_compatible_path(f"{profile_name}.ti3")
                 )
                 if len(collected_ti3s) > 1:
                     # Collect files for averaging
@@ -16079,12 +16086,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     else:
                         # Binary mode because we want to avoid automatic
                         # newlines conversion
-                        ti3 = open(ti3_tmp_path, "wb")
-                        ti3.write(
-                            profile.tags.get("CIED", b"")
-                            or profile.tags.get("targ", b"")
-                        )
-                        ti3.close()
+                        with open(ti3_tmp_path, "wb") as ti3:
+                            ti3.write(
+                                profile.tags.get("CIED", b"")
+                                or profile.tags.get("targ", b"")
+                            )
                         # Get dispcal options if present
                         self.worker.options_dispcal = [
                             "-" + arg for arg in get_options_from_profile(profile)[0]
@@ -17498,6 +17504,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.import_session_archive(path)
             return
 
+        ti3_lines = []
         if ext.lower() in (".icc", ".icm"):
             try:
                 profile = ICCProfile(path)
@@ -17528,14 +17535,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
             cied = profile.tags.get("CIED")
             if cied:
-                cal = BytesIO(cied)
+                with BytesIO(cied) as cal:
+                    ti3_lines = [line.strip() for line in cal]
             else:
                 targ = profile.tags.get("targ")
                 from DisplayCAL.icc_profile import Text
 
                 if targ and isinstance(targ, Text):
                     tag_data = targ.tagData
-                    cal = BytesIO(tag_data)
+                    with BytesIO(tag_data) as cal:
+                        ti3_lines = [line.strip() for line in cal]
                 else:
                     InfoDialog(
                         self,
@@ -17546,7 +17555,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return
         else:
             try:
-                cal = open(path, "rb")
+                with open(path, "rb") as cal:
+                    ti3_lines = [line.strip() for line in cal]
             except Exception:
                 InfoDialog(
                     self,
@@ -17555,8 +17565,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     bitmap=geticon(32, "dialog-error"),
                 )
                 return
-        ti3_lines = [line.strip() for line in cal]
-        cal.close()
         setcfg("last_cal_or_icc_path", path)
         update_ccmx_items = True
         set_size = True

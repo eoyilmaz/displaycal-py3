@@ -506,9 +506,11 @@ class JavaScriptPacker:
 
 def run():
     p = JavaScriptPacker()
-    script = open(sys.argv[1]).read()
+    with open(sys.argv[1]) as f:
+        script = f.read()
     result = p.pack(script, encoding=62, fastDecode=True, compaction=True)
-    open(sys.argv[1] + "pack", "w").write(result)
+    with open(f"{sys.argv[1]}pack", "w") as f:
+        f.write(result)
 
 
 def run1():
@@ -628,8 +630,16 @@ function _bar(_ocalvar) {
 
     p = JavaScriptPacker()
     for script, encoding, fastDecode, specialChars, expected in test_scripts:
-        _script = open(script).read() if os.path.exists(script) else script
-        _expected = open(expected).read() if os.path.exists(expected) else expected
+        if os.path.exists(script):
+            with open(script) as f:
+                _script = f.read()
+        else:
+            _script = script
+        if os.path.exists(expected):
+            with open(expected) as f:
+                _expected = f.read()
+        else:
+            _expected =  expected
         print(script[:20], encoding, fastDecode, specialChars, expected[:20])
         print("=" * 40)
         result = p.pack(_script, encoding, fastDecode, specialChars)

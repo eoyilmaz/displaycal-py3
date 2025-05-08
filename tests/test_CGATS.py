@@ -507,7 +507,7 @@ def test_export_3d_1(data_files):
         RGB_black_offset=40,
         normalize_RGB_white=False,
         compress=False,
-        format="HTML",
+        file_format="HTML",
     )
 
 

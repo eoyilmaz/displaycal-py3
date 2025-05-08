@@ -343,10 +343,10 @@ def _find_installed(removeExisting=False):
         phoenix_version_py = os.path.join(name, "__version__.py")
         if os.path.isfile(phoenix_version_py):
             version_info = {}
+            with open(phoenix_version_py, "rb") as f:
+                phoenix_version = f.read()
             exec(
-                compile(
-                    open(phoenix_version_py, "rb").read(), phoenix_version_py, "exec"
-                ),
+                compile(phoenix_version, phoenix_version_py, "exec"),
                 {},
                 version_info,
             )
@@ -391,7 +391,8 @@ def _find_default():
         if not os.path.isdir(pth):
             continue
         if os.path.exists(os.path.join(pth, "wx.pth")):
-            base = open(os.path.join(pth, "wx.pth")).read()
+            with open(os.path.join(pth, "wx.pth")) as f:
+                base = f.read()
             return os.path.join(pth, base)
 
     return None

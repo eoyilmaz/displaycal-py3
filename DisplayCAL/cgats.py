@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 from DisplayCAL import colormath
+from DisplayCAL.icc_profile import ICCProfileTag
 from DisplayCAL.log import safe_print
 from DisplayCAL.options import debug
 from DisplayCAL.util_io import GzipFileProper
@@ -240,15 +241,6 @@ class CGATS(dict):
 
     datetime = None
     filename = None
-
-    @property
-    def fileName(self):
-        return self.filename
-
-    @fileName.setter
-    def fileName(self, filename):
-        self.filename = filename
-
     key = None
     _lvl = 0
     _modified = False
@@ -261,10 +253,10 @@ class CGATS(dict):
     def __init__(
         self,
         cgats=None,
-        normalize_fields=False,
-        file_identifier=b"CTI3",
-        emit_keywords=False,
-        strict=False,
+        normalize_fields: bool = False,
+        file_identifier: bytes = b"CTI3",
+        emit_keywords: bool = False,
+        strict: bool = False,
     ):
         """Return a CGATS instance.
 
@@ -283,164 +275,207 @@ class CGATS(dict):
         self.emit_keywords = emit_keywords
         self.root = self
 
-        if cgats:
-            if isinstance(cgats, list):
-                raw_lines = cgats
+        if not cgats:
+            return
+
+        raw_lines = self.read_raw_data(cgats)
+
+        if self.filename:
+            self.mtime = os.stat(self.filename).st_mtime
+
+        self.parse_raw_data(strict, raw_lines)
+
+    def read_raw_data(self, cgats: str | bytes | list | Path | io.IOBase) -> list:
+        """Read raw CGATS data.
+        
+        Args:
+            cgats (str | bytes | list | Path | io.IOBase): CGATS data to parse.
+
+        Raises:
+            CGATSInvalidError: If the type of cgats is unsupported.
+
+        Returns:
+            list: Parsed CGATS data lines.
+        """
+        raw_lines = []
+        if isinstance(cgats, list):
+            raw_lines = cgats
+        elif isinstance(cgats, str):
+            if "\n" not in cgats or "\r" not in cgats:
+                # assume filename
+                with open(cgats, "rb") as cgats:
+                    self.filename = cgats.name
+                    cgats.seek(0)
+                    raw_lines = cgats.readlines()
             else:
-                if isinstance(cgats, str):
-                    if "\n" not in cgats or "\r" not in cgats:
-                        # assume filename
-                        cgats = open(cgats, "rb")
-                        self.filename = cgats.name
-                    else:
-                        # assume text
-                        cgats = io.StringIO(cgats)
-
-                from DisplayCAL.icc_profile import ICCProfileTag
-
-                if isinstance(cgats, bytes):
-                    # assume text
-                    cgats = io.BytesIO(cgats)
-                elif isinstance(cgats, ICCProfileTag):
-                    cgats = io.BytesIO(cgats.tagData)
-                elif isinstance(cgats, Path):
-                    self.filename = cgats.absolute()
-                    cgats = open(cgats, "rb")
-                elif not isinstance(cgats, (StringIO, io.BytesIO, io.BufferedReader)):
-                    raise CGATSInvalidError(f"Unsupported type: {type(cgats)}")
-
-                if self.filename:
-                    self.mtime = os.stat(self.filename).st_mtime
-
+                # assume text
+                with io.StringIO(cgats) as cgats:
+                    cgats.seek(0)
+                    raw_lines = cgats.readlines()
+        elif isinstance(cgats, bytes):
+            # assume text
+            with io.BytesIO(cgats) as cgats:
                 cgats.seek(0)
                 raw_lines = cgats.readlines()
-                cgats.close()
+        elif isinstance(cgats, ICCProfileTag):
+            with io.BytesIO(cgats.tagData) as cgats:
+                cgats.seek(0)
+                raw_lines = cgats.readlines()
+        elif isinstance(cgats, Path):
+            self.filename = cgats.absolute()
+            with open(cgats, "rb") as cgats:
+                cgats.seek(0)
+                raw_lines = cgats.readlines()
+        elif isinstance(cgats, io.IOBase):
+            if hasattr(cgats, "readlines"):
+                cgats.seek(0)
+                raw_lines = cgats.readlines()
+            else:
+                # Assume file-like object
+                raw_lines = cgats.read()
+                if isinstance(raw_lines, bytes):
+                    raw_lines = [raw_lines]
+            cgats.close()
+        else:
+            raise CGATSInvalidError(f"Unsupported type: {type(cgats)}")
+        return raw_lines
 
-            context = self
-            for raw_line in raw_lines:
-                # Replace 1.#IND00 with NaN
-                raw_line = raw_line.replace(b"1.#IND00", b"NaN")
+    def parse_raw_data(self, strict: bool, raw_lines: list) -> None:
+        """Parse raw CGATS data.
 
-                # strip control chars and leading/trailing whitespace
-                line = re.sub(b"[^\x09\x20-\x7e\x80-\xff]", b"", raw_line.strip())
+        Args:
+            strict (bool): If True, raise errors for malformed data.
+            raw_lines (list): List of raw CGATS data lines to parse.
 
-                if b"#" in line or b'"' in line:
-                    # Deal with comments and quotes
-                    quoted = False
-                    values = []
-                    token_start = 0
-                    end = len(line) - 1
-                    for i in range(len(line)):
-                        char = line[i : i + 1]
-                        if char == b'"':
-                            if quoted is False:
-                                if not line[token_start:i]:
-                                    token_start = i
-                                quoted = True
-                            else:
-                                quoted = False
-                        if (quoted is False and char in b"# \t") or i == end:
-                            if i == end:
-                                i += 1
-                            value = line[token_start:i]
-                            if value:
-                                if value[0:1] == b'"' == value[-2:-1]:
-                                    # Unquote
-                                    value = value[1:-1]
-                                # Need to unescape double quote -> single quote
-                                values.append(value.replace(b'""', b'"'))
-                            if char == b"#":
-                                # Strip comment
-                                line = line[:i].strip()
-                                break
-                            elif char in b" \t":
-                                token_start = i + 1
+        Raises:
+            CGATSInvalidError: If strict is True and data is malformed.
+
+        """
+        context = self
+        for raw_line in raw_lines:
+            # Replace 1.#IND00 with NaN
+            raw_line = raw_line.replace(b"1.#IND00", b"NaN")
+
+            # strip control chars and leading/trailing whitespace
+            line = re.sub(b"[^\x09\x20-\x7e\x80-\xff]", b"", raw_line.strip())
+
+            if b"#" in line or b'"' in line:
+                # Deal with comments and quotes
+                quoted = False
+                values = []
+                token_start = 0
+                end = len(line) - 1
+                for i in range(len(line)):
+                    char = line[i : i + 1]
+                    if char == b'"':
+                        if quoted is False:
+                            if not line[token_start:i]:
+                                token_start = i
+                            quoted = True
+                        else:
+                            quoted = False
+                    if (quoted is False and char in b"# \t") or i == end:
+                        if i == end:
+                            i += 1
+                        value = line[token_start:i]
+                        if value:
+                            if value[0:1] == b'"' == value[-2:-1]:
+                                # Unquote
+                                value = value[1:-1]
+                            # Need to unescape double quote -> single quote
+                            values.append(value.replace(b'""', b'"'))
+                        if char == b"#":
+                            # Strip comment
+                            line = line[:i].strip()
+                            break
+                        elif char in b" \t":
+                            token_start = i + 1
+            else:
+                # no comments or quotes
+                values = line.split()
+
+            if line[:6] == b"BEGIN_":
+                key = line[6:].decode()
+                if key in context:
+                    # Start new CGATS
+                    new = len(self)
+                    self[new] = CGATS()
+                    self[new].key = ""
+                    self[new].parent = self
+                    self[new].root = self.root
+                    self[new].type = b""
+                    context = self[new]
+
+            if line == b"BEGIN_DATA_FORMAT":
+                context["DATA_FORMAT"] = CGATS()
+                context["DATA_FORMAT"].key = "DATA_FORMAT"
+                context["DATA_FORMAT"].parent = context
+                context["DATA_FORMAT"].root = self
+                context["DATA_FORMAT"].type = b"DATA_FORMAT"
+                context = context["DATA_FORMAT"]
+            elif line == b"END_DATA_FORMAT":
+                context = context.parent
+            elif line == b"BEGIN_DATA":
+                context["DATA"] = CGATS()
+                context["DATA"].key = "DATA"
+                context["DATA"].parent = context
+                context["DATA"].root = self
+                context["DATA"].type = b"DATA"
+                context = context["DATA"]
+            elif line == b"END_DATA":
+                context = context.parent
+            elif line[:6] == b"BEGIN_":
+                key = line[6:].decode()
+                context[key] = CGATS()
+                context[key].key = key
+                context[key].parent = context
+                context[key].root = self
+                context[key].type = b"SECTION"
+                context = context[key]
+            elif line[:4] == b"END_":
+                context = context.parent
+            elif context.type in (b"DATA_FORMAT", b"DATA"):
+                if len(values):
+                    context = context.add_data(values)
+            elif context.type == b"SECTION":
+                context = context.add_data(line)
+            elif len(values) > 1:
+                if values[0] == b"Date:":
+                    context.datetime = line
                 else:
-                    # no comments or quotes
-                    values = line.split()
-
-                if line[:6] == b"BEGIN_":
-                    key = line[6:].decode()
-                    if key in context:
-                        # Start new CGATS
-                        new = len(self)
-                        self[new] = CGATS()
-                        self[new].key = ""
-                        self[new].parent = self
-                        self[new].root = self.root
-                        self[new].type = b""
-                        context = self[new]
-
-                if line == b"BEGIN_DATA_FORMAT":
-                    context["DATA_FORMAT"] = CGATS()
-                    context["DATA_FORMAT"].key = "DATA_FORMAT"
-                    context["DATA_FORMAT"].parent = context
-                    context["DATA_FORMAT"].root = self
-                    context["DATA_FORMAT"].type = b"DATA_FORMAT"
-                    context = context["DATA_FORMAT"]
-                elif line == b"END_DATA_FORMAT":
-                    context = context.parent
-                elif line == b"BEGIN_DATA":
-                    context["DATA"] = CGATS()
-                    context["DATA"].key = "DATA"
-                    context["DATA"].parent = context
-                    context["DATA"].root = self
-                    context["DATA"].type = b"DATA"
-                    context = context["DATA"]
-                elif line == b"END_DATA":
-                    context = context.parent
-                elif line[:6] == b"BEGIN_":
-                    key = line[6:].decode()
-                    context[key] = CGATS()
-                    context[key].key = key
-                    context[key].parent = context
-                    context[key].root = self
-                    context[key].type = b"SECTION"
-                    context = context[key]
-                elif line[:4] == b"END_":
-                    context = context.parent
-                elif context.type in (b"DATA_FORMAT", b"DATA"):
-                    if len(values):
-                        context = context.add_data(values)
-                elif context.type == b"SECTION":
-                    context = context.add_data(line)
-                elif len(values) > 1:
-                    if values[0] == b"Date:":
-                        context.datetime = line
-                    else:
-                        if len(values) == 2 and b'"' not in values[0]:
-                            key, value = values[0].decode(), values[1]
-                            if value is not None:
-                                context = context.add_data({key: value.strip(b'"')})
-                            else:
-                                context = context.add_data({key: b""})
-                        elif strict:
-                            raise CGATSInvalidError(
-                                "Malformed {} file: {}".format(
-                                    context.parent and context.type or "CGATS",
-                                    self.filename or self,
-                                )
+                    if len(values) == 2 and b'"' not in values[0]:
+                        key, value = values[0].decode(), values[1]
+                        if value is not None:
+                            context = context.add_data({key: value.strip(b'"')})
+                        else:
+                            context = context.add_data({key: b""})
+                    elif strict:
+                        raise CGATSInvalidError(
+                            "Malformed {} file: {}".format(
+                                context.parent and context.type or "CGATS",
+                                self.filename or self,
                             )
-                elif (
-                    values
-                    and values[0] not in (b"Comment:", b"Date:")
-                    and len(line) >= 3
-                    and not re.search(b"[^ 0-9A-Za-z/.]", line)
-                ):
-                    context = self.add_data(line)
+                        )
+            elif (
+                values
+                and values[0] not in (b"Comment:", b"Date:")
+                and len(line) >= 3
+                and not re.search(b"[^ 0-9A-Za-z/.]", line)
+            ):
+                context = self.add_data(line)
 
-            if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
-                # Always normalize to Y = 100
-                reprstr = self.filename or "<%s.%s instance at 0x%016x>" % (
-                    self.__module__,
-                    self.__class__.__name__,
-                    id(self),
-                )
-                if self[0].normalize_to_y_100():
-                    print("Normalized to Y = 100:", reprstr)
-                else:
-                    print("Warning: Could not normalize to Y = 100:", reprstr)
-            self.setmodified(False)
+        if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
+            # Always normalize to Y = 100
+            reprstr = self.filename or "<%s.%s instance at 0x%016x>" % (
+                self.__module__,
+                self.__class__.__name__,
+                id(self),
+            )
+            if self[0].normalize_to_y_100():
+                print("Normalized to Y = 100:", reprstr)
+            else:
+                print("Warning: Could not normalize to Y = 100:", reprstr)
+        self.setmodified(False)
 
     def __delattr__(self, name):
         del self[name]
@@ -473,6 +508,14 @@ class CGATS(dict):
             return self.get(name)
         raise CGATSKeyError(name)
 
+    @property
+    def fileName(self):
+        return self.filename
+
+    @fileName.setter
+    def fileName(self, filename):
+        self.filename = filename
+
     def get(self, name, default=None):
         if name == -1:
             return dict.get(self, len(self) - 1, default)
@@ -483,17 +526,18 @@ class CGATS(dict):
 
     def get_colorants(self):
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
-        if len(color_rep) == 2:
-            query = {}
-            colorants = []
-            for i in range(len(color_rep[0])):
-                for j in range(len(color_rep[0])):
-                    channelname = color_rep[0][j : j + 1]
-                    # the key should be str
-                    key = b"_".join([color_rep[0], channelname]).decode("utf-8")
-                    query[key] = 100 if i == j else 0
-                colorants.append(self.queryi1(query))
-            return colorants
+        if len(color_rep) != 2:
+            return
+        query = {}
+        colorants = []
+        for i in range(len(color_rep[0])):
+            for j in range(len(color_rep[0])):
+                channelname = color_rep[0][j : j + 1]
+                # the key should be str
+                key = b"_".join([color_rep[0], channelname]).decode("utf-8")
+                query[key] = 100 if i == j else 0
+            colorants.append(self.queryi1(query))
+        return colorants
 
     def get_descriptor(self, localized=True):
         """Return CGATS description as string, based on metadata.
@@ -1252,7 +1296,7 @@ class CGATS(dict):
         RGB_black_offset=40,
         normalize_RGB_white=False,
         compress=True,
-        format="VRML",
+        file_format="VRML",
     ):
         if colorspace not in (
             "DIN99",
@@ -1770,10 +1814,10 @@ Transform {
             "fov": fov / 180.0 * math.pi,
             "z": z,
         }
-        if format != "VRML":
-            print("Generating", format)
+        if file_format != "VRML":
+            print("Generating", file_format)
             x3d = x3dom.vrml2x3dom(out)
-            if format == "HTML":
+            if file_format == "HTML":
                 out = x3d.html(title=os.path.basename(filename))
             else:
                 out = x3d.x3d()

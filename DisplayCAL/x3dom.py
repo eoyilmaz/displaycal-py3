@@ -430,17 +430,18 @@ def update_vrml(vrml, colorspace):
         r"Transform\s*\{\s*translation\s+[+\-0-9.]+\s*[+\-0-9.]+\s*[+\-0-9.]+\s+children\s*\[\s*Shape\s*\{\s*geometry\s+Sphere\s*\{[^}]*\}\s*appearance\s+Appearance\s*\{\s*material\s+Material\s*\{[^}]*\}\s*\}\s*\}\s*\]\s*\}",
         vrml,
     )
-    for i, sphere in enumerate(spheres):
+    for sphere in spheres:
         coords = re.search(
             r"translation\s+([+\-0-9.]+\s+[+\-0-9.]+\s+[+\-0-9.]+)", sphere
         )
-        if coords:
-            vrml = vrml.replace(
-                sphere,
-                sphere.replace(
-                    coords.group(), "translation " + update_xyz(coords.groups()[0])
-                ),
-            )
+        if not coords:
+            continue
+        vrml = vrml.replace(
+            sphere,
+            sphere.replace(
+                coords.group(), "translation " + update_xyz(coords.groups()[0])
+            ),
+        )
     if colorspace.startswith("DIN99"):
         # Remove * from L*a*b* and add range
 
@@ -527,7 +528,7 @@ Transform {
             r'Shape\s*\{\s*geometry\s*(?:Box|Text)\s*\{\s*(?:size\s+\d+\.0+\s+\d+\.0+\s+\d+\.0+|string\s+\["[^"]*"\]\s*fontStyle\s+FontStyle\s*\{[^}]+\})\s*\}\s*appearance\s+Appearance\s*\{\s*material\s*Material\s*\{[^}]+}\s*\}\s*\}',
             vrml,
         )
-        for i, axis in enumerate(axes):
+        for axis in axes:
             # Red -> purpleish blue
             vrml = vrml.replace(
                 axis,

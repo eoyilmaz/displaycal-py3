@@ -457,7 +457,7 @@ class PyGauge(wx.Window):
             return
 
         stop_timer = True
-        for i, v in enumerate(self._value):
+        for i, _ in enumerate(self._value):
             self._value[i] += self._update_step[i]
 
             if self._update_step[i] > 0:

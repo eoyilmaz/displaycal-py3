@@ -562,7 +562,7 @@ class GamutCanvas(LUTCanvas):
                     # TODO: Handle HLS and YCbr
                     tmp = list(device_values)
                     device_values = []
-                    for j, values in enumerate(tmp):
+                    for values in tmp:
                         if profile.colorSpace == b"HSV":
                             HSV = list(colormath.RGB2HSV(*values))
                             device_values.append(HSV)
@@ -1590,7 +1590,7 @@ class ProfileInfoFrame(LUTFrame):
             while len(label) < linecount:
                 label.append("")
             lines.extend(list(zip(label, value)))
-        for i, line in enumerate(lines):
+        for line in lines:
             line = list(line)
             indent = re.match(r"\s+", line[0])
             for j, v in enumerate(line):

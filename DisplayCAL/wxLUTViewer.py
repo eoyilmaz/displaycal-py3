@@ -92,7 +92,7 @@ class CoordinateType(list):
             start = slice[0] * 100
             end = slice[1] * 100
             values = []
-            for i, (y, x) in enumerate(self):
+            for (y, x) in self:
                 n = colormath.XYZ2Lab(0, y, 0)[0]
                 if start <= n <= end:
                     values.append((x / 255.0 * 100, y))
@@ -448,7 +448,7 @@ class LUTCanvas(plot.PlotCanvas):
                     line2 = Plot(values2, legend=label + suffix, colour=color2)
                 elif seen_values:
                     # Check if same line (+- 0.005 tolerance) has been seen
-                    for idx, seen in enumerate(seen_values):
+                    for seen in seen_values:
                         match = True
                         for i, (x, y) in enumerate(seen):
                             if x != values[i][0] or abs(y - values[i][1]) > 0.005:
@@ -459,6 +459,7 @@ class LUTCanvas(plot.PlotCanvas):
                     else:
                         match = False
                     if match:
+                        idx = len(seen_values) - 1
                         seen_label = seen_labels[idx]
                         lines[idx + 1].attributes["colour"] = self.get_color(
                             seen_label + channel_label
@@ -1463,11 +1464,11 @@ class LUTFrame(BaseFrame):
                     # Make segment from first non-zero value to Lbp
                     # monotonically increasing
                     mono = [[], [], []]
-                    for i, values in enumerate(odata):
+                    for values in odata:
                         for j in range(3):
                             mono[j].append(values[j])
                     for j, values in enumerate(mono):
-                        for i, v in enumerate(values):
+                        for v in values:
                             if v:
                                 break
                         if i:
@@ -1541,7 +1542,7 @@ class LUTFrame(BaseFrame):
         for sig in ("rTRC", "gTRC", "bTRC", "kTRC"):
             x, xp, y, yp = [], [], [], []
             # First, get actual values
-            for i, (Y, v) in enumerate(getattr(self, sig)):
+            for (Y, v) in getattr(self, sig):
                 # if not i or Y >= trc[sig][i - 1]:
                 xp.append(v)
                 yp.append(Y)

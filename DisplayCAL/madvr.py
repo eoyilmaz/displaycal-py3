@@ -263,7 +263,7 @@ def icc_device_link_to_madvr(
         raw.write(struct.pack("<I", 256))
         raw.write(struct.pack("<I", 2))
         # Linear (unity) calibration
-        for i in range(3):
+        for _ in range(3):
             for j in range(256):
                 raw.write(struct.pack("<H", j * 257))
 
@@ -485,7 +485,7 @@ class H3DLUT:
         A2B0 = LUT16Type()
         A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         A2B0.input = []
-        for i in range(3):
+        for _ in range(3):
             A2B0.input.append([])
             for j in range(4096):
                 A2B0.input[-1].append(
@@ -495,7 +495,7 @@ class H3DLUT:
         input_bytes = len(A2B0.input) * len(A2B0.input[0]) * 2
         A2B0.clut = [[[0] * 3 for i in range(clut_grid_steps)]]  # Fake cLUT
         A2B0.output = []
-        for i in range(3):
+        for _ in range(3):
             A2B0.output.append([])
             for j in range(4096):
                 A2B0.output[-1].append(

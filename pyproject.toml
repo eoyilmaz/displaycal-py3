@@ -3,6 +3,7 @@ build-backend = "setuptools.build_meta"
 requires = [
     "setuptools",
     'pywin32; platform_system=="Windows"',
+    "numpy",  # very unnecessarily we require `numpy` for the build, will be removed in the future
 ]
 
 [project]

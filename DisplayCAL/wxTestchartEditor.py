@@ -3953,7 +3953,7 @@ END_DATA"""
                     fixed_datasets = []
                     for i in fixed_data:
                         dataset = fixed_data[i]
-                        if not str(dataset) in rgbdata:
+                        if str(dataset) not in rgbdata:
                             fixed_datasets.append(dataset)
                     if fixed_datasets:
                         # Insert fixed point datasets after first patch

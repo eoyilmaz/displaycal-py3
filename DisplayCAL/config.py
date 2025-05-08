@@ -1,6 +1,7 @@
 """Runtime configuration and user settings parser."""
 
 import configparser
+import contextlib
 import locale
 import math
 import os
@@ -2157,10 +2158,8 @@ def set_default_app_dpi():
                     stderr=sp.PIPE,
                 )
                 factor, stderr = p.communicate()
-                try:
+                with contextlib.suppress(ValueError):
                     txt_scale = float(factor)
-                except ValueError:
-                    pass
             dpi = get_default_dpi()
             if txt_scale:
                 dpi = int(round(dpi * txt_scale))

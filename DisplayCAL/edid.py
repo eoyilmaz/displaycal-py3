@@ -4,7 +4,7 @@
 It includes methods for fetching EDID data from Windows, macOS,
 and other platforms, as well as parsing the EDID data into a structured format.
 """
-
+import contextlib
 import math
 import os
 import re
@@ -28,10 +28,8 @@ if sys.platform == "win32":
         # Use WMI for Vista/Win7
         import pythoncom
 
-        try:
+        with contextlib.suppress(ImportError):
             import wmi
-        except Exception:
-            pass
     else:
         # Use registry as fallback for Win2k/XP/2003
         import winreg

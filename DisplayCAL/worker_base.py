@@ -1,3 +1,4 @@
+import contextlib
 import math
 import os
 import shlex
@@ -664,10 +665,8 @@ class Xicclu(WorkerBase):
             return
         p = self.subprocess
         if p.poll() is None:
-            try:
+            with contextlib.suppress(OSError):
                 p.stdin.write(b"\n")
-            except OSError:
-                pass
             p.stdin.close()
         p.wait()
         self.stdout.seek(0)

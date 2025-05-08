@@ -4,6 +4,7 @@ This one won't stop showing updates to the icon like wx.TaskBarIcon
 
 """
 
+import contextlib
 import ctypes
 import os
 import sys
@@ -341,12 +342,10 @@ class SysTrayIcon(wx.EvtHandler):
             pos = win32gui.GetCursorPos()
             # See remarks section under
             # https://msdn.microsoft.com/en-us/library/windows/desktop/ms648002(v=vs.85).aspx
-            try:
+            with contextlib.suppress(win32gui.error):
                 win32gui.SetForegroundWindow(self.hwnd)
-            except win32gui.error:
                 # Calls to SetForegroundWindow will fail if (e.g.) the Win10
                 # start menu is currently shown
-                pass
             win32gui.TrackPopupMenu(
                 menu.hmenu, win32con.TPM_RIGHTBUTTON, pos[0], pos[1], 0, self.hwnd, None
             )

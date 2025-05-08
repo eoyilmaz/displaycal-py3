@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import gzip
 import operator
@@ -63,10 +64,9 @@ class Files:
 
     def flush(self):
         for item in self.files:
-            try:
+            with contextlib.suppress(AttributeError):
+                # TODO: Restore safe_log
                 item.flush()
-            except AttributeError:  # TODO: Restore safe_log
-                pass
 
     def seek(self, pos, mode=0):
         for item in self.files:
@@ -81,10 +81,8 @@ class Files:
             try:
                 item.write(data)
             except AttributeError:  # TODO: restore safe_log, safe_print etc...
-                try:
+                with contextlib.suppress(TypeError):
                     item(data)
-                except TypeError:
-                    pass
 
     def writelines(self, str_sequence):
         self.write("".join(str_sequence))

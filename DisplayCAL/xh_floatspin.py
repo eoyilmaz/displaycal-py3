@@ -1,3 +1,5 @@
+import contextlib
+
 import wx
 import wx.xrc as xrc
 
@@ -48,15 +50,11 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
             name=self.GetName(),
         )
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetValue(float(self.GetText("value")))
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetDigits(int(self.GetText("digits")))
-        except Exception:
-            pass
 
         self.SetupWindow(w)
         if self.GetBool("hidden") and w.Shown:

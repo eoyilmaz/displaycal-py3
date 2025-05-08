@@ -1,4 +1,5 @@
 """Interactive display calibration UI."""
+import contextlib
 import os
 import re
 import sys
@@ -789,10 +790,8 @@ if __name__ == "__main__":
     app.TopWindow = UntetheredFrame(start_timer=False)
     testchart = getcfg("testchart.file")
     if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
-        try:
+        with contextlib.suppress(Exception):
             testchart = ICCProfile(testchart).tags.targ
-        except Exception:
-            pass
     try:
         app.TopWindow.cgats = CGATS(testchart)
     except Exception:

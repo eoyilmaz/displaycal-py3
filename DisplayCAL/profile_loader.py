@@ -1,5 +1,6 @@
 """Set ICC profiles and load calibration curves for all configured display devices."""
 
+import contextlib
 import math
 import os
 import re
@@ -2304,12 +2305,10 @@ class ProfileLoader:
     def _check_keep_running(self):
         windows = []
         # print '-' * 79
-        try:
+        with contextlib.suppress(pywintypes.error):
             win32gui.EnumThreadWindows(
                 self._tid, self._enumerate_own_windows_callback, windows
             )
-        except pywintypes.error:
-            pass
         windows.extend(
             [
                 window
@@ -3747,10 +3746,8 @@ def get_display_name_edid(device, moninfo=None, index=None, include_adapter=Fals
     edid = {}
     if device:
         display = str(device.DeviceString)
-        try:
+        with contextlib.suppress(Exception):
             edid = get_edid(device=device)
-        except Exception:
-            pass
     else:
         display = lang.getstr("unknown")
     display = edid.get("monitor_name", display)

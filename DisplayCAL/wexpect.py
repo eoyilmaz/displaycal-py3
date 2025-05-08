@@ -62,7 +62,7 @@ http://pexpect.sourceforge.net/
 
 $Id: pexpect.py 507 2007-12-27 02:40:52Z noah $
 """
-
+import contextlib
 import errno
 import os
 import re
@@ -576,10 +576,8 @@ class spawn_unix:
             # teardown of the Python VM itself. Thus, self.close() may
             # trigger an exception because os.close may be None.
             # -- Fernando Perez
-            try:
+            with contextlib.suppress(AttributeError):
                 self.close()
-            except AttributeError:
-                pass
 
     def __str__(self):
         """This returns a human-readable string that represents the state of
@@ -677,22 +675,18 @@ class spawn_unix:
             self.pid, self.child_fd = self.__fork_pty()
 
         if self.pid == 0:  # Child
-            try:
+            with contextlib.suppress(Exception):
                 self.child_fd = sys.stdout.fileno()  # used by setwinsize()
                 self.setwinsize(24, 80)
-            except Exception:
                 # Some platforms do not like setwinsize (Cygwin).
                 # This will cause problem when running applications that
                 # are very picky about window size.
                 # This is a serious limitation, but not a show stopper.
-                pass
             # Do not allow child to inherit open file descriptors from parent.
             max_fd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
             for i in range(3, max_fd):
-                try:
+                with contextlib.suppress(OSError):
                     os.close(i)
-                except OSError:
-                    pass
 
             # I don't know why this works, but ignoring SIGHUP fixes a
             # problem when trying to start a Java daemon with sudo
@@ -1798,14 +1792,10 @@ class spawn_windows(spawn_unix):
 
         Python only garbage collects Python objects, not the child console.
         """
-        try:
+        with contextlib.suppress(Exception):
             self.wtty.terminate_child()
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             self.wtty.terminate()
-        except Exception:
-            pass
 
     def _spawn(self, command, args=None):
         """Start the given command in a child process.
@@ -2980,10 +2970,8 @@ def log(e, suffix="", logdir=None):
     if sys.platform != "darwin":
         logdir = os.path.join(logdir, "logs")
     if not os.path.exists(logdir):
-        try:
+        with contextlib.suppress(OSError):
             os.makedirs(logdir)
-        except OSError:
-            pass
     if os.path.isdir(logdir) and os.access(logdir, os.W_OK):
         logfile = os.path.join(logdir, "wexpect%s.log" % suffix)
         if os.path.isfile(logfile):
@@ -3004,10 +2992,8 @@ def log(e, suffix="", logdir=None):
                     mtime = time.localtime(time.time() - 60 * 60 * 24)
                 if time.localtime()[:3] > mtime[:3]:
                     # do rollover
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(logfile)
-                    except Exception:
-                        pass
         try:
             with open(logfile, "a", encoding="utf-8") as fout:
                 ts = time.time()

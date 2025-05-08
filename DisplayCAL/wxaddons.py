@@ -1,3 +1,4 @@
+import contextlib
 import os
 import sys
 import threading
@@ -473,10 +474,8 @@ class ThreadedTimer:
 
     def Destroy(self):
         if hasattr(wx.Window, "UnreserveControlId") and self.Id < 0:
-            try:
+            with contextlib.suppress(wx.wxAssertionError):
                 wx.Window.UnreserveControlId(self.Id)
-            except wx.wxAssertionError:
-                pass
 
     def GetId(self):
         return self._id

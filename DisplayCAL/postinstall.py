@@ -1,3 +1,4 @@
+import contextlib
 import os
 import shutil
 import sys
@@ -161,11 +162,9 @@ def postinstall_windows(prefix):
             group = relpath(grppath, startmenu_common)
 
         if not os.path.exists(grppath):
-            try:
+            with contextlib.suppress(Exception):
                 os.makedirs(grppath)
-            except Exception:
                 # maybe insufficient privileges?
-                pass
 
         if os.path.exists(grppath):
             print(

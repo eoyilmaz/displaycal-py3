@@ -80,8 +80,10 @@ class ParseMaster:
                 # build a function to do the lookup
                 i = length
                 r = replacement
+
                 def replacement(a, o):
                     return self._repl(a, o, r, i)
+
         # pass the modified arguments
         self._patterns.append(Pattern(expression, replacement, length))
 
@@ -627,7 +629,6 @@ function _bar(_ocalvar) {
     test_scripts.append(("cssQuery.js", 0, False, True, "cssQuery-p3.js"))
     test_scripts.append(("cssQuery.js", 62, False, True, "cssQuery-p4.js"))
 
-
     p = JavaScriptPacker()
     for script, encoding, fastDecode, specialChars, expected in test_scripts:
         if os.path.exists(script):
@@ -639,7 +640,7 @@ function _bar(_ocalvar) {
             with open(expected) as f:
                 _expected = f.read()
         else:
-            _expected =  expected
+            _expected = expected
         print(script[:20], encoding, fastDecode, specialChars, expected[:20])
         print("=" * 40)
         result = p.pack(_script, encoding, fastDecode, specialChars)

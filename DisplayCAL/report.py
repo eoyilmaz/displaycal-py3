@@ -19,7 +19,9 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
     if not report_html_template_path:
         raise OSError(lang.getstr("file.missing", templatefilename))
     try:
-        with codecs.open(report_html_template_path, "r", "UTF-8") as report_html_template:
+        with codecs.open(
+            report_html_template_path, "r", "UTF-8"
+        ) as report_html_template:
             report_html = report_html_template.read()
     except OSError as exception:
         raise exception.__class__(
@@ -57,9 +59,13 @@ def create(report_path, placeholders2data, pack=True, templatename="report"):
                         f'src="{include}">', f">/*<![CDATA[*/\n{js}\n/*]]>*/"
                     )
                 else:
-                    report_html = report_html.replace(f'@import "{include}";', f.read().strip())
+                    report_html = report_html.replace(
+                        f'@import "{include}";', f.read().strip()
+                    )
         except OSError as exception:
-            raise exception.__class__(lang.getstr("error.file.open", path)) from exception
+            raise exception.__class__(
+                lang.getstr("error.file.open", path)
+            ) from exception
 
     # write report
     try:
@@ -82,7 +88,9 @@ def update(report_path, pack=True):
         with codecs.open(report_path, "r", "UTF-8") as orig_report:
             orig_report_html = orig_report.read()
     except OSError as exception:
-        raise exception.__class__(lang.getstr("error.file.open", report_path)) from exception
+        raise exception.__class__(
+            lang.getstr("error.file.open", report_path)
+        ) from exception
 
     data = (
         ("${PLANCKIAN}", r'id="FF_planckian"\s*(.*?)\s*disabled="disabled"', 0),

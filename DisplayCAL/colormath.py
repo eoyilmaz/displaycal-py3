@@ -6,6 +6,7 @@ Note:
 In most cases, unless otherwise stated RGB is R'G'B' (gamma-compressed)
 
 """
+
 import colorsys
 import logging
 import math
@@ -94,7 +95,11 @@ def specialpow(a, b, slope_limit=0):
         v = 100.0 * a / LSTAR_K if a <= 0.08 else math.pow((a + 0.16) / 1.16, 3.0)
     elif b == -240:
         # RGB -> XYZ, SMPTE 240M TRC
-        v = a / SMPTE240M_P if a < SMPTE240M_K0 else math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
+        v = (
+            a / SMPTE240M_P
+            if a < SMPTE240M_K0
+            else math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
+        )
     elif b in (-601, -709):
         # RGB -> XYZ, Rec. 601/709 TRC
         v = a / REC709_P if a < REC709_K0 else math.pow((a + 0.099) / 1.099, 1.0 / 0.45)
@@ -1601,7 +1606,11 @@ def Lab2XYZ(L, a, b, whitepoint=None, scale=1.0):
         xr = (116.0 * fx - 16) / LSTAR_K
 
     yr = math.pow((L + 16) / 116.0, 3.0) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
-    zr = math.pow(fz, 3.0) if math.pow(fz, 3.0) > LSTAR_E else (116.0 * fz - 16) / LSTAR_K
+    zr = (
+        math.pow(fz, 3.0)
+        if math.pow(fz, 3.0) > LSTAR_E
+        else (116.0 * fz - 16) / LSTAR_K
+    )
 
     Xr, Yr, Zr = get_whitepoint(whitepoint, scale)
 
@@ -3010,9 +3019,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                     vf = wf  # New previous 2nd best solution
                     wx = ux
                     wf = uf  # New 2nd best from latest
-                elif (
-                    uf <= vf or vx in [xx, wx]
-                ):  # New 3rd best, or equal 1st & 2nd
+                elif uf <= vf or vx in [xx, wx]:  # New 3rd best, or equal 1st & 2nd
                     vx = ux
                     vf = uf  # New previous 2nd best from latest
                 logging.debug("linmin: found new worse solution")
@@ -4080,7 +4087,8 @@ def test():
             XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
             wp = " ".join([str(v) for v in XYZ])
         print(
-            "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s" % wp
+            "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s"
+            % wp
         )
         for name in rgb_spaces:
             spc = rgb_spaces[name]

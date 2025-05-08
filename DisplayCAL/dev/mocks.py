@@ -10,7 +10,7 @@ import contextlib
 from collections.abc import Generator
 from types import ModuleType
 from typing import Any, overload
-    
+
 from _pytest.monkeypatch import MonkeyPatch
 
 Call = tuple[tuple[Any, ...], dict[str, Any]]

@@ -841,9 +841,11 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         class_i = self.profile_class_ctrl.GetSelection()
         tech_i = self.tech_ctrl.GetSelection()
         ciis_i = self.ciis_ctrl.GetSelection()
+
         def consumer(result, parent):
             if isinstance(result, Exception):
                 show_result_dialog(result, parent)
+
         wargs = (XYZ, trc, path)
         wkwargs = {
             "rgb": self.colorspace_rgb_ctrl.Value,

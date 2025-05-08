@@ -226,12 +226,14 @@ class LUT3DMixin:
         )
 
     def lut3d_hdr_display_handler(self, event):
-        if self.lut3d_hdr_display_ctrl.GetSelection() and not self.getcfg(
-            "3dlut.hdr_display"
-        ) and not show_result_dialog(
-            UnloggedInfo(lang.getstr("3dlut.format.madVR.hdr.confirm")),
-            self,
-            confirm=lang.getstr("ok"),
+        if (
+            self.lut3d_hdr_display_ctrl.GetSelection()
+            and not self.getcfg("3dlut.hdr_display")
+            and not show_result_dialog(
+                UnloggedInfo(lang.getstr("3dlut.format.madVR.hdr.confirm")),
+                self,
+                confirm=lang.getstr("ok"),
+            )
         ):
             self.lut3d_hdr_display_ctrl.SetSelection(0)
             return
@@ -462,7 +464,12 @@ class LUT3DMixin:
             show_result_dialog(result, self)
         # Remove temporary files
         self.worker.wrapup(False)
-        if not isinstance(result, Exception) and result and not isinstance(self, LUT3DFrame) and getattr(self, "lut3d_path", None):
+        if (
+            not isinstance(result, Exception)
+            and result
+            and not isinstance(self, LUT3DFrame)
+            and getattr(self, "lut3d_path", None)
+        ):
             # 3D LUT tab is part of main window
             if self.getcfg("3dlut.create"):
                 # 3D LUT was created automatically after profiling, show
@@ -538,10 +545,14 @@ class LUT3DMixin:
         if None not in (profile_in, profile_out) or (
             profile_in and profile_in.profileClass == "link"
         ):
-            if profile_out and profile_in.isSame(profile_out, force_calculation=True) and not show_result_dialog(
-                Warning(lang.getstr("error.source_dest_same")),
-                self,
-                confirm=lang.getstr("continue"),
+            if (
+                profile_out
+                and profile_in.isSame(profile_out, force_calculation=True)
+                and not show_result_dialog(
+                    Warning(lang.getstr("error.source_dest_same")),
+                    self,
+                    confirm=lang.getstr("continue"),
+                )
             ):
                 return
             checkoverwrite = True
@@ -1123,7 +1134,9 @@ class LUT3DMixin:
         i = 0
         for file_format in config.valid_values["3dlut.format"]:
             if file_format != "madVR" or self.worker.argyll_version >= [1, 6]:
-                self.lut3d_format_ctrl.Append(lang.getstr("3dlut.format.%s" % file_format))
+                self.lut3d_format_ctrl.Append(
+                    lang.getstr("3dlut.format.%s" % file_format)
+                )
                 self.lut3d_formats_ab[i] = file_format
                 self.lut3d_formats_ba[file_format] = i
                 i += 1
@@ -2016,12 +2029,8 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
         elif (
             hasattr(self, "input_profile")
             and isinstance(self.input_profile.tags.get("A2B0"), LUT16Type)
-            and isinstance(
-                self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type
-            )
-            and isinstance(
-                self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type
-            )
+            and isinstance(self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type)
+            and isinstance(self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type)
         ):
             self.lut3d_trc_apply_black_offset_ctrl.Enable(self.XYZbpin != self.XYZbpout)
             if self.XYZbpin == self.XYZbpout:

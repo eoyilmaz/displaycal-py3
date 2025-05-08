@@ -62,6 +62,7 @@ http://pexpect.sourceforge.net/
 
 $Id: pexpect.py 507 2007-12-27 02:40:52Z noah $
 """
+
 import contextlib
 import errno
 import os
@@ -1939,7 +1940,7 @@ class spawn_windows(spawn_unix):
 
     def send(self, s):
         """Send a string to the child process.
-        
+
         This returns the number of bytes written. If a log file was set then
         the data is also written to the log.
         """
@@ -2027,7 +2028,7 @@ class spawn_windows(spawn_unix):
 
     # Prototype changed
     def interact(self, escape_character=None, input_filter=None, output_filter=None):
-        """Make the child console visible for interaction. """
+        """Make the child console visible for interaction."""
         if escape_character is None:
             escape_character = chr(29)
         self.wtty.interact()
@@ -2324,7 +2325,7 @@ class Wtty:
             buff.append(s)
 
             startCo.X, startCo.Y = int(endPoint[0]), int(endPoint[1])
-            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):  # noqa: SIM300
+            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):  # noqa: SIM300
                 break
 
         return "".join(buff)
@@ -2454,7 +2455,7 @@ class Wtty:
         try:
             while True:
                 # Wait for child process to be paused
-                if cursorPos.Y > maxconsoleY:  # noqa: SIM300
+                if cursorPos.Y > maxconsoleY:  # noqa: SIM300
                     reset = True
                     time.sleep(0.2)
 
@@ -2686,7 +2687,7 @@ class ConsoleReader:
                     cursorPos = consinfo["CursorPosition"]
                     maxconsoleY = consinfo["Size"].Y / 2
 
-                    if cursorPos.Y > maxconsoleY and not paused:  # noqa: SIM300
+                    if cursorPos.Y > maxconsoleY and not paused:  # noqa: SIM300
                         # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
                         # log('suspendThread', 'consolereader', logdir)
                         self.suspendThread()
@@ -2695,7 +2696,7 @@ class ConsoleReader:
                         # Hide cursor
                         consout.SetConsoleCursorInfo(cursorinfo[0], 0)
 
-                    if cursorPos.Y <= maxconsoleY and paused:  # noqa: SIM300
+                    if cursorPos.Y <= maxconsoleY and paused:  # noqa: SIM300
                         # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
                         # log('resumeThread', 'consolereader', logdir)
                         self.resumeThread()

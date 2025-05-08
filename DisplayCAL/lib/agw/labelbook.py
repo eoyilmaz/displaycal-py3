@@ -2185,7 +2185,11 @@ class LabelContainer(ImageContainerBase):
         underLinedFont.SetPointSize(
             int(underLinedFont.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold() or self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION) and selected:
+        if (
+            self.GetParent().GetFontBold()
+            or self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
+            and selected
+        ):
             underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
 
         underLinedFont.SetUnderlined(True)
@@ -2602,7 +2606,6 @@ class FlatBookBase(wx.Panel):
 
         self.Bind(wx.EVT_NAVIGATION_KEY, self.OnNavigationKey)
         self.Bind(wx.EVT_MOUSE_CAPTURE_LOST, lambda evt: True)
-
 
     def CreateImageContainer(self) -> ImageContainerBase:
         """Create the image container class for :class:`FlatBookBase`."""

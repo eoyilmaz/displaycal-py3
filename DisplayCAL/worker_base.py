@@ -573,8 +573,8 @@ class Xicclu(WorkerBase):
         self.closed = False
         self.output = []
         self.errors = []
-        self.stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
-        self.stderr = tempfile.SpooledTemporaryFile()  # noqa: SIM115
+        self.stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
+        self.stderr = tempfile.SpooledTemporaryFile()  # noqa: SIM115
         self.subprocess = sp.Popen(
             self.args,
             stdin=sp.PIPE,
@@ -595,8 +595,10 @@ class Xicclu(WorkerBase):
             if self.convert_video_rgb_to_clut65:
                 devi_devip = self.devi_devip
             else:
+
                 def devi_devip(v):
                     return v
+
             scale = float(self.scale)
             idata = list(idata)  # Make a copy
             for i, v in enumerate(idata):
@@ -708,6 +710,7 @@ class Xicclu(WorkerBase):
         if self.convert_video_rgb_to_clut65:
             devop_devo = VidRGB_to_eeColor
         else:
+
             def devop_devo(v):
                 return v
 

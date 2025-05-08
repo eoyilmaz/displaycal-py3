@@ -112,6 +112,7 @@ def pool_slice(
     thread_abort_event = thread_abort.event if thread_abort is not None else None
     progress_queue = Queue()
     if logfile:
+
         def progress_logger(num_workers, progress=0.0):
             eof_count = 0
             prevperc = -1

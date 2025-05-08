@@ -1637,7 +1637,8 @@ class TempXmlResource:
                 for tag in ("size",):
                     xml = re.sub(
                         r"<%s>(-?\d+)\s*,\s*(-?\d+)</%s>" % (tag, tag),
-                        lambda match, tag=tag: "<%s>%i,%i</%s>" % (
+                        lambda match, tag=tag: "<%s>%i,%i</%s>"
+                        % (
                             (tag,)
                             + tuple(
                                 round(int(v) * scale) if int(v) > 0 else int(v)

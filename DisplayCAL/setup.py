@@ -1572,18 +1572,16 @@ def setup():
 
         if do_py2app:
             frameworks_dir = os.path.join(
-                dist_dir,
-                f"{name}.app",
-                "Contents",
-                "Frameworks"
+                dist_dir, f"{name}.app", "Contents", "Frameworks"
             )
             lib_dynload_dir = os.path.join(
                 dist_dir,
                 f"{name}.app",
-                "Contents", "Resources",
+                "Contents",
+                "Resources",
                 "lib",
                 "python{}.{}".format(*sys.version_info[:2]),
-                "lib-dynload"
+                "lib-dynload",
             )
             # Fix Pillow (PIL) dylibs not being included
             pil_dylibs = os.path.join(lib_dynload_dir, "PIL", ".dylibs")
@@ -1591,8 +1589,7 @@ def setup():
                 import PIL
 
                 pil_installed_dylibs = os.path.join(
-                    os.path.dirname(PIL.__file__),
-                    ".dylibs"
+                    os.path.dirname(PIL.__file__), ".dylibs"
                 )
                 print("Copying", pil_installed_dylibs, "->", pil_dylibs)
                 shutil.copytree(pil_installed_dylibs, pil_dylibs)
@@ -1631,9 +1628,7 @@ def setup():
                 ),
             )
 
-        if (
-            (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
-        ):
+        if (bdist_bbfreeze and sys.platform == "win32") or do_py2exe:
             from vc90crt import vc90crt_copy_files
 
             if do_py2exe:

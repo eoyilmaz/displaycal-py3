@@ -1,4 +1,5 @@
 """Interactive display calibration UI."""
+
 import contextlib
 import os
 import re
@@ -257,7 +258,6 @@ class UntetheredFrame(BaseFrame):
                 print(exception)
 
         return 0
-
 
     def OnMove(self, event):
         if (

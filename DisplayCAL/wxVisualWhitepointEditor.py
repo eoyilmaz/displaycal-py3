@@ -2501,7 +2501,9 @@ class VisualWhitepointEditor(wx.Frame):
         self.notification.Center(wx.HORIZONTAL)
 
     def size_handler(self, event):
-        if getattr(self, "_isfullscreen", False) and getattr(self, "notification", None):
+        if getattr(self, "_isfullscreen", False) and getattr(
+            self, "notification", None
+        ):
             # print 'Fading out notification'
             self.notification.fade("out")
         wx.CallAfter(self._check_fullscreen)

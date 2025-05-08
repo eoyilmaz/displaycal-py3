@@ -329,7 +329,11 @@ class ScriptingClientFrame(SimpleTerminal):
                         self.console.Undo()
                     else:
                         wx.Bell()
-                elif event.KeyCode != wx.WXK_SHIFT and event.UnicodeKey and event.UnicodeKey != "\0":
+                elif (
+                    event.KeyCode != wx.WXK_SHIFT
+                    and event.UnicodeKey
+                    and event.UnicodeKey != "\0"
+                ):
                     # wxPython 3 "Phoenix" defines UnicodeKey as "\x00" when
                     # control key pressed
                     wx.Bell()

@@ -286,7 +286,7 @@ class CGATS(dict):
 
     def read_raw_data(self, cgats: str | bytes | list | Path | io.IOBase) -> list:
         """Read raw CGATS data.
-        
+
         Args:
             cgats (str | bytes | list | Path | io.IOBase): CGATS data to parse.
 
@@ -665,9 +665,11 @@ class CGATS(dict):
                             else:
                                 result.append(bytes(str(value), "utf-8"))
                         else:
-                            if "KEYWORDS" in self and key in list(
-                                self["KEYWORDS"].values()
-                            ) and self.emit_keywords:
+                            if (
+                                "KEYWORDS" in self
+                                and key in list(self["KEYWORDS"].values())
+                                and self.emit_keywords
+                            ):
                                 result.append(b'KEYWORD "%s"' % key.encode())
                             if isinstance(value, bytes):
                                 # Need to escape single quote -> double quote
@@ -1867,7 +1869,10 @@ Transform {
                             current_query_value = query[query_key]
                         else:
                             current_query_value = query_value
-                        if current_query_value is not None and item[query_key] != current_query_value:
+                        if (
+                            current_query_value is not None
+                            and item[query_key] != current_query_value
+                        ):
                             break
                         if get_value:
                             result_n[len(result_n)] = item[query_key]
@@ -1957,8 +1962,9 @@ Transform {
             or color_rep[1] != b"XYZ"
         ):
             raise NotImplementedError(
-                "Got unsupported color "
-                "representation {}".format(b"_".join(color_rep).decode("utf-8"))
+                "Got unsupported color representation {}".format(
+                    b"_".join(color_rep).decode("utf-8")
+                )
             )
 
         data = self.queryv1("DATA")
@@ -2138,9 +2144,7 @@ Transform {
                     self.add_keyword(
                         "LUMINANCE_XYZ_CDM2",
                         "{:.4f} {:.4f} {:.4f}".format(
-                            white_cie["XYZ_X"],
-                            white_cie["XYZ_Y"],
-                            white_cie["XYZ_Z"]
+                            white_cie["XYZ_X"], white_cie["XYZ_Y"], white_cie["XYZ_Z"]
                         ),
                     )
                     for sample in self.DATA.values():

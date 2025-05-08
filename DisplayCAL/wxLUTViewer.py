@@ -92,7 +92,7 @@ class CoordinateType(list):
             start = slice[0] * 100
             end = slice[1] * 100
             values = []
-            for (y, x) in self:
+            for y, x in self:
                 n = colormath.XYZ2Lab(0, y, 0)[0]
                 if start <= n <= end:
                     values.append((x / 255.0 * 100, y))
@@ -1092,11 +1092,7 @@ class LUTFrame(BaseFrame):
             show_result_dialog(
                 Error(
                     "\n\n".join(
-                        [
-                            f"{e}"
-                            for e in set(self.client.errors)
-                            if e is not None
-                        ]
+                        [f"{e}" for e in set(self.client.errors) if e is not None]
                     )
                 ),
                 self,
@@ -1541,7 +1537,7 @@ class LUTFrame(BaseFrame):
         for sig in ("rTRC", "gTRC", "bTRC", "kTRC"):
             x, xp, y, yp = [], [], [], []
             # First, get actual values
-            for (Y, v) in getattr(self, sig):
+            for Y, v in getattr(self, sig):
                 # if not i or Y >= trc[sig][i - 1]:
                 xp.append(v)
                 yp.append(Y)
@@ -1559,7 +1555,7 @@ class LUTFrame(BaseFrame):
             yi = numpy.interp(x, xi, y)
             prev = getattr(self, f"tf_{sig}")
             for Y, v in zip(yi, x):
-                if Y <= yp[0]:  # noqa: SIM300
+                if Y <= yp[0]:  # noqa: SIM300
                     Y = yp[0]
                 prev.append([Y, v])
 
@@ -1740,7 +1736,7 @@ class LUTFrame(BaseFrame):
         ):
             if "R" in colorants or "G" in colorants or "B" in colorants:
                 legend.append(lang.getstr("tone_values"))
-                if False: # "=" in colorants:  # NEVER
+                if False:  # "=" in colorants:  # NEVER
                     unique = []
                     if 0 in self.client.unique:  # Red
                         unique.append(self.client.unique[0])
@@ -1998,7 +1994,7 @@ class LUTFrame(BaseFrame):
                         yi = yp
                     xy = []
                     for Y, v in zip(yi, lin):
-                        if Y <= yp[0]:  # noqa: SIM300
+                        if Y <= yp[0]:  # noqa: SIM300
                             Y = yp[0]
                         xy.append([v, Y])
                     data.append(xy)

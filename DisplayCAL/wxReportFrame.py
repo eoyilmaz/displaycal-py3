@@ -91,7 +91,7 @@ class ReportFrame(BaseFrame):
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl")
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
@@ -322,7 +322,14 @@ class ReportFrame(BaseFrame):
         values = []
         try:
             cgats = CGATS(chart)
-        except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
+        except (
+            OSError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
+        ) as exception:
             show_result_dialog(exception, self)
         else:
             data_format = cgats.queryv1("DATA_FORMAT")
@@ -620,10 +627,10 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
+                wildcard = f"{lang.getstr('filetype.icc')}|*.icc;*.icm"
             else:
                 wildcard = (
-                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|"
                     "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {

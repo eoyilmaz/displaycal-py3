@@ -1558,7 +1558,9 @@ class FixedPoint:
         try:
             p = int(precision)
         except Exception as e:
-            raise TypeError(f"precision not convertable to int: {repr(precision)}") from e
+            raise TypeError(
+                f"precision not convertable to int: {repr(precision)}"
+            ) from e
         if p < 0:
             raise ValueError(f"precision must be >= 0: {repr(precision)}")
 
@@ -1861,7 +1863,9 @@ def get_all_keyboard_focusable_children(parent):
     else:
         for child in parent.Children:
             if child.Enabled and child.IsShownOnScreen():
-                if child.AcceptsFocusFromKeyboard() and (not isinstance(child, wx.RadioButton) or child.Value):
+                if child.AcceptsFocusFromKeyboard() and (
+                    not isinstance(child, wx.RadioButton) or child.Value
+                ):
                     children.append(child)
                 if child.Children:
                     children.extend(get_all_keyboard_focusable_children(child))

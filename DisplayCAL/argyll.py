@@ -500,6 +500,7 @@ def get_argyll_instrument_config(what=None):
                 filenames.append(filename)
     else:
         if what == "expected":
+
             def fn(filename):
                 return filename
         else:

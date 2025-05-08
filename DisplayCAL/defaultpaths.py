@@ -101,7 +101,9 @@ if sys.platform == "win32":
             )
         ]
     except Exception as exception:
-        raise Exception(f"FATAL - Could not get system folder: {exception}") from exception
+        raise Exception(
+            f"FATAL - Could not get system folder: {exception}"
+        ) from exception
     iccprofiles_home = iccprofiles
     try:
         programs = SHGetSpecialFolderPath(0, CSIDL_PROGRAMS, 1)

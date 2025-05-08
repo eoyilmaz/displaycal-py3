@@ -463,8 +463,7 @@ def setup():
         if "--use-setuptools" in sys.argv[1:] and not os.path.exists("use-setuptools"):
             open("use-setuptools", "w").close()
         try:
-            import setuptools
-            from setuptools import setup, Extension, find_packages
+            from setuptools import setup, find_packages
 
             setuptools = True
             print("using setuptools")

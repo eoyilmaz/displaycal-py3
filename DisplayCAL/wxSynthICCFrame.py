@@ -47,7 +47,6 @@ from DisplayCAL.util_io import Files
 from DisplayCAL.util_os import waccess
 from DisplayCAL.util_str import safe_str
 from DisplayCAL.worker import (
-    Error,
     FilteredStream,
     LineBufferedStream,
     show_result_dialog,

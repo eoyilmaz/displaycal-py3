@@ -62,7 +62,7 @@ from DisplayCAL.options import debug
 from DisplayCAL.network import ScriptingClientSocket, get_network_addr
 from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_os import get_program_file, launch_file, waccess
-from DisplayCAL.util_str import box, safe_str, wrap
+from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
 from DisplayCAL.wxaddons import (
     CustomEvent,

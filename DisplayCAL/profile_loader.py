@@ -913,7 +913,7 @@ class ProfileAssociationsDialog(InfoDialog):
         for display, frame in list(self.display_identification_frames.items()):
             if not frame:
                 self.display_identification_frames.pop(display)
-        for display, edid, moninfo, device in self.monitors:
+        for display, _edid, moninfo, _device in self.monitors:
             frame = self.display_identification_frames.get(display)
             if frame:
                 frame.close_timer.Stop()
@@ -1832,7 +1832,7 @@ class ProfileLoader:
                                 + "\n"
                             )
                         text += lang.getstr("profile_loader.info", self.pl.reload_count)
-                        for i, (display, edid, moninfo, device) in enumerate(
+                        for i, (display, _edid, _moninfo, device) in enumerate(
                             self.pl.monitors
                         ):
                             devicekey = device.DeviceKey if device else None
@@ -2291,7 +2291,7 @@ class ProfileLoader:
 
         """
         if not self.child_devices_count:
-            for i, (display, edid, moninfo, device) in enumerate(self.monitors):
+            for _display, _edid, moninfo, _device in self.monitors:
                 child_devices = get_display_devices(moninfo["Device"])
                 for child_device in child_devices:
                     if child_device.DeviceKey not in self.child_devices_count:
@@ -2507,7 +2507,7 @@ class ProfileLoader:
             self._check_display_changed(first_run)
             # Check profile associations
             profile_associations_changed = 0
-            for i, (display, edid, moninfo, device) in enumerate(self.monitors):
+            for i, (display, _edid, moninfo, device) in enumerate(self.monitors):
                 display_desc = display.replace(
                     "[PRIMARY]", lang.getstr("display.primary")
                 )
@@ -2730,7 +2730,7 @@ class ProfileLoader:
                         tagData = b"vcgt"
                         tagData += b"\0" * 4  # Reserved
                         tagData += b"\0\0\0\x01"  # Formula type
-                        for channel in range(3):
+                        for _channel in range(3):
                             tagData += b"\0\x01\0\0"  # Gamma 1.0
                             tagData += b"\0" * 4  # Min 0.0
                             tagData += b"\0\x01\0\0"  # Max 1.0
@@ -3226,7 +3226,7 @@ class ProfileLoader:
                         device0,
                     ]
             self.monitors.append((display, edid, moninfo, device))
-        for display, edid, device, device0 in self.display_devices.values():
+        for display, _edid, device, device0 in self.display_devices.values():
             if device.DeviceKey == device0.DeviceKey:
                 device_name = "\\".join(device.DeviceName.split("\\")[:-1])
                 print(
@@ -3310,7 +3310,7 @@ class ProfileLoader:
                     print("Enumerating processes failed:", exception)
                 else:
                     skip = False
-                    for session_id, pid, basename, user_security_id in processes:
+                    for _session_id, pid, basename, user_security_id in processes:
                         name_lower = basename.lower()
                         if name_lower != "madhcctrl.exe":
                             # Add all processes except madVR Home Cinema Control

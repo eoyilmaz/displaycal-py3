@@ -823,7 +823,7 @@ def create_shaper_curves(
     binterp = colormath.Interp(B_B, B_Z, use_numpy=True)
 
     curves = []
-    for i in range(3):
+    for _ in range(3):
         curves.append([])
 
     maxval = numentries - 1.0
@@ -4032,9 +4032,9 @@ END_DATA
                         f"{appname}: Applying Rec. 709 TRC to "
                         f"{os.path.basename(profile_in.fileName)}"
                     )
-                    for i, channel in enumerate(("r", "g", "b")):
-                        if channel + "TRC" in profile_in.tags:
-                            profile_in.tags[channel + "TRC"].set_trc(-709)
+                    for channel in ["r", "g", "b"]:
+                        if f"{channel}TRC" in profile_in.tags:
+                            profile_in.tags[f"{channel}TRC"].set_trc(-709)
                 else:
                     # For HDR or Argyll < 1.7 beta, alter profile TRC
                     # Argyll CMS prior to 1.7 beta development code 2014-07-10
@@ -4440,7 +4440,7 @@ END_DATA
                         raise Error(
                             f"No solution found in {n:d} iterations with {i:d} steps"
                         )
-                    for i, XYZ in enumerate(XYZ_src_out):
+                    for XYZ in XYZ_src_out:
                         XYZ[:] = [v / XYZw[1] * XYZwscaled[1] for v in XYZ]
                     del RGBscaled
                 # Inverse forward lookup source profile output XYZ through
@@ -7295,7 +7295,7 @@ BEGIN_DATA
         for j in range(256):
             channel.append(j * 257)
         for table in (A2B0.input, A2B0.output):
-            for i in range(3):
+            for _ in range(3):
                 table.append(channel)
         # cLUT
         if logfile:
@@ -7426,7 +7426,7 @@ BEGIN_DATA
         # Green X, Z shall not be higher than Y
         # Blue X, Y shall not be higher than Z
         for i, XYZ in enumerate(XYZrgb):
-            for j, v in enumerate(XYZ):
+            for _, v in enumerate(XYZ):
                 if v > XYZ[i]:
                     raise Error(
                         "xicclu: Invalid primary {} XYZ: {:.4f} {:.4f} {:.4f}".format(
@@ -7721,7 +7721,7 @@ BEGIN_DATA
                     xyYrgb[i] = x, y, Y
                 (rx, ry, rY), (gx, gy, gY), (bx, by, bY) = xyYrgb
                 mtx = colormath.rgb_to_xyz_matrix(rx, ry, gx, gy, bx, by, XYZwp)
-                for i, (channel, components) in enumerate(rgb):
+                for (_channel, components) in rgb:
                     X, Y, Z = mtx * components
                     comp_rgb_space.append(colormath.XYZ2xyY(X, Y, Z))
                 comp_rgb_space.append("PCS candidate based on actual primaries")
@@ -7888,7 +7888,7 @@ BEGIN_DATA
             # pcs_candidate = None
             pcs_candidates = []
             XYZsrgb = []
-            for channel, components in rgb:
+            for _channel, components in rgb:
                 XYZsrgb.append(
                     colormath.adapt(
                         *colormath.RGB2XYZ(*components),
@@ -8022,12 +8022,14 @@ BEGIN_DATA
                 # (best fit is the smallest fit greater or equal 1 and
                 # largest possible coverage)
                 pcs_candidates.sort(key=lambda row_: (-row_[0], row_[1]))
-                for coverage, fit, rgb_space in pcs_candidates:
+                rgb_space = None
+                for _coverage, fit, rgb_space_inner in pcs_candidates:
                     if round(fit, 2) >= 1:
+                        rgb_space = rgb_space_inner
                         break
                 if logfile:
                     logfile.write(f"Using primaries: {rgb_space[-1]}\n")
-                for channel, components in rgb:
+                for _, components in rgb:
                     XYZrgb.append(colormath.RGB2XYZ(*components, rgb_space=rgb_space))
                 # pcs_candidate = rgb_space[-1]
 
@@ -8277,7 +8279,7 @@ BEGIN_DATA
                                     else:
                                         v2 = odata2[k]
                                     k += 1
-                                    for i, n in enumerate(v):
+                                    for i, _ in enumerate(v):
                                         v[i] *= (threshold - d) / r
                                         v2[i] *= 1 - (threshold - d) / r
                                         v[i] += v2[i]
@@ -8414,11 +8416,11 @@ BEGIN_DATA
                     values.pop()
 
             ocurves = [[], [], []]
-            for i, RGB in enumerate(oRGB):
+            for RGB in oRGB:
                 for j, v in enumerate(RGB):
                     ocurves[j].append(v)
             ointerp = []
-            for i, ocurve in enumerate(ocurves):
+            for ocurve in ocurves:
                 olen = len(ocurve)
                 ointerp_i = colormath.Interp(
                     [j / (olen - 1.0) for j in range(olen)], ocurve, use_numpy=True
@@ -8550,10 +8552,11 @@ BEGIN_DATA
         ):
             display_lut_no = min(len(self.displays), getcfg("display_lut.number")) - 1
             if display_lut_no > -1 and not self.lut_access[display_lut_no]:
-                for display_lut_no, disp in enumerate(self.lut_access):
+                for i, disp in enumerate(self.lut_access):
                     if disp:
+                        display_lut_no = i
                         break
-            display += "," + str(display_lut_no + 1)
+            display = f"{display},{display_lut_no + 1}"
         return display
 
     def get_display_edid(self):
@@ -15132,7 +15135,7 @@ usage: spotread [-options] [logfile]
                 R = []
                 G = []
                 B = []
-                for i, RGB in enumerate(RGBscaled):
+                for RGB in RGBscaled:
                     R.append(RGB[0])
                     G.append(RGB[1])
                     B.append(RGB[2])
@@ -15243,10 +15246,10 @@ BEGIN_DATA
                 cti3 = CGATS(temppathname + ".ti3")
             # Get RGB from measurement data
             RGBorig = []
-            for i, sample in cti3[0].DATA.items():
+            for _, sample in cti3[0].DATA.items():
                 RGB = []
-                for j, component in enumerate("RGB"):
-                    RGB.append(sample["RGB_" + component])
+                for component in "RGB":
+                    RGB.append(sample[f"RGB_{component}"])
                 RGBorig.append(RGB)
             # Lookup RGB -> scaled RGB through calibration
             RGBscaled = self.xicclu(cal, RGBorig, scale=100)
@@ -16124,7 +16127,7 @@ BEGIN_DATA
                 tmp_fd, tmp_download_path = mksfile(download_path + ".download")
             except OSError as mksfile_exception:
                 response.close()
-                for fd_, pth in [(fd, download_path), (tmp_fd, tmp_download_path)]:
+                for fd_, _ in [(fd, download_path), (tmp_fd, tmp_download_path)]:
                     if not fd_:
                         continue
                     os.close(fd_)

@@ -453,7 +453,7 @@ def create_RGB_A2B_XYZ(input_curves, clut, logfn=print):
 
     fwd = []
     bwd = []
-    for i, input_curve in enumerate(input_curves):
+    for input_curve in input_curves:
         if isinstance(input_curve, (tuple, list)):
             linear = [v / (len(input_curve) - 1.0) for v in range(len(input_curve))]
             fwd.append(colormath.Interp(linear, input_curve, use_numpy=True))
@@ -523,11 +523,11 @@ def create_RGB_A2B_XYZ(input_curves, clut, logfn=print):
     clut = list(clut)
     itable.clut = []
     # step = 1.0 / (clutres - 1.0)
-    for R in range(clutres):
-        for G in range(clutres):
+    for _R in range(clutres):
+        for _G in range(clutres):
             row = list(clut.pop(0))
             itable.clut.append([])
-            for B in range(clutres):
+            for _B in range(clutres):
                 X, Y, Z = row.pop(0)
                 itable.clut[-1].append(
                     [max(v / white_XYZ[1] * 32768, 0) for v in (X, Y, Z)]
@@ -634,7 +634,7 @@ def create_synthetic_clut_profile(
             itable.input[i].append(interp(v) / maxv * 65535)
 
     # Fill remaining input curves from first input curve and create output curves
-    for i in range(3):
+    for _ in range(3):
         if len(itable.input) < 3:
             itable.input.append(itable.input[0])
             otable.input.append(otable.input[0])
@@ -1364,10 +1364,10 @@ def create_synthetic_hdr_clut_profile(
 
         # Smooth
         row = 0
-        for col_0 in range(clutres):
-            for col_1 in range(clutres):
+        for _ in range(clutres):
+            for _ in range(clutres):
                 debugtable1.clut.append([])
-                for col_2 in range(clutres):
+                for _ in range(clutres):
                     RGBdisp = display_RGB[row]
                     debugtable1.clut[-1].append(
                         [min(max(v * 65535, 0), 65535) for v in RGBdisp]

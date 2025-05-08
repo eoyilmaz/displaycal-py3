@@ -256,7 +256,7 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
         cwd = os.getcwd()
     fn(f"  {cmd}")
     lines = []
-    for i, item in enumerate(args):
+    for item in args:
         # convert all args to str
         if not isinstance(item, str):
             if isinstance(item, bytes):
@@ -723,7 +723,7 @@ class Xicclu(WorkerBase):
         # than testing for 'if x'. (EOY: Yeah I measured it is ~3% faster)
         # Also, struct.pack is faster if the second argument is passed as an integer.
         clip = None
-        for i, line in enumerate(self.output):
+        for line in self.output:
             if verbose:
                 line = line.strip()
                 if line.startswith(b"["):

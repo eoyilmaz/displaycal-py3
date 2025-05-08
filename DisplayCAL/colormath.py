@@ -847,7 +847,7 @@ def smooth_avg(values, passes=1, window=None, protect=None):
             # offset the values with ``extend_amount``
             protected_values[index + extend_amount] = values[index + extend_amount]
 
-    for i in range(passes):
+    for _ in range(passes):
         values = list(numpy.convolve(values, window, mode="same"))
         # Protect start and end values
         values[: extend_amount + protection_extension] = protected_start

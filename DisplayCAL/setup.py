@@ -1060,7 +1060,7 @@ def setup():
             f"{appname.lower()}-apply-profiles-launcher",
             f"{appname} Profile Loader Launcher",
         )
-        for script, desc in scripts + [apply_profiles_launcher]:
+        for script, _desc in scripts + [apply_profiles_launcher]:
             shutil.copy(
                 os.path.join(source_dir, "scripts", script),
                 os.path.join(tmp_scripts_dir, script2pywname(script)),

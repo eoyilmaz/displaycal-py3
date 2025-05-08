@@ -2965,7 +2965,7 @@ END_DATA"""
                     count += repeat - 1
                     secs += repeat - 1
                     continue
-                for j in range(repeat - 1):
+                for _ in range(repeat - 1):
                     count += 1
                     filecopyname = filenameformat % (name, count, ext)
                     if file_format == "DPX":
@@ -4306,7 +4306,7 @@ END_DATA"""
                 self.grid.DeleteRows(consecutive[-1], len(consecutive))
                 if consecutive[0] != len(data) - 1:
                     data.moveby1(consecutive[-1] + len(consecutive), -len(consecutive))
-                for crow in consecutive:
+                for _ in consecutive:
                     dict.pop(data, len(data) - 1)
                 consecutive = []
             consecutive.append(row)

@@ -621,8 +621,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             if XYZ["X"] + XYZ["Y"] + XYZ["Z"] == 0:
                 # Set black chromaticity to white chromaticity if XYZ is 0
                 xyY = []
-                for i, component in enumerate("xy"):
-                    xyY.append(getattr(self, "white_%s" % component).GetValue())
+                for component in "xy":
+                    xyY.append(getattr(self, f"white_{component}").GetValue())
             else:
                 xyY = colormath.XYZ2xyY(XYZ["X"], XYZ["Y"], XYZ["Z"])
             for i, component in enumerate("xy"):
@@ -1067,14 +1067,14 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         elif black != [0, 0, 0]:
             # Color profile if rgb is True, else grayscale profile
             vmin = 0 if rgb else black[1]
-            for i, channel in enumerate(channels):
-                TRC = profile.tags["%sTRC" % channel]
+            for channel in channels:
+                TRC = profile.tags[f"{channel}TRC"]
                 TRC.set_trc(trc, 1024, vmin=vmin * 65535)
             if rgb:
                 profile.apply_black_offset(black)
         else:
             for channel in channels:
-                profile.tags["%sTRC" % channel].set_trc(trc, 1)
+                profile.tags[f"{channel}TRC"].set_trc(trc, 1)
         if black != [0, 0, 0] and bpc:
             if rgb:
                 profile.apply_black_offset((0, 0, 0))

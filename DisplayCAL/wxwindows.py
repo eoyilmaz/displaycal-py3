@@ -1566,7 +1566,7 @@ class BaseFrame(wx.Frame):
             menus = []
             menubar = self.GetMenuBar()
             if menubar:
-                for i, (menu, label) in enumerate(menubar.GetMenus()):
+                for i, (_menu, label) in enumerate(menubar.GetMenus()):
                     label = label.lstrip("&_")
                     if responseformats[conn] != "plain":
                         menus.append(
@@ -1881,7 +1881,7 @@ class BaseFrame(wx.Frame):
                         for name in defaults:
                             if len(data) > 1:
                                 include = False
-                                for category in data[1:]:
+                                for _ in data[1:]:
                                     if name.startswith(data[1]):
                                         include = True
                                         break
@@ -4267,30 +4267,31 @@ class CustomGrid(wx.grid.Grid):
                 if ch is not None or keycode in (wx.WXK_BACK, wx.WXK_DELETE):
                     changed = 0
                     batch = False
-                    for i, (row, col) in enumerate(self.GetSelection()):
-                        if row > -1 and col > -1 and not self.IsReadOnly(row, col):
-                            if changed and not batch:
-                                self.BeginBatch()
-                                batch = True
-                            if self._overwrite_cell_values or keycode == wx.WXK_DELETE:
-                                value = ""
-                            else:
-                                value = self.GetCellValue(row, col)
-                            if keycode == wx.WXK_BACK:
-                                value = value[:-1]
-                            elif keycode != wx.WXK_DELETE:
-                                value += ch
-                            self.SetCellValue(row, col, value)
-                            self.ProcessEvent(
-                                wx.grid.GridEvent(
-                                    -1,
-                                    wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
-                                    self,
-                                    row,
-                                    col,
-                                )
+                    for (row, col) in self.GetSelection():
+                        if row <= -1 or col <= -1 or self.IsReadOnly(row, col):
+                            continue
+                        if changed and not batch:
+                            self.BeginBatch()
+                            batch = True
+                        if self._overwrite_cell_values or keycode == wx.WXK_DELETE:
+                            value = ""
+                        else:
+                            value = self.GetCellValue(row, col)
+                        if keycode == wx.WXK_BACK:
+                            value = value[:-1]
+                        elif keycode != wx.WXK_DELETE:
+                            value += ch
+                        self.SetCellValue(row, col, value)
+                        self.ProcessEvent(
+                            wx.grid.GridEvent(
+                                -1,
+                                wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
+                                self,
+                                row,
+                                col,
                             )
-                            changed += 1
+                        )
+                        changed += 1
                     if batch:
                         self.EndBatch()
                     self._overwrite_cell_values = False
@@ -5331,7 +5332,7 @@ class BetterPyGauge(pygauge.PyGauge):
             self._barGradient = [self._gradients[self.gradientindex]]
         if hasattr(self, "_update_step") and not self._indeterminate:
             stop = True
-            for i, v in enumerate(self._value):
+            for i in range(len(self._value)):
                 self._value[i] += self._update_step[i]
 
                 if self._update_step[i] > 0:
@@ -5582,7 +5583,7 @@ class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
         bold_font = self.Font
         bold_font.Weight = wx.FONTWEIGHT_BOLD
         xh = self.GetTextExtent("X")[1]
-        for i, line in enumerate(self._label.splitlines()):
+        for line in self._label.splitlines():
             if line:
                 # Account for bold text which is approximately 14% wider
                 parts = re.findall(r"(<font weight='bold'>([^<]+)</font>|[^<]+)", line)
@@ -5830,7 +5831,7 @@ class LogWindow(InvincibleFrame):
         textattr = None
         warning_lstr = self._warning_lstr
         error_lstr = self._error_lstr
-        for i, line in enumerate(lines[-1000:]):
+        for line in lines[-1000:]:
             line_lower = line.lower()
             if (
                 "brightness error" in line_lower
@@ -6499,7 +6500,7 @@ class ProgressDialog(wx.Dialog):
                     bitmaps.append(im)
                 # Needs to be exactly 17 images
                 if bitmaps and len(bitmaps) == 17:
-                    for i in range(7):
+                    for _ in range(7):
                         bitmaps.extend(bitmaps[9:17])
                     bitmaps.extend(bitmaps[9:13])
                     # Fade in
@@ -6542,7 +6543,7 @@ class ProgressDialog(wx.Dialog):
                         bitmaps.append(im)
                 # Needs to be exactly 9 images
                 if bitmaps and len(bitmaps) == 9:
-                    for i in range(3):
+                    for _ in range(3):
                         bitmaps.extend(bitmaps[:9])
                     # Fade in
                     for i, im in enumerate(bitmaps[:27]):
@@ -6552,7 +6553,7 @@ class ProgressDialog(wx.Dialog):
                     for i, im in enumerate(bitmaps[27:]):
                         bitmaps[i + 27] = im.ConvertToBitmap()
                     # Fade out
-                    for i in range(3):
+                    for _ in range(3):
                         bitmaps.extend(bitmaps[27:36])
                     for i, bmp in enumerate(bitmaps[36:]):
                         im = bmp.ConvertToImage().AdjustChannels(1, 1, 1, 1 - i / 26.0)

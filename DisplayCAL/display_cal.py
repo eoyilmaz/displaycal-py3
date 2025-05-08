@@ -355,6 +355,8 @@ def is_new_update():
         response.raise_for_status()  # Raises an HTTPError for bad responses
 
         data = response.json()
+        global RELEASE_DATA
+        RELEASE_DATA = data
         latest_version_string = data["tag_name"]
         latest_version = latest_version_string.split('.')
         latest_version_tuple = tuple(int(n) for n in latest_version)
@@ -554,12 +556,7 @@ def app_update_confirm(
 ):
     """Show a dialog confirming application update, with cancel option"""
     zeroinstall = (
-        not argyll
-        and os.path.exists(
-            os.path.normpath(os.path.join(pydir, "..", appname + ".pyw"))
-        )
-        and re.match(r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir)))
-        and (which("0install-win.exe") or which("0install"))
+        False
     )
     download = argyll and not check_argyll_bin()
     if zeroinstall or sys.platform in ("darwin", "win32") or argyll:
@@ -644,34 +641,38 @@ def app_update_confirm(
             # Stable
             folder = ""
         if zeroinstall:
-            if parent:
-                parent.Close()
-            else:
-                wx.GetApp().ExitMainLoop()
+            return
+        elif not argyll:
+            # Download the update from GitHub based on the user's platform
             if sys.platform == "win32":
-                kwargs = dict(stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+                suffix = "Windows-Setup.exe"
+            elif sys.platform == "darwin":
+                if platform.processor() == "arm":
+                    suffix = "macOS-arm64.dmg"
+                else:
+                    suffix = "macOS-x86.dmg"
             else:
-                kwargs = {}
-            sp.Popen(
-                [
-                    zeroinstall.encode(fs_enc),
-                    "run",
-                    "--refresh",
-                    "--version",
-                    newversion,
-                    f"http://{DOMAIN}/0install/{appname}.xml",
-                ],
-                **kwargs,
-            )
+                suffix = ".tar.gz"
+            download_url = None
+            for asset in RELEASE_DATA['assets']:
+                if asset['name'] == f"{'DisplayCAL'}-{newversion}-{suffix}":
+                    download_url = asset['browser_download_url']
+                    break
+            if download_url is not None:
+                try:
+                    webbrowser.open_new_tab(download_url)
+                except Exception as e:
+                    print(f"Error opening web browser for updates: {str(e)}")
         else:
+            # Download ArgyllCMS
             consumer = worker.process_download
             dlname = appname
             sep = "-"
-            domain = github_api_url
+            domain = DOMAIN
             if argyll:
                 consumer = worker.process_argyll_download
                 # force Argyll downloads
-                domain = f"https://{config.defaults.get('argyll.domain').split('/')[-1]}"
+                domain = config.defaults.get("argyll.domain").split("/")[-1]
                 dlname = "Argyll"
                 sep = "_V"
                 if sys.platform == "win32":
@@ -716,7 +717,7 @@ def app_update_confirm(
                 consumer,
                 worker.download,
                 ckwargs={"exit": dlname == appname},
-                wargs=(f"{domain}/{folder}/{dlname}{sep}{newversion}{suffix}",),
+                wargs=(f"https://{domain}/{folder}/{dlname}{sep}{newversion}{suffix}",),
                 progress_msg=lang.getstr("downloading"),
                 fancy=False,
             )

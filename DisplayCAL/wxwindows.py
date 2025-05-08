@@ -998,7 +998,7 @@ class BaseFrame(wx.Frame):
         except OSError as exception:
             del conn
             return exception
-        return conn  # noqa: F821
+        return conn  # noqa: F821
 
     def connection_handler(self):
         """Handle socket connections"""
@@ -1480,7 +1480,9 @@ class BaseFrame(wx.Frame):
                     elif data[0] == "cancel":
                         wx.CallAfter(win.Close)
                     response = "ok"
-            elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)) and hasattr(win, data[0]):
+            elif isinstance(
+                win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)
+            ) and hasattr(win, data[0]):
                 ctrl = getattr(win, data[0])
                 if ctrl.IsEnabled():
                     if win.IsModal():
@@ -1915,10 +1917,12 @@ class BaseFrame(wx.Frame):
             # original values after processing
             wx.DirDialog = DirDialog
             wx.FileDialog = FileDialog
+
             # Use CallLater so GUI methods have a chance to run before we send
             # our response
             def relayfunc(func, *args):
                 wx.CallLater(55, func, *args)
+
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win
@@ -2226,7 +2230,9 @@ class BaseFrame(wx.Frame):
                 label = GTKMenuItemGetFixedLabel(label)
                 localized_label = lang.getstr(label)
                 if item.Accel:
-                    localized_label_text_with_accel = f"{localized_label}\t{item.Accel.ToString()}"
+                    localized_label_text_with_accel = (
+                        f"{localized_label}\t{item.Accel.ToString()}"
+                    )
                     # item.Text = localized_label_text_with_accel
                     item.SetItemLabel(localized_label_text_with_accel)
                 else:
@@ -4265,7 +4271,7 @@ class CustomGrid(wx.grid.Grid):
                 if ch is not None or keycode in (wx.WXK_BACK, wx.WXK_DELETE):
                     changed = 0
                     batch = False
-                    for (row, col) in self.GetSelection():
+                    for row, col in self.GetSelection():
                         if row <= -1 or col <= -1 or self.IsReadOnly(row, col):
                             continue
                         if changed and not batch:

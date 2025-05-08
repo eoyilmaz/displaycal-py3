@@ -1607,9 +1607,7 @@ class GamapFrame(BaseFrame):
                 self,
                 confirm=lang.getstr("ok"),
             ):
-                self.gamap_out_viewcond_ctrl.SetStringSelection(
-                    self.viewconds_ab[cur]
-                )
+                self.gamap_out_viewcond_ctrl.SetStringSelection(self.viewconds_ab[cur])
                 return
             setcfg("gamap_out_viewcond", v)
             if self.Parent and hasattr(self.Parent, "profile_settings_changed"):
@@ -4050,12 +4048,17 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             override_default.update(override)
         override = override_default
         for name in defaults:
-            if name not in skip and name not in override and (
-                len(include) == 0
-                or False in [name.find(item) != 0 for item in include]
-            ) and (
-                len(exclude) == 0
-                or (False not in [name.find(item) != 0 for item in exclude])
+            if (
+                name not in skip
+                and name not in override
+                and (
+                    len(include) == 0
+                    or False in [name.find(item) != 0 for item in include]
+                )
+                and (
+                    len(exclude) == 0
+                    or (False not in [name.find(item) != 0 for item in exclude])
+                )
             ):
                 if name.endswith(".backup") and name == "measurement_mode.backup":
                     setcfg("measurement_mode", getcfg("measurement_mode.backup"))
@@ -4324,7 +4327,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for mode, desc in self.worker.get_instrument_measurement_modes().items():
                 measurement_modes[instrument_type].append(lang.getstr(desc))
                 measurement_modes_ab[instrument_type].append(mode)
-        if instrument_name == "K-10" and measurement_mode not in measurement_modes_ab[instrument_type]:
+        if (
+            instrument_name == "K-10"
+            and measurement_mode not in measurement_modes_ab[instrument_type]
+        ):
             measurement_mode = "F"
         if instrument_features.get("projector_mode") and self.worker.argyll_version >= [
             1,
@@ -5443,8 +5449,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.update_black_point_rate_ctrl()
             elif result == wx.ID_CANCEL:
                 return False
-        if profile and getcfg("profile.type") != "S" or not getcfg(
-            "profile.black_point_compensation"
+        if (
+            profile
+            and getcfg("profile.type") != "S"
+            or not getcfg("profile.black_point_compensation")
         ):  # Warn about profile bugs
             dlg = ConfirmDialog(
                 self,
@@ -5590,7 +5598,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if integration_time and (
                 sum(integration_time) / float(len(integration_time))
                 == integration_time[0]
-            ): # Check for fixed integration time
+            ):  # Check for fixed integration time
                 # This helps estimation for instruments with fixed
                 # integration time (e.g. SpyderX)
                 patches *= float(integration_time[0]) / 2.45
@@ -6183,10 +6191,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         profile = not getcfg("3dlut.create") and get_current_profile(True)
         enable_apply_cal = bool(
             getcfg("3dlut.create")
-            or (
-                profile
-                and isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
-            )
+            or (profile and isinstance(profile.tags.get("vcgt"), VideoCardGammaType))
         )
         self.lut3d_apply_cal_cb.SetValue(
             enable_apply_cal and bool(getcfg("3dlut.output.profile.apply_cal"))
@@ -9120,7 +9125,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # get item 0 of the ti3 to strip the CAL part from the measured data
             try:
                 ti3_measured = CGATS(ti3_path)[0]
-            except (OSError, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exc:
+            except (
+                OSError,
+                CGATSInvalidError,
+                CGATSInvalidOperationError,
+                CGATSKeyError,
+                CGATSTypeError,
+                CGATSValueError,
+            ) as exc:
                 result = exc
             else:
                 print(lang.getstr("success"))
@@ -10025,9 +10037,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.worker.patterngenerator.listening = False
             host = dlg.host.GetValue()
             if result == wx.ID_OK and upload:
-                setcfg(
-                    "patterngenerator.prisma.preset", preset.GetStringSelection()
-                )
+                setcfg("patterngenerator.prisma.preset", preset.GetStringSelection())
                 retval = filename
             dlg.Destroy()
             if result != wx.ID_OK or not host:
@@ -11069,10 +11079,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         for _key, name, volume in gamuts:
                             vinfo.append(
                                 "{:.1f}% {}".format(
-                                    gamut_volume
-                                    * GAMUT_VOLUME_SRGB
-                                    / volume
-                                    * 100,
+                                    gamut_volume * GAMUT_VOLUME_SRGB / volume * 100,
                                     name,
                                 )
                             )
@@ -11382,7 +11389,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def profile_finish_action(self, result):
         lut3d = config.is_virtual_display() or self.install_3dlut
-        if result == wx.ID_OK and getcfg("3dlut.format") == "madVR" and not hasattr(self.worker, "madtpg"):
+        if (
+            result == wx.ID_OK
+            and getcfg("3dlut.format") == "madVR"
+            and not hasattr(self.worker, "madtpg")
+        ):
             # madVR has an API for installing 3D LUTs
             # Prisma has a HTTP REST interface for uploading and
             # configuring 3D LUTs
@@ -12968,7 +12979,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if not ccxx_testchart:
                 raise Error(lang.getstr("not_found", lang.getstr("ccxx.ti1")))
             ccxx = CGATS(ccxx_testchart)
-        except (OSError, Error, CGATSInvalidError, CGATSInvalidOperationError, CGATSKeyError, CGATSTypeError, CGATSValueError) as exception:
+        except (
+            OSError,
+            Error,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
+        ) as exception:
             show_result_dialog(exception, self)
             return
         cgats_list = []
@@ -13927,7 +13946,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             column = column.decode("utf-8")
                             if column not in ccmx_data_format and column != "SAMPLE_ID":
                                 metadata.append(
-                                    f'{label}_DATA_{i + 1:.0f}_{column} '
+                                    f"{label}_DATA_{i + 1:.0f}_{column} "
                                     f'"{sample[column]}"'
                                 )
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
@@ -14007,16 +14026,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             return
         ccxx = CGATS(cgats)
         # Remove platform-specific/potentially sensitive information
-        cgats = re.sub(
-            rb'\n(?:REFERENCE|TARGET)_FILENAME\s+"[^"]+"\n', b"\n", cgats
-        )
+        cgats = re.sub(rb'\n(?:REFERENCE|TARGET)_FILENAME\s+"[^"]+"\n', b"\n", cgats)
         params = {"cgats": cgats}
         # Also upload reference and target CGATS (if available)
         for label in ("REFERENCE", "TARGET"):
             filename = (ccxx.queryv1(f"{label}_FILENAME") or b"").decode("utf-8")
-            algo_hash = (
-                (ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")
-            ).split(":", 1)
+            algo_hash = ((ccxx.queryv1(f"{label}_HASH") or b"").decode("utf-8")).split(
+                ":", 1
+            )
             if filename and os.path.isfile(filename) and algo_hash[0] in globals():
                 meas = bytes(CGATS(filename)).strip()
                 # Check hash
@@ -14172,9 +14189,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if instrument in self.worker.instruments and not check:
                     getattr(dlg, name).SetValue(True)
                     break
-            dlg.sizer3.Add(
-                getattr(dlg, name), flag=wx.TOP | wx.ALIGN_LEFT, border=8
-            )
+            dlg.sizer3.Add(getattr(dlg, name), flag=wx.TOP | wx.ALIGN_LEFT, border=8)
             getattr(dlg, name).Bind(wx.EVT_CHECKBOX, check_importers)
         dlg.install_user = wx.RadioButton(
             dlg, -1, lang.getstr("install_user"), style=wx.RB_GROUP
@@ -15191,7 +15206,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg("profile.black_point_compensation", 1)
         else:
             setcfg("profile.black_point_compensation", 0)
-        if v in ("s", "S", "g", "G") and getcfg("profile.type") not in ("s", "S", "g", "G"):
+        if v in ("s", "S", "g", "G") and getcfg("profile.type") not in (
+            "s",
+            "S",
+            "g",
+            "G",
+        ):
             proftype_changed = True
         self.update_bpc()
         self.profile_quality_ctrl.Enable(v not in ("g", "G"))
@@ -15316,26 +15336,20 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self,
                 )
                 return
-            ti3 = BytesIO(
-                profile.tags.get("CIED", "") or profile.tags.get("targ", "")
-            )
+            ti3 = BytesIO(profile.tags.get("CIED", "") or profile.tags.get("targ", ""))
         else:
             profile = None
             try:
-                ti3 = open(path, "rb")  # noqa: SIM115
+                ti3 = open(path, "rb")  # noqa: SIM115
             except Exception:
-                show_result_dialog(
-                    Error(lang.getstr("error.file.open", path)), self
-                )
+                show_result_dialog(Error(lang.getstr("error.file.open", path)), self)
                 return
         setcfg("last_ti3_path", path)
         ti3 = CGATS(ti3)
         if not self.measurement_file_check_confirm(ti3, True):
             return
         if not ti3.modified:
-            show_result_dialog(
-                UnloggedInfo(lang.getstr("errors.none_found")), self
-            )
+            show_result_dialog(UnloggedInfo(lang.getstr("errors.none_found")), self)
             return
 
         if profile:
@@ -15355,13 +15369,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if isinstance(tmp_working_dir, Exception):
                     show_result_dialog(tmp_working_dir, self)
                     return
-                profile.tags.targ = TextType(
-                    b"text\0\0\0\0" + ti3 + b"\0", b"targ"
-                )
+                profile.tags.targ = TextType(b"text\0\0\0\0" + ti3 + b"\0", b"targ")
                 profile.tags.DevD = profile.tags.CIED = profile.tags.targ
-                tmp_path = os.path.join(
-                    tmp_working_dir, os.path.basename(path)
-                )
+                tmp_path = os.path.join(tmp_working_dir, os.path.basename(path))
                 profile.write(tmp_path)
                 self.create_profile_handler(None, tmp_path, True)
         else:
@@ -15381,9 +15391,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 return
             if not waccess(path, os.W_OK):
                 show_result_dialog(
-                    Error(
-                        lang.getstr("error.access_denied.write", path)
-                    ),
+                    Error(lang.getstr("error.access_denied.write", path)),
                     self,
                 )
                 return
@@ -15619,7 +15627,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 with archive:
                     for filename in filenames:
-                        if exclude_ext and os.path.splitext(filename)[1].lower() in exclude_ext:
+                        if (
+                            exclude_ext
+                            and os.path.splitext(filename)[1].lower() in exclude_ext
+                        ):
                             continue
                         writefile(
                             filename,
@@ -15754,11 +15765,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                 )
             elif (
-                "A2B0" in profile.tags
-                and not isinstance(profile.tags.A2B0, LUT16Type)
+                "A2B0" in profile.tags and not isinstance(profile.tags.A2B0, LUT16Type)
             ) or (
-                "A2B1" in profile.tags
-                and not isinstance(profile.tags.A2B1, LUT16Type)
+                "A2B1" in profile.tags and not isinstance(profile.tags.A2B1, LUT16Type)
             ):
                 result = Error(
                     lang.getstr("profile.required_tags_missing", "LUT16Type")
@@ -18821,7 +18830,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     event.Veto()
                 return
             for win in list(wx.GetTopLevelWindows()):
-                if win and not win.IsBeingDeleted() and isinstance(win, VisualWhitepointEditor):
+                if (
+                    win
+                    and not win.IsBeingDeleted()
+                    and isinstance(win, VisualWhitepointEditor)
+                ):
                     win.Close(force=True)
             writecfg()
             if getattr(self, "thread", None) and self.thread.is_alive():
@@ -18946,9 +18959,7 @@ class StartupFrame(start_cls):
 
         audio.safe_init()
         if audio._lib:
-            print(
-                lang.getstr("audio.lib", f"{audio._lib} {audio._lib_version}")
-            )
+            print(lang.getstr("audio.lib", f"{audio._lib} {audio._lib_version}"))
         # Startup sound
         # Needs to be stereo!
         if getcfg("startup_sound.enable"):

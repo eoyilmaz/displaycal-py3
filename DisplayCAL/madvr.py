@@ -303,9 +303,7 @@ def inet_pton(ip_string):
 def trunc(value, length):
     """For string types, return value truncated to length"""
     if isinstance(value, str) and len(repr(value)) > length:
-        value = value[
-            : length - 3 - len(str(length)) - len(repr(value)) + len(value)
-        ]
+        value = value[: length - 3 - len(str(length)) - len(repr(value)) + len(value)]
         return "%r[:%i]" % (value, length)
     return repr(value)
 
@@ -1778,7 +1776,7 @@ class MadTPG_Net_Sender:
             for j in range(3):
                 for i in range(256):
                     # Clear device gamma ramp if args[0] is None
-                    # else convert ushort_Array_256_Array_3 to string
+                    # else convert ushort_Array_256_Array_3 to string
                     v = i * 257 if args[0] is None else args[0][j][i]
                     params += struct.pack("<H", v)
         elif self.command in (

@@ -75,7 +75,12 @@ def tiff_get_header(w, h, samples_per_pixel, bitdepth):
 
 
 def write(
-    data, stream_or_filename, bitdepth=16, file_format=None, dimensions=None, extrainfo=None
+    data,
+    stream_or_filename,
+    bitdepth=16,
+    file_format=None,
+    dimensions=None,
+    extrainfo=None,
 ):
     Image(data, bitdepth, extrainfo).write(stream_or_filename, file_format, dimensions)
 
@@ -385,7 +390,9 @@ class Image:
     def write(self, stream_or_filename, file_format=None, dimensions=None):
         if not file_format:
             if isinstance(stream_or_filename, str):
-                file_format = os.path.splitext(stream_or_filename)[1].lstrip(".").upper()
+                file_format = (
+                    os.path.splitext(stream_or_filename)[1].lstrip(".").upper()
+                )
                 if file_format == "TIF":
                     file_format += "F"
             else:
@@ -393,7 +400,7 @@ class Image:
         if not hasattr(self, f"_write_{file_format.lower()}"):
             raise ValueError("Unsupported format: %r" % file_format)
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")  # noqa: SIM115
+            stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:
             stream = stream_or_filename
         with stream:

@@ -107,6 +107,7 @@ Zooming controls with mouse (when enabled):
     Left mouse double click - reset zoom.
     Right mouse click - zoom out centred on click location.
 """
+
 import contextlib
 import functools
 import string as _string
@@ -1458,7 +1459,12 @@ class PlotCanvas(wx.Panel):
     @xSpec.setter
     def xSpec(self, value):
         ok_values = ("none", "min", "auto")
-        if value not in ok_values and not isinstance(value, (int, float)) and not isinstance(value, (list, tuple)) and len(value != 2):
+        if (
+            value not in ok_values
+            and not isinstance(value, (int, float))
+            and not isinstance(value, (list, tuple))
+            and len(value != 2)
+        ):
             err_str = (
                 "xSpec must be 'none', 'min', 'auto', "
                 "a number, or sequence of numbers (length 2)"
@@ -1494,7 +1500,12 @@ class PlotCanvas(wx.Panel):
     @ySpec.setter
     def ySpec(self, value):
         ok_values = ("none", "min", "auto")
-        if value not in ok_values and not isinstance(value, (int, float)) and not isinstance(value, (list, tuple)) and len(value != 2):
+        if (
+            value not in ok_values
+            and not isinstance(value, (int, float))
+            and not isinstance(value, (list, tuple))
+            and len(value != 2)
+        ):
             err_str = (
                 "ySpec must be 'none', 'min', 'auto', "
                 "a number, or sequence of numbers (length 2)"

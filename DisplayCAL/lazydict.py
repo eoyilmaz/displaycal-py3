@@ -170,9 +170,7 @@ class LazyDict(dict):
             if errors:
                 self.errors = errors
         else:
-            handle_error(
-                UserWarning(f"Warning - file not found:\n\n{path}"), tb=False
-            )
+            handle_error(UserWarning(f"Warning - file not found:\n\n{path}"), tb=False)
             return
         try:
             with codecs.open(path, "r", self.encoding, self.errors) as f:
@@ -280,26 +278,21 @@ class LazyDict_YAML_UltraLite(LazyDict):
                             value = []
                             continue
                         raise ValueError(
-                            "Expected a comment or a line break "
-                            "({} line {})".format(
-                                format(safe_str(getattr(fileobj, "name", line))),
-                                i
+                            "Expected a comment or a line break ({} line {})".format(
+                                format(safe_str(getattr(fileobj, "name", line))), i
                             )
                         )
                 elif token.startswith("|") or token.startswith(">"):
                     raise ValueError(
-                        "Style not supported "
-                        "({} line {})".format(
-                            repr(safe_str(getattr(fileobj, "name", line))),
-                            i
+                        "Style not supported ({} line {})".format(
+                            repr(safe_str(getattr(fileobj, "name", line))), i
                         )
                     )
                 elif token.startswith("\t"):
                     raise ValueError(
                         "Found character '\\t' that cannot "
                         "start any token ({} line {})".format(
-                            repr(safe_str(getattr(fileobj, "name", line))),
-                            i
+                            repr(safe_str(getattr(fileobj, "name", line))), i
                         )
                     )
                 if token:
@@ -340,28 +333,22 @@ class LazyDict_YAML_UltraLite(LazyDict):
             token = token[1:-1]
             if check and token.count(c) != token.count("\\" + c):
                 raise ValueError(
-                    "Unescaped quotes found in token "
-                    "({} line {})".format(
-                        repr(safe_str(getattr(fileobj, "name", token))),
-                        lineno
+                    "Unescaped quotes found in token ({} line {})".format(
+                        repr(safe_str(getattr(fileobj, "name", token))), lineno
                     )
                 )
             if do_unescape:
                 token = unescape(token)
         elif check and (token.count('"') != token.count('\\"')):
             raise ValueError(
-                "Unbalanced quotes found in token "
-                "({} line {})".format(
-                    repr(safe_str(getattr(fileobj, "name", token))),
-                    lineno
+                "Unbalanced quotes found in token ({} line {})".format(
+                    repr(safe_str(getattr(fileobj, "name", token))), lineno
                 )
             )
         if check and "\\'" in token:
             raise ValueError(
-                'Found unknown escape character "\'" '
-                "({} line {})".format(
-                    repr(safe_str(getattr(fileobj, "name", token))),
-                    lineno
+                'Found unknown escape character "\'" ({} line {})'.format(
+                    repr(safe_str(getattr(fileobj, "name", token))), lineno
                 )
             )
         return token

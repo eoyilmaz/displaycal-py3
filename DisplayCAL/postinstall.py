@@ -53,7 +53,7 @@ if sys.platform == "win32":
 
     if "directory_created" not in globals():
         # this function is only available within bdist_wininst installers
-    
+
         def directory_created(path):
             pass
 
@@ -171,7 +171,9 @@ def postinstall_windows(prefix):
                 ("Created start menu group '{}' in {}").format(
                     name,
                     (
-                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
+                        str(path, "MBCS", "replace")
+                        if not isinstance(path, str)
+                        else path
                     ).encode("MBCS", "replace"),
                 )
             )
@@ -180,7 +182,9 @@ def postinstall_windows(prefix):
                 ("Failed to create start menu group '{}' in {}").format(
                     name,
                     (
-                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
+                        str(path, "MBCS", "replace")
+                        if not isinstance(path, str)
+                        else path
                     ).encode("MBCS", "replace"),
                 )
             )

@@ -4,6 +4,7 @@
 It includes methods for fetching EDID data from Windows, macOS,
 and other platforms, as well as parsing the EDID data into a structured format.
 """
+
 import contextlib
 import math
 import os
@@ -786,4 +787,5 @@ def parse_edid_extension_blocks(edid):
 
 class WMIError(Exception):
     """Custom exception for WMI errors."""
+
     pass

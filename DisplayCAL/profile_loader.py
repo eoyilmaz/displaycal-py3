@@ -1149,7 +1149,11 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.profiles_ctrl.SetStringItem(pindex, 0, description)
                 self.profiles_ctrl.SetStringItem(pindex, 1, profile)
             self.profiles_ctrl.Thaw()
-        if scope_changed or profiles_changed and (next or isinstance(event, wx.TimerEvent)):
+        if (
+            scope_changed
+            or profiles_changed
+            and (next or isinstance(event, wx.TimerEvent))
+        ):
             wx.CallAfter(self._next)
 
     def _next(self):
@@ -2159,7 +2163,6 @@ class ProfileLoader:
 
     def elevate(self):
         if sys.getwindowsversion() >= (6,):
-
             loader_args = []
             if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
                 # cmd = os.path.join(exedir, "pythonw.exe")
@@ -2662,9 +2665,7 @@ class ProfileLoader:
                                 print(exception)
                                 self.profiles[key] = ICCProfile()
                         profile = self.profiles[key]
-                        if isinstance(
-                            profile.tags.get("vcgt"), VideoCardGammaType
-                        ):
+                        if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
                             # Get display profile vcgt
                             vcgt_values = profile.tags.vcgt.get_values()[:3]
                             # Quantize to n bits
@@ -3005,8 +3006,12 @@ class ProfileLoader:
             else:
                 # if (apply_profiles != self.__apply_profiles or
                 # profile_associations_changed):
-                if not idle and apply_profiles and (
-                    not profile_associations_changed or not self._reset_gamma_ramps
+                if (
+                    not idle
+                    and apply_profiles
+                    and (
+                        not profile_associations_changed or not self._reset_gamma_ramps
+                    )
                 ):
                     self.reload_count += 1
                 if displaycal_running != self._is_displaycal_running():

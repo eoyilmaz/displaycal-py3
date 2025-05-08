@@ -127,7 +127,11 @@ class Tag:
                     _safe_print("Requesting:", url_)
                     try:
                         response = urllib.request.urlopen(url_)
-                    except (OSError, urllib.error.URLError, http.client.HTTPException) as exception:
+                    except (
+                        OSError,
+                        urllib.error.URLError,
+                        http.client.HTTPException,
+                    ) as exception:
                         _safe_print(exception)
                     else:
                         body = response.read()
@@ -662,7 +666,9 @@ def vrml2x3dom(vrml, worker=None):
                 if c == '"':
                     quote += 1
                 if (c != '"' or tag.tagname != "FontStyle" or token != "style") and (
-                    c != " " or (tag.attributes[token] and tag.attributes[token][-1] != " ")):
+                    c != " "
+                    or (tag.attributes[token] and tag.attributes[token][-1] != " ")
+                ):
                     tag.attributes[token] += c
                 if quote == 2:
                     if not listing:

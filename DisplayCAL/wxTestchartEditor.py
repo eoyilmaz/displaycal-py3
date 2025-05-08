@@ -3977,7 +3977,11 @@ END_DATA"""
             )
         else:
             result = cmd
-        if not isinstance(result, Exception) and result and not isinstance(result, Exception):
+        if (
+            not isinstance(result, Exception)
+            and result
+            and not isinstance(result, Exception)
+        ):
             path = os.path.join(self.worker.tempdir, "temp.ti1")
             result = check_file_isfile(path, silent=False)
             if not isinstance(result, Exception) and result:
@@ -3986,8 +3990,7 @@ END_DATA"""
                     print(lang.getstr("success"))
                 except Exception as exception:
                     result = Error(
-                        "Error - testchart file could not be read: %s "
-                        % str(exception)
+                        "Error - testchart file could not be read: %s " % str(exception)
                     )
                 else:
                     result.filename = None

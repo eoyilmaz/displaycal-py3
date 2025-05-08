@@ -61,7 +61,10 @@ def setup_win32_long_paths():
                 try:
                     return fn(*args, **kwargs)
                 except OSError as exception:
-                    if exception.winerror == winerror.ERROR_SHARING_VIOLATION and retries < maxretries:
+                    if (
+                        exception.winerror == winerror.ERROR_SHARING_VIOLATION
+                        and retries < maxretries
+                    ):
                         retries += 1
                         time.sleep(delay)
                         continue
@@ -539,11 +542,7 @@ def launch_file(filepath: str) -> Union[None, int]:
         Union[None, int]: The return code of the launched application.
     """
     retcode = None
-    kwargs = {
-        "stdin": sp.PIPE,
-        "stdout": sp.PIPE,
-        "stderr": sp.PIPE
-    }
+    kwargs = {"stdin": sp.PIPE, "stdout": sp.PIPE, "stderr": sp.PIPE}
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":

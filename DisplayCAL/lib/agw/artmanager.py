@@ -1616,9 +1616,9 @@ class ArtManager(wx.EvtHandler):
                 or version.find("NT") >= 0
             )
             return found
-        elif wx.Platform == "__WXMAC__":  # noqa: SIM103
+        elif wx.Platform == "__WXMAC__":  # noqa: SIM103
             return True
-        else:  # Linux
+        else:  # Linux
             return False
 
     def MakeWindowTransparent(self, wnd, amount):

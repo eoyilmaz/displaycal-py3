@@ -1085,7 +1085,9 @@ class DisplayAdjustmentFrame(windowcls):
             page = self.lb.GetPage(pagenum)
             page.SetSize((w, -1))
             page.desc.SetLabel(page.desc.GetLabel().replace("\n", " "))
-            if sys.platform == "darwin" and intlist(platform.mac_ver()[0].split(".")) >= [
+            if sys.platform == "darwin" and intlist(
+                platform.mac_ver()[0].split(".")
+            ) >= [
                 10,
                 10,
             ]:
@@ -1555,9 +1557,9 @@ class DisplayAdjustmentFrame(windowcls):
                 ).replace("  ", " ")
                 if black_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(black_xy_target.groups())
-                    label = (
-                        f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n"
-                    ).replace("  ", " ") + label
+                    label = (f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n").replace(
+                        "  ", " "
+                    ) + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["black_point"], label)
         if (
             current_br or current_bl or xy_dE_rgb

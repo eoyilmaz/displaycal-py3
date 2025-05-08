@@ -67,6 +67,7 @@ Here is the code for future reference:
                 self.taskbar.contents.SetProgressState(hwnd, state)
 
 """
+
 import comtypes.client as cc
 import comtypes.gen.TaskbarLib as tbl
 

@@ -171,7 +171,11 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):
             min(display_client_rect[2] - border_lr, max(w, min_w)),
             min(display_client_rect[3] - border_tb - safety_margin, max(h, min_h)),
         )
-    if None not in (x, y) and  not display_client_rect.ContainsXY(x, y) or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1])):
+    if (
+        None not in (x, y)
+        and not display_client_rect.ContainsXY(x, y)
+        or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1]))
+    ):
         # If outside client area, move into client area
         xy = [x, y]
         for i, pos in enumerate([xy, (x + self.Size[0], y + self.Size[1])]):

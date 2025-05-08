@@ -35,6 +35,18 @@ name = "displaycal"
 readme = "README.md"
 requires-python = ">= 3.9"
 
+[project.gui-scripts]
+    displaycal = "DisplayCAL.main:main"
+    displaycal-3dlut-maker = "DisplayCAL.main:main_3dlut_maker"
+    displaycal-curve-viewer = "DisplayCAL.main:main_curve_viewer"
+    displaycal-eecolor-to-madvr-converter = "DisplayCAL.main:main_eecolor_to_madvr_converter"
+    displaycal-profile-info = "DisplayCAL.main:main_profile_info"
+    displaycal-scripting-client = "DisplayCAL.main:main_scripting_client"
+    displaycal-synthprofile = "DisplayCAL.main:main_synthprofile"
+    displaycal-testchart-editor = "DisplayCAL.main:main_testchart_editor"
+    displaycal-vrml-to-x3d-converter = "DisplayCAL.main:main_vrml_to_x3d_converter"
+    displaycal-vrml-to-x3d-converter-console = "DisplayCAL.main:main_vrml_to_x3d_converter_console"
+
 [project.urls]
 "Home Page" = "https://displaycal.net/"
 GitHub = "https://github.com/eoyilmaz/displaycal-py3"

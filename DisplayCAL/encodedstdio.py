@@ -1,5 +1,4 @@
 import codecs
-import locale
 import os
 import sys
 
@@ -152,7 +151,7 @@ if __name__ == "__main__":
     test = "test \u00e4\u00f6\u00fc\ufffe test"
     try:
         print(test)
-    except (LookupError, IOError, UnicodeError) as exception:
+    except (OSError, LookupError, UnicodeError) as exception:
         print("could not print %r:" % test, exception)
     print("wrapping stdout/stderr via encodestdio()")
     encodestdio()

@@ -1,16 +1,14 @@
-from datetime import datetime
 import html
+from datetime import datetime
 from html.parser import HTMLParser
 
 htmlparser = HTMLParser()
-from time import gmtime, sleep, strftime, time
 import errno
 import math
 import os
 import re
 import signal
 import socket
-import string
 import subprocess as sp
 import sys
 import tarfile
@@ -19,63 +17,68 @@ import threading
 import warnings
 import xml.parsers.expat
 import zipfile
+from time import gmtime, sleep, strftime, time
 
+from DisplayCAL import audio, config, floatspin, util_str
 from DisplayCAL import demjson_compat as demjson
-
-from DisplayCAL import audio
-from DisplayCAL import config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
+    appbasename,
+    confighome,
     defaults,
-    getbitmap,
-    getcfg,
-    geticon,
     get_data_path,
     get_default_dpi,
     get_verified_path,
+    getbitmap,
+    getcfg,
+    geticon,
     hascfg,
-    pyname,
-    setcfg,
-    confighome,
-    appbasename,
     logdir,
+    pyname,
     set_default_app_dpi,
+    setcfg,
 )
 from DisplayCAL.debughelpers import (
-    Error,
     DownloadError,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
-    Warn,
     getevtobjname,
     getevttype,
-    handle_error,
 )
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
 )
-from DisplayCAL.log import log as log_
+from DisplayCAL.lib.agw import labelbook, pygauge
+from DisplayCAL.lib.agw.fourwaysplitter import (
+    _TOLERANCE,
+    FLAG_CHANGED,
+    FLAG_PRESSED,
+    NOWHERE,
+    FourWaySplitter,
+    FourWaySplitterEvent,
+)
+from DisplayCAL.lib.agw.gradientbutton import CLICK, HOVER, GradientButton
 from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
 from DisplayCAL.network import ScriptingClientSocket, get_network_addr
-from DisplayCAL.util_io import StringIOu as StringIO
-from DisplayCAL.util_os import get_program_file, launch_file, waccess
+from DisplayCAL.options import debug
+from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
+from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import (
+    EVT_BETTERTIMER,
+    BetterTimer,
+    BetterWindowDisabler,
     CustomEvent,
-    FileDrop as _FileDrop,
     gamma_encode,
     get_parent_frame,
     get_platform_window_decoration_size,
     wx,
-    BetterWindowDisabler,
-    BetterTimer,
-    EVT_BETTERTIMER,
 )
-from DisplayCAL.wexpect import split_command_line
+from DisplayCAL.wxaddons import FileDrop as _FileDrop
 
 # from wexpect import split_command_line
 from DisplayCAL.wxfixes import (
@@ -87,26 +90,12 @@ from DisplayCAL.wxfixes import (
     adjust_font_size_for_gcdc,
     get_bitmap_disabled,
     get_dc_font_size,
-    get_gcdc_font_size,
+    get_dialogs,
     platebtn,
     set_bitmap_labels,
-    wx_Panel,
-    get_dialogs,
     set_maxsize,
+    wx_Panel,
 )
-from DisplayCAL.lib.agw import labelbook, pygauge
-from DisplayCAL.lib.agw.gradientbutton import GradientButton, CLICK, HOVER
-from DisplayCAL.lib.agw.fourwaysplitter import (
-    _TOLERANCE,
-    FLAG_CHANGED,
-    FLAG_PRESSED,
-    NOWHERE,
-    FourWaySplitter,
-    FourWaySplitterEvent,
-)
-from DisplayCAL import localization as lang
-from DisplayCAL import util_str
-from DisplayCAL import floatspin
 
 try:
     from wx.lib.agw import aui
@@ -114,12 +103,12 @@ try:
 except ImportError:
     from wx import aui
     from wx.aui import PyAuiTabArt as AuiDefaultTabArt
-import wx.lib.filebrowsebutton as filebrowse
-from wx.lib.agw import hyperlink
-from wx.lib import fancytext
-from wx.lib.statbmp import GenStaticBitmap
 import wx.html
+import wx.lib.filebrowsebutton as filebrowse
 from wx._core import wxAssertionError
+from wx.lib import fancytext
+from wx.lib.agw import hyperlink
+from wx.lib.statbmp import GenStaticBitmap
 
 taskbar = None
 if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
@@ -993,7 +982,7 @@ class BaseFrame(wx.Frame):
             if addr == "0.0.0.0":
                 try:
                     addr = get_network_addr()
-                except socket.error:
+                except OSError:
                     pass
             print(lang.getstr("app.listening", (addr, port)))
             self.listening = True
@@ -1009,7 +998,7 @@ class BaseFrame(wx.Frame):
         conn.settimeout(3)
         try:
             conn.connect((ip, port))
-        except socket.error as exception:
+        except OSError as exception:
             del conn
             return exception
         return conn  # noqa: F821
@@ -1023,7 +1012,7 @@ class BaseFrame(wx.Frame):
                 conn, addrport = sys._appsocket.accept()
             except socket.timeout:
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -1036,7 +1025,7 @@ class BaseFrame(wx.Frame):
                 continue
             try:
                 conn.settimeout(0.2)
-            except socket.error as exception:
+            except OSError as exception:
                 conn.close()
                 print(lang.getstr("app.client.ignored", exception))
                 sleep(0.2)
@@ -1062,7 +1051,7 @@ class BaseFrame(wx.Frame):
                     incoming = incoming.decode("utf-8")
             except socket.timeout:
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -1190,7 +1179,7 @@ class BaseFrame(wx.Frame):
                         )
         try:
             conn.shutdown(socket.SHUT_RDWR)
-        except socket.error as exception:
+        except OSError as exception:
             if exception.errno != errno.ENOTCONN:
                 print("Warning - could not shutdown connection:", exception)
         print(lang.getstr("app.client.disconnect", addrport))
@@ -1317,7 +1306,7 @@ class BaseFrame(wx.Frame):
                                     port = line
                                 if port:
                                     ports.append(port)
-                except EnvironmentError as exception:
+                except OSError as exception:
                     # This shouldn't happen
                     print(
                         "Warning - could not read lockfile %s:" % lockfilename,
@@ -1983,7 +1972,7 @@ class BaseFrame(wx.Frame):
                 response = "\n".join(response)
         try:
             conn.sendall(("%s\4" % safe_str(response, "UTF-8")).encode("utf-8"))
-        except socket.error as exception:
+        except OSError as exception:
             print(exception)
 
     def send_command(self, scripting_host_name_suffix, command):
@@ -2847,7 +2836,7 @@ class BitmapBackgroundBitmapButton(wx.BitmapButton):
         dc = wx.PaintDC(self)
         try:
             dc = wx.GCDC(dc)
-        except Exception as exception:
+        except Exception:
             pass
         dc.DrawBitmap(self.Parent.GetBitmap(), 0, -self.GetPosition()[1])
         dc.DrawBitmap(self.GetBitmapLabel(), 0, 0)
@@ -2999,7 +2988,7 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
             # being replaced with boxes under wxGTK
             try:
                 dc = wx.GCDC(dc)
-            except Exception as exception:
+            except Exception:
                 pass
         font.SetPointSize(get_dc_font_size(font.GetPointSize(), dc))
         dc.SetFont(font)
@@ -3180,7 +3169,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 pass
             else:
                 name = profile.getDescription()

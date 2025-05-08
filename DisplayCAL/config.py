@@ -8,10 +8,10 @@ import re
 import string
 import sys
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 if sys.platform == "win32":
-    import winreg
+    pass
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
@@ -40,8 +40,10 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
 )
 from DisplayCAL.meta import (  # noqa: F401
     build,  # don't remove this, imported by other modules
-    name as appname,
     version,
+)
+from DisplayCAL.meta import (
+    name as appname,
 )
 from DisplayCAL.options import debug
 from DisplayCAL.safe_print import (  # noqa: F401
@@ -1757,7 +1759,7 @@ def get_current_profile(include_display_profile=False):
 
         try:
             profile = ICCProfile(path, use_cache=True)
-        except (IOError, ICCProfileInvalidError):
+        except (OSError, ICCProfileInvalidError):
             return
         return profile
     elif include_display_profile:
@@ -1836,7 +1838,7 @@ def get_standard_profiles(paths_only=False):
         for path in ref_icc + other_icc:
             try:
                 profile = ICCProfile(path, load=False, use_cache=True)
-            except EnvironmentError:
+            except OSError:
                 pass
             except Exception as exception:
                 print(exception)
@@ -1983,7 +1985,7 @@ def is_profile(filename=None, include_display_profile=False):
 
             try:
                 ICCProfile(filename, use_cache=True)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 pass
             else:
                 return True
@@ -2068,7 +2070,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
                 continue
             try:
                 mtime = os.stat(cfgfile).st_mtime
-            except EnvironmentError as exception:
+            except OSError as exception:
                 print(f"Warning - os.stat('{cfgfile}') failed: {exception}")
             last_checked = cfginited.get(cfgfile)
             if force_load or mtime != last_checked:

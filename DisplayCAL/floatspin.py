@@ -182,9 +182,10 @@ or no range::
 # Beginning Of FLOATSPIN wxPython Code
 # ----------------------------------------------------------------------
 
-import re
 import locale
+import re
 from math import ceil, floor
+
 import wx
 
 # Set The Styles For The Underline wx.TextCtrl

@@ -133,6 +133,7 @@ catalog = {}
 
 if debug:
     import atexit
+
     from DisplayCAL.config import confighome
     from DisplayCAL.jsondict import JSONDict
 

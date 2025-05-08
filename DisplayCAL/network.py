@@ -1,9 +1,9 @@
 import errno
 import os
 import socket
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 
 from DisplayCAL import localization as lang
 from DisplayCAL.util_str import safe_str
@@ -42,7 +42,7 @@ def get_valid_host(hostname=None):
         hostname = hostnames.pop()
         try:
             addr = socket.gethostbyname(hostname)
-        except socket.error:
+        except OSError:
             if not hostnames:
                 raise
         else:
@@ -129,7 +129,7 @@ class ScriptingClientSocket(socket.socket):
             # Will fail if the socket isn't connected, i.e. if there was an
             # error during the call to connect()
             self.shutdown(socket.SHUT_RDWR)
-        except socket.error as exception:
+        except OSError as exception:
             if exception.errno != errno.ENOTCONN:
                 print(exception)
         self.close()
@@ -140,7 +140,7 @@ class ScriptingClientSocket(socket.socket):
         while b"\4" not in self.recv_buffer:
             incoming = self.recv(4096)
             if incoming == b"":
-                raise socket.error(lang.getstr("connection.broken"))
+                raise OSError(lang.getstr("connection.broken"))
             self.recv_buffer += incoming
         end = self.recv_buffer.find(b"\4")
         single_response = self.recv_buffer[:end]

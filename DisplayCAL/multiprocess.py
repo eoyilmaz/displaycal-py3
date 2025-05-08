@@ -1,5 +1,3 @@
-from queue import Empty
-import atexit
 import errno
 import logging
 import math
@@ -7,6 +5,7 @@ import multiprocessing as mp
 import multiprocessing.pool
 import sys
 import threading
+from queue import Empty
 
 
 def cpu_count(limit_by_total_vmem=True):
@@ -125,7 +124,7 @@ def pool_slice(
                     progress += inc
                 except Empty:
                     continue
-                except IOError:
+                except OSError:
                     break
                 except EOFError:
                     eof_count += 1

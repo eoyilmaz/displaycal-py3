@@ -1,21 +1,20 @@
 import http.client
 import os
 import re
-import socket
 import string
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 
+from DisplayCAL import colormath
+from DisplayCAL import localization as lang
 from DisplayCAL.config import get_data_path
 from DisplayCAL.defaultpaths import cache as cachepath
 from DisplayCAL.log import safe_print as _safe_print
 from DisplayCAL.meta import DOMAIN
-from DisplayCAL.options import verbose, debug
+from DisplayCAL.options import debug
 from DisplayCAL.util_io import GzipFileProper
 from DisplayCAL.util_str import StrList, create_replace_function
-from DisplayCAL import colormath
-from DisplayCAL import localization as lang
 
 
 class VRMLParseError(Exception):
@@ -128,11 +127,7 @@ class Tag:
                     _safe_print("Requesting:", url_)
                     try:
                         response = urllib.request.urlopen(url_)
-                    except (
-                        socket.error,
-                        urllib.error.URLError,
-                        http.client.HTTPException,
-                    ) as exception:
+                    except (OSError, urllib.error.URLError, http.client.HTTPException) as exception:
                         _safe_print(exception)
                     else:
                         body = response.read()
@@ -736,7 +731,7 @@ def vrmlfile2x3dfile(
         x3d = False
     except VRMLParseError as exception:
         return exception
-    except EnvironmentError as exception:
+    except OSError as exception:
         return exception
     except Exception as exception:
         import traceback

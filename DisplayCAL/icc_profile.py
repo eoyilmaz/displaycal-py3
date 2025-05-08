@@ -4,6 +4,7 @@ import datetime
 import json
 import math
 import os
+import platform
 import pathlib
 import re
 import struct
@@ -18,8 +19,9 @@ from weakref import WeakValueDictionary
 from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
-    import pywintypes
     import winreg
+
+    import pywintypes
     try:
         import win32api
         import win32gui
@@ -40,9 +42,7 @@ except ImportError:
             return None
 
     colord = Colord()
-from DisplayCAL import colormath
-from DisplayCAL import edid
-from DisplayCAL import imfile
+from DisplayCAL import colormath, edid, imfile
 from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
 from DisplayCAL.encoding import get_encodings
 from DisplayCAL.options import test_input_curve_clipping
@@ -66,9 +66,9 @@ elif sys.platform == "win32":
         mscms = None
     else:
         from DisplayCAL.win_handles import (
-            get_process_handles,
             get_handle_name,
             get_handle_type,
+            get_process_handles,
         )
 
         mscms = util_win._get_mscms_windll()
@@ -2066,7 +2066,7 @@ def _win10_1903_take_process_handles_snapshot():
         try:
             for handle in get_process_handles():
                 prev_handles.append(handle.HandleValue)
-        except WindowsError as exception:
+        except OSError as exception:
             print("Couldn't get process handles:", exception)
 
 
@@ -2081,19 +2081,19 @@ def _win10_1903_close_leaked_regkey_handles(devicekey):
     substr = "\\".join(devicekey.split("\\")[-4:-1])
     try:
         handles = get_process_handles()
-    except WindowsError as exception:
+    except OSError as exception:
         print("Couldn't get process handles:", exception)
         return
     for handle in handles:
         try:
             handle_name = get_handle_name(handle)
-        except WindowsError as exception:
+        except OSError as exception:
             print(f"Couldn't get name of handle 0x{handle.HandleValue:x}:", exception)
             handle_name = None
         if DEBUG and handle.HandleValue not in prev_handles:
             try:
                 handle_type = get_handle_type(handle)
-            except WindowsError as exception:
+            except OSError as exception:
                 print(
                     f"Couldn't get typestring of handle 0x{handle.HandleValue:x}:",
                     exception,
@@ -2183,7 +2183,7 @@ def _winreg_get_display_profiles(monkey, current_user=False):
                 value.remove("")
             filenames.extend(value)
         winreg.CloseKey(key)
-    except WindowsError as exception:
+    except OSError as exception:
         if exception.args[0] == 2:
             # Key does not exist
             pass
@@ -2302,10 +2302,9 @@ def get_display_profile_windows(
 
 def get_display_profile_macos(display_no=0, path_only=False):
     """Return ICC Profile for the given display under macOS."""
-    from platform import mac_ver
     from DisplayCAL.util_mac import osascript
 
-    if intlist(mac_ver()[0].split(".")) >= [10, 6]:
+    if intlist(platform.mac_ver()[0].split(".")) >= [10, 6]:
         options = ["Image Events"]
     else:
         options = ["ColorSyncScripting"]
@@ -2324,7 +2323,7 @@ def get_display_profile_macos(display_no=0, path_only=False):
             filename = output.strip("\n").decode(FS_ENC)
             profile = filename if path_only else ICCProfile(filename, use_cache=True)
         elif errors.strip():
-            raise IOError(errors.strip())
+            raise OSError(errors.strip())
 
     return profile
 
@@ -2441,7 +2440,7 @@ def get_display_profile_linux(
                 bin = "".join([chr(int(part)) for part in raw[1].split(", ")])
                 profile = ICCProfile(bin, use_cache=True)
         elif stderr and tgt_proc.wait() != 0:
-            raise IOError(stderr)
+            raise OSError(stderr)
         if profile:
             break
     return profile

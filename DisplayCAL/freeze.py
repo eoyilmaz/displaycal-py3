@@ -1,18 +1,18 @@
 """This script is used by the py2exe to freeze the library into executables."""
 
-import sys
+import ctypes.util
 import functools
-import shutil
 import os
 import platform
-from setuptools import Extension, setup
-from distutils.util import change_root, get_platform
-from fnmatch import fnmatch
+import shutil
+import sys
 from configparser import ConfigParser
-import ctypes.util
+from distutils.util import get_platform
+from fnmatch import fnmatch
 from time import strftime
 
 from py2exe import freeze
+from setuptools import Extension
 
 
 # Borrowed from setuptools
@@ -53,15 +53,14 @@ print(f"source_dir: {source_dir}")
 sys.path.append(source_dir)
 
 
-from DisplayCAL.defaultpaths import autostart, autostart_home
 from DisplayCAL.meta import (
+    DOMAIN,
     appstream_id,
     author,
     author_ascii,
     author_email,
     description,
     development_home_page,
-    DOMAIN,
     longdesc,
     name,
     py_maxversion,
@@ -69,9 +68,7 @@ from DisplayCAL.meta import (
     script2pywname,
     version,
     version_tuple,
-    wx_minversion,
 )
-from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import getenvu, relpath, safe_glob
 from DisplayCAL.util_str import safe_str
 
@@ -518,7 +515,6 @@ def build_py2exe():
             ]
         )
 
-    import wx
     from winmanifest_util import getmanifestxml
 
     arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
@@ -800,7 +796,7 @@ def build_py2exe():
         ),
     )
 
-    from vc90crt import name as vc90crt_name, vc90crt_copy_files
+    from vc90crt import vc90crt_copy_files
 
     vc90crt_copy_files(dist_dir)
     vc90crt_copy_files(os.path.join(dist_dir, "lib"))

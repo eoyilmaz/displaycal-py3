@@ -9,16 +9,19 @@ from DisplayCAL.argyll import check_set_argyll_bin
 if sys.platform == "win32":
     import win32api
 
+from wx import xrc
+
 from DisplayCAL import (
     colormath,
     config,
     floatspin,
-    localization as lang,
-    madvr,
     worker,
     xh_bitmapctrls,
     xh_filebrowsebutton,
     xh_floatspin,
+)
+from DisplayCAL import (
+    localization as lang,
 )
 from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import video_encodings
@@ -26,32 +29,28 @@ from DisplayCAL.config import (
     defaults,
     get_data_path,
     get_verified_path,
-    getcfg,
     geticon,
-    hascfg,
     profile_ext,
-    setcfg,
 )
 from DisplayCAL.icc_profile import (
     CurveType,
+    DictType,
     ICCProfile,
     ICCProfileInvalidError,
-    DictType,
     LUT16Type,
     VideoCardGammaType,
 )
-from DisplayCAL.meta import name as appname, version
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
 from DisplayCAL.util_os import islink, readlink, safe_glob, waccess
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import (
     Error,
-    Info,
     UnloggedInfo,
     UnloggedWarning,
     get_current_profile_path,
-    get_options_from_profile,
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import CustomEvent
@@ -61,11 +60,8 @@ from DisplayCAL.wxwindows import (
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
-
-from wx import xrc
 
 
 class LUT3DMixin:
@@ -519,7 +515,7 @@ class LUT3DMixin:
 
             try:
                 profile_in = ICCProfile(profile_in_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(lang.getstr("profile.invalid") + "\n" + profile_in_path),
                     parent=self,
@@ -1721,7 +1717,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                     show_result_dialog(
                         Error(f"{lang.getstr('profile.invalid')}\n{path}"), parent=self
                     )
-            except IOError as exception:
+            except OSError as exception:
                 if not silent:
                     show_result_dialog(exception, parent=self)
             else:

@@ -8,13 +8,12 @@ import numpy
 from DisplayCAL import (
     colormath,
     config,
-    localization as lang,
-    wxenhancedplot as plot,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -36,7 +35,6 @@ from DisplayCAL.icc_profile import (
     WcsProfilesTagType,
 )
 from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
 from DisplayCAL.worker import (
@@ -45,12 +43,12 @@ from DisplayCAL.worker import (
     Worker,
     show_result_dialog,
 )
-from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxfixes import (
     GenBitmapButton as BitmapButton,
-    wx_Panel,
 )
+from DisplayCAL.wxfixes import wx_Panel
+from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -1075,7 +1073,7 @@ class LUTFrame(BaseFrame):
         else:
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=f"{lang.getstr('profile.invalid')}\n{path}",
@@ -1627,7 +1625,7 @@ class LUTFrame(BaseFrame):
         if profile and not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError) as exception:
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )

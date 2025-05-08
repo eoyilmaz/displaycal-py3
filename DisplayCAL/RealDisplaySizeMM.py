@@ -9,7 +9,6 @@ from DisplayCAL import localization as lang
 from DisplayCAL.util_dbus import BUSTYPE_SESSION, DBusException, DBusObject
 from DisplayCAL.util_x import get_display as _get_x_display
 
-
 _displays = None
 
 

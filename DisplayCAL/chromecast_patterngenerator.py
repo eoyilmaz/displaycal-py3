@@ -1,8 +1,7 @@
-from time import sleep
-
 # 0install: Make sure imported protobuf is from implementation to ensure
 # correct version
 import sys
+from time import sleep
 
 if not getattr(sys, "frozen", False):
     import os
@@ -17,10 +16,9 @@ if not getattr(sys, "frozen", False):
             try:
                 import pkg_resources
             except ImportError:
-                import pkgutil
+                pass
             syspath = sys.path[:]
             sys.path[:] = [pth]
-            import google.protobuf
 
             sys.path[:] = syspath
             break

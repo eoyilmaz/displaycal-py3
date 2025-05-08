@@ -3,22 +3,23 @@
 import math
 import os
 import re
+import subprocess as sp
 import sys
 import threading
 import time
 import traceback
-import subprocess as sp
 import warnings
-
 
 from DisplayCAL import (
     config,
     madvr,
 )
+from DisplayCAL.colord import device_id_from_edid
+from DisplayCAL.colormath import smooth_avg
 from DisplayCAL.config import (
     appbasename,
-    autostart_home,
     autostart,
+    autostart_home,
     confighome,
     enc,
     exe,
@@ -32,88 +33,85 @@ from DisplayCAL.config import (
     pydir,
     setcfg,
 )
-from DisplayCAL.colord import device_id_from_edid
-from DisplayCAL.colormath import smooth_avg
-from DisplayCAL.debughelpers import Error, handle_error, UnloggedError
+from DisplayCAL.debughelpers import Error, UnloggedError, handle_error
 from DisplayCAL.edid import get_edid
 from DisplayCAL.icc_profile import (
     ADict,
+    DictType,
     ICCProfile,
     ICCProfileInvalidError,
-    DictType,
-    get_display_profile,
-    set_display_profile,
-    unset_display_profile,
     VideoCardGammaFormulaType,
     VideoCardGammaType,
     WcsProfilesTagType,
+    get_display_profile,
+    set_display_profile,
+    unset_display_profile,
 )
 from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    name as appname,
     version,
     version_short,
 )
-from DisplayCAL.options import debug, test, verbose
+from DisplayCAL.meta import (
+    name as appname,
+)
+from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_os import (
     getenvu,
     is_superuser,
     islink,
-    quote_args,
     readlink,
     safe_glob,
     which,
 )
 from DisplayCAL.util_str import safe_asciize
 from DisplayCAL.wxaddons import CustomGridCellEvent
-from DisplayCAL.wxfixes import set_bitmap_labels, ThemedGenButton
+from DisplayCAL.wxfixes import ThemedGenButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
     CustomCellBoolRenderer,
     CustomGrid,
-    get_dialogs,
     InfoDialog,
-    show_result_dialog,
     TaskBarNotification,
+    get_dialogs,
+    show_result_dialog,
     wx,
 )
 
 if sys.platform == "win32":
     import ctypes
     import errno
+    import winreg
+
     import pywintypes
     import win32api
-    import win32event
     import win32gui
     import win32process
     import win32ts
     import winerror
-    import winreg
 
     from DisplayCAL.icc_profile import _winreg_get_display_profiles
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
     from DisplayCAL.util_win import (
-        calibration_management_isenabled,
         DISPLAY_DEVICE_ACTIVE,
+        MONITORINFOF_PRIMARY,
+        USE_REGISTRY,
+        calibration_management_isenabled,
         enable_per_user_profiles,
         get_active_display_device,
         get_active_display_devices,
         get_display_devices,
         get_file_info,
         get_first_display_device,
-        get_pids,
         get_process_filename,
         get_real_display_devices_info,
-        get_windows_error,
-        MONITORINFOF_PRIMARY,
         per_user_profiles_isenabled,
         run_as_admin,
-        USE_REGISTRY,
         win_ver,
     )
 
@@ -227,7 +225,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
                 triggers=[daily],
                 actions=actions,
             )
-        except Exception as exception:
+        except Exception:
             if debug:
                 exception = traceback.format_exc()
             print(
@@ -251,7 +249,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
                         print("Removing", entry)
                         try:
                             os.remove(entry)
-                        except EnvironmentError as exception:
+                        except OSError as exception:
                             print(exception)
 
     if "Windows 10" not in win_ver()[0]:
@@ -405,7 +403,7 @@ class FixProfileAssociationsDialog(ConfirmDialog):
                 continue
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError) as exception:
+            except (OSError, ICCProfileInvalidError):
                 pass
             else:
                 if isinstance(profile.tags.get("meta"), DictType):
@@ -883,7 +881,7 @@ class ProfileAssociationsDialog(InfoDialog):
                 print(f"{pth}:", exception)
                 traceback.print_exc()
                 continue
-            except IOError as exception:
+            except OSError as exception:
                 print(exception)
                 continue
             if profile.profileClass == b"mntr":
@@ -940,7 +938,7 @@ class ProfileAssociationsDialog(InfoDialog):
             return
         try:
             profile = ICCProfile(self.profiles[pindex])
-        except (IOError, ICCProfileInvalidError):
+        except (OSError, ICCProfileInvalidError):
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + self.profiles[pindex]),
                 self,
@@ -2161,8 +2159,6 @@ class ProfileLoader:
 
     def elevate(self):
         if sys.getwindowsversion() >= (6,):
-            from win32com.shell import shell as win32com_shell
-            from win32con import SW_SHOW
 
             loader_args = []
             if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
@@ -2312,7 +2308,7 @@ class ProfileLoader:
             win32gui.EnumThreadWindows(
                 self._tid, self._enumerate_own_windows_callback, windows
             )
-        except pywintypes.error as exception:
+        except pywintypes.error:
             pass
         windows.extend(
             [
@@ -2389,7 +2385,7 @@ class ProfileLoader:
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_name)
             numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)
-        except WindowsError as exception:
+        except OSError as exception:
             # Windows XP or Win10 >= 1903 if not running elevated
             if exception.args[0] != errno.ENOENT or sys.getwindowsversion() >= (6,):
                 warnings.warn(
@@ -2410,7 +2406,7 @@ class ProfileLoader:
             try:
                 subkey_name = winreg.EnumKey(key, i)
                 subkey = winreg.OpenKey(key, subkey_name)
-            except WindowsError as exception:
+            except OSError as exception:
                 warnings.warn(
                     f"Registry access failed: {exception}: "
                     rf"HKLM\{key_name}\{subkey_name}",
@@ -2425,7 +2421,7 @@ class ProfileLoader:
                 # winreg.QueryValuesEx will directly return the int value,
                 # so no need to convert the binary data as in Python2
                 timestamp = winreg.QueryValueEx(subkey, "Timestamp")[0]
-            except WindowsError as exception:
+            except OSError as exception:
                 warnings.warn(
                     f"Registry access failed: {exception}: {value_name} "
                     rf"(HKLM\{key_name}\{subkey_name})",
@@ -3332,7 +3328,7 @@ class ProfileLoader:
                             continue
                         try:
                             filename = get_process_filename(pid)
-                        except (WindowsError, pywintypes.error) as exception:
+                        except (OSError, pywintypes.error) as exception:
                             if exception.args[0] not in (
                                 winerror.ERROR_ACCESS_DENIED,
                                 winerror.ERROR_PARTIAL_COPY,
@@ -3513,7 +3509,7 @@ class ProfileLoader:
                             enable_per_user_profiles(devicekey=devicekey)
                         set_display_profile(profile, devicekey=devicekey)
                         unset_display_profile(current_profile, devicekey=devicekey)
-                    except WindowsError as exception:
+                    except OSError as exception:
                         print(exception)
 
     def _set_display_profiles(self, dry_run=False):
@@ -3621,7 +3617,7 @@ class ProfileLoader:
                     set_display_profile(
                         os.path.basename(correct_profile), devicekey=device.DeviceKey
                     )
-                except WindowsError as exception:
+                except OSError as exception:
                     print(exception)
                 else:
                     self._fixed_profile_associations.add(device.DeviceKey)

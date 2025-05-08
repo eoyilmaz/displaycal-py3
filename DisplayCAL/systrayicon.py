@@ -11,10 +11,9 @@ import sys
 import win32api
 import win32con
 import win32gui
-import winerror
 
 from DisplayCAL.options import debug, verbose
-from DisplayCAL.wxaddons import wx, IdFactory
+from DisplayCAL.wxaddons import IdFactory, wx
 
 
 class Menu(wx.EvtHandler):

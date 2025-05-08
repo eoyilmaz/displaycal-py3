@@ -6,12 +6,13 @@ Note:
 In most cases, unless otherwise stated RGB is R'G'B' (gamma-compressed)
 
 """
-
 import colorsys
 import logging
 import math
 import sys
 import warnings
+
+import numpy
 
 
 def get_transfer_function_phi(alpha, gamma):
@@ -730,8 +731,6 @@ def interp(x, xp, fp, left=None, right=None, period=None):
     # TODO: This function overrides the class implementation (Interp) and forces to use
     #       numpy.interp all the time, and it is kind of rude in that manner.
     #       Please respect the previous implementation, but use nump.interp again.
-    import numpy
-
     return numpy.interp(x, xp, fp, left, right, period)
 
 
@@ -847,8 +846,6 @@ def smooth_avg(values, passes=1, window=None, protect=None):
         for index in protect:
             # offset the values with ``extend_amount``
             protected_values[index + extend_amount] = values[index + extend_amount]
-
-    import numpy
 
     for i in range(passes):
         values = list(numpy.convolve(values, window, mode="same"))
@@ -3206,11 +3203,8 @@ class Interp:
     def __init__(self, xp, fp, left=None, right=None, use_numpy=False):
         if use_numpy:
             # Use numpy for speed
-            import numpy
-
             xp = numpy.array(xp)
             fp = numpy.array(fp)
-            self.numpy = numpy
         self.xp = xp
         self.fp = fp
         self.left = left
@@ -3225,9 +3219,7 @@ class Interp:
 
     def _interp(self, x):
         if self.use_numpy:
-            import numpy
-
-            return self.numpy.interp(x, self.xp, self.fp, self.left, self.right)
+            return numpy.interp(x, self.xp, self.fp, self.left, self.right)
         else:
             return interp(x, self.xp, self.fp, self.left, self.right)
 

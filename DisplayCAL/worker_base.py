@@ -1,4 +1,3 @@
-import atexit
 import math
 import os
 import shlex
@@ -9,7 +8,6 @@ import sys
 import tempfile
 import textwrap
 import traceback
-
 from binascii import hexlify
 
 if sys.platform == "win32":
@@ -19,6 +17,8 @@ if sys.platform == "win32":
 from DisplayCAL import (
     colormath,
     config,
+)
+from DisplayCAL import (
     localization as lang,
 )
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version
@@ -666,7 +666,7 @@ class Xicclu(WorkerBase):
         if p.poll() is None:
             try:
                 p.stdin.write(b"\n")
-            except IOError:
+            except OSError:
                 pass
             p.stdin.close()
         p.wait()
@@ -683,7 +683,7 @@ class Xicclu(WorkerBase):
         self.closed = True
         if p.returncode and raise_exception:
             # Error
-            raise IOError(b"\n".join(self.errors))
+            raise OSError(b"\n".join(self.errors))
 
     def exit(self, raise_exception=True):
         self.close(raise_exception)

@@ -3,8 +3,6 @@ import sys
 
 if sys.platform not in ("darwin", "win32"):
     # Linux
-    import codecs
-    import locale
     import gettext
 
     LOCALEDIR = os.path.join(sys.prefix, "share", "locale")
@@ -15,12 +13,12 @@ elif sys.platform == "win32":
         from win32comext.shell.shellcon import (
             CSIDL_APPDATA,
             CSIDL_COMMON_APPDATA,
+            CSIDL_COMMON_PROGRAMS,
             CSIDL_COMMON_STARTUP,
             CSIDL_LOCAL_APPDATA,
             CSIDL_PROFILE,
-            CSIDL_PROGRAMS,
-            CSIDL_COMMON_PROGRAMS,
             CSIDL_PROGRAM_FILES_COMMON,
+            CSIDL_PROGRAMS,
             CSIDL_STARTUP,
             CSIDL_SYSTEM,
         )
@@ -48,8 +46,7 @@ elif sys.platform == "win32":
             return buffer.value
 
 
-from DisplayCAL.util_os import expanduseru, expandvarsu, getenvu, waccess
-
+from DisplayCAL.util_os import expanduseru, expandvarsu, getenvu
 
 home = expanduseru("~")
 if sys.platform == "win32":
@@ -191,7 +188,7 @@ else:
                     print("XDG:", exc)
                     obj.translation = gettext.NullTranslations()
                     return False
-            except IOError as exception:
+            except OSError as exception:
                 print("XDG:", exception)
                 obj.translation = gettext.NullTranslations()
                 return False
@@ -231,7 +228,7 @@ else:
                 with open(path) as f:
                     for key, value in XDG.config_file_parser(f):
                         fn(key, value)
-            except EnvironmentError as exception:
+            except OSError as exception:
                 print("XDG: Couldn't read '%s':" % path, exception)
                 return False
             return True

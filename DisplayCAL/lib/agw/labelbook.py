@@ -206,10 +206,10 @@ __version__ = "0.6"
 from enum import IntFlag
 from typing import Union
 
+import wx
+
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
 from DisplayCAL.lib.agw.fmresources import (
-    BottomShadow,
-    BottomShadowFull,
     IMG_NONE,
     IMG_OVER_EW_BORDER,
     IMG_OVER_IMG,
@@ -220,15 +220,15 @@ from DisplayCAL.lib.agw.fmresources import (
     INB_PIN_HOVER,
     INB_PIN_NONE,
     INB_PIN_PRESSED,
-    INB_TABS_BORDER_COLOUR,
     INB_TAB_AREA_BACKGROUND_COLOUR,
+    INB_TABS_BORDER_COLOUR,
     INB_TEXT_COLOUR,
+    BottomShadow,
+    BottomShadowFull,
     RightShadow,
     pin_down_xpm,
     pin_left_xpm,
 )
-
-import wx
 
 
 class ImageBookStyle(IntFlag):

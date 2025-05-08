@@ -1,12 +1,11 @@
-from functools import partial
 import os
 import sys
+from functools import partial
 
+from DisplayCAL import config, x3dom
+from DisplayCAL import localization as lang
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import x3dom
 
 gui = "wx" in sys.modules
 

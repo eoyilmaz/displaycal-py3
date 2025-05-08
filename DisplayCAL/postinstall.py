@@ -1,10 +1,10 @@
-from io import StringIO
-from subprocess import call
-from os.path import basename, splitext
 import os
 import shutil
 import sys
 import traceback
+from io import StringIO
+from os.path import basename, splitext
+from subprocess import call
 
 from DisplayCAL.meta import name
 from DisplayCAL.util_os import relpath, safe_glob, which
@@ -18,13 +18,13 @@ if sys.platform == "win32":
     if "create_shortcut" not in globals():
         # this function is only available within bdist_wininst installers
         try:
+            import win32con
             from pythoncom import (
-                CoCreateInstance,
                 CLSCTX_INPROC_SERVER,
+                CoCreateInstance,
                 IID_IPersistFile,
             )
             from win32com.shell import shell
-            import win32con
         except ImportError:
 
             def create_shortcut(*args):

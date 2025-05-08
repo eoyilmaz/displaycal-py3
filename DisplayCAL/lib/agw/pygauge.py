@@ -114,7 +114,6 @@ Version 0.1
 
 import copy
 
-
 import wx
 
 

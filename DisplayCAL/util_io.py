@@ -278,7 +278,7 @@ class TarFileProper(tarfile.TarFile):
             if not full:
                 name = os.path.basename(name)
             self._extract_member(tarinfo, os.path.join(path, name))
-        except EnvironmentError as e:
+        except OSError as e:
             if self.errorlevel > 0:
                 raise
             else:

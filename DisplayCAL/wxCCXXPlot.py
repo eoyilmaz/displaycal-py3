@@ -5,10 +5,10 @@ import sys
 from DisplayCAL import (
     colormath,
     config,
-    localization as lang,
-    wxenhancedplot as plot,
 )
-from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL import localization as lang
+from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL.argyll_instruments import get_canonical_instrument_name
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError

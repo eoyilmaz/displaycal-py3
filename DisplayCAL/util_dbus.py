@@ -31,7 +31,6 @@ if sys.platform not in ("darwin", "win32"):
 
 from DisplayCAL.util_str import safe_str
 
-
 BUSTYPE_SESSION = 1
 BUSTYPE_SYSTEM = 2
 

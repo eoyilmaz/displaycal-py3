@@ -112,7 +112,6 @@ import functools
 import string as _string
 
 import numpy as np
-
 import wx
 
 from DisplayCAL.wxfixes import get_dc_font_scale

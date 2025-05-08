@@ -2,22 +2,22 @@ import errno
 import os
 import socket
 import sys
-import threading
 from time import sleep
+
+import wx.lib.delayedresult as delayedresult
 
 from DisplayCAL import (
     config,
+)
+from DisplayCAL import (
     localization as lang,
 )
-from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writecfg
+from DisplayCAL.config import confighome, getcfg, setcfg, writecfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxfixes import GenBitmapButton
 from DisplayCAL.wxwindows import BaseApp, SimpleTerminal, numpad_keycodes
-
-import wx.lib.delayedresult as delayedresult
 
 ERRORCOLOR = "#FF3300"
 RESPONSECOLOR = "#CCCCCC"
@@ -59,7 +59,7 @@ class ScriptingClientFrame(SimpleTerminal):
                 with open(self.historyfilename) as historyfile:
                     for line in historyfile:
                         self.history.append(line.rstrip("\r\n"))
-            except EnvironmentError as exception:
+            except OSError as exception:
                 print("Warning - couldn't read history file:", exception)
         # Always have empty selection at bottom
         self.history.append("")
@@ -121,7 +121,7 @@ class ScriptingClientFrame(SimpleTerminal):
                         historyfile.write(
                             (safe_str(command, "UTF-8") + os.linesep).encode("utf-8")
                         )
-        except EnvironmentError as exception:
+        except OSError as exception:
             print("Warning - couldn't write history file:", exception)
         self.listening = False
         # Need to use CallAfter to prevent hang under Windows if minimized
@@ -227,7 +227,7 @@ class ScriptingClientFrame(SimpleTerminal):
             try:
                 peer = self.conn.getpeername()
                 self.conn.shutdown(socket.SHUT_RDWR)
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno != errno.ENOTCONN:
                     self.add_text("%s\n" % exception)
             else:
@@ -255,7 +255,7 @@ class ScriptingClientFrame(SimpleTerminal):
                         )
                         + "\n%s\n" % lang.getstr("scripting-client.cmdhelptext"),
                     )
-        except socket.error as exception:
+        except OSError as exception:
             return exception
 
     def get_commands(self):
@@ -289,7 +289,7 @@ class ScriptingClientFrame(SimpleTerminal):
     def get_response(self):
         try:
             return b"< " + b"\n< ".join(self.conn.get_single_response().splitlines())
-        except socket.error as exception:
+        except OSError as exception:
             return exception
 
     def key_handler(self, event):
@@ -502,7 +502,7 @@ class ScriptingClientFrame(SimpleTerminal):
     def send_command(self, command):
         try:
             self.conn.send_command(command)
-        except socket.error as exception:
+        except OSError as exception:
             return exception
         if not wx.GetApp().IsMainLoopRunning():
             delayedresult.AbortEvent()()

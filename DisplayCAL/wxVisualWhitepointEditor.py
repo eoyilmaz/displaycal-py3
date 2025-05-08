@@ -7,11 +7,15 @@ License: wxPython license
 
 import colorsys
 import os
+import platform
 import re
 import sys
 import threading
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
+
+from wx.lib.agw import aui
+from wx.lib.intctrl import IntCtrl
 
 from DisplayCAL import (
     localization as lang,
@@ -33,9 +37,9 @@ from DisplayCAL.config import (
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
-    get_display_profile,
     VideoCardGammaType,
     WcsProfilesTagType,
+    get_display_profile,
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import intlist
@@ -50,6 +54,8 @@ from DisplayCAL.worker import (
 )
 from DisplayCAL.wxfixes import (
     GenBitmapButton as BitmapButton,
+)
+from DisplayCAL.wxfixes import (
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
@@ -61,12 +67,6 @@ from DisplayCAL.wxwindows import (
     HStretchStaticBitmap,
     TaskBarNotification,
 )
-
-from wx.lib.agw import aui
-from wx.lib.intctrl import IntCtrl
-
-if sys.platform == "darwin":
-    from platform import mac_ver
 
 try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM
@@ -1558,7 +1558,7 @@ class ProfileManager:
         with self._lock:
             try:
                 display_profile = get_display_profile(display_no)
-            except (ICCProfileInvalidError, IOError, IndexError) as exception:
+            except (OSError, ICCProfileInvalidError, IndexError) as exception:
                 print(
                     "Could not get display profile for display %i" % (display_no + 1),
                     "@ %i, %i, %ix%i:" % geometry,
@@ -2143,7 +2143,7 @@ class VisualWhitepointEditor(wx.Frame):
             not self.patterngenerator
             and getattr(event, "IsShown", getattr(event, "GetShow", bool))()
             and sys.platform == "darwin"
-            and intlist(mac_ver()[0].split(".")) >= [10, 10]
+            and intlist(platform.mac_ver()[0].split(".")) >= [10, 10]
         ):
             # Under Yosemite and up, if users use the default titlebar zoom
             # button to go fullscreen, they will be left with a black screen

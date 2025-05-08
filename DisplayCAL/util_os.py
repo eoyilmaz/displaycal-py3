@@ -5,7 +5,6 @@ import ctypes
 import errno
 import fnmatch
 import glob
-import importlib
 import os
 import pathlib
 import re
@@ -22,14 +21,15 @@ from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
     import msvcrt
+
     import pywintypes
     import win32api
     import win32con
     import win32file
     import win32security
+    import winerror
     from win32.win32file import GetFileAttributes
     from winioctlcon import FSCTL_GET_REPARSE_POINT
-    import winerror
 
 if sys.platform != "win32":
     # Linux
@@ -60,7 +60,7 @@ def setup_win32_long_paths():
             while True:
                 try:
                     return fn(*args, **kwargs)
-                except WindowsError as exception:
+                except OSError as exception:
                     if exception.winerror == winerror.ERROR_SHARING_VIOLATION:
                         if retries < maxretries:
                             retries += 1
@@ -632,7 +632,7 @@ def _set_cloexec(fd):
 
     try:
         flags = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
-    except IOError:
+    except OSError:
         pass
     else:
         # flags read successfully, modify
@@ -670,7 +670,7 @@ def mksfile(filename: str) -> tuple[int, str]:
                 continue  # Try again
             raise
 
-    raise IOError(errno.EEXIST, "No usable temporary file name found")
+    raise OSError(errno.EEXIST, "No usable temporary file name found")
 
 
 def movefile(src: str, dst: str, overwrite: bool = True) -> None:
@@ -957,7 +957,7 @@ def safe_glob1(dirname, pattern):
         dirname = str(dirname, sys.getfilesystemencoding() or sys.getdefaultencoding())
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return []
     if pattern[0] != ".":
         names = [x for x in names if x[0] != "."]
@@ -1044,7 +1044,7 @@ def waccess(path: str, mode: int) -> bool:
     if mode & os.R_OK:
         try:
             test = open(path, "rb")
-        except EnvironmentError:
+        except OSError:
             return False
         test.close()
     if mode & os.W_OK:
@@ -1054,7 +1054,7 @@ def waccess(path: str, mode: int) -> bool:
                 test = open(path, "ab")
             else:
                 test = tempfile.TemporaryFile(prefix=".", dir=dir)
-        except EnvironmentError:
+        except OSError:
             return False
         test.close()
     if mode & os.X_OK:

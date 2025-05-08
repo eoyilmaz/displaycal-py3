@@ -148,9 +148,8 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         style = self.GetParent().GetAGWWindowStyleFlag()
 
-        if style & INB_USE_PIN_BUTTON:
-            if self._pinBtnRect.Contains(pt):
-                return -1, IMG_OVER_PIN
+        if style & INB_USE_PIN_BUTTON and self._pinBtnRect.Contains(pt):
+            return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
@@ -1129,17 +1128,15 @@ class DisplayAdjustmentFrame(windowcls):
         self.SetSaneGeometry(x, y)
 
     def abort(self):
-        if self.has_worker_subprocess():
-            if self.is_measuring:
-                self.worker.safe_send(" ")
+        if self.has_worker_subprocess() and self.is_measuring:
+            self.worker.safe_send(" ")
 
     def abort_and_send(self, key):
         self.abort()
-        if self.has_worker_subprocess():
-            if self.worker.safe_send(key):
-                self.is_busy = True
-                self.adjustment_btn.Disable()
-                self.calibration_btn.Disable()
+        if self.has_worker_subprocess() and self.worker.safe_send(key):
+            self.is_busy = True
+            self.adjustment_btn.Disable()
+            self.calibration_btn.Disable()
 
     def add_panel(self, size=wx.DefaultSize, flag=0):
         panel = get_panel(self, size)

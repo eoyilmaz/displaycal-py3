@@ -1290,13 +1290,12 @@ def create_synthetic_hdr_clut_profile(
         prevperc = startperc = perc = 50
 
     for i, item in enumerate(HDR_XYZ):
-        if not item:  # Aborted
-            if worker and worker.thread_abort:
-                if forward_xicclu:
-                    forward_xicclu.exit()
-                if backward_xicclu:
-                    backward_xicclu.exit()
-                raise Exception("aborted")
+        if not item and worker and worker.thread_abort:  # Aborted
+            if forward_xicclu:
+                forward_xicclu.exit()
+            if backward_xicclu:
+                backward_xicclu.exit()
+            raise Exception("aborted")
         (RGB, (X, Y, Z), RGB_ICtCp_XYZ) = item
         I, Ct, Cp = colormath.XYZ2ICtCp(X, Y, Z, oetf=eotf_inverse)
         X, Y, Z = (v / maxv for v in (X, Y, Z))
@@ -4000,10 +3999,9 @@ class CurveType(ICCProfileTag, list):
             )
         vmin = 0
         vmax = 65535.0
-        if use_vmin_vmax:
-            if len(self) > 2:
-                vmin = self[0]
-                vmax = self[-1]
+        if use_vmin_vmax and len(self) > 2:
+            vmin = self[0]
+            vmax = self[-1]
         return colormath.get_gamma(values, 65535.0, vmin, vmax, average, least_squares)
 
     def get_transfer_function(
@@ -8045,9 +8043,8 @@ class ICCProfile:
         tag table and data) on-the-fly.
         """
         if not stream_or_filename:
-            if self._file:
-                if not self._file.closed:
-                    self.close()
+            if self._file and not self._file.closed:
+                self.close()
             stream_or_filename = self.fileName
         if isinstance(stream_or_filename, str):
             with open(stream_or_filename, "wb") as stream:

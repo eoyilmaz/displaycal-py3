@@ -1458,13 +1458,12 @@ class PlotCanvas(wx.Panel):
     @xSpec.setter
     def xSpec(self, value):
         ok_values = ("none", "min", "auto")
-        if value not in ok_values and not isinstance(value, (int, float)):
-            if not isinstance(value, (list, tuple)) and len(value != 2):
-                err_str = (
-                    "xSpec must be 'none', 'min', 'auto', "
-                    "a number, or sequence of numbers (length 2)"
-                )
-                raise TypeError(err_str)
+        if value not in ok_values and not isinstance(value, (int, float)) and not isinstance(value, (list, tuple)) and len(value != 2):
+            err_str = (
+                "xSpec must be 'none', 'min', 'auto', "
+                "a number, or sequence of numbers (length 2)"
+            )
+            raise TypeError(err_str)
         self._xSpec = value
 
     @property
@@ -1495,13 +1494,12 @@ class PlotCanvas(wx.Panel):
     @ySpec.setter
     def ySpec(self, value):
         ok_values = ("none", "min", "auto")
-        if value not in ok_values and not isinstance(value, (int, float)):
-            if not isinstance(value, (list, tuple)) and len(value != 2):
-                err_str = (
-                    "ySpec must be 'none', 'min', 'auto', "
-                    "a number, or sequence of numbers (length 2)"
-                )
-                raise TypeError(err_str)
+        if value not in ok_values and not isinstance(value, (int, float)) and not isinstance(value, (list, tuple)) and len(value != 2):
+            err_str = (
+                "ySpec must be 'none', 'min', 'auto', "
+                "a number, or sequence of numbers (length 2)"
+            )
+            raise TypeError(err_str)
         self._ySpec = value
 
     def GetXMaxRange(self):
@@ -1921,25 +1919,20 @@ class PlotCanvas(wx.Panel):
             self.canvas.CaptureMouse()
 
     def OnMouseLeftUp(self, event):
-        if self._zoomEnabled:
-            if self._hasDragged:
-                self._drawRubberBand(self._zoomCorner1, self._zoomCorner2)  # remove old
-                self._zoomCorner2[0], self._zoomCorner2[1] = self._getXY(event)
-                self._hasDragged = False  # reset flag
-                minX, minY = np.minimum(self._zoomCorner1, self._zoomCorner2)
-                maxX, maxY = np.maximum(self._zoomCorner1, self._zoomCorner2)
-                self.last_PointLabel = None  # reset pointLabel
-                if self.last_draw is not None:
-                    self._Draw(
-                        self.last_draw[0],
-                        xAxis=(minX, maxX),
-                        yAxis=(minY, maxY),
-                        dc=None,
-                    )
-            # else: # A box has not been drawn, zoom in on a point
-            # # this interfered with the double click, so I've disables it.
-            #    X,Y = self._getXY(event)
-            #    self.Zoom( (X,Y), (self._zoomInFactor,self._zoomInFactor) )
+        if self._zoomEnabled and self._hasDragged:
+            self._drawRubberBand(self._zoomCorner1, self._zoomCorner2)  # remove old
+            self._zoomCorner2[0], self._zoomCorner2[1] = self._getXY(event)
+            self._hasDragged = False  # reset flag
+            minX, minY = np.minimum(self._zoomCorner1, self._zoomCorner2)
+            maxX, maxY = np.maximum(self._zoomCorner1, self._zoomCorner2)
+            self.last_PointLabel = None  # reset pointLabel
+            if self.last_draw is not None:
+                self._Draw(
+                    self.last_draw[0],
+                    xAxis=(minX, maxX),
+                    yAxis=(minY, maxY),
+                    dc=None,
+                )
         if self._dragEnabled:
             self.SetCursor(self.HandCursor)
             if self.canvas.HasCapture():

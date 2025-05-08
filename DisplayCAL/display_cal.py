@@ -1601,17 +1601,16 @@ class GamapFrame(BaseFrame):
         lstr = self.gamap_out_viewcond_ctrl.GetStringSelection()
         cur = getcfg("gamap_out_viewcond")
         v = self.viewconds_ba[lstr]
-        if v != cur:
-            if event and v in self.viewconds_out_nondisplay:
-                if not show_result_dialog(
-                    Warn(lang.getstr("warning.gamap.out_viewcond.nondisplay", lstr)),
-                    self,
-                    confirm=lang.getstr("ok"),
-                ):
-                    self.gamap_out_viewcond_ctrl.SetStringSelection(
-                        self.viewconds_ab[cur]
-                    )
-                    return
+        if v != cur and event and v in self.viewconds_out_nondisplay:
+            if not show_result_dialog(
+                Warn(lang.getstr("warning.gamap.out_viewcond.nondisplay", lstr)),
+                self,
+                confirm=lang.getstr("ok"),
+            ):
+                self.gamap_out_viewcond_ctrl.SetStringSelection(
+                    self.viewconds_ab[cur]
+                )
+                return
             setcfg("gamap_out_viewcond", v)
             if self.Parent and hasattr(self.Parent, "profile_settings_changed"):
                 self.Parent.profile_settings_changed()
@@ -3051,20 +3050,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         lmap = {"en": "us", "ko": "kr", "ukr": "ua", "zh_hk": "cn", "zh_cn": "cn"}
         for lstr, lcode in llist:
             menuitem = languages.Append(-1, "&" + lstr, kind=wx.ITEM_RADIO)
-            lcode2 = lmap.get(lcode, lcode).upper()
-            if lcode2 in flagart.catalog:
-                if (
-                    sys.platform in ("darwin", "win32")
-                    or menuitem.GetKind() == wx.ITEM_NORMAL
-                ):
-                    # This can fail under Linux with wxPython 3.0
-                    # because only normal menu items can have bitmaps
-                    # there. Working fine on all other platforms.
-                    pyimg = flagart.catalog[lcode2]
-                    if pyimg.Image.IsOk():
-                        bmp = pyimg.getBitmap()
-                        if bmp.IsOk():
-                            menuitem.SetBitmap(bmp)
+            if (lcode2 := lmap.get(lcode, lcode).upper()) in flagart.catalog and (
+                sys.platform in ("darwin", "win32")
+                or menuitem.GetKind() == wx.ITEM_NORMAL
+            ):
+                # This can fail under Linux with wxPython 3.0
+                # because only normal menu items can have bitmaps
+                # there. Working fine on all other platforms.
+                pyimg = flagart.catalog[lcode2]
+                if pyimg.Image.IsOk():
+                    bmp = pyimg.getBitmap()
+                    if bmp.IsOk():
+                        menuitem.SetBitmap(bmp)
             if lang.getcode() == lcode:
                 menuitem.Check()
                 font = menuitem.Font
@@ -4053,23 +4050,19 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             override_default.update(override)
         override = override_default
         for name in defaults:
-            if name not in skip and name not in override:
-                if (
-                    len(include) == 0
-                    or False in [name.find(item) != 0 for item in include]
-                ) and (
-                    len(exclude) == 0
-                    or (False not in [name.find(item) != 0 for item in exclude])
-                ):
-                    if name.endswith(".backup"):
-                        if name == "measurement_mode.backup":
-                            setcfg(
-                                "measurement_mode", getcfg("measurement_mode.backup")
-                            )
-                    default = None
-                    if verbose >= 3:
-                        print(f"Restoring {name} to {defaults[name]}")
-                    setcfg(name, default)
+            if name not in skip and name not in override and (
+                len(include) == 0
+                or False in [name.find(item) != 0 for item in include]
+            ) and (
+                len(exclude) == 0
+                or (False not in [name.find(item) != 0 for item in exclude])
+            ):
+                if name.endswith(".backup") and name == "measurement_mode.backup":
+                    setcfg("measurement_mode", getcfg("measurement_mode.backup"))
+                default = None
+                if verbose >= 3:
+                    print(f"Restoring {name} to {defaults[name]}")
+                setcfg(name, default)
         for name in override:
             if (
                 len(include) == 0 or False in [name.find(item) != 0 for item in include]
@@ -4331,9 +4324,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for mode, desc in self.worker.get_instrument_measurement_modes().items():
                 measurement_modes[instrument_type].append(lang.getstr(desc))
                 measurement_modes_ab[instrument_type].append(mode)
-        if instrument_name == "K-10":
-            if measurement_mode not in measurement_modes_ab[instrument_type]:
-                measurement_mode = "F"
+        if instrument_name == "K-10" and measurement_mode not in measurement_modes_ab[instrument_type]:
+            measurement_mode = "F"
         if instrument_features.get("projector_mode") and self.worker.argyll_version >= [
             1,
             1,
@@ -5424,56 +5416,52 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # We assume these macOS bugs exist since 10.8 "Mountain Lion"
             return
         result = None
-        if cal:
-            # Warn about calibration bugs
-            if (
-                getcfg("calibration.black_point_correction.auto")
-                or getcfg("calibration.black_point_correction")
-                or getcfg("calibration.black_luminance", False)
-            ):
-                dlg = ConfirmDialog(
-                    self,
-                    msg=lang.getstr("macos.bugs.cal.warning"),
-                    ok=lang.getstr("yes"),
-                    alt=lang.getstr("no"),
-                    bitmap=geticon(32, "dialog-warning"),
+        if cal and (
+            getcfg("calibration.black_point_correction.auto")
+            or getcfg("calibration.black_point_correction")
+            or getcfg("calibration.black_luminance", False)
+        ):  # Warn about calibration bugs
+            dlg = ConfirmDialog(
+                self,
+                msg=lang.getstr("macos.bugs.cal.warning"),
+                ok=lang.getstr("yes"),
+                alt=lang.getstr("no"),
+                bitmap=geticon(32, "dialog-warning"),
+            )
+            result = dlg.ShowModal()
+            dlg.Destroy()
+            if result == wx.ID_OK:
+                self.black_luminance_ctrl.SetSelection(0)
+                self.black_luminance_ctrl_handler(
+                    CustomEvent(wx.EVT_CHOICE.evtType[0], self.black_luminance_ctrl)
                 )
-                result = dlg.ShowModal()
-                dlg.Destroy()
-                if result == wx.ID_OK:
-                    self.black_luminance_ctrl.SetSelection(0)
-                    self.black_luminance_ctrl_handler(
-                        CustomEvent(wx.EVT_CHOICE.evtType[0], self.black_luminance_ctrl)
-                    )
-                    setcfg("calibration.black_point_correction.auto", 0)
-                    setcfg("calibration.black_point_correction", 0)
-                    self.black_point_correction_ctrl.SetValue(0)
-                    self.black_point_correction_intctrl.SetValue(0)
-                    self.black_point_correction_auto_handler()
-                    self.update_black_point_rate_ctrl()
-                elif result == wx.ID_CANCEL:
-                    return False
-        if profile:
-            # Warn about profile bugs
-            if getcfg("profile.type") != "S" or not getcfg(
-                "profile.black_point_compensation"
-            ):
-                dlg = ConfirmDialog(
-                    self,
-                    msg=lang.getstr("macos.bugs.profile.warning"),
-                    ok=lang.getstr("yes"),
-                    alt=lang.getstr("no"),
-                    bitmap=geticon(32, "dialog-warning"),
-                )
-                result = dlg.ShowModal()
-                dlg.Destroy()
-                if result == wx.ID_OK:
-                    setcfg("profile.type", "S")
-                    setcfg("profile.black_point_compensation", 1)
-                    self.update_profile_type_ctrl()
-                    self.update_bpc()
-                elif result == wx.ID_CANCEL:
-                    return False
+                setcfg("calibration.black_point_correction.auto", 0)
+                setcfg("calibration.black_point_correction", 0)
+                self.black_point_correction_ctrl.SetValue(0)
+                self.black_point_correction_intctrl.SetValue(0)
+                self.black_point_correction_auto_handler()
+                self.update_black_point_rate_ctrl()
+            elif result == wx.ID_CANCEL:
+                return False
+        if profile and getcfg("profile.type") != "S" or not getcfg(
+            "profile.black_point_compensation"
+        ):  # Warn about profile bugs
+            dlg = ConfirmDialog(
+                self,
+                msg=lang.getstr("macos.bugs.profile.warning"),
+                ok=lang.getstr("yes"),
+                alt=lang.getstr("no"),
+                bitmap=geticon(32, "dialog-warning"),
+            )
+            result = dlg.ShowModal()
+            dlg.Destroy()
+            if result == wx.ID_OK:
+                setcfg("profile.type", "S")
+                setcfg("profile.black_point_compensation", 1)
+                self.update_profile_type_ctrl()
+                self.update_bpc()
+            elif result == wx.ID_CANCEL:
+                return False
 
     def update_black_output_offset_ctrl(self):
         self.black_output_offset_ctrl.SetValue(
@@ -5599,16 +5587,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             integration_time = self.worker.get_instrument_features().get(
                 "integration_time"
             )
-            if integration_time:
-                # Check for fixed integration time
-                if (
-                    sum(integration_time) / float(len(integration_time))
-                    == integration_time[0]
-                ):
-                    # This helps estimation for instruments with fixed
-                    # integration time (e.g. SpyderX)
-                    patches *= float(integration_time[0]) / 2.45
-                    patches = int(round(patches))
+            if integration_time and (
+                sum(integration_time) / float(len(integration_time))
+                == integration_time[0]
+            ): # Check for fixed integration time
+                # This helps estimation for instruments with fixed
+                # integration time (e.g. SpyderX)
+                patches *= float(integration_time[0]) / 2.45
+                patches = int(round(patches))
         elif which == "chart":
             patches = int(self.chart_patches_amount.Label)
         ReportFrame.update_estimated_measurement_time(self, which, patches)
@@ -6842,12 +6828,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if self.ambient_viewcond_adjust_cb.GetValue():
             self.ambient_viewcond_adjust_textctrl.Enable()
             v = self.ambient_viewcond_adjust_textctrl.GetValue()
-            if v:
-                if v < 0.000001 or v > sys.maxsize:
-                    wx.Bell()
-                    self.ambient_viewcond_adjust_textctrl.SetValue(
-                        getcfg("calibration.ambient_viewcond_adjust.lux")
-                    )
+            if v and v < 0.000001 or v > sys.maxsize:
+                wx.Bell()
+                self.ambient_viewcond_adjust_textctrl.SetValue(
+                    getcfg("calibration.ambient_viewcond_adjust.lux")
+                )
             if event.GetId() == self.ambient_viewcond_adjust_cb.GetId():
                 self.ambient_viewcond_adjust_textctrl.SetFocus()
         else:
@@ -7055,13 +7040,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
             else:
                 self.whitepoint_colortemp_textctrl.SetValue("")
-            if cal_changed is None:
-                if (
-                    not getcfg("whitepoint.colortemp", False)
-                    and x == getcfg("whitepoint.x")
-                    and y == getcfg("whitepoint.y")
-                ):
-                    cal_changed = False
+            if cal_changed is None and (
+                not getcfg("whitepoint.colortemp", False)
+                and x == getcfg("whitepoint.x")
+                and y == getcfg("whitepoint.y")
+            ):
+                cal_changed = False
             setcfg("whitepoint.colortemp", None)
             setcfg("whitepoint.x", x)
             setcfg("whitepoint.y", y)
@@ -7096,13 +7080,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     str(stripzeros(getcfg("whitepoint.colortemp")))
                 )
             v = float(self.whitepoint_colortemp_textctrl.GetValue())
-            if cal_changed is None:
-                if (
-                    getcfg("whitepoint.colortemp") == v
-                    and not getcfg("whitepoint.x", False)
-                    and not getcfg("whitepoint.y", False)
-                ):
-                    cal_changed = False
+            if cal_changed is None and (
+                getcfg("whitepoint.colortemp") == v
+                and not getcfg("whitepoint.x", False)
+                and not getcfg("whitepoint.y", False)
+            ):
+                cal_changed = False
             setcfg("whitepoint.colortemp", int(v))
             setcfg("whitepoint.x", None)
             setcfg("whitepoint.y", None)
@@ -7269,13 +7252,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 wx.CallAfter(self.trc_textctrl.SetFocus)
                 wx.CallLater(1, self.trc_textctrl.SelectAll)
         trc = self.get_trc()
-        if cal_changed:
-            if trc != str(getcfg("trc")):
-                if unload_cal:
-                    self.cal_changed()
-                else:
-                    self.worker.options_dispcal = []
-                    self.profile_settings_changed()
+        if cal_changed and trc != str(getcfg("trc")):
+            if unload_cal:
+                self.cal_changed()
+            else:
+                self.worker.options_dispcal = []
+                self.profile_settings_changed()
         setcfg("trc", trc)
         if cal_changed:
             self.update_profile_name()
@@ -9561,36 +9543,35 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         load_vcgt = getcfg("calibration.autoload") or cal
         if not cal:
             cal = getcfg("calibration.file", False)
-        if cal:
-            if check_set_argyll_bin():
-                if verbose >= 1 and load_vcgt:
-                    print(lang.getstr("calibration.loading"))
-                    print(cal)
-                if (
-                    not load_vcgt
-                    or self.install_cal(
-                        capture_output=True,
-                        cal=cal,
-                        skip_scripts=True,
-                        silent=silent,
-                        title=lang.getstr("calibration.load_from_cal_or_profile"),
-                    )
-                    is True
-                ):
-                    if cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
-                        try:
-                            profile = ICCProfile(cal)
-                        except (OSError, ICCProfileInvalidError) as exception:
-                            print(exception)
-                            profile = None
-                    else:
-                        profile = cal_to_fake_profile(cal)
-                    self.lut_viewer_load_lut(profile=profile)
-                    if verbose >= 1 and silent and load_vcgt:
-                        print(lang.getstr("success"))
-                    return True
-                if verbose >= 1 and load_vcgt:
-                    print(lang.getstr("failure"))
+        if cal and check_set_argyll_bin():
+            if verbose >= 1 and load_vcgt:
+                print(lang.getstr("calibration.loading"))
+                print(cal)
+            if (
+                not load_vcgt
+                or self.install_cal(
+                    capture_output=True,
+                    cal=cal,
+                    skip_scripts=True,
+                    silent=silent,
+                    title=lang.getstr("calibration.load_from_cal_or_profile"),
+                )
+                is True
+            ):
+                if cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
+                    try:
+                        profile = ICCProfile(cal)
+                    except (OSError, ICCProfileInvalidError) as exception:
+                        print(exception)
+                        profile = None
+                else:
+                    profile = cal_to_fake_profile(cal)
+                self.lut_viewer_load_lut(profile=profile)
+                if verbose >= 1 and silent and load_vcgt:
+                    print(lang.getstr("success"))
+                return True
+            if verbose >= 1 and load_vcgt:
+                print(lang.getstr("failure"))
         return False
 
     def reset_cal(self, event=None):
@@ -10043,12 +10024,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             result = dlg.ShowModal()
             self.worker.patterngenerator.listening = False
             host = dlg.host.GetValue()
-            if result == wx.ID_OK:
-                if upload:
-                    setcfg(
-                        "patterngenerator.prisma.preset", preset.GetStringSelection()
-                    )
-                    retval = filename
+            if result == wx.ID_OK and upload:
+                setcfg(
+                    "patterngenerator.prisma.preset", preset.GetStringSelection()
+                )
+                retval = filename
             dlg.Destroy()
             if result != wx.ID_OK or not host:
                 return
@@ -11402,15 +11382,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def profile_finish_action(self, result):
         lut3d = config.is_virtual_display() or self.install_3dlut
-        if result == wx.ID_OK:
+        if result == wx.ID_OK and getcfg("3dlut.format") == "madVR" and not hasattr(self.worker, "madtpg"):
             # madVR has an API for installing 3D LUTs
             # Prisma has a HTTP REST interface for uploading and
             # configuring 3D LUTs
-            if getcfg("3dlut.format") == "madVR" and not hasattr(self.worker, "madtpg"):
-                try:
-                    self.worker.madtpg_init()
-                except Exception as exception:
-                    print("Could not initialize madTPG:", exception)
+            try:
+                self.worker.madtpg_init()
+            except Exception as exception:
+                print("Could not initialize madTPG:", exception)
         madtpg = getattr(self.worker, "madtpg", None)
         # Note: madVR HDR 3D LUT install API was added September 2017,
         # we don't require it so check availability
@@ -15212,9 +15191,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg("profile.black_point_compensation", 1)
         else:
             setcfg("profile.black_point_compensation", 0)
-        if v in ("s", "S", "g", "G"):
-            if getcfg("profile.type") not in ("s", "S", "g", "G"):
-                proftype_changed = True
+        if v in ("s", "S", "g", "G") and getcfg("profile.type") not in ("s", "S", "g", "G"):
+            proftype_changed = True
         self.update_bpc()
         self.profile_quality_ctrl.Enable(v not in ("g", "G"))
         if v in ("g", "G"):
@@ -15470,16 +15448,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.Destroy()
         if result == wx.ID_CANCEL:
             return False
-        elif result == wx.ID_OK:
-            if ti3.modified:
-                if ti3.filename and os.path.exists(ti3.filename) and not force:
-                    try:
-                        ti3.write()
-                    except OSError as exception:
-                        show_result_dialog(exception, self)
-                        return False
-                    print("Written updated TI3 to", ti3.filename)
-                return removed, ti3
+        elif result == wx.ID_OK and ti3.modified:
+            if ti3.filename and os.path.exists(ti3.filename) and not force:
+                try:
+                    ti3.write()
+                except OSError as exception:
+                    show_result_dialog(exception, self)
+                    return False
+                print("Written updated TI3 to", ti3.filename)
+            return removed, ti3
         return True
 
     def profile_name_ctrl_handler(self, event):
@@ -15642,9 +15619,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 with archive:
                     for filename in filenames:
-                        if exclude_ext:
-                            if os.path.splitext(filename)[1].lower() in exclude_ext:
-                                continue
+                        if exclude_ext and os.path.splitext(filename)[1].lower() in exclude_ext:
+                            continue
                         writefile(
                             filename,
                             os.path.join(dirbasename, os.path.basename(filename)),
@@ -17289,9 +17265,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.lut3d_setup_language()
             self.lut3d_init_input_profiles()
             self.lut3d_update_controls()
-            if hasattr(self, "aboutdialog"):
-                if self.aboutdialog.IsShownOnScreen():
-                    self.aboutdialog_handler(None)
+            if hasattr(self, "aboutdialog") and self.aboutdialog.IsShownOnScreen():
+                self.aboutdialog_handler(None)
             if hasattr(self, "extra_args"):
                 self.extra_args.update_controls()
             if hasattr(self, "gamapframe"):
@@ -18846,9 +18821,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     event.Veto()
                 return
             for win in list(wx.GetTopLevelWindows()):
-                if win and not win.IsBeingDeleted():
-                    if isinstance(win, VisualWhitepointEditor):
-                        win.Close(force=True)
+                if win and not win.IsBeingDeleted() and isinstance(win, VisualWhitepointEditor):
+                    win.Close(force=True)
             writecfg()
             if getattr(self, "thread", None) and self.thread.is_alive():
                 self.Disable()

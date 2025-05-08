@@ -373,9 +373,8 @@ def main():
     prefix = None
     for arg in sys.argv[1:]:
         arg = arg.split("=")
-        if len(arg) == 2:
-            if arg[0] == "--prefix":
-                prefix = arg[1]
+        if len(arg) == 2 and arg[0] == "--prefix":
+            prefix = arg[1]
     try:
         if "-remove" in sys.argv[1:]:
             postuninstall(prefix)

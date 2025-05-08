@@ -1031,15 +1031,12 @@ class FloatSpin(wx.PyControl):
 
         :return: A clamped copy of `var`.
         """
+        if self._min is not None and float(var) < float(self._min):
+            var = self._min
+            return var
 
-        if self._min is not None:
-            if float(var) < float(self._min):
-                var = self._min
-                return var
-
-        if self._max is not None:
-            if float(var) > float(self._max):
-                var = self._max
+        if self._max is not None and float(var) > float(self._max):
+            var = self._max
 
         return var
 
@@ -1248,12 +1245,10 @@ class FloatSpin(wx.PyControl):
         """Returns the maximum value for :class:`FloatSpin`. It can be a
         number or ``None`` if no minimum is present.
         """
-
         return self._max
 
     def HasRange(self):
         """Returns whether :class:`FloatSpin` range has been set or not."""
-
         return (self._min is not None) or (self._max is not None)
 
     def InRange(self, value):
@@ -1261,20 +1256,14 @@ class FloatSpin(wx.PyControl):
 
         :param value: the value to test.
         """
-
         if not self.HasRange():
             return True
-        if self._min is not None:
-            if float(value) < float(self._min):
-                return False
-        if self._max is not None:
-            if float(value) > float(self._max):
-                return False
-        return True
+        if self._min is not None and float(value) < float(self._min):
+            return False
+        return self._max is None or float(value) <= float(self._max)
 
     def GetTextCtrl(self):
         """Returns the underlying :class:`TextCtrl`."""
-
         return self._textctrl
 
     def IsFinite(self, value):
@@ -1282,7 +1271,6 @@ class FloatSpin(wx.PyControl):
 
         :param value: the value to test.
         """
-
         try:
             snap_value = (value - self._defaultvalue) / self._increment
             finite = True
@@ -1873,9 +1861,8 @@ def get_all_keyboard_focusable_children(parent):
     else:
         for child in parent.Children:
             if child.Enabled and child.IsShownOnScreen():
-                if child.AcceptsFocusFromKeyboard():
-                    if not isinstance(child, wx.RadioButton) or child.Value:
-                        children.append(child)
+                if child.AcceptsFocusFromKeyboard() and (not isinstance(child, wx.RadioButton) or child.Value):
+                    children.append(child)
                 if child.Children:
                     children.extend(get_all_keyboard_focusable_children(child))
     return children

@@ -522,12 +522,11 @@ class UntetheredFrame(BaseFrame):
 
             XYZ = [float(v) for v in XYZ.groups()]
             row = self.cgats[0].DATA[self.index]
-            if is_white(row):
-                if XYZ[1] > 0:
-                    self.cgats[0].add_keyword(
-                        "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
-                    )
-                    self.white_XYZ = XYZ
+            if is_white(row) and XYZ[1] > 0:
+                self.cgats[0].add_keyword(
+                    "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
+                )
+                self.white_XYZ = XYZ
             Lab1 = colormath.XYZ2Lab(*self.last_XYZ)
             Lab2 = colormath.XYZ2Lab(*XYZ)
             delta = colormath.delta(*Lab1 + Lab2)

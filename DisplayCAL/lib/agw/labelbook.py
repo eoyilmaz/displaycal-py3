@@ -859,9 +859,8 @@ class ImageContainerBase(wx.Panel):
         """
         style: int = self.GetParent().GetAGWWindowStyleFlag()
 
-        if style & ImageBookStyle.INB_USE_PIN_BUTTON:
-            if self._pinBtnRect.Contains(pt):
-                return -1, IMG_OVER_PIN
+        if style & ImageBookStyle.INB_USE_PIN_BUTTON and self._pinBtnRect.Contains(pt):
+            return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):

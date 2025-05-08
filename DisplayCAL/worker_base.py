@@ -262,11 +262,8 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
             if isinstance(item, bytes):
                 item = item.decode("utf-8")
             item = str(item)
-        # ispath = False
-        if item.find(os.path.sep) > -1:
-            if os.path.dirname(item) == cwd:
-                item = os.path.basename(item)
-            # ispath = True
+        if item.find(os.path.sep) > -1 and os.path.dirname(item) == cwd:
+            item = os.path.basename(item)
         if sys.platform == "win32":
             item = sp.list2cmdline([item])
             if not item.startswith('"'):

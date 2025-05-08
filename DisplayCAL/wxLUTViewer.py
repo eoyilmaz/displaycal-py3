@@ -103,10 +103,9 @@ class CoordinateType(list):
             return [1.0]
         vmin = 0
         vmax = 100.0
-        if use_vmin_vmax:
-            if len(self) > 2:
-                vmin = self[0][0]
-                vmax = self[-1][0]
+        if use_vmin_vmax and len(self) > 2:
+            vmin = self[0][0]
+            vmax = self[-1][0]
         return colormath.get_gamma(values, 100.0, vmin, vmax, average, least_squares)
 
     def get_transfer_function(self, best=True, slice=(0.05, 0.95), outoffset=None):

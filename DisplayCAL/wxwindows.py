@@ -1480,19 +1480,18 @@ class BaseFrame(wx.Frame):
                     elif data[0] == "cancel":
                         wx.CallAfter(win.Close)
                     response = "ok"
-            elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)):
-                if hasattr(win, data[0]):
-                    ctrl = getattr(win, data[0])
-                    if ctrl.IsEnabled():
-                        if win.IsModal():
-                            wx.CallAfter(win.EndModal, ctrl.Id)
-                        elif isinstance(ctrl, (FlatShadedButton, GenButton, wx.Button)):
-                            event = wx.CommandEvent(wx.EVT_BUTTON.typeId, ctrl.Id)
-                            event.SetEventObject(ctrl)
-                            wx.CallAfter(ctrl.ProcessEvent, event)
-                        response = "ok"
-                    else:
-                        response = "forbidden"
+            elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)) and hasattr(win, data[0]):
+                ctrl = getattr(win, data[0])
+                if ctrl.IsEnabled():
+                    if win.IsModal():
+                        wx.CallAfter(win.EndModal, ctrl.Id)
+                    elif isinstance(ctrl, (FlatShadedButton, GenButton, wx.Button)):
+                        event = wx.CommandEvent(wx.EVT_BUTTON.typeId, ctrl.Id)
+                        event.SetEventObject(ctrl)
+                        wx.CallAfter(ctrl.ProcessEvent, event)
+                    response = "ok"
+                else:
+                    response = "forbidden"
         elif (
             data[0] == "echo"
             and "echo <string>" in self.get_common_commands()
@@ -3231,12 +3230,11 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         self.textControl.SetMaxFontSize(pointsize)
 
     def SetValue(self, value, callBack=1, clear_on_empty_value=False):
-        if not value:
-            if clear_on_empty_value and self.history:
-                index = self.textControl.GetSelection()
-                if index > -1:
-                    self.history.pop(index)
-                    self.textControl.Delete(index)
+        if not value and clear_on_empty_value and self.history:
+            index = self.textControl.GetSelection()
+            if index > -1:
+                self.history.pop(index)
+                self.textControl.Delete(index)
         if value not in self.history:
             self.history.append(value)
             self.textControl.Append(self.GetName(value))

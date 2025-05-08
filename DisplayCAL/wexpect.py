@@ -801,11 +801,10 @@ class spawn_unix:
             time.sleep(
                 self.delayafterclose
             )  # Give kernel time to update process status.
-            if self.isalive():
-                if not self.terminate(force):
-                    raise ExceptionPexpect(
-                        "close() could not terminate the child using terminate()"
-                    )
+            if self.isalive() and not self.terminate(force):
+                raise ExceptionPexpect(
+                    "close() could not terminate the child using terminate()"
+                )
             self.child_fd = -1
             self.closed = True
             # self.pid = None
@@ -3022,9 +3021,8 @@ def which(filename):
     if found and executable. Otherwise this returns None.
     """
     # Special case where filename already contains a path.
-    if os.path.dirname(filename) != "":
-        if os.access(filename, os.X_OK):
-            return filename
+    if os.path.dirname(filename) != "" and os.access(filename, os.X_OK):
+        return filename
 
     if "PATH" not in os.environ or os.environ["PATH"] == "":
         p = os.defpath

@@ -67,9 +67,8 @@ class ChromeCastPatternGenerator:
 
     def disconnect_client(self):
         self.listening = False
-        if hasattr(self, "_cc"):
-            if self._cc.app_id:
-                self._cc.quit_app()
+        if hasattr(self, "_cc") and self._cc.app_id:
+            self._cc.quit_app()
         if hasattr(self, "conn"):
             del self.conn
 

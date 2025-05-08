@@ -302,12 +302,11 @@ def inet_pton(ip_string):
 
 def trunc(value, length):
     """For string types, return value truncated to length"""
-    if isinstance(value, str):
-        if len(repr(value)) > length:
-            value = value[
-                : length - 3 - len(str(length)) - len(repr(value)) + len(value)
-            ]
-            return "%r[:%i]" % (value, length)
+    if isinstance(value, str) and len(repr(value)) > length:
+        value = value[
+            : length - 3 - len(str(length)) - len(repr(value)) + len(value)
+        ]
+        return "%r[:%i]" % (value, length)
     return repr(value)
 
 

@@ -8,6 +8,13 @@ We now have a proper [installer](https://www.github.com/eoyilmaz/displaycal-py3/
 for MacOS and this is the preferred way of running DisplayCAL under MacOS (unless you
 want to test the latest code).
 
+> [!WARNING]
+> In **MacOS**, after installing DisplayCAL you need to run the following in Terminal:
+>
+> ```shell
+> xattr -dr com.apple.quarantine /Applications/DisplayCAL.app
+> ```
+
 Install through PyPI or Build From Source
 -----------------------------------------
 

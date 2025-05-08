@@ -185,7 +185,7 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
 from DisplayCAL import madvr
-from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version, github_api_url
+from DisplayCAL.meta import VERSION, VERSION_BASE, DOMAIN, name as appname, version
 from DisplayCAL.multiprocess import cpu_count, pool_slice
 from DisplayCAL.options import (
     always_fail_download,
@@ -16201,7 +16201,7 @@ BEGIN_DATA
         download_path = os.path.join(download_dir, filename)
         response = None
         hashes = None
-        is_main_dl = uri.startswith(github_api_url)
+        is_main_dl = uri.startswith(f"https://{DOMAIN}/download/")
         if is_main_dl:
             # Always force connection to server even if local file exists for
             # displaycal.net/downloads/* and displaycal.net/Argyll/*

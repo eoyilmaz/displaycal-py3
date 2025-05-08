@@ -181,11 +181,7 @@ class ExceptionPexpect(Exception):
 
     def __filter_not_pexpect(self, trace_list_item):
         """This returns True if list item 0 the string 'pexpect.py' in it."""
-
-        if trace_list_item[0].find("pexpect.py") == -1:
-            return True
-        else:
-            return False
+        return trace_list_item[0].find("pexpect.py") == -1
 
 
 class EOF(ExceptionPexpect):
@@ -866,9 +862,7 @@ class spawn_unix:
         on or False if echo is off. Child applications that are expecting you
         to enter a password often set ECHO False. See waitnoecho()."""
         attr = termios.tcgetattr(self.child_fd)
-        if attr[3] & termios.ECHO:
-            return True
-        return False
+        return bool(attr[3] & termios.ECHO)
 
     def setecho(self, state):
         """This sets the terminal echo mode on or off. Note that anything the
@@ -1195,10 +1189,7 @@ class spawn_unix:
             if force:
                 self.kill(signal.SIGKILL)
                 time.sleep(self.delayafterterminate)
-                if not self.isalive():
-                    return True
-                else:
-                    return False
+                return self.isalive()
             return False
         except OSError:
             # I think there are kernel timing issues that sometimes cause
@@ -1206,10 +1197,7 @@ class spawn_unix:
             # process is dead to the kernel.
             # Make one last attempt to see if the kernel is up to date.
             time.sleep(self.delayafterterminate)
-            if not self.isalive():
-                return True
-            else:
-                return False
+            return not self.isalive()
 
     def wait(self):
         """This waits until the child exits. This is a blocking call. This will
@@ -1997,10 +1985,7 @@ class spawn_windows(spawn_unix):
 
         self.wtty.terminate_child()
         time.sleep(self.delayafterterminate)
-        if not self.isalive():
-            return True
-
-        return False
+        return not self.isalive()
 
     def kill(self, sig):
         """Sig == sigint for ctrl-c otherwise the child is terminated."""

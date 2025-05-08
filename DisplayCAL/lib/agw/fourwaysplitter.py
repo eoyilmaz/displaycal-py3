@@ -935,12 +935,9 @@ class FourWaySplitter(wx.Panel):
         event.SetSashIdx(self._mode)
         event.SetSashPosition(pt)
 
-        if self.GetEventHandler().ProcessEvent(event) and not event.IsAllowed():
-            # the event handler vetoed the change or missing event.Skip()
-            return False
-        else:
-            # or it might have changed the value
-            return True
+        # the event handler vetoed the change or missing event.Skip()
+        # or it might have changed the value
+        return not self.GetEventHandler().ProcessEvent(event) or event.IsAllowed()
 
     def _GetSashSize(self) -> int:
         """Use internally.

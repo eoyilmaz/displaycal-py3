@@ -2469,9 +2469,7 @@ def _wcs_set_display_profile(
     monkey = devicekey.split("\\")[-2:]
     current_user = scope == WCS_PROFILE_MANAGEMENT_SCOPE["CURRENT_USER"]
     profiles = _winreg_get_display_profiles(monkey, current_user)
-    if profile_name not in profiles:
-        return False
-    return True
+    return profile_name in profiles
 
 
 def _wcs_unset_display_profile(

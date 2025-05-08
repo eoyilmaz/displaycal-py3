@@ -304,7 +304,7 @@ if sys.platform not in ("darwin", "win32"):
     try:
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
-        warnings.warn(str(exception), ImportWarning)
+        warnings.warn(str(exception), ImportWarning, stacklevel=2)
 import wx.lib.delayedresult as delayedresult
 
 

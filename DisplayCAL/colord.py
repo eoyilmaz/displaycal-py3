@@ -36,7 +36,7 @@ if sys.platform not in ("darwin", "win32"):
                 "/org/freedesktop/ColorManager",
             )
         except DBusException as exception:
-            warnings.warn(safe_str(exception), Warning)
+            warnings.warn(safe_str(exception), Warning, stacklevel=2)
 
 
 # See colord/cd-client.c
@@ -178,7 +178,7 @@ def device_id_from_edid(
                 )
                 device_id = device.properties.get("DeviceId")
             except CDError as exception:
-                warnings.warn(safe_str(exception), Warning)
+                warnings.warn(safe_str(exception), Warning, stacklevel=2)
             else:
                 if device_id:
                     device_ids[edid["hash"]] = device_id
@@ -408,7 +408,7 @@ def install_profile(
             device.add_profile_sync(Colord.DeviceRelation.HARD, cdprofile, cancellable)
         except Exception as exception:
             # Profile may already have been added
-            warnings.warn(safe_str(exception), Warning)
+            warnings.warn(safe_str(exception), Warning, stacklevel=2)
 
         # Make profile default for device
         if not device.make_profile_default_sync(cdprofile, cancellable):

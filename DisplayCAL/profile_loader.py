@@ -2395,6 +2395,7 @@ class ProfileLoader:
                 warnings.warn(
                     rf"Registry access failed: {exception}: HKLM\{key_name}",
                     Warning,
+                    stacklevel=2,
                 )
             key = None
             numsubkeys = 0
@@ -2414,6 +2415,7 @@ class ProfileLoader:
                     f"Registry access failed: {exception}: "
                     rf"HKLM\{key_name}\{subkey_name}",
                     Warning,
+                    stacklevel=2,
                 )
                 continue
             value_name = "SetId"
@@ -2428,6 +2430,7 @@ class ProfileLoader:
                     f"Registry access failed: {exception}: {value_name} "
                     rf"(HKLM\{key_name}\{subkey_name})",
                     Warning,
+                    stacklevel=2,
                 )
                 continue
             if timestamp > self._current_timestamp:

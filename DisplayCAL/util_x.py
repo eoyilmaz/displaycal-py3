@@ -16,6 +16,7 @@ def get_display(display_name=None):
             warnings.warn(
                 f"invalid value for display name: '{display_name.decode()}'",
                 Warning,
+                stacklevel=2,
             )
         else:
             display = display_screen[0]

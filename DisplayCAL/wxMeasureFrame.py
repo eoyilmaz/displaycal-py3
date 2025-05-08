@@ -41,7 +41,7 @@ try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM
 except ImportError as exception:
     RDSMM = None
-    warnings.warn(str(exception), Warning)
+    warnings.warn(str(exception), Warning, stacklevel=2)
 
 
 def get_default_size():

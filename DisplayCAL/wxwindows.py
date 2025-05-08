@@ -5429,6 +5429,7 @@ class BetterPyGauge(pygauge.PyGauge):
                     "Gauge value %r is invalid - must be between 0 "
                     "and %s" % (value[i], self._range),
                     Warning,
+                    stacklevel=2,
                 )
                 if value[i] < 0:
                     value[i] = 0

@@ -778,6 +778,7 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
                 "Invalid window %r, size %i - using default (1, 1, 1)"
                 % (window, len(window)),
                 Warning,
+                stacklevel=2,
             )
         window = (1.0, 1.0, 1.0)
     for _x in range(0, passes):
@@ -822,6 +823,7 @@ def smooth_avg(values, passes=1, window=None, protect=None):
                 "Invalid window %r, size %i - using default (1, 1, 1)"
                 % (window, len(window)),
                 Warning,
+                stacklevel=2,
             )
         window = (1, 1, 1)
     # fix the window values
@@ -1250,7 +1252,11 @@ def CIEDCCT2xyY(T, scale=1.0):
         return None
     if T < 4000:
         # Only accurate down to about 4000
-        warnings.warn("Daylight CCT is only accurate down to about 4000 K", Warning)
+        warnings.warn(
+            "Daylight CCT is only accurate down to about 4000 K",
+            Warning,
+            stacklevel=2,
+        )
     if T <= 7000:
         xD = (
             ((-4.607 * math.pow(10, 9)) / math.pow(T, 3))

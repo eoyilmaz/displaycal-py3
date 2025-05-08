@@ -1947,7 +1947,7 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
         try:
             from DisplayCAL import RealDisplaySizeMM as RDSMM
         except ImportError as exception:
-            warnings.warn(str(exception), Warning)
+            warnings.warn(str(exception), Warning, stacklevel=2)
             return
         display = RDSMM.get_display(display_no)
         if display:
@@ -1974,9 +1974,9 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
                     # Device ID was not found, try next one
                     continue
                 except colord.CDError as exception:
-                    warnings.warn(str(exception), Warning)
+                    warnings.warn(str(exception), Warning, stacklevel=2)
                 except colord.DBusException as exception:
-                    warnings.warn(str(exception), Warning)
+                    warnings.warn(str(exception), Warning, stacklevel=2)
                 else:
                     if profile_path:
                         if "hash" in edid_:
@@ -2341,7 +2341,7 @@ def get_display_profile_linux(
     try:
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
-        warnings.warn(str(exception), Warning)
+        warnings.warn(str(exception), Warning, stacklevel=2)
         display = get_display()
     else:
         display = RDSMM.get_x_display(display_no)
@@ -2395,7 +2395,7 @@ def get_display_profile_linux(
                     try:
                         property = meth(what, atom_id)
                     except ValueError as exception:
-                        warnings.warn(str(exception), Warning)
+                        warnings.warn(str(exception), Warning, stacklevel=2)
                     else:
                         if property and (
                             profile := ICCProfile(
@@ -3226,7 +3226,9 @@ class LUT16Type(ICCProfileTag):
         elif not pcs or pcs == b"XYZ":
             if not pcs:
                 warnings.warn(
-                    f"LUT16Type.{method}: PCS not specified, assuming XYZ", Warning
+                    f"LUT16Type.{method}: PCS not specified, assuming XYZ",
+                    Warning,
+                    stacklevel=2,
                 )
             bp = [v / 32768.0 for v in bp_row]
             wp = [v / 32768.0 for v in wp_row]

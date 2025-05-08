@@ -5,6 +5,7 @@ import atexit
 import ctypes
 import datetime
 
+from functools import partial
 import getpass
 import http.client
 import math
@@ -6868,17 +6869,15 @@ BEGIN_DATA
                                         )
                                     )
 
-                                    def caffeinate_wait():
-                                        caffeinated.wait()
+                                    def caffeinate_wait(proc):
+                                        proc.wait()  # noqa: B023
                                         self.log(
                                             f"{appname}: caffeinate exited "
-                                            "with code {}".format(
-                                                caffeinated.returncode
-                                            )
+                                            f"with code {proc.returncode}"  # noqa: B023
                                         )
 
                                     wait_thread = threading.Thread(
-                                        target=caffeinate_wait
+                                        target=partial(caffeinate_wait, proc=caffeinated)
                                     )
                                     wait_thread.daemon = True
                                     wait_thread.start()

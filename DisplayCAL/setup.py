@@ -84,7 +84,6 @@ from DisplayCAL.meta import (
     version_tuple,
     wx_minversion,
 )
-from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import getenvu, relpath, safe_glob
 from DisplayCAL.util_str import safe_str
 

@@ -1652,16 +1652,15 @@ class Producer:
                     "[D] Worker raised an unhandled exception: \n" + "\n".join(messages)
                 )
             raise
-        if not self.continue_next and self.worker._progress_wnd:
-            if hasattr(
-                self.worker.progress_wnd, "animbmp"
-            ) and self.worker.progress_wnd.progress_type in (0, 2):
-                # Allow time for animation fadeout
-                wx.CallAfter(self.worker.progress_wnd.stop_timer, False)
-                if self.worker.progress_wnd.progress_type == 0:
-                    sleep(4)
-                else:
-                    sleep(1)
+        if not self.continue_next and self.worker._progress_wnd and hasattr(
+            self.worker.progress_wnd, "animbmp"
+        ) and self.worker.progress_wnd.progress_type in (0, 2):
+            # Allow time for animation fadeout
+            wx.CallAfter(self.worker.progress_wnd.stop_timer, False)
+            if self.worker.progress_wnd.progress_type == 0:
+                sleep(4)
+            else:
+                sleep(1)
         return result
 
 
@@ -2746,16 +2745,15 @@ class Worker(WorkerBase):
 
     @property
     def progress_wnd(self):
-        if not self._progress_wnd:
-            if (
-                getattr(self, "progress_start_timer", None)
-                and self.progress_start_timer.IsRunning()
-            ):
-                if currentThread().__class__.__name__ != "_MainThread":
-                    raise RuntimeError("GUI access in non-main thread!")
-                # Instantiate the progress dialog instantly on access
-                self.progress_start_timer.Notify()
-                self.progress_start_timer.Stop()
+        if not self._progress_wnd and (
+            getattr(self, "progress_start_timer", None)
+            and self.progress_start_timer.IsRunning()
+        ):
+            if currentThread().__class__.__name__ != "_MainThread":
+                raise RuntimeError("GUI access in non-main thread!")
+            # Instantiate the progress dialog instantly on access
+            self.progress_start_timer.Notify()
+            self.progress_start_timer.Stop()
         return self._progress_wnd
 
     @progress_wnd.setter
@@ -2829,10 +2827,9 @@ class Worker(WorkerBase):
             oyranos = True
             for display_rect_1 in self.display_rects:
                 for display_rect_2 in self.display_rects:
-                    if display_rect_1 is not display_rect_2:
-                        if display_rect_1.Intersects(display_rect_2):
-                            oyranos = False
-                            break
+                    if display_rect_1 is not display_rect_2 and display_rect_1.Intersects(display_rect_2):
+                        oyranos = False
+                        break
                 if not oyranos:
                     break
         return oyranos
@@ -3009,9 +3006,8 @@ class Worker(WorkerBase):
             self.instrument_place_on_screen_msg = True
         elif "place instrument on spot" in txt.lower():
             self.instrument_place_on_spot_msg = True
-        if self.instrument_place_on_screen_msg or self.instrument_place_on_spot_msg:
-            if not self.check_instrument_calibration_file():
-                return
+        if self.instrument_place_on_screen_msg or self.instrument_place_on_spot_msg and not self.check_instrument_calibration_file():
+            return
         if (
             self.instrument_place_on_screen_msg and "key to continue" in txt.lower()
         ) or (
@@ -4592,14 +4588,12 @@ END_DATA
                                         del clip[abc]
                                         for j, v in enumerate(RGB):
                                             if clipmask:
-                                                if input_encoding != "T" and scale > 1:
+                                                if input_encoding != "T" and scale > 1 and v > 16.0 / 255.0:
                                                     # We got +ve clipping
-
                                                     # Re-scale all non-black values
-                                                    if v > 16.0 / 255.0:
-                                                        v = (
-                                                            v - 16.0 / 255.0
-                                                        ) * scale + 16.0 / 255.0
+                                                    v = (
+                                                        v - 16.0 / 255.0
+                                                    ) * scale + 16.0 / 255.0
 
                                                 # Deal with -ve clipping and sync
                                                 if clipmask & (1 << j):
@@ -6373,39 +6367,38 @@ BEGIN_DATA
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
                 )
-        if verbose >= 1 or not silent:
-            if not silent or verbose >= 3:
-                if not silent and dry_run and not self.cmdrun:
-                    print(lang.getstr("dry_run"))
-                    print("")
-                    self.cmdrun = True
-                if working_dir:
-                    self.log(lang.getstr("working_dir"))
-                    indent = "  "
-                    for name in working_dir.split(os.path.sep):
-                        self.log(
-                            textwrap.fill(
-                                name + os.path.sep,
-                                80,
-                                expand_tabs=False,
-                                replace_whitespace=False,
-                                initial_indent=indent,
-                                subsequent_indent=indent,
-                            )
+        if verbose >= 1 or not silent and (not silent or verbose >= 3):
+            if not silent and dry_run and not self.cmdrun:
+                print(lang.getstr("dry_run"))
+                print("")
+                self.cmdrun = True
+            if working_dir:
+                self.log(lang.getstr("working_dir"))
+                indent = "  "
+                for name in working_dir.split(os.path.sep):
+                    self.log(
+                        textwrap.fill(
+                            name + os.path.sep,
+                            80,
+                            expand_tabs=False,
+                            replace_whitespace=False,
+                            initial_indent=indent,
+                            subsequent_indent=indent,
                         )
-                        indent += " "
-                    self.log("")
-                self.log(lang.getstr("commandline"))
-                printcmdline(cmd, args, fn=self.log, cwd=working_dir)
+                    )
+                    indent += " "
                 self.log("")
-                if not silent and dry_run:
-                    if not self.lastcmdname or self.lastcmdname == cmdname:
-                        print(lang.getstr("dry_run.end"))
-                    if self.owner and hasattr(self.owner, "infoframe_toggle_handler"):
-                        wx.CallAfter(self.owner.infoframe_toggle_handler, show=True)
-                    if use_madnet:
-                        self.madtpg_disconnect()
-                    return UnloggedInfo(lang.getstr("dry_run.info"))
+            self.log(lang.getstr("commandline"))
+            printcmdline(cmd, args, fn=self.log, cwd=working_dir)
+            self.log("")
+            if not silent and dry_run:
+                if not self.lastcmdname or self.lastcmdname == cmdname:
+                    print(lang.getstr("dry_run.end"))
+                if self.owner and hasattr(self.owner, "infoframe_toggle_handler"):
+                    wx.CallAfter(self.owner.infoframe_toggle_handler, show=True)
+                if use_madnet:
+                    self.madtpg_disconnect()
+                return UnloggedInfo(lang.getstr("dry_run.info"))
         cmdline = [cmd] + args
         for i, item in enumerate(cmdline):
             if i > 0 and item.find(os.path.sep) > -1:
@@ -7106,20 +7099,19 @@ BEGIN_DATA
                 or (self.cmdname == "dispread" and not self._detecting_video_levels)
                 or self.retcode
             )
-            if self.patterngenerator:
-                if hasattr(self.patterngenerator, "conn"):
-                    try:
-                        if config.get_display_name() == "Resolve":
-                            # Send fullscreen black to prevent burn-in
-                            if finished:
-                                with contextlib.suppress(OSError):
-                                    self.patterngenerator.send(
-                                        (0,) * 3, x=0, y=0, w=1, h=1
-                                    )
-                        else:
-                            self.patterngenerator.disconnect_client()
-                    except Exception as exception:
-                        self.log(exception)
+            if self.patterngenerator and hasattr(self.patterngenerator, "conn"):
+                try:
+                    if config.get_display_name() == "Resolve":
+                        # Send fullscreen black to prevent burn-in
+                        if finished:
+                            with contextlib.suppress(OSError):
+                                self.patterngenerator.send(
+                                    (0,) * 3, x=0, y=0, w=1, h=1
+                                )
+                    else:
+                        self.patterngenerator.disconnect_client()
+                except Exception as exception:
+                    self.log(exception)
             if hasattr(self, "madtpg") and finished:
                 self.madtpg_disconnect()
             if (
@@ -9319,41 +9311,33 @@ usage: spotread [-options] [logfile]
         paths = ["/sbin", "/usr/sbin"]
         paths.extend(getenvu("PATH", os.defpath).split(os.pathsep))
         if not uninstall:
-            if not isinstance(result, Exception) and result:
+            if not isinstance(result, Exception) and result and ("colord" not in [g.gr_name for g in grp.getgrall()]) and (groupadd := which("groupadd", paths)):
                 # Add colord group if it does not exist
-                if "colord" not in [g.gr_name for g in grp.getgrall()]:
-                    groupadd = which("groupadd", paths)
-                    if groupadd:
-                        result = self.exec_cmd(
-                            groupadd,
-                            ["colord"],
-                            capture_output=True,
-                            skip_scripts=True,
-                            asroot=True,
-                        )
-            if not isinstance(result, Exception) and result:
-                # Add user to colord group if not yet a member
-                if "colord" not in getgroups(getpass.getuser(), True):
-                    usermod = which("usermod", paths)
-                    if usermod:
-                        result = self.exec_cmd(
-                            usermod,
-                            ["-a", "-G", "colord", getpass.getuser()],
-                            capture_output=True,
-                            skip_scripts=True,
-                            asroot=True,
-                        )
-        if install_result is True and dst == udevrules:
-            # Reload udev rules
-            udevadm = which("udevadm", paths)
-            if udevadm:
                 result = self.exec_cmd(
-                    udevadm,
-                    ["control", "--reload-rules"],
+                    groupadd,
+                    ["colord"],
                     capture_output=True,
                     skip_scripts=True,
                     asroot=True,
                 )
+            if not isinstance(result, Exception) and result and "colord" not in getgroups(getpass.getuser(), True) and (usermod := which("usermod", paths)):
+                # Add user to colord group if not yet a member
+                result = self.exec_cmd(
+                    usermod,
+                    ["-a", "-G", "colord", getpass.getuser()],
+                    capture_output=True,
+                    skip_scripts=True,
+                    asroot=True,
+                )
+        if install_result is True and dst == udevrules and (udevadm := which("udevadm", paths)):
+            # Reload udev rules
+            result = self.exec_cmd(
+                udevadm,
+                ["control", "--reload-rules"],
+                capture_output=True,
+                skip_scripts=True,
+                asroot=True,
+            )
         return result
 
     def install_argyll_instrument_drivers(self, uninstall=False, launch_devman=False):
@@ -10275,35 +10259,32 @@ usage: spotread [-options] [logfile]
                     + str(exception)
                 )
         else:
-            if getcfg("profile.install_scope") == "l" and autostart:
+            if getcfg("profile.install_scope") == "l" and autostart and (
                 # Move system-wide loader
-                if (
-                    self.exec_cmd(
-                        "mkdir",
-                        ["-p", autostart],
-                        capture_output=True,
-                        low_contrast=False,
-                        skip_scripts=True,
-                        silent=True,
-                        asroot=True,
+                self.exec_cmd(
+                    "mkdir",
+                    ["-p", autostart],
+                    capture_output=True,
+                    low_contrast=False,
+                    skip_scripts=True,
+                    silent=True,
+                    asroot=True,
+                ) is not True
+                or self.exec_cmd(
+                    "mv",
+                    ["-f", desktop_file_path, system_desktop_file_path],
+                    capture_output=True,
+                    low_contrast=False,
+                    skip_scripts=True,
+                    silent=True,
+                    asroot=True,
+                ) is not True
+            ) and not silent:
+                result = Warning(
+                    lang.getstr(
+                        "error.autostart_creation", system_desktop_file_path
                     )
-                    is not True
-                    or self.exec_cmd(
-                        "mv",
-                        ["-f", desktop_file_path, system_desktop_file_path],
-                        capture_output=True,
-                        low_contrast=False,
-                        skip_scripts=True,
-                        silent=True,
-                        asroot=True,
-                    )
-                    is not True
-                ) and not silent:
-                    result = Warning(
-                        lang.getstr(
-                            "error.autostart_creation", system_desktop_file_path
-                        )
-                    )
+                )
         return result
 
     def instrument_supports_ccss(self, instrument_name=None):
@@ -11155,18 +11136,17 @@ usage: spotread [-options] [logfile]
                         or not has_B2A
                     )
                 )
-                if process_A2B:
-                    if getcfg("profile.b2a.hires") or not has_B2A:
-                        if profchanged:
-                            # We need to write the changed profile before
-                            # enhancing B2A resolution!
-                            try:
-                                profile.write()
-                            except Exception as exception:
-                                return exception
-                        result = self.update_profile_B2A(profile)
-                        if not isinstance(result, Exception) and result:
-                            profchanged = True
+                if process_A2B and getcfg("profile.b2a.hires") or not has_B2A:
+                    if profchanged:
+                        # We need to write the changed profile before
+                        # enhancing B2A resolution!
+                        try:
+                            profile.write()
+                        except Exception as exception:
+                            return exception
+                    result = self.update_profile_B2A(profile)
+                    if not isinstance(result, Exception) and result:
+                        profchanged = True
 
             # All table processing done
 
@@ -11232,33 +11212,32 @@ usage: spotread [-options] [logfile]
                     if isinstance(result, ICCProfile):
                         result = True
                         profchanged = True
-            if not isinstance(result, Exception) and result:
-                if (
-                    "rTRC" in profile.tags
-                    and "gTRC" in profile.tags
-                    and "bTRC" in profile.tags
-                    and isinstance(profile.tags.rTRC, CurveType)
-                    and isinstance(profile.tags.gTRC, CurveType)
-                    and isinstance(profile.tags.bTRC, CurveType)
-                    and apply_bpc
-                    and len(profile.tags.rTRC) > 1
-                    and len(profile.tags.gTRC) > 1
-                    and len(profile.tags.bTRC) > 1
-                    and (
-                        profile.tags.rTRC[0] != 0
-                        or profile.tags.gTRC[0] != 0
-                        or profile.tags.bTRC[0] != 0
-                    )
-                ):
-                    self.log("-" * 80)
-                    for component in ("r", "g", "b"):
-                        self.log(f"Applying black point compensation to {component}TRC")
-                    profile.apply_black_offset(
-                        (0, 0, 0), include_A2B=False, set_blackpoint=False
-                    )
-                    if getcfg("profile.black_point_compensation"):
-                        bpc_applied = True
-                    profchanged = True
+            if not isinstance(result, Exception) and result and (
+                "rTRC" in profile.tags
+                and "gTRC" in profile.tags
+                and "bTRC" in profile.tags
+                and isinstance(profile.tags.rTRC, CurveType)
+                and isinstance(profile.tags.gTRC, CurveType)
+                and isinstance(profile.tags.bTRC, CurveType)
+                and apply_bpc
+                and len(profile.tags.rTRC) > 1
+                and len(profile.tags.gTRC) > 1
+                and len(profile.tags.bTRC) > 1
+                and (
+                    profile.tags.rTRC[0] != 0
+                    or profile.tags.gTRC[0] != 0
+                    or profile.tags.bTRC[0] != 0
+                )
+            ):
+                self.log("-" * 80)
+                for component in ("r", "g", "b"):
+                    self.log(f"Applying black point compensation to {component}TRC")
+                profile.apply_black_offset(
+                    (0, 0, 0), include_A2B=False, set_blackpoint=False
+                )
+                if getcfg("profile.black_point_compensation"):
+                    bpc_applied = True
+                profchanged = True
             if profchanged and not isinstance(result, Exception) and result:
                 if "bkpt" in profile.tags and bpc_applied:
                     # We need to update the blackpoint tag
@@ -16752,14 +16731,14 @@ BEGIN_DATA
             serial = re.search(r"(?:Serial Number):\s+([^\r\n]+)", txt, re.I)
             if serial:
                 self._detected_instrument_serial = serial.group(1)
-        if re.search(r"press 1|space when done|patch 1 of ", txt, re.I):
+        if re.search(r"press 1|space when done|patch 1 of ", txt, re.I) and (
             # There are some intial measurements which we can't check for
             # unless -D (debug) is used for Argyll tools
-            if "patch 1 of " not in txt.lower() or not self.patch_sequence:
-                if "patch 1 of " in txt.lower():
-                    self.patch_sequence = True
-                self.patch_count = 0
-                self.patterngenerator_sent_count = 0
+            "patch 1 of " not in txt.lower() or not self.patch_sequence):
+            if "patch 1 of " in txt.lower():
+                self.patch_sequence = True
+            self.patch_count = 0
+            self.patterngenerator_sent_count = 0
         update = re.search(
             r"[/\\] current|patch \d+ of |the instrument can be removed from the screen",
             txt,
@@ -16858,15 +16837,14 @@ BEGIN_DATA
                 # Create .ok file which will be picked up by .wait script
                 okfilename = os.path.join(self.tempdir, ".ok")
                 open(okfilename, "w").close()
-            if update:
+            if update and (
                 # Check if patch count is higher than patterngenerator sent count
-                if (
-                    self.patch_count > self.patterngenerator_sent_count
-                    and self.exec_cmd_returnvalue is None
-                ):
-                    # XXX: This can happen when pausing/unpausing?
-                    # Need to investigate
-                    self.log("Warning - did we loose sync with the pattern generator?")
+                self.patch_count > self.patterngenerator_sent_count
+                and self.exec_cmd_returnvalue is None
+            ):
+                # XXX: This can happen when pausing/unpausing?
+                # Need to investigate
+                self.log("Warning - did we loose sync with the pattern generator?")
                 # self.exec_cmd_returnvalue = Error(lang.getstr("patterngenerator.sync_lost"))
                 # self.abort_subprocess()
         if update and not (

@@ -353,9 +353,8 @@ def get_wayland_display(x, y, w, h):
 
 
 def get_x_display(display_no=0):
-    if display := get_display(display_no):
-        if name := display.get("name"):
-            return _get_x_display(name)
+    if (display := get_display(display_no)) and (name := display.get("name")):
+        return _get_x_display(name)
 
 
 def get_x_icc_profile_atom_id(display_no=0):

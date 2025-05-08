@@ -219,9 +219,8 @@ class Tag:
 
 def _attrchk(attribute, token, tag, indent):
     if attribute:
-        if debug:
-            if tag.attributes.get(token):
-                safe_print(indent, "attribute %r %r" % (token, tag.attributes[token]))
+        if debug and tag.attributes.get(token):
+            safe_print(indent, "attribute %r %r" % (token, tag.attributes[token]))
         attribute = False
     return attribute
 
@@ -662,11 +661,9 @@ def vrml2x3dom(vrml, worker=None):
                     continue
                 if c == '"':
                     quote += 1
-                if c != '"' or tag.tagname != "FontStyle" or token != "style":
-                    if c != " " or (
-                        tag.attributes[token] and tag.attributes[token][-1] != " "
-                    ):
-                        tag.attributes[token] += c
+                if (c != '"' or tag.tagname != "FontStyle" or token != "style") and (
+                    c != " " or (tag.attributes[token] and tag.attributes[token][-1] != " ")):
+                    tag.attributes[token] += c
                 if quote == 2:
                     if not listing:
                         attribute = _attrchk(attribute, token, tag, indent)
@@ -682,12 +679,11 @@ def vrml2x3dom(vrml, worker=None):
                 raise VRMLParseError("Parse error: Invalid token", token)
             if token == "children":
                 token = ""
-            elif c in " \t":
-                if not attribute:
-                    attribute = True
-                    if token in tag.attributes:
-                        # Overwrite existing attribute
-                        tag.attributes[token] = StrList()
+            elif c in " \t" and not attribute:
+                attribute = True
+                if token in tag.attributes:
+                    # Overwrite existing attribute
+                    tag.attributes[token] = StrList()
     return x3d
 
 

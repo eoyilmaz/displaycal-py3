@@ -61,11 +61,10 @@ def setup_win32_long_paths():
                 try:
                     return fn(*args, **kwargs)
                 except OSError as exception:
-                    if exception.winerror == winerror.ERROR_SHARING_VIOLATION:
-                        if retries < maxretries:
-                            retries += 1
-                            time.sleep(delay)
-                            continue
+                    if exception.winerror == winerror.ERROR_SHARING_VIOLATION and retries < maxretries:
+                        retries += 1
+                        time.sleep(delay)
+                        continue
                     raise
 
         return retry_sharing_violation

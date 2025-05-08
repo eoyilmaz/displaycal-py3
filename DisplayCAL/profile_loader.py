@@ -1149,9 +1149,8 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.profiles_ctrl.SetStringItem(pindex, 0, description)
                 self.profiles_ctrl.SetStringItem(pindex, 1, profile)
             self.profiles_ctrl.Thaw()
-        if scope_changed or profiles_changed:
-            if next or isinstance(event, wx.TimerEvent):
-                wx.CallAfter(self._next)
+        if scope_changed or profiles_changed and (next or isinstance(event, wx.TimerEvent)):
+            wx.CallAfter(self._next)
 
     def _next(self):
         locked = self.pl.lock.locked()
@@ -2449,16 +2448,15 @@ class ProfileLoader:
             # First run or display conf change, not just resolution
             if not (first_run or dry_run):
                 print(lang.getstr("display_detected"))
-            if not dry_run:
-                if getcfg("profile_loader.fix_profile_associations"):
-                    # Work-around long-standing bug in applications
-                    # querying the monitor profile not making sure
-                    # to use the active display (this affects Windows
-                    # itself as well) when only one display is
-                    # active in a multi-monitor setup.
-                    if not first_run:
-                        self._reset_display_profile_associations()
-                    self._set_display_profiles()
+            if not dry_run and getcfg("profile_loader.fix_profile_associations"):
+                # Work-around long-standing bug in applications
+                # querying the monitor profile not making sure
+                # to use the active display (this affects Windows
+                # itself as well) when only one display is
+                # active in a multi-monitor setup.
+                if not first_run:
+                    self._reset_display_profile_associations()
+                self._set_display_profiles()
             if not (first_run or dry_run) and self._is_displaycal_running():
                 # Normally calibration loading is disabled while
                 # DisplayCAL is running. Override this when the
@@ -3007,11 +3005,10 @@ class ProfileLoader:
             else:
                 # if (apply_profiles != self.__apply_profiles or
                 # profile_associations_changed):
-                if not idle:
-                    if apply_profiles and (
-                        not profile_associations_changed or not self._reset_gamma_ramps
-                    ):
-                        self.reload_count += 1
+                if not idle and apply_profiles and (
+                    not profile_associations_changed or not self._reset_gamma_ramps
+                ):
+                    self.reload_count += 1
                 if displaycal_running != self._is_displaycal_running():
                     if displaycal_running:
                         msg = lang.getstr(

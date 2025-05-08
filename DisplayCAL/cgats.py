@@ -667,9 +667,8 @@ class CGATS(dict):
                         else:
                             if "KEYWORDS" in self and key in list(
                                 self["KEYWORDS"].values()
-                            ):
-                                if self.emit_keywords:
-                                    result.append(b'KEYWORD "%s"' % key.encode())
+                            ) and self.emit_keywords:
+                                result.append(b'KEYWORD "%s"' % key.encode())
                             if isinstance(value, bytes):
                                 # Need to escape single quote -> double quote
                                 value = value.replace(b'"', b'""')
@@ -850,12 +849,11 @@ class CGATS(dict):
                         # Same gray as prev value
                         prev = color
                         cur = gray
-                        if prev_i not in added:
-                            if debug:
-                                print(
-                                    "INFO - appending prev %s to color because prev was"
-                                    " same gray but got skipped" % prev_values[:3]
-                                )
+                        if prev_i not in added and debug:
+                            print(
+                                "INFO - appending prev %s to color because prev was"
+                                " same gray but got skipped" % prev_values[:3]
+                            )
                         if debug:
                             print(
                                 "INFO - appending cur to gray because prev %s was same "
@@ -865,12 +863,11 @@ class CGATS(dict):
                         # Prev value was different gray
                         prev = gray
                         cur = gray
-                        if prev_i not in added:
-                            if debug:
-                                print(
-                                    "INFO - appending prev %s to gray because prev was "
-                                    "different gray but got skipped" % prev_values[:3]
-                                )
+                        if prev_i not in added and debug:
+                            print(
+                                "INFO - appending prev %s to gray because prev was "
+                                "different gray but got skipped" % prev_values[:3]
+                            )
                         if debug:
                             print(
                                 "INFO - appending cur to gray because prev %s was "
@@ -1870,9 +1867,8 @@ Transform {
                             current_query_value = query[query_key]
                         else:
                             current_query_value = query_value
-                        if current_query_value is not None:
-                            if item[query_key] != current_query_value:
-                                break
+                        if current_query_value is not None and item[query_key] != current_query_value:
+                            break
                         if get_value:
                             result_n[len(result_n)] = item[query_key]
                         match_count += 1

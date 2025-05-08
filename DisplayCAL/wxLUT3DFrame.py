@@ -228,14 +228,13 @@ class LUT3DMixin:
     def lut3d_hdr_display_handler(self, event):
         if self.lut3d_hdr_display_ctrl.GetSelection() and not self.getcfg(
             "3dlut.hdr_display"
+        ) and not show_result_dialog(
+            UnloggedInfo(lang.getstr("3dlut.format.madVR.hdr.confirm")),
+            self,
+            confirm=lang.getstr("ok"),
         ):
-            if not show_result_dialog(
-                UnloggedInfo(lang.getstr("3dlut.format.madVR.hdr.confirm")),
-                self,
-                confirm=lang.getstr("ok"),
-            ):
-                self.lut3d_hdr_display_ctrl.SetSelection(0)
-                return
+            self.lut3d_hdr_display_ctrl.SetSelection(0)
+            return
         self.lut3d_set_option(
             "3dlut.hdr_display", self.lut3d_hdr_display_ctrl.GetSelection()
         )
@@ -463,28 +462,27 @@ class LUT3DMixin:
             show_result_dialog(result, self)
         # Remove temporary files
         self.worker.wrapup(False)
-        if not isinstance(result, Exception) and result:
-            if not isinstance(self, LUT3DFrame) and getattr(self, "lut3d_path", None):
-                # 3D LUT tab is part of main window
-                if self.getcfg("3dlut.create"):
-                    # 3D LUT was created automatically after profiling, show
-                    # usual profile summary window
-                    self.profile_finish(
-                        True,
-                        self.getcfg("calibration.file", False),
-                        lang.getstr("calibration_profiling.complete"),
-                        lang.getstr("profiling.incomplete"),
-                        install_3dlut=True,
-                    )
-                else:
-                    # 3D LUT was created manually
-                    self.profile_finish(
-                        True,
-                        self.getcfg("calibration.file", False),
-                        "",
-                        lang.getstr("profiling.incomplete"),
-                        install_3dlut=True,
-                    )
+        if not isinstance(result, Exception) and result and not isinstance(self, LUT3DFrame) and getattr(self, "lut3d_path", None):
+            # 3D LUT tab is part of main window
+            if self.getcfg("3dlut.create"):
+                # 3D LUT was created automatically after profiling, show
+                # usual profile summary window
+                self.profile_finish(
+                    True,
+                    self.getcfg("calibration.file", False),
+                    lang.getstr("calibration_profiling.complete"),
+                    lang.getstr("profiling.incomplete"),
+                    install_3dlut=True,
+                )
+            else:
+                # 3D LUT was created manually
+                self.profile_finish(
+                    True,
+                    self.getcfg("calibration.file", False),
+                    "",
+                    lang.getstr("profiling.incomplete"),
+                    install_3dlut=True,
+                )
 
     def lut3d_create_handler(self, event, path=None, copy_from_path=None):
         if sys.platform == "darwin" or debug:
@@ -540,13 +538,12 @@ class LUT3DMixin:
         if None not in (profile_in, profile_out) or (
             profile_in and profile_in.profileClass == "link"
         ):
-            if profile_out and profile_in.isSame(profile_out, force_calculation=True):
-                if not show_result_dialog(
-                    Warning(lang.getstr("error.source_dest_same")),
-                    self,
-                    confirm=lang.getstr("continue"),
-                ):
-                    return
+            if profile_out and profile_in.isSame(profile_out, force_calculation=True) and not show_result_dialog(
+                Warning(lang.getstr("error.source_dest_same")),
+                self,
+                confirm=lang.getstr("continue"),
+            ):
+                return
             checkoverwrite = True
             remember_last_3dlut_path = False
             if not path:

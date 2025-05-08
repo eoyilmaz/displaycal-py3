@@ -342,10 +342,8 @@ def get_edid_from_xrandr(display_no):
             else:
                 # read all data, exit
                 break
-        if found_display:
-            # try to find EDID
-            if b"EDID" in line:
-                found_edid = True
+        if found_display and b"EDID" in line:  # try to find EDID
+            found_edid = True
         # try to find the display
         if (display["name"] + b" connected") in line:
             found_display = True
@@ -779,15 +777,13 @@ def parse_edid_extension_blocks(edid):
         # Parse extension blocks
         block = edid[128:]
         while block:
-            if block[0] == BLOCK_DI_EXT:
-                if block[TRC[0]] != "\0":
-                    # TODO: Implement
-                    pass
+            if block[0] == BLOCK_DI_EXT and block[TRC[0]] != "\0":
+                # TODO: Implement
+                pass
             block = block[128:]
     return result
 
 
 class WMIError(Exception):
     """Custom exception for WMI errors."""
-
     pass

@@ -1,3 +1,5 @@
+import os
+import sys
 from ctypes import (
     POINTER,
     Structure,
@@ -9,8 +11,6 @@ from ctypes import (
     pointer,
     util,
 )
-import os
-import sys
 
 libx11pth = util.find_library("X11")
 if not libx11pth:
@@ -29,7 +29,6 @@ except OSError as e:
     raise ImportError("Couldn't load libXrandr") from e
 
 from DisplayCAL.options import debug
-
 
 XA_CARDINAL = 6
 XA_INTEGER = 19

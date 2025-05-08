@@ -1336,7 +1336,7 @@ class ProfileLoader:
 
             class TaskBarIcon(SysTrayIcon):
                 def __init__(self, pl):
-                    super(TaskBarIcon, self).__init__()
+                    super().__init__()
                     self.pl = pl
                     self.balloon_text = None
                     self.flags = 0

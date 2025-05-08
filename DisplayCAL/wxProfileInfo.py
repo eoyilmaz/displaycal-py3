@@ -652,7 +652,7 @@ class GamutViewOptions(wx_Panel):
         if scale < 1:
             scale = 1
 
-        super(GamutViewOptions, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.FlexGridSizer(0, 3, 4, 0)
         self.sizer.AddGrowableCol(0)

@@ -267,7 +267,7 @@ class NonDaemonicPool(mp.pool.Pool):
     def Process(self, *args, **kwargs):
         # Process is a function after Python 3.7+
         # Process = NonDaemonicProcess -- This will not work with Python3.7+
-        proc = super(NonDaemonicPool, self).Process(*args, **kwargs)
+        proc = super().Process(*args, **kwargs)
         proc.__class__ = NonDaemonicProcess  # TODO: This is not cool, find a better way
         #                                            of doing it.
         return proc

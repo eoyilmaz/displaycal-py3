@@ -60,7 +60,7 @@ class ETreeDict(dict):
     # https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
     def __init__(self, etree):
-        super(ETreeDict, self).__init__()
+        super().__init__()
         children = len(etree)
         if etree.attrib or etree.text or children:
             self[etree.tag] = {f"@{k}": v for k, v in etree.attrib.items()}

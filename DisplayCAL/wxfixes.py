@@ -729,7 +729,7 @@ class GridSizer(wx._GridSizer):
                 # print(vgap, hgap, '->')
                 vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
             # print(vgap, hgap)
-        super(GridSizer, self).__init__(rows, cols, vgap, hgap)
+        super().__init__(rows, cols, vgap, hgap)
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
@@ -751,7 +751,7 @@ class FlexGridSizer(wx._FlexGridSizer):
                 # print vgap, hgap, '->',
                 vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
             # print vgap, hgap
-        super(FlexGridSizer, self).__init__(rows, cols, vgap, hgap)
+        super().__init__(rows, cols, vgap, hgap)
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]

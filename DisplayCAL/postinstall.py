@@ -130,7 +130,7 @@ def postinstall_windows(prefix):
 
     mainicon = os.path.join(modpath, "theme", "icons", f"{name}.ico")
     if not os.path.exists(mainicon):
-        print("warning - '{}' not found".format(icon.encode("MBCS", "replace")))
+        print("warning - '{}' not found".format(mainicon.encode("MBCS", "replace")))
         return
 
     try:

@@ -1012,7 +1012,7 @@ class BaseFrame(wx.Frame):
         except socket.error as exception:
             del conn
             return exception
-        return conn
+        return conn  # noqa: F821
 
     def connection_handler(self):
         """Handle socket connections"""
@@ -7044,7 +7044,7 @@ class TabButton(PlateButton):
             if self._menu is not None:
                 self.ShowMenu()
             elif self._style & platebtn.PB_STYLE_DROPARROW:
-                event = PlateBtnDropArrowPressed()
+                event = platebtn.PlateBtnDropArrowPressed()
                 event.SetEventObject(self)
                 self.EventHandler.ProcessEvent(event)
 

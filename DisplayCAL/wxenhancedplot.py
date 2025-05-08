@@ -2831,9 +2831,9 @@ def _draw3Objects():
         m.append(
             PolyMarker(
                 [(2 * i + 0.5, i + 0.5)],
-                legend=markerlist[i],
+                legend=markerList[i],
                 colour="blue",
-                marker=markerlist[i],
+                marker=markerList[i],
             )
         )
     return PlotGraphics(m, "Selection of Markers", "Minimal Axis", "No Axis")

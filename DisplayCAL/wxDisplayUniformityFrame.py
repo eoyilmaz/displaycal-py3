@@ -5,6 +5,7 @@ import os
 import re
 import sys
 
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.wxaddons import wx
 
 from DisplayCAL.config import (

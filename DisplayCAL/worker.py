@@ -15465,7 +15465,7 @@ BEGIN_DATA
         if not isinstance(ti1, CGATS):
             raise TypeError(
                 "Wrong type for ti1, needs to be a CGATS instance, "
-                f"not {t11.__class__.__name__}"
+                f"not {ti1.__class__.__name__}"
             )
 
         # profile

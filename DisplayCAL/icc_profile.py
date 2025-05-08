@@ -18,6 +18,7 @@ from weakref import WeakValueDictionary
 from DisplayCAL.util_dict import dict_sort
 
 if sys.platform == "win32":
+    import pywintypes
     import winreg
     try:
         import win32api
@@ -2111,6 +2112,7 @@ def _win10_1903_close_leaked_regkey_handles(devicekey):
                 f"housekeeping: Closing leaked handle 0x{handle.HandleValue:x}",
                 handle_name,
             )
+
             try:
                 win32api.RegCloseKey(handle.HandleValue)
             except pywintypes.error as exception:

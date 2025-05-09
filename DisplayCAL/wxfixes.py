@@ -991,7 +991,12 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
 
     # Disabled
     if disabled:
-        btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
+        try:
+            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
+        except wx._core.wxAssertionError:
+            # must set normal bitmap first, fixes #507
+            btn.SetBitmapLabel(bitmap)
+            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
 
     # Focus/Hover
     if sys.platform != "darwin" and focus is not False:

@@ -37,7 +37,6 @@ from DisplayCAL.worker import (
 )
 from tests.data.display_data import DisplayData
 
-
 def test_get_options_from_profile_1(data_files):
     """Test ``DisplayCAL.worker.get_options_from_profile()`` function"""
     profile_path = data_files[

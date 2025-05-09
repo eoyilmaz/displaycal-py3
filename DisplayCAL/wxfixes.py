@@ -474,12 +474,7 @@ wx.AnyButton._SetBitmapLabel = wx.AnyButton.SetBitmapLabel
 def SetBitmapLabel(self, bitmap):
     """Override the SetBitmapLabel to avoid flickering."""
     if self.GetBitmapLabel() != bitmap:
-        try:
-            self._SetBitmapLabel(bitmap)
-        except TypeError:
-            print("Handled TypeError in SetBitmapLabel!")
-            print(f"self._SetBitmapLabel: {self._SetBitmapLabel}")
-            print(f"bitmap: {bitmap}")
+        self._SetBitmapLabel(self, bitmap)
 
 wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 
@@ -991,12 +986,11 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
 
     # Disabled
     if disabled:
+        disabled_bitmap = get_bitmap_disabled(bitmap)
         try:
-            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
+            btn.SetBitmapDisabled(disabled_bitmap)
         except wx._core.wxAssertionError:
-            # must set normal bitmap first, fixes #507
-            btn.SetBitmapLabel(bitmap)
-            btn.SetBitmapDisabled(get_bitmap_disabled(bitmap))
+            pass
 
     # Focus/Hover
     if sys.platform != "darwin" and focus is not False:
@@ -1007,10 +1001,16 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
         else:
             # Use focus bitmap
             bmp = get_bitmap_focus(bitmap)
-        btn.SetBitmapFocus(bmp)
+        try:
+            btn.SetBitmapFocus(bmp)
+        except wx._core.wxAssertionError:
+            pass
         if hasattr(btn, "SetBitmapCurrent"):
             # Phoenix
-            btn.SetBitmapCurrent(bmp)
+            try:
+                btn.SetBitmapCurrent(bmp)
+            except wx._core.wxAssertionError:
+               pass
         else:
             # Classic
             btn.SetBitmapHover(bmp)
@@ -1023,7 +1023,10 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
             bmp = get_bitmap_pressed(bitmap)
         if hasattr(btn, "SetBitmapPressed"):
             # Phoenix
-            btn.SetBitmapPressed(bmp)
+            try:
+                btn.SetBitmapPressed(bmp)
+            except wx._core.wxAssertionError:
+                pass
         else:
             # Classic
             btn.SetBitmapSelected(bmp)

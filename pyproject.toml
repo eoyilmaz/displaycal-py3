@@ -166,20 +166,41 @@ per-file-ignores = [
 
 [tool.ruff.lint]
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # flake8-bugbear
-    "B",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # McCabe complexity
-    "C",
+    "A",  # flake8-builtins
+    "ANN",  # flake-annotations
+    "ASYNC",  # flake-async
+    "B",  # flake8-bugbear
+    "C",  # McCabe complexity
+    "C4",  # flake8-comprehensions
+    "COM",  # flake8-commas
+    "D",  # pydocstyle
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "FA",  # flake8-future-annotations
+    "FLY",  # flynt
+    "I",  # isort
+    "INT",  # flake8-gettext
+    "ISC",  # flake8-implicit-str-concat
+    "LOG",  # flake8-logging
+    "N",  # PEP8 Naming
+    "NPY",  # NumPy-specific rules
+    "PERF",  # perflint
+    "PIE",  # flake8-pie
+    "PLR",  # Pylint - Refactor
+    "PYI",  # flake8-pyi
+    "RET",  # flake8-return
+    "RSE",  # flake8-raise
+    "RUF",  # Ruff-specific-rules
+    "Q",  # flake8-quotes
+    "S",  # flake-bandit
+    "SIM",  # flake8-simplify
+    "SLOT",  # flake8-slots
+    "T10",  # flake8-debugger
+    "TC",  # flake8-type-checking
+    "TID",  # flake8-tidy-imports
+    "UP",  # pyupgrade
+    "YTT",  # flake-2020
+
 ]
 extend-ignore = ["E741", "E402"]
 

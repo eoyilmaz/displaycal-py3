@@ -3238,9 +3238,10 @@ class Interp:
 
 
 class BT1886:
-    # Adapted from ArgyllCMS xicc/xicc.c
+    """BT.1886 like transfer function.
 
-    """BT.1886 like transfer function"""
+    Adapted from ArgyllCMS xicc/xicc.c
+    """
 
     def __init__(self, matrix, XYZbp, outoffset=0.0, gamma=2.4, apply_trc=True):
         """Setup BT.1886 for the given target

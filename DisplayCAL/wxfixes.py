@@ -1630,7 +1630,8 @@ class TempXmlResource:
                 for tag in ("border", "hgap", "vgap"):
                     xml = re.sub(
                         rf"<{tag}>(\d+)</{tag}>",
-                        lambda match, tag=tag: f"<{tag}>{round(int(match.group(1)) * scale):d}</{tag}>",  # noqa: E501
+                        lambda match,
+                        tag=tag: f"<{tag}>{round(int(match.group(1)) * scale):d}</{tag}>",  # noqa: E501
                         xml,
                     )
                 for tag in ("size",):

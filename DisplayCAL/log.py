@@ -278,9 +278,7 @@ def get_file_logger(
                 os.path.join(confighome, f"{lockbasename}{process_num}.lock")
             ):
                 process_num += 1
-            lockfilepath = os.path.join(
-                confighome, f"{lockbasename}{process_num}.lock"
-            )
+            lockfilepath = os.path.join(confighome, f"{lockbasename}{process_num}.lock")
             try:
                 with open(lockfilepath, "w") as lockfile:
                     pass

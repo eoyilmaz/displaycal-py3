@@ -924,13 +924,13 @@ class CGATS(dict):
                     print(
                         f"{i + 1:4d}",
                         "GRAY",
-                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}"
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}",
                     )
                 for i, values in enumerate(color):
                     print(
                         f"{i + 1:4d}",
                         "COLOR",
-                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}"
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}",
                     )
         else:
             color = valueslist

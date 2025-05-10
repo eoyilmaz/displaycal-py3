@@ -2919,10 +2919,7 @@ class searcher_re:
 
     def __str__(self):
         """Return a human-readable string that represents the state of the object."""
-        ss = [
-            (n, f'    {n}: re.compile(r"{s.pattern!s}")')
-            for n, s in self._searches
-        ]
+        ss = [(n, f'    {n}: re.compile(r"{s.pattern!s}")') for n, s in self._searches]
         ss.append((-1, "searcher_re:"))
         if self.eof_index >= 0:
             ss.append((self.eof_index, f"    {self.eof_index}: EOF"))

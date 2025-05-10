@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import wx
 import wx.xrc as xrc
+
 from DisplayCAL.log import safe_print
 
 try:

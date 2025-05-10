@@ -1,6 +1,14 @@
-# -*- coding: utf-8 -*-
-
-from socketserver import TCPServer
+import contextlib
+import errno
+import http.client
+import json
+import select
+import struct
+import sys
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
 from socket import (
     AF_INET,
     SHUT_RDWR,
@@ -9,29 +17,18 @@ from socket import (
     SOCK_DGRAM,
     SOCK_STREAM,
     SOL_SOCKET,
-    error,
-    gethostname,
     gethostbyname,
+    gethostname,
     socket,
     timeout,
 )
+from socketserver import TCPServer
 from time import sleep
-import errno
-import http.client
-import json
-import select
-import struct
-import sys
-import threading
-import urllib.request
-import urllib.error
-import urllib.parse
 
 from DisplayCAL import localization as lang
+from DisplayCAL import webwin
 from DisplayCAL.network import get_network_addr
 from DisplayCAL.util_http import encode_multipart_formdata
-from DisplayCAL import webwin
-
 
 _lock = threading.RLock()
 
@@ -41,7 +38,7 @@ def _eintr_retry(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, select.error) as e:
+        except OSError as e:
             if e.args[0] != errno.EINTR:
                 raise
 
@@ -51,7 +48,7 @@ def _shutdown(sock, addr):
         # Will fail if the socket isn't connected, i.e. if there
         # was an error during the call to connect()
         sock.shutdown(SHUT_RDWR)
-    except error as exception:
+    except OSError as exception:
         if exception.errno != errno.ENOTCONN:
             print("PatternGenerator: SHUT_RDWR for %s:%i failed:" % addr[:2], exception)
     sock.close()
@@ -77,7 +74,7 @@ class GenHTTPPatternGeneratorClient:
         try:
             self.conn.request(method, url, params, headers or {})
             resp = self.conn.getresponse()
-        except (error, http.client.HTTPException) as exception:
+        except (OSError, http.client.HTTPException) as exception:
             # TODO: What is the point of having the except clause here?
             raise exception
         else:
@@ -99,7 +96,7 @@ class GenHTTPPatternGeneratorClient:
         self.conn = http.client.HTTPConnection(self.ip, self.port)
         try:
             self.conn.connect()
-        except (error, http.client.HTTPException):
+        except (OSError, http.client.HTTPException):
             del self.conn
             raise
 
@@ -146,7 +143,7 @@ class GenTCPSockPatternGeneratorServer:
         if self.logfile:
             try:
                 host = get_network_addr()
-            except error:
+            except OSError:
                 host = gethostname()
             self.logfile.write(
                 "{} {}:{}\n".format(lang.getstr("connection.waiting"), host, self.port)
@@ -193,7 +190,7 @@ class GenTCPSockPatternGeneratorServer:
         if hasattr(self, "conn"):
             try:
                 self.conn.shutdown(SHUT_RDWR)
-            except error as exception:
+            except OSError as exception:
                 if exception.errno != errno.ENOTCONN:
                     print(
                         "Warning - could not shutdown pattern generator connection:",
@@ -253,27 +250,22 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             thread = threading.Thread(
                 target=self._cast_receive_handler,
                 name=(
-                    "PrismaPatternGeneratorClient.BroadcastHandler[{}:{}]".format(
-                        self.broadcast_ip, port
-                    )
+                    "PrismaPatternGeneratorClient.BroadcastHandler["
+                    f"{self.broadcast_ip}:{port}]"
                 ),
                 args=(sock, self.broadcast_ip, port),
             )
             self._threads.append(thread)
             thread.start()
-        except error as exception:
-            print(
-                "PrismaPatternGeneratorClient: UDP Port {:d}: {:s}".format(
-                    port, exception
-                )
-            )
+        except OSError as exception:
+            print(f"PrismaPatternGeneratorClient: UDP Port {port:d}: {exception:s}")
 
     def _cast_receive_handler(self, sock, host, port):
         cast = "broadcast"
         if self.debug:
             print(
                 "PrismaPatternGeneratorClient: Entering receiver thread for "
-                "{:s} port {:d}".format(cast, port)
+                f"{cast:s} port {port:d}"
             )
         self._cast_sockets[(host, port)] = sock
         while getattr(self, "listening", False):
@@ -282,18 +274,18 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             except timeout as exception:
                 print(
                     "PrismaPatternGeneratorClient: In receiver thread for "
-                    "{:s} port {:d}:".format(cast, port),
+                    f"{cast:s} port {port:d}:",
                     exception,
                 )
                 continue
-            except error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
                 if exception.errno != errno.ECONNRESET or self.debug:
                     print(
                         "PrismaPatternGeneratorClient: In receiver thread for "
-                        "{:s} port {:d}:".format(cast, port),
+                        f"{cast:s} port {port:d}:",
                         exception,
                     )
                 break
@@ -302,7 +294,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                     if self.debug:
                         print(
                             "PrismaPatternGeneratorClient: Received "
-                            "{} from {}:{}: {}".format(cast, addr[0], addr[1], data)
+                            f"{cast} from {addr[0]}:{addr[1]}: {data}"
                         )
                     if data.startswith(self.prod_oem):
                         name = data[8:32].rstrip(b"\0")
@@ -315,8 +307,8 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         _shutdown(sock, (host, port))
         if self.debug:
             print(
-                "PrismaPatternGeneratorClient: Exiting {:s} receiver thread "
-                "for port {:d}".format(cast, port)
+                f"PrismaPatternGeneratorClient: Exiting {cast:s} "
+                f"receiver thread for port {port:d}"
             )
 
     def announce(self):
@@ -330,7 +322,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         if self.debug:
             print(
                 "PrismaPatternGeneratorClient: Sending broadcast from "
-                "{}:{} to port {:d}".format(addr[0], addr[1], port)
+                f"{addr[0]}:{addr[1]} to port {port:d}"
             )
         sock.sendall(self.prod_oem)
         sock.close()
@@ -385,17 +377,15 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         return self._request("GET", url, validate=validate)
 
     def _shutdown(self):
-        try:
+        with contextlib.suppress(Exception):
             self.invoke("window", "off", {"sz": 10})
-        except Exception:
-            pass
 
     def _validate(self, resp, url, validate):
         raw = resp.read()
         if isinstance(validate, dict):
             data = json.loads(raw)
             components = urllib.parse.urlparse(url)
-            api = components.path[1:]
+            # api = components.path[1:]
             query = urllib.parse.parse_qs(components.query)
             if b"m" in query:
                 method = query[b"m"][0]
@@ -428,10 +418,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         self.enable_processing(False, size)
 
     def enable_processing(self, enable=True, size=10):
-        if enable:
-            win = 1
-        else:
-            win = 2
+        win = 1 if enable else 2
         self.invoke("Window", "win%i" % win, {"sz": size})
 
     def get_config(self):
@@ -541,7 +528,7 @@ class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
         self.conn.sendall(struct.pack(">I", len(xml)) + xml.encode("utf-8"))
 
 
-class WebWinHTTPPatternGeneratorServer(TCPServer, object):
+class WebWinHTTPPatternGeneratorServer(TCPServer):
     def __init__(self, port, logfile=None):
         self.port = port
         Handler = webwin.WebWinHTTPRequestHandler
@@ -557,9 +544,8 @@ class WebWinHTTPPatternGeneratorServer(TCPServer, object):
 
     def handle_error(self, request, client_address):
         print(
-            "Exception happened during processing of request from {}:{}:".format(
-                client_address, sys.exc_info()[1]
-            )
+            "Exception happened during processing of request from "
+            f"{client_address}:{sys.exc_info()[1]}:"
         )
 
     @property
@@ -592,7 +578,7 @@ class WebWinHTTPPatternGeneratorServer(TCPServer, object):
         pattern = [
             "#{:02d}{:02d}{:02d}".format(*tuple(round(v * 255) for v in rgb)),
             "#{:02d}{:02d}{:02d}".format(*tuple(round(v * 255) for v in bgrgb)),
-            "{:.4f}|{:.4f}|{:.4f}|{:.4f}".format(x, y, w, h),
+            f"{x:.4f}|{y:.4f}|{w:.4f}|{h:.4f}",
         ]
         self.pattern = "|".join(pattern)
 
@@ -634,10 +620,10 @@ class WebWinHTTPPatternGeneratorServer(TCPServer, object):
         if self.logfile:
             try:
                 host = get_network_addr()
-            except error:
+            except OSError:
                 host = gethostname()
             self.logfile.write(
-                ("{} {}:{}\n".format(lang.getstr("webserver.waiting"), host, self.port))
+                "{} {}:{}\n".format(lang.getstr("webserver.waiting"), host, self.port)
             )
         self.socket.settimeout(1)
         while self.listening:

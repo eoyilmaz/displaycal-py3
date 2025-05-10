@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
-from ctypes import wintypes
 import ctypes
 import os
+import sys
+from ctypes import wintypes
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -63,7 +62,7 @@ try:
         wintypes.ULONG,  # SystemInformationLength
         PULONG,
     )  # ReturnLength
-except WindowsError:
+except OSError:
     # Just in case
     ntdll = None
 
@@ -127,22 +126,15 @@ def get_process_handles(pid=None):
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        pid = int(sys.argv[1])
-    else:
-        pid = None
+    pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
     for handle in get_process_handles(pid):
         print(
-            (
-                "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
-                % (
-                    handle.HandleValue,
-                    handle.ObjectTypeIndex,
-                    get_handle_type(handle),
-                    handle.GrantedAccess,
-                    get_handle_name(handle),
-                )
+            "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
+            % (
+                handle.HandleValue,
+                handle.ObjectTypeIndex,
+                get_handle_type(handle),
+                handle.GrantedAccess,
+                get_handle_name(handle),
             )
         )

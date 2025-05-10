@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 """Drawing routines and customizations for the AGW widgets
 :class:`~wx.lib.agw.labelbook.LabelBook` and :class:`~wx.lib.agw.flatmenu.FlatMenu`.
 """
 
 import random
 from io import BytesIO
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Optional, Union
 
+import wx
 
 from DisplayCAL.lib.agw.fmresources import (
     BU_EXT_LEFT_ALIGN_STYLE,
     BU_EXT_RIGHT_ALIGN_STYLE,
     BU_EXT_RIGHT_TO_LEFT_STYLE,
+    CS_DROPSHADOW,
     BottomShadow,
     BottomShadowFull,
-    CS_DROPSHADOW,
     ControlDisabled,
     ControlFocus,
     ControlPressed,
@@ -34,8 +34,6 @@ from DisplayCAL.lib.agw.fmresources import (
     shadow_right_top_xpm,
     shadow_right_xpm,
 )
-
-import wx
 
 # ------------------------------------------------------------------------------------ #
 # Class DCSaver
@@ -448,7 +446,7 @@ class RendererMSOffice2007(RendererBase):
     def __init__(self) -> None:
         RendererBase.__init__(self)
 
-    def GetColoursAccordingToState(self, state: int) -> Tuple[int, int, int, int]:
+    def GetColoursAccordingToState(self, state: int) -> tuple[int, int, int, int]:
         """Return a tuple according to the menu item state.
 
         Args:
@@ -464,7 +462,7 @@ class RendererMSOffice2007(RendererBase):
          ==================== ======= ==========================
 
         Returns:
-            Tuple[int, int, int, int, bool, bool]: A tuple containing the
+            tuple[int, int, int, int, bool, bool]: A tuple containing the
                 gradient percentages.
         """
         # switch according to the status
@@ -768,14 +766,14 @@ class ArtManager(wx.EvtHandler):
     _alignmentBuffer = 7
     _menuTheme: int = StyleXP
     _verticalGradient = False
-    _renderers: Dict[int, RendererBase] = {StyleXP: None, Style2007: None}
+    _renderers: dict[int, RendererBase] = {StyleXP: None, Style2007: None}
     _bmpShadowEnabled = False
     _ms2007sunken = False
     _drowMBBorder = True
     _menuBgFactor = 5
     _menuBarColourScheme: str = _("Default")
     _raiseTB = True
-    _bitmaps: Dict[str, wx.Bitmap] = {}
+    _bitmaps: dict[str, wx.Bitmap] = {}
     _transparency = 255
 
     def __init__(self) -> None:
@@ -816,13 +814,13 @@ class ArtManager(wx.EvtHandler):
 
     @classmethod
     def ConvertToBitmap(
-        cls, xpm: Union[List[str], bytes], alpha: Optional[List[int]] = None
+        cls, xpm: Union[list[str], bytes], alpha: Optional[list[int]] = None
     ) -> wx.Bitmap:
         """Convert the given image to a bitmap, optionally overlaying an alpha channel.
 
         Args:
-            xpm (Union[List[str], bytes]): A list of strings formatted as XPM.
-            alpha (Optional[List[int]]): A list of alpha values, the same size
+            xpm (Union[list[str], bytes]): A list of strings formatted as XPM.
+            alpha (Optional[list[int]]): A list of alpha values, the same size
                 as the xpm bitmap.
 
         Raises:
@@ -893,7 +891,7 @@ class ArtManager(wx.EvtHandler):
         return self._bitmaps.get(name, wx.NullBitmap)
 
     @classmethod
-    def Get(cls: Type["ArtManager"]) -> "ArtManager":
+    def Get(cls: type["ArtManager"]) -> "ArtManager":
         """Accessor to the unique art manager object.
 
         Returns:
@@ -1135,7 +1133,7 @@ class ArtManager(wx.EvtHandler):
 
     def _calculate_sizes(
         self, rect: wx.Rect, trimToSquare: bool
-    ) -> Tuple[int, int, int, float]:
+    ) -> tuple[int, int, int, float]:
         """Calculate the sizes for the gradient drawing.
 
         Args:
@@ -1144,7 +1142,7 @@ class ArtManager(wx.EvtHandler):
                 square.
 
         Returns:
-            Tuple[int, int, int, float]: A tuple containing the size, sizeX,
+            tuple[int, int, int, float]: A tuple containing the size, sizeX,
                 sizeY and proportion.
         """
         if rect.width > rect.height:
@@ -1171,7 +1169,7 @@ class ArtManager(wx.EvtHandler):
 
     def _calculate_steps(
         self, startColour: wx.Colour, endColour: wx.Colour, size: int
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """Calculate the gradient steps for the diagonal gradient drawing.
 
         Args:
@@ -1618,9 +1616,9 @@ class ArtManager(wx.EvtHandler):
                 or version.find("NT") >= 0
             )
             return found
-        elif wx.Platform == "__WXMAC__":
+        elif wx.Platform == "__WXMAC__":  # noqa: SIM103
             return True
-        else:
+        else:  # Linux
             return False
 
     def MakeWindowTransparent(self, wnd, amount):
@@ -1656,7 +1654,7 @@ class ArtManager(wx.EvtHandler):
                     return
 
                 exstyle = win32api.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
-                if 0 == (exstyle & 0x80000):
+                if (exstyle & 0x80000) == 0:
                     win32api.SetWindowLong(
                         hwnd, win32con.GWL_EXSTYLE, exstyle | 0x80000
                     )
@@ -1778,7 +1776,7 @@ class ArtManager(wx.EvtHandler):
         bitmap: wx.Bitmap,
         text: str = "",
         style: int = 0,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Return the top left `x` and `y` coordinates of the bitmap drawing.
 
         Args:
@@ -1803,7 +1801,7 @@ class ArtManager(wx.EvtHandler):
 
 
         Returns:
-            Tuple[float, float]: A tuple containing the top left `x` and `y`
+            tuple[float, float]: A tuple containing the top left `x` and `y`
                 coordinates of the bitmap drawing.
         """
         alignmentBuffer = self.GetAlignBuffer()
@@ -1870,7 +1868,7 @@ class ArtManager(wx.EvtHandler):
 
     def GetTextStartLocation(
         self, dc: wx.DC, rect: wx.Rect, bitmap: wx.Bitmap, text: str, style: int = 0
-    ) -> Tuple[float, float, Union[str, None]]:
+    ) -> tuple[float, float, Union[str, None]]:
         """Return the top left `x` and `y` coordinates of the text drawing.
 
         In case the text is too long, the text is being fixed (the text is cut
@@ -1884,7 +1882,7 @@ class ArtManager(wx.EvtHandler):
             style (int): The button style.
 
         Returns:
-            Tuple[float, float, Union[str, None]]: A tuple containing the top
+            tuple[float, float, Union[str, None]]: A tuple containing the top
                 left `x` and `y` coordinates of the text drawing, plus the
                 truncated version of the input `text`.
 
@@ -2053,10 +2051,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             wx.Size: Representing the best fit size for the supplied label & bitmap.
         """
-        if "__WXMSW__" in wx.Platform:
-            HEIGHT = 22
-        else:
-            HEIGHT = 26
+        HEIGHT = 22 if "__WXMSW__" in wx.Platform else 26
 
         dc = wx.MemoryDC()
         dc.SelectBitmap(wx.Bitmap(1, 1))
@@ -2117,7 +2112,7 @@ class ArtManager(wx.EvtHandler):
         renderer = self._renderers[self.GetMenuTheme()]
         return renderer.GetFont()
 
-    def GetAccelIndex(self, label: str) -> Tuple[int, str]:
+    def GetAccelIndex(self, label: str) -> tuple[int, str]:
         """Return the mnemonic index and the label without the ampersand mnemonic.
 
         (e.g. 'lab&el' ==> will result in 3 and labelOnly = label).
@@ -2126,7 +2121,7 @@ class ArtManager(wx.EvtHandler):
             label (str): A string containing an ampersand.
 
         Returns:
-            Tuple[int, str]: A tuple containing the mnemonic index of the label
+            tuple[int, str]: A tuple containing the mnemonic index of the label
                 and the label stripped of the ampersand mnemonic.
         """
         indexAccel = 0
@@ -2387,11 +2382,11 @@ class ArtManager(wx.EvtHandler):
             _("Generic"): wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVECAPTION),
         }
 
-    def GetColourSchemes(self) -> List[str]:
+    def GetColourSchemes(self) -> list[str]:
         """Return the available colour schemes.
 
         Returns:
-            List[str]: A list of strings representing the available colour
+            list[str]: A list of strings representing the available colour
                 schemes.
         """
         return list(self._colourSchemeMap)

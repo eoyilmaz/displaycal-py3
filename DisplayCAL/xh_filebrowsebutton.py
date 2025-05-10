@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import wx
-import wx.xrc as xrc
 import wx.lib.filebrowsebutton as filebrowse
+import wx.xrc as xrc
+
 from DisplayCAL.log import safe_print
 
 try:

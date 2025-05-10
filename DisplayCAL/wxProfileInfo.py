@@ -1,36 +1,31 @@
-# -*- coding: utf-8 -*-
-import re
 import os
+import re
 import sys
-
 import traceback
 
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import colormath, config, x3dom
 from DisplayCAL import localization as lang
-from DisplayCAL import x3dom
+from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     defaults,
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
     get_display_rects,
+    get_verified_path,
     getbitmap,
     getcfg,
     geticon,
-    get_verified_path,
     profile_ext,
     setcfg,
     writecfg,
 )
 from DisplayCAL.icc_profile import (
-    CurveType,
-    GAMUT_VOLUME_SRGB,
     GAMUT_VOLUME_ADOBERGB,
     GAMUT_VOLUME_SMPTE431_P3,
+    GAMUT_VOLUME_SRGB,
+    CurveType,
     ICCProfile,
     ICCProfileInvalidError,
     NamedColor2Type,
@@ -51,6 +46,8 @@ from DisplayCAL.worker import (
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
+from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wxfixes import set_maxsize, wx_Panel
 from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
 from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile
 from DisplayCAL.wxwindows import (
@@ -65,7 +62,6 @@ from DisplayCAL.wxwindows import (
     SimpleBook,
     TwoWaySplitter,
 )
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton, wx_Panel, set_maxsize
 
 BGCOLOUR = "#333333"
 FGCOLOUR = "#999999"
@@ -350,10 +346,7 @@ class GamutCanvas(LUTCanvas):
                                         width=w,
                                     )
                                 )
-                                if i == 1:
-                                    xy3 = []
-                                else:
-                                    xy3 = xy3[1:]
+                                xy3 = [] if i == 1 else xy3[1:]
                         xy2 = xy2[self.size :]
 
             # Add whitepoint
@@ -452,8 +445,8 @@ class GamutCanvas(LUTCanvas):
             check = self.profiles.get(i)
             if (
                 check
-                and check.fileName == profile.fileName
-                and check.ID == profile.calculateID(False)
+                and profile.fileName == check.fileName
+                and profile.calculateID(False) == check.ID
                 and intent == self.intent
                 and direction == self.direction
                 and order == self.order
@@ -569,7 +562,7 @@ class GamutCanvas(LUTCanvas):
                     # TODO: Handle HLS and YCbr
                     tmp = list(device_values)
                     device_values = []
-                    for j, values in enumerate(tmp):
+                    for values in tmp:
                         if profile.colorSpace == b"HSV":
                             HSV = list(colormath.RGB2HSV(*values))
                             device_values.append(HSV)
@@ -609,10 +602,7 @@ class GamutCanvas(LUTCanvas):
                         print(" ".join(("%3.4f",) * len(v)) % tuple(v))
 
                 # Lookup device -> XYZ values through profile using xicclu
-                if direction == "ib" and intent not in "ar":
-                    fwd_intent = "r"
-                else:
-                    fwd_intent = intent
+                fwd_intent = "r" if direction == "ib" and intent not in "ar" else intent
                 try:
                     # Device -> PCS, fwd
                     odata = self.worker.xicclu(
@@ -659,7 +649,7 @@ class GamutViewOptions(wx_Panel):
         if scale < 1:
             scale = 1
 
-        super(GamutViewOptions, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.FlexGridSizer(0, 3, 4, 0)
         self.sizer.AddGrowableCol(0)
@@ -815,11 +805,11 @@ class GamutViewOptions(wx_Panel):
         self.options_sizer.Add(
             self.comparison_profile_label, flag=wx.ALIGN_CENTER_VERTICAL
         )
-        self.comparison_profiles = dict([(lang.getstr("calibration.file.none"), None)])
+        self.comparison_profiles = {lang.getstr("calibration.file.none"): None}
         srgb = None
         try:
             srgb = ICCProfile(get_data_path("ref/sRGB.icm"))
-        except EnvironmentError:
+        except OSError:
             pass
         except Exception as exception:
             print(exception)
@@ -1097,12 +1087,9 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
         pt = event.GetPosition()
 
         if self.GetMode(pt):
-            barSize = self._GetSashSize()
-
+            _barSize = self._GetSashSize()
             winborder, titlebar = get_platform_window_decoration_size()
-
             win0w = self.GetTopLeft().Size[0]
-
             self.Freeze()
             TwoWaySplitter.OnLeftDClick(self, event)
             if self._expanded < 0:
@@ -1468,7 +1455,7 @@ class ProfileInfoFrame(LUTFrame):
         if not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
@@ -1484,11 +1471,11 @@ class ProfileInfoFrame(LUTFrame):
         cinfo = []
         vinfo = []
         if "meta" in profile.tags:
-            for key in ("avg", "max", "rms"):
-                try:
-                    dE = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
-                except (TypeError, ValueError):
-                    pass
+            # for key in ("avg", "max", "rms"):
+            #     try:
+            #         dE = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
+            #     except (TypeError, ValueError):
+            #         pass
 
             gamuts = (
                 ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
@@ -1603,7 +1590,7 @@ class ProfileInfoFrame(LUTFrame):
             while len(label) < linecount:
                 label.append("")
             lines.extend(list(zip(label, value)))
-        for i, line in enumerate(lines):
+        for line in lines:
             line = list(line)
             indent = re.match(r"\s+", line[0])
             for j, v in enumerate(line):
@@ -1613,7 +1600,7 @@ class ProfileInfoFrame(LUTFrame):
                     r"[^0-9A-Za-z]+",
                     "_",
                     strtr(line[j], {"\u0394E": "Delta E"}).lower().strip(),
-                    0,
+                    count=0,
                 ).strip("_")
                 val = lang.getstr(key)
                 if key != val:
@@ -1662,13 +1649,13 @@ class ProfileInfoFrame(LUTFrame):
                 if color.groups()[0] == "Lab":
                     color = colormath.Lab2RGB(
                         *[float(v) for v in color.groups()[1].strip().split()],
-                        **dict(scale=255),
+                        **{"scale": 255},
                     )
                 else:
                     # XYZ
                     color = colormath.XYZ2RGB(
                         *[float(v) for v in color.groups()[1].strip().split()],
-                        **dict(scale=255),
+                        **{"scale": 255},
                     )
                 labelbgcolor = wx.Colour(*[int(round(v)) for v in color])
                 rowlabelrenderer = CustomRowLabelRenderer(labelbgcolor)
@@ -1706,10 +1693,7 @@ class ProfileInfoFrame(LUTFrame):
         wx.CallAfter(self.Destroy)
 
     def OnMotion(self, event):
-        if isinstance(event, wx.MouseEvent):
-            xy = self.client._getXY(event)
-        else:
-            xy = event
+        xy = self.client._getXY(event) if isinstance(event, wx.MouseEvent) else event
         if self.plot_mode_select.GetSelection() < self.plot_mode_select.GetCount() - 1:
             # Curves plot
             if isinstance(event, wx.MouseEvent):
@@ -1825,10 +1809,7 @@ class ProfileInfoFrame(LUTFrame):
                 self.grid.SetFocus()
             event.Skip()
         elif self.client.last_draw:
-            if event.WheelRotation < 0:
-                direction = 1.0
-            else:
-                direction = -1.0
+            direction = 1.0 if event.WheelRotation < 0 else -1.0
             self.client.zoom(direction)
 
     def _setsize(self):
@@ -1859,10 +1840,7 @@ class ProfileInfoFrame(LUTFrame):
     def get_platform_window_size(
         self, defaultwidth=None, defaultheight=None, split=False
     ):
-        if split:
-            name = ".split"
-        else:
-            name = ""
+        name = ".split" if split else ""
         if not defaultwidth:
             defaultwidth = defaults[f"size.profile_info{name}.w"]
         if not defaultheight:
@@ -2019,7 +1997,7 @@ class ProfileInfoFrame(LUTFrame):
                 return
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{path}"), self
                 )
@@ -2085,7 +2063,7 @@ class ProfileInfoFrame(LUTFrame):
                 mods.append(order)
             if mods:
                 filename = "{} {}".format(
-                    filename, "".join(["[{}]".format(mod.upper()) for mod in mods])
+                    filename, "".join([f"[{mod.upper()}]" for mod in mods])
                 )
             if comparison_profile_path:
                 filename += (
@@ -2097,7 +2075,7 @@ class ProfileInfoFrame(LUTFrame):
                         filename, "".join([f"[{mod.upper()}]" for mod in mods])
                     )
             for vrmlext in (".vrml", ".vrml.gz", ".wrl", ".wrl.gz", ".wrz"):
-                vrmlpath =  f"{filename}{vrmlext}"
+                vrmlpath = f"{filename}{vrmlext}"
                 if sys.platform == "win32":
                     vrmlpath = make_win32_compatible_long_path(vrmlpath)
                 if os.path.isfile(vrmlpath):
@@ -2161,10 +2139,7 @@ class ProfileInfoFrame(LUTFrame):
                 vrmlpath = f"{filename}.wrl"
         if os.path.isfile(vrmlpath) and colorspace not in ("Lab", None):
             filename, ext = os.path.splitext(vrmlpath)
-            if ext.lower() in (".gz", ".wrz"):
-                cls = GzipFileProper
-            else:
-                cls = open
+            cls = GzipFileProper if ext.lower() in (".gz", ".wrz") else open
             with cls(vrmlpath, "rb") as vrmlfile:
                 vrml = vrmlfile.read()
             vrml = x3dom.update_vrml(vrml, colorspace)
@@ -2195,8 +2170,6 @@ class ProfileInfoFrame(LUTFrame):
 
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
-
-        item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

@@ -199,17 +199,17 @@ Version 0.6.
 __version__ = "0.6"
 
 
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------ #
 # Beginning Of IMAGENOTEBOOK wxPython Code
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------ #
 
 from enum import IntFlag
-from typing import Dict, List, Tuple, Union
+from typing import Union
+
+import wx
 
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
 from DisplayCAL.lib.agw.fmresources import (
-    BottomShadow,
-    BottomShadowFull,
     IMG_NONE,
     IMG_OVER_EW_BORDER,
     IMG_OVER_IMG,
@@ -220,15 +220,15 @@ from DisplayCAL.lib.agw.fmresources import (
     INB_PIN_HOVER,
     INB_PIN_NONE,
     INB_PIN_PRESSED,
-    INB_TABS_BORDER_COLOUR,
     INB_TAB_AREA_BACKGROUND_COLOUR,
+    INB_TABS_BORDER_COLOUR,
     INB_TEXT_COLOUR,
+    BottomShadow,
+    BottomShadowFull,
     RightShadow,
     pin_down_xpm,
     pin_left_xpm,
 )
-
-import wx
 
 
 class ImageBookStyle(IntFlag):
@@ -290,9 +290,9 @@ wxEVT_IMAGENOTEBOOK_PAGE_CHANGING: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
 wxEVT_IMAGENOTEBOOK_PAGE_CLOSING: int = wx.NewEventType()
 wxEVT_IMAGENOTEBOOK_PAGE_CLOSED: int = wx.NewEventType()
 
-# --------------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------------ #
 #        ImageNotebookEvent
-# --------------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------------ #
 
 EVT_IMAGENOTEBOOK_PAGE_CHANGED: wx.PyEventBinder = wx.EVT_NOTEBOOK_PAGE_CHANGED
 """Notify clients when the active page in FlatImageBook or LabelBook changes."""
@@ -562,7 +562,7 @@ class ImageContainerBase(wx.Panel):
         self._bCollapsed = False
         self._tabAreaSize: wx.Size = wx.Size(-1, -1)
         self._nPinButtonStatus: int = INB_PIN_NONE
-        self._pagesInfoVec: List[ImageInfo] = []
+        self._pagesInfoVec: list[ImageInfo] = []
         self._pinBtnRect: wx.Rect = wx.Rect()
 
         wx.Panel.__init__(
@@ -817,7 +817,7 @@ class ImageContainerBase(wx.Panel):
             dc.Clear()
 
     def OnSize(self, event: wx.SizeEvent) -> None:
-        """Handle the ``wx.EVT_SIZE`` event for :class:`wx.ImageContainerBase`.
+        """Handle the wx.EVT_SIZE event for wx.ImageContainerBase.
 
         Args:
             event (wx.SizeEvent): a :class:`wx.SizeEvent` event to be processed.
@@ -826,7 +826,7 @@ class ImageContainerBase(wx.Panel):
         event.Skip()
 
     def OnEraseBackground(self, event: wx.EraseEvent) -> None:
-        """Handle the ``wx.EVT_ERASE_BACKGROUND`` event for :class:`wx.ImageContainerBase`.
+        """Handle the wx.EVT_ERASE_BACKGROUND event for wx.ImageContainerBase.
 
         Args:
             event (wx.EraseEvent): a :class:`EraseEvent` event to be processed.
@@ -836,7 +836,7 @@ class ImageContainerBase(wx.Panel):
         """
         pass
 
-    def HitTest(self, pt: wx.Point) -> Tuple[int, int]:
+    def HitTest(self, pt: wx.Point) -> tuple[int, int]:
         """Return the index of the tab at the specified position or NOT_FOUND if None.
 
         plus the flag style of :meth:`~ImageContainerBase.HitTest`.
@@ -859,9 +859,8 @@ class ImageContainerBase(wx.Panel):
         """
         style: int = self.GetParent().GetAGWWindowStyleFlag()
 
-        if style & ImageBookStyle.INB_USE_PIN_BUTTON:
-            if self._pinBtnRect.Contains(pt):
-                return -1, IMG_OVER_PIN
+        if style & ImageBookStyle.INB_USE_PIN_BUTTON and self._pinBtnRect.Contains(pt):
+            return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
@@ -1057,14 +1056,8 @@ class ImageContainerBase(wx.Panel):
                 ``False`` if it is facing leftwards.
         """
         # Set the bitmap according to the button status
-
-        if downPin:
-            pinBmp = wx.Bitmap(pin_down_xpm)
-        else:
-            pinBmp = wx.Bitmap(pin_left_xpm)
-
+        pinBmp = wx.Bitmap(pin_down_xpm) if downPin else wx.Bitmap(pin_left_xpm)
         xx: int = rect.x + 2
-
         if self._nPinButtonStatus in [INB_PIN_HOVER, INB_PIN_NONE]:
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.SetPen(wx.BLACK_PEN)
@@ -1514,7 +1507,7 @@ class ImageContainer(ImageContainerBase):
         style: ImageBookStyle,
         padding: int,
         imgTopPadding: int,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         if style & (ImageBookStyle.INB_RIGHT | ImageBookStyle.INB_LEFT):
             imgXcoord: int = self._nImgSize // 2
             imgYcoord: int = buttonRect.y + (
@@ -1552,7 +1545,7 @@ class ImageContainer(ImageContainerBase):
         textPaddingLeft: int,
         imgTopPadding: int,
         index: int,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         textWidth, textHeight = dc.GetTextExtent(
             self._get_fixed_text(
                 dc, self._pagesInfoVec[index].GetCaption(), style, padding
@@ -1665,7 +1658,7 @@ class LabelContainer(ImageContainerBase):
         ImageContainerBase.__init__(self, parent, id, pos, size, style, agwStyle, name)
         self._nTabAreaWidth = 100
         self._oldCursor: wx.Cursor = wx.NullCursor
-        self._coloursMap: Dict[int, wx.Colour] = {}
+        self._coloursMap: dict[int, wx.Colour] = {}
         self._skin: wx.Bitmap = wx.NullBitmap
         self._sashRect = wx.Rect()
 
@@ -1844,9 +1837,7 @@ class LabelContainer(ImageContainerBase):
         font.SetPointSize(
             int(font.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            font.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif (
+        if self.GetParent().GetFontBold() or (
             self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
             and self._nIndex == index
         ):
@@ -2072,7 +2063,7 @@ class LabelContainer(ImageContainerBase):
             event (wx.MouseEvent): a :class:`MouseEvent` event to be processed.
         """
         imgIdx, where = self.HitTest(event.GetPosition())
-        if IMG_OVER_EW_BORDER != where or self._bCollapsed:
+        if where != IMG_OVER_EW_BORDER or self._bCollapsed:
             return
 
         if not self._sashRect.IsEmpty():
@@ -2114,7 +2105,7 @@ class LabelContainer(ImageContainerBase):
 
         imgIdx, where = self.HitTest(event.GetPosition())
 
-        if IMG_OVER_EW_BORDER == where and not self._bCollapsed:
+        if where == IMG_OVER_EW_BORDER and not self._bCollapsed:
             if not self._sashRect.IsEmpty():
                 ArtManager.Get().DrawDragSash(self._sashRect)
             else:
@@ -2194,9 +2185,11 @@ class LabelContainer(ImageContainerBase):
         underLinedFont.SetPointSize(
             int(underLinedFont.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION) and selected:
+        if (
+            self.GetParent().GetFontBold()
+            or self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
+            and selected
+        ):
             underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
 
         underLinedFont.SetUnderlined(True)
@@ -2337,9 +2330,7 @@ class LabelContainer(ImageContainerBase):
         font.SetPointSize(
             int(font.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if self.GetParent().GetFontBold():
-            font.SetWeight(wx.FONTWEIGHT_BOLD)
-        elif (
+        if self.GetParent().GetFontBold() or (
             self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
             and self._nIndex == self._nHoveredImgIdx
         ):
@@ -2603,7 +2594,7 @@ class FlatBookBase(wx.Panel):
         self._pages = None
         self._bInitializing = True
         self._bForceSelection = False
-        self._windows: List[wx.Window] = []
+        self._windows: list[wx.Window] = []
         self._fontSizeMultiple = 1.0
         self._fontBold = False
 
@@ -2615,7 +2606,6 @@ class FlatBookBase(wx.Panel):
 
         self.Bind(wx.EVT_NAVIGATION_KEY, self.OnNavigationKey)
         self.Bind(wx.EVT_MOUSE_CAPTURE_LOST, lambda evt: True)
-
 
     def CreateImageContainer(self) -> ImageContainerBase:
         """Create the image container class for :class:`FlatBookBase`."""

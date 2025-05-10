@@ -133,7 +133,6 @@ from typing import Optional, Union
 
 import wx
 
-
 HOVER = 1
 """Flag used to indicate that the mouse is hovering on a :class:`GradientButton`."""
 CLICK = 2

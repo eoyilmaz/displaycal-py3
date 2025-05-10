@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This module provides utility functions for operating system-related tasks."""
 
 import builtins
@@ -7,7 +5,6 @@ import ctypes
 import errno
 import fnmatch
 import glob
-import importlib
 import os
 import pathlib
 import re
@@ -17,20 +14,22 @@ import subprocess as sp
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Type, Union
+from collections.abc import Iterator
+from typing import Any, Callable, Optional, Union
 
 from DisplayCAL.encoding import get_encodings
 
 if sys.platform == "win32":
     import msvcrt
+
     import pywintypes
     import win32api
     import win32con
     import win32file
     import win32security
+    import winerror
     from win32.win32file import GetFileAttributes
     from winioctlcon import FSCTL_GET_REPARSE_POINT
-    import winerror
 
 if sys.platform != "win32":
     # Linux
@@ -38,47 +37,6 @@ if sys.platform != "win32":
     import grp
     import pwd
 
-try:
-    reloaded  # type: ignore
-except NameError:
-    # First import. All fine
-    reloaded = 0
-else:
-    # Module is being reloaded. NOT recommended.
-    reloaded += 1  # type: ignore
-    import warnings
-
-    warnings.warn(
-        "Module {} is being reloaded. This is NOT recommended.".format(__name__),
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    warnings.warn(
-        "Implicitly reloading builtins",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    if sys.platform == "win32":
-        importlib.reload(builtins)
-    warnings.warn(
-        "Implicitly reloading os",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    importlib.reload(os)
-    warnings.warn(
-        "Implicitly reloading os.path",
-        RuntimeWarning,
-        stacklevel=2,
-    )
-    importlib.reload(os.path)
-    if sys.platform == "win32":
-        warnings.warn(
-            "Implicitly reloading win32api",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-        importlib.reload(win32api)
 
 # Cache used for safe_shell_filter() function
 _cache = {}
@@ -102,12 +60,14 @@ def setup_win32_long_paths():
             while True:
                 try:
                     return fn(*args, **kwargs)
-                except WindowsError as exception:
-                    if exception.winerror == winerror.ERROR_SHARING_VIOLATION:
-                        if retries < maxretries:
-                            retries += 1
-                            time.sleep(delay)
-                            continue
+                except OSError as exception:
+                    if (
+                        exception.winerror == winerror.ERROR_SHARING_VIOLATION
+                        and retries < maxretries
+                    ):
+                        retries += 1
+                        time.sleep(delay)
+                        continue
                     raise
 
         return retry_sharing_violation
@@ -181,17 +141,17 @@ else:
     os.listdir = listdir
 
 
-def quote_args(args: List[str]) -> List[str]:
+def quote_args(args: list[str]) -> list[str]:
     """Quote commandline arguments where needed.
 
     It quotes all arguments that contain spaces or any of the characters
     ^!$%&()[]{}=;'+,`~
 
     Args:
-        args: (List[str]): List of commandline arguments to be quoted.
+        args: (list[str]): List of commandline arguments to be quoted.
 
     Returns:
-        List[str]: List of quoted commandline arguments.
+        list[str]: List of quoted commandline arguments.
     """
     args_out = []
     for arg in args:
@@ -347,10 +307,7 @@ def _handle_percent_sign(path, index, res):
             index = pathlen - 1
         else:
             var = path[:index]
-            if var in os.environ:
-                res = res + getenvu(var)
-            else:
-                res = res + "%" + var + "%"
+            res = res + getenvu(var) if var in os.environ else f"{res}%{var}%"
     return res
 
 
@@ -368,10 +325,7 @@ def _handle_dollar_sign(path, index, res):
         try:
             index = path.index("}")
             var = path[:index]
-            if var in os.environ:
-                res = res + getenvu(var)
-            else:
-                res = res + "${" + var + "}"
+            res = res + getenvu(var) if var in os.environ else f"{res}${{{var}}}"
         except ValueError:
             res = res + "${" + path
             index = pathlen - 1
@@ -383,23 +337,20 @@ def _handle_dollar_sign(path, index, res):
             var = var + c
             index = index + 1
             c = path[index : index + 1]
-        if var in os.environ:
-            res = res + getenvu(var)
-        else:
-            res = res + "$" + var
+        res = res + getenvu(var) if var in os.environ else f"{res}${var}"
         if c != "":
             index = index - 1
     return res
 
 
-def fname_ext(path: str) -> Tuple[str, str]:
+def fname_ext(path: str) -> tuple[str, str]:
     """Get filename and extension.
 
     Args:
         path (str): The path to the file.
 
     Returns:
-        Tuple[str, str]: A tuple containing the filename and extension.
+        tuple[str, str]: A tuple containing the filename and extension.
     """
     return os.path.splitext(os.path.basename(path))
 
@@ -450,7 +401,7 @@ def getenvu(name: str, default: Optional[str] = None) -> str:
         return var if isinstance(var, str) else var.encode(fs_enc)
 
 
-def getgroups(username: Optional[str] = None, names_only: bool = False) -> List[str]:
+def getgroups(username: Optional[str] = None, names_only: bool = False) -> list[str]:
     """Return a list of groups that user is member of.
 
     Or groups of current process if username not given.
@@ -461,7 +412,7 @@ def getgroups(username: Optional[str] = None, names_only: bool = False) -> List[
             Defaults to False.
 
     Returns:
-        List[str]: A list of groups.
+        list[str]: A list of groups.
     """
     if sys.platform == "win32":
         return _getgroups_win32(username, names_only)
@@ -471,7 +422,7 @@ def getgroups(username: Optional[str] = None, names_only: bool = False) -> List[
 
 def _getgroups_win32(
     username: Optional[str] = None, names_only: bool = False
-) -> List[str]:
+) -> list[str]:
     """Return a list of groups that user is member of under Windows.
 
     Or groups of current process if username not given.
@@ -482,7 +433,7 @@ def _getgroups_win32(
             Defaults to False.
 
     Returns:
-        List[str]: A list of groups.
+        list[str]: A list of groups.
     """
     # TODO: This one doesn't discern groups from group names...
     if username is None:
@@ -526,7 +477,7 @@ def _getgroups_unix(username: Optional[str] = None, names_only: bool = False):
             Defaults to False.
 
     Returns:
-        List[str]: A list of groups.
+        list[str]: A list of groups.
     """
 
     groups = []
@@ -591,11 +542,7 @@ def launch_file(filepath: str) -> Union[None, int]:
         Union[None, int]: The return code of the launched application.
     """
     retcode = None
-    kwargs = {
-        "stdin": sp.PIPE,
-        "stdout": sp.PIPE,
-        "stderr": sp.PIPE
-    }
+    kwargs = {"stdin": sp.PIPE, "stdout": sp.PIPE, "stderr": sp.PIPE}
     if sys.platform == "darwin":
         retcode = sp.call(["open", filepath], **kwargs)
     elif sys.platform == "win32":
@@ -615,7 +562,7 @@ def launch_file(filepath: str) -> Union[None, int]:
     return retcode
 
 
-def listdir_re(path, rex: Optional[str] = None) -> List[str]:
+def listdir_re(path, rex: Optional[str] = None) -> list[str]:
     """Filter directory contents through a regular expression.
 
     Args:
@@ -623,7 +570,7 @@ def listdir_re(path, rex: Optional[str] = None) -> List[str]:
         rex (Optional[str]): The regular expression pattern. Defaults to None.
 
     Returns:
-        List[str]: A list of files matching the regular expression.
+        list[str]: A list of files matching the regular expression.
     """
     files = os.listdir(path)
     if rex:
@@ -665,7 +612,7 @@ def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
         text (bool): Whether to open the file in text mode. Defaults to False.
 
     Returns:
-        Tuple[str, str]: A tuple containing the file descriptor and the path of
+        tuple[str, str]: A tuple containing the file descriptor and the path of
             the temporary file.
     """
     fname, ext = fname_ext(path)
@@ -683,7 +630,7 @@ def _set_cloexec(fd):
 
     try:
         flags = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
-    except IOError:
+    except OSError:
         pass
     else:
         # flags read successfully, modify
@@ -691,7 +638,7 @@ def _set_cloexec(fd):
         _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
 
 
-def mksfile(filename: str) -> Tuple[int, str]:
+def mksfile(filename: str) -> tuple[int, str]:
     """Create a file safely and return (fd, abspath).
 
     If filename already exists, add '(n)' as suffix before extension
@@ -705,16 +652,13 @@ def mksfile(filename: str) -> Tuple[int, str]:
         OSError: If an OS error occurs during file creation.
 
     Returns:
-        Tuple[int, str]: A tuple containing the file descriptor and the absolute
+        tuple[int, str]: A tuple containing the file descriptor and the absolute
             path of the created file.
     """
     flags = tempfile._bin_openflags
     fname, ext = os.path.splitext(filename)
     for seq in range(tempfile.TMP_MAX):
-        if not seq:
-            pth = filename
-        else:
-            pth = f"{fname}({seq:d}){ext}"
+        pth = filename if not seq else f"{fname}({seq:d}){ext}"
         try:
             fd = os.open(pth, flags, 0o600)
             _set_cloexec(fd)
@@ -724,7 +668,7 @@ def mksfile(filename: str) -> Tuple[int, str]:
                 continue  # Try again
             raise
 
-    raise IOError(errno.EEXIST, "No usable temporary file name found")
+    raise OSError(errno.EEXIST, "No usable temporary file name found")
 
 
 def movefile(src: str, dst: str, overwrite: bool = True) -> None:
@@ -928,7 +872,7 @@ def relpath(path: str, start: str) -> str:
         return os.path.sep.join([".."] * (len(start) - len(path)))
 
 
-def safe_glob(pathname: str) -> List[str]:
+def safe_glob(pathname: str) -> list[str]:
     """Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la fnmatch.
@@ -944,7 +888,7 @@ def safe_glob(pathname: str) -> List[str]:
         pathname (str): The pathname pattern.
 
     Returns:
-        List[str]: A list of paths matching the pattern.
+        list[str]: A list of paths matching the pattern.
     """
     return list(safe_iglob(pathname))
 
@@ -989,10 +933,7 @@ def safe_iglob(pathname: str) -> Iterator[str]:
         dirs = safe_iglob(dirname)
     else:
         dirs = [dirname]
-    if glob.has_magic(basename):
-        glob_in_dir = safe_glob1
-    else:
-        glob_in_dir = glob.glob0
+    glob_in_dir = safe_glob1 if glob.has_magic(basename) else glob.glob0
     for dirname in dirs:
         for name in glob_in_dir(dirname, basename):
             yield os.path.join(dirname, name)
@@ -1014,7 +955,7 @@ def safe_glob1(dirname, pattern):
         dirname = str(dirname, sys.getfilesystemencoding() or sys.getdefaultencoding())
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return []
     if pattern[0] != ".":
         names = [x for x in names if x[0] != "."]
@@ -1100,34 +1041,32 @@ def waccess(path: str, mode: int) -> bool:
     """
     if mode & os.R_OK:
         try:
-            test = open(path, "rb")
-        except EnvironmentError:
+            with open(path, "rb"):
+                pass
+        except OSError:
             return False
-        test.close()
     if mode & os.W_OK:
-        if os.path.isdir(path):
-            dir = path
-        else:
-            dir = os.path.dirname(path)
+        dir = path if os.path.isdir(path) else os.path.dirname(path)
         try:
             if os.path.isfile(path):
-                test = open(path, "ab")
+                with open(path, "ab"):
+                    pass
             else:
-                test = tempfile.TemporaryFile(prefix=".", dir=dir)
-        except EnvironmentError:
+                with tempfile.TemporaryFile(prefix=".", dir=dir):
+                    pass
+        except OSError:
             return False
-        test.close()
     if mode & os.X_OK:
         return os.access(path, mode)
     return True
 
 
-def which(executable: str, paths: Optional[List[str]] = None) -> Union[None, str]:
+def which(executable: str, paths: Optional[list[str]] = None) -> Union[None, str]:
     """Return the full path of executable.
 
     Args:
         executable (str): The name of the executable.
-        paths (Optional[List[str]]): The list of paths to search. Defaults to None.
+        paths (Optional[list[str]]): The list of paths to search. Defaults to None.
 
     Returns:
         Union[None, str]: The full path of the executable if found, otherwise None.
@@ -1147,26 +1086,26 @@ def which(executable: str, paths: Optional[List[str]] = None) -> Union[None, str
 
 
 def whereis(
-    names: List[str],
+    names: list[str],
     bin: bool = True,
-    bin_paths: Optional[List[str]] = None,
+    bin_paths: Optional[list[str]] = None,
     man: bool = True,
-    man_paths: Optional[List[str]] = None,
+    man_paths: Optional[list[str]] = None,
     src: bool = True,
-    src_paths: Optional[List[str]] = None,
+    src_paths: Optional[list[str]] = None,
     unusual: bool = False,
     list_paths: bool = False,
 ):
     """Wrap whereis.
 
     Args:
-        names (List[str]): The names to search for.
+        names (list[str]): The names to search for.
         bin (bool): Whether to search for binaries. Defaults to True.
-        bin_paths (Optional[List[str]]): The list of binary paths. Defaults to None.
+        bin_paths (Optional[list[str]]): The list of binary paths. Defaults to None.
         man (bool): Whether to search for man pages. Defaults to True.
-        man_paths (Optional[List[str]]): The list of man paths. Defaults to None.
+        man_paths (Optional[list[str]]): The list of man paths. Defaults to None.
         src (bool): Whether to search for source files. Defaults to True.
-        src_paths (Optional[List[str]]): The list of source paths. Defaults to None.
+        src_paths (Optional[list[str]]): The list of source paths. Defaults to None.
         unusual (bool): Whether to search for unusual files. Defaults to False.
         list_paths (bool): Whether to list paths. Defaults to False.
 
@@ -1181,29 +1120,29 @@ def whereis(
 
 def build_whereis_args(
     bin: bool,
-    bin_paths: List[str],
+    bin_paths: list[str],
     man: bool,
-    man_paths: List[str],
+    man_paths: list[str],
     src: bool,
-    src_paths: List[str],
+    src_paths: list[str],
     unusual: bool,
-    list_paths: List[str],
-) -> List[str]:
+    list_paths: list[str],
+) -> list[str]:
     """
     Build arguments for the whereis command.
 
     Args:
         bin (bool): Whether to search for binaries.
-        bin_paths (List[str]): The list of binary paths.
+        bin_paths (list[str]): The list of binary paths.
         man (bool): Whether to search for man pages.
-        man_paths (List[str]): The list of man paths.
+        man_paths (list[str]): The list of man paths.
         src (bool): Whether to search for source files.
-        src_paths (List[str]): The list of source paths.
+        src_paths (list[str]): The list of source paths.
         unusual (bool): Whether to search for unusual files.
         list_paths (bool): Whether to list paths.
 
     Returns:
-        List[str]: The list of arguments for the whereis command.
+        list[str]: The list of arguments for the whereis command.
     """
     args = []
     if bin:
@@ -1230,15 +1169,15 @@ def build_whereis_args(
     return args
 
 
-def execute_whereis(names: List[str], args: List[Any]) -> Dict:
+def execute_whereis(names: list[str], args: list[Any]) -> dict:
     """Execute the whereis command with the given arguments.
 
     Args:
-        names (List[str]): The names to search for.
-        args (List[Any]): The list of arguments for the whereis command.
+        names (list[str]): The names to search for.
+        args (list[Any]): The list of arguments for the whereis command.
 
     Returns:
-        Dict: The results of the whereis command.
+        dict: The results of the whereis command.
     """
     if isinstance(names, str):
         names = [names]
@@ -1247,14 +1186,14 @@ def execute_whereis(names: List[str], args: List[Any]) -> Dict:
     return parse_whereis_output(stdout)
 
 
-def parse_whereis_output(stdout: bytes) -> Dict:
+def parse_whereis_output(stdout: bytes) -> dict:
     """Parse the output of the whereis command.
 
     Args:
         stdout (bytes): The output of the whereis command.
 
     Returns:
-        Dict: The parsed results of the whereis command.
+        dict: The parsed results of the whereis command.
     """
     result = {}
     for line in stdout.decode().strip().splitlines():
@@ -1309,10 +1248,7 @@ class FileLock:
             fn = win32file.LockFileEx
             args = (self._handle, mode, 0, -0x10000, self._overlapped)
         else:
-            if self.exclusive:
-                op = fcntl.LOCK_EX
-            else:
-                op = fcntl.LOCK_SH
+            op = fcntl.LOCK_EX if self.exclusive else fcntl.LOCK_SH
             if not self.blocking:
                 op |= fcntl.LOCK_NB
             fn = fcntl.flock
@@ -1332,12 +1268,12 @@ class FileLock:
         self._call(fn, args, UnlockingError)
 
     @staticmethod
-    def _call(fn: Callable, args: Any, exception_cls: Type):
+    def _call(fn: Callable, args: Any, exception_cls: type) -> None:
         """Call the function with the given arguments.
 
         Args:
             fn (Callable): The function to call.
-            args (Tuple[Any]): The arguments to pass to the function.
+            args (tuple[Any]): The arguments to pass to the function.
             exception_cls (Type): The exception class to raise.
 
         Raises:
@@ -1346,7 +1282,7 @@ class FileLock:
         try:
             fn(*args)
         except FileLock._exception_cls as exception:
-            raise exception_cls(*exception.args)
+            raise exception_cls(*exception.args) from exception
 
 
 class Error(Exception):

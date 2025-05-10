@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import demjson_compat
 
 from DisplayCAL.lazydict import LazyDict

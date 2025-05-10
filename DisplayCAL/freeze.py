@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 """This script is used by the py2exe to freeze the library into executables."""
 
-import sys
+import ctypes.util
 import functools
-import shutil
 import os
 import platform
-from setuptools import Extension, setup
-from distutils.util import change_root, get_platform
-from fnmatch import fnmatch
+import shutil
+import sys
 from configparser import ConfigParser
-import ctypes.util
+from distutils.util import get_platform
+from fnmatch import fnmatch
 from time import strftime
 
 from py2exe import freeze
@@ -54,15 +52,14 @@ print(f"source_dir: {source_dir}")
 sys.path.append(source_dir)
 
 
-from DisplayCAL.defaultpaths import autostart, autostart_home
 from DisplayCAL.meta import (
+    DOMAIN,
     appstream_id,
     author,
     author_ascii,
     author_email,
     description,
     development_home_page,
-    DOMAIN,
     longdesc,
     name,
     py_maxversion,
@@ -70,9 +67,7 @@ from DisplayCAL.meta import (
     script2pywname,
     version,
     version_tuple,
-    wx_minversion,
 )
-from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import getenvu, relpath, safe_glob
 from DisplayCAL.util_str import safe_str
 
@@ -223,10 +218,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         files = files[pkgname]
         resource_dir = os.path.join(src_dir, pkgname)
         if subkey:
-            if subkey in files:
-                files = files[subkey]
-            else:
-                files = []
+            files = files.get(subkey, [])
     data = []
     for pth in files:
         if not [exclude for exclude in excludes or [] if fnmatch(pth, exclude)]:
@@ -283,7 +275,7 @@ def build_py2exe():
     setuptools = True
     debug = False
     dry_run = False
-    do_full_install = False
+    # do_full_install = False
 
     doc = "."
     data = "."
@@ -423,19 +415,7 @@ def build_py2exe():
                     desktopicons,
                 )
             )
-    sources = [os.path.join(name, "RealDisplaySizeMM.c")]
-    macros = [("NT", None)]
-    libraries = ["user32", "gdi32"]
-    link_args = None
-    extname = f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}.RealDisplaySizeMM"
-    RealDisplaySizeMM = Extension(
-        extname,
-        sources=sources,
-        define_macros=macros,
-        libraries=libraries,
-        extra_link_args=link_args,
-    )
-    ext_modules = [RealDisplaySizeMM]
+    ext_modules = []
     requires = []
     requires.append("pywin32 (>= 213.0)")
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
@@ -456,7 +436,8 @@ def build_py2exe():
             "Environment :: Win32 (MS Windows)",
             "Environment :: X11 Applications",
             "Intended Audience :: End Users/Desktop",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: GNU General Public License v3 "
+            "or later (GPLv3+)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
@@ -467,7 +448,8 @@ def build_py2exe():
         ],
         "data_files": data_files,
         "description": description,
-        "download_url": f"{development_home_page}/releases/download/{version}/{name}-{version}.tar.gz",
+        "download_url": f"{development_home_page}/releases/download/"
+            f"{version}/{name}-{version}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,
@@ -506,7 +488,7 @@ def build_py2exe():
                 for script, desc in scripts
             ]
         }
-        attrs["exclude_package_data"] = {name: ["RealDisplaySizeMM.c"]}
+        attrs["exclude_package_data"] = {}
         attrs["include_package_data"] = False
         install_requires = [req.replace("(", "").replace(")", "") for req in requires]
         attrs["install_requires"] = install_requires
@@ -522,13 +504,9 @@ def build_py2exe():
             ]
         )
 
-    import wx
     from winmanifest_util import getmanifestxml
 
-    if platform.architecture()[0] == "64bit":
-        arch = "amd64"
-    else:
-        arch = "x86"
+    arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
     manifest_xml = getmanifestxml(
         os.path.join(
             pydir,
@@ -549,7 +527,7 @@ def build_py2exe():
         f"{appname.lower()}-apply-profiles-launcher",
         f"{appname} Profile Loader Launcher",
     )
-    for script, desc in scripts + [apply_profiles_launcher]:
+    for script, _desc in scripts + [apply_profiles_launcher]:
         shutil.copy(
             os.path.join(source_dir, "scripts", script),
             os.path.join(tmp_scripts_dir, script2pywname(script)),
@@ -807,7 +785,7 @@ def build_py2exe():
         ),
     )
 
-    from vc90crt import name as vc90crt_name, vc90crt_copy_files
+    from vc90crt import vc90crt_copy_files
 
     vc90crt_copy_files(dist_dir)
     vc90crt_copy_files(os.path.join(dist_dir, "lib"))

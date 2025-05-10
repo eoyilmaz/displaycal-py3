@@ -1,22 +1,12 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-"""
+"""Interactive display calibration UI."""
 
 import os
+import platform
 import re
 import sys
 
-if sys.platform == "win32":
-    from ctypes import windll
-elif sys.platform == "darwin":
-    from platform import mac_ver
-
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.lib.agw import labelbook
-from DisplayCAL.lib.agw.fmresources import *
-from DisplayCAL.lib.agw.pygauge import PyGauge
-
+from DisplayCAL import audio, config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     get_data_path,
     get_default_dpi,
@@ -26,24 +16,40 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
-from DisplayCAL.config import enc
+from DisplayCAL.lib.agw import labelbook
+from DisplayCAL.lib.agw.fmresources import (
+    IMG_NONE,
+    IMG_OVER_EW_BORDER,
+    IMG_OVER_IMG,
+    IMG_OVER_PIN,
+    INB_BORDER,
+    INB_BOTTOM,
+    INB_FIT_BUTTON,
+    INB_FIT_LABELTEXT,
+    INB_LEFT,
+    INB_RIGHT,
+    INB_SHOW_ONLY_IMAGES,
+    INB_SHOW_ONLY_TEXT,
+    INB_TOP,
+    INB_USE_PIN_BUTTON,
+    INB_WEB_HILITE,
+)
+from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap
+from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 BORDERCOLOUR = wx.Colour(0x22, 0x22, 0x22)
@@ -142,9 +148,8 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         style = self.GetParent().GetAGWWindowStyleFlag()
 
-        if style & INB_USE_PIN_BUTTON:
-            if self._pinBtnRect.Contains(pt):
-                return -1, IMG_OVER_PIN
+        if style & INB_USE_PIN_BUTTON and self._pinBtnRect.Contains(pt):
+            return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
@@ -208,11 +213,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         clientSize = 0
         bUseYcoord = style & INB_RIGHT or style & INB_LEFT
-
-        if bUseYcoord:
-            clientSize = size.GetHeight()
-        else:
-            clientSize = size.GetWidth()
+        clientSize = size.GetHeight() if bUseYcoord else size.GetWidth()
 
         # We reserver 20 pixels for the 'pin' button
 
@@ -244,9 +245,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
             count = count + 1
 
-            # incase the 'fit button' style is applied, we set the rectangle width to the
+            # incase the 'fit button' style is applied,
+            # we set the rectangle width to the
             # text width plus padding
-            # Incase the style IS applied, but the style is either LEFT or RIGHT
+            # Incase the style IS applied,
+            # but the style is either LEFT or RIGHT
             # we ignore it
             normalFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
             dc.SetFont(normalFont)
@@ -267,7 +270,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             if (
                 style & INB_FIT_BUTTON
                 and not ((style & INB_LEFT) or (style & INB_RIGHT))
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
                 rectWidth = (
@@ -281,8 +284,9 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                     rectWidth += 1
 
             # Check that we have enough space to draw the button
-            # If Pin button is used, consider its space as well (applicable for top/botton style)
-            # since in the left/right, its size is already considered in 'pos'
+            # If Pin button is used, consider its space as well (applicable
+            # for top/botton style) since in the left/right, its size is already
+            # considered in 'pos'
             pinBtnSize = (bUsePin and [20] or [0])[0]
 
             if pos + rectWidth + pinBtnSize > clientSize:
@@ -305,10 +309,10 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             else:
                 buttonRect = wx.Rect(pos, 1, modRectWidth, modRectHeight)
 
-            if bUseYcoord:
-                rect = wx.Rect(0, pos, rectWidth, rectWidth)
-            else:
-                rect = wx.Rect(pos, 0, rectWidth, rectWidth)
+            # if bUseYcoord:
+            #     rect = wx.Rect(0, pos, rectWidth, rectWidth)
+            # else:
+            #     rect = wx.Rect(pos, 0, rectWidth, rectWidth)
 
             # Incase user set both flags:
             # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
@@ -361,7 +365,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             # Draw the text
             if (
                 not style & INB_SHOW_ONLY_IMAGES
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
             ):
                 dc.SetFont(normalFont)
 
@@ -415,8 +419,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
 
 class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
-    """Override default agw ImageContainer to use BackgroundColour and ForegroundColour with no borders/labeltext and
-    hilite image instead of hilite shading
+    """Overridden agw.ImageContainer.
+
+    This is a subclass of L{FlatImageBook} that allows you to use
+    BackgroundColour and ForegroundColour with no borders/labeltext and hilite
+    image instead of hilite shading.
     """
 
     def __init__(
@@ -439,9 +446,10 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         )
 
     def SetAGWWindowStyleFlag(self, agwStyle):
-        """Sets the window style.
+        """Set the window style.
 
-        :param agwStyle: can be a combination of the following bits.
+        Args:
+            agwStyle: Can be a combination of the following bits.
 
          =========================== =========== ==================================================
          Window Styles               Hex Value   Description
@@ -461,7 +469,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
          ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
          ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
          =========================== =========== ==================================================
-        """
+        """  # noqa: E501
 
         self._agwStyle = agwStyle
 
@@ -520,7 +528,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 class DisplayAdjustmentPanel(wx_Panel):
     def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):
         # wx_Panel.__init__(self, parent, id)
-        super(DisplayAdjustmentPanel, self).__init__(parent, id)
+        super().__init__(parent, id)
         self.ctrltype = ctrltype
         self.SetBackgroundColour(BGCOLOUR)
         self.SetForegroundColour(FGCOLOUR)
@@ -534,8 +542,8 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.GetSizer().Add(self.title_txt)
         self.sizer = wx.FlexGridSizer(0, 2, 0, 0)
         self.GetSizer().Add(self.sizer, flag=wx.TOP, border=8)
-        self.gauges = dict()
-        self.txt = dict()
+        self.gauges = {}
+        self.txt = {}
         if ctrltype == "check_all":
             txt = wx.StaticText(
                 self,
@@ -736,7 +744,7 @@ class DisplayAdjustmentFrame(windowcls):
         #                    lang.getstr("calibration.interactive_display_adjustment"),
         #                    style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
         #                    name="displayadjustmentframe")
-        super(DisplayAdjustmentFrame, self).__init__(
+        super().__init__(
             parent,
             wx.ID_ANY,
             lang.getstr("calibration.interactive_display_adjustment"),
@@ -940,7 +948,7 @@ class DisplayAdjustmentFrame(windowcls):
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
 
-        for id in self.id_to_keycode.keys():
+        for id in self.id_to_keycode:
             if id >= 0:
                 continue
             try:
@@ -964,8 +972,8 @@ class DisplayAdjustmentFrame(windowcls):
                 setcfg("position.progress.y", y)
 
     def OnPageChanging(self, event):
-        oldsel = event.GetOldSelection()
-        newsel = event.GetSelection()
+        _oldsel = event.GetOldSelection()
+        _newsel = event.GetSelection()
         self.abort()
         event.Skip()
 
@@ -1084,7 +1092,9 @@ class DisplayAdjustmentFrame(windowcls):
             page = self.lb.GetPage(pagenum)
             page.SetSize((w, -1))
             page.desc.SetLabel(page.desc.GetLabel().replace("\n", " "))
-            if sys.platform == "darwin" and intlist(mac_ver()[0].split(".")) >= [
+            if sys.platform == "darwin" and intlist(
+                platform.mac_ver()[0].split(".")
+            ) >= [
                 10,
                 10,
             ]:
@@ -1127,17 +1137,15 @@ class DisplayAdjustmentFrame(windowcls):
         self.SetSaneGeometry(x, y)
 
     def abort(self):
-        if self.has_worker_subprocess():
-            if self.is_measuring:
-                self.worker.safe_send(" ")
+        if self.has_worker_subprocess() and self.is_measuring:
+            self.worker.safe_send(" ")
 
     def abort_and_send(self, key):
         self.abort()
-        if self.has_worker_subprocess():
-            if self.worker.safe_send(key):
-                self.is_busy = True
-                self.adjustment_btn.Disable()
-                self.calibration_btn.Disable()
+        if self.has_worker_subprocess() and self.worker.safe_send(key):
+            self.is_busy = True
+            self.adjustment_btn.Disable()
+            self.calibration_btn.Disable()
 
     def add_panel(self, size=wx.DefaultSize, flag=0):
         panel = get_panel(self, size)
@@ -1245,7 +1253,9 @@ class DisplayAdjustmentFrame(windowcls):
             event.Skip()
 
     def measurement_play_sound_handler(self, event):
-        # self.measurement_play_sound_ctrl.SetValue(not self.measurement_play_sound_ctrl.GetValue())
+        # self.measurement_play_sound_ctrl.SetValue(
+        #     not self.measurement_play_sound_ctrl.GetValue()
+        # )
         setcfg(
             "measurement.play_sound", int(not (bool(getcfg("measurement.play_sound"))))
         )
@@ -1279,7 +1289,9 @@ class DisplayAdjustmentFrame(windowcls):
         )
         if getcfg("measurement_mode") == "c":
             target_bl = re.search(
-                r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
+                (
+                    r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(
                     " ", r"\s+"
                 ),
                 txt,
@@ -1291,7 +1303,11 @@ class DisplayAdjustmentFrame(windowcls):
                     float(target_bl.groups()[0]),
                 ]
         initial_br = re.search(
-            r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)".replace(
+            (
+                r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, "
+                r"x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)"
+            ).replace(
                 " ", r"\s+"
             ),
             txt,
@@ -1312,9 +1328,9 @@ class DisplayAdjustmentFrame(windowcls):
             )
         else:
             current_br = re.search(
-                r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
-                    " ", r"\s+"
-                ),
+                (
+                    r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(" ", r"\s+"),
                 txt,
                 re.I,
             )
@@ -1329,7 +1345,10 @@ class DisplayAdjustmentFrame(windowcls):
                     current_bl = float(target_bl.groups()[1])
             else:
                 current_bl = re.search(
-                    r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) (?:\d+(?:\.\d+)?)".replace(
+                    (
+                        r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) "
+                        r"(?:\d+(?:\.\d+)?)"
+                    ).replace(
                         " ", r"\s+"
                     ),
                     txt,
@@ -1338,15 +1357,19 @@ class DisplayAdjustmentFrame(windowcls):
                 if current_bl:
                     current_bl = float(current_bl.groups()[0])
         xy_dE_rgb = re.search(
-            r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) R([=+-]+) G([=+-]+) B([=+-]+)".replace(
-                " ", r"\s+"
-            ),
+            (
+                r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) "
+                r"R([=+-]+) G([=+-]+) B([=+-]+)"
+            ).replace(" ", r"\s+"),
             txt,
             re.I,
         )
-        white_xy_dE_re = r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), (?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)".replace(
-            " ", r"\s+"
-        )
+        white_xy_dE_re = (
+            r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), "
+            r"Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), "
+            r"(?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)"
+        ).replace(" ", r"\s+")
         white_xy_dE = re.search(white_xy_dE_re, txt, re.I)
         black_xy_dE = re.search(white_xy_dE_re.replace(r"white", "black"), txt, re.I)
         white_xy_target = re.search(
@@ -1380,10 +1403,7 @@ class DisplayAdjustmentFrame(windowcls):
                 target_br or initial_br or ("Initial", float(current_br.groups()[0]))
             )
             lstr = (compare_br[0]).lower()
-            if compare_br[1]:
-                percent = 100.0 / compare_br[1]
-            else:
-                percent = 100.0
+            percent = 100.0 / compare_br[1] if compare_br[1] else 100.0
             l_diff = float(current_br.groups()[0]) - compare_br[1]
             l = int(round(50 + l_diff * percent))
             if self.lb.GetCurrentPage().gauges.get("L"):
@@ -1442,10 +1462,7 @@ class DisplayAdjustmentFrame(windowcls):
                     abs(l_diff) * percent,
                 )
             else:
-                if target_bl:
-                    l_diff = 0
-                else:
-                    l_diff = None
+                l_diff = 0 if target_bl else None
                 label = lang.getstr("current") + " %.2f cd/m\u00b2" % current_bl
             self.lb.GetCurrentPage().txt[
                 "black_level"
@@ -1557,14 +1574,14 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} "
+                    "\u0394E*00"
                 ).replace("  ", " ")
                 if black_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(black_xy_target.groups())
-                    label = (
-                        lang.getstr("target") + " x %.4f y %.4f\n" % (x, y)
-                    ).replace("  ", " ") + label
+                    label = (f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n").replace(
+                        "  ", " "
+                    ) + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["black_point"], label)
         if (
             current_br or current_bl or xy_dE_rgb
@@ -1700,37 +1717,37 @@ Adjust CRT brightness to get target level. Press space when done.
    Target 1.29
 / Current 2.02  -""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  27.11  27.76  24.72
-                   White = XYZ 125.91 128.38 113.18
+Black = XYZ   0.19   0.20   0.29
+Grey  = XYZ  27.11  27.76  24.72
+White = XYZ 125.91 128.38 113.18
 
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.02  -""",
+Adjust CRT brightness to get target level. Press space when done.
+   Target 1.28
+/ Current 2.02  -""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.28
-                   Grey  = XYZ  27.08  27.72  24.87
-                   White = XYZ 125.47 127.86 113.60
+Black = XYZ   0.19   0.21   0.28
+Grey  = XYZ  27.08  27.72  24.87
+White = XYZ 125.47 127.86 113.60
 
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.02  -""",
+Adjust CRT brightness to get target level. Press space when done.
+   Target 1.28
+/ Current 2.02  -""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  27.11  27.77  25.01
-                   White = XYZ 125.21 127.80 113.90
+Black = XYZ   0.19   0.20   0.29
+Grey  = XYZ  27.11  27.77  25.01
+White = XYZ 125.21 127.80 113.90
 
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.03  -""",
+Adjust CRT brightness to get target level. Press space when done.
+   Target 1.28
+/ Current 2.03  -""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.30
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
+Black = XYZ   0.19   0.20   0.30
+Grey  = XYZ  23.56  24.14  21.83
+White = XYZ 124.87 130.00 112.27
 
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 1.28""",
+Adjust CRT brightness to get target level. Press space when done.
+   Target 1.28
+/ Current 1.28""",
             ][i]
         elif bytes_ == "2":
             # White point
@@ -1745,41 +1762,41 @@ Adjust R,G & B gain to desired white point. Press space when done.
   Initial Br 128.96, x 0.3438 , y 0.3504 , VDT 5152K DE 2K  4.7
 / Current Br 128.85, x 0.3439-, y 0.3502+  VDT 5151K DE 2K  4.8  R-  G++ B-""",
                 r"""Doing some initial measurements
-                   Red   = XYZ  80.48  38.87   2.43
-                   Green = XYZ  27.58  79.99  10.96
-                   Blue  = XYZ  18.34   9.93 100.24
-                   White = XYZ 125.94 128.32 113.11
+Red   = XYZ  80.48  38.87   2.43
+Green = XYZ  27.58  79.99  10.96
+Blue  = XYZ  18.34   9.93 100.24
+White = XYZ 125.94 128.32 113.11
 
-                   Adjust R,G & B gain to desired white point. Press space when done.
-                     Initial Br 130.00, x 0.3428 , y 0.3493 , VDT 5193K DE 2K  4.9
-                   / Current Br 128.39, x 0.3428-, y 0.3496+  VDT 5190K DE 2K  4.7  R-  G++ B-""",
+Adjust R,G & B gain to desired white point. Press space when done.
+  Initial Br 130.00, x 0.3428 , y 0.3493 , VDT 5193K DE 2K  4.9
+/ Current Br 128.39, x 0.3428-, y 0.3496+  VDT 5190K DE 2K  4.7  R-  G++ B-""",
                 r"""Doing some initial measurements
-                   Red   = XYZ  80.01  38.57   2.44
-                   Green = XYZ  27.51  79.85  10.95
-                   Blue  = XYZ  18.45   9.94 100.77
-                   White = XYZ 125.48 127.88 113.70
+Red   = XYZ  80.01  38.57   2.44
+Green = XYZ  27.51  79.85  10.95
+Blue  = XYZ  18.45   9.94 100.77
+White = XYZ 125.48 127.88 113.70
 
-                   Adjust R,G & B gain to desired white point. Press space when done.
-                     Initial Br 127.88, x 0.3419 , y 0.3484 , VDT 5232K DE 2K  5.0
-                   / Current Br 127.87, x 0.3419-, y 0.3485+  VDT 5231K DE 2K  4.9  R-  G++ B-""",
+Adjust R,G & B gain to desired white point. Press space when done.
+  Initial Br 127.88, x 0.3419 , y 0.3484 , VDT 5232K DE 2K  5.0
+/ Current Br 127.87, x 0.3419-, y 0.3485+  VDT 5231K DE 2K  4.9  R-  G++ B-""",
                 r"""Doing some initial measurements
-                   Red   = XYZ  79.69  38.48   2.44
-                   Green = XYZ  27.47  79.76  10.95
-                   Blue  = XYZ  18.50   9.95 101.06
-                   White = XYZ 125.08 127.71 113.91
+Red   = XYZ  79.69  38.48   2.44
+Green = XYZ  27.47  79.76  10.95
+Blue  = XYZ  18.50   9.95 101.06
+White = XYZ 125.08 127.71 113.91
 
-                   Adjust R,G & B gain to get target x,y. Press space when done.
-                      Target Br 127.71, x 0.3401 , y 0.3540
-                   / Current Br 127.70, x 0.3412-, y 0.3481+  DE  4.8  R-  G++ B-""",
+Adjust R,G & B gain to get target x,y. Press space when done.
+   Target Br 127.71, x 0.3401 , y 0.3540
+/ Current Br 127.70, x 0.3412-, y 0.3481+  DE  4.8  R-  G++ B-""",
                 r"""Doing some initial measurements
-                   Red   = XYZ  79.47  38.41   2.44
-                   Green = XYZ  27.41  79.72  10.94
-                   Blue  = XYZ  18.52   9.96 101.20
-                   White = XYZ 124.87 130.00 112.27
+Red   = XYZ  79.47  38.41   2.44
+Green = XYZ  27.41  79.72  10.94
+Blue  = XYZ  18.52   9.96 101.20
+White = XYZ 124.87 130.00 112.27
 
-                   Adjust R,G & B gain to get target x,y. Press space when done.
-                      Target Br 130.00, x 0.3401 , y 0.3540
-                   / Current Br 130.00, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
+Adjust R,G & B gain to get target x,y. Press space when done.
+   Target Br 130.00, x 0.3401 , y 0.3540
+/ Current Br 130.00, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
             ][i]
         elif bytes_ == "3":
             # White level
@@ -1791,29 +1808,29 @@ Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
   Initial 128.83
 / Current 128.85""",
                 r"""Doing some initial measurements
-                   White = XYZ 125.87 128.23 113.43
+White = XYZ 125.87 128.23 113.43
 
-                   Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
-                      Target 130.00
-                   / Current 128.24  +""",
+Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
+   Target 130.00
+/ Current 128.24  +""",
                 r"""Doing some initial measurements
-                   White = XYZ 125.33 127.94 113.70
+White = XYZ 125.33 127.94 113.70
 
-                   Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
-                     Initial 127.94
-                   / Current 127.88""",
+Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
+  Initial 127.94
+/ Current 127.88""",
                 r"""Doing some initial measurements
-                   White = XYZ 125.00 127.72 114.03
+White = XYZ 125.00 127.72 114.03
 
-                   Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
-                     Initial 127.72
-                   / Current 127.69""",
+Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
+  Initial 127.72
+/ Current 127.69""",
                 r"""Doing some initial measurements
-                   White = XYZ 124.87 130.00 112.27
+White = XYZ 124.87 130.00 112.27
 
-                   Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
-                      Target 130.00
-                   / Current 130.00""",
+Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
+   Target 130.00
+/ Current 130.00""",
             ][i]
         elif bytes_ == "4":
             # Black point
@@ -1827,37 +1844,37 @@ Adjust R,G & B offsets to get target x,y. Press space when done.
    Target Br 1.29, x 0.3440 , y 0.3502
 / Current Br 2.03, x 0.3409+, y 0.3484+  DE  1.7  R++ G+  B-""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.19  27.87  24.94
-                   White = XYZ 125.83 128.16 113.57
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  27.19  27.87  24.94
+White = XYZ 125.83 128.16 113.57
 
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3423 , y 0.3487
-                   / Current Br 2.03, x 0.3391+, y 0.3470+  DE  1.7  R++ G+  B-""",
+Adjust R,G & B offsets to get target x,y. Press space when done.
+   Target Br 1.28, x 0.3423 , y 0.3487
+/ Current Br 2.03, x 0.3391+, y 0.3470+  DE  1.7  R++ G+  B-""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.14  27.79  24.97
-                   White = XYZ 125.49 127.89 113.90
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  27.14  27.79  24.97
+White = XYZ 125.49 127.89 113.90
 
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3417 , y 0.3482
-                   / Current Br 2.02, x 0.3386+, y 0.3466+  DE  1.7  R++ G+  B-""",
+Adjust R,G & B offsets to get target x,y. Press space when done.
+   Target Br 1.28, x 0.3417 , y 0.3482
+/ Current Br 2.02, x 0.3386+, y 0.3466+  DE  1.7  R++ G+  B-""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.30
-                   Grey  = XYZ  27.10  27.79  25.12
-                   White = XYZ 125.12 127.68 114.09
+Black = XYZ   0.19   0.21   0.30
+Grey  = XYZ  27.10  27.79  25.12
+White = XYZ 125.12 127.68 114.09
 
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3401 , y 0.3540
-                   / Current Br 2.04, x 0.3373+, y 0.3465+  DE  4.4  R+  G++ B-""",
+Adjust R,G & B offsets to get target x,y. Press space when done.
+   Target Br 1.28, x 0.3401 , y 0.3540
+/ Current Br 2.04, x 0.3373+, y 0.3465+  DE  4.4  R+  G++ B-""",
                 r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  23.56  24.14  21.83
+White = XYZ 124.87 130.00 112.27
 
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3401 , y 0.3540
-                   / Current Br 1.28, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
+Adjust R,G & B offsets to get target x,y. Press space when done.
+   Target Br 1.28, x 0.3401 , y 0.3540
+/ Current Br 1.28, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
             ][i]
         elif bytes_ == "5":
             # Check all
@@ -1876,57 +1893,57 @@ White = XYZ 126.71 128.91 112.34
 
 Press 1 .. 7""",
                 r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.10  27.75  24.85
-                   White = XYZ 125.78 128.17 113.53
-                   1%    = XYZ   1.93   1.98   1.79
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  27.10  27.75  24.85
+White = XYZ 125.78 128.17 113.53
+1%    = XYZ   1.93   1.98   1.79
 
-                     Target Brightness = 130.00, Current = 128.17, error = -1.4%
-                     Target 50% Level  = 24.28, Current = 27.75, error =  2.7%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Current white = x 0.3423, y 0.3488, VDT 5215K DE 2K  4.9
-                     Target black = x 0.3423, y 0.3488, Current = x 0.3391, y 0.3467, error =  1.69 DE
+  Target Brightness = 130.00, Current = 128.17, error = -1.4%
+  Target 50% Level  = 24.28, Current = 27.75, error =  2.7%
+  Target Near Black =  1.28, Current =  2.02, error =  0.6%
+  Current white = x 0.3423, y 0.3488, VDT 5215K DE 2K  4.9
+  Target black = x 0.3423, y 0.3488, Current = x 0.3391, y 0.3467, error =  1.69 DE
 
-                   Press 1 .. 7""",
+Press 1 .. 7""",
                 r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.09  27.74  24.95
-                   White = XYZ 125.32 127.78 113.82
-                   1%    = XYZ   1.93   1.98   1.80
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  27.09  27.74  24.95
+White = XYZ 125.32 127.78 113.82
+1%    = XYZ   1.93   1.98   1.80
 
-                     Current Brightness = 127.78
-                     Target 50% Level  = 24.21, Current = 27.74, error =  2.8%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Current white = x 0.3415, y 0.3483, VDT 5243K DE 2K  4.9
-                     Target black = x 0.3415, y 0.3483, Current = x 0.3386, y 0.3465, error =  1.55 DE
+  Current Brightness = 127.78
+  Target 50% Level  = 24.21, Current = 27.74, error =  2.8%
+  Target Near Black =  1.28, Current =  2.02, error =  0.6%
+  Current white = x 0.3415, y 0.3483, VDT 5243K DE 2K  4.9
+  Target black = x 0.3415, y 0.3483, Current = x 0.3386, y 0.3465, error =  1.55 DE
 
-                   Press 1 .. 7""",
+Press 1 .. 7""",
                 r"""Doing check measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  26.98  27.68  24.97
-                   White = XYZ 125.00 127.56 113.99
-                   1%    = XYZ   1.92   1.97   1.80
+Black = XYZ   0.19   0.20   0.29
+Grey  = XYZ  26.98  27.68  24.97
+White = XYZ 125.00 127.56 113.99
+1%    = XYZ   1.92   1.97   1.80
 
-                     Current Brightness = 127.56
-                     Target 50% Level  = 24.17, Current = 27.68, error =  2.8%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Target white = x 0.3401, y 0.3540, Current = x 0.3410, y 0.3480, error =  4.83 DE
-                     Target black = x 0.3401, y 0.3540, Current = x 0.3372, y 0.3464, error =  4.48 DE
+  Current Brightness = 127.56
+  Target 50% Level  = 24.17, Current = 27.68, error =  2.8%
+  Target Near Black =  1.28, Current =  2.02, error =  0.6%
+  Target white = x 0.3401, y 0.3540, Current = x 0.3410, y 0.3480, error =  4.83 DE
+  Target black = x 0.3401, y 0.3540, Current = x 0.3372, y 0.3464, error =  4.48 DE
 
-                   Press 1 .. 7""",
+Press 1 .. 7""",
                 r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
-                   1%    = XYZ   1.92   1.97   1.80
+Black = XYZ   0.19   0.21   0.29
+Grey  = XYZ  23.56  24.14  21.83
+White = XYZ 124.87 130.00 112.27
+1%    = XYZ   1.92   1.97   1.80
 
-                     Target Brightness = 130.00, Current = 130.00, error = 0.0%
-                     Target 50% Level  = 24.14, Current = 24.14, error =  0.0%
-                     Target Near Black =  1.27, Current =  1.27, error =  0.0%
-                     Target white = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
-                     Target black = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
+  Target Brightness = 130.00, Current = 130.00, error = 0.0%
+  Target 50% Level  = 24.14, Current = 24.14, error =  0.0%
+  Target Near Black =  1.27, Current =  1.27, error =  0.0%
+  Target white = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
+  Target black = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
 
-                   Press 1 .. 7""",
+Press 1 .. 7""",
             ][i]
         elif bytes_ == "7" or not bytes_:
             if bytes_ == "7":
@@ -1946,37 +1963,37 @@ Target white brightness = native brightness
 Target black brightness = native brightness
 Target advertised gamma = 2.400000""",
                     r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = native white point
-                   Target white brightness = 130.000000 cd/m^2
-                   Target black brightness = native brightness
-                   Target advertised gamma = 2.400000""",
+Place instrument on test window.
+Hit Esc or Q to give up, any other key to continue:
+Display type is LCD
+Target white = native white point
+Target white brightness = 130.000000 cd/m^2
+Target black brightness = native brightness
+Target advertised gamma = 2.400000""",
                     r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = native white point
-                   Target white brightness = native brightness
-                   Target black brightness = 0.500000 cd/m^2
-                   Target advertised gamma = 2.400000""",
+Place instrument on test window.
+Hit Esc or Q to give up, any other key to continue:
+Display type is LCD
+Target white = native white point
+Target white brightness = native brightness
+Target black brightness = 0.500000 cd/m^2
+Target advertised gamma = 2.400000""",
                     r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = 5200.000000 degrees kelvin Daylight spectrum
-                   Target white brightness = native brightness
-                   Target black brightness = native brightness
-                   Target advertised gamma = 2.400000""",
+Place instrument on test window.
+Hit Esc or Q to give up, any other key to continue:
+Display type is LCD
+Target white = 5200.000000 degrees kelvin Daylight spectrum
+Target white brightness = native brightness
+Target black brightness = native brightness
+Target advertised gamma = 2.400000""",
                     r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is CRT
-                   Target white = 5200.000000 degrees kelvin Daylight spectrum
-                   Target white brightness = 130.000000 cd/m^2
-                   Target black brightness = 0.500000 cd/m^2
-                   Target advertised gamma = 2.400000""",
+Place instrument on test window.
+Hit Esc or Q to give up, any other key to continue:
+Display type is CRT
+Target white = 5200.000000 degrees kelvin Daylight spectrum
+Target white brightness = 130.000000 cd/m^2
+Target black brightness = 0.500000 cd/m^2
+Target advertised gamma = 2.400000""",
                 ][i]
                 + r"""
 
@@ -1993,5 +2010,5 @@ Display adjustment menu:"""
             wx.CallAfter(app.TopWindow.write, line)
             print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

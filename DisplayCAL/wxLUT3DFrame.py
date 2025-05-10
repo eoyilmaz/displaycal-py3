@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 import shutil
@@ -11,16 +9,19 @@ from DisplayCAL.argyll import check_set_argyll_bin
 if sys.platform == "win32":
     import win32api
 
+from wx import xrc
+
 from DisplayCAL import (
     colormath,
     config,
     floatspin,
-    localization as lang,
-    madvr,
     worker,
     xh_bitmapctrls,
     xh_filebrowsebutton,
     xh_floatspin,
+)
+from DisplayCAL import (
+    localization as lang,
 )
 from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import video_encodings
@@ -28,32 +29,28 @@ from DisplayCAL.config import (
     defaults,
     get_data_path,
     get_verified_path,
-    getcfg,
     geticon,
-    hascfg,
     profile_ext,
-    setcfg,
 )
 from DisplayCAL.icc_profile import (
     CurveType,
+    DictType,
     ICCProfile,
     ICCProfileInvalidError,
-    DictType,
     LUT16Type,
     VideoCardGammaType,
 )
-from DisplayCAL.meta import name as appname, version
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
 from DisplayCAL.util_os import islink, readlink, safe_glob, waccess
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import (
     Error,
-    Info,
     UnloggedInfo,
     UnloggedWarning,
     get_current_profile_path,
-    get_options_from_profile,
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import CustomEvent
@@ -63,11 +60,8 @@ from DisplayCAL.wxwindows import (
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
-
-from wx import xrc
 
 
 class LUT3DMixin:
@@ -127,7 +121,7 @@ class LUT3DMixin:
         )
         for color in ("white", "red", "green", "blue"):
             for coord in "xy":
-                v = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
+                _ = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
                 getattr(self, "lut3d_content_colorspace_%s_%s" % (color, coord)).Bind(
                     floatspin.EVT_FLOATSPIN, self.lut3d_content_colorspace_xy_handler
                 )
@@ -232,16 +226,17 @@ class LUT3DMixin:
         )
 
     def lut3d_hdr_display_handler(self, event):
-        if self.lut3d_hdr_display_ctrl.GetSelection() and not self.getcfg(
-            "3dlut.hdr_display"
-        ):
-            if not show_result_dialog(
+        if (
+            self.lut3d_hdr_display_ctrl.GetSelection()
+            and not self.getcfg("3dlut.hdr_display")
+            and not show_result_dialog(
                 UnloggedInfo(lang.getstr("3dlut.format.madVR.hdr.confirm")),
                 self,
                 confirm=lang.getstr("ok"),
-            ):
-                self.lut3d_hdr_display_ctrl.SetSelection(0)
-                return
+            )
+        ):
+            self.lut3d_hdr_display_ctrl.SetSelection(0)
+            return
         self.lut3d_set_option(
             "3dlut.hdr_display", self.lut3d_hdr_display_ctrl.GetSelection()
         )
@@ -469,28 +464,32 @@ class LUT3DMixin:
             show_result_dialog(result, self)
         # Remove temporary files
         self.worker.wrapup(False)
-        if not isinstance(result, Exception) and result:
-            if not isinstance(self, LUT3DFrame) and getattr(self, "lut3d_path", None):
-                # 3D LUT tab is part of main window
-                if self.getcfg("3dlut.create"):
-                    # 3D LUT was created automatically after profiling, show
-                    # usual profile summary window
-                    self.profile_finish(
-                        True,
-                        self.getcfg("calibration.file", False),
-                        lang.getstr("calibration_profiling.complete"),
-                        lang.getstr("profiling.incomplete"),
-                        install_3dlut=True,
-                    )
-                else:
-                    # 3D LUT was created manually
-                    self.profile_finish(
-                        True,
-                        self.getcfg("calibration.file", False),
-                        "",
-                        lang.getstr("profiling.incomplete"),
-                        install_3dlut=True,
-                    )
+        if (
+            not isinstance(result, Exception)
+            and result
+            and not isinstance(self, LUT3DFrame)
+            and getattr(self, "lut3d_path", None)
+        ):
+            # 3D LUT tab is part of main window
+            if self.getcfg("3dlut.create"):
+                # 3D LUT was created automatically after profiling, show
+                # usual profile summary window
+                self.profile_finish(
+                    True,
+                    self.getcfg("calibration.file", False),
+                    lang.getstr("calibration_profiling.complete"),
+                    lang.getstr("profiling.incomplete"),
+                    install_3dlut=True,
+                )
+            else:
+                # 3D LUT was created manually
+                self.profile_finish(
+                    True,
+                    self.getcfg("calibration.file", False),
+                    "",
+                    lang.getstr("profiling.incomplete"),
+                    install_3dlut=True,
+                )
 
     def lut3d_create_handler(self, event, path=None, copy_from_path=None):
         if sys.platform == "darwin" or debug:
@@ -521,7 +520,7 @@ class LUT3DMixin:
 
             try:
                 profile_in = ICCProfile(profile_in_path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(lang.getstr("profile.invalid") + "\n" + profile_in_path),
                     parent=self,
@@ -546,13 +545,16 @@ class LUT3DMixin:
         if None not in (profile_in, profile_out) or (
             profile_in and profile_in.profileClass == "link"
         ):
-            if profile_out and profile_in.isSame(profile_out, force_calculation=True):
-                if not show_result_dialog(
+            if (
+                profile_out
+                and profile_in.isSame(profile_out, force_calculation=True)
+                and not show_result_dialog(
                     Warning(lang.getstr("error.source_dest_same")),
                     self,
                     confirm=lang.getstr("continue"),
-                ):
-                    return
+                )
+            ):
+                return
             checkoverwrite = True
             remember_last_3dlut_path = False
             if not path:
@@ -814,13 +816,15 @@ class LUT3DMixin:
                                         reshade_fx = reshade_fx_file.read()
                                     # Remove existing shader include
                                     reshade_fx = re.sub(
-                                        r"[ \t]*//\s*Automatically\s+\S+\s+by\s+%s\s+.+[ \t]*\r?\n?"
-                                        % appname,
+                                        r"[ \t]*//\s*Automatically\s+\S+\s+by\s+"
+                                        f"{appname}"
+                                        r"\s+.+[ \t]*\r?\n?",
                                         "",
                                         reshade_fx,
                                     )
                                     reshade_fx = re.sub(
-                                        r'[ \t]*#include\s+"ColorLookupTable.fx"[ \t]*\r?\n?',
+                                        r'[ \t]*#include\s+"ColorLookupTable.fx"'
+                                        "[ \t]*\r?\n?",
                                         "",
                                         reshade_fx,
                                     ).rstrip("\r\n")
@@ -881,7 +885,7 @@ class LUT3DMixin:
         trc_gamma_type = self.getcfg("3dlut.trc_gamma_type")
         outoffset = self.getcfg("3dlut.trc_output_offset")
         intent = self.getcfg("3dlut.rendering_intent")
-        format = self.getcfg("3dlut.format")
+        file_format = self.getcfg("3dlut.format")
         size = self.getcfg("3dlut.size")
         input_bits = self.getcfg("3dlut.bitdepth.input")
         output_bits = self.getcfg("3dlut.bitdepth.output")
@@ -911,7 +915,7 @@ class LUT3DMixin:
                 profile_out,
                 apply_cal=apply_cal,
                 intent=intent,
-                format=format,
+                file_format=file_format,
                 size=size,
                 input_bits=input_bits,
                 output_bits=output_bits,
@@ -948,12 +952,12 @@ class LUT3DMixin:
 
     def lut3d_format_ctrl_handler(self, event):
         # Get selected format
-        format = self.lut3d_formats_ab[self.lut3d_format_ctrl.GetSelection()]
+        file_format = self.lut3d_formats_ab[self.lut3d_format_ctrl.GetSelection()]
         encoding_overrides = ("dcl", "eeColor", "madVR", "ReShade")
         size_overrides = ("dcl", "eeColor", "madVR", "mga", "ReShade")
         if (
             self.getcfg("3dlut.format") in encoding_overrides
-            and format not in encoding_overrides
+            and file_format not in encoding_overrides
         ):
             # If previous format forced specific encoding, restore encoding
             self.setcfg(
@@ -967,7 +971,7 @@ class LUT3DMixin:
             self.setcfg("3dlut.size", self.getcfg("3dlut.size.backup"))
         if (
             self.getcfg("3dlut.format") not in encoding_overrides
-            and format in encoding_overrides
+            and file_format in encoding_overrides
         ):
             # If selected format forces specific encoding, backup current encoding
             self.setcfg(
@@ -977,30 +981,30 @@ class LUT3DMixin:
                 "3dlut.encoding.output.backup", self.getcfg("3dlut.encoding.output")
             )
         # Set selected format
-        self.lut3d_set_option("3dlut.format", format)
-        if format in size_overrides:
+        self.lut3d_set_option("3dlut.format", file_format)
+        if file_format in size_overrides:
             # If selected format forces specific size, backup current size
             self.setcfg("3dlut.size.backup", self.getcfg("3dlut.size"))
-        if format == "eeColor":
+        if file_format == "eeColor":
             # -et -Et for eeColor
             if self.getcfg("3dlut.encoding.input") not in ("t", "T"):
                 self.lut3d_set_option("3dlut.encoding.input", "t")
             self.lut3d_set_option("3dlut.encoding.output", "t")
             # eeColor uses a fixed size of 65x65x65
             self.lut3d_set_option("3dlut.size", 65)
-        elif format == "mga":
+        elif file_format == "mga":
             # Pandora uses a fixed bitdepth of 16
             self.lut3d_set_option("3dlut.bitdepth.output", 16)
             self.lut3d_bitdepth_output_ctrl.SetSelection(self.lut3d_bitdepth_ba[16])
-        elif format == "madVR":
+        elif file_format == "madVR":
             # -et -Et for madVR
             if self.getcfg("3dlut.encoding.input") not in ("t", "T"):
                 self.lut3d_set_option("3dlut.encoding.input", "t")
             self.lut3d_set_option("3dlut.encoding.output", "t")
             # collink says madVR works best with 65
             self.lut3d_set_option("3dlut.size", 65)
-        elif format in ("png", "ReShade"):
-            if format == "ReShade":
+        elif file_format in ("png", "ReShade"):
+            if file_format == "ReShade":
                 self.lut3d_set_option("3dlut.encoding.input", "n")
                 self.lut3d_set_option("3dlut.encoding.output", "n")
                 self.lut3d_set_option("3dlut.bitdepth.output", 8)
@@ -1009,7 +1013,7 @@ class LUT3DMixin:
             self.lut3d_bitdepth_output_ctrl.SetSelection(
                 self.lut3d_bitdepth_ba[self.getcfg("3dlut.bitdepth.output")]
             )
-        elif format == "dcl":
+        elif file_format == "dcl":
             self.lut3d_set_option("3dlut.encoding.input", "n")
             self.lut3d_set_option("3dlut.encoding.output", "n")
             self.lut3d_set_option("3dlut.size", 33)
@@ -1041,7 +1045,7 @@ class LUT3DMixin:
             if self.Parent:
                 self.Parent.lut3d_update_shared_controls()
         self.lut3d_create_btn.Enable(
-            format != "madVR" or self.output_profile_ctrl.IsShown()
+            file_format != "madVR" or self.output_profile_ctrl.IsShown()
         )
 
     def lut3d_size_ctrl_handler(self, event):
@@ -1058,10 +1062,7 @@ class LUT3DMixin:
 
     def lut3d_snap_size(self, size):
         if self.getcfg("3dlut.format") == "mga" and size not in (17, 33):
-            if size < 33:
-                size = 17
-            else:
-                size = 33
+            size = 17 if size < 33 else 33
         elif self.getcfg("3dlut.format") == "ReShade" and size not in (16, 32, 64):
             if size < 32:
                 size = 16
@@ -1133,11 +1134,13 @@ class LUT3DMixin:
         self.lut3d_formats_ba = {}
         self.lut3d_format_ctrl.Clear()
         i = 0
-        for format in config.valid_values["3dlut.format"]:
-            if format != "madVR" or self.worker.argyll_version >= [1, 6]:
-                self.lut3d_format_ctrl.Append(lang.getstr("3dlut.format.%s" % format))
-                self.lut3d_formats_ab[i] = format
-                self.lut3d_formats_ba[format] = i
+        for file_format in config.valid_values["3dlut.format"]:
+            if file_format != "madVR" or self.worker.argyll_version >= [1, 6]:
+                self.lut3d_format_ctrl.Append(
+                    lang.getstr("3dlut.format.%s" % file_format)
+                )
+                self.lut3d_formats_ab[i] = file_format
+                self.lut3d_formats_ba[file_format] = i
                 i += 1
 
         self.lut3d_hdr_display_ctrl.SetItems(
@@ -1166,23 +1169,20 @@ class LUT3DMixin:
             self.lut3d_bitdepth_ba[bitdepth] = i
 
     def lut3d_setup_encoding_ctrl(self):
-        format = self.getcfg("3dlut.format")
+        file_format = self.getcfg("3dlut.format")
         # Shared with amin window
-        if format == "madVR":
+        if file_format == "madVR":
             encodings = ["t"]
             config.defaults["3dlut.encoding.input"] = "t"
             config.defaults["3dlut.encoding.output"] = "t"
         else:
-            if format == "dcl":
-                encodings = ["n"]
-            else:
-                encodings = list(video_encodings)
+            encodings = ["n"] if file_format == "dcl" else list(video_encodings)
             config.defaults["3dlut.encoding.input"] = "n"
             config.defaults["3dlut.encoding.output"] = "n"
         if (
             self.worker.argyll_version >= [1, 7]
             and self.worker.argyll_version != [1, 7, 0, "_beta"]
-            and format != "dcl"
+            and file_format != "dcl"
         ):
             # Argyll 1.7 beta 3 (2015-04-02) added clip WTW on input TV encoding
             encodings.insert(2, "T")
@@ -1245,10 +1245,7 @@ class LUT3DMixin:
         diffuse_PQ = colormath.specialpow(diffuse_ref_cdm2 / 10000, 1.0 / -2084)
         # Determine white cd/m2 after roll-off
         diffuse_tgt_cdm2 = colormath.specialpow(bt2390.apply(diffuse_PQ), -2084) * 10000
-        if diffuse_tgt_cdm2 < diffuse_ref_cdm2:
-            signalcolor = "#CC0000"
-        else:
-            signalcolor = "#008000"
+        signalcolor = "#CC0000" if diffuse_tgt_cdm2 < diffuse_ref_cdm2 else "#008000"
         self.lut3d_hdr_diffuse_white_txt.ForegroundColour = signalcolor
         self.lut3d_hdr_diffuse_white_txt.Label = "%.2f" % diffuse_tgt_cdm2
         self.lut3d_hdr_diffuse_white_txt_label.ForegroundColour = signalcolor
@@ -1292,10 +1289,7 @@ class LUT3DMixin:
 
     def lut3d_update_trc_control(self):
         if self.getcfg("3dlut.trc").startswith("smpte2084"):  # SMPTE 2084
-            if self.getcfg("3dlut.trc") == "smpte2084.hardclip":
-                sel = 2
-            else:
-                sel = 3
+            sel = 2 if self.getcfg("3dlut.trc") == "smpte2084.hardclip" else 3
             self.lut3d_trc_ctrl.SetSelection(sel)
         elif self.getcfg("3dlut.trc") == "hlg":  # Hybrid Log-Gamma (HLG)
             self.lut3d_trc_ctrl.SetSelection(4)
@@ -1594,10 +1588,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
         self.XYZbpout = [0.001, 0.001, 0.001]
         self.update_controls()
         self.update_layout()
-        if self.panel.VirtualSize[0] > self.panel.Size[0]:
-            scrollrate_x = 2
-        else:
-            scrollrate_x = 0
+        scrollrate_x = 2 if self.panel.VirtualSize[0] > self.panel.Size[0] else 0
         self.panel.SetScrollRate(scrollrate_x, 2)
 
         config.defaults.update(
@@ -1733,12 +1724,12 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                 return
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except ICCProfileInvalidError:
                 if not silent:
                     show_result_dialog(
-                        Error(lang.getstr("profile.invalid") + "\n" + path), parent=self
+                        Error(f"{lang.getstr('profile.invalid')}\n{path}"), parent=self
                     )
-            except IOError as exception:
+            except OSError as exception:
                 if not silent:
                     show_result_dialog(exception, parent=self)
             else:
@@ -1957,11 +1948,11 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                 "abstract": lang.getstr("3dlut.use_abstract_profile"),
                 "output": lang.getstr("output.profile"),
             }[which]
-            kwargs = dict(
-                toolTip=msg.rstrip(":"),
-                dialogTitle=msg,
-                fileMask=lang.getstr("filetype.icc") + "|*.icc;*.icm",
-            )
+            kwargs = {
+                "toolTip": msg.rstrip(":"),
+                "dialogTitle": msg,
+                "fileMask": lang.getstr("filetype.icc") + "|*.icc;*.icm",
+            }
             ctrl = getattr(self, "%s_profile_ctrl" % which)
             for name in kwargs:
                 value = kwargs[name]
@@ -2040,12 +2031,8 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
         elif (
             hasattr(self, "input_profile")
             and isinstance(self.input_profile.tags.get("A2B0"), LUT16Type)
-            and isinstance(
-                self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type
-            )
-            and isinstance(
-                self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type
-            )
+            and isinstance(self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type)
+            and isinstance(self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type)
         ):
             self.lut3d_trc_apply_black_offset_ctrl.Enable(self.XYZbpin != self.XYZbpout)
             if self.XYZbpin == self.XYZbpout:

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-DisplayCAL setup.py script
+"""DisplayCAL setup.py script.
 
 Can be used with setuptools or pure distutils (the latter can be forced
 with the --use-distutils option, otherwise it will try to use setuptools
@@ -24,17 +22,17 @@ the wrapper script in the root directory of the source tar.gz/zip
 
 import codecs
 import ctypes.util
-from configparser import ConfigParser
-from distutils.command.install import install
 import distutils.core
-from distutils.util import change_root, get_platform
-from fnmatch import fnmatch
 import functools
 import os
 import platform
 import re
 import shutil
 import sys
+from configparser import ConfigParser
+from distutils.command.install import install
+from distutils.util import change_root, get_platform
+from fnmatch import fnmatch
 from time import strftime
 
 
@@ -70,13 +68,13 @@ distutils.filelist.findall = findall  # Fix findall bug in distutils
 
 from DisplayCAL.defaultpaths import autostart, autostart_home
 from DisplayCAL.meta import (
+    DOMAIN,
     appstream_id,
     author,
     author_ascii,
     author_email,
     description,
     development_home_page,
-    DOMAIN,
     longdesc,
     name,
     py_maxversion,
@@ -86,7 +84,6 @@ from DisplayCAL.meta import (
     version_tuple,
     wx_minversion,
 )
-from DisplayCAL.util_list import intlist
 from DisplayCAL.util_os import getenvu, relpath, safe_glob
 from DisplayCAL.util_str import safe_str
 
@@ -289,7 +286,7 @@ def create_app_symlinks(dist_dir, scripts):
                     tgt = os.path.join(toolcontents, entry, subentry)
                     if subentry == "main.py":
                         # py2app
-                        with open(src, "r") as main_in:
+                        with open(src) as main_in:
                             py = main_in.read()
                         py = py.replace("main()", "main(%r)" % script[len(name) + 1 :])
                         with open(tgt, "wb") as main_out:
@@ -319,7 +316,7 @@ def create_app_symlinks(dist_dir, scripts):
                 # CFBundleName / CFBundleDisplayName
                 infoxml = re.sub(
                     r"(Name</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + toolname,
+                    lambda match, toolname=toolname: match.group(1) + toolname,
                     infoxml,
                 )
                 # CFBundleIdentifier
@@ -331,7 +328,7 @@ def create_app_symlinks(dist_dir, scripts):
                 # CFBundleExecutable
                 infoxml = re.sub(
                     r"(Executable</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + script,
+                    lambda match, script=script: match.group(1) + script,
                     infoxml,
                 )
                 with codecs.open(
@@ -353,10 +350,10 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         key (str): The config key.
         pkgname (Union[None, str]): Name of the package. Default is None.
         subkey (Union[None, str]): Name of the subkey. Default is None.
-        excludes (Union[None, List[str]]): List of files to exclude. Default is None.
+        excludes (Union[None, list[str]]): List of files to exclude. Default is None.
 
     Returns:
-        List[str]: List of strings showing the paths of the data files.
+        list[str]: List of strings showing the paths of the data files.
     """
     files = config[key]
     src_dir = source_dir
@@ -365,10 +362,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         # modifying the src_dir is not working with py2app, so disabling it.
         # src_dir = os.path.join(src_dir, pkgname)
         if subkey:
-            if subkey in files:
-                files = files[subkey]
-            else:
-                files = []
+            files = files.get(subkey, [])
     data = []
     for pth in files:
         if not [exclude for exclude in excludes or [] if fnmatch(pth, exclude)]:
@@ -468,8 +462,7 @@ def setup():
         if "--use-setuptools" in sys.argv[1:] and not os.path.exists("use-setuptools"):
             open("use-setuptools", "w").close()
         try:
-            import setuptools
-            from setuptools import setup, Extension, find_packages
+            from setuptools import find_packages, setup
 
             setuptools = True
             print("using setuptools")
@@ -501,7 +494,7 @@ def setup():
         distutils.filelist.findall = findall
 
     if not setuptools:
-        from distutils.core import setup, Extension
+        from distutils.core import setup
 
         print("using distutils")
 
@@ -884,30 +877,29 @@ def setup():
             )
         )
 
-    sources = []
-    if sys.platform == "win32":
-        macros = [("NT", None)]
-        libraries = ["user32", "gdi32"]
-        link_args = None
-    elif sys.platform == "darwin":
-        macros = [("__APPLE__", None), ("UNIX", None)]
-        libraries = None
-        # XXX: Not sure which macOS version exactly removed the need
-        # to specify -framework
-        if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
-            link_args = None
-        else:
-            link_args = [
-                "-framework Carbon",
-                "-framework CoreFoundation",
-                "-framework Python",
-                "-framework IOKit",
-            ]
-
-    else:
-        macros = [("UNIX", None)]
-        libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
-        link_args = None
+    # sources = []
+    # if sys.platform == "win32":
+    #     macros = [("NT", None)]
+    #     libraries = ["user32", "gdi32"]
+    #     link_args = None
+    # elif sys.platform == "darwin":
+    #     macros = [("__APPLE__", None), ("UNIX", None)]
+    #     libraries = None
+    #     # XXX: Not sure which macOS version exactly removed the need
+    #     # to specify -framework
+    #     if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
+    #         link_args = None
+    #     else:
+    #         link_args = [
+    #             "-framework Carbon",
+    #             "-framework CoreFoundation",
+    #             "-framework Python",
+    #             "-framework IOKit",
+    #         ]
+    # else:
+    #     macros = [("UNIX", None)]
+    #     libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
+    #     link_args = None
 
     ext_modules = []
 
@@ -932,7 +924,8 @@ def setup():
             "Environment :: Win32 (MS Windows)",
             "Environment :: X11 Applications",
             "Intended Audience :: End Users/Desktop",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: GNU General Public License v3 "
+            "or later (GPLv3+)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
@@ -943,7 +936,8 @@ def setup():
         ],
         "data_files": data_files,
         "description": description,
-        "download_url": f"{development_home_page}/releases/download/{version}/{name}-{version}.tar.gz",
+        "download_url": f"{development_home_page}/releases/download/"
+        f"{version}/{name}-{version}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,
@@ -1047,10 +1041,7 @@ def setup():
         import wx
         from winmanifest_util import getmanifestxml
 
-        if platform.architecture()[0] == "64bit":
-            arch = "amd64"
-        else:
-            arch = "x86"
+        arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
         manifest_xml = getmanifestxml(
             os.path.join(
                 pydir,
@@ -1071,7 +1062,7 @@ def setup():
             f"{appname.lower()}-apply-profiles-launcher",
             f"{appname} Profile Loader Launcher",
         )
-        for script, desc in scripts + [apply_profiles_launcher]:
+        for script, _desc in scripts + [apply_profiles_launcher]:
             shutil.copy(
                 os.path.join(source_dir, "scripts", script),
                 os.path.join(tmp_scripts_dir, script2pywname(script)),
@@ -1314,14 +1305,15 @@ def setup():
         visited = []
 
         if os.path.exists(recordfile_name):
-            paths = [
-                (
-                    change_root(cmd.root, line.rstrip("\n"))
-                    if cmd.root
-                    else line.rstrip("\n")
-                )
-                for line in open(recordfile_name, "r")
-            ]
+            with open(recordfile_name) as f:
+                paths = [
+                    (
+                        change_root(cmd.root, line.rstrip("\n"))
+                        if cmd.root
+                        else line.rstrip("\n")
+                    )
+                    for line in f
+                ]
         else:
             paths = []
 
@@ -1551,9 +1543,8 @@ def setup():
         manifest_in.append("global-exclude */__pycache__/*")
         manifest_in.append("global-exclude *.bak")
         if not dry_run:
-            manifest = open("MANIFEST.in", "w")
-            manifest.write("\n".join(manifest_in))
-            manifest.close()
+            with open("MANIFEST.in", "w") as manifest:
+                manifest.write("\n".join(manifest_in))
             if os.path.exists("MANIFEST"):
                 os.remove("MANIFEST")
 
@@ -1581,6 +1572,38 @@ def setup():
         if dry_run or help:
             return
 
+        if do_py2app:
+            frameworks_dir = os.path.join(
+                dist_dir, f"{name}.app", "Contents", "Frameworks"
+            )
+            lib_dynload_dir = os.path.join(
+                dist_dir,
+                f"{name}.app",
+                "Contents",
+                "Resources",
+                "lib",
+                "python{}.{}".format(*sys.version_info[:2]),
+                "lib-dynload",
+            )
+            # Fix Pillow (PIL) dylibs not being included
+            pil_dylibs = os.path.join(lib_dynload_dir, "PIL", ".dylibs")
+            if not os.path.isdir(pil_dylibs):
+                import PIL
+
+                pil_installed_dylibs = os.path.join(
+                    os.path.dirname(PIL.__file__), ".dylibs"
+                )
+                print("Copying", pil_installed_dylibs, "->", pil_dylibs)
+                shutil.copytree(pil_installed_dylibs, pil_dylibs)
+                for entry in os.listdir(pil_dylibs):
+                    print(os.path.join(pil_dylibs, entry))
+                # Remove wrongly included frameworks
+                dylibs_entries = os.listdir(pil_installed_dylibs)
+                for entry in os.listdir(frameworks_dir):
+                    if entry in dylibs_entries:
+                        dylib = os.path.join(frameworks_dir, entry)
+                        print("Removing", dylib)
+                        os.remove(dylib)
             import wx
 
             if wx.VERSION >= (4,):
@@ -1607,10 +1630,8 @@ def setup():
                 ),
             )
 
-        if (
-            (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
-        ):
-            from vc90crt import name as vc90crt_name, vc90crt_copy_files
+        if (bdist_bbfreeze and sys.platform == "win32") or do_py2exe:
+            from vc90crt import vc90crt_copy_files
 
             if do_py2exe:
                 vc90crt_copy_files(dist_dir)
@@ -1624,16 +1645,16 @@ def setup():
             if sys.platform == "win32":
                 path = os.path.join(cmd.install_lib, name)
                 # Using sys.version in this way is consistent with setuptools
-                for path in safe_glob(path) + safe_glob(
+                for path_ in safe_glob(path) + safe_glob(
                     os.path.join(
                         f"{path}-{version}-py{sys.version[:3]}*.egg",
                         name,
                     )
                 ):
                     if cmd.root:
-                        postinstall(prefix=change_root(cmd.root, path))
+                        postinstall(prefix=change_root(cmd.root, path_))
                     else:
-                        postinstall(prefix=path)
+                        postinstall(prefix=path_)
 
             elif cmd.root:
                 postinstall(prefix=change_root(cmd.root, cmd.prefix))
@@ -1661,8 +1682,8 @@ def setup_do_py2exe():
     except ImportError:
         # no build path setup, no worries.
         pass
-    origIsSystemDLL = py2exe.build_exe.isSystemDLL
-    systemroot = os.getenv("SystemRoot").lower()
+    _orig_is_system_dll = py2exe.build_exe.isSystemDLL
+    systemroot = os.getenv("SYSTEMROOT").lower()
 
     def isSystemDLL(pathname):
         if (

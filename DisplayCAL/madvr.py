@@ -1,12 +1,5 @@
-# -*- coding: utf-8 -*-
-
 # See developers/interfaces/madTPG.h in the madVR package
-
-
-from io import StringIO
-from binascii import unhexlify
-from time import sleep, time
-from zlib import crc32
+import contextlib
 import ctypes
 import errno
 import getpass
@@ -16,6 +9,10 @@ import socket
 import struct
 import sys
 import threading
+from binascii import unhexlify
+from io import StringIO
+from time import sleep, time
+from zlib import crc32
 
 if sys.platform == "win32":
     import winreg
@@ -23,10 +20,9 @@ if sys.platform == "win32":
 if sys.platform == "win32":
     import win32api
 
-from DisplayCAL import colormath
+from DisplayCAL import colormath, worker_base
 from DisplayCAL import cubeiterator as ci
 from DisplayCAL import localization as lang
-from DisplayCAL import worker_base
 from DisplayCAL.config import CaseSensitiveConfigParser
 from DisplayCAL.icc_profile import (
     ICCProfile,
@@ -36,8 +32,8 @@ from DisplayCAL.icc_profile import (
     TextType,
 )
 from DisplayCAL.imfile import tiff_get_header
-from DisplayCAL.meta import name as appname, version
-from DisplayCAL.network import get_network_addr, get_valid_host
+from DisplayCAL.meta import version
+from DisplayCAL.network import get_network_addr
 
 CALLBACK = ctypes.CFUNCTYPE(
     None,
@@ -139,7 +135,7 @@ def icc_device_link_to_madvr(
 
     filename, ext = os.path.splitext(icc_device_link_filename)
 
-    h3d_params = dict()
+    h3d_params = {}
 
     if filename.endswith(".HDR") or hdr == 2:
         name = os.path.splitext(filename)[0]
@@ -201,8 +197,8 @@ def icc_device_link_to_madvr(
     h3d_stream = StringIO(H3D_HEADER)
     h3dlut = H3DLUT(h3d_stream, check_lut_size=False)
     h3dlut.parametersData = h3d_params
-    h3dlut.write(filename + ".3dlut")
-    raw = open(filename + ".3dlut", "r+b")
+    h3dlut.write(f"{filename}.3dlut")
+    raw = open(f"{filename}.3dlut", "r+b")  # noqa: SIM115
     raw.seek(h3dlut.lutFileOffset)
     # Make sure no longer needed h3DLUT instance can be garbage collected
     del h3dlut
@@ -253,7 +249,8 @@ def icc_device_link_to_madvr(
         # This can be used to ensure that the Graphics Card VideoLuts
         # are correctly setup to match what the 3dLut is expecting.
         #
-        # Note that the calibration curves are full range, never TV encoded output values
+        # Note that the calibration curves are full range,
+        # never TV encoded output values.
         #
         # Format is (little endian):
         #    4 byte magic number 'cal1'
@@ -262,12 +259,12 @@ def icc_device_link_to_madvr(
         #    4 byte bytes per entry = 2
         #    [3][256] 2 byte entry values. Tables are in RGB order
 
-        raw.write("cal1".encode())
+        raw.write(b"cal1")
         raw.write(struct.pack("<I", 1))
         raw.write(struct.pack("<I", 256))
         raw.write(struct.pack("<I", 2))
         # Linear (unity) calibration
-        for i in range(3):
+        for _ in range(3):
             for j in range(256):
                 raw.write(struct.pack("<H", j * 257))
 
@@ -306,12 +303,9 @@ def inet_pton(ip_string):
 
 def trunc(value, length):
     """For string types, return value truncated to length"""
-    if isinstance(value, str):
-        if len(repr(value)) > length:
-            value = value[
-                : length - 3 - len(str(length)) - len(repr(value)) + len(value)
-            ]
-            return "%r[:%i]" % (value, length)
+    if isinstance(value, str) and len(repr(value)) > length:
+        value = value[: length - 3 - len(str(length)) - len(repr(value)) + len(value)]
+        return "%r[:%i]" % (value, length)
     return repr(value)
 
 
@@ -348,7 +342,7 @@ class H3DLUT:
             )
         self.lutCompressedSize = struct.unpack("<l", data[88:92])[0]
         self.lutUncompressedSize = struct.unpack("<l", data[92:96])[0]
-        self.parametersData = dict()
+        self.parametersData = {}
         for line in (
             data[self.parametersFileOffset : self.parametersFileOffset + parametersSize]
             .rstrip(b"\0")
@@ -447,7 +441,7 @@ class H3DLUT:
             if ext:
                 stream_or_filename = os.path.splitext(stream_or_filename)[0] + ext
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")
+            stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:
             stream = stream_or_filename
         return stream
@@ -475,16 +469,13 @@ class H3DLUT:
         input_grid_steps = (
             2 ** self.inputBitDepth[0]
         )  # Assume equal bitdepth for R, G, B
-        if input_grid_steps > 255:
-            # madVR 3D LUTs are 256^3, but ICC LUT16Type only supports up to
-            # 255^3. As madVR 3D LUTs use video levels encoding, we simply skip
-            # the first cLUT entry in each dimension and fix the offset by
-            # scaling the input/output shaper curves. That way, only level 1 of
-            # 255 will be affected (with black at 16 and white at 235),
-            # which isn't used in actual video content.
-            clut_grid_steps = 255
-        else:
-            clut_grid_steps = input_grid_steps
+        # madVR 3D LUTs are 256^3, but ICC LUT16Type only supports up to
+        # 255^3. As madVR 3D LUTs use video levels encoding, we simply skip
+        # the first cLUT entry in each dimension and fix the offset by
+        # scaling the input/output shaper curves. That way, only level 1 of
+        # 255 will be affected (with black at 16 and white at 235),
+        # which isn't used in actual video content.
+        clut_grid_steps = 255 if input_grid_steps > 255 else input_grid_steps
         # Filling a 255^3 list is VERY memory intensive in Python, so we 'fake'
         # the LUT16Type cLUT and only use tag data of offsets/sizes and shaper
         # curves while writing the raw cLUT data directly without going through
@@ -492,7 +483,7 @@ class H3DLUT:
         A2B0 = LUT16Type()
         A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         A2B0.input = []
-        for i in range(3):
+        for _ in range(3):
             A2B0.input.append([])
             for j in range(4096):
                 A2B0.input[-1].append(
@@ -502,7 +493,7 @@ class H3DLUT:
         input_bytes = len(A2B0.input) * len(A2B0.input[0]) * 2
         A2B0.clut = [[[0] * 3 for i in range(clut_grid_steps)]]  # Fake cLUT
         A2B0.output = []
-        for i in range(3):
+        for _ in range(3):
             A2B0.output.append([])
             for j in range(4096):
                 A2B0.output[-1].append(
@@ -617,13 +608,10 @@ class MadTPG(MadTPGBase):
                 winreg.HKEY_CLASSES_ROOT, r"CLSID\%s\InprocServer32" % clsid
             )
             value, valuetype = winreg.QueryValueEx(key, "")
-        except Exception:
-            raise RuntimeError(lang.getstr("madvr.not_found"))
-        if platform.architecture()[0] == "64bit":
-            bits = 64
-        else:
-            bits = 32
-        self.dllpath = os.path.join(os.path.split(value)[0], "madHcNet%i.dll" % bits)
+        except Exception as e:
+            raise RuntimeError(lang.getstr("madvr.not_found")) from e
+        bits = 64 if platform.architecture()[0] == "64bit" else 32
+        self.dllpath = os.path.join(os.path.split(value)[0], f"madHcNet{bits}.dll")
         if not value or not os.path.isfile(self.dllpath):
             raise OSError(lang.getstr("not_found", self.dllpath))
         handle = win32api.LoadLibrary(self.dllpath)
@@ -634,10 +622,7 @@ class MadTPG(MadTPGBase):
             for methodname in _methodnames + _autonet_methodnames:
                 if methodname == "AddConnectionCallback":
                     continue
-                if methodname in _autonet_methodnames:
-                    prefix = "AutoNet"
-                else:
-                    prefix = "madVR"
+                prefix = "AutoNet" if methodname in _autonet_methodnames else "madVR"
                 method = getattr(self.mad, prefix + "_" + methodname, None)
                 if not method and not methodname.startswith("LoadHdr3dlut"):
                     raise AttributeError(prefix + "_" + methodname)
@@ -653,13 +638,13 @@ class MadTPG(MadTPGBase):
                     ctypes.c_int,
                     ctypes.c_bool,
                 ]
-        except AttributeError:
+        except AttributeError as e:
             raise RuntimeError(
                 lang.getstr(
                     "madhcnet.outdated",
                     tuple(reversed(os.path.split(self.dllpath))) + min_version,
                 )
-            )
+            ) from e
 
     def __del__(self):
         if hasattr(self, "mad"):
@@ -680,11 +665,8 @@ class MadTPG(MadTPGBase):
             )
 
         # Return the method
-        if methodname in _autonet_methodnames:
-            prefix = "AutoNet"
-        else:
-            prefix = "madVR"
-        return getattr(self.mad, prefix + "_" + methodname)
+        prefix = "AutoNet" if methodname in _autonet_methodnames else "madVR"
+        return getattr(self.mad, f"{prefix}_{methodname}")
 
     def add_connection_callback(self, callback, param, component):
         """Handles callbacks for added/closed connections to playback components
@@ -780,16 +762,18 @@ class MadTPG(MadTPGBase):
 
 
 class MadTPG_Net(MadTPGBase):
-    """Implementation of madVR network protocol in pure python"""
-
+    """Implementation of madVR network protocol in pure python."""
     # Wireshark filter to help ananlyze traffic:
-    # (tcp.dstport != 1900 and tcp.dstport != 443) or (udp.dstport != 1900 and udp.dstport != 137 and udp.dstport != 138 and udp.dstport != 5355 and udp.dstport != 547 and udp.dstport != 10111)
+    # (tcp.dstport != 1900 and tcp.dstport != 443) or 
+    # (udp.dstport != 1900 and udp.dstport != 137 and 
+    # udp.dstport != 138 and udp.dstport != 5355 and 
+    # udp.dstport != 547 and udp.dstport != 10111)
 
     def __init__(self):
         MadTPGBase.__init__(self)
         self._cast_sockets = {}
         self._casts = []
-        self._client_sockets = dict()
+        self._client_sockets = {}
         self._commandno = 0
         self._commands = {}
         self._host = get_network_addr()
@@ -801,7 +785,7 @@ class MadTPG_Net(MadTPGBase):
         self._threads = []
         # self.broadcast_ports = (39568, 41513, 45817, 48591, 48912)
         self.broadcast_ports = (37018, 10658, 63922, 53181, 4287)
-        self.clients = dict()
+        self.clients = {}
         self.debug = 0
         self.listening = False
         # self.multicast_ports = (34761, )
@@ -839,7 +823,7 @@ class MadTPG_Net(MadTPGBase):
                 )
                 self._threads.append(thread)
                 thread.start()
-            except socket.error as exception:
+            except OSError as exception:
                 safe_print("MadTPG_Net: TCP Port %i: %s" % (port, exception))
         # Broadcast listen sockets
         for port in self.broadcast_ports:
@@ -858,7 +842,7 @@ class MadTPG_Net(MadTPGBase):
                 )
                 self._threads.append(thread)
                 thread.start()
-            except socket.error as exception:
+            except OSError as exception:
                 safe_print("MadTPG_Net: UDP Port %i: %s" % (port, exception))
         # Multicast listen socket
         for port in self.multicast_ports:
@@ -884,7 +868,7 @@ class MadTPG_Net(MadTPGBase):
                 )
                 self._threads.append(thread)
                 thread.start()
-            except socket.error as exception:
+            except OSError as exception:
                 safe_print("MadTPG_Net: UDP Port %i: %s" % (port, exception))
 
     def bind(self, event_name, handler):
@@ -931,7 +915,7 @@ class MadTPG_Net(MadTPGBase):
                     exception,
                 )
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -991,7 +975,7 @@ class MadTPG_Net(MadTPGBase):
                     "MadTPG_Net: In receiver thread for %s:%i:" % addr[:2], exception
                 )
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.001)
                     continue
@@ -1028,7 +1012,7 @@ class MadTPG_Net(MadTPGBase):
                                 break
                             try:
                                 self._process(record, conn)
-                            except socket.error as exception:
+                            except OSError as exception:
                                 safe_print("MadTPG_Net:", exception)
         with _lock:
             self._remove_client(
@@ -1078,7 +1062,7 @@ class MadTPG_Net(MadTPGBase):
                     exception,
                 )
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -1141,7 +1125,7 @@ class MadTPG_Net(MadTPGBase):
             # Will fail if the socket isn't connected, i.e. if there
             # was an error during the call to connect()
             sock.shutdown(socket.SHUT_RDWR)
-        except socket.error as exception:
+        except OSError as exception:
             if exception.errno != errno.ENOTCONN:
                 safe_print(
                     "MadTPG_Net: SHUT_RDWR for %s:%i failed:" % addr[:2], exception
@@ -1275,7 +1259,7 @@ class MadTPG_Net(MadTPGBase):
             safe_print("MadTPG_Net: Connecting to %s:%s..." % (host, port))
         try:
             sock.connect((host, port))
-        except socket.error as exception:
+        except OSError as exception:
             if self.debug:
                 safe_print(
                     "MadTPG_Net: Connecting to %s:%s failed:" % (host, port), exception
@@ -1317,7 +1301,7 @@ class MadTPG_Net(MadTPGBase):
         commandno = record["commandNo"]
         component = record["component"]
         params = record["params"]
-        client = dict()
+        client = {}
         client["processId"] = record["processId"]
         client["module"] = record["module"]
         client["component"] = component
@@ -1405,7 +1389,7 @@ class MadTPG_Net(MadTPGBase):
                 )
                 or False
             )
-        except socket.error as exception:
+        except OSError as exception:
             if self.debug:
                 safe_print("MadTPG_Net:", exception)
             return False
@@ -1448,7 +1432,7 @@ class MadTPG_Net(MadTPGBase):
             params = (params,)
         try:
             addr = conn.getpeername()
-        except socket.error as exception:
+        except OSError as exception:
             safe_print("MadTPG_Net:", exception)
             return False
         start = end = time()
@@ -1476,10 +1460,7 @@ class MadTPG_Net(MadTPGBase):
         while self.listening and end - start < timeout:
             clients = self.clients.copy()
             if clients:
-                if addr:
-                    c_addrs = [addr]
-                else:
-                    c_addrs = list(clients.keys())
+                c_addrs = [addr] if addr else list(clients.keys())
                 for c_addr in c_addrs:
                     client = clients.get(c_addr)
                     conn = self._client_sockets.get(c_addr)
@@ -1489,7 +1470,10 @@ class MadTPG_Net(MadTPGBase):
                     if not component_:
                         # not a madvr component so ignore completely
                         continue
-                    pid_host = f"{client.get('processId', '?')}:{client.get('computerName', '')}"
+                    pid_host = (
+                        f"{client.get('processId', '?')}:"
+                        f"{client.get('computerName', '')}"
+                    )
                     formatted_client = f"[{component_} {pid_host}]"
                     if component_ != b"madTPG":
                         continue
@@ -1526,17 +1510,15 @@ class MadTPG_Net(MadTPGBase):
         datalen = struct.unpack("<i", blob[4:8])[0]
         if len(blob) < datalen + 12:
             return None, blob
-        record = dict(
-            [
-                ("magic", blob[0:4]),
-                ("len", struct.unpack("<i", blob[4:8])[0]),
-                ("crc", struct.unpack("<i", blob[8:12])[0]),
-                ("processId", struct.unpack("<i", blob[12:16])[0]),
-                ("module", struct.unpack("<q", blob[16:24])[0]),
-                ("commandNo", struct.unpack("<i", blob[24:28])[0]),
-                ("sizeOfComponent", struct.unpack("<i", blob[28:32])[0]),
-            ]
-        )
+        record = {
+            "magic": blob[0:4],
+            "len": struct.unpack("<i", blob[4:8])[0],
+            "crc": struct.unpack("<i", blob[8:12])[0],
+            "processId": struct.unpack("<i", blob[12:16])[0],
+            "module": struct.unpack("<q", blob[16:24])[0],
+            "commandNo": struct.unpack("<i", blob[24:28])[0],
+            "sizeOfComponent": struct.unpack("<i", blob[28:32])[0],
+        }
         a = 32
         b = a + record["sizeOfComponent"]
         if b > len(blob):
@@ -1597,10 +1579,8 @@ class MadTPG_Net(MadTPGBase):
                 if param in params:
                     values = params[param].split(".")
                     for i, value in enumerate(values):
-                        try:
+                        with contextlib.suppress(ValueError):
                             values[i] = int(value)
-                        except ValueError:
-                            pass
                     params[param] = tuple(values)
         elif command == "reply":
             commandno = record["commandNo"]
@@ -1611,10 +1591,7 @@ class MadTPG_Net(MadTPGBase):
                 # but the equivalent madVR network protocol command is
                 # GetBlackWhiteLevel (without the "And")!
                 if repliedcommand == "GetBlackWhiteLevel":
-                    if len(params) == 8:
-                        params = struct.unpack("<ii", params)
-                    else:
-                        params = False
+                    params = struct.unpack("<ii", params) if len(params) == 8 else False
                 elif repliedcommand == "GetDeviceGammaRamp":
                     # Convert to ushort_Array_256_Array_3
                     ramp = ((ctypes.c_ushort * 256) * 3)()
@@ -1719,7 +1696,7 @@ class MadTPG_Net(MadTPGBase):
             while packet:
                 try:
                     bytes_sent = conn.send(packet)
-                except socket.error as exception:
+                except OSError as exception:
                     if exception.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
                         # Resource temporarily unavailable
                         sleep(0.001)
@@ -1727,7 +1704,7 @@ class MadTPG_Net(MadTPGBase):
                     else:
                         raise
                 if bytes_sent == 0:
-                    raise socket.error(errno.ENOLINK, "Link has been severed")
+                    raise OSError(errno.ENOLINK, "Link has been severed")
                 packet = packet[bytes_sent:]
                 bytes_sent_total += bytes_sent
                 if self.debug and bytes_sent != bytes_total:
@@ -1744,7 +1721,7 @@ class MadTPG_Net(MadTPGBase):
                             bytes_sent_total / float(bytes_total) * 100,
                         )
                     )
-        except socket.error as exception:
+        except OSError as exception:
             safe_print(
                 "MadTPG_Net: Sending command %i %r failed" % (commandno, command),
                 exception,
@@ -1763,10 +1740,8 @@ class MadTPG_Net(MadTPGBase):
                     "MadTPG_Net: Expecting reply for command %i %r"
                     % (commandno, command)
                 )
-            if command in ("Load3dlut", "LoadHdr3dlut"):
-                timeout = 300  # Should be enough even for slow wireless
-            else:
-                timeout = 3
+            # Should be enough even for slow wireless
+            timeout = 300 if command in ("Load3dlut", "LoadHdr3dlut") else 3
             return self._expect(conn, commandno, "reply", timeout=timeout)
         return True
 
@@ -1774,7 +1749,7 @@ class MadTPG_Net(MadTPGBase):
     def uri(self):
         try:
             addr = self._client_socket and self._client_socket.getpeername()[:2]
-        except socket.error as exception:
+        except OSError as exception:
             safe_print("MadTPG_Net:", exception)
             addr = None
         return "%s:%s" % (addr or ("0.0.0.0", 0))
@@ -1806,22 +1781,16 @@ class MadTPG_Net_Sender:
             params = b""
             for j in range(3):
                 for i in range(256):
-                    if args[0] is None:
-                        # Clear device gamma ramp
-                        v = i * 257
-                    else:
-                        # Convert ushort_Array_256_Array_3 to string
-                        v = args[0][j][i]
+                    # Clear device gamma ramp if args[0] is None
+                    # else convert ushort_Array_256_Array_3 to string
+                    v = i * 257 if args[0] is None else args[0][j][i]
                     params += struct.pack("<H", v)
         elif self.command in (
             "SetDisableOsdButton",
             "SetStayOnTopButton",
             "SetUseFullscreenButton",
         ):
-            if args[0]:
-                params = "+"
-            else:
-                params = "-"
+            params = "+" if args[0] else "-"
         elif self.command == "SetOsdText":
             params = args[0].encode("UTF-16-LE")
         elif self.command in ("SetPatternConfig", "SetProgressBarPos"):

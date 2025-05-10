@@ -140,7 +140,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 Version 0.5
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import wx
 
@@ -362,7 +362,7 @@ class FourWaySplitter(wx.Panel):
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
-        self._windows: List[wx.Window] = []
+        self._windows: list[wx.Window] = []
 
         self._splitx = 0
         self._splity = 0
@@ -389,11 +389,11 @@ class FourWaySplitter(wx.Panel):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
         self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
 
-    def _IsVersionGreaterOrEqual(self, version: Tuple[int, int, int, int]) -> bool:
+    def _IsVersionGreaterOrEqual(self, version: tuple[int, int, int, int]) -> bool:
         """Compare the current wxPython version with the given version.
 
         Args:
-            version (Tuple[int, int, int, int]): a tuple of version numbers.
+            version (tuple[int, int, int, int]): a tuple of version numbers.
 
         Returns:
             bool: ``True`` if the current wxPython version is greater or equal to the
@@ -524,8 +524,8 @@ class FourWaySplitter(wx.Panel):
             idx (int): the index at which the window is located.
 
         Returns:
-            Union[None, wx.Window]: The window at the specified index or ``None`` if the index
-                is out of range.
+            Union[None, wx.Window]: The window at the specified index or `None`
+                if the index is out of range.
         """
         if len(self._windows) > idx:
             return self._windows[idx]
@@ -935,12 +935,9 @@ class FourWaySplitter(wx.Panel):
         event.SetSashIdx(self._mode)
         event.SetSashPosition(pt)
 
-        if self.GetEventHandler().ProcessEvent(event) and not event.IsAllowed():
-            # the event handler vetoed the change or missing event.Skip()
-            return False
-        else:
-            # or it might have changed the value
-            return True
+        # the event handler vetoed the change or missing event.Skip()
+        # or it might have changed the value
+        return not self.GetEventHandler().ProcessEvent(event) or event.IsAllowed()
 
     def _GetSashSize(self) -> int:
         """Use internally.
@@ -1155,7 +1152,7 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
-        """MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.
+        """A custom wx.Frame that demonstrates the usage of the FourWaySplitter.
 
         It initializes a frame with a FourWaySplitter containing four colored panels.
 

@@ -1,18 +1,13 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 import sys
 import time
 import warnings
 
-from DisplayCAL import (
-    config,
-    localization as lang,
-)
+from DisplayCAL import config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     defaults,
-    enc,
     get_argyll_display_number,
     get_default_dpi,
     get_display_number,
@@ -43,7 +38,7 @@ try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM
 except ImportError as exception:
     RDSMM = None
-    warnings.warn(str(exception), Warning)
+    warnings.warn(str(exception), Warning, stacklevel=2)
 
 
 def get_default_size():
@@ -289,7 +284,6 @@ class MeasureFrame(InvincibleFrame):
             )
             self.vsizer.Add(
                 self.measure_darken_background_cb,
-                # flag=wx.ALIGN_BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT | wx.TOP,
                 flag=wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT,
                 border=10,
             )
@@ -574,9 +568,9 @@ class MeasureFrame(InvincibleFrame):
                 return
             self.Hide()
             self.Parent.Show()
-            if getattr(self.Parent, "restore_measurement_mode"):
+            if hasattr(self.Parent, "restore_measurement_mode"):
                 self.Parent.restore_measurement_mode()
-            if getattr(self.Parent, "restore_testchart"):
+            if hasattr(self.Parent, "restore_testchart"):
                 self.Parent.restore_testchart()
         else:
             self.Hide()
@@ -720,10 +714,7 @@ class MeasureFrame(InvincibleFrame):
             ts = time.time()
             for i, _byte in enumerate(buf):
                 m = intervals[i % 3]
-                if m and n % m < 1:
-                    color = ceilbytes
-                else:
-                    color = floorbytes
+                color = ceilbytes if m and n % m < 1 else floorbytes
                 buf[i] = color[i % 3]
                 if i % 3 == 2:
                     n += 1

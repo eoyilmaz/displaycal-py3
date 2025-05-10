@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-"""
-Meta information
-"""
+"""Meta information."""
 
 import re
-import sys
-
 
 try:
     from DisplayCAL.__version__ import (
         BUILD_DATE as build,
+    )
+    from DisplayCAL.__version__ import (
         LASTMOD as lastmod,
+    )
+    from DisplayCAL.__version__ import (
         VERSION,
         VERSION_BASE,
         VERSION_STRING,

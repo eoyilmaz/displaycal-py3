@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Task Scheduler interface. Currently only implemented for Windows (Vista and up).
 The implementation is currently minimal and incomplete when it comes to
@@ -39,7 +38,6 @@ Create a new task to be run under the current user account at logon:
 import codecs
 import os
 import subprocess as sp
-import sys
 import tempfile
 
 import pywintypes
@@ -47,10 +45,8 @@ import winerror
 
 from DisplayCAL.meta import name as appname
 from DisplayCAL.safe_print import enc
-from DisplayCAL.util_os import getenvu
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin
-
 
 RUNLEVEL_HIGHESTAVAILABLE = "HighestAvailable"
 RUNLEVEL_LEASTPRIVILEGE = "LeastPrivilege"
@@ -160,7 +156,11 @@ class ResumeFromSleepTrigger(_Trigger):
     def __init__(self, *args, **kwargs):
         _Trigger.__init__(self, *args, **kwargs)
         self["subscription"] = (
-            """&lt;QueryList&gt;&lt;Query Id="0" Path="System"&gt;&lt;Select Path="System"&gt;*[System[Provider[@Name='Microsoft-Windows-Power-Troubleshooter'] and (Level=4 or Level=0) and (EventID=1)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;"""
+            """&lt;QueryList&gt;&lt;Query Id="0" Path="System"&gt;&lt;"""
+            """Select Path="System"&gt;*[System[Provider["""
+            """@Name='Microsoft-Windows-Power-Troubleshooter'] and """
+            """(Level=4 or Level=0) and """
+            """(EventID=1)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;"""
         )
         self["cls_name"] = "EventTrigger"
 
@@ -207,7 +207,7 @@ class Task(_Dict2XML):
     ):
         kwargs = locals()
         idle_keys = ("duration", "wait_timeout", "stop_on_idle_end", "restart_on_idle")
-        idle_settings = dict()
+        idle_settings = {}
         for key in idle_keys:
             idle_settings[key] = kwargs[key]
         for key in (
@@ -223,7 +223,7 @@ class Task(_Dict2XML):
             del kwargs[key]
         settings = _Dict2XML(kwargs, cls_name="Settings")
         settings["idle_settings"] = _Dict2XML(idle_settings, cls_name="IdleSettings")
-        kwargs = dict()
+        kwargs = {}
         kwargs["registration_info"] = _Dict2XML(
             author=author,
             description=description,
@@ -493,7 +493,7 @@ if __name__ == "__main__":
             try:
                 print(attr(*args))
             except pywintypes.com_error as exception:
-                print(WindowsError(*exception.args))
+                print(OSError(*exception.args))
             except TypeError as exception:
                 print(exception)
         else:

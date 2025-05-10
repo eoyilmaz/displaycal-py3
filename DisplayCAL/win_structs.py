@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from ctypes import wintypes
 import ctypes
 import functools
+from ctypes import wintypes
 
 
 @functools.total_ordering

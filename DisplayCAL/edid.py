@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module provides functionality for retrieving and parsing EDID
 (Extended Display Identification Data) from various operating systems.
 
@@ -6,6 +5,7 @@ It includes methods for fetching EDID data from Windows, macOS,
 and other platforms, as well as parsing the EDID data into a structured format.
 """
 
+import contextlib
 import math
 import os
 import re
@@ -13,41 +13,34 @@ import string
 import struct
 import subprocess
 import sys
-
 from hashlib import md5
-from typing import Dict, List, Optional, Union
-
-from DisplayCAL import config
-from DisplayCAL.util_str import safe_str
+from typing import Optional, Union
 
 if sys.platform == "win32":
-    from DisplayCAL import util_win
     import threading
 
     # Use registry as fallback for Win2k/XP/2003
     import winreg
+
+    from DisplayCAL import util_win
 
     wmi = None
     if sys.getwindowsversion() >= (6,):
         # Use WMI for Vista/Win7
         import pythoncom
 
-        try:
+        with contextlib.suppress(ImportError):
             import wmi
-        except Exception:
-            pass
     else:
         # Use registry as fallback for Win2k/XP/2003
         import winreg
-    import pywintypes
-    import win32api
 elif sys.platform == "darwin":
     import binascii
 
-from DisplayCAL import config
 from DisplayCAL import RealDisplaySizeMM as RDSMM
+from DisplayCAL import config
 from DisplayCAL.util_os import which
-from DisplayCAL.util_str import make_ascii_printable, safe_str, strtr
+from DisplayCAL.util_str import safe_str
 
 HEADER = (0, 8)
 MANUFACTURER_ID = (8, 10)
@@ -104,7 +97,7 @@ def get_edid(
     display_no: int = 0,
     display_name: Optional[str] = None,
     device: Optional[str] = None,
-) -> Dict:
+) -> dict:
     """Get and parse EDID. Return dict.
 
     On Mac OS X, you need to specify a display name.
@@ -115,7 +108,7 @@ def get_edid(
         device (Optional[str]): The device identifier.
 
     Returns:
-        Dict: Parsed EDID data.
+        dict: Parsed EDID data.
     """
     edid = None
     if sys.platform == "win32":
@@ -157,7 +150,7 @@ def get_edid_windows(display_no, device):
 
     id_ = device.DeviceID.split("\\")[1]
     wmi_connection = None
-    not_main_thread = not (threading.current_thread() is threading.main_thread())
+    not_main_thread = threading.current_thread() is not threading.main_thread()
 
     if wmi:
         if not_main_thread:
@@ -196,7 +189,7 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
     except Exception as exception:
         if not_main_thread:
             pythoncom.CoUninitialize()
-        raise WMIError(safe_str(exception))
+        raise WMIError(safe_str(exception)) from exception
 
     for msmonitor in msmonitors:
         if msmonitor.InstanceName.split("\\")[1] == id:
@@ -238,7 +231,7 @@ def get_edid_windows_registry(id, device):
 
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
-    except WindowsError:
+    except OSError:
         # Registry error
         print(
             "Windows registry error: Key",
@@ -255,7 +248,7 @@ def get_edid_windows_registry(id, device):
 
         try:
             test = winreg.QueryValueEx(hk, "Driver")[0]
-        except WindowsError:
+        except OSError:
             # No Driver entry
             continue
 
@@ -268,7 +261,7 @@ def get_edid_windows_registry(id, device):
                 winreg.HKEY_LOCAL_MACHINE,
                 "\\".join([subkey, hkname, "Device Parameters"]),
             )
-        except WindowsError:
+        except OSError:
             # No Device Parameters (registry error?)
             print(
                 "Windows registry error: Key",
@@ -279,7 +272,7 @@ def get_edid_windows_registry(id, device):
 
         try:
             edid = winreg.QueryValueEx(devparms, "EDID")[0]
-        except WindowsError:
+        except OSError:
             # No EDID entry
             pass
         else:
@@ -350,10 +343,8 @@ def get_edid_from_xrandr(display_no):
             else:
                 # read all data, exit
                 break
-        if found_display:
-            # try to find EDID
-            if b"EDID" in line:
-                found_edid = True
+        if found_display and b"EDID" in line:  # try to find EDID
+            found_edid = True
         # try to find the display
         if (display["name"] + b" connected") in line:
             found_display = True
@@ -419,9 +410,9 @@ def load_pnp_id_cache() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8", errors="replace") as pnp_ids:
+            with open(path, encoding="utf-8", errors="replace") as pnp_ids:
                 lines = pnp_ids.readlines()
-        except (IOError, OSError):
+        except OSError:
             continue
 
         if path.endswith("hwdb"):
@@ -450,14 +441,14 @@ def get_pnp_id_paths():
     return paths
 
 
-def parse_hwdb_data(lines: List[str]) -> None:
+def parse_hwdb_data(lines: list[str]) -> None:
     """Parse a from the hwdb file data.
 
     Args:
         line (str): The line to parse.
 
     Returns:
-        Tuple[str, str]: The parsed ID and name.
+        tuple[str, str]: The parsed ID and name.
     """
     id_, name = None, None
     for line in lines:
@@ -472,11 +463,11 @@ def parse_hwdb_data(lines: List[str]) -> None:
             PNP_ID_CACHE[id_] = name
 
 
-def parse_pnpid_data(lines: List[str]) -> None:
+def parse_pnpid_data(lines: list[str]) -> None:
     """Parse data from the pnp.ids file content.
 
     Args:
-        lines (List[str]): The data to parse.
+        lines (list[str]): The data to parse.
     """
     id_, name = None, None
     for line in lines:
@@ -787,10 +778,9 @@ def parse_edid_extension_blocks(edid):
         # Parse extension blocks
         block = edid[128:]
         while block:
-            if block[0] == BLOCK_DI_EXT:
-                if block[TRC[0]] != "\0":
-                    # TODO: Implement
-                    pass
+            if block[0] == BLOCK_DI_EXT and block[TRC[0]] != "\0":
+                # TODO: Implement
+                pass
             block = block[128:]
     return result
 

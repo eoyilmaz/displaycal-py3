@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-import atexit
+import contextlib
 import math
 import os
 import shlex
@@ -11,7 +9,6 @@ import sys
 import tempfile
 import textwrap
 import traceback
-
 from binascii import hexlify
 
 if sys.platform == "win32":
@@ -21,6 +18,8 @@ if sys.platform == "win32":
 from DisplayCAL import (
     colormath,
     config,
+)
+from DisplayCAL import (
     localization as lang,
 )
 from DisplayCAL.argyll import get_argyll_util, get_argyll_version
@@ -256,7 +255,6 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
     fn(f"  {cmd}")
-    i = 0
     lines = []
     for item in args:
         # convert all args to str
@@ -264,11 +262,8 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
             if isinstance(item, bytes):
                 item = item.decode("utf-8")
             item = str(item)
-        ispath = False
-        if item.find(os.path.sep) > -1:
-            if os.path.dirname(item) == cwd:
-                item = os.path.basename(item)
-            ispath = True
+        if item.find(os.path.sep) > -1 and os.path.dirname(item) == cwd:
+            item = os.path.basename(item)
         if sys.platform == "win32":
             item = sp.list2cmdline([item])
             if not item.startswith('"'):
@@ -276,7 +271,6 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
         else:
             item = shlex.quote(item)
         lines.append(item)
-        i += 1
     for line in lines:
         fn(
             textwrap.fill(
@@ -329,7 +323,8 @@ class WorkerBase:
             except Exception as exception:
                 self.tempdir = None
                 return Error(
-                    f"Error - couldn't create temporary directory: {safe_str(exception)}"
+                    "Error - couldn't create temporary directory: "
+                    f"{safe_str(exception)}"
                 )
         return self.tempdir
 
@@ -345,7 +340,7 @@ class WorkerBase:
     def log(self, *args, **kwargs):
         """Log to global logfile and session logfile (if any)"""
         # if we have any exceptions print the traceback, so we bust'em.
-        if any([isinstance(arg, BaseException) for arg in args]):
+        if any(isinstance(arg, BaseException) for arg in args):
             traceback.print_exc()
         msg = " ".join(safe_basestring(arg) for arg in args)
         fn = kwargs.get("fn", print)
@@ -579,8 +574,8 @@ class Xicclu(WorkerBase):
         self.closed = False
         self.output = []
         self.errors = []
-        self.stdout = tempfile.SpooledTemporaryFile()
-        self.stderr = tempfile.SpooledTemporaryFile()
+        self.stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
+        self.stderr = tempfile.SpooledTemporaryFile()  # noqa: SIM115
         self.subprocess = sp.Popen(
             self.args,
             stdin=sp.PIPE,
@@ -601,7 +596,10 @@ class Xicclu(WorkerBase):
             if self.convert_video_rgb_to_clut65:
                 devi_devip = self.devi_devip
             else:
-                devi_devip = lambda v: v
+
+                def devi_devip(v):
+                    return v
+
             scale = float(self.scale)
             idata = list(idata)  # Make a copy
             for i, v in enumerate(idata):
@@ -667,10 +665,8 @@ class Xicclu(WorkerBase):
             return
         p = self.subprocess
         if p.poll() is None:
-            try:
+            with contextlib.suppress(OSError):
                 p.stdin.write(b"\n")
-            except IOError:
-                pass
             p.stdin.close()
         p.wait()
         self.stdout.seek(0)
@@ -686,7 +682,7 @@ class Xicclu(WorkerBase):
         self.closed = True
         if p.returncode and raise_exception:
             # Error
-            raise IOError(b"\n".join(self.errors))
+            raise OSError(b"\n".join(self.errors))
 
     def exit(self, raise_exception=True):
         self.close(raise_exception)
@@ -715,7 +711,9 @@ class Xicclu(WorkerBase):
         if self.convert_video_rgb_to_clut65:
             devop_devo = VidRGB_to_eeColor
         else:
-            devop_devo = lambda v: v
+
+            def devop_devo(v):
+                return v
 
         fmt = ""
         maxv = ""
@@ -726,7 +724,7 @@ class Xicclu(WorkerBase):
         # than testing for 'if x'. (EOY: Yeah I measured it is ~3% faster)
         # Also, struct.pack is faster if the second argument is passed as an integer.
         clip = None
-        for i, line in enumerate(self.output):
+        for line in self.output:
             if verbose:
                 line = line.strip()
                 if line.startswith(b"["):

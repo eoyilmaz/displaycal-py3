@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
 import codecs
-import locale
 import re
 import string
 import sys
@@ -229,7 +226,9 @@ class StrList(list):
     """It's a list. It's a string. It's a list of strings that behaves like a
     string! And like a list."""
 
-    def __init__(self, seq=tuple()):
+    def __init__(self, seq=None):
+        if seq is None:
+            seq = ()
         list.__init__(self, seq)
 
     def __iadd__(self, text):
@@ -347,7 +346,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
     """
     if not isinstance(unistr, (str, bytes)):
         raise TypeError(
-            "unistr should be a str or bytes, not {}".format(unistr.__class__.__name__)
+            f"unistr should be a str or bytes, not {unistr.__class__.__name__}"
         )
     # Turn characters that are invalid in the filesystem encoding into ASCII
     # substitution character '?'
@@ -428,10 +427,8 @@ def center(text, width=None):
         for line in text:
             if len(line) > width:
                 width = len(line)
-    i = 0
-    for line in text:
+    for i, line in enumerate(text):
         text[i] = line.center(width)
-        i += 1
     return "\n".join(text)
 
 

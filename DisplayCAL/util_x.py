@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import warnings
 
@@ -18,11 +16,9 @@ def get_display(display_name=None):
             warnings.warn(
                 f"invalid value for display name: '{display_name.decode()}'",
                 Warning,
+                stacklevel=2,
             )
         else:
             display = display_screen[0]
-            if len(display_screen) > 1:
-                screen = display_screen[1]
-            else:
-                screen = 0
+            screen = display_screen[1] if len(display_screen) > 1 else 0
     return hostname, display, screen

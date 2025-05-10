@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
-
-
 import http.client
 import os
 import re
-import socket
 import string
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 
+from DisplayCAL import colormath
+from DisplayCAL import localization as lang
 from DisplayCAL.config import get_data_path
 from DisplayCAL.defaultpaths import cache as cachepath
 from DisplayCAL.log import safe_print as _safe_print
 from DisplayCAL.meta import DOMAIN
-from DisplayCAL.options import verbose, debug
+from DisplayCAL.options import debug
 from DisplayCAL.util_io import GzipFileProper
 from DisplayCAL.util_str import StrList, create_replace_function
-from DisplayCAL import colormath
-from DisplayCAL import localization as lang
 
 
 class VRMLParseError(Exception):
@@ -127,12 +123,12 @@ class Tag:
                 with open(cachefilename, "rb") as cachefile:
                     body = cachefile.read()
             if not body.strip():
-                for url in (url, url.replace("https://", "http://")):
-                    _safe_print("Requesting:", url)
+                for url_ in (url, url.replace("https://", "http://")):
+                    _safe_print("Requesting:", url_)
                     try:
-                        response = urllib.request.urlopen(url)
+                        response = urllib.request.urlopen(url_)
                     except (
-                        socket.error,
+                        OSError,
                         urllib.error.URLError,
                         http.client.HTTPException,
                     ) as exception:
@@ -227,9 +223,8 @@ class Tag:
 
 def _attrchk(attribute, token, tag, indent):
     if attribute:
-        if debug:
-            if tag.attributes.get(token):
-                safe_print(indent, "attribute %r %r" % (token, tag.attributes[token]))
+        if debug and tag.attributes.get(token):
+            safe_print(indent, "attribute %r %r" % (token, tag.attributes[token]))
         attribute = False
     return attribute
 
@@ -438,17 +433,18 @@ def update_vrml(vrml, colorspace):
         r"Transform\s*\{\s*translation\s+[+\-0-9.]+\s*[+\-0-9.]+\s*[+\-0-9.]+\s+children\s*\[\s*Shape\s*\{\s*geometry\s+Sphere\s*\{[^}]*\}\s*appearance\s+Appearance\s*\{\s*material\s+Material\s*\{[^}]*\}\s*\}\s*\}\s*\]\s*\}",
         vrml,
     )
-    for i, sphere in enumerate(spheres):
+    for sphere in spheres:
         coords = re.search(
             r"translation\s+([+\-0-9.]+\s+[+\-0-9.]+\s+[+\-0-9.]+)", sphere
         )
-        if coords:
-            vrml = vrml.replace(
-                sphere,
-                sphere.replace(
-                    coords.group(), "translation " + update_xyz(coords.groups()[0])
-                ),
-            )
+        if not coords:
+            continue
+        vrml = vrml.replace(
+            sphere,
+            sphere.replace(
+                coords.group(), "translation " + update_xyz(coords.groups()[0])
+            ),
+        )
     if colorspace.startswith("DIN99"):
         # Remove * from L*a*b* and add range
 
@@ -535,7 +531,7 @@ Transform {
             r'Shape\s*\{\s*geometry\s*(?:Box|Text)\s*\{\s*(?:size\s+\d+\.0+\s+\d+\.0+\s+\d+\.0+|string\s+\["[^"]*"\]\s*fontStyle\s+FontStyle\s*\{[^}]+\})\s*\}\s*appearance\s+Appearance\s*\{\s*material\s*Material\s*\{[^}]+}\s*\}\s*\}',
             vrml,
         )
-        for i, axis in enumerate(axes):
+        for axis in axes:
             # Red -> purpleish blue
             vrml = vrml.replace(
                 axis,
@@ -620,10 +616,7 @@ def vrml2x3dom(vrml, worker=None):
                 return False
         if curprogress > lastprogress:
             lastprogress = curprogress
-            if curprogress < 100:
-                end = None
-            else:
-                end = "\n"
+            end = None if curprogress < 100 else "\n"
             _safe_print.write("\r%i%%" % curprogress, end=end)
         if ord(c) < 32 and c not in "\n\r\t":
             raise VRMLParseError("Parse error: Got invalid character %r" % c)
@@ -672,11 +665,11 @@ def vrml2x3dom(vrml, worker=None):
                     continue
                 if c == '"':
                     quote += 1
-                if c != '"' or tag.tagname != "FontStyle" or token != "style":
-                    if c != " " or (
-                        tag.attributes[token] and tag.attributes[token][-1] != " "
-                    ):
-                        tag.attributes[token] += c
+                if (c != '"' or tag.tagname != "FontStyle" or token != "style") and (
+                    c != " "
+                    or (tag.attributes[token] and tag.attributes[token][-1] != " ")
+                ):
+                    tag.attributes[token] += c
                 if quote == 2:
                     if not listing:
                         attribute = _attrchk(attribute, token, tag, indent)
@@ -692,12 +685,11 @@ def vrml2x3dom(vrml, worker=None):
                 raise VRMLParseError("Parse error: Invalid token", token)
             if token == "children":
                 token = ""
-            elif c in " \t":
-                if not attribute:
-                    attribute = True
-                    if token in tag.attributes:
-                        # Overwrite existing attribute
-                        tag.attributes[token] = StrList()
+            elif c in " \t" and not attribute:
+                attribute = True
+                if token in tag.attributes:
+                    # Overwrite existing attribute
+                    tag.attributes[token] = StrList()
     return x3d
 
 
@@ -742,7 +734,7 @@ def vrmlfile2x3dfile(
         x3d = False
     except VRMLParseError as exception:
         return exception
-    except EnvironmentError as exception:
+    except OSError as exception:
         return exception
     except Exception as exception:
         import traceback

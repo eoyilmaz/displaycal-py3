@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """Runtime configuration and user settings parser."""
 
 import configparser
+import contextlib
 import locale
 import math
 import os
@@ -9,10 +9,10 @@ import re
 import string
 import sys
 from decimal import Decimal
-from typing import List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 if sys.platform == "win32":
-    import winreg
+    pass
 
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
@@ -41,8 +41,10 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
 )
 from DisplayCAL.meta import (  # noqa: F401
     build,  # don't remove this, imported by other modules
-    name as appname,
     version,
+)
+from DisplayCAL.meta import (
+    name as appname,
 )
 from DisplayCAL.options import debug
 from DisplayCAL.safe_print import (  # noqa: F401
@@ -232,7 +234,7 @@ virtual_displays = untethered_displays + ("madVR$",)
 
 
 def is_special_display(
-    display: Optional[str] = None, tests: List[str] = virtual_displays
+    display: Optional[str] = None, tests: list[str] = virtual_displays
 ) -> bool:
     """Check if the display is a special display.
 
@@ -245,10 +247,7 @@ def is_special_display(
     """
     if not isinstance(display, str):
         display = get_display_name(display)
-    for test in tests:
-        if re.match(test, display):
-            return True
-    return False
+    return any(re.match(test, display) for test in tests)
 
 
 def is_uncalibratable_display(display: Optional[str] = None) -> bool:
@@ -369,10 +368,7 @@ def create_bitmap(
                 size = []
     ow, oh = w, h
     set_default_app_dpi()
-    if scale:
-        scale = getcfg("app.dpi") / get_default_dpi()
-    else:
-        scale = 1
+    scale = getcfg("app.dpi") / get_default_dpi() if scale else 1
     if scale > 1:
         # HighDPI support
         w = int(round(w * scale))
@@ -410,7 +406,7 @@ def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
 
 def load_bitmap(
     name: str,
-    parts: List[str],
+    parts: list[str],
     ow: int,
     oh: int,
     w: int,
@@ -509,7 +505,7 @@ def load_bitmap(
                 "{}.png".format(os.path.join(parts[-2], "apps", parts[-1]))
             )
         if not path:
-            path = get_data_path("{}.png".format(os.path.sep.join(parts)))
+            path = get_data_path(f"{os.path.sep.join(parts)}.png")
         if path or scale == 1:
             break
     if path:
@@ -596,20 +592,14 @@ def load_bitmap(
                     factors = (1, 1, 1, alpha / 255.0)
             if factors:
                 R, G, B = factors[:3]
-                if len(factors) > 3:
-                    alpha = factors[3]
-                else:
-                    alpha = 1.0
+                alpha = factors[3] if len(factors) > 3 else 1.0
                 img = img.AdjustChannels(R, G, B, alpha)
             if color:
                 # Hex format, RRGGBB or RRGGBBAA
                 R = int(color[0:2], 16) / 255.0
                 G = int(color[2:4], 16) / 255.0
                 B = int(color[4:6], 16) / 255.0
-                if len(color) > 6:
-                    alpha = int(color[6:8], 16) / 255.0
-                else:
-                    alpha = 1.0
+                alpha = int(color[6:8], 16) / 255.0 if len(color) > 6 else 1.0
                 img = img.AdjustChannels(R, G, B, alpha)
         if img:
             bmp = img.ConvertToBitmap()
@@ -667,10 +657,7 @@ def get_argyll_data_dir() -> str:
     if isinstance(argyll_version, str):
         argyll_version = list(map(int, argyll_version.split(".")))
 
-    if argyll_version < [1, 5, 0]:
-        argyll_data_dirname = "color"
-    else:
-        argyll_data_dirname = "ArgyllCMS"
+    argyll_data_dirname = "color" if argyll_version < [1, 5, 0] else "ArgyllCMS"
 
     if sys.platform == "darwin" and argyll_version < [1, 5, 0]:
         return os.path.join(
@@ -722,11 +709,11 @@ def split_display_name(display: str) -> str:
     return display.strip()
 
 
-def get_argyll_display_number(geometry: Tuple[int, int, int, int]) -> Union[None, int]:
+def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> Union[None, int]:
     """Translate from wx display geometry to Argyll display index.
 
     Args:
-        geometry (Tuple[int, int, int, int]): The geometry of the display.
+        geometry (tuple[int, int, int, int]): The geometry of the display.
 
     Returns:
         Union[None, int]: The Argyll display index.
@@ -768,11 +755,12 @@ def get_display_number(display_no: int) -> int:
     return 0
 
 
-def get_display_rects() -> List[Tuple[int, int, int, int]]:
+def get_display_rects() -> list[tuple[int, int, int, int]]:
     """Return the Argyll enumerated display coordinates and sizes.
 
     Returns:
-        List[Tuple[int, int, int, int]]: A list of wx.Rect objects representing the display coordinates and sizes.
+        list[tuple[int, int, int, int]]: A list of wx.Rect objects representing
+            the display coordinates and sizes.
     """
     from DisplayCAL.wxaddons import wx
 
@@ -885,10 +873,7 @@ def get_data_path(relpath, rex=None):
             # Fedora and Ubuntu: /usr/share/color/argyll/ref
             # openSUSE: /usr/share/color/argyll
             pth = relpath.split("/", 1)[-1]
-            if pth != "ref":
-                curpath = os.path.join(dir_, pth)
-            else:
-                curpath = dir_
+            curpath = os.path.join(dir_, pth) if pth != "ref" else dir_
         if os.path.exists(curpath):
             curpath = os.path.normpath(curpath)
             if os.path.isdir(curpath):
@@ -1739,7 +1724,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             strtr(
                 v,
                 [
-                    ("%{}".format(hex(ord(os.pathsep))[2:].upper()), os.pathsep),
+                    (f"%{hex(ord(os.pathsep))[2:].upper()}", os.pathsep),
                     ("%25", "%"),
                 ],
             )
@@ -1776,7 +1761,7 @@ def get_current_profile(include_display_profile=False):
 
         try:
             profile = ICCProfile(path, use_cache=True)
-        except (IOError, ICCProfileInvalidError):
+        except (OSError, ICCProfileInvalidError):
             return
         return profile
     elif include_display_profile:
@@ -1855,7 +1840,7 @@ def get_standard_profiles(paths_only=False):
         for path in ref_icc + other_icc:
             try:
                 profile = ICCProfile(path, load=False, use_cache=True)
-            except EnvironmentError:
+            except OSError:
                 pass
             except Exception as exception:
                 print(exception)
@@ -1951,7 +1936,15 @@ def get_total_patches(
 
 
 def get_verified_path(cfg_item_name, path=None):
-    """Verify and return dir and filename for a path from the user cfg, or a given path."""  # noqa: B950
+    """Verify and return directory and filename for a user cfg path or given path.
+
+    Args:
+        cfg_item_name (str): Config item name to retrieve the path.
+        path (str, optional): Path to verify. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the directory and filename.
+    """
     defaultPath = path or getcfg(cfg_item_name)
     defaultDir = expanduseru("~")
     defaultFile = ""
@@ -1994,7 +1987,7 @@ def is_profile(filename=None, include_display_profile=False):
 
             try:
                 ICCProfile(filename, use_cache=True)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 pass
             else:
                 return True
@@ -2048,11 +2041,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     Read in settings if the configuration file exists, else create the
     settings directory if nonexistent.
     """
-    if module:
-        cfgbasename = f"{appbasename}-{module}"
-    else:
-        cfgbasename = appbasename
-
+    cfgbasename = f"{appbasename}-{module}" if module else appbasename
     makecfgdir()
     cfg_full_path = os.path.join(confighome, f"{cfgbasename}.ini")
     if os.path.exists(confighome) and not os.path.exists(cfg_full_path):
@@ -2083,7 +2072,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
                 continue
             try:
                 mtime = os.stat(cfgfile).st_mtime
-            except EnvironmentError as exception:
+            except OSError as exception:
                 print(f"Warning - os.stat('{cfgfile}') failed: {exception}")
             last_checked = cfginited.get(cfgfile)
             if force_load or mtime != last_checked:
@@ -2110,7 +2099,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
     # only if it can't be parsed
     except Exception:
         print(
-            "Warning - could not parse configuration files:\n%s".format(
+            "Warning - could not parse configuration files:\n{}".format(
                 "\n".join(cfgfiles)
             )
         )
@@ -2170,10 +2159,8 @@ def set_default_app_dpi():
                     stderr=sp.PIPE,
                 )
                 factor, stderr = p.communicate()
-                try:
+                with contextlib.suppress(ValueError):
                     txt_scale = float(factor)
-                except ValueError:
-                    pass
             dpi = get_default_dpi()
             if txt_scale:
                 dpi = int(round(dpi * txt_scale))
@@ -2308,7 +2295,7 @@ def setcfg(name, value, cfg=cfg):
                     v,
                     [
                         ("%", "%25"),
-                        (os.pathsep, "%{}".format(hex(ord(os.pathsep))[2:].upper())),
+                        (os.pathsep, f"%{hex(ord(os.pathsep))[2:].upper()}"),
                     ],
                 )
                 for v in value
@@ -2352,16 +2339,13 @@ def writecfg(
         which (str): 'user' or 'system'
         worker (DisplayCAL.worker.Worker): worker instance if ``which == 'system'``
         module (Optional[str]): module name.
-        options (Tuple[str]): options to write.
+        options (tuple[str]): options to write.
         cfg (configparser.ConfigParser): configuration instance.
 
     Returns:
         bool: True if successful, False otherwise.
     """
-    if module:
-        cfgbasename = f"{appbasename}-{module}"
-    else:
-        cfgbasename = appbasename
+    cfgbasename = f"{appbasename}-{module}" if module else appbasename
     # Remove unknown options
     for name, _val in cfg.items(configparser.DEFAULTSECT):
         if name not in defaults:
@@ -2402,22 +2386,21 @@ def writecfg(
         else:
             cfgfilename = cfgfilename1
         try:
-            cfgfile = open(cfgfilename, "wb")
             if getcfg("argyll.dir"):
-                cfgfile.write(
-                    (
-                        "%s%s".format(
-                            os.linesep.join(
-                                [
-                                    "[Default]",
-                                    f"argyll.dir = {getcfg('argyll.dir')}",
-                                ]
-                            ),
-                            os.linesep,
-                        )
-                    ).encode()
-                )
-            cfgfile.close()
+                with open(cfgfilename, "wb") as cfgfile:
+                    cfgfile.write(
+                        (
+                            "{}{}".format(
+                                os.linesep.join(
+                                    [
+                                        "[Default]",
+                                        f"argyll.dir = {getcfg('argyll.dir')}",
+                                    ]
+                                ),
+                                os.linesep,
+                            )
+                        ).encode()
+                    )
             if sys.platform != "win32":
                 # on Linux and OS X, we write the file to the user's config dir
                 # then 'su mv' it to the system-wide config dir

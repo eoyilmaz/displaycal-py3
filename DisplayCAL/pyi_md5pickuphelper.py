@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from sys import platform
 
 if platform not in ("darwin", "win32"):

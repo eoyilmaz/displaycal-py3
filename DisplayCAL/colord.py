@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-from binascii import hexlify
+import contextlib
 import os
 import subprocess as sp
 import sys
 import warnings
+from binascii import hexlify
 from time import sleep
 
 from DisplayCAL.options import use_colord_gi
@@ -12,19 +12,17 @@ try:
     # XXX D-Bus API is more complete currently
     if not use_colord_gi:
         raise ImportError("")
-    from gi.repository import Colord
-    from gi.repository import Gio
+    from gi.repository import Colord, Gio
 except ImportError:
     Colord = None
     Gio = None
 else:
     cancellable = Gio.Cancellable.new()
 
-from DisplayCAL.util_dbus import DBusObject, DBusException, BUSTYPE_SYSTEM
-
+from DisplayCAL import localization as lang
+from DisplayCAL.util_dbus import BUSTYPE_SYSTEM, DBusException, DBusObject
 from DisplayCAL.util_os import which
 from DisplayCAL.util_str import safe_str
-from DisplayCAL import localization as lang
 
 if sys.platform not in ("darwin", "win32"):
     from DisplayCAL.defaultpaths import xdg_data_home
@@ -37,7 +35,7 @@ if sys.platform not in ("darwin", "win32"):
                 "/org/freedesktop/ColorManager",
             )
         except DBusException as exception:
-            warnings.warn(safe_str(exception), Warning)
+            warnings.warn(safe_str(exception), Warning, stacklevel=2)
 
 
 # See colord/cd-client.c
@@ -143,7 +141,7 @@ def device_connect(client, device_id):
     try:
         device = client.find_device_sync(device_id, cancellable)
     except Exception as exception:
-        raise CDError(exception.args[0])
+        raise CDError(exception.args[0]) from exception
 
     # Connect to device
     if not device.connect_sync(cancellable):
@@ -179,7 +177,7 @@ def device_id_from_edid(
                 )
                 device_id = device.properties.get("DeviceId")
             except CDError as exception:
-                warnings.warn(safe_str(exception), Warning)
+                warnings.warn(safe_str(exception), Warning, stacklevel=2)
             else:
                 if device_id:
                     device_ids[edid["hash"]] = device_id
@@ -220,10 +218,10 @@ def find(what, search):
     except Exception as exception:
         if hasattr(exception, "get_dbus_name"):
             if exception.get_dbus_name() == "org.freedesktop.ColorManager.NotFound":
-                raise CDObjectNotFoundError(safe_str(exception))
+                raise CDObjectNotFoundError(safe_str(exception)) from exception
             else:
-                raise CDObjectQueryError(safe_str(exception))
-        raise CDError(safe_str(exception))
+                raise CDObjectQueryError(safe_str(exception)) from exception
+        raise CDError(safe_str(exception)) from exception
 
 
 def get_default_profile(device_id):
@@ -235,7 +233,7 @@ def get_default_profile(device_id):
     try:
         properties = device.properties
     except Exception as exception:
-        raise CDError(safe_str(exception))
+        raise CDError(safe_str(exception)) from exception
     else:
         if properties.get("ProfilingInhibitors"):
             return None
@@ -319,11 +317,9 @@ def install_profile(
         client = client_connect()
     else:
         # Query colord for profile
-        try:
+        with contextlib.suppress(CDObjectQueryError):
             cdprofile = get_object_path(profile_id, "profile")
-        except CDObjectQueryError:
-            # Profile not found
-            pass
+            # If profile not found, it will raise a CDObjectQueryError
 
         colormgr = which("colormgr")
         if not colormgr:
@@ -356,7 +352,7 @@ def install_profile(
                     p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
                     stdout, stderr = p.communicate()
                 except Exception as exception:
-                    raise CDError(safe_str(exception))
+                    raise CDError(safe_str(exception)) from exception
                 if logfn and stdout.strip():
                     logfn(stdout.strip())
                 if p.returncode == 0 or os.path.isfile(profile_install_name):
@@ -409,7 +405,7 @@ def install_profile(
             device.add_profile_sync(Colord.DeviceRelation.HARD, cdprofile, cancellable)
         except Exception as exception:
             # Profile may already have been added
-            warnings.warn(safe_str(exception), Warning)
+            warnings.warn(safe_str(exception), Warning, stacklevel=2)
 
         # Make profile default for device
         if not device.make_profile_default_sync(cdprofile, cancellable):
@@ -432,7 +428,7 @@ def install_profile(
             p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
             stdout, stderr = p.communicate()
         except Exception as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         if logfn and stdout.strip():
             logfn(stdout.strip())
 
@@ -449,7 +445,7 @@ def install_profile(
             p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
             stdout, stderr = p.communicate()
         except Exception as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         else:
             if p.returncode != 0:
                 raise CDError(stdout.strip() or errmsg)
@@ -492,7 +488,7 @@ class Object(DBusObject):
                 object_type,
             )
         except DBusException as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
         self._object_type = object_type
 
     _properties = DBusObject.properties
@@ -508,7 +504,7 @@ class Object(DBusObject):
                 properties[key] = value
             return properties
         except DBusException as exception:
-            raise CDError(safe_str(exception))
+            raise CDError(safe_str(exception)) from exception
 
 
 class Device(Object):

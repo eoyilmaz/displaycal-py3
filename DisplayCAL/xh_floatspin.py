@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
+import contextlib
 
 import wx
 import wx.xrc as xrc
+
 from DisplayCAL.log import safe_print
 
 try:
@@ -36,10 +37,7 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
         is_spinctrldbl = hasattr(wx, "SpinCtrlDouble") and issubclass(
             floatspin.FloatSpin, wx.SpinCtrlDouble
         )
-        if is_spinctrldbl:
-            defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT
-        else:
-            defaultstyle = 0
+        defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT if is_spinctrldbl else 0
         w = floatspin.FloatSpin(
             parent=self.GetParentAsWindow(),
             id=self.GetID(),
@@ -52,15 +50,11 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
             name=self.GetName(),
         )
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetValue(float(self.GetText("value")))
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetDigits(int(self.GetText("digits")))
-        except Exception:
-            pass
 
         self.SetupWindow(w)
         if self.GetBool("hidden") and w.Shown:

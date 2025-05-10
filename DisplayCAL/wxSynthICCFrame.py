@@ -1,36 +1,24 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 import sys
+from functools import partial
+
+from wx import xrc
 
 from DisplayCAL import (
     colormath,
     config,
     floatspin,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_floatspin,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
 )
-from DisplayCAL.icc_profile import (
-    CIIS,
-    create_synthetic_hdr_clut_profile,
-    CurveType,
-    ICCProfile,
-    ICCProfileInvalidError,
-    PROFILE_CLASS,
-    s15f16_is_equal,
-    SignatureType,
-    TECH,
-    Text,
-    XYZType,
-)
-from DisplayCAL.argyll_cgats import extract_device_gray_primaries
 from DisplayCAL.config import (
     enc,
     get_data_path,
@@ -41,31 +29,39 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.debughelpers import Error
+from DisplayCAL.icc_profile import (
+    CIIS,
+    PROFILE_CLASS,
+    TECH,
+    CurveType,
+    ICCProfile,
+    ICCProfileInvalidError,
+    SignatureType,
+    Text,
+    XYZType,
+    create_synthetic_hdr_clut_profile,
+    s15f16_is_equal,
+)
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files
 from DisplayCAL.util_os import waccess
-from DisplayCAL.util_str import safe_str
 from DisplayCAL.worker import (
-    Error,
     FilteredStream,
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
 from DisplayCAL.wxfixes import TempXmlResource
+from DisplayCAL.wxLUT3DFrame import LUT3DMixin
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
-
-from wx import xrc
 
 
 class SynthICCFrame(BaseFrame, LUT3DMixin):
@@ -123,10 +119,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.preset_ctrl.Bind(wx.EVT_CHOICE, self.preset_ctrl_handler)
         for color in ("red", "green", "blue", "white", "black"):
             for component in "XYZxy":
-                if component in "xy":
-                    handler = "xy"
-                else:
-                    handler = "XYZ"
+                handler = "xy" if component in "xy" else "XYZ"
                 self.Bind(
                     floatspin.EVT_FLOATSPIN,
                     getattr(self, "%s_%s_ctrl_handler" % (color, handler)),
@@ -161,10 +154,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.update_controls()
         self.update_layout()
-        if self.panel.VirtualSize[0] > self.panel.Size[0]:
-            scrollrate_x = 2
-        else:
-            scrollrate_x = 0
+        scrollrate_x = 2 if self.panel.VirtualSize[0] > self.panel.Size[0] else 0
         self.panel.SetScrollRate(scrollrate_x, 2)
 
         self.save_btn.Hide()
@@ -249,10 +239,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.black_luminance_ctrl.SetIncrement(increment)
             fmt = "%%.%if" % self.black_luminance_ctrl.GetDigits()
             if fmt % 0 < fmt % v < fmt % increment:
-                if event:
-                    v = increment
-                else:
-                    v = 0
+                v = increment if event else 0
             elif fmt % v == fmt % 0:
                 v = 0
             v = round(v / increment) * increment
@@ -394,7 +381,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         cat_choices_ab = dict(
             get_mapping(((k, k) for k in colormath.cat_matrices), cat_choices)
         )
-        cat_choices_ba = dict((v, k) for k, v in cat_choices_ab.items())
+        cat_choices_ba = {v: k for k, v in cat_choices_ab.items()}
         cat_ctrl = wx.Choice(dlg, -1, choices=list(cat_choices_ab.values()))
         cat_ctrl.SetStringSelection(cat_choices_ab[self.cat])
         dlg.sizer3.Add(cat_ctrl, 0, flag=wx.TOP | wx.ALIGN_LEFT, border=8)
@@ -441,7 +428,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """ICC profile dropped"""
         try:
             profile = ICCProfile(path)
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError):
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + path), self
             )
@@ -473,10 +460,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             except Exception as exception:
                 show_result_dialog(exception, self)
             else:
-                if "lumi" in profile.tags:
-                    luminance = profile.tags.lumi.Y
-                else:
-                    luminance = 100
+                luminance = profile.tags.lumi.Y if "lumi" in profile.tags else 100
                 if not colors[1][1] and isinstance(profile.tags.get("targ"), Text):
                     # The profile may not reflect the actual black point.
                     # Get it from the embedded TI3 instead if zero from lookup.
@@ -529,7 +513,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """TI3 file dropped"""
         try:
             ti3 = CGATS(path)
-        except (IOError, CGATSInvalidError) as exception:
+        except (OSError, CGATSInvalidError):
             show_result_dialog(
                 Error(lang.getstr("error.measurement.file_invalid", path)), self
             )
@@ -637,8 +621,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             if XYZ["X"] + XYZ["Y"] + XYZ["Z"] == 0:
                 # Set black chromaticity to white chromaticity if XYZ is 0
                 xyY = []
-                for i, component in enumerate("xy"):
-                    xyY.append(getattr(self, "white_%s" % component).GetValue())
+                for component in "xy":
+                    xyY.append(getattr(self, f"white_{component}").GetValue())
             else:
                 xyY = colormath.XYZ2xyY(XYZ["X"], XYZ["Y"], XYZ["Z"])
             for i, component in enumerate("xy"):
@@ -857,9 +841,11 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         class_i = self.profile_class_ctrl.GetSelection()
         tech_i = self.tech_ctrl.GetSelection()
         ciis_i = self.ciis_ctrl.GetSelection()
-        consumer = lambda result: (
-            isinstance(result, Exception) and show_result_dialog(result, self)
-        )
+
+        def consumer(result, parent):
+            if isinstance(result, Exception):
+                show_result_dialog(result, parent)
+
         wargs = (XYZ, trc, path)
         wkwargs = {
             "rgb": self.colorspace_rgb_ctrl.Value,
@@ -870,13 +856,10 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             "ciis": list(self.ciis.keys())[ciis_i],
         }
         if (trc == -2084 and rolloff) or trc == -2:
-            if trc == -2084:
-                msg = "smpte2084.rolloffclip"
-            else:
-                msg = "hlg"
+            msg = "smpte2084.rolloffclip" if trc == -2084 else "hlg"
             self.worker.recent.write(lang.getstr("trc." + msg) + "\n")
             self.worker.start(
-                consumer,
+                partial(consumer, parent=self),
                 self.create_profile,
                 wargs=(XYZ, trc, path),
                 wkwargs=wkwargs,
@@ -943,11 +926,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             ] * 3
             profile.tags.kTRC = CurveType(profile=profile)
             channels = "k"
-        if trc == -2:
-            # HLG
-            outoffset = 1
-        else:
-            outoffset = self.getcfg("synthprofile.trc_output_offset")
+        # HLG
+        outoffset = 1 if trc == -2 else self.getcfg("synthprofile.trc_output_offset")
         if trc == -1:
             # DICOM
             # Absolute luminance values!
@@ -980,10 +960,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 )
         elif trc == -2084 or trc == -2:
             # SMPTE 2084 or HLG
-            if trc == -2084:
-                hdr_format = "PQ"
-            else:
-                hdr_format = "HLG"
+            hdr_format = "PQ" if trc == -2084 else "HLG"
             minmll = self.getcfg("3dlut.hdr_minmll")
             if rolloff:
                 maxmll = self.getcfg("3dlut.hdr_maxmll")
@@ -1090,20 +1067,16 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 if black != [0, 0, 0] and outoffset and not bpc:
                     profile.tags.kTRC.apply_bpc(black[1])
         elif black != [0, 0, 0]:
-            if rgb:
-                # Color profile
-                vmin = 0
-            else:
-                # Grayscale profile
-                vmin = black[1]
-            for i, channel in enumerate(channels):
-                TRC = profile.tags["%sTRC" % channel]
+            # Color profile if rgb is True, else grayscale profile
+            vmin = 0 if rgb else black[1]
+            for channel in channels:
+                TRC = profile.tags[f"{channel}TRC"]
                 TRC.set_trc(trc, 1024, vmin=vmin * 65535)
             if rgb:
                 profile.apply_black_offset(black)
         else:
             for channel in channels:
-                profile.tags["%sTRC" % channel].set_trc(trc, 1)
+                profile.tags[f"{channel}TRC"].set_trc(trc, 1)
         if black != [0, 0, 0] and bpc:
             if rgb:
                 profile.apply_black_offset((0, 0, 0))

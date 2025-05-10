@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
@@ -8,11 +7,15 @@ License: wxPython license
 
 import colorsys
 import os
+import platform
 import re
 import sys
 import threading
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
+
+from wx.lib.agw import aui
+from wx.lib.intctrl import IntCtrl
 
 from DisplayCAL import (
     localization as lang,
@@ -34,9 +37,9 @@ from DisplayCAL.config import (
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
-    get_display_profile,
     VideoCardGammaType,
     WcsProfilesTagType,
+    get_display_profile,
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import intlist
@@ -51,6 +54,8 @@ from DisplayCAL.worker import (
 )
 from DisplayCAL.wxfixes import (
     GenBitmapButton as BitmapButton,
+)
+from DisplayCAL.wxfixes import (
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
@@ -62,12 +67,6 @@ from DisplayCAL.wxwindows import (
     HStretchStaticBitmap,
     TaskBarNotification,
 )
-
-from wx.lib.agw import aui
-from wx.lib.intctrl import IntCtrl
-
-if sys.platform == "darwin":
-    from platform import mac_ver
 
 try:
     from DisplayCAL import RealDisplaySizeMM as RDSMM
@@ -286,14 +285,15 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         dc.DrawBitmap(bmp, rect.x, rect.y, True)
 
     def SetCustomPaneBitmap(self, bmp, button, active, maximize=False):
-        """Sets a custom button bitmap for the pane button.
+        """Set a custom button bitmap for the pane button.
 
-        :param Bitmap `bmp`: the actual bitmap to set;
-        :param integer `button`: the button identifier;
-        :param bool `active`: whether it is the bitmap for the active button or not;
-        :param bool `maximize`: used to distinguish between the maximize and restore bitmaps.
+        Args:
+            bmp (Bitmap): The actual bitmap to set.
+            button (int): The button identifier.
+            active (bool): Whether it is the bitmap for the active button or not.
+            maximize (bool): Used to distinguish between the maximize and restore
+                bitmaps.
         """
-
         if button == aui.dockart.AUI_BUTTON_CLOSE:
             if active:
                 self._active_close_bitmap = bmp
@@ -1489,10 +1489,7 @@ class NumSpin(wx_Panel):
         current = self.numctrl.GetValue()
         if n is None:
             n = current + inc
-        if inc > 0:
-            btn = self.spinup
-        else:
-            btn = self.spindn
+        btn = self.spinup if inc > 0 else self.spindn
         if event or self.is_button_pressed(btn):
             if n == current or (inc > 0 and n < current) or (inc < 0 and n > current):
                 # print '!_spin', current, inc, n, delay, bell
@@ -1562,7 +1559,7 @@ class ProfileManager:
         with self._lock:
             try:
                 display_profile = get_display_profile(display_no)
-            except (ICCProfileInvalidError, IOError, IndexError) as exception:
+            except (OSError, ICCProfileInvalidError, IndexError) as exception:
                 print(
                     "Could not get display profile for display %i" % (display_no + 1),
                     "@ %i, %i, %ix%i:" % geometry,
@@ -1691,8 +1688,8 @@ class ProfileManager:
             if display_no is not None:
                 thread = threading.Thread(
                     target=self._install_profile_locked,
-                    name="VisualWhitepointEditor.ProfileInstallation[Display %d @ %d, %d, %dx%d]"
-                    % ((display_no,) + geometry),
+                    name="VisualWhitepointEditor.ProfileInstallation[Display"
+                        " %d @ %d, %d, %dx%d]" % ((display_no,) + geometry),
                     args=(display_no, profile, wrapup),
                 )
                 thread.start()
@@ -1751,11 +1748,12 @@ class VisualWhitepointEditor(wx.Frame):
     ):
         """Default class constructor.
 
-        :param colourData: a standard :class:`ColourData` (as used in :class:`ColourFrame`);
-         to hide the alpha channel control or not.
-        :param patterngenerator: a patterngenerator object
-        :param geometry: the geometry of the display the profile is assigned to
-        :param profile: the profile of the display with the given geometry
+        Args:
+            colourData (ColourData): A standard :class:`ColourData` (as used in
+                :class:`ColourFrame`) to hide the alpha channel control or not.
+            patterngenerator: A patterngenerator object.
+            geometry: The geometry of the display the profile is assigned to.
+            profile: The profile of the display with the given geometry.
         """
 
         self.patterngenerator = patterngenerator
@@ -1862,10 +1860,7 @@ class VisualWhitepointEditor(wx.Frame):
 
         self.area_size_slider.BackgroundColour = self.mainPanel.BackgroundColour
 
-        if "gtk3" in wx.PlatformInfo:
-            size = (16, 16)
-        else:
-            size = (-1, -1)
+        size = (16, 16) if "gtk3" in wx.PlatformInfo else (-1, -1)
         self.zoomnormalbutton = BitmapButton(
             self.mainPanel,
             -1,
@@ -2030,7 +2025,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.measure_btn.Bind(wx.EVT_BUTTON, self.measure)
 
     def SetProperties(self):
-        """Sets some initial properties for :class:`VisualWhitepointEditor` (sizes, values)."""
+        """Set some initial properties (sizes, values)."""
         min_w = self.redSpin.numctrl.GetTextExtent("255")[0] + s(30)
         self.redSpin.SetMinSize((min_w, -1))
         self.greenSpin.SetMinSize((min_w, -1))
@@ -2092,10 +2087,7 @@ class VisualWhitepointEditor(wx.Frame):
         font.SetWeight(wx.BOLD)
         area_slider_label.Font = font
         mainSizer.Add(area_slider_label, 0, wx.LEFT | wx.BOTTOM, margin)
-        if "gtk3" in wx.PlatformInfo:
-            vmargin = margin
-        else:
-            vmargin = s(6)
+        vmargin = margin if "gtk3" in wx.PlatformInfo else s(6)
         slider_sizer = wx.FlexGridSizer(3, 3, vmargin, margin)
         slider_sizer.AddGrowableCol(1)
         mainSizer.Add(slider_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, margin)
@@ -2153,7 +2145,7 @@ class VisualWhitepointEditor(wx.Frame):
             not self.patterngenerator
             and getattr(event, "IsShown", getattr(event, "GetShow", bool))()
             and sys.platform == "darwin"
-            and intlist(mac_ver()[0].split(".")) >= [10, 10]
+            and intlist(platform.mac_ver()[0].split(".")) >= [10, 10]
         ):
             # Under Yosemite and up, if users use the default titlebar zoom
             # button to go fullscreen, they will be left with a black screen
@@ -2181,8 +2173,9 @@ class VisualWhitepointEditor(wx.Frame):
     def DrawMarkers(self, dc=None):
         """Draws the markers for all the controls.
 
-        :param dc: an instance of :class:`DC`. If `dc` is ``None``, a :class:`ClientDC` is
-         created on the fly.
+        Args:
+            dc (DC): If `dc` is ``None``, a :class:`ClientDC` is created on the
+                fly.
         """
 
         self.hsvBitmap.DrawMarkers(dc)
@@ -2381,14 +2374,22 @@ class VisualWhitepointEditor(wx.Frame):
         self._colourData.SetColour(self._colour.GetPyColour())
         return self._colourData
 
-    def GetRGBAColour(self):
-        """Returns a 4-elements tuple of red, green, blue, alpha components."""
+    def GetRGBAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of red, green, blue, alpha components.
 
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the red, green,
+                blue, and alpha components of the colour.
+        """
         return (self._colour.r, self._colour.g, self._colour.b, self._colour._alpha)
 
-    def GetHSVAColour(self):
-        """Returns a 4-elements tuple of hue, saturation, brightness, alpha components."""
-
+    def GetHSVAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of hue, saturation, brightness, alpha components.
+        
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the hue, saturation,
+                brightness, and alpha components of the colour.
+        """
         return (self._colour.h, self._colour.s, self._colour.v, self._colour._alpha)
 
     def EndModal(self, returncode=wx.ID_OK):
@@ -2418,7 +2419,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.newColourPanel.Size = w, h
         self.bgPanel.MinSize = w + s(24), h + s(24)
         bg_w, bg_h = (float(v) for v in self.bgPanel.Size)
-        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int(((bg_h - (h)) * y))
+        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int((bg_h - (h)) * y)
         if event:
             event.Skip()
         if event and event.GetEventType() == wx.EVT_SIZE.evtType[0]:
@@ -2511,10 +2512,11 @@ class VisualWhitepointEditor(wx.Frame):
         self.notification.Center(wx.HORIZONTAL)
 
     def size_handler(self, event):
-        if getattr(self, "_isfullscreen", False):
-            if getattr(self, "notification", None):
-                # print 'Fading out notification'
-                self.notification.fade("out")
+        if getattr(self, "_isfullscreen", False) and getattr(
+            self, "notification", None
+        ):
+            # print 'Fading out notification'
+            self.notification.fade("out")
         wx.CallAfter(self._check_fullscreen)
         self.area_handler(event)
 

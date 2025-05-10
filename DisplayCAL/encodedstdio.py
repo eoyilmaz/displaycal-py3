@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
 import codecs
-import locale
 import os
 import sys
 
@@ -70,11 +67,7 @@ def encodestdio(encodings=None, errors=None):
 def read(stream, size=-1):
     """Read from stream. Uses os.read() if stream is a tty,
     stream.read() otherwise."""
-    if stream.isatty():
-        data = os.read(stream.fileno(), size)
-    else:
-        data = stream.read(size)
-    return data
+    return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):
@@ -158,7 +151,7 @@ if __name__ == "__main__":
     test = "test \u00e4\u00f6\u00fc\ufffe test"
     try:
         print(test)
-    except (LookupError, IOError, UnicodeError) as exception:
+    except (OSError, LookupError, UnicodeError) as exception:
         print("could not print %r:" % test, exception)
     print("wrapping stdout/stderr via encodestdio()")
     encodestdio()

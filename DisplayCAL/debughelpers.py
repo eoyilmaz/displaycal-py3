@@ -1,11 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import traceback
 
-from DisplayCAL import config
-from DisplayCAL.config import fs_enc
-from DisplayCAL.log import logbuffer
-from DisplayCAL.meta import name as appname, wx_recversion
+from DisplayCAL.meta import wx_recversion
 from DisplayCAL.options import debug
 from DisplayCAL.util_str import box
 
@@ -76,7 +71,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         try:
             from DisplayCAL.wxaddons import wx
 
-            if wx.VERSION < wx_recversion:
+            if wx.VERSION < wx_recversion:  # noqa: SIM300
                 msg += (
                     "\n\nWARNING: Your version of wxPython (%s) is outdated "
                     "and no longer supported. You should consider updating "

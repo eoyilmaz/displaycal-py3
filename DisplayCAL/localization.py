@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 
@@ -105,10 +103,7 @@ def getstr(id_str, strvars=None, lcode=None, default=None):
                         s = str(s)
                     elif not fmt[i].endswith("r"):
                         try:
-                            if fmt[i][-1] in "dioxX":
-                                s = int(s)
-                            else:
-                                s = float(s)
+                            s = int(s) if fmt[i][-1] in "dioxX" else float(s)
                         except (TypeError, ValueError):
                             s = 0
                     strvars[i] = s
@@ -138,6 +133,7 @@ catalog = {}
 
 if debug:
     import atexit
+
     from DisplayCAL.config import confighome
     from DisplayCAL.jsondict import JSONDict
 

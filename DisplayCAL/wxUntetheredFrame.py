@@ -1,20 +1,20 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-"""
+"""Interactive display calibration UI."""
 
+import contextlib
 import os
 import re
 import sys
 import time
 
+from DisplayCAL import audio, colormath, config
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import (
+    get_data_path,
+    get_icon_bundle,
     getbitmap,
     getcfg,
     geticon,
-    get_data_path,
-    get_icon_bundle,
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
@@ -28,15 +28,11 @@ from DisplayCAL.wxwindows import (
     CustomCheckBox,
     CustomGrid,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 FGCOLOUR = wx.Colour(0x99, 0x99, 0x99)
@@ -253,7 +249,7 @@ class UntetheredFrame(BaseFrame):
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
 
-        for id in self.id_to_keycode.keys():
+        for id in self.id_to_keycode:
             if id >= 0:
                 continue
             try:
@@ -262,7 +258,6 @@ class UntetheredFrame(BaseFrame):
                 print(exception)
 
         return 0
-
 
     def OnMove(self, event):
         if (
@@ -511,11 +506,12 @@ class UntetheredFrame(BaseFrame):
             self.is_measuring = False
         if "Spot read failed" in txt:
             self.last_error = txt
+
+        # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
         if "Result is XYZ:" in txt:
             self.last_error = None
             if getcfg("measurement.play_sound"):
                 self.measurement_sound.safe_play()
-            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
             XYZ = re.search(
                 r"XYZ:\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)", txt
             )
@@ -527,12 +523,11 @@ class UntetheredFrame(BaseFrame):
 
             XYZ = [float(v) for v in XYZ.groups()]
             row = self.cgats[0].DATA[self.index]
-            if is_white(row):
-                if XYZ[1] > 0:
-                    self.cgats[0].add_keyword(
-                        "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
-                    )
-                    self.white_XYZ = XYZ
+            if is_white(row) and XYZ[1] > 0:
+                self.cgats[0].add_keyword(
+                    "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
+                )
+                self.white_XYZ = XYZ
             Lab1 = colormath.XYZ2Lab(*self.last_XYZ)
             Lab2 = colormath.XYZ2Lab(*XYZ)
             delta = colormath.delta(*Lab1 + Lab2)
@@ -754,12 +749,13 @@ class UntetheredFrame(BaseFrame):
 
 
 if __name__ == "__main__":
+    import random
     from _thread import start_new_thread
     from time import sleep
-    import random
+
+    from DisplayCAL import worker
     from DisplayCAL.icc_profile import ICCProfile
     from DisplayCAL.util_io import Files
-    from DisplayCAL import worker
 
     class Subprocess:
         def send(self, bytes_):
@@ -794,10 +790,8 @@ if __name__ == "__main__":
     app.TopWindow = UntetheredFrame(start_timer=False)
     testchart = getcfg("testchart.file")
     if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
-        try:
+        with contextlib.suppress(Exception):
             testchart = ICCProfile(testchart).tags.targ
-        except Exception:
-            pass
     try:
         app.TopWindow.cgats = CGATS(testchart)
     except Exception:
@@ -861,5 +855,5 @@ or hit Esc or Q to abort:"""
                 wx.CallAfter(files.write, line)
                 print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

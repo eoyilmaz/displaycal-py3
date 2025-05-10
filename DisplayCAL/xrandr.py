@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-
+import os
+import sys
 from ctypes import (
     POINTER,
     Structure,
@@ -17,19 +17,16 @@ if not libx11pth:
     raise ImportError("Couldn't find libX11")
 try:
     libx11 = cdll.LoadLibrary(libx11pth)
-except OSError:
-    raise ImportError("Couldn't load libX11")
+except OSError as e:
+    raise ImportError("Couldn't load libX11") from e
 
 libxrandrpth = util.find_library("Xrandr")
 if not libxrandrpth:
     raise ImportError("Couldn't find libXrandr")
 try:
     libxrandr = cdll.LoadLibrary(libxrandrpth)
-except OSError:
-    raise ImportError("Couldn't load libXrandr")
-
-import os
-import sys
+except OSError as e:
+    raise ImportError("Couldn't load libXrandr") from e
 
 from DisplayCAL.options import debug
 
@@ -64,7 +61,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError(f"libX11: {exception}")
+    raise ImportError(f"libX11: {exception}") from exception
 
 try:
     libxrandr.XRRGetOutputProperty.restype = c_int
@@ -84,7 +81,7 @@ try:
         POINTER(POINTER(c_ubyte)),
     ]
 except AttributeError as exception:
-    raise ImportError(f"libXrandr: {exception}")
+    raise ImportError(f"libXrandr: {exception}") from exception
 
 
 class XDisplay:
@@ -204,4 +201,4 @@ if __name__ == "__main__":
         property = display.get_output_property(
             int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
         )
-        print("{} for display {}: {}".format(sys.argv[2], sys.argv[1], repr(property)))
+        print(f"{sys.argv[2]} for display {sys.argv[1]}: {repr(property)}")

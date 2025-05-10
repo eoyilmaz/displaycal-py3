@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 import re
@@ -10,13 +8,12 @@ import numpy
 from DisplayCAL import (
     colormath,
     config,
-    localization as lang,
-    wxenhancedplot as plot,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -38,7 +35,6 @@ from DisplayCAL.icc_profile import (
     WcsProfilesTagType,
 )
 from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
 from DisplayCAL.worker import (
@@ -47,12 +43,12 @@ from DisplayCAL.worker import (
     Worker,
     show_result_dialog,
 )
-from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
 from DisplayCAL.wxfixes import (
     GenBitmapButton as BitmapButton,
-    wx_Panel,
 )
+from DisplayCAL.wxfixes import wx_Panel
+from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -84,7 +80,7 @@ class CoordinateType(list):
     """
 
     def __init__(self, profile=None):
-        super(CoordinateType, self).__init__()
+        super().__init__()
         self.profile = profile
         self._transfer_function = {}
 
@@ -96,7 +92,7 @@ class CoordinateType(list):
             start = slice[0] * 100
             end = slice[1] * 100
             values = []
-            for i, (y, x) in enumerate(self):
+            for y, x in self:
                 n = colormath.XYZ2Lab(0, y, 0)[0]
                 if start <= n <= end:
                     values.append((x / 255.0 * 100, y))
@@ -107,10 +103,9 @@ class CoordinateType(list):
             return [1.0]
         vmin = 0
         vmax = 100.0
-        if use_vmin_vmax:
-            if len(self) > 2:
-                vmin = self[0][0]
-                vmax = self[-1][0]
+        if use_vmin_vmax and len(self) > 2:
+            vmin = self[0][0]
+            vmax = self[-1][0]
         return colormath.get_gamma(values, 100.0, vmin, vmax, average, least_squares)
 
     def get_transfer_function(self, best=True, slice=(0.05, 0.95), outoffset=None):
@@ -241,10 +236,7 @@ class LUTCanvas(plot.PlotCanvas):
 
         if colorspace in (b"YCbr", b"RGB", b"GRAY", b"HSV", b"HLS"):
             axis_y = 255.0
-            if connection_colorspace in (b"Lab", b"XYZ"):
-                axis_x = 100.0
-            else:
-                axis_x = 255.0
+            axis_x = 100.0 if connection_colorspace in (b"Lab", b"XYZ") else 255.0
         else:
             axis_y = 100.0
             axis_x = 100.0
@@ -365,8 +357,13 @@ class LUTCanvas(plot.PlotCanvas):
                         idx = int(round(i / 255.0 * 4095))
                         self.point_grid[channel][idx] = float(n)
 
-        # for n in sorted(self.point_grid[0].keys()):
-        # print n, self.point_grid[0].get(n), self.point_grid[1].get(n), self.point_grid[2].get(n)
+        # for n in sorted(self.point_grid[0]):
+        #     print(
+        #         n,
+        #         self.point_grid[0].get(n),
+        #         self.point_grid[1].get(n),
+        #         self.point_grid[2].get(n)
+        #     )
 
         self.entryCount = irange[-1] + 1
 
@@ -385,7 +382,7 @@ class LUTCanvas(plot.PlotCanvas):
         for channel in points:
             values = points[channel]
             self.unique[channel] = len(
-                set(round(float(y) / axis_y * irange[-1]) for x, y in values)
+                {round(float(y) / axis_y * irange[-1]) for x, y in values}
             )
 
         legend = []
@@ -455,7 +452,7 @@ class LUTCanvas(plot.PlotCanvas):
                     line2 = Plot(values2, legend=label + suffix, colour=color2)
                 elif seen_values:
                     # Check if same line (+- 0.005 tolerance) has been seen
-                    for idx, seen in enumerate(seen_values):
+                    for seen in seen_values:
                         match = True
                         for i, (x, y) in enumerate(seen):
                             if x != values[i][0] or abs(y - values[i][1]) > 0.005:
@@ -466,6 +463,7 @@ class LUTCanvas(plot.PlotCanvas):
                     else:
                         match = False
                     if match:
+                        idx = len(seen_values) - 1
                         seen_label = seen_labels[idx]
                         lines[idx + 1].attributes["colour"] = self.get_color(
                             seen_label + channel_label
@@ -607,10 +605,7 @@ class LUTCanvas(plot.PlotCanvas):
         event.Skip()
 
     def OnMouseDoubleClick(self, event):
-        if self.last_draw:
-            boundingbox = self.last_draw[0].boundingBox()
-        else:
-            boundingbox = None
+        boundingbox = self.last_draw[0].boundingBox() if self.last_draw else None
         self.resetzoom(boundingbox=boundingbox)
         if self.last_draw:
             self.center()
@@ -1083,7 +1078,7 @@ class LUTFrame(BaseFrame):
         else:
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 InfoDialog(
                     self,
                     msg=f"{lang.getstr('profile.invalid')}\n{path}",
@@ -1102,11 +1097,7 @@ class LUTFrame(BaseFrame):
             show_result_dialog(
                 Error(
                     "\n\n".join(
-                        [
-                            "{}".format(e)
-                            for e in set(self.client.errors)
-                            if e is not None
-                        ]
+                        [f"{e}" for e in set(self.client.errors) if e is not None]
                     )
                 ),
                 self,
@@ -1225,10 +1216,7 @@ class LUTFrame(BaseFrame):
 
     def show_actual_lut_handler(self, event):
         setcfg("lut_viewer.show_actual_lut", int(self.show_actual_lut_cb.GetValue()))
-        if hasattr(self, "current_cal"):
-            profile = self.current_cal
-        else:
-            profile = None
+        profile = self.current_cal if hasattr(self, "current_cal") else None
         self.load_lut(profile=profile)
 
     def load_lut(self, profile=None):
@@ -1261,7 +1249,7 @@ class LUTFrame(BaseFrame):
             result = self.worker.save_current_video_lut(
                 self.worker.get_display(),
                 outfilename,
-                silent=not __name__ == "__main__",
+                silent=__name__ != "__main__",
             )
             if not isinstance(result, Exception) and result:
                 profile = cal_to_fake_profile(outfilename)
@@ -1409,10 +1397,7 @@ class LUTFrame(BaseFrame):
             use_icclu = False
             pcs = "l"
         if direction in ("b", "if"):
-            if pcs == "l":
-                idata = Lab_triplets
-            else:
-                idata = XYZ_triplets
+            idata = Lab_triplets if pcs == "l" else XYZ_triplets
         else:
             idata = devicevalues
 
@@ -1479,11 +1464,11 @@ class LUTFrame(BaseFrame):
                     # Make segment from first non-zero value to Lbp
                     # monotonically increasing
                     mono = [[], [], []]
-                    for i, values in enumerate(odata):
+                    for values in odata:
                         for j in range(3):
                             mono[j].append(values[j])
                     for j, values in enumerate(mono):
-                        for i, v in enumerate(values):
+                        for v in values:
                             if v:
                                 break
                         if i:
@@ -1505,10 +1490,7 @@ class LUTFrame(BaseFrame):
         else:
             Lab_triplets = odata
 
-        if profile.colorSpace in (b"RGB", b"GRAY"):
-            maxv = 255
-        else:
-            maxv = 100
+        maxv = 255 if profile.colorSpace in (b"RGB", b"GRAY") else 100
         self.rTRC = CoordinateType(self.profile)
         self.gTRC = CoordinateType(self.profile)
         self.bTRC = CoordinateType(self.profile)
@@ -1560,7 +1542,7 @@ class LUTFrame(BaseFrame):
         for sig in ("rTRC", "gTRC", "bTRC", "kTRC"):
             x, xp, y, yp = [], [], [], []
             # First, get actual values
-            for i, (Y, v) in enumerate(getattr(self, sig)):
+            for Y, v in getattr(self, sig):
                 # if not i or Y >= trc[sig][i - 1]:
                 xp.append(v)
                 yp.append(Y)
@@ -1578,7 +1560,7 @@ class LUTFrame(BaseFrame):
             yi = numpy.interp(x, xi, y)
             prev = getattr(self, f"tf_{sig}")
             for Y, v in zip(yi, x):
-                if Y <= yp[0]:
+                if Y <= yp[0]:  # noqa: SIM300
                     Y = yp[0]
                 prev.append([Y, v])
 
@@ -1644,7 +1626,7 @@ class LUTFrame(BaseFrame):
         if profile and not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError) as exception:
+            except (OSError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
@@ -1759,7 +1741,7 @@ class LUTFrame(BaseFrame):
         ):
             if "R" in colorants or "G" in colorants or "B" in colorants:
                 legend.append(lang.getstr("tone_values"))
-                if "=" in colorants and 0:  # NEVER
+                if False:  # "=" in colorants:  # NEVER
                     unique = []
                     if 0 in self.client.unique:  # Red
                         unique.append(self.client.unique[0])
@@ -1844,26 +1826,24 @@ class LUTFrame(BaseFrame):
                     slice=(0.00, 1.00), outoffset=1.0
                 )
             # if "R" in colorants and "G" in colorants and "B" in colorants:
-            # if self.profile.tags.rTRC == self.profile.tags.gTRC == self.profile.tags.bTRC:
-            # transfer_function = self.profile.tags.rTRC.get_transfer_function()
-            # elif ("R" in colorants and
-            # (not "G" in colorants or
-            # self.profile.tags.rTRC == self.profile.tags.gTRC) and
-            # (not "B" in colorants or
-            # self.profile.tags.rTRC == self.profile.tags.bTRC)):
-            # transfer_function = self.profile.tags.rTRC.get_transfer_function()
-            # elif ("G" in colorants and
-            # (not "R" in colorants or
-            # self.profile.tags.gTRC == self.profile.tags.rTRC) and
-            # (not "B" in colorants or
-            # self.profile.tags.gTRC == self.profile.tags.bTRC)):
-            # transfer_function = self.profile.tags.gTRC.get_transfer_function()
-            # elif ("B" in colorants and
-            # (not "G" in colorants or
-            # self.profile.tags.bTRC == self.profile.tags.gTRC) and
-            # (not "R" in colorants or
-            # self.profile.tags.bTRC == self.profile.tags.rTRC)):
-            # transfer_function = self.profile.tags.bTRC.get_transfer_function()
+            #     if (self.profile.tags.rTRC == self.profile.tags.gTRC == 
+            #        self.profile.tags.bTRC):
+            #         transfer_function = self.profile.tags.rTRC.get_transfer_function()
+            # elif ("R" in colorants and (not "G" in colorants or
+            #   self.profile.tags.rTRC == self.profile.tags.gTRC) and
+            #   (not "B" in colorants or
+            #   self.profile.tags.rTRC == self.profile.tags.bTRC)):
+            #     transfer_function = self.profile.tags.rTRC.get_transfer_function()
+            # elif ("G" in colorants and (not "R" in colorants or
+            #   self.profile.tags.gTRC == self.profile.tags.rTRC) and
+            #   (not "B" in colorants or
+            #   self.profile.tags.gTRC == self.profile.tags.bTRC)):
+            #     transfer_function = self.profile.tags.gTRC.get_transfer_function()
+            # elif ("B" in colorants and (not "G" in colorants or
+            #   self.profile.tags.bTRC == self.profile.tags.gTRC) and
+            #   (not "R" in colorants or
+            #   self.profile.tags.bTRC == self.profile.tags.rTRC)):
+            #     transfer_function = self.profile.tags.bTRC.get_transfer_function()
             if transfer_function and transfer_function[1] >= 0.95:
                 if self.tf_rTRC == self.tf_gTRC == self.tf_bTRC:
                     label = lang.getstr("rgb.trc")
@@ -1991,10 +1971,7 @@ class LUTFrame(BaseFrame):
                 ):
                     tables = self.profile.tags.B2A2.output
                 entry_count = len(tables[0])
-                if curves_colorspace != b"RGB":
-                    maxv = 100
-                else:
-                    maxv = 255
+                maxv = 100 if curves_colorspace != b"RGB" else 255
                 lin = [v / (entry_count - 1.0) * maxv for v in range(entry_count)]
                 data = []
                 for i, table in enumerate(tables):
@@ -2020,7 +1997,7 @@ class LUTFrame(BaseFrame):
                         yi = yp
                     xy = []
                     for Y, v in zip(yi, lin):
-                        if Y <= yp[0]:
+                        if Y <= yp[0]:  # noqa: SIM300
                             Y = yp[0]
                         xy.append([v, Y])
                     data.append(xy)
@@ -2174,7 +2151,7 @@ class LUTFrame(BaseFrame):
         if self.client.last_PointLabel is not None:
             self.client._drawPointLabel(self.client.last_PointLabel)  # erase old
             self.client.last_PointLabel = None
-        channels = dict()
+        channels = {}
         for channel, toggle in enumerate(self.toggles):
             channels[channel] = (
                 toggle.IsShown() and toggle.GetValue() and toggle.Label or ""
@@ -2231,12 +2208,9 @@ class LUTFrame(BaseFrame):
                 self.Refresh()
 
     def OnWheel(self, event):
-        xy = wx.GetMousePosition()
+        _xy = wx.GetMousePosition()
         if self.client.last_draw:
-            if event.WheelRotation < 0:
-                direction = 1.0
-            else:
-                direction = -1.0
+            direction = 1.0 if event.WheelRotation < 0 else -1.0
             self.client.zoom(direction)
 
     def SaveFile(self, event=None):
@@ -2507,7 +2481,7 @@ class LUTFrame(BaseFrame):
 def main():
     config.initcfg("curve-viewer")
     # Backup display config
-    cfg_display = getcfg("display.number")
+    _cfg_display = getcfg("display.number")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

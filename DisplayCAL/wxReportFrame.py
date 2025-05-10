@@ -1,18 +1,18 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 from time import gmtime, strftime
 
+from wx import xrc
+
 from DisplayCAL import (
     config,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_fancytext,
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
@@ -24,9 +24,7 @@ from DisplayCAL.cgats import (
 from DisplayCAL.config import (
     get_data_path,
     getcfg,
-    geticon,
     hascfg,
-    initcfg,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -38,13 +36,10 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
-from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
-
-from wx import xrc
+from DisplayCAL.wxTestchartEditor import TestchartEditor
+from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, wx
 
 
 class ReportFrame(BaseFrame):
@@ -96,14 +91,11 @@ class ReportFrame(BaseFrame):
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl")
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
-                if which == "chart":
-                    wildcard = r"\.(cie|ti1|ti3)$"
-                else:
-                    wildcard = r"\.(icc|icm)$"
+                wildcard = r"\.(cie|ti1|ti3)$" if which == "chart" else r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
                     standard_profiles = config.get_standard_profiles(True)
@@ -117,18 +109,17 @@ class ReportFrame(BaseFrame):
                     paths = get_data_path("ref", wildcard) or []
                     for path in paths:
                         basepath, ext = os.path.splitext(path)
-                        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+                        if os.getenv("XDG_SESSION_TYPE") == "wayland" and (
+                            ext.lower() != ".ti1"
+                            or os.path.basename(path) == "ccxx.ti1"
+                        ):
                             # When the number of items in a dropdown popup menu
                             # exceeds the available display client area height,
                             # the popup menu gets shown at weird positions or
                             # not at all under Wayland. Work-around this wx bug
                             # by truncating the choices. Yuck. Also see:
                             # FileBrowseBitmapButtonWithChoiceHistory.SetHistory
-                            if (
-                                ext.lower() != ".ti1"
-                                or os.path.basename(path) == "ccxx.ti1"
-                            ):
-                                continue
+                            continue
                         if not (
                             path.lower().endswith(".ti2") and f"{basepath}.cie" in paths
                         ):
@@ -309,10 +300,7 @@ class ReportFrame(BaseFrame):
             self.mr_show_trc_controls()
 
     def chart_btn_handler(self, event):
-        if self.Parent:
-            parent = self.Parent
-        else:
-            parent = self
+        parent = self.Parent if self.Parent else self
         chart = getcfg("measurement_report.chart")
         if not hasattr(parent, "tcframe"):
             parent.tcframe = TestchartEditor(
@@ -335,7 +323,7 @@ class ReportFrame(BaseFrame):
         try:
             cgats = CGATS(chart)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -371,10 +359,10 @@ class ReportFrame(BaseFrame):
                     self.fields_ctrl.SetItems(values)
                     self.fields_ctrl.GetContainingSizer().Layout()
                     self.panel.Thaw()
-                    fields = getcfg("measurement_report.chart.fields")
+                    _fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
-                    elif "RGB" in values and not ext.lower() == ".cie":
+                    elif "RGB" in values and ext.lower() != ".cie":
                         index = values.index("RGB")
                     elif "CMYK" in values:
                         index = values.index("CMYK")
@@ -406,10 +394,7 @@ class ReportFrame(BaseFrame):
                 self.chart_ctrl.SetPath(getcfg("measurement_report.chart"))
             else:
                 self.chart_btn.Enable("RGB" in values)
-                if self.Parent:
-                    parent = self.Parent
-                else:
-                    parent = self
+                parent = self.Parent if self.Parent else self
                 if (
                     event
                     and self.chart_btn.Enabled
@@ -484,16 +469,15 @@ class ReportFrame(BaseFrame):
         path = getattr(self, f"{which}_profile_ctrl").GetPath()
         if which == "output":
             # if profile_path is None:
-            #   profile_path = get_current_profile_path(True, True)
-            #   self.output_profile_current_btn.Enable(self.output_profile_ctrl.IsShown() and
-            #   bool(profile_path) and
-            #   os.path.isfile(profile_path) and
-            #   profile_path != path)
+            #     profile_path = get_current_profile_path(True, True)
+            #     self.output_profile_current_btn.Enable(
+            #         self.output_profile_ctrl.IsShown() and
+            #         bool(profile_path) and
+            #         os.path.isfile(profile_path) and
+            #         profile_path != path
+            #     )
             profile = config.get_current_profile(True)
-            if profile:
-                path = profile.fileName
-            else:
-                path = None
+            path = profile.fileName if profile else None
             setcfg("measurement_report.output_profile", path)
             XYZbpout = self.XYZbpout
             # XYZbpout will be set to the blackpoint of the selected profile.
@@ -516,14 +500,13 @@ class ReportFrame(BaseFrame):
             if not profile:
                 try:
                     profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
+                except ICCProfileInvalidError:
                     if not silent:
                         show_result_dialog(
-                            Error(
-                                f"{lang.getstr('profile.invalid')}\n{path}"),
+                            Error(f"{lang.getstr('profile.invalid')}\n{path}"),
                             parent=self,
                         )
-                except IOError as exception:
+                except OSError as exception:
                     if not silent:
                         show_result_dialog(exception, parent=self)
             if profile:
@@ -646,10 +629,10 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
+                wildcard = f"{lang.getstr('filetype.icc')}|*.icc;*.icm"
             else:
                 wildcard = (
-                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|"
                     "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {
@@ -657,11 +640,11 @@ class ReportFrame(BaseFrame):
                 "devlink_profile": "devicelink_profile",
                 "output_profile": "measurement_report_choose_profile",
             }.get(which, which)
-            kwargs = dict(
-                toolTip=lang.getstr(msg).rstrip(":"),
-                dialogTitle=lang.getstr(msg),
-                fileMask=wildcard,
-            )
+            kwargs = {
+                "toolTip": lang.getstr(msg).rstrip(":"),
+                "dialogTitle": lang.getstr(msg),
+                "fileMask": wildcard,
+            }
             ctrl = getattr(self, f"{which}_ctrl")
             for name in kwargs:
                 value = kwargs[name]
@@ -965,7 +948,7 @@ class ReportFrame(BaseFrame):
                 min(prop[i] * v, 20) for i, v in enumerate(integration_time)
             ]
             # Get time per patch (tpp)
-            tpp = [v for v in integration_time]
+            tpp = list(integration_time)
             if (
                 "plasma" in tech
                 or "crt" in tech

@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Drop-In replacement for wx.TaskBarIcon
+"""Drop-In replacement for wx.TaskBarIcon
 
 This one won't stop showing updates to the icon like wx.TaskBarIcon
 
 """
 
+import contextlib
 import ctypes
 import os
 import sys
@@ -13,10 +12,9 @@ import sys
 import win32api
 import win32con
 import win32gui
-import winerror
 
 from DisplayCAL.options import debug, verbose
-from DisplayCAL.wxaddons import wx, IdFactory
+from DisplayCAL.wxaddons import IdFactory, wx
 
 
 class Menu(wx.EvtHandler):
@@ -41,10 +39,7 @@ class Menu(wx.EvtHandler):
         if item.Kind == wx.ITEM_SEPARATOR:
             flags = win32con.MF_SEPARATOR
         else:
-            if item.subMenu:
-                flags = win32con.MF_POPUP | win32con.MF_STRING
-            else:
-                flags = 0
+            flags = win32con.MF_POPUP | win32con.MF_STRING if item.subMenu else 0
             if not item.Enabled:
                 flags |= win32con.MF_DISABLED
         # Use ctypes instead of win32gui.AppendMenu for unicode support
@@ -190,7 +185,7 @@ class SysTrayIcon(wx.EvtHandler):
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map
 
-        classAtom = win32gui.RegisterClass(wc)
+        _classAtom = win32gui.RegisterClass(wc)
 
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = win32gui.CreateWindow(
@@ -271,9 +266,8 @@ class SysTrayIcon(wx.EvtHandler):
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         print(
-            "SysTrayIcon.OnCommand(hwnd={}, msg={}, wparam={}, lparam={})".format(
-                repr(hwnd), repr(msg), repr(wparam), repr(lparam)
-            )
+            f"SysTrayIcon.OnCommand(hwnd={repr(hwnd)}, msg={repr(msg)}, "
+            f"wparam={repr(wparam)}, lparam={repr(lparam)})"
         )
         if not self.menu:
             print("Warning: Don't have menu")
@@ -348,12 +342,10 @@ class SysTrayIcon(wx.EvtHandler):
             pos = win32gui.GetCursorPos()
             # See remarks section under
             # https://msdn.microsoft.com/en-us/library/windows/desktop/ms648002(v=vs.85).aspx
-            try:
+            with contextlib.suppress(win32gui.error):
                 win32gui.SetForegroundWindow(self.hwnd)
-            except win32gui.error:
                 # Calls to SetForegroundWindow will fail if (e.g.) the Win10
                 # start menu is currently shown
-                pass
             win32gui.TrackPopupMenu(
                 menu.hmenu, win32con.TPM_RIGHTBUTTON, pos[0], pos[1], 0, self.hwnd, None
             )
@@ -375,10 +367,7 @@ class SysTrayIcon(wx.EvtHandler):
         if isinstance(hicon, wx.Icon):
             hicon = hicon.GetHandle()
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
-        if self._nid:
-            msg = win32gui.NIM_MODIFY
-        else:
-            msg = win32gui.NIM_ADD
+        msg = win32gui.NIM_MODIFY if self._nid else win32gui.NIM_ADD
         self._nid = (self.hwnd, 0, flags, win32con.WM_USER + 20, hicon, tooltip)
         try:
             win32gui.Shell_NotifyIcon(msg, self._nid)
@@ -410,7 +399,7 @@ def _get_selected_menu_item(id, menu):
 
 
 def main():
-    app = wx.App(0)
+    _app = wx.App(0)
     hinst = win32gui.GetModuleHandle(None)
     try:
         hicon = win32gui.LoadImage(

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+import contextlib
 import os
 import platform
 import re
@@ -7,7 +6,8 @@ import shutil
 import sys
 import tempfile
 
-from DisplayCAL.meta import name as appname, wx_minversion
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import wx_minversion
 
 if os.getenv("GTK_CSD", "0") != "0":
     # Work-around double window decorations, see
@@ -21,15 +21,12 @@ except ImportError:
     pass
 else:
     if not getattr(sys, "frozen", False) and "wx" not in sys.modules:
-        try:
+        with contextlib.suppress(wxversion.VersionError):
             wxversion.select(["4.0", "3.0", "%i.%i.%i" % wx_minversion[:3]])
-        except wxversion.VersionError:
-            pass
 
-from wx import __version__ as wx_version
 import wx
 
-if wx.VERSION < wx_minversion:
+if wx.VERSION < wx_minversion:  # noqa: SIM300
     app = wx.GetApp() or wx.App(0)
     result = wx.MessageBox(
         "This application requires a version of wxPython "
@@ -48,15 +45,14 @@ if wx.VERSION < wx_minversion:
     app.MainLoop()
     sys.exit()
 import wx.grid
-from wx.lib.buttons import GenBitmapButton as _GenBitmapButton
-from wx.lib.buttons import ThemedGenButton as _ThemedGenButton
-from wx.lib.buttons import GenBitmapTextButton as _GenBitmapTextButton
-from wx.lib.scrolledpanel import ScrolledPanel
-from wx.lib import platebtn
 from wx import xrc
+from wx.lib import platebtn
+from wx.lib.buttons import GenBitmapButton as _GenBitmapButton
+from wx.lib.buttons import GenBitmapTextButton as _GenBitmapTextButton
+from wx.lib.buttons import ThemedGenButton as _ThemedGenButton
+from wx.lib.scrolledpanel import ScrolledPanel
 
 from DisplayCAL.colormath import convert_range
-
 
 if not hasattr(wx.Window, "HasFocus"):
     # wxPython < 3.0
@@ -79,9 +75,9 @@ if not hasattr(platebtn, "PB_STYLE_DROPARROW"):
 if "phoenix" in wx.PlatformInfo:
     # Phoenix compatibility
 
-    from wx.lib.agw import aui
-    from wx.lib import embeddedimage
     import wx.adv
+    from wx.lib import embeddedimage
+    from wx.lib.agw import aui
 
     # Deprecated items
 
@@ -192,10 +188,7 @@ if "phoenix" in wx.PlatformInfo:
     )
 
     def ContainsRect(self, *args):
-        if len(args) > 1:
-            rect = wx.Rect(*args)
-        else:
-            rect = args[0]
+        rect = wx.Rect(*args) if len(args) > 1 else args[0]
         return self.Contains(rect)
 
     wx.Rect.ContainsRect = ContainsRect
@@ -244,7 +237,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.TextCtrl.PositionToXY = lambda self, pos: PositionToXY(self, pos)[1:]
 
     def TabFrame__init__(self, parent):
-        pre = wx.Window.__init__(self)
+        wx.Window.__init__(self)
 
         self._tabs = None
         self._rect = wx.Rect(0, 0, 200, 200)
@@ -734,7 +727,7 @@ class GridSizer(wx._GridSizer):
                 # print(vgap, hgap, '->')
                 vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
             # print(vgap, hgap)
-        super(GridSizer, self).__init__(rows, cols, vgap, hgap)
+        super().__init__(rows, cols, vgap, hgap)
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
@@ -756,7 +749,7 @@ class FlexGridSizer(wx._FlexGridSizer):
                 # print vgap, hgap, '->',
                 vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
             # print vgap, hgap
-        super(FlexGridSizer, self).__init__(rows, cols, vgap, hgap)
+        super().__init__(rows, cols, vgap, hgap)
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
@@ -843,10 +836,8 @@ def get_dc_font_size(size, dc):
 
 def get_gcdc_font_size(size):
     dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-    try:
+    with contextlib.suppress(Exception):
         dc = wx.GCDC(dc)
-    except Exception:
-        pass
     return get_dc_font_size(size, dc)
 
 
@@ -1339,10 +1330,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
     def DrawBezel(self, dc, x1, y1, x2, y2):
         rect = wx.Rect(x1, y1, x2, y2)
-        if self.up:
-            state = 0
-        else:
-            state = wx.CONTROL_PRESSED | wx.CONTROL_SELECTED
+        state = 0 if self.up else wx.CONTROL_PRESSED | wx.CONTROL_SELECTED
         if not self.IsEnabled():
             state = wx.CONTROL_DISABLED
         elif self._default:
@@ -1632,10 +1620,8 @@ class TempXmlResource:
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1)
         if scale > 1 or "gtk3" in wx.PlatformInfo:
             if not TempXmlResource._temp:
-                try:
+                with contextlib.suppress(Exception):
                     TempXmlResource._temp = tempfile.mkdtemp(prefix=appname + "-XRC-")
-                except Exception:
-                    pass
             if TempXmlResource._temp and os.path.isdir(TempXmlResource._temp):
                 # Read original XML
                 with open(xmlpath, "rb") as xmlfile:
@@ -1644,14 +1630,14 @@ class TempXmlResource:
                 for tag in ("border", "hgap", "vgap"):
                     xml = re.sub(
                         r"<%s>(\d+)</%s>" % (tag, tag),
-                        lambda match: "<%s>%i</%s>"
+                        lambda match, tag=tag: "<%s>%i</%s>"
                         % (tag, round(int(match.group(1)) * scale), tag),
                         xml,
                     )
                 for tag in ("size",):
                     xml = re.sub(
                         r"<%s>(-?\d+)\s*,\s*(-?\d+)</%s>" % (tag, tag),
-                        lambda match: "<%s>%i,%i</%s>"
+                        lambda match, tag=tag: "<%s>%i,%i</%s>"
                         % (
                             (tag,)
                             + tuple(
@@ -1781,10 +1767,7 @@ class BitmapWithThemedButton(wx.BoxSizer):
         self._bmp = wx.StaticBitmap(parent, -1, bitmap)
         # self.Add(self._bmp, flag=wx.ALIGN_CENTER_VERTICAL)
         self.Add(self._bmp)
-        if wx.Platform == "__WXMSW__":
-            btncls = ThemedGenButton
-        else:
-            btncls = wx.Button
+        btncls = ThemedGenButton if wx.Platform == "__WXMSW__" else wx.Button
         self._btn = btncls(parent, id, label, pos, size, style, validator, name)
         # self.Add(self._btn, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8)
         self.Add(self._btn, flag=wx.LEFT, border=8)

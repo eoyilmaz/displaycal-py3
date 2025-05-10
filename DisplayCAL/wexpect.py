@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Pexpect is a Python module for spawning child applications and controlling
 them automatically. Pexpect can be used for automating interactive applications
 such as ssh, ftp, passwd, telnet, etc. It can be used to a automate setup
@@ -64,6 +63,7 @@ http://pexpect.sourceforge.net/
 $Id: pexpect.py 507 2007-12-27 02:40:52Z noah $
 """
 
+import contextlib
 import errno
 import os
 import re
@@ -76,43 +76,20 @@ import time
 import traceback
 
 if sys.platform != "win32":
-    import pty
-    import tty
-    import termios
-    import resource
     import fcntl
+    import pty
+    import resource
+    import termios
+    import tty
 else:
-    from io import StringIO
     from ctypes import windll
+    from io import StringIO
+
     import pywintypes
-    from win32com.shell.shellcon import CSIDL_APPDATA
+    import win32api
+    import win32file
     from win32com.shell.shell import SHGetSpecialFolderPath
-    from win32console import (
-        AllocConsole,
-        AttachConsole,
-        FreeConsole,
-        GetConsoleProcessList,
-        GetConsoleWindow,
-        GetStdHandle,
-        KEY_EVENT,
-        PyConsoleScreenBufferType,
-        PyCOORDType,
-        PyINPUT_RECORDType,
-        PySMALL_RECTType,
-        SetConsoleOutputCP,
-        SetConsoleTitle,
-        STD_INPUT_HANDLE,
-    )
-    from win32process import (
-        CreateProcess,
-        GetCurrentProcessId,
-        GetExitCodeProcess,
-        GetStartupInfo,
-        GetWindowThreadProcessId,
-        ResumeThread,
-        SuspendThread,
-        TerminateProcess,
-    )
+    from win32com.shell.shellcon import CSIDL_APPDATA
     from win32con import (
         CREATE_NEW_CONSOLE,
         CREATE_NEW_PROCESS_GROUP,
@@ -125,20 +102,43 @@ else:
         PM_REMOVE,
         PROCESS_QUERY_INFORMATION,
         PROCESS_TERMINATE,
-        SW_HIDE,
-        SW_SHOW,
         STARTF_USESHOWWINDOW,
         STILL_ACTIVE,
+        SW_HIDE,
+        SW_SHOW,
         THREAD_SUSPEND_RESUME,
         WM_USER,
+    )
+    from win32console import (
+        KEY_EVENT,
+        STD_INPUT_HANDLE,
+        AllocConsole,
+        AttachConsole,
+        FreeConsole,
+        GetConsoleProcessList,
+        GetConsoleWindow,
+        GetStdHandle,
+        PyConsoleScreenBufferType,
+        PyCOORDType,
+        PyINPUT_RECORDType,
+        PySMALL_RECTType,
+        SetConsoleOutputCP,
+        SetConsoleTitle,
     )
     from win32gui import (
         PeekMessage,
         ShowWindow,
     )
-    import win32api
-    import win32file
-    import winerror
+    from win32process import (
+        CreateProcess,
+        GetCurrentProcessId,
+        GetExitCodeProcess,
+        GetStartupInfo,
+        GetWindowThreadProcessId,
+        ResumeThread,
+        SuspendThread,
+        TerminateProcess,
+    )
 
 
 __version__ = "2.3"
@@ -182,11 +182,7 @@ class ExceptionPexpect(Exception):
 
     def __filter_not_pexpect(self, trace_list_item):
         """This returns True if list item 0 the string 'pexpect.py' in it."""
-
-        if trace_list_item[0].find("pexpect.py") == -1:
-            return True
-        else:
-            return False
+        return trace_list_item[0].find("pexpect.py") == -1
 
 
 class EOF(ExceptionPexpect):
@@ -264,7 +260,10 @@ def run(
     The following will run SSH and execute 'ls -l' on the remote machine. The
     password 'secret' will be sent if the '(?i)password' pattern is ever seen::
 
-        run ("ssh username@machine.example.com 'ls -l'", events={'(?i)password':'secret\\n'})
+        run (
+            "ssh username@machine.example.com 'ls -l'",
+            events={'(?i)password':'secret\\n'}
+        )
 
     This will start mencoder to rip a video from DVD. This will also display
     progress ticks every 5 seconds as it runs. For example::
@@ -272,7 +271,11 @@ def run(
         from pexpect import *
         def print_ticks(d):
             print d['event_count'],
-        run ("mencoder dvd://1 -o video.avi -oac copy -ovc copy", events={TIMEOUT:print_ticks}, timeout=5)
+        run (
+            "mencoder dvd://1 -o video.avi -oac copy -ovc copy",
+            events={TIMEOUT:print_ticks},
+            timeout=5
+        )
 
     The 'events' argument should be a dictionary of patterns and responses.
     Whenever one of the patterns is seen in the command out run() will send the
@@ -363,7 +366,7 @@ def spawn(
         if isinstance(cwd, bytes):
             cwd = cwd.decode("utf-8")
         log(f"Working directory: {cwd}")
-    log("Spawning {}".format(join_args([command] + args)))
+    log(f"Spawning {join_args([command] + args)}")
     if sys.platform == "win32":
         return spawn_windows(
             command,
@@ -539,11 +542,11 @@ class spawn_unix:
         self.logfile_send = None  # output to send (send, sendline)
         self.maxread = maxread  # max bytes to read at one time into buffer
         self.buffer = ""  # This is the read buffer. See maxread.
-        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.
+        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.  # noqa: E501
         # Most Linux machines don't like delaybeforesend to be below 0.03 (30 ms).
-        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.
-        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
-        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
+        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.  # noqa: E501
+        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
+        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
         self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
@@ -581,10 +584,8 @@ class spawn_unix:
             # teardown of the Python VM itself. Thus, self.close() may
             # trigger an exception because os.close may be None.
             # -- Fernando Perez
-            try:
+            with contextlib.suppress(AttributeError):
                 self.close()
-            except AttributeError:
-                pass
 
     def __str__(self):
         """This returns a human-readable string that represents the state of
@@ -638,8 +639,11 @@ class spawn_unix:
         # If command is an int type then it may represent a file descriptor.
         if isinstance(command, int):
             raise ExceptionPexpect(
-                "Command is an int type. If this is a file descriptor then maybe you want to use fdpexpect.fdspawn "
-                "which takes an existing file descriptor instead of a command string."
+                "Command is an int type. "
+                "If this is a file descriptor "
+                "then maybe you want to use fdpexpect.fdspawn "
+                "which takes an existing file descriptor "
+                "instead of a command string."
             )
 
         if not isinstance(args, list):
@@ -677,27 +681,23 @@ class spawn_unix:
             try:
                 self.pid, self.child_fd = pty.fork()
             except OSError as e:
-                raise ExceptionPexpect("Error! pty.fork() failed: " + str(e))
+                raise ExceptionPexpect(f"Error! pty.fork() failed: {e}") from e
         else:  # Use internal __fork_pty
             self.pid, self.child_fd = self.__fork_pty()
 
         if self.pid == 0:  # Child
-            try:
+            with contextlib.suppress(Exception):
                 self.child_fd = sys.stdout.fileno()  # used by setwinsize()
                 self.setwinsize(24, 80)
-            except Exception:
                 # Some platforms do not like setwinsize (Cygwin).
                 # This will cause problem when running applications that
                 # are very picky about window size.
                 # This is a serious limitation, but not a show stopper.
-                pass
             # Do not allow child to inherit open file descriptors from parent.
             max_fd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
             for i in range(3, max_fd):
-                try:
+                with contextlib.suppress(OSError):
                     os.close(i)
-                except OSError:
-                    pass
 
             # I don't know why this works, but ignoring SIGHUP fixes a
             # problem when trying to start a Java daemon with sudo
@@ -812,11 +812,10 @@ class spawn_unix:
             time.sleep(
                 self.delayafterclose
             )  # Give kernel time to update process status.
-            if self.isalive():
-                if not self.terminate(force):
-                    raise ExceptionPexpect(
-                        "close() could not terminate the child using terminate()"
-                    )
+            if self.isalive() and not self.terminate(force):
+                raise ExceptionPexpect(
+                    "close() could not terminate the child using terminate()"
+                )
             self.child_fd = -1
             self.closed = True
             # self.pid = None
@@ -867,9 +866,7 @@ class spawn_unix:
         on or False if echo is off. Child applications that are expecting you
         to enter a password often set ECHO False. See waitnoecho()."""
         attr = termios.tcgetattr(self.child_fd)
-        if attr[3] & termios.ECHO:
-            return True
-        return False
+        return bool(attr[3] & termios.ECHO)
 
     def setecho(self, state):
         """This sets the terminal echo mode on or off. Note that anything the
@@ -878,7 +875,8 @@ class spawn_unix:
         following will work as expected::
 
             p = pexpect.spawn('cat')
-            p.sendline ('1234') # We will see this twice (once from tty echo and again from cat).
+            # We will see this twice (once from tty echo and again from cat).
+            p.sendline ('1234')
             p.expect (['1234'])
             p.expect (['1234'])
             p.setecho(False) # Turn off tty echo
@@ -891,7 +889,8 @@ class spawn_unix:
         will be lost::
 
             p = pexpect.spawn('cat')
-            p.sendline ('1234') # We will see this twice (once from tty echo and again from cat).
+            # We will see this twice (once from tty echo and again from cat).
+            p.sendline ('1234')
             p.setecho(False) # Turn off tty echo
             p.sendline ('abcd') # We will set this only once (echoed by cat).
             p.sendline ('wxyz') # We will set this only once (echoed by cat)
@@ -950,7 +949,8 @@ class spawn_unix:
                     "End Of File (EOF) in read_nonblocking(). Braindead platform."
                 )
         elif self.__irix_hack:
-            # This is a hack for Irix. It seems that Irix requires a long delay before checking isalive.
+            # This is a hack for Irix.
+            # It seems that Irix requires a long delay before checking isalive.
             # This adds a 2 second delay, but only when the child is terminated.
             r, w, e = self.__select([self.child_fd], [], [], 2)
             if not r and not self.isalive():
@@ -961,8 +961,10 @@ class spawn_unix:
 
         if not r:
             if not self.isalive():
-                # Some platforms, such as Irix, will claim that their processes are alive;
-                # then timeout on the select; and then finally admit that they are not alive.
+                # Some platforms, such as Irix,
+                # will claim that their processes are alive;
+                # then timeout on the select;
+                # and then finally admit that they are not alive.
                 self.flag_eof = True
                 raise EOF(
                     "End of File (EOF) in read_nonblocking(). Very pokey platform."
@@ -973,15 +975,16 @@ class spawn_unix:
         if self.child_fd in r:
             try:
                 s = os.read(self.child_fd, size)
-            except OSError:  # Linux does this
+            except OSError as e:  # Linux does this
                 self.flag_eof = True
                 raise EOF(
                     "End Of File (EOF) in read_nonblocking(). Exception style platform."
-                )
+                ) from e
             if s == b"":  # BSD style
                 self.flag_eof = True
                 raise EOF(
-                    "End Of File (EOF) in read_nonblocking(). Empty string style platform."
+                    "End Of File (EOF) in read_nonblocking(). "
+                    "Empty string style platform."
                 )
 
             if self.logfile is not None:
@@ -1196,10 +1199,7 @@ class spawn_unix:
             if force:
                 self.kill(signal.SIGKILL)
                 time.sleep(self.delayafterterminate)
-                if not self.isalive():
-                    return True
-                else:
-                    return False
+                return self.isalive()
             return False
         except OSError:
             # I think there are kernel timing issues that sometimes cause
@@ -1207,10 +1207,7 @@ class spawn_unix:
             # process is dead to the kernel.
             # Make one last attempt to see if the kernel is up to date.
             time.sleep(self.delayafterterminate)
-            if not self.isalive():
-                return True
-            else:
-                return False
+            return not self.isalive()
 
     def wait(self):
         """This waits until the child exits. This is a blocking call. This will
@@ -1250,13 +1247,10 @@ class spawn_unix:
         if self.terminated:
             return False
 
-        if self.flag_eof:
-            # This is for Linux, which requires the blocking form of waitpid to get
-            # status of a defunct process. This is super-lame. The flag_eof would have
-            # been set in read_nonblocking(), so this should be safe.
-            waitpid_options = 0
-        else:
-            waitpid_options = os.WNOHANG
+        # This is for Linux, which requires the blocking form of waitpid to get
+        # status of a defunct process. This is super-lame. The flag_eof would have
+        # been set in read_nonblocking(), so this should be safe.
+        waitpid_options = 0 if self.flag_eof else os.WNOHANG
 
         try:
             pid, status = os.waitpid(self.pid, waitpid_options)
@@ -1266,11 +1260,12 @@ class spawn_unix:
                     'isalive() encountered condition where "terminated" is 0, '
                     "but there was no child process. "
                     "Did someone else call waitpid() on our process?"
-                )
+                ) from e
             else:
                 raise e
 
-        # I have to do this twice for Solaris. I can't even believe that I figured this out...
+        # I have to do this twice for Solaris.
+        # I can't even believe that I figured this out...
         # If waitpid() returns 0 it means that no child process wishes to
         # report, and the value of status is undefined.
         if pid == 0:
@@ -1284,7 +1279,7 @@ class spawn_unix:
                         "isalive() encountered condition that should never happen. "
                         "There was no child process. "
                         "Did someone else call waitpid() on our process?"
-                    )
+                    ) from e
                 else:
                     raise e
 
@@ -1538,7 +1533,7 @@ class spawn_unix:
             else:
                 self.match = None
                 self.match_index = None
-                raise EOF(str(e) + "\n" + str(self))
+                raise EOF(str(e) + "\n" + str(self)) from e
         except TIMEOUT as e:
             self.buffer = incoming
             self.before = incoming
@@ -1551,7 +1546,7 @@ class spawn_unix:
             else:
                 self.match = None
                 self.match_index = None
-                raise TIMEOUT(str(e) + "\n" + str(self))
+                raise TIMEOUT(str(e) + "\n" + str(self)) from e
         except Exception:
             self.before = incoming
             self.after = None
@@ -1614,10 +1609,14 @@ class spawn_unix:
             import pexpect, struct, fcntl, termios, signal, sys
             def sigwinch_passthrough (sig, data):
                 s = struct.pack("HHHH", 0, 0, 0, 0)
-                a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
+                a = struct.unpack(
+                    'hhhh',
+                    fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+                )
                 global p
                 p.setwinsize(a[0],a[1])
-            p = pexpect.spawn('/bin/bash') # Note this is global and used in sigwinch_passthrough.
+            # Note this is global and used in sigwinch_passthrough.
+            p = pexpect.spawn('/bin/bash')
             signal.signal(signal.SIGWINCH, sigwinch_passthrough)
             p.interact()
         """
@@ -1688,15 +1687,18 @@ class spawn_unix:
         while True:
             try:
                 return select.select(iwtd, owtd, ewtd, timeout)
-            except select.error as e:
+            except OSError as e:
                 if e[0] == errno.EINTR:
-                    # if we loop back we have to subtract the amount of time we already waited.
+                    # if we loop back we have to subtract
+                    # the amount of time we already waited.
                     if timeout is not None:
                         timeout = end_time - time.time()
                         if timeout < 0:
                             return ([], [], [])
-                else:  # something else caused the select.error, so this really is an exception
-                    raise
+                else:
+                    # something else caused the select.error,
+                    # so this really is an exception
+                    raise e
 
     ##############################################################################
     # The following methods are no longer supported or allowed.
@@ -1775,10 +1777,10 @@ class spawn_windows(spawn_unix):
         self.logfile_send = None  # output to send (send, sendline)
         self.maxread = maxread  # max bytes to read at one time into buffer
         self.buffer = ""  # This is the read buffer. See maxread.
-        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.
-        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.
-        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
-        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
+        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.  # noqa: E501
+        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.  # noqa: E501
+        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
+        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
         self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
@@ -1798,8 +1800,8 @@ class spawn_windows(spawn_unix):
         # we need to quote them
         for i, arg in enumerate(args):
             if " " in arg:
-                log("Quoting argument {}: {}".format(i, arg))
-                args[i] = '"{}"'.format(arg)
+                log(f"Quoting argument {i}: {arg}")
+                args[i] = f'"{arg}"'
 
         # allow dummy instances for subclasses that may not use command or args.
         if command is None:
@@ -1814,14 +1816,10 @@ class spawn_windows(spawn_unix):
 
         Python only garbage collects Python objects, not the child console.
         """
-        try:
+        with contextlib.suppress(Exception):
             self.wtty.terminate_child()
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             self.wtty.terminate()
-        except Exception:
-            pass
 
     def _spawn(self, command, args=None):
         """Start the given command in a child process.
@@ -1965,10 +1963,12 @@ class spawn_windows(spawn_unix):
         return s
 
     def send(self, s):
-        """This sends a string to the child process. This returns the number of
-        bytes written. If a log file was set then the data is also written to
-        the log."""
-        (self.delaybeforesend)
+        """Send a string to the child process.
+
+        This returns the number of bytes written. If a log file was set then
+        the data is also written to the log.
+        """
+        time.sleep(self.delaybeforesend)
         if self.logfile is not None:
             self.logfile.write(s)
             self.logfile.flush()
@@ -1999,10 +1999,7 @@ class spawn_windows(spawn_unix):
 
         self.wtty.terminate_child()
         time.sleep(self.delayafterterminate)
-        if not self.isalive():
-            return True
-
-        return False
+        return not self.isalive()
 
     def kill(self, sig):
         """Sig == sigint for ctrl-c otherwise the child is terminated."""
@@ -2054,8 +2051,10 @@ class spawn_windows(spawn_unix):
         self.wtty.setwinsize(r, c)
 
     # Prototype changed
-    def interact(self, escape_character=chr(29), input_filter=None, output_filter=None):
-        """Makes the child console visible for interaction"""
+    def interact(self, escape_character=None, input_filter=None, output_filter=None):
+        """Make the child console visible for interaction."""
+        if escape_character is None:
+            escape_character = chr(29)
         self.wtty.interact()
 
     # Prototype changed
@@ -2160,10 +2159,7 @@ class Wtty:
             if getattr(sys, "frozen", False)
             else os.path.abspath(os.path.dirname(__file__))
         )
-        if getattr(sys, "frozen", False):
-            logdir = appname
-        else:
-            logdir = dirname
+        logdir = appname if getattr(sys, "frozen", False) else dirname
         logdir = os.path.basename(logdir)
         spath = [dirname]
         pyargs = ["-c"]
@@ -2178,7 +2174,6 @@ class Wtty:
                 dirname = os.path.join(dirname, "lib")
                 spath.append(os.path.join(dirname, "library.zip"))
                 spath.append(os.path.join(dirname, "library.zip", appname))
-            # DEBUG: add lib/temp dir for debugging ArgyllCMS executables not starting problem
             spath.append(os.path.join(dirname, "temp"))
 
             pyargs.insert(0, "-S")  # skip 'import site'
@@ -2202,12 +2197,12 @@ class Wtty:
             ")".format(
                 # this fixes running Argyll commands through py2exe frozen python
                 (
-                    "setattr(sys, 'frozen', '{}'); ".format(getattr(sys, "frozen"))
+                    f"setattr(sys, 'frozen', '{sys.frozen}'); "
                     if hasattr(sys, "frozen")
                     else ""
                 ),
-                ("{}".format(repr(spath))).replace('"', r"\""),
-                ("{}".format(repr(args))).replace('"', r"\""),
+                (f"{repr(spath)}").replace('"', r"\""),
+                (f"{repr(args)}").replace('"', r"\""),
                 pid,
                 tid,
                 self.codepage,
@@ -2353,7 +2348,7 @@ class Wtty:
             buff.append(s)
 
             startCo.X, startCo.Y = int(endPoint[0]), int(endPoint[1])
-            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):
+            if readlen <= 0 or (startCo.X >= endX and startCo.Y >= endY):  # noqa: SIM300
                 break
 
         return "".join(buff)
@@ -2483,7 +2478,7 @@ class Wtty:
         try:
             while True:
                 # Wait for child process to be paused
-                if cursorPos.Y > maxconsoleY:
+                if cursorPos.Y > maxconsoleY:  # noqa: SIM300
                     reset = True
                     time.sleep(0.2)
 
@@ -2522,7 +2517,7 @@ class Wtty:
             log(e, "_exceptions")
             log("End Of File (EOF) in Wtty.read_nonblocking().")
             self.switchBack()
-            raise EOF("End Of File (EOF) in Wtty.read_nonblocking().")
+            raise EOF("End Of File (EOF) in Wtty.read_nonblocking().") from e
 
     def refreshConsole(self):
         """Clears the console after pausing the child and
@@ -2703,7 +2698,8 @@ class ConsoleReader:
             cursorinfo = consout.GetConsoleCursorInfo()
 
             while GetExitCodeProcess(self.__childProcess) == STILL_ACTIVE:
-                try:
+                # Only let child react to CTRL+C, ignore in ConsoleReader
+                with contextlib.suppress(KeyboardInterrupt):
                     if GetExitCodeProcess(parent) != STILL_ACTIVE:
                         try:
                             TerminateProcess(self.__childProcess, 0)
@@ -2715,18 +2711,26 @@ class ConsoleReader:
                     cursorPos = consinfo["CursorPosition"]
                     maxconsoleY = consinfo["Size"].Y / 2
 
-                    if cursorPos.Y > maxconsoleY and not paused:
-                        # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
-                        # log('suspendThread', 'consolereader', logdir)
+                    if cursorPos.Y > maxconsoleY and not paused:  # noqa: SIM300
+                        # log(
+                        #     f"ConsoleReader.__init__: cursorPos {cursorPos}",
+                        #     "consolereader",
+                        #     logdir
+                        # )
+                        # log("suspendThread", "consolereader", logdir)
                         self.suspendThread()
                         paused = True
                         SetConsoleTitle(f"{path} (suspended)")
                         # Hide cursor
                         consout.SetConsoleCursorInfo(cursorinfo[0], 0)
 
-                    if cursorPos.Y <= maxconsoleY and paused:
-                        # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
-                        # log('resumeThread', 'consolereader', logdir)
+                    if cursorPos.Y <= maxconsoleY and paused:  # noqa: SIM300
+                        # log(
+                        #     f"ConsoleReader.__init__: cursorPos {cursorPos}",
+                        #     "consolereader",
+                        #     logdir
+                        # )
+                        # log("resumeThread", "consolereader", logdir)
                         self.resumeThread()
                         paused = False
                         SetConsoleTitle(path)
@@ -2734,9 +2738,6 @@ class ConsoleReader:
                         consout.SetConsoleCursorInfo(cursorinfo[0], cursorinfo[1])
 
                     time.sleep(0.1)
-                except KeyboardInterrupt:
-                    # Only let child react to CTRL+C, ignore in ConsoleReader
-                    pass
 
             SetConsoleTitle(f"ConsoleReader: {path} (terminated)")
             consout.SetConsoleCursorInfo(cursorinfo[0], 0)  # Hide cursor
@@ -2998,10 +2999,8 @@ def log(e, suffix="", logdir=None):
     if sys.platform != "darwin":
         logdir = os.path.join(logdir, "logs")
     if not os.path.exists(logdir):
-        try:
+        with contextlib.suppress(OSError):
             os.makedirs(logdir)
-        except OSError:
-            pass
     if os.path.isdir(logdir) and os.access(logdir, os.W_OK):
         logfile = os.path.join(logdir, "wexpect%s.log" % suffix)
         if os.path.isfile(logfile):
@@ -3022,10 +3021,8 @@ def log(e, suffix="", logdir=None):
                     mtime = time.localtime(time.time() - 60 * 60 * 24)
                 if time.localtime()[:3] > mtime[:3]:
                     # do rollover
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(logfile)
-                    except Exception:
-                        pass
         try:
             with open(logfile, "a", encoding="utf-8") as fout:
                 ts = time.time()
@@ -3054,9 +3051,8 @@ def which(filename):
     if found and executable. Otherwise this returns None.
     """
     # Special case where filename already contains a path.
-    if os.path.dirname(filename) != "":
-        if os.access(filename, os.X_OK):
-            return filename
+    if os.path.dirname(filename) != "" and os.access(filename, os.X_OK):
+        return filename
 
     if "PATH" not in os.environ or os.environ["PATH"] == "":
         p = os.defpath
@@ -3116,16 +3112,14 @@ def split_command_line(command_line):
         ):  # Escape the next character
             state_backup = state
             state = state_esc
-        elif state == state_basic or state == state_whitespace:
+        elif state in [state_basic, state_whitespace]:
             if c == r"'":  # Handle single quote
                 state = state_singlequote
             elif c == r'"':  # Handle double quote
                 state = state_doublequote
             elif c.isspace():
                 # Add arg to arg_list if we aren't in the middle of whitespace.
-                if state == state_whitespace:
-                    None  # Do nothing.
-                else:
+                if state != state_whitespace:
                     arg_list.append(arg)
                     arg = ""
                     state = state_whitespace
@@ -3144,15 +3138,9 @@ def split_command_line(command_line):
             ):
                 arg += "\\"
             arg = arg + c
-            if state_backup != state_whitespace:
-                state = state_backup
-            else:
-                state = state_basic
+            state = state_backup if state_backup != state_whitespace else state_basic
         elif state == state_singlequote:
-            if c == r"'":
-                state = state_basic
-            else:
-                arg = arg + c
+            state = state_basic if c == r"'" else arg + c
         elif state == state_doublequote:
             if c == r'"':
                 state = state_basic

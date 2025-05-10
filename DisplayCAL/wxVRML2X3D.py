@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
+from functools import partial
 
+from DisplayCAL import config, x3dom
+from DisplayCAL import localization as lang
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import x3dom
 
 gui = "wx" in sys.modules
 
@@ -64,8 +62,8 @@ if gui:
                 ),
             )
             self.droptarget = FileDrop(self)
-            vrml_drop_handler = lambda vrmlpath: vrmlfile2x3dfile(
-                vrmlpath,
+            vrml_drop_handler = partial(
+                vrmlfile2x3dfile,
                 html=html,
                 embed=embed,
                 view=view,
@@ -121,7 +119,8 @@ def main():
         )
         print("  --force      Force fresh download of viewer components")
         print(
-            "  --no-cache   Don't use viewer components cache (only uses existing cache if"
+            "  --no-cache   Don't use viewer components cache "
+            "(only uses existing cache if"
         )
         print("               embedding components, can be overridden with --force)")
         if gui:
@@ -203,7 +202,7 @@ def vrmlfile2x3dfile(
                 print("%r is not a file." % vrmlpath)
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         defaultDir, defaultFile = config.get_verified_path("last_vrml_path")
         dlg = wx.FileDialog(
             None,
@@ -235,7 +234,7 @@ def vrmlfile2x3dfile(
                 print(f"{repr(dirname)} is not writable.")
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         if x3dpath:
             defaultDir, defaultFile = os.path.split(x3dpath)
         else:

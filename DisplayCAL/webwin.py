@@ -1,38 +1,33 @@
-# -*- coding: utf-8 -*-
-
-"""
-Re-implementation of Argyll's webwin in pure python.
-
-"""
+"""Re-implementation of Argyll's webwin in pure python."""
 
 import http.server
 import time
 from urllib.parse import unquote
 
-from DisplayCAL.meta import name as appname, version as appversion
-
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version as appversion
 
 WEBDISP_HTML = (
-    r"""<!DOCTYPE html>
+    rf"""<!DOCTYPE html>
 <html>
 <head>
-<title>%s Web Display</title>
+<title>{appname} Web Display</title>
 <script src="webdisp.js"></script>
 <style>
-html, body {`
+html, body {{
     background: #000;
     margin: 0;
     padding: 0;
     overflow: hidden;
     height: 100%%;
-}
-#pattern {
+}}
+#pattern {{
     position: absolute;
     left: 45%%;
     top: 45%%;
     width: 10%%;
     height: 10%%;
-}
+}}
 </style>
 </head>
 <body>
@@ -40,7 +35,6 @@ html, body {`
 </body>
 </html>
 """
-    % appname
 )
 
 WEBDISP_JS = r"""if (typeof XMLHttpRequest == "undefined") {
@@ -60,7 +54,12 @@ var oXHR;
 var pat;
 
 function XHR_request() {
-    oXHR.open("GET", "/ajax/messages?" + encodeURIComponent(cpat.join("|") + "|" + Math.random()), true);
+    oXHR.open(
+        "GET",
+        "/ajax/messages?"
+        + encodeURIComponent(cpat.join("|") + "|" + Math.random()),
+        true
+    );
     oXHR.onreadystatechange = XHR_response;
     oXHR.send();
 }

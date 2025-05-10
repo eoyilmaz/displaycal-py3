@@ -1,32 +1,29 @@
-# -*- coding: utf-8 -*-
-
-
-from codecs import EncodedFile
-from hashlib import md5
 import atexit
+import contextlib
 import logging
 import logging.handlers
 import os
 import re
 import sys
 import warnings
+from codecs import EncodedFile
+from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
 
-from DisplayCAL.meta import name as appname, script2pywname
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug
-from DisplayCAL.safe_print import SafePrinter, safe_print as _safe_print
+from DisplayCAL.safe_print import SafePrinter
+from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
 
 logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
 
 
-if debug:
-    loglevel = logging.DEBUG
-else:
-    loglevel = logging.INFO
+loglevel = logging.DEBUG if debug else logging.INFO
 
 
 logger = None
@@ -35,14 +32,15 @@ _logdir = None
 
 def showwarning(message, category, filename, lineno, file=None, line=""):
     # Adapted from _showwarning in Python2.7/lib/logging/__init__.py
-    """
-    Implementation of showwarnings which redirects to logging, which will first
-    check to see if the file parameter is None. If a file is specified, it will
-    delegate to the original warnings implementation of showwarning. Otherwise,
-    it will call warnings.formatwarning and will log the resulting string to a
-    warnings logger named "py.warnings" with level logging.WARNING.
+    """Implementation of `showwarnings` which redirects to logging.
 
-    UNlike the default implementation, the line is omitted from the warning,
+    It will first check to see if the file parameter is None. If a file is
+    specified, it will delegate to the original warnings implementation of
+    showwarning. Otherwise, it will call warnings.formatwarning and will log
+    the resulting string to a warnings logger named "py.warnings" with level
+    logging.WARNING.
+
+    Unlike the default implementation, the line is omitted from the warning,
     and the warning does not end with a newline.
     """
     if file is not None:
@@ -68,11 +66,10 @@ logbuffer = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
 def wx_log(logwindow, msg):
-    if logwindow.IsShownOnScreen():
+    if logwindow.IsShownOnScreen() and logbuffer.tell():
         # Check if log buffer has been emptied or not.
         # If it has, our log message is already included.
-        if logbuffer.tell():
-            logwindow.Log(msg)
+        logwindow.Log(msg)
 
 
 class DummyLogger:
@@ -233,7 +230,7 @@ def get_file_logger(
         lockfilepath = os.path.join(confighome, lockbasename + ".lock")
         if os.path.isfile(lockfilepath):
             try:
-                with open(lockfilepath, "r") as lockfile:
+                with open(lockfilepath) as lockfile:
                     instances = len(lockfile.read().splitlines())
             except Exception:
                 pass
@@ -271,10 +268,8 @@ def get_file_logger(
             for lockfilepath in safe_glob(
                 os.path.join(confighome, lockbasename + ".mp-worker-*.lock")
             ):
-                try:
+                with contextlib.suppress(Exception):
                     os.remove(lockfilepath)
-                except Exception:
-                    pass
         else:
             # Running as child from multiprocessing under Windows
             lockbasename += ".mp-worker-"
@@ -336,10 +331,7 @@ def get_file_logger(
             dstNow = now[-1]
             dstThen = mtime[-1]
             if dstNow != dstThen:
-                if dstNow:
-                    addend = 3600
-                else:
-                    addend = -3600
+                addend = 3600 if dstNow else -3600
                 mtime = localtime(t + addend)
             if now[:3] > mtime[:3]:
                 # do rollover
@@ -349,15 +341,15 @@ def get_file_logger(
                         os.remove(logbackup)
                     except Exception as exception:
                         print(
-                            "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                            % (logbackup, exception)
+                            f"Warning - logfile backup '{logbackup}' "
+                            f"could not be removed during rollover: {exception}"
                         )
                 try:
                     os.rename(logfile, logbackup)
                 except Exception as exception:
                     print(
-                        "Warning - logfile '%s' could not be renamed to '%s' during rollover: %s"
-                        % (logfile, os.path.basename(logbackup), exception)
+                        f"Warning - logfile '{logfile}' could not be renamed to "
+                        f"'{os.path.basename(logbackup)}' during rollover: {exception}"
                     )
                 # Adapted from Python 2.6's
                 # logging.handlers.TimedRotatingFileHandler.getFilesToDelete
@@ -367,8 +359,8 @@ def get_file_logger(
                     fileNames = os.listdir(logdir)
                 except Exception as exception:
                     print(
-                        "Warning - log directory '%s' listing failed during rollover: %s"
-                        % (logdir, exception)
+                        f"Warning - log directory '{logdir}' "
+                        f"listing failed during rollover: {exception}"
                     )
                 else:
                     result = []
@@ -386,8 +378,8 @@ def get_file_logger(
                                 os.remove(logbackup)
                             except Exception as exception:
                                 print(
-                                    "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                                    % (logbackup, exception)
+                                    f"Warning - logfile backup '{logbackup}' "
+                                    f"could not be removed during rollover: {exception}"
                                 )
     if os.path.exists(logdir):
         try:

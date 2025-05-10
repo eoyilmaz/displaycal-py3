@@ -77,12 +77,11 @@ found at: http://wiki.wxpython.org/index.cgi/MultiVersionInstalls
 
 """
 
+import fnmatch
+import glob
+import os
 import re
 import sys
-import os
-import glob
-import fnmatch
-
 
 _selected = None
 
@@ -222,8 +221,9 @@ def ensureMinimal(minVersion, optionsRequired=False):
         if _EM_DEBUG:  # We'll do it this way just for the test code below
             raise VersionError("Requested version of wxPython not found")
 
-        import wx
         import webbrowser
+
+        import wx
 
         versions = "\n".join(["      " + ver for ver in getInstalled()])
         app = wx.App()
@@ -343,10 +343,10 @@ def _find_installed(removeExisting=False):
         phoenix_version_py = os.path.join(name, "__version__.py")
         if os.path.isfile(phoenix_version_py):
             version_info = {}
+            with open(phoenix_version_py, "rb") as f:
+                phoenix_version = f.read()
             exec(
-                compile(
-                    open(phoenix_version_py, "rb").read(), phoenix_version_py, "exec"
-                ),
+                compile(phoenix_version, phoenix_version_py, "exec"),
                 {},
                 version_info,
             )
@@ -391,7 +391,8 @@ def _find_default():
         if not os.path.isdir(pth):
             continue
         if os.path.exists(os.path.join(pth, "wx.pth")):
-            base = open(os.path.join(pth, "wx.pth")).read()
+            with open(os.path.join(pth, "wx.pth")) as f:
+                base = f.read()
             return os.path.join(pth, base)
 
     return None
@@ -433,10 +434,7 @@ class _wxPackageInfo:
             return True
         # otherwise, if we have any option not present in other, then
         # the match fails.
-        for opt in self.options:
-            if opt not in other.options:
-                return False
-        return True
+        return all(opt in other.options for opt in self.options)
 
     def __lt__(self, other):
         return self.version < other.version or (

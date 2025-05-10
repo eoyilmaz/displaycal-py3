@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 import subprocess
 import sys
-from typing import Dict, List, Union
+from typing import Union
 
 from DisplayCAL import argyll
 from DisplayCAL import localization as lang
 from DisplayCAL.util_dbus import BUSTYPE_SESSION, DBusException, DBusObject
 from DisplayCAL.util_x import get_display as _get_x_display
-
 
 _displays = None
 
@@ -185,11 +182,11 @@ def get_dispwin_output() -> bytes:
     return output
 
 
-def _enumerate_displays() -> List[dict]:
+def _enumerate_displays() -> list[dict]:
     """Generate display information data from ArgyllCMS's dispwin.
 
     Returns:
-        List[dict]: A list of dictionary containing display data.
+        list[dict]: A list of dictionary containing display data.
     """
     displays = []
     has_display = False
@@ -245,14 +242,14 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no: int = 0) -> Union[None, Dict]:
+def get_display(display_no: int = 0) -> Union[None, dict]:
     """Return display data for a given display number.
 
     Args:
         display_no (int): Display number.
 
     Returns:
-        Dict: The display data.
+        dict: The display data.
     """
     if _displays is None:
         enumerate_displays()
@@ -297,7 +294,7 @@ def get_wayland_display(x, y, w, h):
     # The xrandr output is also interesting in that case:
     # $ xrandr
     # Screen 0: minimum 320 x 200, current 3660 x 1941, maximum 8192 x 8192
-    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950
+    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950  # noqa: E501
     #   3656x1941     59.96*+
     # Note the apparent mismatch between first and 2nd/3rd line.
     # Look for active display at x, y instead.
@@ -356,9 +353,8 @@ def get_wayland_display(x, y, w, h):
 
 
 def get_x_display(display_no=0):
-    if display := get_display(display_no):
-        if name := display.get("name"):
-            return _get_x_display(name)
+    if (display := get_display(display_no)) and (name := display.get("name")):
+        return _get_x_display(name)
 
 
 def get_x_icc_profile_atom_id(display_no=0):

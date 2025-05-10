@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-from time import sleep
+import contextlib
 import os
 import sys
 import threading
 import types
+from time import sleep
 
-from DisplayCAL.colormath import specialpow
-from DisplayCAL.wxfixes import wx, GenButton, PlateButton, get_dialogs
-
-from DisplayCAL.lib.agw.gradientbutton import GradientButton
 from DisplayCAL import floatspin
+from DisplayCAL.colormath import specialpow
+from DisplayCAL.lib.agw.gradientbutton import GradientButton
+from DisplayCAL.wxfixes import GenButton, PlateButton, get_dialogs, wx
 
 
 def AdjustMinMax(self, minvalue=0.0, maxvalue=1.0):
@@ -156,12 +155,8 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):
     # is completely outside the client area of all displays
     display_client_rect = self.GetDisplay().ClientArea
     if sys.platform not in ("darwin", "win32"):  # Linux
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
-            # Client-side decorations
-            safety_margin = 0
-        else:
-            # Assume server-side decorations
-            safety_margin = 40
+        # Client-side decorations on wayland, otherwise assume server-side decorations
+        safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
     else:
         safety_margin = 20
     if None not in (w, h):
@@ -176,27 +171,28 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):
             min(display_client_rect[2] - border_lr, max(w, min_w)),
             min(display_client_rect[3] - border_tb - safety_margin, max(h, min_h)),
         )
-    if None not in (x, y):
-        if not display_client_rect.ContainsXY(
-            x, y
-        ) or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1])):
-            # If outside client area, move into client area
-            xy = [x, y]
-            for i, pos in enumerate([xy, (x + self.Size[0], y + self.Size[1])]):
-                for j in range(2):
-                    if (
-                        pos[j] > display_client_rect[j] + display_client_rect[2 + j]
-                        or pos[j] < display_client_rect[j]
-                    ):
-                        if i:
-                            xy[j] = (
-                                display_client_rect[j]
-                                + display_client_rect[2 + j]
-                                - self.Size[j]
-                            )
-                        else:
-                            xy[j] = display_client_rect[j]
-            self.SetPosition(tuple(xy))
+    if (
+        None not in (x, y)
+        and not display_client_rect.ContainsXY(x, y)
+        or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1]))
+    ):
+        # If outside client area, move into client area
+        xy = [x, y]
+        for i, pos in enumerate([xy, (x + self.Size[0], y + self.Size[1])]):
+            for j in range(2):
+                if (
+                    pos[j] > display_client_rect[j] + display_client_rect[2 + j]
+                    or pos[j] < display_client_rect[j]
+                ):
+                    if i:
+                        xy[j] = (
+                            display_client_rect[j]
+                            + display_client_rect[2 + j]
+                            - self.Size[j]
+                        )
+                    else:
+                        xy[j] = display_client_rect[j]
+        self.SetPosition(tuple(xy))
 
 
 wx.Window.SetSaneGeometry = SetSaneGeometry
@@ -479,10 +475,8 @@ class ThreadedTimer:
 
     def Destroy(self):
         if hasattr(wx.Window, "UnreserveControlId") and self.Id < 0:
-            try:
+            with contextlib.suppress(wx.wxAssertionError):
                 wx.Window.UnreserveControlId(self.Id)
-            except wx.wxAssertionError:
-                pass
 
     def GetId(self):
         return self._id
@@ -587,9 +581,8 @@ class BetterWindowDisabler:
     def enable(self, enable=True):
         if not enable:
             skip = self.skip or []
-            if skip:
-                if not isinstance(skip, (list, tuple)):
-                    skip = [skip]
+            if skip and not isinstance(skip, (list, tuple)):
+                skip = [skip]
             if self.toplevelparent:
                 toplevel = [self.toplevelparent]
             else:
@@ -722,7 +715,7 @@ class PopupMenu:
         """Return menus.
 
         Returns:
-            List[wx.Menu]: List of child menus.
+            list[wx.Menu]: List of child menus.
         """
         return list(self._menus)
 
@@ -730,7 +723,7 @@ class PopupMenu:
         """Set menus.
 
         Args:
-            menus (List[wx.Menu]): A list of wx.Menu instances to set as a
+            menus (list[wx.Menu]): A list of wx.Menu instances to set as a
                 child of this menubar.
         """
         self._menus = []

@@ -1,43 +1,37 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
+"""Interactive display calibration UI."""
 
-"""
-
-from time import sleep, strftime
 import os
 import re
 import sys
+from time import sleep, strftime
 
-from DisplayCAL.wxaddons import wx
-
+from DisplayCAL import config, report
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    getbitmap,
-    getcfg,
-    get_icon_bundle,
     get_display_number,
     get_display_rects,
+    get_icon_bundle,
     get_verified_path,
+    getbitmap,
+    getcfg,
     setcfg,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname, version as appversion
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version as appversion
 from DisplayCAL.util_os import launch_file, waccess
-from DisplayCAL.wxaddons import CustomEvent
+from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
     nav_keycodes,
+    numpad_keycodes,
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import report
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 
@@ -203,7 +197,7 @@ class DisplayUniformityFrame(BaseFrame):
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
-        for id in self.id_to_keycode.keys():
+        for id in self.id_to_keycode:
             if id >= 0:
                 continue
             try:
@@ -345,8 +339,8 @@ class DisplayUniformityFrame(BaseFrame):
         if "Spot read failed" in txt:
             self.last_error = txt
         if "Result is XYZ:" in txt:
-            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
-            # 							CCT = ddddK (Delta E d.dddddd)
+            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd  # noqa: E501
+            #                           CCT = ddddK (Delta E d.dddddd)
             # Closest Planckian temperature = ddddK (Delta E d.dddddd)
             # Closest Daylight temperature  = ddddK (Delta E d.dddddd)
             XYZ = re.search(r"XYZ:\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)", txt)
@@ -442,7 +436,7 @@ class DisplayUniformityFrame(BaseFrame):
                             getcfg("report.pack_js"),
                             "uniformity",
                         )
-                    except (IOError, OSError) as exception:
+                    except OSError as exception:
                         from DisplayCAL.worker import show_result_dialog
 
                         show_result_dialog(exception, self)
@@ -564,7 +558,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 65.336831 69.578641 68.180005, D50 Lab: 86.789788 -3.888434 -10.469442
                            CCT = 5983K (Delta E 6.816507)
@@ -626,7 +620,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.511790 68.522425 66.980369, D50 Lab: 86.267011 -3.491468 -10.263432
                            CCT = 5945K (Delta E 6.363056)
@@ -688,7 +682,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.672460 68.441938 67.178377, D50 Lab: 86.226954 -2.956057 -10.516177
                            CCT = 5931K (Delta E 5.640857)
@@ -750,7 +744,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 66.590402 70.542611 69.377397, D50 Lab: 87.262309 -3.134252 -10.747149
                            CCT = 5951K (Delta E 5.807812)
@@ -812,7 +806,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 67.775736 72.266319 71.178047, D50 Lab: 88.096621 -4.123469 -10.928024
                            CCT = 6023K (Delta E 6.995424)
@@ -874,7 +868,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.869350 68.842421 67.977252, D50 Lab: 86.425958 -3.370123 -10.910497
                            CCT = 5991K (Delta E 6.099488)
@@ -936,7 +930,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 62.334621 66.118418 64.979303, D50 Lab: 85.056784 -3.250929 -10.473103
                            CCT = 5960K (Delta E 6.051574)
@@ -998,7 +992,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 61.818899 65.859246 64.979340, D50 Lab: 84.924570 -3.876653 -10.701093
                            CCT = 6024K (Delta E 6.822442)
@@ -1060,7 +1054,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 63.469751 67.164836 66.177725, D50 Lab: 85.587118 -2.928291 -10.687360
                            CCT = 5951K (Delta E 5.590334)
@@ -1125,5 +1119,5 @@ Hit ESC or Q to exit, any other key to take a reading:""",
             wx.CallAfter(app.TopWindow.write, line)
             print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Generic mock functions for unit-tests.
+"""Generic mock functions for unit-tests.
 
 Use `check_call` as a context manager to mock calls and their return values as
 well to check if the method was called (or not).
@@ -9,20 +7,21 @@ well to check if the method was called (or not).
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Generator
 from types import ModuleType
-from typing import Any, Dict, Generator, List, Tuple, Type, overload
-    
+from typing import Any, overload
+
 from _pytest.monkeypatch import MonkeyPatch
 
-Call = Tuple[Tuple[Any, ...], Dict[str, Any]]
-CallList = List[Call]
+Call = tuple[tuple[Any, ...], dict[str, Any]]
+CallList = list[Call]
 
 
 @overload
 @contextlib.contextmanager
 def _mp_call(
     monkeypatch: MonkeyPatch,
-    mock_class: Type[Any] | ModuleType,
+    mock_class: type[Any] | ModuleType,
     method: str,
     return_value: Any,
     as_property: bool,
@@ -41,7 +40,7 @@ def _mp_call(
 
 def _mp_call(
     monkeypatch: MonkeyPatch,
-    mock_class: Type[Any] | ModuleType | str,
+    mock_class: type[Any] | ModuleType | str,
     method: str | Any,
     return_value: Any,
     as_property: bool = False,
@@ -80,11 +79,11 @@ def _mp_call(
 
 @contextlib.contextmanager
 def check_call(  # pylint: disable=too-many-arguments
-    mock_class: Type[Any] | ModuleType,
+    mock_class: type[Any] | ModuleType,
     method: str,
     return_value: Any = None,
-    call_args_list: List[Tuple[Any, ...]] | None = None,
-    call_kwargs_list: List[Dict[str, Any]] | None = None,
+    call_args_list: list[tuple[Any, ...]] | None = None,
+    call_kwargs_list: list[dict[str, Any]] | None = None,
     call_count: int = 1,
     as_property: bool = False,
 ) -> Generator[CallList, None, None]:
@@ -119,8 +118,8 @@ def check_call(  # pylint: disable=too-many-arguments
 def check_call_str(  # pylint: disable=too-many-arguments
     mock_class: str,
     return_value: Any = None,
-    call_args_list: List[Tuple[Any, ...]] | None = None,
-    call_kwargs_list: List[Dict[str, Any]] | None = None,
+    call_args_list: list[tuple[Any, ...]] | None = None,
+    call_kwargs_list: list[dict[str, Any]] | None = None,
     call_count: int = 1,
     as_property: bool = False,
 ) -> Generator[CallList, None, None]:
@@ -142,8 +141,8 @@ def check_call_str(  # pylint: disable=too-many-arguments
 
 def assert_calls(
     call_count: int,
-    call_args_list: List[Tuple[Any, ...]] | None,
-    call_kwargs_list: List[Dict[str, Any]] | None,
+    call_args_list: list[tuple[Any, ...]] | None,
+    call_kwargs_list: list[dict[str, Any]] | None,
     calls: CallList,
     m_name: str,
 ) -> None:

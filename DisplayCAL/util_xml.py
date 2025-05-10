@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+import contextlib
 
-try:
+with contextlib.suppress(ImportError):
     from xml.etree import ElementTree as ET
-except ImportError:
-    pass
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):
@@ -62,10 +60,10 @@ class ETreeDict(dict):
     # https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
     def __init__(self, etree):
-        super(ETreeDict, self).__init__()
+        super().__init__()
         children = len(etree)
         if etree.attrib or etree.text or children:
-            self[etree.tag] = dict(("@" + k, v) for k, v in etree.attrib.items())
+            self[etree.tag] = {f"@{k}": v for k, v in etree.attrib.items()}
             if etree.text:
                 text = etree.text.strip()
                 if etree.attrib or children:

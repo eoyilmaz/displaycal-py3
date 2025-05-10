@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 class Cube3D:
     def __init__(self, size=65, start=0, end=None):
         orange = start, end
@@ -41,10 +38,7 @@ class Cube3D:
         if not upper:
             upper = self._len
         if v < lower:
-            if v < -upper:
-                v = fallback or lower
-            else:
-                v = upper + v
+            v = fallback or lower if v < -upper else upper + v
         elif v > upper:
             v = fallback or upper
         return v
@@ -83,7 +77,7 @@ class Cube3D:
         return self._len
 
     def __repr__(self):
-        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(
+        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(  # noqa: UP032
             self.__class__.__name__,
             self._size,
             self._start,

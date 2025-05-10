@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-
-
 import math
 import os
 import struct
 import time
 import zlib
 
-from DisplayCAL.meta import name as appname, version
+from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import version
 from DisplayCAL.util_str import safe_str
-
 
 TIFF_TAG_TYPE_BYTE = 1
 TIFF_TAG_TYPE_ASCII = 2
@@ -28,28 +25,17 @@ def tiff_get_header(w, h, samples_per_pixel, bitdepth):
     header.append(b"\0\0\0\x08")
 
     pixelcount = w * h * samples_per_pixel
-    if bitdepth == 16:
-        bytecount = pixelcount * 2
-    else:
-        bytecount = pixelcount
+    bytecount = pixelcount * 2 if bitdepth == 16 else pixelcount
 
     # Image file directory (IFD)
 
     # PhotometricInterpretation
-    if samples_per_pixel == 3:
-        pmi = 2  # RGB
-    else:
-        pmi = 5  # Separated (usually CMYK)
+    # RGB if samples_per_pixel == 3 else Separated (usually CMYK)
+    pmi = 2 if samples_per_pixel == 3 else 5
 
     # Tag, type, length, offset or data, is data (otherwise offset)
-    if w > 65535:
-        tag_type_w = TIFF_TAG_TYPE_DWORD
-    else:
-        tag_type_w = TIFF_TAG_TYPE_WORD
-    if h > 65535:
-        tag_type_h = TIFF_TAG_TYPE_DWORD
-    else:
-        tag_type_h = TIFF_TAG_TYPE_WORD
+    tag_type_w = TIFF_TAG_TYPE_DWORD if w > 65535 else TIFF_TAG_TYPE_WORD
+    tag_type_h = TIFF_TAG_TYPE_DWORD if h > 65535 else TIFF_TAG_TYPE_WORD
     ifd = [
         (0x100, tag_type_w, 1, w, True),  # ImageWidth
         (0x101, tag_type_h, 1, h, True),  # ImageLength
@@ -89,12 +75,17 @@ def tiff_get_header(w, h, samples_per_pixel, bitdepth):
 
 
 def write(
-    data, stream_or_filename, bitdepth=16, format=None, dimensions=None, extrainfo=None
+    data,
+    stream_or_filename,
+    bitdepth=16,
+    file_format=None,
+    dimensions=None,
+    extrainfo=None,
 ):
-    Image(data, bitdepth, extrainfo).write(stream_or_filename, format, dimensions)
+    Image(data, bitdepth, extrainfo).write(stream_or_filename, file_format, dimensions)
 
 
-def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, format=None):
+def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, file_format=None):
     clut = []
     for R in range(clutres):
         for G in range(clutres):
@@ -102,7 +93,7 @@ def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, format=None):
             for B in range(clutres):
                 RGB = [v * (1.0 / (clutres - 1)) for v in (R, G, B)]
                 clut[-1].append([v * (2**bitdepth - 1) for v in RGB])
-    write(clut, stream_or_filename, bitdepth, format)
+    write(clut, stream_or_filename, bitdepth, file_format)
 
 
 class Image:
@@ -190,10 +181,7 @@ class Image:
         tzoffset = round(
             (time.mktime(time.localtime()) - time.mktime(time.gmtime())) / 60.0 / 60.0
         )
-        if tzoffset < 0:
-            tzoffset = b"%.2i" % tzoffset
-        else:
-            tzoffset = b"+%.2i" % tzoffset
+        tzoffset = b"%.2i" % tzoffset if tzoffset < 0 else b"+%.2i" % tzoffset
         stream.write(
             time.strftime("%Y:%m:%d:%H:%M:%S").encode() + tzoffset.encode() + b"\0\0"
         )
@@ -399,19 +387,21 @@ class Image:
             for sample in scanline:
                 stream.write(b"".join(self._pack(v) for v in sample))
 
-    def write(self, stream_or_filename, format=None, dimensions=None):
-        if not format:
+    def write(self, stream_or_filename, file_format=None, dimensions=None):
+        if not file_format:
             if isinstance(stream_or_filename, str):
-                format = os.path.splitext(stream_or_filename)[1].lstrip(".").upper()
-                if format == "TIF":
-                    format += "F"
+                file_format = (
+                    os.path.splitext(stream_or_filename)[1].lstrip(".").upper()
+                )
+                if file_format == "TIF":
+                    file_format += "F"
             else:
-                format = "PNG"
-        if not hasattr(self, "_write_" + format.lower()):
-            raise ValueError("Unsupported format: %r" % format)
+                file_format = "PNG"
+        if not hasattr(self, f"_write_{file_format.lower()}"):
+            raise ValueError("Unsupported format: %r" % file_format)
         if isinstance(stream_or_filename, str):
-            stream = open(stream_or_filename, "wb")
+            stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:
             stream = stream_or_filename
         with stream:
-            getattr(self, "_write_" + format.lower())(stream, dimensions)
+            getattr(self, f"_write_{file_format.lower()}")(stream, dimensions)

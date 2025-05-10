@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Temporary helper functions to ease OrderedDict removal."""
 
 
@@ -18,28 +17,18 @@ def dict_slice(obj, start=None, stop=None, step=None):
     if start:
         if stop:
             return dict(
-                zip(
-                    all_keys[start:stop],
-                    list(map(lambda key: obj[key], all_keys[start:stop])),
-                )
+                zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]])
             )
         else:
-            return dict(
-                zip(all_keys[start:], list(map(lambda key: obj[key], all_keys[start:])))
-            )
+            return dict(zip(all_keys[start:], [obj[key] for key in all_keys[start:]]))
     else:
         if stop:
-            return dict(
-                zip(all_keys[:stop], list(map(lambda key: obj[key], all_keys[:stop])))
-            )
+            return dict(zip(all_keys[:stop], [obj[key] for key in all_keys[:stop]]))
         else:
             start = 0
             stop = len(all_keys)
             return dict(
-                zip(
-                    all_keys[start:stop],
-                    list(map(lambda key: obj[key], all_keys[start:stop])),
-                )
+                zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]])
             )
 
 
@@ -57,3 +46,8 @@ def dict_sort(obj, key=None):
     for k in sorted(obj, key=key):
         new_dict[k] = obj[k]
     return new_dict
+
+
+def swap_dict_keys_values(mydict):
+    """Swap dictionary keys and values"""
+    return {v: k for k, v in mydict.items()}

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import csv
 import math
 import os
@@ -18,26 +16,25 @@ from DisplayCAL import (
     config,
     floatspin,
     imfile,
-    localization as lang,
 )
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
+from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ as argyll_RGB2XYZ
 from DisplayCAL.argyll_RGB2XYZ import (
-    RGB2XYZ as argyll_RGB2XYZ,
     XYZ2RGB as argyll_XYZ2RGB,
 )
-from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,
     CGATSKeyError,
     rpad,
-    stable_sort_by_L,
     sort_by_rec709_luma,
     sort_by_RGB,
     sort_by_RGB_sum,
+    stable_sort_by_L,
 )
 from DisplayCAL.config import (
     defaults,
-    get_current_profile,
     get_data_path,
     get_display_name,
     get_total_patches,
@@ -46,7 +43,6 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     hascfg,
-    profile_ext,
     setcfg,
     writecfg,
 )
@@ -58,7 +54,8 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
-from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
+from DisplayCAL.util_dict import swap_dict_keys_values
+from DisplayCAL.util_os import is_superuser, launch_file, waccess
 from DisplayCAL.worker import (
     Error,
     Worker,
@@ -67,9 +64,8 @@ from DisplayCAL.worker import (
     get_current_profile_path,
     show_result_dialog,
 )
+from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import get_default_size
-from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -77,13 +73,8 @@ from DisplayCAL.wxwindows import (
     CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
-    InfoDialog,
     get_gradient_panel,
 )
-
-
-def swap_dict_keys_values(mydict):
-    return dict([(v, k) for (k, v) in mydict.items()])
 
 
 class TestchartEditor(BaseFrame):
@@ -1361,7 +1352,7 @@ END_DATA"""
     def tc_grid_label_left_dclick_handler(self, event):
         row, col = event.GetRow(), event.GetCol()
         if col == -1:  # row label clicked
-            data = self.ti1.queryv1("DATA")
+            _data = self.ti1.queryv1("DATA")
             wp = self.ti1.queryv1("APPROX_WHITE_POINT")
             if wp:
                 wp = [float(v) for v in wp.split()]
@@ -1582,7 +1573,10 @@ END_DATA"""
                 # ref = ref[i]
                 # break
                 # if "XYZ_X" in ref:
-                # XYZ = [component / 100.0 for component in (ref["XYZ_X"], ref["XYZ_Y"], ref["XYZ_Z"])]
+                # XYZ = [
+                #     component / 100.0
+                #     for component in (ref["XYZ_X"], ref["XYZ_Y"], ref["XYZ_Z"])
+                # ]
                 # else:
                 # Fall back to default D65-ish values
                 XYZ = argyll_RGB2XYZ(
@@ -1602,7 +1596,9 @@ END_DATA"""
                 # for label in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
                 # for col in range(self.grid.GetNumberCols()):
                 # if self.label_b2a.get(self.grid.GetColLabelValue(col)) == label:
-                # self.grid.SetCellValue(event.GetRow(), col, str(round(sample[label], 4)))
+                # self.grid.SetCellValue(
+                #     event.GetRow(), col, str(round(sample[label], 4))
+                # )
                 # value_set = True
             elif label in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
                 # FIXME: Should this be removed? There are no XYZ fields in the editor
@@ -1654,9 +1650,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_single_channel_patches_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_single_channel_patches_handler2, event)
         else:
             wx.CallAfter(self.tc_single_channel_patches_handler2, event)
 
@@ -1678,9 +1674,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_gray_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_gray_handler2, event)
         else:
             wx.CallAfter(self.tc_gray_handler2, event)
 
@@ -1738,7 +1734,6 @@ END_DATA"""
                 black_patches = self.ti1.queryv1("BLACK_COLOR_PATCHES")
         if single_channel_patches is None:
             single_channel_patches = self.tc_single_channel_patches.GetValue()
-        single_channel_patches_total = single_channel_patches * 3
         if gray_patches is None:
             gray_patches = self.tc_gray_patches.GetValue()
         if (
@@ -1801,9 +1796,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_multi_steps_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_multi_steps_handler2, event)
         else:
             wx.CallAfter(self.tc_multi_steps_handler2, event)
 
@@ -1896,7 +1891,7 @@ END_DATA"""
         self.tc_enable_add_precond_controls()
 
     def tc_enable_add_precond_controls(self):
-        tc_algo = getcfg("tc_algo")
+        _tc_algo = getcfg("tc_algo")
         add_preconditioned_enable = hasattr(self, "ti1") and bool(
             getcfg("tc_precond_profile")
         )
@@ -1927,7 +1922,7 @@ END_DATA"""
     def tc_add_saturation_sweeps_handler(self, event):
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
         else:
             rgb_space = profile.get_rgb_space()
@@ -1958,12 +1953,9 @@ END_DATA"""
             maxv = self.saturation_sweeps_intctrl.GetValue()
             newdata = []
             rows = self.grid.GetSelectionRows()
-            if rows:
-                row = rows[-1]
-            else:
-                row = self.grid.GetNumberRows() - 1
+            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
             for i in range(maxv):
-                saturation = 1.0 / (maxv - 1) * i
+                _saturation = 1.0 / (maxv - 1) * i
                 RGB, xyY = colormath.RGBsaturation(
                     R, G, B, 1.0 / (maxv - 1) * i, rgb_space
                 )
@@ -1993,7 +1985,7 @@ END_DATA"""
     def tc_add_ti3_handler(self, event, chart=None):
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (OSError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
             return
 
@@ -2005,8 +1997,9 @@ END_DATA"""
                 defaultDir=defaultDir,
                 defaultFile=defaultFile,
                 wildcard=(
-                    lang.getstr("filetype.ti1_ti3_txt")
-                    + "|*.cgats;*.cie;*.gam;*.icc;*.icm;*.jpg;*.jpeg;*.png;*.ti1;*.ti2;*.ti3;*.tif;*.tiff;*.txt"
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|*.cgats;*.cie;"
+                    "*.gam;*.icc;*.icm;*.jpg;*.jpeg;*.png;*.ti1;*.ti2;*.ti3;"
+                    "*.tif;*.tiff;*.txt"
                 ),
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             )
@@ -2105,10 +2098,7 @@ END_DATA"""
         else:
             chart = result
             data_format = list(chart.queryv1("DATA_FORMAT").values())
-            if getcfg("tc_add_ti3_relative"):
-                intent = "r"
-            else:
-                intent = "a"
+            intent = "r" if getcfg("tc_add_ti3_relative") else "a"
             if not (
                 chart[0].type.strip() == "GAMUT"
                 and "RGB_R" in data_format
@@ -2125,16 +2115,13 @@ END_DATA"""
                     and "XYZ_Z" in data_format
                 )
                 if getcfg("tc_add_ti3_relative"):
-                    adapted = chart.adapt()
+                    _ = chart.adapt()
                 ti1, ti3, void = self.worker.chart_lookup(
                     chart, profile, as_ti3, intent=intent, white_patches=False
                 )
                 if not ti1 or not ti3:
                     return
-                if as_ti3:
-                    chart = ti1
-                else:
-                    chart = ti3
+                chart = ti1 if as_ti3 else ti3
             dataset = chart.queryi1("DATA")
             data_format = list(dataset.queryv1("DATA_FORMAT").values())
             # Returned CIE values are always either XYZ or Lab
@@ -2148,10 +2135,7 @@ END_DATA"""
                 cie = "XYZ"
             newdata = []
             rows = self.grid.GetSelectionRows()
-            if rows:
-                row = rows[-1]
-            else:
-                row = self.grid.GetNumberRows() - 1
+            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
             for i in dataset.DATA:
                 if cie == "Lab":
                     (
@@ -2280,10 +2264,7 @@ END_DATA"""
                         for line in self.worker.output:
                             if line.startswith("Output space ="):
                                 last_output_space = line.split("=")[1].strip()
-                        if last_output_space == "RGB":
-                            chart = outpath
-                        else:
-                            chart = imgpath
+                        chart = outpath if last_output_space == "RGB" else imgpath
                 else:
                     return Error("\n".join(self.worker.errors or self.worker.output))
             else:
@@ -2331,7 +2312,7 @@ END_DATA"""
                         (chart.filename, "DATA_FORMAT"),
                     )
                 )
-        except (IOError, CGATSError) as exception:
+        except (OSError, CGATSError) as exception:
             return exception
         finally:
             path = None
@@ -2363,7 +2344,7 @@ END_DATA"""
                     return Error(
                         lang.getstr("error.generic", (-1, lang.getstr("unknown")))
                     )
-            colorsets = dict()
+            colorsets = {}
             weights = {}
             demph = getcfg("tc_dark_emphasis")
             # Select Lab color
@@ -2707,10 +2688,7 @@ END_DATA"""
         if neededrows > 0:
             self.preview.AppendRows(neededrows)
         while True:
-            if row == startrow:
-                cols = range(startcol, numcols)
-            else:
-                cols = range(numcols)
+            cols = range(startcol, numcols) if row == startrow else range(numcols)
             for col in cols:
                 if startindex + i < self.grid.GetNumberRows():
                     color = self.grid.GetCellBackgroundColour(startindex + i, 3)
@@ -2894,7 +2872,7 @@ END_DATA"""
                 os.path.splitext(target)[0],
                 {0: ".png", 1: ".png", 2: ".tif", 3: ".tif", 4: ".dpx"}[filter_index],
             )
-            format = {".dpx": "DPX", ".png": "PNG", ".tif": "TIFF"}[ext]
+            file_format = {".dpx": "DPX", ".png": "PNG", ".tif": "TIFF"}[ext]
             bitdepth = {0: 8, 1: 16, 2: 8, 3: 16, 4: 10}[filter_index]
             vscale = 2**bitdepth - 1
             repeatmax = getcfg("tc_export_repeat_patch_max")
@@ -2968,7 +2946,7 @@ END_DATA"""
                 [[color]],
                 filename,
                 bitdepth,
-                format,
+                file_format,
                 dimensions,
                 {
                     "original_width": sw,
@@ -2993,15 +2971,15 @@ END_DATA"""
                     count += repeat - 1
                     secs += repeat - 1
                     continue
-                for j in range(repeat - 1):
+                for _ in range(repeat - 1):
                     count += 1
                     filecopyname = filenameformat % (name, count, ext)
-                    if format == "DPX":
+                    if file_format == "DPX":
                         imfile.write(
                             [[color]],
                             filecopyname,
                             bitdepth,
-                            format,
+                            file_format,
                             dimensions,
                             {
                                 "original_width": sw,
@@ -3019,7 +2997,7 @@ END_DATA"""
                             },
                         )
                     secs += 1
-                    if format == "DPX":
+                    if file_format == "DPX":
                         continue
                     if os.path.isfile(filecopyname):
                         os.unlink(filecopyname)
@@ -3085,9 +3063,8 @@ END_DATA"""
                     return
             setcfg("last_ti1_path", path)
             try:
-                file_ = open(path, "wb")
-                file_.write(bytes(self.ti1))
-                file_.close()
+                with open(path, "wb") as file_:
+                    file_.write(bytes(self.ti1))
                 self.ti1.filename = path
                 self.ti1.root.setmodified(False)
                 if not self.IsBeingDeleted():
@@ -3172,10 +3149,7 @@ END_DATA"""
         if view_3d_format == "HTML":
             formatext = ".html"
         elif view_3d_format == "VRML":
-            if getcfg("vrml.compress"):
-                formatext = ".wrz"
-            else:
-                formatext = ".wrl"
+            formatext = ".wrz" if getcfg("vrml.compress") else ".wrl"
         else:
             formatext = ".x3d"
         defaultFile = os.path.splitext(os.path.basename(defaultFile))[0] + formatext
@@ -3208,10 +3182,7 @@ END_DATA"""
         paths = []
         view_3d_format = getcfg("3d.format")
         if view_3d_format == "VRML":
-            if getcfg("vrml.compress"):
-                formatext = ".wrz"
-            else:
-                formatext = ".wrl"
+            formatext = ".wrz" if getcfg("vrml.compress") else ".wrl"
         else:
             formatext = ".x3d"
             if view_3d_format == "HTML":
@@ -3247,7 +3218,7 @@ END_DATA"""
                         RGB_black_offset=getcfg("tc_vrml_black_offset"),
                         normalize_RGB_white=getcfg("tc_vrml_use_D50"),
                         compress=formatext == ".wrz",
-                        format=view_3d_format,
+                        file_format=view_3d_format,
                     )
                 except Exception as exception:
                     handle_error(
@@ -3301,10 +3272,7 @@ END_DATA"""
                 result = dlg.ShowModal()
                 dlg.Destroy()
                 if result in (wx.ID_OK, ID_SAVE_AS):
-                    if result == ID_SAVE_AS:
-                        path = None
-                    else:
-                        path = self.ti1.filename
+                    path = None if result == ID_SAVE_AS else self.ti1.filename
                     if not self.tc_save_as_handler(True, path):
                         return False
                 elif result == wx.ID_CANCEL:
@@ -3630,10 +3598,7 @@ END_DATA"""
                             print("[D] %s: x%s" % (i, RGB_inc[i]))
                     if False:
                         RGB_inc_max = max(RGB_inc.values())
-                        if RGB_inc_max > 0:
-                            gray_patches = RGB_inc_max + 1
-                        else:
-                            gray_patches = 0
+                        gray_patches = RGB_inc_max + 1 if RGB_inc_max > 0 else 0
                     else:
                         gray_inc = {"0": 0}
                         for inc in RGB_inc:
@@ -3822,17 +3787,23 @@ END_DATA"""
 
             fullspread_ba = {
                 "ERROR_OPTIMISED_PATCHES": "",  # OFPS in older Argyll CMS versions
-                # "ERROR_OPTIMISED_PATCHES": "R",  # Perc. space random - same keyword as OFPS in older Argyll CMS versions, don't use
+                # "ERROR_OPTIMISED_PATCHES": "R",  # Perc. space random
+                #                                    - same keyword as OFPS in older
+                #                                      Argyll CMS versions, don't use.
                 "IFP_PATCHES": "t",  # Inc. far point
                 "INC_FAR_PATCHES": "t",  # Inc. far point in older Argyll CMS versions
                 "OFPS_PATCHES": "",  # OFPS
                 "RANDOM_DEVICE_PATCHES": "r",  # Dev. space random
                 "RANDOM_PATCHES": "r",  # Dev. space random in older Argyll CMS versions
                 "RANDOM_PERCEPTUAL_PATCHES": "R",  # Perc. space random
-                # "RANDOM_PERCEPTUAL_PATCHES": "Q",  # Perc. space filling quasi-random - same keyword as perc. space random, don't use
+                # "RANDOM_PERCEPTUAL_PATCHES": "Q",  # Perc. space filling quasi-random
+                #                                      - same keyword as perc.
+                #                                        space random, don't use
                 "SIMPLEX_DEVICE_PATCHES": "i",  # Dev. space body centered cubic grid
-                "SIMPLEX_PERCEPTUAL_PATCHES": "I",  # Perc. space body centered cubic grid
-                "SPACEFILING_RANDOM_PATCHES": "q",  # Device space filling quasi-random, typo in older Argyll CMS versions
+                "SIMPLEX_PERCEPTUAL_PATCHES": "I",  # Perc. space body centered cubic
+                #                                     grid
+                "SPACEFILING_RANDOM_PATCHES": "q",  # Device space filling quasi-random,
+                #                                     typo in older Argyll CMS versions
                 "SPACEFILLING_RANDOM_PATCHES": "q",  # Device space filling quasi-random
             }
 
@@ -3988,7 +3959,7 @@ END_DATA"""
                     fixed_datasets = []
                     for i in fixed_data:
                         dataset = fixed_data[i]
-                        if not str(dataset) in rgbdata:
+                        if str(dataset) not in rgbdata:
                             fixed_datasets.append(dataset)
                     if fixed_datasets:
                         # Insert fixed point datasets after first patch
@@ -4018,21 +3989,23 @@ END_DATA"""
             )
         else:
             result = cmd
-        if not isinstance(result, Exception) and result:
-            if not isinstance(result, Exception):
-                path = os.path.join(self.worker.tempdir, "temp.ti1")
-                result = check_file_isfile(path, silent=False)
-                if not isinstance(result, Exception) and result:
-                    try:
-                        result = CGATS(path)
-                        print(lang.getstr("success"))
-                    except Exception as exception:
-                        result = Error(
-                            "Error - testchart file could not be read: %s "
-                            % str(exception)
-                        )
-                    else:
-                        result.filename = None
+        if (
+            not isinstance(result, Exception)
+            and result
+            and not isinstance(result, Exception)
+        ):
+            path = os.path.join(self.worker.tempdir, "temp.ti1")
+            result = check_file_isfile(path, silent=False)
+            if not isinstance(result, Exception) and result:
+                try:
+                    result = CGATS(path)
+                    print(lang.getstr("success"))
+                except Exception as exception:
+                    result = Error(
+                        "Error - testchart file could not be read: %s " % str(exception)
+                    )
+                else:
+                    result.filename = None
         self.worker.wrapup(False)
         return result
 
@@ -4243,10 +4216,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_R == 100 and sample.RGB_G > 0:
-                labeltext = "r"
-            else:
-                labeltext = "R"
+            labeltext = "r" if sample.RGB_R == 100 and sample.RGB_G > 0 else "R"
         elif (sample.RGB_R == 0 and sample.RGB_B == 0) or (
             sample.RGB_G == 100 and sample.RGB_R == sample.RGB_B
         ):  # Green
@@ -4256,10 +4226,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_G == 100 and sample.RGB_R > 0:
-                labeltext = "g"
-            else:
-                labeltext = "G"
+            labeltext = "g" if sample.RGB_G == 100 and sample.RGB_R > 0 else "G"
         elif (sample.RGB_R == 0 and sample.RGB_G == 0) or (
             sample.RGB_B == 100 and sample.RGB_R == sample.RGB_G
         ):  # Blue
@@ -4269,10 +4236,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_B == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_B == 100 and sample.RGB_R > 0:
-                labeltext = "b"
-            else:
-                labeltext = "B"
+            labeltext = "b" if sample.RGB_B == 100 and sample.RGB_R > 0 else "B"
         elif (
             sample.RGB_R == 0 or sample.RGB_B == 100
         ) and sample.RGB_G == sample.RGB_B:  # Cyan
@@ -4282,10 +4246,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_G == 100 and sample.RGB_R > 0:
-                labeltext = "c"
-            else:
-                labeltext = "C"
+            labeltext = "c" if sample.RGB_G == 100 and sample.RGB_R > 0 else "C"
         elif (
             sample.RGB_G == 0 or sample.RGB_R == 100
         ) and sample.RGB_R == sample.RGB_B:  # Magenta
@@ -4295,10 +4256,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_R == 100 and sample.RGB_G > 0:
-                labeltext = "m"
-            else:
-                labeltext = "M"
+            labeltext = "m" if sample.RGB_R == 100 and sample.RGB_G > 0 else "M"
         elif (
             sample.RGB_B == 0 or sample.RGB_G == 100
         ) and sample.RGB_R == sample.RGB_G:  # Yellow
@@ -4308,10 +4266,7 @@ END_DATA"""
                 labelcolour = wx.Colour(255, 255, 255)
                 if sample.RGB_R == 100 and sample.RGB_G == 50:
                     style = wx.SIMPLE_BORDER
-            if sample.RGB_B > 0:
-                labeltext = "y"
-            else:
-                labeltext = "Y"
+            labeltext = "y" if sample.RGB_B > 0 else "Y"
         else:
             labeltext = ""
             labelcolour = None
@@ -4365,7 +4320,7 @@ END_DATA"""
                 self.grid.DeleteRows(consecutive[-1], len(consecutive))
                 if consecutive[0] != len(data) - 1:
                     data.moveby1(consecutive[-1] + len(consecutive), -len(consecutive))
-                for crow in consecutive:
+                for _ in consecutive:
                     dict.pop(data, len(data) - 1)
                 consecutive = []
             consecutive.append(row)
@@ -4387,7 +4342,7 @@ END_DATA"""
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
 
-        item_selected = False
+        # item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

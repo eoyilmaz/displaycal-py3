@@ -3,6 +3,7 @@ build-backend = "setuptools.build_meta"
 requires = [
     "setuptools",
     'pywin32; platform_system=="Windows"',
+    "numpy",  # very unnecessarily we require `numpy` for the build, will be removed in the future
 ]
 
 [project]
@@ -34,6 +35,18 @@ maintainers = [
 name = "displaycal"
 readme = "README.md"
 requires-python = ">= 3.9"
+
+[project.gui-scripts]
+    displaycal = "DisplayCAL.main:main"
+    displaycal-3dlut-maker = "DisplayCAL.main:main_3dlut_maker"
+    displaycal-curve-viewer = "DisplayCAL.main:main_curve_viewer"
+    displaycal-eecolor-to-madvr-converter = "DisplayCAL.main:main_eecolor_to_madvr_converter"
+    displaycal-profile-info = "DisplayCAL.main:main_profile_info"
+    displaycal-scripting-client = "DisplayCAL.main:main_scripting_client"
+    displaycal-synthprofile = "DisplayCAL.main:main_synthprofile"
+    displaycal-testchart-editor = "DisplayCAL.main:main_testchart_editor"
+    displaycal-vrml-to-x3d-converter = "DisplayCAL.main:main_vrml_to_x3d_converter"
+    displaycal-vrml-to-x3d-converter-console = "DisplayCAL.main:main_vrml_to_x3d_converter_console"
 
 [project.urls]
 "Home Page" = "https://displaycal.net/"
@@ -150,6 +163,28 @@ max-line-length = 80
 per-file-ignores = [
     "DisplayCAL/lib/agw/fmresources.py: B950"
 ]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # McCabe complexity
+    "C",
+]
+extend-ignore = ["E741", "E402"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
 
 [tool.pytest.ini_options]
 pythonpath = [

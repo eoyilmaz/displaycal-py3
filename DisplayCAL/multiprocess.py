@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
-from queue import Empty
-import atexit
+import contextlib
 import errno
 import logging
 import math
@@ -9,6 +6,7 @@ import multiprocessing as mp
 import multiprocessing.pool
 import sys
 import threading
+from queue import Empty
 
 
 def cpu_count(limit_by_total_vmem=True):
@@ -33,10 +31,8 @@ def cpu_count(limit_by_total_vmem=True):
             # We use total instead of available because we assume the system is
             # smart enough to swap memory used by inactive processes to disk to
             # free up more physical RAM for active processes.
-            try:
+            with contextlib.suppress(Exception):
                 max_cpus = int(psutil.virtual_memory().total / (1024**3) - 1)
-            except Exception:
-                pass
     try:
         return max(min(mp.cpu_count(), max_cpus), 1)
     except Exception:
@@ -113,13 +109,8 @@ def pool_slice(
         manager = None
         Queue = FakeQueue
 
-    if thread_abort is not None:
-        thread_abort_event = thread_abort.event
-    else:
-        thread_abort_event = None
-
+    thread_abort_event = thread_abort.event if thread_abort is not None else None
     progress_queue = Queue()
-
     if logfile:
 
         def progress_logger(num_workers, progress=0.0):
@@ -133,7 +124,7 @@ def pool_slice(
                     progress += inc
                 except Empty:
                     continue
-                except IOError:
+                except OSError:
                     break
                 except EOFError:
                     eof_count += 1
@@ -275,7 +266,7 @@ class NonDaemonicPool(mp.pool.Pool):
     def Process(self, *args, **kwargs):
         # Process is a function after Python 3.7+
         # Process = NonDaemonicProcess -- This will not work with Python3.7+
-        proc = super(NonDaemonicPool, self).Process(*args, **kwargs)
+        proc = super().Process(*args, **kwargs)
         proc.__class__ = NonDaemonicProcess  # TODO: This is not cool, find a better way
         #                                            of doing it.
         return proc
@@ -327,8 +318,8 @@ class FakeQueue:
     def get(self, block=True, timeout=None):
         try:
             return self.queue.pop()
-        except Exception:
-            raise Empty
+        except Exception as e:
+            raise Empty from e
 
     def join(self):
         pass

@@ -207,6 +207,9 @@ extend-ignore = ["COM812", "D203", "D213", "E741", "E402"]
 [tool.ruff.lint.mccabe]
 max-complexity = 12
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.pytest.ini_options]
 pythonpath = [
     ".",

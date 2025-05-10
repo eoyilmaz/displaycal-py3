@@ -102,6 +102,7 @@ def get_edid(
 
     On Mac OS X, you need to specify a display name.
     On all other platforms, you need to specify a display number (zero-based).
+
     Args:
         display_no (int): The display number (zero-based).
         display_name (Optional[str]): The display name (for Mac OS X).

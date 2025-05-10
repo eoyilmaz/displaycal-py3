@@ -466,11 +466,7 @@ class CGATS(dict):
 
         if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
             # Always normalize to Y = 100
-            reprstr = self.filename or "<%s.%s instance at 0x%016x>" % (
-                self.__module__,
-                self.__class__.__name__,
-                id(self),
-            )
+            reprstr = self.filename or f"<{self.__module__}.{self.__class__.__name__} instance at 0x{id(self):016x}>"
             if self[0].normalize_to_y_100():
                 print("Normalized to Y = 100:", reprstr)
             else:
@@ -854,13 +850,13 @@ class CGATS(dict):
                         cur = gray
                         if prev_i not in added and debug:
                             print(
-                                "INFO - appending prev %s to color because prev was"
-                                " same gray but got skipped" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} to color because prev was"
+                                " same gray but got skipped"
                             )
                         if debug:
                             print(
-                                "INFO - appending cur to gray because prev %s was same "
-                                "gray" % prev_values[:3]
+                                f"INFO - appending cur to gray because prev {prev_values[:3]} was same "
+                                "gray"
                             )
                     elif prev_values[:3] == [prev_values[:3][0]] * 3:
                         # Prev value was different gray
@@ -868,33 +864,32 @@ class CGATS(dict):
                         cur = gray
                         if prev_i not in added and debug:
                             print(
-                                "INFO - appending prev %s to gray because prev was "
-                                "different gray but got skipped" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} to gray because prev was "
+                                "different gray but got skipped"
                             )
                         if debug:
                             print(
-                                "INFO - appending cur to gray because prev %s was "
-                                "different gray" % prev_values[:3]
+                                f"INFO - appending cur to gray because prev {prev_values[:3]} was "
+                                "different gray"
                             )
                     elif i < numvalues - 1:
                         if debug:
                             print(
-                                "WARNING - skipping gray because prev %s was not gray"
-                                % prev_values[:3]
+                                f"WARNING - skipping gray because prev {prev_values[:3]} was not gray"
                             )
                     else:
                         # Last
                         if debug:
                             print(
-                                "INFO - appending cur to color because prev %s was not "
-                                "gray but cur is last" % prev_values[:3]
+                                f"INFO - appending cur to color because prev {prev_values[:3]} was not "
+                                "gray but cur is last"
                             )
                 if not is_gray or cur is gray or i == numvalues - 1:
                     if prev_i not in added:
                         if debug and prev is cur is color:
                             print(
-                                "INFO - appending prev %s to color because prev got "
-                                "skipped" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} to color because prev got "
+                                "skipped"
                             )
                         prev.append(prev_values)
                         added[prev_i] = True
@@ -1079,7 +1074,7 @@ class CGATS(dict):
                     fl, il = len(self.parent["DATA_FORMAT"]), len(data)
                     if fl != il:
                         raise CGATSTypeError(
-                            "DATA entries take exactly %s values (%s given)" % (fl, il)
+                            f"DATA entries take exactly {fl} values ({il} given)"
                         )
                     dataset = CGATS()
                     i = -1
@@ -1316,7 +1311,7 @@ class CGATS(dict):
             "IPT",
             "Lpt",
         ):
-            raise ValueError("export_3d: Unknown colorspace %r" % colorspace)
+            raise ValueError(f"export_3d: Unknown colorspace {colorspace!r}")
         from DisplayCAL import x3dom
 
         data = self.queryv1("DATA")
@@ -1417,26 +1412,21 @@ Transform {
             pycolor = "1.0 1.0 0.0"
             nycolor = "0.0 0.0 1.0"
             if colorspace.startswith("DIN99"):
-                axes += """Transform {
-            translation %.1f %.1f -50.0
+                axes += f"""Transform {{
+            translation {100 / scale:.1f} {100 / scale:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string ["%s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %.1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{colorspace}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {10.0 / scale:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
-""" % (
-                    100 / scale,
-                    100 / scale,
-                    colorspace,
-                    10.0 / scale,
-                )
+        }}
+"""
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
                     '"a", "+%i"' % (100 / scale),
                     '"a", "-%i"' % (100 / scale),
@@ -1448,10 +1438,10 @@ Transform {
                 scale = 2.0
                 radius /= 2.0
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"Ct", "+%.1f"' % 0.5,
-                    '"Ct", "-%.1f"' % 0.5,
-                    '"Cp +%.1f"' % 0.5,
-                    '"Cp -%.1f"' % 0.5,
+                    f'"Ct", "+0.5"',
+                    f'"Ct", "-0.5"',
+                    f'"Cp +0.5"',
+                    f'"Cp -0.5"',
                     '"I"',
                 )
                 pxcolor = "0.5 0.0 1.0"
@@ -1460,10 +1450,10 @@ Transform {
                 nycolor = "0.0 1.0 1.0"
             elif colorspace == "IPT":
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"P", "+%.1f"' % 1,
-                    '"P", "-%.1f"' % 1,
-                    '"T +%.1f"' % 1,
-                    '"T -%.1f"' % 1,
+                    f'"P", "+1.0',
+                    f'"P", "-1.0"',
+                    f'"T +1.0"',
+                    f'"T -1.0"',
                     '"I"',
                 )
             else:
@@ -1477,10 +1467,10 @@ Transform {
                     x = "a"
                     y = "b"
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"%s*", "+100"' % x,
-                    '"%s*", "-100"' % x,
-                    '"%s* +100"' % y,
-                    '"%s* -100"' % y,
+                    f'"{x}*", "+100"',
+                    f'"{x}*", "-100"',
+                    f'"{y}* +100"',
+                    f'"{y}* -100"',
                     '"L*", "+100"',
                 )
             values = {
@@ -1507,156 +1497,156 @@ Transform {
             }
             axes += (
                 """# L* axis
-        Transform {
+        Transform {{
             translation 0.0 0.0 0.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(wh).1f 100.0 }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {wh:.1f} 100.0 }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # L* axis label
-        Transform {
-            translation -%(Ln).1f -%(wh).1f 55.0
+        Transform {{
+            translation -{Ln:.1f} -{wh:.1f} 55.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pllabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7}
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pllabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7}}
+                    }}
+                }}
             ]
-        }
+        }}
         # +x axis
-        Transform {
-            translation %(aboffset).1f 0.0 -50.0
+        Transform {{
+            translation {aboffset:.1f} 0.0 -50.0
             children [
-                Shape {
-                    geometry Box { size %(ab).1f %(wh).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {ab:.1f} {wh:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +x axis label
-        Transform {
-            translation %(ap).1f -%(wh).1f -50.0
+        Transform {{
+            translation {ap:.1f} -{wh:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pxlabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pxlabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -x axis
-        Transform {
-            translation -%(aboffset).1f 0.0 -50.0
+        Transform {{
+            translation -{aboffset:.1f} 0.0 -50.0
             children [
-                Shape {
-                    geometry Box { size %(ab).1f %(wh).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {ab:.1f} {wh:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -x axis label
-        Transform {
-            translation -%(an).1f -%(wh).1f -50.0
+        Transform {{
+            translation -{an:.1f} -{wh:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(nxlabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{nxlabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +y axis
-        Transform {
-            translation 0.0 %(aboffset).1f -50.0
+        Transform {{
+            translation 0.0 {aboffset:.1f} -50.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(ab).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {ab:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +y axis label
-        Transform {
-            translation -%(bp0).1f %(bp1).1f -50.0
+        Transform {{
+            translation -{bp0:.1f} {bp1:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pylabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pylabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -y axis
-        Transform {
-            translation 0.0 -%(aboffset).1f -50.0
+        Transform {{
+            translation 0.0 -{aboffset:.1f} -50.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(ab).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {ab:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -y axis label
-        Transform {
-            translation -%(bn0).1f -%(bn1).1f -50.0
+        Transform {{
+            translation -{bn0:.1f} -{bn1:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(nylabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{nylabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Zero
-        Transform {
-            translation -%(Ln).1f -%(wh).1f -55.0
+        Transform {{
+            translation -{Ln:.1f} -{wh:.1f} -55.0
             children [
-                Shape {
-                    geometry Text {
+                Shape {{
+                    geometry Text {{
                         string ["0"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7}
-                    }
-                }
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7}}
+                    }}
+                }}
             ]
-        }
-""" % values)  # noqa: E501
+        }}
+""".format(**values))  # noqa: E501
         children = []
         sqrt3_100 = math.sqrt(3) * 100
         sqrt3_50 = math.sqrt(3) * 50

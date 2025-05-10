@@ -485,7 +485,7 @@ class UntetheredFrame(BaseFrame):
     def parse_txt(self, txt):
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         data_len = len(self.cgats[0].DATA)
         if self.grid.GetNumberRows() < data_len:
             self.index = 0
@@ -496,7 +496,7 @@ class UntetheredFrame(BaseFrame):
                 row = self.cgats[0].DATA[i]
                 RGB = []
                 for j, label in enumerate("RGB"):
-                    value = int(round(row["RGB_%s" % label] / 100.0 * 255))
+                    value = int(round(row[f"RGB_{label}"] / 100.0 * 255))
                     self.grid.SetCellValue(row.SAMPLE_ID - 1, j, "%i" % value)
                     RGB.append(value)
                 self.grid.SetCellBackgroundColour(row.SAMPLE_ID - 1, 3, wx.Colour(*RGB))
@@ -525,18 +525,18 @@ class UntetheredFrame(BaseFrame):
             row = self.cgats[0].DATA[self.index]
             if is_white(row) and XYZ[1] > 0:
                 self.cgats[0].add_keyword(
-                    "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
+                    "LUMINANCE_XYZ_CDM2", "{:.6f} {:.6f} {:.6f}".format(*tuple(XYZ))
                 )
                 self.white_XYZ = XYZ
             Lab1 = colormath.XYZ2Lab(*self.last_XYZ)
             Lab2 = colormath.XYZ2Lab(*XYZ)
             delta = colormath.delta(*Lab1 + Lab2)
             if debug or test or verbose > 1:
-                print("Last recorded Lab: %.4f %.4f %.4f" % Lab1)
-                print("Current Lab: %.4f %.4f %.4f" % Lab2)
-                print("Delta E to last recorded Lab: %.4f" % delta["E"])
-                print("Abs. delta L to last recorded Lab: %.4f" % abs(delta["L"]))
-                print("Abs. delta C to last recorded Lab: %.4f" % abs(delta["C"]))
+                print("Last recorded Lab: {:.4f} {:.4f} {:.4f}".format(*Lab1))
+                print("Current Lab: {:.4f} {:.4f} {:.4f}".format(*Lab2))
+                print("Delta E to last recorded Lab: {:.4f}".format(delta["E"]))
+                print("Abs. delta L to last recorded Lab: {:.4f}".format(abs(delta["L"])))
+                print("Abs. delta C to last recorded Lab: {:.4f}".format(abs(delta["C"])))
             consecutive_white_patch = (
                 self.index
                 and is_white(row)
@@ -577,7 +577,7 @@ class UntetheredFrame(BaseFrame):
                     )
                     for j in range(3):
                         self.grid.SetCellValue(
-                            query.SAMPLE_ID - 1, 5 + j, "%.2f" % Lab[j]
+                            query.SAMPLE_ID - 1, 5 + j, f"{Lab[j]:.2f}"
                         )
                     self.grid.MakeCellVisible(self.index, 0)
                     self.grid.ForceRefresh()
@@ -721,7 +721,7 @@ class UntetheredFrame(BaseFrame):
 
     def show_XYZ(self):
         Lab, color = self.get_Lab_RGB()
-        self.label_XYZ.SetLabel("L*a*b* %.2f %.2f %.2f" % Lab)
+        self.label_XYZ.SetLabel("L*a*b* {:.2f} {:.2f} {:.2f}".format(*Lab))
         self.panel_XYZ.SetBackgroundColour(wx.Colour(*color))
         self.panel_XYZ.SetBitmap(None)
         self.panel_XYZ.Refresh()
@@ -776,7 +776,7 @@ if __name__ == "__main__":
             self.safe_send("Q")
 
         def safe_send(self, bytes_):
-            print("*** Sending %r" % bytes_)
+            print(f"*** Sending {bytes_!r}")
             self.subprocess.send(bytes_)
             return True
 
@@ -811,7 +811,7 @@ END_DATA
     files = Files([app.TopWindow.worker, app.TopWindow])
 
     def test(bytes_=None):
-        print("*** Received %r" % bytes_)
+        print(f"*** Received {bytes_!r}")
         menu = r"""Place instrument on spot to be measured,
 and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
@@ -824,25 +824,23 @@ Hit ESC or Q to exit, any other key to take a reading:"""
             i = app.TopWindow.index
             row = app.TopWindow.cgats[0].DATA[i]
             txt = [
-                """
- Result is XYZ: %.6f %.6f %.6f
+                f"""
+ Result is XYZ: {row.XYZ_X:.6f} {row.XYZ_Y:.6f} {row.XYZ_Z:.6f}
 
 Place instrument on spot to be measured,
 and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:"""
-                % (row.XYZ_X, row.XYZ_Y, row.XYZ_Z),
-                """"
-Result is XYZ: %.6f %.6f %.6f
+Hit ESC or Q to exit, any other key to take a reading:""",
+                f""""
+Result is XYZ: {row.XYZ_X:.6f} {row.XYZ_Y:.6f} {row.XYZ_Z:.6f}
 
 Spot read needs a calibration before continuing
 Place cap on the instrument, or place on a dark surface,
 or place on the white calibration reference,
 and then hit any key to continue,
-or hit Esc or Q to abort:"""
-                % (row.XYZ_X, row.XYZ_Y, row.XYZ_Z),
+or hit Esc or Q to abort:""",
             ][random.choice([0, 1])]
         elif bytes_ in ("Q", "q"):
             wx.CallAfter(app.TopWindow.Close)

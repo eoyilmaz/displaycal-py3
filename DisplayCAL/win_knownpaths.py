@@ -195,7 +195,7 @@ if __name__ == "__main__":
     try:
         folderid = getattr(FOLDERID, sys.argv[1])
     except AttributeError:
-        print('Unknown folder id "%s"' % sys.argv[1], file=sys.stderr)
+        print(f'Unknown folder id "{sys.argv[1]}"', file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -204,7 +204,7 @@ if __name__ == "__main__":
         else:
             print(get_path(folderid, getattr(UserHandle, sys.argv[2])))
     except PathNotFoundException:
-        print('Folder not found "%s"' % " ".join(sys.argv[1:]), file=sys.stderr)
+        print('Folder not found "{}"'.format(" ".join(sys.argv[1:])), file=sys.stderr)
         sys.exit(1)
 
 # [1] http://msdn.microsoft.com/en-us/library/windows/desktop/aa373931.aspx

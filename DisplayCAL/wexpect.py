@@ -548,7 +548,7 @@ class spawn_unix:
         self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
-        self.name = f"<{repr(self)}>"  # File-like object.
+        self.name = f"<{self!r}>"  # File-like object.
         self.encoding = None  # File-like object.
         self.closed = True  # File-like object.
         self.ocwd = os.getcwd()
@@ -660,7 +660,7 @@ class spawn_unix:
         command_with_path = which(self.command)
         if command_with_path is None:
             raise ExceptionPexpect(
-                "The command was not found or was not executable: %s." % self.command
+                f"The command was not found or was not executable: {self.command}."
             )
         self.command = command_with_path
         self.args[0] = self.command
@@ -1782,7 +1782,7 @@ class spawn_windows(spawn_unix):
         self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
-        self.name = f"<{repr(self)}>"  # File-like object.
+        self.name = f"<{self!r}>"  # File-like object.
         self.encoding = None  # File-like object.
         self.closed = True  # File-like object.
         self.ocwd = os.getcwd()
@@ -2193,7 +2193,7 @@ class Wtty:
             "import sys;{}sys.path = {} + sys.path;"
             "args = {}; from DisplayCAL import wexpect;"
             "wexpect.ConsoleReader("
-            "wexpect.join_args(args), {:d}, {:d}, cp={}, c={}, r={}, logdir={}"
+            "wexpect.join_args(args), {:d}, {:d}, cp={}, c={}, r={}, logdir={!r}"
             ")".format(
                 # this fixes running Argyll commands through py2exe frozen python
                 (
@@ -2201,14 +2201,14 @@ class Wtty:
                     if hasattr(sys, "frozen")
                     else ""
                 ),
-                (f"{repr(spath)}").replace('"', r"\""),
-                (f"{repr(args)}").replace('"', r"\""),
+                (f"{spath!r}").replace('"', r"\""),
+                (f"{args!r}").replace('"', r"\""),
                 pid,
                 tid,
                 self.codepage,
                 self.columns,
                 self.rows,
-                repr(logdir),
+                logdir,
             ),
         )
 
@@ -3002,7 +3002,7 @@ def log(e, suffix="", logdir=None):
         with contextlib.suppress(OSError):
             os.makedirs(logdir)
     if os.path.isdir(logdir) and os.access(logdir, os.W_OK):
-        logfile = os.path.join(logdir, "wexpect%s.log" % suffix)
+        logfile = os.path.join(logdir, f"wexpect{suffix}.log")
         if os.path.isfile(logfile):
             try:
                 logstat = os.stat(logfile)
@@ -3027,8 +3027,7 @@ def log(e, suffix="", logdir=None):
             with open(logfile, "a", encoding="utf-8") as fout:
                 ts = time.time()
                 fout.write(
-                    "%s,%s %s\n"
-                    % (
+                    "{},{} {}\n".format(
                         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts)),
                         ("%3f" % (ts - int(ts)))[2:5],
                         e,
@@ -3083,7 +3082,7 @@ def join_args(args):
         if isinstance(arg, bytes):
             arg = arg.decode()
         if re.search(r"[^!$%&()[]{}=;'+,`~\s]", arg):
-            arg = '"%s"' % arg
+            arg = f'"{arg}"'
         command_line.append(arg)
     return " ".join(command_line)
 

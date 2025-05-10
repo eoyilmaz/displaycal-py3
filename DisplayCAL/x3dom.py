@@ -34,7 +34,7 @@ class Tag:
         return self.markup()
 
     def markup(self, allow_empty_element_tag=False, x3dom=False):
-        markup = ["<%s" % self.tagname]
+        markup = [f"<{self.tagname}"]
         attrs = []
         for key in self.attributes:
             value = self.attributes[key]
@@ -47,7 +47,7 @@ class Tag:
             )
             if value in ("FALSE", "TRUE"):
                 value = value.lower()
-            attrs.append("%s='%s'" % (key, value))
+            attrs.append(f"{key}='{value}'")
         if attrs:
             markup.append(" " + " ".join(attrs))
         if not allow_empty_element_tag:
@@ -61,7 +61,7 @@ class Tag:
                     markup.append("\t" + line + "\n")
         if not allow_empty_element_tag or self.children:
             # Not XML, or XML with children
-            markup.append("</%s>\n" % self.tagname)
+            markup.append(f"</{self.tagname}>\n")
         else:
             # XML, no children
             markup.append("/>")
@@ -151,9 +151,9 @@ class Tag:
                         cachefile.write(body)
                 if source and not basename.endswith(".swf"):
                     if basename.endswith(".css"):
-                        return "<style>%s</style>" % body
+                        return f"<style>{body}</style>"
                     elif basename.endswith(".js"):
-                        return "<script>%s" % body
+                        return f"<script>{body}"
                     else:
                         return body
                 else:
@@ -175,7 +175,7 @@ class Tag:
             restags = re.findall(r"<[^>]+\s+data-fallback-\w+=[^>]*>", html)
             for restag in restags:
                 attrname = re.search(r"\s+data-fallback-(\w+)=", restag).groups()[0]
-                url = re.search(r"\s+%s=([\"'])(.+?)\1" % attrname, restag).groups()[1]
+                url = re.search(rf"\s+{attrname}=([\"'])(.+?)\1", restag).groups()[1]
                 if url.endswith(".swf") and not cache:
                     continue
                 resource = get_resource(url, embed)
@@ -185,7 +185,7 @@ class Tag:
                     html = html.replace(restag, resource)
                 else:
                     updated_restag = re.sub(
-                        r"(\s+data-fallback-%s=)([\"']).+?\2" % attrname,
+                        rf"(\s+data-fallback-{attrname}=)([\"']).+?\2",
                         create_replace_function(r"\1\2%s\2", resource),
                         restag,
                     )
@@ -224,7 +224,7 @@ class Tag:
 def _attrchk(attribute, token, tag, indent):
     if attribute:
         if debug and tag.attributes.get(token):
-            safe_print(indent, "attribute %r %r" % (token, tag.attributes[token]))
+            safe_print(indent, f"attribute {token!r} {tag.attributes[token]!r}")
         attribute = False
     return attribute
 
@@ -242,101 +242,101 @@ def get_vrml_axes(
     zero=True,
 ):
     return """# Z axis
-        Transform {
-            translation %(offsetx).1f %(offsety).1f %(offsetz).1f
+        Transform {{
+            translation {offsetx:.1f} {offsety:.1f} {offsetz:.1f}
             children [
-                Shape {
-                    geometry Box { size 2.0 2.0 %(maxz).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size 2.0 2.0 {maxz:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Z axis label
-        Transform {
-            translation %(zlabelx).1f %(zlabely).1f %(zlabelz).1f
+        Transform {{
+            translation {zlabelx:.1f} {zlabely:.1f} {zlabelz:.1f}
             children [
-                Shape {
-                    geometry Text {
-                        string ["%(zlabel)s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size 10.0 }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{zlabel}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size 10.0 }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # X axis
-        Transform {
-            translation %(xaxisx).1f %(offsety).1f %(xyaxisz).1f
+        Transform {{
+            translation {xaxisx:.1f} {offsety:.1f} {xyaxisz:.1f}
             children [
-                Shape {
-                    geometry Box { size %(maxx).1f 2.0 2.0 }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {maxx:.1f} 2.0 2.0 }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # X axis label
-        Transform {
-            translation %(xlabelx).1f %(xlabely).1f %(xyaxisz).1f
+        Transform {{
+            translation {xlabelx:.1f} {xlabely:.1f} {xyaxisz:.1f}
             children [
-                Shape {
-                    geometry Text {
-                        string ["%(xlabel)s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size 10.0 }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{xlabel}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size 10.0 }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Y axis
-        Transform {
-            translation %(offsetx).1f %(yaxisy).1f %(xyaxisz).1f
+        Transform {{
+            translation {offsetx:.1f} {yaxisy:.1f} {xyaxisz:.1f}
             children [
-                Shape {
-                    geometry Box { size 2.0 %(maxy).1f 2.0 }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size 2.0 {maxy:.1f} 2.0 }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Y axis label
-        Transform {
-            translation %(ylabelx).1f %(ylabely).1f %(xyaxisz).1f
+        Transform {{
+            translation {ylabelx:.1f} {ylabely:.1f} {xyaxisz:.1f}
             children [
-                Shape {
-                    geometry Text {
-                        string ["%(ylabel)s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size 10.0 }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{ylabel}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size 10.0 }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Zero
-        Transform {
-            translation %(zerox).1f %(zeroy).1f %(zeroz).1f
+        Transform {{
+            translation {zerox:.1f} {zeroy:.1f} {zeroz:.1f}
             children [
-                Shape {
-                    geometry Text {
-                        string ["%(zerolabel)s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size 10.0 }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{zerolabel}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size 10.0 }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }""" % dict(
+        }}""".format(**dict(
         list(locals().items())
         + list(
             {
@@ -356,7 +356,7 @@ def get_vrml_axes(
                 "zeroz": offsetz - maxz / 2.0 - 5,
             }.items()
         )
-    )
+    ))
 
 
 def safe_print(*args, **kwargs):
@@ -411,7 +411,7 @@ def update_vrml(vrml, colorspace):
         elif colorspace == "Lpt":
             z, x, y = colormath.XYZ2Lpt(X, Y, Z)
         z -= maxz / 2.0
-        return " ".join(["%.6f" % v for v in (x, y, z)])
+        return " ".join([f"{v:.6f}" for v in (x, y, z)])
 
     # Update point lists
     for item in re.findall(r"point\s*\[[^\]]+\]", vrml):
@@ -426,7 +426,7 @@ def update_vrml(vrml, colorspace):
             if xyz:
                 points[i] = update_xyz(xyz)
         vrml = vrml.replace(
-            item, "point [%s%s" % (os.linesep, ("," + os.linesep).join(points).rstrip())
+            item, "point [{}{}".format(os.linesep, ("," + os.linesep).join(points).rstrip())
         )
     # Update spheres
     spheres = re.findall(
@@ -465,22 +465,21 @@ def update_vrml(vrml, colorspace):
         # Add colorspace information
         vrml = re.sub(
             r"(Viewpoint\s*\{[^}]+\})",
-            r"""\1
-Transform {
-    translation %.6f %.6f %.6f
+            rf"""\1
+Transform {{
+    translation {maxz + offsetx:.6f} {maxz + offsety:.6f} {-maxz / 2.0:.6f}
     children [
-        Shape {
-            geometry Text {
-                string ["%s"]
-                fontStyle FontStyle { family "SANS" style "BOLD" size 10.0 }
-            }
-            appearance Appearance {
-                material Material { diffuseColor 0.7 0.7 0.7 }
-            }
-        }
+        Shape {{
+            geometry Text {{
+                string ["{colorspace}"]
+                fontStyle FontStyle {{ family "SANS" style "BOLD" size 10.0 }}
+            }}
+            appearance Appearance {{
+                material Material {{ diffuseColor 0.7 0.7 0.7 }}
+            }}
+        }}
     ]
-}"""
-            % (maxz + offsetx, maxz + offsety, -maxz / 2.0, colorspace),
+}}""",
             vrml,
         )
     elif colorspace == "Luv":
@@ -619,9 +618,9 @@ def vrml2x3dom(vrml, worker=None):
             end = None if curprogress < 100 else "\n"
             _safe_print.write("\r%i%%" % curprogress, end=end)
         if ord(c) < 32 and c not in "\n\r\t":
-            raise VRMLParseError("Parse error: Got invalid character %r" % c)
+            raise VRMLParseError(f"Parse error: Got invalid character {c!r}")
         elif c == "{":
-            safe_print(indent, "start tag %r" % token)
+            safe_print(indent, f"start tag {token!r}")
             indent += "  "
             attribute = False
             if token:
@@ -636,7 +635,7 @@ def vrml2x3dom(vrml, worker=None):
         elif c == "}":
             attribute = _attrchk(attribute, token, tag, indent)
             indent = indent[:-2]
-            safe_print(indent, "end tag %r" % tag.tagname)
+            safe_print(indent, f"end tag {tag.tagname!r}")
             if tag.parent:
                 tag = tag.parent
             else:
@@ -644,7 +643,7 @@ def vrml2x3dom(vrml, worker=None):
             token = ""
         elif c == "[":
             if token:
-                safe_print(indent, "listing %r" % token)
+                safe_print(indent, f"listing {token!r}")
                 listing = True
         elif c == "]":
             attribute = _attrchk(attribute, token, tag, indent)
@@ -679,7 +678,7 @@ def vrml2x3dom(vrml, worker=None):
             if c in valid_token_chars:
                 token += c
             else:
-                raise VRMLParseError("Parse error: Got invalid character %r" % c)
+                raise VRMLParseError(f"Parse error: Got invalid character {c!r}")
         elif token:
             if token[0] not in string.ascii_letters:
                 raise VRMLParseError("Parse error: Invalid token", token)

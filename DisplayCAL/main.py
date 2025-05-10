@@ -264,7 +264,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                 print("Sent scripting request, awaiting response...")
                                 data_read = appsocket.read()
                                 incoming = data_read.rstrip("\4")
-                                print(f"Got response: {repr(incoming)}")
+                                print(f"Got response: {incoming!r}")
                                 if module == "apply-profiles":
                                     if incoming == "":
                                         # Successfully sent our close request.
@@ -324,7 +324,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                                     "Warning - could "
                                                     "not create dummy "
                                                     f"lockfile {lockfilename}: "
-                                                    f"{repr(exception)}"
+                                                    f"{exception!r}"
                                                 )
                                             else:
                                                 print(

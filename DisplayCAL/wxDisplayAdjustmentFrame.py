@@ -116,7 +116,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         )
         imagelist = None
         for img in ("tab_hilite", "tab_selected"):
-            bmp = getbitmap("theme/%s" % img)
+            bmp = getbitmap(f"theme/{img}")
             if not imagelist:
                 img_w, img_h = bmp.Size
                 imagelist = wx.ImageList(img_w, img_h)
@@ -562,7 +562,7 @@ class DisplayAdjustmentPanel(wx_Panel):
                 ("black_point", "black_point"),
             ):
                 bitmap = wx.StaticBitmap(
-                    self, wx.ID_ANY, getbitmap("theme/icons/16x16/%s" % name)
+                    self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{name}")
                 )
                 bitmap.SetToolTipString(lang.getstr(lstr))
                 self.add_txt(name, bitmap, 4)
@@ -649,7 +649,7 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.gauges[name].SetValue(0)
         if bitmapname:
             self.gauges[name].label = wx.StaticBitmap(
-                self, wx.ID_ANY, getbitmap("theme/icons/16x16/%s" % bitmapname)
+                self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{bitmapname}")
             )
             if tooltip:
                 self.gauges[name].label.SetToolTipString(tooltip)
@@ -668,7 +668,7 @@ class DisplayAdjustmentPanel(wx_Panel):
             wx.StaticBitmap(
                 self,
                 -1,
-                getbitmap("theme/marker_%s" % direction),
+                getbitmap(f"theme/marker_{direction}"),
                 size=(int(round(200 * scale)), int(round(10 * scale))),
             )
         )
@@ -1027,7 +1027,7 @@ class DisplayAdjustmentFrame(windowcls):
             "check_all",
         ):
             img = modes.get(getcfg("measurement_mode") == "c", {}).get(img, img)
-            bmp = getbitmap("theme/icons/72x72/%s" % img)
+            bmp = getbitmap(f"theme/icons/72x72/{img}")
             if not imagelist:
                 img_w, img_h = bmp.Size
                 imagelist = wx.ImageList(img_w, img_h)
@@ -1162,15 +1162,15 @@ class DisplayAdjustmentFrame(windowcls):
         self, icon="play", enable=False, startstop="start"
     ):
         if getattr(self, "adjustment_btn", None):
-            self.adjustment_btn._bitmap = getbitmap("theme/icons/10x10/%s" % icon)
+            self.adjustment_btn._bitmap = getbitmap(f"theme/icons/10x10/{icon}")
             self.adjustment_btn.SetLabel(
-                lang.getstr("calibration.interactive_display_adjustment.%s" % startstop)
+                lang.getstr(f"calibration.interactive_display_adjustment.{startstop}")
             )
             self.adjustment_btn.Enable(enable)
             return
         self.adjustment_btn = self.create_gradient_button(
-            getbitmap("theme/icons/10x10/%s" % icon),
-            lang.getstr("calibration.interactive_display_adjustment.%s" % startstop),
+            getbitmap(f"theme/icons/10x10/{icon}"),
+            lang.getstr(f"calibration.interactive_display_adjustment.{startstop}"),
             name="adjustment_btn",
         )
         self.adjustment_btn.Bind(wx.EVT_BUTTON, self.start_interactive_adjustment)
@@ -1276,7 +1276,7 @@ class DisplayAdjustmentFrame(windowcls):
         colors = {True: wx.Colour(0x33, 0xCC, 0x0), False: FGCOLOUR}
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         self.Pulse(txt)
 
         if "/ Current" in txt:
@@ -1417,7 +1417,7 @@ class DisplayAdjustmentFrame(windowcls):
                         sign = "-"
                     else:
                         sign = "\u00b1"  # plusminus
-                    label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
+                    label = "{} {:.2f} cd/m\u00b2\n{} {:.2f} cd/m\u00b2 ({}{:.2f}%)".format(
                         lang.getstr(lstr),
                         compare_br[1],
                         lang.getstr("current"),
@@ -1426,9 +1426,7 @@ class DisplayAdjustmentFrame(windowcls):
                         abs(l_diff) * percent,
                     )
                 else:
-                    label = lang.getstr("current") + " %.2f cd/m\u00b2" % float(
-                        current_br.groups()[0]
-                    )
+                    label = f"{lang.getstr('current')} {float(current_br.groups()[0]):.2f} cd/m\u00b2"
                 self.lb.GetCurrentPage().txt[
                     "luminance"
                 ].checkmark.GetContainingSizer().Show(
@@ -1453,7 +1451,7 @@ class DisplayAdjustmentFrame(windowcls):
                     sign = "-"
                 else:
                     sign = "\u00b1"  # plusminus
-                label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
+                label = "{} {:.2f} cd/m\u00b2\n{} {:.2f} cd/m\u00b2 ({}{:.2f}%)".format(
                     lang.getstr("target"),
                     target_bl[1],
                     lang.getstr("current"),
@@ -1463,7 +1461,7 @@ class DisplayAdjustmentFrame(windowcls):
                 )
             else:
                 l_diff = 0 if target_bl else None
-                label = lang.getstr("current") + " %.2f cd/m\u00b2" % current_bl
+                label = f"{lang.getstr('current')} {current_bl:.2f} cd/m\u00b2"
             self.lb.GetCurrentPage().txt[
                 "black_level"
             ].checkmark.GetContainingSizer().Show(
@@ -1530,15 +1528,13 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 initial_br = getattr(self.lb.GetCurrentPage(), "initial_br", None)
                 if initial_br and len(initial_br) > 3:
                     x, y, vdt, dE = get_xy_vt_dE(initial_br[2:])
                     label = (
-                        lang.getstr(initial_br[0].lower())
-                        + " x %.4f y %.4f %s %.1f \u0394E*00\n" % (x, y, vdt, dE)
+                        f"{lang.getstr(initial_br[0].lower())} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00\n"
                     ).replace("  ", " ") + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["rgb"], label)
         if white_xy_dE:
@@ -1553,13 +1549,12 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 if white_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(white_xy_target.groups())
                     label = (
-                        lang.getstr("target") + " x %.4f y %.4f\n" % (x, y)
+                        f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n"
                     ).replace("  ", " ") + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["white_point"], label)
         if black_xy_dE:

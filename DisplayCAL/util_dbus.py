@@ -146,7 +146,7 @@ class DBusObjectError(DBusException):
     def __init__(self, exception, bus_name=None):
         self._dbus_error_name = getattr(exception, "get_dbus_name", lambda: None)()
         if self._dbus_error_name == "org.freedesktop.DBus.Error.ServiceUnknown":
-            exception = "%s: %s" % (exception, bus_name)
+            exception = f"{exception}: {bus_name}"
         DBusException.__init__(self, safe_str(exception))
 
     def get_dbus_name(self):

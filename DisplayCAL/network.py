@@ -102,7 +102,7 @@ class NoHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         raise urllib.error.HTTPError(
             newurl,
             code,
-            msg + " - Redirection to url '%s' is not allowed" % newurl,
+            msg + f" - Redirection to url '{newurl}' is not allowed",
             headers,
             fp,
         )

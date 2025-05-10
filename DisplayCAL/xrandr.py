@@ -98,7 +98,7 @@ class XDisplay:
     def open(self):
         self.display = libx11.XOpenDisplay(self.name.encode())
         if not self.display:
-            raise ValueError(f"Invalid X display {repr(self.name)}")
+            raise ValueError(f"Invalid X display {self.name!r}")
 
     def close(self):
         libx11.XCloseDisplay(self.display)
@@ -106,14 +106,14 @@ class XDisplay:
     def intern_atom(self, atom_name):
         atom_id = libx11.XInternAtom(self.display, atom_name, False)
         if not atom_id:
-            raise ValueError(f"Invalid atom name {repr(atom_name)}")
+            raise ValueError(f"Invalid atom name {atom_name!r}")
 
         return atom_id
 
     def root_window(self, screen_no=0):
         window = libx11.XRootWindow(self.display, screen_no)
         if not window:
-            raise ValueError(f"Invalid X screen {repr(screen_no)}")
+            raise ValueError(f"Invalid X screen {screen_no!r}")
 
         return window
 
@@ -156,7 +156,7 @@ class XDisplay:
 
     def get_output_property(self, output, atom_id, atom_type=XA_CARDINAL):
         if not output:
-            raise ValueError(f"Invalid output {repr(output)} specified")
+            raise ValueError(f"Invalid output {output!r} specified")
 
         ret_type, ret_format, ret_len, ret_togo, atomv = (
             c_ulong(),
@@ -201,4 +201,4 @@ if __name__ == "__main__":
         property = display.get_output_property(
             int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
         )
-        print(f"{sys.argv[2]} for display {sys.argv[1]}: {repr(property)}")
+        print(f"{sys.argv[2]} for display {sys.argv[1]}: {property!r}")

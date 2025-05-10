@@ -52,7 +52,7 @@ class ScriptingClientFrame(SimpleTerminal):
         self.commands = []
         self.history = []
         self.historyfilename = os.path.join(
-            confighome, "%s-scripting-client.history" % config.appbasename
+            confighome, f"{config.appbasename}-scripting-client.history"
         )
         if os.path.isfile(self.historyfilename):
             try:
@@ -162,7 +162,7 @@ class ScriptingClientFrame(SimpleTerminal):
             if isinstance(result, socket.socket):
                 self.conn = result
                 result = lang.getstr("connection.established")
-            text = "%s\n" % result
+            text = f"{result}\n"
             self.add_text(text)
             if colorize or isinstance(result, Exception):
                 end = self.console.GetLastPosition()
@@ -229,7 +229,7 @@ class ScriptingClientFrame(SimpleTerminal):
                 self.conn.shutdown(socket.SHUT_RDWR)
             except OSError as exception:
                 if exception.errno != errno.ENOTCONN:
-                    self.add_text("%s\n" % exception)
+                    self.add_text(f"{exception}\n")
             else:
                 self.add_text(lang.getstr("disconnected.from", peer) + "\n")
             self.conn.close()
@@ -253,7 +253,7 @@ class ScriptingClientFrame(SimpleTerminal):
                         lang.getstr(
                             "connected.to.at", ((response,) + self.conn.getpeername())
                         )
-                        + "\n%s\n" % lang.getstr("scripting-client.cmdhelptext"),
+                        + "\n{}\n".format(lang.getstr("scripting-client.cmdhelptext")),
                     )
         except OSError as exception:
             return exception
@@ -426,7 +426,7 @@ class ScriptingClientFrame(SimpleTerminal):
                             findcommon = False
                             break
                 if len(candidates) > 1:
-                    self.add_text("\n%s\n" % " ".join(candidates))
+                    self.add_text("\n{}\n".format(" ".join(candidates)))
                 self.add_text("\r> " + commonpart + lastline[endcol:])
                 self.console.SetInsertionPoint(
                     self.console.GetLastPosition() - len(lastline[endcol:])

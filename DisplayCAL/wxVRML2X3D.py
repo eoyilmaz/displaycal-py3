@@ -27,7 +27,7 @@ if gui:
             )
             self.SetIcons(
                 config.get_icon_bundle(
-                    [256, 48, 32, 16], "%s-VRML-to-X3D-converter" % appname
+                    [256, 48, 32, 16], f"{appname}-VRML-to-X3D-converter"
                 )
             )
             self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -111,7 +111,7 @@ def main():
     if "--help" in sys.argv[1:] or (not sys.argv[1:] and not gui):
         print("Convert VRML file to X3D")
         print("Author: Florian Hoech, licensed under the GPL version 3")
-        print("Usage: %s [OPTION]... FILE..." % os.path.basename(sys.argv[0]))
+        print(f"Usage: {os.path.basename(sys.argv[0])} [OPTION]... FILE...")
         print("The output is written to FILENAME.x3d(.html)")
         print("")
         print(
@@ -199,7 +199,7 @@ def vrmlfile2x3dfile(
             if not vrmlpath or vrmlpath.startswith("--"):
                 print("No filename given.")
             else:
-                print("%r is not a file." % vrmlpath)
+                print(f"{vrmlpath!r} is not a file.")
             return False
         if not wx.GetApp():
             _ = BaseApp(0)
@@ -231,7 +231,7 @@ def vrmlfile2x3dfile(
             if not x3dpath:
                 print("No HTML output filename given.")
             else:
-                print(f"{repr(dirname)} is not writable.")
+                print(f"{dirname!r} is not writable.")
             return False
         if not wx.GetApp():
             _ = BaseApp(0)

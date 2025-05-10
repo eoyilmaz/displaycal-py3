@@ -846,7 +846,7 @@ def create_synthetic_hdr_clut_profile(
         def encf(v):
             return v
     else:
-        raise NotImplementedError(f"Unknown HDR format {repr(hdr_format)}")
+        raise NotImplementedError(f"Unknown HDR format {hdr_format!r}")
 
     tonemap = eetf(1) != 1
 
@@ -3005,10 +3005,10 @@ class LazyLoadTagAODict(AODict):
                 tag = ICCProfileTag(tagData, tagSignature)
         except Exception as exception:
             raise ICCProfileInvalidError(
-                f"Couldn't parse tag {repr(tagSignature)} "
-                f"(type {repr(typeSignature)}, "
+                f"Couldn't parse tag {tagSignature!r} "
+                f"(type {typeSignature!r}, "
                 f"offset {int(tagDataOffset):d}, "
-                f"size {int(tagDataSize):d}): {repr(exception)}"
+                f"size {int(tagDataSize):d}): {exception!r}"
             ) from exception
         self[key] = tag
         return tag
@@ -3048,7 +3048,7 @@ class ICCProfileTag:
             cls = self.__class__
             if not self:
                 return f"{cls.__module__}.{cls.__name__}()"
-            return f"{cls.__module__}.{cls.__name__}({repr(self.tagData)})"
+            return f"{cls.__module__}.{cls.__name__}({self.tagData!r})"
 
 
 class Text(ICCProfileTag, bytes):
@@ -3074,7 +3074,7 @@ class Colorant:
     def __repr__(self):
         items = []
         for key, value in (("type", self.type), ("description", self.description)):
-            items.append(f"{repr(key)}: {repr(value)}")
+            items.append(f"{key!r}: {value!r}")
         channels = []
         for xy in self.channels:
             channels.append("[{}]".format(", ".join([str(v) for v in xy])))
@@ -3242,7 +3242,7 @@ class LUT16Type(ICCProfileTag):
             bp = [v / 32768.0 for v in bp_row]
             wp = [v / 32768.0 for v in wp_row]
         else:
-            raise ValueError(f"LUT16Type.{method}: Unsupported PCS {repr(pcs)}")
+            raise ValueError(f"LUT16Type.{method}: Unsupported PCS {pcs!r}")
         if [round(v * 32768) for v in bp] != [round(v * 32768) for v in bp_out]:
             D50 = colormath.get_whitepoint("D50")
 
@@ -4893,7 +4893,7 @@ class ProfileSequenceDescType(ICCProfileTag, list):
                     else:
                         print(
                             "Error (non-critical): could not fully decode 'pseq' - "
-                            f"unknown {repr(desc_type)} tag type {repr(tag_type)}"
+                            f"unknown {desc_type!r} tag type {tag_type!r}"
                         )
                         count = 1  # Skip remaining
                         break
@@ -5606,7 +5606,7 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
 
         """
         if quantize and not isinstance(quantize, int):
-            raise ValueError(f"Invalid quantization bits: {repr(quantize)}")
+            raise ValueError(f"Invalid quantization bits: {quantize!r}")
         if "ColorDeviceModel" in self:
             # Parse calibration information to VCGT
             cal = self.ColorDeviceModel.find("Calibration")
@@ -5663,7 +5663,7 @@ class XYZNumber(AODict):
         XYZ = []
         for key in self:
             value = self[key]
-            XYZ.append(f"({repr(key)}, {value})")
+            XYZ.append(f"({key!r}, {value})")
         return "{}.{}([{}])".format(
             self.__class__.__module__,
             self.__class__.__name__,
@@ -6613,7 +6613,7 @@ class ICCProfile:
                             tagData = self._data[start:end]
                             if len(tagData) < tagDataSize:
                                 print(
-                                    f"Warning: Tag data for tag {repr(tagSignature)} "
+                                    f"Warning: Tag data for tag {tagSignature!r} "
                                     f"is truncated (offset {int(tagDataOffset):d}, "
                                     f"expected size {int(tagDataSize):d}, "
                                     f"actual size {len(tagData):d})"
@@ -6623,7 +6623,7 @@ class ICCProfile:
                             if len(typeSignature) < 4:
                                 print(
                                     "Warning: Tag type signature for tag "
-                                    f"{repr(tagSignature)} is truncated "
+                                    f"{tagSignature!r} is truncated "
                                     f"(offset {int(tagDataOffset):d}, "
                                     f"size {int(tagDataSize):d})"
                                 )

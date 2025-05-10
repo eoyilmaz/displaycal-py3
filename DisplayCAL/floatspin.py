@@ -1100,7 +1100,7 @@ class FloatSpin(wx.PyControl):
 
         if fmt not in ["%f", "%g", "%e", "%E", "%F", "%G"]:
             raise Exception(
-                "\nERROR: Bad Float Number Format: " + repr(fmt) + ". It Should Be "
+                f"\nERROR: Bad Float Number Format: {fmt!r}. It Should Be "
                 'One Of "%f", "%g", "%e", "%E", "%F", "%G"'
             )
 
@@ -1520,7 +1520,7 @@ class FixedPoint:
             return
 
         if isinstance(value, complex):
-            raise TypeError("can't convert complex to FixedPoint: " + repr(value))
+            raise TypeError(f"can't convert complex to FixedPoint: {value!r}")
 
         # can we coerce to a float?
         yes = 1
@@ -1542,7 +1542,7 @@ class FixedPoint:
             self.__init__(aslong, p)
             return
 
-        raise TypeError("can't convert to FixedPoint: " + repr(value))
+        raise TypeError(f"can't convert to FixedPoint: {value!r}")
 
     def get_precision(self):
         """Return the precision of this :class:`FixedPoint`.
@@ -1567,10 +1567,10 @@ class FixedPoint:
             p = int(precision)
         except Exception as e:
             raise TypeError(
-                f"precision not convertable to int: {repr(precision)}"
+                f"precision not convertable to int: {precision!r}"
             ) from e
         if p < 0:
-            raise ValueError(f"precision must be >= 0: {repr(precision)}")
+            raise ValueError(f"precision must be >= 0: {precision!r}")
 
         if p > self.p:
             self.n = self.n * _tento(p - self.p)
@@ -1832,7 +1832,7 @@ del re
 def _string2exact(s):
     m = _parser(s)
     if m is None:
-        raise ValueError("can't parse as number: " + repr(s))
+        raise ValueError(f"can't parse as number: {s!r}")
 
     exp = m.group("exp")
     exp = 0 if exp is None else int(exp)

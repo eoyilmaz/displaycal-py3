@@ -333,7 +333,7 @@ class DisplayUniformityFrame(BaseFrame):
     def parse_txt(self, txt):
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         if "Setting up the instrument" in txt:
             self.Pulse(lang.getstr("instrument.initializing"))
         if "Spot read failed" in txt:
@@ -352,17 +352,17 @@ class DisplayUniformityFrame(BaseFrame):
         for locus in list(loci.values()):
             if locus in txt:
                 CT = re.search(
-                    r"Closest\s+%s\s+temperature\s+=\s+(\d+)K" % locus, txt, re.I
+                    rf"Closest\s+{locus}\s+temperature\s+=\s+(\d+)K", txt, re.I
                 )
-                self.results[self.index][-1]["C%sT" % locus[0]] = int(CT.groups()[0])
+                self.results[self.index][-1][f"C{locus[0]}T"] = int(CT.groups()[0])
         if "key to take a reading" in txt and not self.last_error:
-            print("%s: Got 'key to take a reading'" % appname)
+            print(f"{appname}: Got 'key to take a reading'")
             if not self.is_measuring:
                 self.enable_buttons()
                 return
             if len(self.results[self.index]) < len(self.colors):
                 # Take readings at 5 different brightness levels per swatch
-                print("%s: About to take next reading" % appname)
+                print(f"{appname}: About to take next reading")
                 self.measure()
             else:
                 self.is_measuring = False
@@ -387,7 +387,7 @@ class DisplayUniformityFrame(BaseFrame):
                             print("Found display %s at index %i" % (display, i))
                             break
                     display = display.replace(" [PRIMARY]", "")
-                    defaultFile = "Uniformity Check %s — %s — %s" % (
+                    defaultFile = "Uniformity Check {} — {} — {}".format(
                         appversion,
                         re.sub(r"[\\/:*?\"<>|]+", "_", display),
                         strftime("%Y-%m-%d %H-%M.html"),
@@ -471,7 +471,7 @@ class DisplayUniformityFrame(BaseFrame):
             if not self.worker.instrument_on_screen:
                 if not getattr(self, "wait_for_instrument_on_screen", False):
                     self.wait_for_instrument_on_screen = True
-                    print("%s: Waiting for instrument to be placed on screen" % appname)
+                    print(f"{appname}: Waiting for instrument to be placed on screen")
                 wx.CallLater(200, self.safe_send, bytes)
             else:
                 self.wait_for_instrument_on_screen = False

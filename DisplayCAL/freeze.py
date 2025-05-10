@@ -514,7 +514,7 @@ def build_py2exe():
             "misc",
             name
             + (
-                ".exe.%s.VC90.manifest" % arch
+                f".exe.{arch}.VC90.manifest"
                 if hasattr(sys, "version_info") and sys.version_info[:2] >= (3, 8)
                 else ".exe.manifest"
             ),
@@ -548,7 +548,7 @@ def build_py2exe():
                     )
                 ],
                 "other_resources": [(24, 1, manifest_xml)],
-                "copyright": "© %s %s" % (strftime("%Y"), author),
+                "copyright": "© {} {}".format(strftime("%Y"), author),
                 "description": desc,
             }
         )
@@ -579,7 +579,7 @@ def build_py2exe():
                     )
                 ],
                 "other_resources": [(24, 1, manifest_xml)],
-                "copyright": "© %s %s" % (strftime("%Y"), author),
+                "copyright": "© {} {}".format(strftime("%Y"), author),
                 "description": apply_profiles_launcher[1],
             }
         )
@@ -614,7 +614,7 @@ def build_py2exe():
                     )
                 ],
                 "other_resources": [(24, 1, manifest_xml)],
-                "copyright": "© %s %s" % (strftime("%Y"), author),
+                "copyright": "© {} {}".format(strftime("%Y"), author),
                 "description": desc,
             }
         )
@@ -641,7 +641,7 @@ def build_py2exe():
                     )
                 ],
                 "other_resources": [(24, 1, manifest_xml)],
-                "copyright": "© %s %s" % (strftime("%Y"), author),
+                "copyright": "© {} {}".format(strftime("%Y"), author),
                 "description": "Convert eeColor 65^3 to madVR 256^3 3D LUT "
                 "(video levels in, video levels out)",
             }

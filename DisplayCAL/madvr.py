@@ -279,7 +279,7 @@ def icc_device_link_to_madvr(
     if filename.endswith(".HDR"):
         safe_print(
             "Gamut (rx ry gx gy bx by wx wy):",
-            "%.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f" % tuple(colorspace),
+            "{:.5f} {:.5f} {:.5f} {:.5f} {:.5f} {:.5f} {:.5f} {:.5f}".format(*tuple(colorspace)),
         )
     return True
 
@@ -305,7 +305,7 @@ def trunc(value, length):
     """For string types, return value truncated to length"""
     if isinstance(value, str) and len(repr(value)) > length:
         value = value[: length - 3 - len(str(length)) - len(repr(value)) + len(value)]
-        return "%r[:%i]" % (value, length)
+        return f"{value!r}[{length:d}]"
     return repr(value)
 
 
@@ -389,11 +389,11 @@ class H3DLUT:
                 values = list(values)
                 for i, value in enumerate(values):
                     if isinstance(value, float):
-                        values[i] = "%.5f" % value
+                        values[i] = f"{value:.5f}"
                     else:
-                        values[i] = "%s" % value
+                        values[i] = f"{value}"
                 value = " ".join(values)
-            parameters_data.append(("%s %s" % (key, value)).encode())
+            parameters_data.append((f"{key} {value}").encode())
         parameters_data = b"\r\n".join(parameters_data) + b"\0"
         parameters_size = len(parameters_data)
         return b"".join(
@@ -605,7 +605,7 @@ class MadTPG(MadTPGBase):
         clsid = "{E1A8B82A-32CE-4B0D-BE0D-AA68C772E423}"
         try:
             key = winreg.OpenKey(
-                winreg.HKEY_CLASSES_ROOT, r"CLSID\%s\InprocServer32" % clsid
+                winreg.HKEY_CLASSES_ROOT, rf"CLSID\{clsid}\InprocServer32"
             )
             value, valuetype = winreg.QueryValueEx(key, "")
         except Exception as e:
@@ -661,7 +661,7 @@ class MadTPG(MadTPGBase):
         # Check if this is a madVR method we support
         if methodname not in _methodnames + _autonet_methodnames:
             raise AttributeError(
-                "%r object has no attribute %r" % (self.__class__.__name__, name)
+                f"{self.__class__.__name__!r} object has no attribute {name!r}"
             )
 
         # Return the method
@@ -818,7 +818,7 @@ class MadTPG_Net(MadTPGBase):
                 sock.listen(1)
                 thread = threading.Thread(
                     target=self._conn_accept_handler,
-                    name="madVR.ConnectionHandler[%s]" % port,
+                    name=f"madVR.ConnectionHandler[{port}]",
                     args=(sock, "", port),
                 )
                 self._threads.append(thread)
@@ -837,7 +837,7 @@ class MadTPG_Net(MadTPGBase):
                 sock.bind(("", port))
                 thread = threading.Thread(
                     target=self._cast_receive_handler,
-                    name="madVR.BroadcastHandler[%s:%s]" % (self.broadcast_ip, port),
+                    name=f"madVR.BroadcastHandler[{self.broadcast_ip}:{port}]",
                     args=(sock, self.broadcast_ip, port),
                 )
                 self._threads.append(thread)
@@ -863,7 +863,7 @@ class MadTPG_Net(MadTPGBase):
                 sock.bind(("", port))
                 thread = threading.Thread(
                     target=self._cast_receive_handler,
-                    name="madVR.MulticastHandler[%s:%s]" % (self.multicast_ip, port),
+                    name=f"madVR.MulticastHandler[{self.multicast_ip}:{port}]",
                     args=(sock, self.multicast_ip, port),
                 )
                 self._threads.append(thread)
@@ -943,7 +943,7 @@ class MadTPG_Net(MadTPGBase):
                     self._client_sockets[addr] = conn
                     thread = threading.Thread(
                         target=self._receive_handler,
-                        name="madVR.Receiver[%s:%s]" % addr[:2],
+                        name="madVR.Receiver[{}:{}]".format(*addr[:2]),
                         args=(
                             addr,
                             conn,
@@ -958,7 +958,7 @@ class MadTPG_Net(MadTPGBase):
 
     def _receive_handler(self, addr, conn):
         if self.debug:
-            safe_print("MadTPG_Net: Entering receiver thread for %s:%s" % addr[:2])
+            safe_print("MadTPG_Net: Entering receiver thread for {}:{}".format(*addr[:2]))
         self._incoming[addr] = []
         hello = self._hello(conn)
         blob = b""
@@ -998,7 +998,7 @@ class MadTPG_Net(MadTPGBase):
                         break
                     blob += incoming
                     if self.debug:
-                        safe_print("MadTPG_Net: Received from %s:%s:" % addr[:2])
+                        safe_print("MadTPG_Net: Received from {}:{}:".format(*addr[:2]))
                     while blob and addr in self._client_sockets:
                         try:
                             record, blob = self._parse(blob)
@@ -1020,7 +1020,7 @@ class MadTPG_Net(MadTPGBase):
             )
             self._incoming.pop(addr)
         if self.debug:
-            safe_print("MadTPG_Net: Exiting receiver thread for %s:%s" % addr[:2])
+            safe_print("MadTPG_Net: Exiting receiver thread for {}:{}".format(*addr[:2]))
 
     def _remove_client(self, addr, send_bye=True):
         """Remove client from list of connected clients"""
@@ -1076,39 +1076,34 @@ class MadTPG_Net(MadTPGBase):
                 with _lock:
                     if self.debug:
                         safe_print(
-                            "MadTPG_Net: Received %s from %s:%s: %r"
-                            % (cast, addr[0], addr[1], data)
+                            f"MadTPG_Net: Received {cast} from {addr[0]}:{addr[1]}: {data!r}"
                         )
                     if addr not in self._casts:
                         for c_port in self.server_ports:
                             if (addr[0], c_port) in self._client_sockets:
                                 if self.debug:
                                     safe_print(
-                                        "MadTPG_Net: Already connected to %s:%s"
-                                        % (addr[0], c_port)
+                                        f"MadTPG_Net: Already connected to {addr[0]}:{c_port}"
                                     )
                             elif ("", c_port) in self._server_sockets and addr[
                                 0
                             ] in self._ips:
                                 if self.debug:
                                     safe_print(
-                                        "MadTPG_Net: Don't connect to self %s:%s"
-                                        % (addr[0], c_port)
+                                        f"MadTPG_Net: Don't connect to self {addr[0]}:{c_port}"
                                     )
                             else:
                                 conn = self._get_client_socket(addr[0], c_port)
                                 threading.Thread(
                                     target=self._connect,
-                                    name="madVR.ConnectToInstance[%s:%s]"
-                                    % (addr[0], c_port),
+                                    name=f"madVR.ConnectToInstance[{addr[0]}:{c_port}]",
                                     args=(conn, addr[0], c_port),
                                 ).start()
                     else:
                         self._casts.remove(addr)
                         if self.debug:
                             safe_print(
-                                "MadTPG_Net: Ignoring own %s from %s:%s"
-                                % (cast, addr[0], addr[1])
+                                f"MadTPG_Net: Ignoring own {cast} from {addr[0]}:{addr[1]}"
                             )
         self._cast_sockets.pop((host, port))
         self._shutdown(sock, (host, port))
@@ -1154,7 +1149,7 @@ class MadTPG_Net(MadTPGBase):
         # Check if this is a madVR method we support
         if methodname not in _methodnames:
             raise AttributeError(
-                "%r object has no attribute %r" % (self.__class__.__name__, name)
+                f"{self.__class__.__name__!r} object has no attribute {name!r}"
             )
 
         # Call the method and return the result
@@ -1239,7 +1234,7 @@ class MadTPG_Net(MadTPGBase):
             conn = self._get_client_socket(ip, port)
             threading.Thread(
                 target=self._connect,
-                name="madVR.ConnectToInstance[%s:%s]" % (ip, port),
+                name=f"madVR.ConnectToInstance[{ip}:{port}]",
                 args=(conn, ip, port, timeout / 1000.0),
             ).start()
         return self._wait_for_client((ip, port), timeout / 1000.0)
@@ -1256,23 +1251,23 @@ class MadTPG_Net(MadTPGBase):
     def _connect(self, sock, host, port, timeout=1):
         """Connect to IP:PORT, return socket"""
         if self.debug:
-            safe_print("MadTPG_Net: Connecting to %s:%s..." % (host, port))
+            safe_print(f"MadTPG_Net: Connecting to {host}:{port}...")
         try:
             sock.connect((host, port))
         except OSError as exception:
             if self.debug:
                 safe_print(
-                    "MadTPG_Net: Connecting to %s:%s failed:" % (host, port), exception
+                    f"MadTPG_Net: Connecting to {host}:{port} failed:", exception
                 )
             with _lock:
                 self._remove_client((host, port), False)
         else:
             if self.debug:
-                safe_print("MadTPG_Net: Connected to %s:%s" % (host, port))
+                safe_print(f"MadTPG_Net: Connected to {host}:{port}")
             sock.settimeout(0)
             thread = threading.Thread(
                 target=self._receive_handler,
-                name="madVR.Receiver[%s:%s]" % (host, port),
+                name=f"madVR.Receiver[{host}:{port}]",
                 args=(
                     (host, port),
                     sock,
@@ -1399,7 +1394,7 @@ class MadTPG_Net(MadTPGBase):
         info = [
             ("computerName", str(socket.gethostname().upper())),
             ("userName", str(getpass.getuser())),
-            ("os", "%s %s" % (platform.system(), platform.release())),
+            ("os", f"{platform.system()} {platform.release()}"),
             ("exeFile", os.path.basename(sys.executable)),
             ("exeVersion", version),
             ("exeDescr", ""),
@@ -1407,7 +1402,7 @@ class MadTPG_Net(MadTPGBase):
         ]
         params = ""
         for key, value in info:
-            params += "%s=%s\t" % (key, value)
+            params += f"{key}={value}\t"
         return params
 
     def _hello(self, conn):
@@ -1636,17 +1631,16 @@ class MadTPG_Net(MadTPGBase):
                     value = record[key]
                     if key == "params" or self.debug > 2:
                         if isinstance(value, dict):
-                            safe_print("  %s:" % key)
+                            safe_print(f"  {key}:")
                             for subkey in value:
                                 subvalue = value[subkey]
                                 if self.debug < 2 and subkey != "exeFile":
                                     continue
                                 safe_print(
-                                    "    %s = %s"
-                                    % (subkey.ljust(16), trunc(subvalue, 56))
+                                    f"    {subkey.ljust(16)} = {trunc(subvalue, 56)}"
                                 )
                         elif self.debug > 1:
-                            safe_print("  %s = %s" % (key.ljust(16), trunc(value, 58)))
+                            safe_print(f"  {key.ljust(16)} = {trunc(value, 58)}")
         blob = blob[a:]
         return record, blob
 

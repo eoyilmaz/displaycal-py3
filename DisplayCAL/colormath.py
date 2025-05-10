@@ -111,7 +111,7 @@ def specialpow(a, b, slope_limit=0):
             / (SMPTE2084_C2 - SMPTE2084_C3 * a ** (1.0 / SMPTE2084_M2))
         ) ** (1.0 / SMPTE2084_M1)
     else:
-        raise ValueError("Invalid gamma %r" % b)
+        raise ValueError(f"Invalid gamma {b!r}")
     return v * signScale
 
 
@@ -1118,7 +1118,7 @@ def XYZ2Lab_delta(
     L1, a1, b1 = XYZ2Lab(X1, Y1, Z1, whitepoint_reference)
     L2, a2, b2 = XYZ2Lab(X2, Y2, Z2, whitepoint_reference)
     logging.debug(
-        "L*a*b*[1] %.4f %.4f %.4f L*a*b*[2] %.4f %.4f %.4f" % (L1, a1, b1, L2, a2, b2)
+        f"L*a*b*[1] {L1:.4f} {a1:.4f} {b1:.4f} L*a*b*[2] {L2:.4f} {a2:.4f} {b2:.4f}"
     )
     return delta(L1, a1, b1, L2, a2, b2, method)
 
@@ -2047,7 +2047,7 @@ def get_standard_illuminant(
     illuminant = None
     for standard_name in priority:
         if standard_name not in standard_illuminants:
-            raise ValueError('Unrecognized standard "%s"' % standard_name)
+            raise ValueError(f'Unrecognized standard "{standard_name}"')
         illuminant = standard_illuminants.get(standard_name).get(
             illuminant_name.upper(), None
         )
@@ -2055,7 +2055,7 @@ def get_standard_illuminant(
             illuminant = illuminant["X"] * scale, 1.0 * scale, illuminant["Z"] * scale
             get_standard_illuminant.cache[cachehash] = illuminant
             return illuminant
-    raise ValueError('Unrecognized illuminant "%s"' % illuminant_name)
+    raise ValueError(f'Unrecognized illuminant "{illuminant_name}"')
 
 
 get_standard_illuminant.cache = {}
@@ -2078,13 +2078,13 @@ def get_whitepoint(whitepoint=None, scale=1.0, planckian=False):
             whitepoint = planckianCT2XYZ(cct)
             if not whitepoint:
                 raise ValueError(
-                    "Planckian color temperature %s out of range (1667, 25000)" % cct
+                    f"Planckian color temperature {cct} out of range (1667, 25000)"
                 )
         else:
             whitepoint = CIEDCCT2XYZ(cct)
             if not whitepoint:
                 raise ValueError(
-                    "Daylight color temperature %s out of range (2500, 25000)" % cct
+                    f"Daylight color temperature {cct} out of range (2500, 25000)"
                 )
     if scale > 1.0 and whitepoint[1] == 100:
         scale = 1.0
@@ -2804,7 +2804,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xt[i] = cp[i] + xx * xi[i]
     xf = func(fdata, xt)
 
-    logging.debug("linmin: Initial points a:%f:%f -> b:%f:%f" % (ax, af, xx, xf))
+    logging.debug(f"linmin: Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     # Fix it so that we are decreasing from point a -> x
     if xf > af:
@@ -2816,7 +2816,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xf = tt
 
     logging.debug(
-        "linmin: Ordered Initial points a:%f:%f -> b:%f:%f" % (ax, af, xx, xf)
+        f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}"
     )
 
     bx = xx + POWELL_GOLD * (xx - ax)  # Guess b beyond a -> x
@@ -2825,13 +2825,13 @@ def linmin(cp, xi, di, ftol, func, fdata):
     bf = func(fdata, xt)
 
     logging.debug(
-        "linmin: Initial bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
+        f"linmin: Initial bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
     )
 
     # While not bracketed
     while xf > bf:
-        logging.debug("linmin: Not bracketed because xf %f > bf %f" % (xf, bf))
-        logging.debug("        ax = %f, xx = %f, bx = %f" % (ax, xx, bx))
+        logging.debug(f"linmin: Not bracketed because xf {xf:f} > bf {bf:f}")
+        logging.debug(f"        ax = {ax:f}, xx = {xx:f}, bx = {bx:f}")
 
         # Compute ux by parabolic interpolation from a, x & b
         q = (xx - bx) * (xf - af)
@@ -2897,7 +2897,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         bx = ux
         bf = uf
     logging.debug(
-        "linmin: Got bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
+        f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
     )
     # Got bracketed minimum between a -> x -> b
 
@@ -2937,14 +2937,13 @@ def linmin(cp, xi, di, ftol, func, fdata):
             tol2 = 2.0 * tol1
 
             logging.debug(
-                "linmin: Got bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
+                f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
             )
 
             # See if we're done
             if abs(xx - mx) <= (tol2 - 0.5 * (bx - ax)):
                 logging.debug(
-                    "linmin: We're done because %f <= %f"
-                    % (abs(xx - mx), tol2 - 0.5 * (bx - ax))
+                    f"linmin: We're done because {abs(xx - mx):f} <= {tol2 - 0.5 * (bx - ax):f}"
                 )
                 break
 
@@ -2987,14 +2986,14 @@ def linmin(cp, xi, di, ftol, func, fdata):
 
             if abs(de) >= tol1:  # If de moves as much as tol1 would
                 ux = xx + de  # use it
-                logging.debug("linmin: ux = %f = xx %f + de %f" % (ux, xx, de))
+                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + de {de:f}")
             else:  # else move by tol1 in direction de
                 if de > 0.0:
                     ux = xx + tol1
-                    logging.debug("linmin: ux = %f = xx %f + tol1 %f" % (ux, xx, tol1))
+                    logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
                 else:
                     ux = xx - tol1
-                    logging.debug("linmin: ux = %f = xx %f - tol1 %f" % (ux, xx, tol1))
+                    logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
 
             # Evaluate function
             for i in range(di):
@@ -3140,11 +3139,11 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
         # reached a suitable tollerance, then finish
         if iter > 1 and curdel <= stopth:
             logging.debug(
-                "Reached stop tollerance because curdel %f <= stopth "
-                "%f" % (curdel, stopth)
+                f"Reached stop tollerance because curdel {curdel:f} <= stopth "
+                f"{stopth:f}"
             )
             break
-        logging.debug("Not stopping because curdel %f > stopth %f" % (curdel, stopth))
+        logging.debug(f"Not stopping because curdel {curdel:f} > stopth {stopth:f}")
 
         for i in range(di):
             svec[i] = cp[i] - spt[i]  # Average direction moved after minimization round
@@ -3297,11 +3296,11 @@ class BT1886:
 
         """
 
-        logging.debug("bt1886 XYZ in %f %f %f" % (X, Y, Z))
+        logging.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
         out = self.bwd_matrix * (X, Y, Z)
 
-        logging.debug("bt1886 RGB in %f %f %f" % (out[0], out[1], out[2]))
+        logging.debug(f"bt1886 RGB in {out[0]:f} {out[1]:f} {out[2]:f}")
 
         for j in range(3):
             vv = out[j]
@@ -3327,11 +3326,11 @@ class BT1886:
 
         out = self.fwd_matrix * out
 
-        logging.debug("bt1886 RGB bt.1886 %f %f %f" % (out[0], out[1], out[2]))
+        logging.debug(f"bt1886 RGB bt.1886 {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = list(XYZ2Lab(*[v * 100 for v in out]))
 
-        logging.debug("bt1886 Lab after Y adj. %f %f %f" % (out[0], out[1], out[2]))
+        logging.debug(f"bt1886 Lab after Y adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         # Blend ab to required black point offset self.tab[] as L approaches black.
         vv = (out[0] - self.outL) / (100.0 - self.outL)  # 0 at bp, 1 at wp
@@ -3346,11 +3345,11 @@ class BT1886:
         out[1] += vv * self.tab[1]
         out[2] += vv * self.tab[2]
 
-        logging.debug("bt1886 Lab after wp adj. %f %f %f" % (out[0], out[1], out[2]))
+        logging.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = Lab2XYZ(*out)
 
-        logging.debug("bt1886 XYZ out %f %f %f" % (out[0], out[1], out[2]))
+        logging.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
 
         return out
 
@@ -3738,7 +3737,7 @@ class Matrix3x3(list):
 
 class NumberTuple(tuple):
     def __repr__(self):
-        return "(%s)" % ", ".join(str(value) for value in self)
+        return "({})".format(", ".join(str(value) for value in self))
 
     def round(self, digits=4):
         return self.__class__(round(value, digits) for value in self)
@@ -4096,8 +4095,7 @@ def test():
             XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
             wp = " ".join([str(v) for v in XYZ])
         print(
-            "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s"
-            % wp
+            f"RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint {wp}"
         )
         for name in rgb_spaces:
             spc = rgb_spaces[name]
@@ -4105,19 +4103,19 @@ def test():
                 XYZ = CIEDCCT2XYZ(spc[1])
             spc = spc[0], XYZ, spc[2], spc[3], spc[4]
             print(
-                "%s 1.0, 1.0, 1.0 = XYZ" % name,
+                f"{name} 1.0, 1.0, 1.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(1.0, 1.0, 1.0, spc)],
             )
             print(
-                "%s 1.0, 0.0, 0.0 = XYZ" % name,
+                f"{name} 1.0, 0.0, 0.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(1.0, 0.0, 0.0, spc)],
             )
             print(
-                "%s 0.0, 1.0, 0.0 = XYZ" % name,
+                f"{name} 0.0, 1.0, 0.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(0.0, 1.0, 0.0, spc)],
             )
             print(
-                "%s 0.0, 0.0, 1.0 = XYZ" % name,
+                f"{name} 0.0, 0.0, 1.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(0.0, 0.0, 1.0, spc)],
             )
         print("")

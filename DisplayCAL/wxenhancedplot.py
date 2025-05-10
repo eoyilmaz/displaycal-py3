@@ -425,8 +425,7 @@ class PolyPoints:
         for name, value in list(attr.items()):
             if name not in list(self._attributes.keys()):
                 raise KeyError(
-                    "Style attribute incorrect. Should be one of %s"
-                    % list(self._attributes.keys())
+                    f"Style attribute incorrect. Should be one of {list(self._attributes.keys())}"
                 )
             self.attributes[name] = value
 
@@ -2543,10 +2542,10 @@ class PlotCanvas(wx.Panel):
                 fdigits = 0
             if power >= 0:
                 digits = max(1, int(power))
-                file_format = "%" + repr(digits) + "." + repr(fdigits) + "f"
+                file_format = f"%{digits!r}.{fdigits!r}f"
             else:
                 digits = -int(power)
-                file_format = "%" + repr(digits + 2) + "." + repr(fdigits) + "f"
+                file_format = f"%{digits + 2!r}.{fdigits!r}f"
         ticks = []
         t = -grid * np.floor(-lower / grid)
         while t <= upper:
@@ -3030,7 +3029,7 @@ class TestFrame(wx.Frame):
         # -----------
 
     def OnMouseLeftDown(self, event):
-        s = "Left Mouse Down at Point: (%.4f, %.4f)" % self.client._getXY(event)
+        s = "Left Mouse Down at Point: ({:.4f}, {:.4f})".format(*self.client._getXY(event))
         self.SetStatusText(s)
         event.Skip()  # allows plotCanvas OnMouseLeftDown to be called
 

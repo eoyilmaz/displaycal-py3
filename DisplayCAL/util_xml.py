@@ -24,7 +24,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
                 else:
                     if pretty:
                         attributes.append("\n" + indent)
-                    attributes.append(' %s="%s"' % (key, escape(str(value))))
+                    attributes.append(f' {key}="{escape(str(value))}"')
         else:
             for value in d:
                 children.append(
@@ -39,9 +39,9 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
             for child in children:
                 xml.append(child)
 
-            xml.append("%s</%s>" % (indent, elementname))
+            xml.append(f"{indent}</{elementname}>")
     else:
-        xml.append("%s<%s>%s</%s>" % (indent, elementname, escape(str(d)), elementname))
+        xml.append(f"{indent}<{elementname}>{escape(str(d))}</{elementname}>")
 
     return (pretty and "\n" or "").join(xml)
 
@@ -89,8 +89,8 @@ class ETreeDict(dict):
         l = []
         for k in self:
             v = self[k]
-            l.append("%r: %r" % (k, v))
-        return "{%s}" % ", ".join(l)
+            l.append(f"{k!r}: {v!r}")
+        return "{{{}}}".format(", ".join(l))
 
     @property
     def json(self):

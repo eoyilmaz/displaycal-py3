@@ -94,7 +94,7 @@ class CCXXPlot(wx.Frame):
 
         desc = lang.getstr(f"{ext[1:]}.{fn}", default=desc)
         ccxx_type = "spectral" if self.is_ccss else "matrix"
-        title = "%s: %s" % (
+        title = "{}: {}".format(
             lang.getstr(ccxx_type),
             desc if isinstance(desc, str) else desc.decode("utf-8"),
         )
@@ -334,7 +334,7 @@ class CCXXPlot(wx.Frame):
             for observer in config.valid_values["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
-            x_label.extend(["%9.6f %9.6f %9.6f" % tuple(row) for row in mtx])
+            x_label.extend(["{:9.6f} {:9.6f} {:9.6f}".format(*tuple(row)) for row in mtx])
             if ref:
                 ref_observer = cgats.queryv1("REFERENCE_OBSERVER")
                 if ref_observer:
@@ -362,13 +362,11 @@ class CCXXPlot(wx.Frame):
             fit_de00 = []
             if fit_de00_avg:
                 fit_de00.append(
-                    "ΔE*00 %s %.4f"
-                    % (lang.getstr("profile.self_check.avg"), fit_de00_avg)
+                    f"ΔE*00 {lang.getstr('profile.self_check.avg')} {fit_de00_avg:.4f}"
                 )
             if fit_de00_max:
                 fit_de00.append(
-                    "ΔE*00 %s %.4f"
-                    % (lang.getstr("profile.self_check.max"), fit_de00_max)
+                    f"ΔE*00 {lang.getstr('profile.self_check.max')} {fit_de00_max:.4f}"
                 )
             if fit_de00:
                 x_label.append("\n".join(fit_de00))
@@ -551,7 +549,7 @@ class CCXXPlot(wx.Frame):
                     size=2,
                     width=1.75,
                     marker="plus",
-                    legend="%.4f\u2009x\u2002%.4f\u2009y" % xy,
+                    legend="{:.4f}\u2009x\u2002{:.4f}\u2009y".format(*xy),
                 )
             )
         self.canvas.axis_x = 0, 1

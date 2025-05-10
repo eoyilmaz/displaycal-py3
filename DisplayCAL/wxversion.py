@@ -229,11 +229,10 @@ def ensureMinimal(minVersion, optionsRequired=False):
         app = wx.App()
         result = wx.MessageBox(
             "This application requires a version of wxPython "
-            "greater than or equal to %s, but a matching version "
+            f"greater than or equal to {minVersion}, but a matching version "
             "was not found.\n\n"
-            "You currently have these version(s) installed:\n%s\n\n"
-            "Would you like to download a new version of wxPython?\n"
-            % (minVersion, versions),
+            f"You currently have these version(s) installed:\n{versions}\n\n"
+            "Would you like to download a new version of wxPython?\n",
             "wxPython Upgrade Needed",
             style=wx.YES_NO,
         )
@@ -352,7 +351,7 @@ def _find_installed(removeExisting=False):
             )
             if version_info["VERSION"] >= (4,):
                 pinfo = _wxPackageInfo(
-                    "%s-%s" % (name, version_info["VERSION_STRING"]), True
+                    "{}-{}".format(name, version_info["VERSION_STRING"]), True
                 )
                 pinfo.pathname = pth
                 installed.append(pinfo)
@@ -473,7 +472,7 @@ if __name__ == "__main__":
 
         # test
         select(version, optionsRequired)
-        print("Asked for %s, (%s):\t got: %s" % (version, optionsRequired, sys.path[0]))
+        print(f"Asked for {version}, ({optionsRequired}):\t got: {sys.path[0]}")
 
         # reset
         sys.path = savepath[:]
@@ -487,8 +486,7 @@ if __name__ == "__main__":
         # test
         ensureMinimal(version, optionsRequired)
         print(
-            "EM: Asked for %s, (%s):\t got: %s"
-            % (version, optionsRequired, sys.path[0])
+            f"EM: Asked for {version}, ({optionsRequired}):\t got: {sys.path[0]}"
         )
 
         # reset

@@ -2813,7 +2813,7 @@ class Worker(WorkerBase):
                     getcfg(cfgname), 1
                 ),
             )
-            print(f"Added DISPLAY_TYPE_BASE_ID {repr(cgats[0].DISPLAY_TYPE_BASE_ID)}")
+            print(f"Added DISPLAY_TYPE_BASE_ID {cgats[0].DISPLAY_TYPE_BASE_ID!r}")
             return True
 
     def check_display_conf_oy_compat(self, display_no):
@@ -8091,13 +8091,13 @@ BEGIN_DATA
                 if logfile:
                     logfile.write(f"Matrix {m + 1:d}:\n")
                     for row in matrix:
-                        logfile.write(f"{repr(row)}\n")
+                        logfile.write(f"{row!r}\n")
 
             itable.matrix = m2 * m3
             if logfile:
                 logfile.write("Final matrix:\n")
                 for row in itable.matrix:
-                    logfile.write(f"{repr(row)}\n")
+                    logfile.write(f"{row!r}\n")
 
             if logfile:
                 logfile.write("Applying matrix to input curve XYZ values...\n")
@@ -8363,14 +8363,14 @@ BEGIN_DATA
                     # For CIELab cLUT, white- and black point will only
                     # fall on a cLUT point if uneven cLUT res
                     if i == clutres * (clutres // 2) + clutres // 2:
-                        # if raw_input("{:d} {}".format(i, repr(RGB))):
+                        # if raw_input("{:d} {!r}".format(i, RGB)):
                         RGB = 0, 0, 0
                     elif i == (
                         clutres**2 * (clutres - 1)
                         + clutres * (clutres // 2)
                         + clutres // 2
                     ):
-                        # if raw_input("{:d} {}".format(i, repr(RGB))):
+                        # if raw_input("{:d} {!r}".format(i, RGB)):
                         RGB = 1, 1, 1
                 itable.clut[-1].append([v * 65535 for v in RGB])
         if logfile:
@@ -9674,7 +9674,7 @@ usage: spotread [-options] [logfile]
                             except Exception as exception:
                                 self.log(
                                     f"util_win.enable_per_user_profiles({per_user}, "
-                                    f"devicekey={repr(device.DeviceKey)}): "
+                                    f"devicekey={device.DeviceKey!r}): "
                                     f"{exception}"
                                 )
                 if "-Sl" in args and (

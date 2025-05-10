@@ -288,7 +288,7 @@ def create_app_symlinks(dist_dir, scripts):
                         # py2app
                         with open(src) as main_in:
                             py = main_in.read()
-                        py = py.replace("main()", "main(%r)" % script[len(name) + 1 :])
+                        py = py.replace("main()", f"main({script[len(name) + 1 :]!r})")
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
@@ -315,7 +315,7 @@ def create_app_symlinks(dist_dir, scripts):
                     infoxml = info_in.read()
                 # CFBundleName / CFBundleDisplayName
                 infoxml = re.sub(
-                    r"(Name</key>\s*<string>)%s" % name,
+                    rf"(Name</key>\s*<string>){name}",
                     lambda match, toolname=toolname: match.group(1) + toolname,
                     infoxml,
                 )
@@ -327,7 +327,7 @@ def create_app_symlinks(dist_dir, scripts):
                 )
                 # CFBundleExecutable
                 infoxml = re.sub(
-                    r"(Executable</key>\s*<string>)%s" % name,
+                    rf"(Executable</key>\s*<string>){name}",
                     lambda match, script=script: match.group(1) + script,
                     infoxml,
                 )

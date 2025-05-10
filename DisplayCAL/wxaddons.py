@@ -286,7 +286,7 @@ def get_platform_window_decoration_size():
 def draw_granger_rainbow(dc, x=0, y=0, width=1920, height=1080):
     """Draw a granger rainbow to a DC"""
     if not isinstance(dc, wx.GCDC):
-        raise NotImplementedError("%s lacks alpha transparency support" % dc.__class__)
+        raise NotImplementedError(f"{dc.__class__} lacks alpha transparency support")
 
     # Widths
     column_width = int(162.0 / 1920.0 * width)
@@ -591,7 +591,7 @@ class BetterWindowDisabler:
                 if (
                     w
                     and w not in skip
-                    and "Inspection" not in "%s" % w
+                    and "Inspection" not in f"{w}"
                     and w not in BetterWindowDisabler.windows
                 ):
                     self._windows.append(w)

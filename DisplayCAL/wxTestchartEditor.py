@@ -884,9 +884,9 @@ class TestchartEditor(BaseFrame):
         )
 
         for color in ("R", "G", "B", "C", "M", "Y"):
-            name = "saturation_sweeps_%s_btn" % color
+            name = f"saturation_sweeps_{color}_btn"
             setattr(self, name, wx.Button(panel, -1, color, size=(45 * scale, -1)))
-            getattr(self, "saturation_sweeps_%s_btn" % color).Disable()
+            getattr(self, f"saturation_sweeps_{color}_btn").Disable()
             self.Bind(
                 wx.EVT_BUTTON,
                 self.tc_add_saturation_sweeps_handler,
@@ -918,7 +918,7 @@ class TestchartEditor(BaseFrame):
                 flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                 border=border,
             )
-            name = "saturation_sweeps_custom_%s_ctrl" % component
+            name = f"saturation_sweeps_custom_{component}_ctrl"
             setattr(
                 self,
                 name,
@@ -926,14 +926,14 @@ class TestchartEditor(BaseFrame):
                     panel,
                     -1,
                     size=(100 * scale, -1),
-                    value=getcfg("tc.saturation_sweeps.custom.%s" % component),
+                    value=getcfg(f"tc.saturation_sweeps.custom.{component}"),
                     min_val=0,
                     max_val=100,
                     increment=100.0 / 255,
                     digits=2,
                 ),
             )
-            getattr(self, "saturation_sweeps_custom_%s_ctrl" % component).Disable()
+            getattr(self, f"saturation_sweeps_custom_{component}_ctrl").Disable()
             self.Bind(
                 floatspin.EVT_FLOATSPIN,
                 self.tc_algo_handler,
@@ -1545,9 +1545,9 @@ END_DATA"""
         try:
             value = float(strval)
             if value > 100:
-                raise ValueError("RGB value %r%% is invalid" % value)
+                raise ValueError(f"RGB value {value!r}% is invalid")
             elif value < 0:
-                raise ValueError("Negative RGB value %r%% is invalid" % value)
+                raise ValueError(f"Negative RGB value {value!r}% is invalid")
         except ValueError:
             if not self.grid.GetBatchCount():
                 wx.Bell()
@@ -1897,12 +1897,12 @@ END_DATA"""
         )
         self.saturation_sweeps_intctrl.Enable(add_preconditioned_enable)
         for color in ("R", "G", "B", "C", "M", "Y"):
-            getattr(self, "saturation_sweeps_%s_btn" % color).Enable(
+            getattr(self, f"saturation_sweeps_{color}_btn").Enable(
                 add_preconditioned_enable
             )
         RGB = {}
         for component in ("R", "G", "B"):
-            ctrl = getattr(self, "saturation_sweeps_custom_%s_ctrl" % component)
+            ctrl = getattr(self, f"saturation_sweeps_custom_{component}_ctrl")
             ctrl.Enable(add_preconditioned_enable)
             RGB[component] = ctrl.GetValue()
         self.saturation_sweeps_custom_btn.Enable(
@@ -2072,12 +2072,11 @@ END_DATA"""
                     chart.insert(1, 'KEYWORD "APPROX_WHITE_POINT"')
                     chart.insert(
                         2,
-                        'APPROX_WHITE_POINT "%.4f %.4f %.4f"'
-                        % tuple(v * 100 for v in list(nclprof.tags.wtpt.ir.values())),
+                        'APPROX_WHITE_POINT "{:.4f} {:.4f} {:.4f}"'.format(*tuple(v * 100 for v in list(nclprof.tags.wtpt.ir.values()))),
                     )
                 for k in nclprof.tags.ncl2:
                     v = nclprof.tags.ncl2[k]
-                    chart.insert(-1, "%.4f %.4f %.4f" % tuple(v.pcs.values()))
+                    chart.insert(-1, "{:.4f} {:.4f} {:.4f}".format(*tuple(v.pcs.values())))
                 chart = "\n".join(chart)
 
         self.worker.start(
@@ -2212,7 +2211,7 @@ END_DATA"""
                 for n in range(2 if ppath else 1):
                     if use_gamut:
                         res = 10 if imgpath == chart else 1
-                        args = ["-d%s" % res, "-O", gam]
+                        args = [f"-d{res}", "-O", gam]
                     # if self.worker.argyll_version >= [1, 0, 4]:
                     # args.append("-f100")
                     else:
@@ -2226,13 +2225,13 @@ END_DATA"""
                         else:
                             # TIFF photometric encoding 1..n
                             args.append("-e1")
-                    args.append("-i%s" % intent)
+                    args.append(f"-i{intent}")
                     if n == 0:
                         # Try to use embedded profile
                         args.append(imgpath)
                         if not use_gamut:
                             # Target
-                            args.append("-i%s" % intent)
+                            args.append(f"-i{intent}")
                             args.append(ppath)
                     else:
                         # Fall back to preconditioning profile
@@ -2300,7 +2299,7 @@ END_DATA"""
                             img.GetGreen(x, y) / 2.55,
                             img.GetBlue(x, y) / 2.55,
                         )
-                        chart.insert(-1, "%.4f %.4f %.4f" % (R, G, B))
+                        chart.insert(-1, f"{R:.4f} {G:.4f} {B:.4f}")
                 chart = "\n".join(chart)
 
         try:
@@ -2403,9 +2402,9 @@ END_DATA"""
                 R /= len(colors)
                 G /= len(colors)
                 B /= len(colors)
-                chart.insert(-1, "%.4f %.4f %.4f" % (L, a, b))
+                chart.insert(-1, f"{L:.4f} {a:.4f} {b:.4f}")
                 if not use_gamut:
-                    chart[-2] += " %.4f %.4f %.4f" % (R, G, B)
+                    chart[-2] += f" {R:.4f} {G:.4f} {B:.4f}"
 
             chart = CGATS("\n".join(chart))
         else:
@@ -3078,7 +3077,7 @@ END_DATA"""
                     )
             except Exception as exception:
                 handle_error(
-                    Error("Error - testchart could not be saved: %s" % str(exception)),
+                    Error(f"Error - testchart could not be saved: {str(exception)}"),
                     parent=self,
                 )
             else:
@@ -3290,9 +3289,9 @@ END_DATA"""
             setcfg("tc.saturation_sweeps", self.saturation_sweeps_intctrl.GetValue())
             for component in ("R", "G", "B"):
                 setcfg(
-                    "tc.saturation_sweeps.custom.%s" % component,
+                    f"tc.saturation_sweeps.custom.{component}",
                     getattr(
-                        self, "saturation_sweeps_custom_%s_ctrl" % component
+                        self, f"saturation_sweeps_custom_{component}_ctrl"
                     ).GetValue(),
                 )
             self.worker.wrapup(False)
@@ -3415,7 +3414,7 @@ END_DATA"""
                 self.ti1 = ti1
         except Exception as exception:
             return Error(
-                "%s\n\n%s" % (lang.getstr("error.testchart.read", path), str(exception))
+                "{}\n\n{}".format(lang.getstr("error.testchart.read", path), str(exception))
             )
 
         white_patches = self.ti1.queryv1("WHITE_COLOR_PATCHES") or None
@@ -3503,17 +3502,17 @@ END_DATA"""
                         for i in R_inc:
                             if self.worker.thread_abort:
                                 return False
-                            print("[D] %s: x%s" % (i, R_inc[i]))
+                            print(f"[D] {i}: x{R_inc[i]}")
                         print("[D] G_inc:")
                         for i in G_inc:
                             if self.worker.thread_abort:
                                 return False
-                            print("[D] %s: x%s" % (i, G_inc[i]))
+                            print(f"[D] {i}: x{G_inc[i]}")
                         print("[D] B_inc:")
                         for i in B_inc:
                             if self.worker.thread_abort:
                                 return False
-                            print("[D] %s: x%s" % (i, B_inc[i]))
+                            print(f"[D] {i}: x{B_inc[i]}")
                     RGB_inc = {"0": 0}
                     for inc in R_inc:
                         if self.worker.thread_abort:
@@ -3595,7 +3594,7 @@ END_DATA"""
                         for i in RGB_inc:
                             if self.worker.thread_abort:
                                 return False
-                            print("[D] %s: x%s" % (i, RGB_inc[i]))
+                            print(f"[D] {i}: x{RGB_inc[i]}")
                     if False:
                         RGB_inc_max = max(RGB_inc.values())
                         gray_patches = RGB_inc_max + 1 if RGB_inc_max > 0 else 0
@@ -3674,7 +3673,7 @@ END_DATA"""
                         for i in RGB_inc:
                             if self.worker.thread_abort:
                                 return False
-                            print("[D] %s: x%s" % (i, RGB_inc[i]))
+                            print(f"[D] {i}: x{RGB_inc[i]}")
                     multi_inc = {"0": 0}
                     for inc in RGB_inc:
                         if self.worker.thread_abort:
@@ -4002,7 +4001,7 @@ END_DATA"""
                     print(lang.getstr("success"))
                 except Exception as exception:
                     result = Error(
-                        "Error - testchart file could not be read: %s " % str(exception)
+                        f"Error - testchart file could not be read: {str(exception)} "
                     )
                 else:
                     result.filename = None
@@ -4061,7 +4060,7 @@ END_DATA"""
             grid.AppendRows(self.tc_amount)
             dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
             dc.SetFont(grid.GetLabelFont())
-            w, h = dc.GetTextExtent("99%s" % self.ti1.queryv1("NUMBER_OF_SETS"))
+            w, h = dc.GetTextExtent("99{}".format(self.ti1.queryv1("NUMBER_OF_SETS")))
             grid.SetRowLabelSize(max(w, grid.GetDefaultRowSize()))
             attr = wx.grid.GridCellAttr()
             attr.SetAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
@@ -4084,7 +4083,7 @@ END_DATA"""
             self.tc_preview_update(0)
 
             if hasattr(self, "preview"):
-                w, h = dc.GetTextExtent("99%s" % self.preview.GetNumberRows())
+                w, h = dc.GetTextExtent(f"99{self.preview.GetNumberRows()}")
                 self.preview.SetRowLabelSize(max(w, grid.GetDefaultRowSize()))
                 self.preview.EndBatch()
 
@@ -4135,7 +4134,7 @@ END_DATA"""
         self.tc_amount = self.ti1.queryv1("NUMBER_OF_SETS")
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
         dc.SetFont(self.grid.GetLabelFont())
-        w, h = dc.GetTextExtent("99%s" % self.tc_amount)
+        w, h = dc.GetTextExtent(f"99{self.tc_amount}")
         self.grid.SetRowLabelSize(max(w, self.grid.GetDefaultRowSize()))
         self.resize_grid()
         self.grid.EndBatch()
@@ -4274,17 +4273,17 @@ END_DATA"""
 
     def tc_set_default_status(self, event=None):
         if hasattr(self, "tc_amount"):
-            statustxt = "%s: %s" % (lang.getstr("tc.patches.total"), self.tc_amount)
+            statustxt = "{}: {}".format(lang.getstr("tc.patches.total"), self.tc_amount)
             sel = self.grid.GetSelectionRows()
             if sel:
-                statustxt += " / %s: %s" % (
+                statustxt += " / {}: {}".format(
                     lang.getstr("tc.patches.selected"),
                     len(sel),
                 )
                 index = self.grid.GetGridCursorRow()
                 if index > -1:
                     colour = self.grid.GetCellBackgroundColour(index, 3)
-                    patchinfo = " \u2014 %s %s: R=%s G=%s B=%s" % (
+                    patchinfo = " \u2014 {} {}: R={} G={} B={}".format(
                         lang.getstr("tc.patch"),
                         index + 1,
                         colour[0],

@@ -1629,16 +1629,14 @@ class TempXmlResource:
                 # Adjust spacing for scale
                 for tag in ("border", "hgap", "vgap"):
                     xml = re.sub(
-                        r"<%s>(\d+)</%s>" % (tag, tag),
-                        lambda match, tag=tag: "<%s>%i</%s>"
-                        % (tag, round(int(match.group(1)) * scale), tag),
+                        rf"<{tag}>(\d+)</{tag}>",
+                        lambda match, tag=tag: f"<{tag}>{round(int(match.group(1)) * scale):d}</{tag}>",
                         xml,
                     )
                 for tag in ("size",):
                     xml = re.sub(
-                        r"<%s>(-?\d+)\s*,\s*(-?\d+)</%s>" % (tag, tag),
-                        lambda match, tag=tag: "<%s>%i,%i</%s>"
-                        % (
+                        rf"<{tag}>(-?\d+)\s*,\s*(-?\d+)</{tag}>",
+                        lambda match, tag=tag: "<{}>{:d},{:d}</{}>".format(
                             (tag,)
                             + tuple(
                                 round(int(v) * scale) if int(v) > 0 else int(v)
@@ -1651,7 +1649,7 @@ class TempXmlResource:
                 # Set relative paths to absolute
                 basedir = os.path.dirname(os.path.dirname(xmlpath))
                 basedir = basedir.replace("\\", "/")
-                xml = xml.replace(">../", ">%s/" % basedir)
+                xml = xml.replace(">../", f">{basedir}/")
                 # Fix background color not working for panels under wxGTK3
                 if "gtk3" in wx.PlatformInfo:
                     xml = xml.replace(

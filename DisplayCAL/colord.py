@@ -145,7 +145,7 @@ def device_connect(client, device_id):
 
     # Connect to device
     if not device.connect_sync(cancellable):
-        raise CDError("Couldn't connect to device with ID %r" % device_id)
+        raise CDError(f"Couldn't connect to device with ID {device_id!r}")
     return device
 
 
@@ -241,7 +241,7 @@ def get_default_profile(device_id):
         if profiles:
             return profiles[0]
         else:
-            raise CDError("Couldn't get default profile for device ID %r" % device_id)
+            raise CDError(f"Couldn't get default profile for device ID {device_id!r}")
 
 
 def get_devices_by_kind(kind):
@@ -270,7 +270,7 @@ def get_object_path(search, object_type):
     """Get object path for profile or device ID"""
     result = find(object_type + "-by-id", search)
     if not result:
-        raise CDObjectNotFoundError("Could not find object path for %s" % search)
+        raise CDObjectNotFoundError(f"Could not find object path for {search}")
     return result
 
 
@@ -386,11 +386,11 @@ def install_profile(
 
         if not cdprofile:
             raise CDTimeout(
-                "Querying for profile %r returned no result for %s "
-                "secs" % (profile_id, timeout)
+                f"Querying for profile {profile_id!r} returned no result for {timeout} "
+                "secs"
             )
 
-    errmsg = "Could not make profile %s default for device %s" % (profile_id, device_id)
+    errmsg = f"Could not make profile {profile_id} default for device {device_id}"
 
     if Colord and not isinstance(Colord, DBusObject):
         # Connect to profile

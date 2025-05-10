@@ -968,11 +968,11 @@ class BaseFrame(wx.Frame):
         filemenu = wx.Menu()
         quit = filemenu.Append(
             -1 if wx.VERSION < (2, 9) else wx.ID_EXIT,
-            "&%s\tCtrl+Q" % lang.getstr("menuitem.quit"),
+            "&{}\tCtrl+Q".format(lang.getstr("menuitem.quit")),
         )
         self.Bind(wx.EVT_MENU, lambda event: self.Close(), quit)
         if sys.platform != "darwin":
-            self.MenuBar.Append(filemenu, "&%s" % lang.getstr("menu.file"))
+            self.MenuBar.Append(filemenu, "&{}".format(lang.getstr("menu.file")))
 
     def activate_handler(self, event):
         global active_window
@@ -1145,12 +1145,11 @@ class BaseFrame(wx.Frame):
                                 valid = []
                                 for section in response:
                                     options = response[section]
-                                    valid.append("[%s]" % section)
+                                    valid.append(f"[{section}]")
                                     for name in options:
                                         values = options[name]
                                         valid.append(
-                                            "%s = %s"
-                                            % (
+                                            "{} = {}".format(
                                                 name,
                                                 " ".join(
                                                     demjson.encode(value)
@@ -1288,9 +1287,9 @@ class BaseFrame(wx.Frame):
             "VRML-to-X3D-converter",
             "apply-profiles",
         ]:
-            lockfilebasenames.append("%s-%s" % (appbasename, module))
+            lockfilebasenames.append(f"{appbasename}-{module}")
         for lockfilebasename in lockfilebasenames:
-            lockfilename = os.path.join(confighome, "%s.lock" % lockfilebasename)
+            lockfilename = os.path.join(confighome, f"{lockfilebasename}.lock")
             if os.path.isfile(lockfilename):
                 ports = []
                 try:
@@ -1306,13 +1305,13 @@ class BaseFrame(wx.Frame):
                 except OSError as exception:
                     # This shouldn't happen
                     print(
-                        "Warning - could not read lockfile %s:" % lockfilename,
+                        f"Warning - could not read lockfile {lockfilename}:",
                         exception,
                     )
                 else:
                     for port in ports:
                         scripting_hosts.append(
-                            "127.0.0.1:%s %s" % (port, lockfilebasename)
+                            f"127.0.0.1:{port} {lockfilebasename}"
                         )
         scripting_hosts.sort()
         return scripting_hosts
@@ -1582,8 +1581,7 @@ class BaseFrame(wx.Frame):
                         )
                     else:
                         menus.append(
-                            "%s %s %s"
-                            % (
+                            "{} {} {}".format(
                                 i,
                                 demjson.encode(label),
                                 "enabled" if menubar.IsEnabledTop(i) else "disabled",
@@ -1636,8 +1634,7 @@ class BaseFrame(wx.Frame):
                             )
                         else:
                             menuitems.append(
-                                "%s %s %s %s %s%s%s"
-                                % (
+                                "{} {} {} {} {}{}{}".format(
                                     i,
                                     demjson.encode(label),
                                     menuitem.Id,
@@ -1965,12 +1962,12 @@ class BaseFrame(wx.Frame):
         else:
             if isinstance(response, dict):
                 response = [
-                    "%s = %s" % (name, value) for name, value in response.items()
+                    f"{name} = {value}" for name, value in response.items()
                 ]
             if isinstance(response, list):
                 response = "\n".join(response)
         try:
-            conn.sendall(("%s\4" % safe_str(response, "UTF-8")).encode("utf-8"))
+            conn.sendall(("{}\4".format(safe_str(response, "utf-8"))).encode("utf-8"))
         except OSError as exception:
             print(exception)
 
@@ -2024,26 +2021,13 @@ class BaseFrame(wx.Frame):
         if debug:
             if hasattr(event.GetEventObject(), "GetId"):
                 print(
-                    "[D] focus_handler called for ID %s %s %s, event type "
-                    "%s %s"
-                    % (
-                        event.GetEventObject().GetId(),
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                        event.GetEventType(),
-                        getevttype(event),
-                    )
+                    f"[D] focus_handler called for ID {event.GetEventObject().GetId()} {getevtobjname(event, self)} {event.GetEventObject().__class__}, event type "
+                    f"{event.GetEventType()} {getevttype(event)}"
                 )
             else:
                 print(
-                    "[D] focus_handler called for %s %s, event type "
-                    "%s %s"
-                    % (
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                        event.GetEventType(),
-                        getevttype(event),
-                    )
+                    f"[D] focus_handler called for {getevtobjname(event, self)} {event.GetEventObject().__class__}, event type "
+                    f"{event.GetEventType()} {getevttype(event)}"
                 )
             if (
                 hasattr(event, "GetWindow")
@@ -2051,21 +2035,11 @@ class BaseFrame(wx.Frame):
                 and event.GetEventObject() != event.GetWindow()
             ):
                 print(
-                    "[D] Focus moving from control ID %s %s %s"
-                    % (
-                        event.GetWindow().GetId(),
-                        event.GetWindow().GetName(),
-                        event.GetWindow().__class__,
-                    )
+                    f"[D] Focus moving from control ID {event.GetWindow().GetId()} {event.GetWindow().GetName()} {event.GetWindow().__class__}"
                 )
             if getattr(self, "last_focused_ctrl", None):
                 print(
-                    "[D] Last focused control: ID %s %s %s"
-                    % (
-                        self.last_focused_ctrl.GetId(),
-                        self.last_focused_ctrl.GetName(),
-                        self.last_focused_ctrl.__class__,
-                    )
+                    f"[D] Last focused control: ID {self.last_focused_ctrl.GetId()} {self.last_focused_ctrl.GetName()} {self.last_focused_ctrl.__class__}"
                 )
         if (
             getattr(self, "last_focused_ctrl", None)
@@ -2083,15 +2057,8 @@ class BaseFrame(wx.Frame):
             )
             if debug:
                 print(
-                    "[D] Last focused control ID %s %s %s processing "
-                    "catchup event type %s %s"
-                    % (
-                        self.last_focused_ctrl.GetId(),
-                        self.last_focused_ctrl.GetName(),
-                        self.last_focused_ctrl.__class__,
-                        catchup_event.GetEventType(),
-                        getevttype(catchup_event),
-                    )
+                    f"[D] Last focused control ID {self.last_focused_ctrl.GetId()} {self.last_focused_ctrl.GetName()} {self.last_focused_ctrl.__class__} processing "
+                    f"catchup event type {catchup_event.GetEventType()} {getevttype(catchup_event)}"
                 )
             if self.last_focused_ctrl.ProcessEvent(catchup_event):
                 if debug:
@@ -2107,12 +2074,7 @@ class BaseFrame(wx.Frame):
         ):
             if debug:
                 print(
-                    "[D] Setting last focused control to ID %s %s %s"
-                    % (
-                        event.GetEventObject().GetId(),
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                    )
+                    f"[D] Setting last focused control to ID {event.GetEventObject().GetId()} {getevtobjname(event, self)} {event.GetEventObject().__class__}"
                 )
             self.last_focused_ctrl = event.GetEventObject()
         if isinstance(event, wx.FocusEvent) or isinstance(
@@ -2807,17 +2769,10 @@ class HtmlWindow(wx.html.HtmlWindow):
         html = str(source)
         bgcolor, text, linkcolor, vlinkcolor = get_html_colors()
         if "<body" not in html:
-            html = "<body>%s</body>" % html
+            html = f"<body>{html}</body>"
         html = re.sub(
             r"<body[^>]*",
-            '<body bgcolor="%s" text="%s" link="%s" alink="%s" vlink="%s"'
-            % (
-                bgcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                text.GetAsString(wx.C2S_HTML_SYNTAX),
-                linkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                linkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-            ),
+            f'<body bgcolor="{bgcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" text="{text.GetAsString(wx.C2S_HTML_SYNTAX)}" link="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" alink="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" vlink="{vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}"',
             html,
         )
         wx.html.HtmlWindow.SetPage(self, html)
@@ -4662,8 +4617,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
     def Create(self, parent, id, evtHandler):
         """Called to create the control, which must derive from wx.Control."""
         print(
-            "CustomCellEditor.Create(%r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (parent, id, evtHandler)
+            f"CustomCellEditor.Create({parent!r}, {id!r}, {evtHandler!r}) was called. This "
+            "should not happen, but is unlikely an issue."
         )
         self.SetControl(wx.StaticText(parent, -1, ""))
 
@@ -4673,8 +4628,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         PaintBackground and do something meaningful there.
         """
         print(
-            "CustomCellEditor.SetSize(%r) was called. This should not "
-            "happen, but is unlikely an issue." % rect
+            f"CustomCellEditor.SetSize({rect!r}) was called. This should not "
+            "happen, but is unlikely an issue."
         )
         self.Control.SetDimensions(
             rect.x, rect.y, rect.width, rect.height, wx.SIZE_ALLOW_MINUS_ONE
@@ -4685,8 +4640,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         to set colours or fonts for the control.
         """
         print(
-            "CustomCellEditor.Show(%r, %r) was called. This should "
-            "not happen, but is unlikely an issue." % (show, attr)
+            f"CustomCellEditor.Show({show!r}, {attr!r}) was called. This should "
+            "not happen, but is unlikely an issue."
         )
         super(self.__class__, self).Show(show, attr)
 
@@ -4711,8 +4666,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         to begin editing.  Set the focus to the edit control.
         """
         print(
-            "CustomCellEditor.BeginEdit(%r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (row, col, grid)
+            f"CustomCellEditor.BeginEdit({row!r}, {col!r}, {grid!r}) was called. This "
+            "should not happen, but is unlikely an issue."
         )
 
     def EndEdit(self, row, col, grid, value=None):
@@ -4720,8 +4675,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         has changed.  If necessary, the control may be destroyed.
         """
         print(
-            "CustomCellEditor.EndEdit(%r, %r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (row, col, grid, value)
+            f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) was called. This "
+            "should not happen, but is unlikely an issue."
         )
         changed = None if wx.VERSION >= (2, 9) else False
         return changed
@@ -4745,8 +4700,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         called to let the editor do something about that first key if desired.
         """
         print(
-            "CustomCellEditor.StartingKey(%r) was called. This should "
-            "not happen, but is unlikely an issue." % evt
+            f"CustomCellEditor.StartingKey({evt!r}) was called. This should "
+            "not happen, but is unlikely an issue."
         )
         evt.Skip()
 
@@ -5071,7 +5026,7 @@ class CustomColLabelRenderer:
             # if align[1] == wx.ALIGN_CENTER:
             #     align = align[0], wx.ALIGN_CENTER_VERTICAL
             # dc.DrawLabel(f" grid.GetColLabelValue(col) ", orect, align[0] | align[1])
-            dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect)
+            dc.DrawLabel(f" {grid.GetColLabelValue(col)} ", orect)
 
 
 class CustomRowLabelRenderer:
@@ -5115,7 +5070,7 @@ class CustomRowLabelRenderer:
             align = grid.GetRowLabelAlignment()
             if align[1] == wx.ALIGN_CENTER:
                 align = align[0], wx.ALIGN_CENTER_VERTICAL
-            dc.DrawLabel(" %s " % grid.GetRowLabelValue(row), rect, align[0] | align[1])
+            dc.DrawLabel(f" {grid.GetRowLabelValue(row)} ", rect, align[0] | align[1])
 
 
 class HStretchStaticBitmap(wx.StaticBitmap):
@@ -5413,8 +5368,8 @@ class BetterPyGauge(pygauge.PyGauge):
         for i, v in enumerate(self._value):
             if value[i] < 0 or value[i] > self._range:
                 warnings.warn(
-                    "Gauge value %r is invalid - must be between 0 "
-                    "and %s" % (value[i], self._range),
+                    f"Gauge value {value[i]!r} is invalid - must be between 0 "
+                    f"and {self._range}",
                     Warning,
                     stacklevel=2,
                 )
@@ -5824,7 +5779,7 @@ class LogWindow(InvincibleFrame):
             else:
                 s = time()
                 ms = s - int(s)
-                ts = strftime("%H:%M:%S,") + ("%.3f " % ms)[2:]
+                ts = strftime("%H:%M:%S,") + (f"{ms:.3f} ")[2:]
             if len(line) > 80:
                 wrapped = self._textwrapper.wrap(line)
                 i_last = len(wrapped) - 1
@@ -7924,7 +7879,7 @@ def format_ui_element(child, file_format="plain"):
             uielement["cols"] = cols
             uielement["rows"] = child.GetNumberRows()
         return uielement
-    return "%s %s %s%s %s%s%s%s" % (
+    return "{} {} {}{} {}{}{}{}".format(
         child.__class__.__name__,
         child.Id,
         sp.list2cmdline([name]),
@@ -7954,8 +7909,7 @@ def format_ui_element(child, file_format="plain"):
         ),
         (
             cols
-            and " rows %s cols %s"
-            % (
+            and " rows {} cols {}".format(
                 child.GetNumberRows(),
                 demjson.encode(cols).strip("[]").replace('","', '" "'),
             )

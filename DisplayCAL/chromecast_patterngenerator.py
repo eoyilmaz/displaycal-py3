@@ -42,8 +42,8 @@ class ChromeCastPatternGeneratorController(BaseController):
         h_scale=1,
         v_scale=1,
     ):
-        fg = "#%02X%02X%02X" % tuple(round(v * 255) for v in rgb)
-        bg = "#%02X%02X%02X" % tuple(round(v * 255) for v in bgrgb)
+        fg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in rgb))
+        bg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in bgrgb))
         self.request_id += 1
         self.send_message(
             {

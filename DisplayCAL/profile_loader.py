@@ -265,7 +265,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
         ts.disable(ms_cal_loader)
     except Exception as exception:
         print(
-            f"Warning - Could not disable task {repr(ms_cal_loader)}:",
+            f"Warning - Could not disable task {ms_cal_loader!r}:",
             exception,
         )
         if ts.stdout:
@@ -1053,7 +1053,7 @@ class ProfileAssociationsDialog(InfoDialog):
             fn(arg0, devicekey=devicekey)
         except Exception as exception:
             print(
-                f"{fn.__name__}({repr(arg0)}, devicekey={repr(devicekey)}):",
+                f"{fn.__name__}({arg0!r}, devicekey={devicekey!r}):",
                 exception,
             )
             if show_error:
@@ -1805,9 +1805,9 @@ class ProfileLoader:
                         return
                     if debug > 1:
                         print(
-                            f"[DEBUG] show_notification(text={repr(text)}, "
+                            f"[DEBUG] show_notification(text={text!r}, "
                             f"sticky={sticky}, show_notification={show_notification}, "
-                            f"flags={repr(flags)}, toggle={toggle})"
+                            f"flags={flags!r}, toggle={toggle})"
                         )
                     if (sticky or text) and show_notification:
                         # Do not show notification unless enabled
@@ -2100,7 +2100,7 @@ class ProfileLoader:
     def _notify(self, results, errors, sticky=False, show_notification=False):
         if debug > 1:
             print(
-                f"[DEBUG] notify(results={repr(results)}, errors={repr(errors)}, "
+                f"[DEBUG] notify(results={results!r}, errors={errors!r}, "
                 f"sticky={sticky}, show_notification={show_notification})"
             )
         self.taskbar_icon.set_visual_state()
@@ -3191,7 +3191,7 @@ class ProfileLoader:
                 device0 = win32api.EnumDisplayDevices(moninfo["Device"], 0)
             except pywintypes.error as exception:
                 print(
-                    "EnumDisplayDevices({}, 0) failed:".format(repr(moninfo["Device"])),
+                    f"EnumDisplayDevices({moninfo['Device']!r}, 0) failed:",
                     exception,
                 )
                 device0 = None

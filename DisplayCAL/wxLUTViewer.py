@@ -448,7 +448,7 @@ class LUTCanvas(plot.PlotCanvas):
                         values2.append(center)
                     idx = int(round(center_x / 255.0 * 4095))
                     self.point_grid[channel][idx] = center_y
-                    color2 = self.colors["Lab_%s-" % channel_label]
+                    color2 = self.colors[f"Lab_{channel_label}-"]
                     line2 = Plot(values2, legend=label + suffix, colour=color2)
                 elif seen_values:
                     # Check if same line (+- 0.005 tolerance) has been seen
@@ -1137,8 +1137,7 @@ class LUTFrame(BaseFrame):
                 os.remove(cal)
             except Exception as exception:
                 print(
-                    "Warning - temporary file '%s' could not be removed: %s"
-                    % (cal, exception)
+                    f"Warning - temporary file '{cal}' could not be removed: {exception}"
                 )
 
     def key_handler(self, event):
@@ -1262,8 +1261,7 @@ class LUTFrame(BaseFrame):
                 os.remove(outfilename)
             except Exception as exception:
                 print(
-                    "Warning - temporary file '%s' could not be removed: %s"
-                    % (outfilename, exception)
+                    f"Warning - temporary file '{outfilename}' could not be removed: {exception}"
                 )
         if profile and (
             profile.is_loaded
@@ -1850,12 +1848,9 @@ class LUTFrame(BaseFrame):
                 else:
                     label = lang.getstr("rgb.trc.averaged")
                 if round(transfer_function[1], 2) == 1.0:
-                    value = "%s" % (transfer_function[0][0])
+                    value = f"{transfer_function[0][0]}"
                 else:
-                    value = "≈ %s (Δ %.2f%%)" % (
-                        transfer_function[0][0],
-                        100 - transfer_function[1] * 100,
-                    )
+                    value = f"≈ {transfer_function[0][0]} (Δ {1 - transfer_function[1]:.2%})"
                 legend.append(" ".join([label, value]))
 
     def DrawLUT(self, event=None):
@@ -2269,7 +2264,7 @@ class LUTFrame(BaseFrame):
                     fileName,
                     "|".join(
                         [
-                            "%s (*.%s)|*.%s" % (ext.upper(), ext, ext)
+                            f"{ext.upper()} (*.{ext})|*.{ext}"
                             for ext in sorted(extensions.keys())
                         ]
                     ),
@@ -2348,21 +2343,21 @@ class LUTFrame(BaseFrame):
                     elif "L*" in label and ("a*" in label or "b*" in label):
                         a = b = -128 + pointXY[0] / 100.0 * (255 + 255 / 256.0)
                         if label == ["L*", "a*", "b*"]:
-                            format_ = "L* %%.2f a* %.2f b* %.2f" % (a, b), "%s %.2f"
+                            format_ = f"L* %.2f a* {a:.2f} b* {b:.2f}", "%s %.2f"
                         elif label == ["L*", "a*"]:
-                            format_ = "L* %%.2f a* %.2f" % a, "%s %.2f"
+                            format_ = f"L* %.2f a* {a:.2f}", "%s %.2f"
                         elif label == ["L*", "b*"]:
-                            format_ = "L* %%.2f b* %.2f" % b, "%s %.2f"
+                            format_ = f"L* %.2f b* {b:.2f}", "%s %.2f"
                         axis_y = self.client.axis_y[1]
                     else:
-                        format_ = "%s %%.2f" % "=".join(label), "%s %.2f"
+                        format_ = "{} %.2f".format("=".join(label)), "%s %.2f"
                         axis_y = self.client.axis_y[1]
                     if identical:
                         # if value[0][1] is None:
                         vout = pointXY[1]
                         if "L*" not in label and ("a*" in label or "b*" in label):
                             vout = -128 + vout / 100.0 * (255 + 255 / 256.0)
-                        RGB = " ".join(["=".join(label), "%.2f" % vout])
+                        RGB = " ".join(["=".join(label), f"{vout:.2f}"])
                     # else:
                     # RGB = "R=G=B %.2f" % value[0][1]
                     else:
@@ -2416,7 +2411,7 @@ class LUTFrame(BaseFrame):
                         if identical:
                             label = "=".join(
                                 [
-                                    "%s" % s
+                                    f"{s}"
                                     for s, v in [
                                         s_v for s_v in value if s_v[1] is not None
                                     ]

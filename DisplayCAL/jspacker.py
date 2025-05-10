@@ -276,7 +276,7 @@ class JavaScriptPacker:
         result = []
         for x in script:
             if x > "\xa1":
-                x = "\\x%0x" % ord(x)
+                x = f"\\x{ord(x):0x}"
             result.append(x)
         return "".join(result)
 

@@ -61,7 +61,7 @@ def get_default_size():
                 display_size_mm = RDSMM.RealDisplaySizeMM(display_no)
             except Exception as exception:
                 handle_error(
-                    "Error - RealDisplaySizeMM() failed: %s" % exception, silent=True
+                    f"Error - RealDisplaySizeMM() failed: {exception}", silent=True
                 )
             else:
                 display_size_mm = floatlist(display_size_mm)
@@ -705,7 +705,7 @@ class MeasureFrame(InvincibleFrame):
                 (buflen / (buflen * (rgb[i] - floor[i])) if rgb[i] - floor[i] else 0)
                 for i in range(3)
             )
-            print("Intervals %.6f %.6f %.6f" % intervals)
+            print("Intervals {:.6f} {:.6f} {:.6f}".format(*intervals))
             floorbytes = tuple(chr(v) for v in floor)
             ceilbytes = tuple(chr(v) for v in ceil)
             n = 0
@@ -722,7 +722,7 @@ class MeasureFrame(InvincibleFrame):
             bmp = img.ConvertToBitmap()
         else:
             # Exact
-            print("Exact 8 bit %.6f %.6f %.6f" % rgb)
+            print("Exact 8 bit {:.6f} {:.6f} {:.6f}".format(*rgb))
             bmp = wx.EmptyBitmapRGBA(*tuple(self.ClientSize) + floor, alpha=255)
         self.panel.SetBitmap(bmp)
         self.panel.Refresh()

@@ -296,7 +296,7 @@ def escape(obj):
     chars = b""
     if isinstance(obj, Exception):
         for char in obj.object[obj.start : obj.end]:
-            chars += subst.get(char, "\\u%s" % hex(ord(char))[2:].rjust(4, "0"))
+            chars += subst.get(char, "\\u{}".format(hex(ord(char))[2:].rjust(4, "0")))
         return chars, obj.end
     else:
         return obj.encode("ASCII", "escape")
@@ -407,10 +407,10 @@ def box(text, width=80, collapse=False):
             content_width = max(len(line), content_width)
         width = content_width + 4
     horizontal_line = "\u2500" * (width - 2)
-    box = ["\u250c%s\u2510" % horizontal_line]
+    box = [f"\u250c{horizontal_line}\u2510"]
     for line in lines:
-        box.append("\u2502 %s \u2502" % line.ljust(content_width))
-    box.append("\u2514%s\u2518" % horizontal_line)
+        box.append(f"\u2502 {line.ljust(content_width)} \u2502")
+    box.append(f"\u2514{horizontal_line}\u2518")
     return "\n".join(box)
 
 
@@ -536,9 +536,9 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
         error = []
         if getattr(obj, "winerror", None) is not None:
             # pywintypes.error or WindowsError
-            error.append("[Windows Error %s]" % obj.winerror)
+            error.append(f"[Windows Error {obj.winerror}]")
         elif getattr(obj, "errno", None) is not None:
-            error.append("[Errno %s]" % obj.errno)
+            error.append(f"[Errno {obj.errno}]")
         if getattr(obj, "strerror", None) is not None:
             if getattr(obj, "filename", None) is not None:
                 error.append(obj.strerror.rstrip(":.") + ":")
@@ -563,7 +563,7 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
         error = temp_error
         obj = " ".join(error)
     elif isinstance(obj, KeyError) and obj.args:
-        obj = "Key does not exist: " + repr(obj.args[0])
+        obj = f"Key does not exist: {obj.args[0]!r}"
     oobj = obj
     if not isinstance(obj, str):
         try:
@@ -624,8 +624,7 @@ def wrap(text, width=70):
 
     """
     return reduce(
-        lambda line, word, width=width: "%s%s%s"
-        % (
+        lambda line, word, width=width: "{}{}{}".format(
             line,
             " \n"[
                 (

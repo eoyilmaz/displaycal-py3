@@ -25,10 +25,10 @@ def get_osascript_args_or_run(applescript, run=True):
 def mac_app_activate(delay=0, mac_app_name="Finder"):
     """Activate (show & bring to front) an application if it is running."""
     applescript = [
-        'if app "%s" is running then' % mac_app_name,
+        f'if app "{mac_app_name}" is running then',
         # Use 'run script' to prevent the app activating upon script
         # compilation even if not running
-        r'run script "tell app \"%s\" to activate"' % mac_app_name,
+        rf'run script "tell app \"{mac_app_name}\" to activate"',
         "end if",
     ]
     if delay:
@@ -55,7 +55,7 @@ def mac_terminal_do_script(script=None, do=True):
         applescript.extend(
             [
                 'tell app "Terminal"',
-                'do script "%s" in first window' % script.replace('"', '\\"'),
+                'do script "{}" in first window'.format(script.replace('"', '\\"')),
                 "end tell",
             ]
         )
@@ -68,10 +68,10 @@ def mac_terminal_set_colors(
     """Set Terminal colors."""
     applescript = [
         'tell app "Terminal"',
-        'set background color of first window to "%s"' % background,
-        'set cursor color of first window to "%s"' % cursor,
-        'set normal text color of first window to "%s"' % text,
-        'set bold text color of first window to "%s"' % text_bold,
+        f'set background color of first window to "{background}"',
+        f'set cursor color of first window to "{cursor}"',
+        f'set normal text color of first window to "{text}"',
+        f'set bold text color of first window to "{text_bold}"',
         "end tell",
     ]
     return get_osascript_args_or_run(applescript, do)
@@ -153,8 +153,8 @@ def get_machine_attributes(model_id=None):
             return None
     pf = "/System/Library/PrivateFrameworks"
     f = ".framework/Versions/A/Resources/English.lproj"
-    sk = "%s/ServerKit%s/XSMachineAttributes" % (pf, f)
-    si = "%s/ServerInformation%s/SIMachineAttributes" % (pf, f)
+    sk = f"{pf}/ServerKit{f}/XSMachineAttributes"
+    si = f"{pf}/ServerInformation{f}/SIMachineAttributes"
     # Mac OS X 10.8 or newer use "ServerInformation",
     # Mac OS X 10.6/10.7 "ServerKit"
     filename = si if os.path.isfile(f"{si}.plist") else sk

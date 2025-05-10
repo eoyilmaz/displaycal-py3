@@ -281,14 +281,14 @@ class TarFileProper(tarfile.TarFile):
                 raise
             else:
                 if e.filename is None:
-                    self._dbg(1, "tarfile: %s" % e.strerror)
+                    self._dbg(1, f"tarfile: {e.strerror}")
                 else:
-                    self._dbg(1, "tarfile: %s %r" % (e.strerror, e.filename))
+                    self._dbg(1, f"tarfile: {e.strerror} {e.filename!r}")
         except tarfile.ExtractError as e:
             if self.errorlevel > 1:
                 raise
             else:
-                self._dbg(1, "tarfile: %s" % e)
+                self._dbg(1, f"tarfile: {e}")
 
     def extractall(self, path=".", members=None, full=True):
         """Extract all members from the archive to the current working
@@ -328,4 +328,4 @@ class TarFileProper(tarfile.TarFile):
                 if self.errorlevel > 1:
                     raise
                 else:
-                    self._dbg(1, "tarfile: %s" % e)
+                    self._dbg(1, f"tarfile: {e}")

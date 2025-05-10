@@ -30,7 +30,7 @@ class Cube3D:
     def index(self, xxx_todo_changeme):
         (c0, c1, c2) = xxx_todo_changeme
         if (c0, c1, c2) not in self:
-            raise ValueError("%r not in %r" % ((c0, c1, c2), self))
+            raise ValueError(f"{(c0, c1, c2)!r} not in {self!r}")
         i = c0 * self._size**2 + c1 * self._size + c2
         return int(i) - self._start
 

@@ -116,7 +116,7 @@ class Log:
         # imported at the point our showwarning() function calls log().
         # Check for presence of our wxfixes module and if it has an attribute
         # "wx", in which case wxPython has finished importing.
-        wxfixes = sys.modules.get("%s.wxfixes" % appname)
+        wxfixes = sys.modules.get(f"{appname}.wxfixes")
         # wxfixes = sys.modules.get("wxfixes")
         if (
             wxfixes
@@ -257,8 +257,7 @@ def get_file_logger(
                                 logstat = os.stat(logfile)
                             except Exception as exception:
                                 print(
-                                    "Warning - os.stat('%s') failed: %s"
-                                    % (logfile, exception)
+                                    f"Warning - os.stat('{logfile}') failed: {exception}"
                                 )
                             else:
                                 mtimes[logstat.st_mtime] = filename
@@ -304,14 +303,13 @@ def get_file_logger(
             os.makedirs(logdir)
         except Exception as exception:
             print(
-                "Warning - log directory '%s' could not be created: %s"
-                % (logdir, exception)
+                f"Warning - log directory '{logdir}' could not be created: {exception}"
             )
     elif when != "never" and os.path.exists(logfile):
         try:
             logstat = os.stat(logfile)
         except Exception as exception:
-            print("Warning - os.stat('%s') failed: %s" % (logfile, exception))
+            print(f"Warning - os.stat('{logfile}') failed: {exception}")
         else:
             # rollover needed?
             t = logstat.st_mtime
@@ -394,7 +392,7 @@ def get_file_logger(
             logger.addHandler(filehandler)
         except Exception as exception:
             print(
-                "Warning - logging to file '%s' not possible: %s" % (logfile, exception)
+                f"Warning - logging to file '{logfile}' not possible: {exception}"
             )
     return logger
 

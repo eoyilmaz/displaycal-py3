@@ -81,7 +81,7 @@ class GenHTTPPatternGeneratorClient:
             if resp.status == http.client.OK:
                 return self._validate(resp, url, validate)
             else:
-                raise http.client.HTTPException("%s %s" % (resp.status, resp.reason))
+                raise http.client.HTTPException(f"{resp.status} {resp.reason}")
 
     def _shutdown(self):
         # Override this method in subclass!
@@ -390,7 +390,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             if b"m" in query:
                 method = query[b"m"][0]
                 if data.get(method) == "Error" and "msg" in data:
-                    raise http.client.HTTPException("%s: %s" % (self.host, data["msg"]))
+                    raise http.client.HTTPException("{}: {}".format(self.host, data["msg"]))
             for key in validate:
                 value = validate[key]
                 if key not in data:

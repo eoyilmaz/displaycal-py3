@@ -2580,7 +2580,7 @@ class VisualWhitepointEditor(wx.Frame):
         scale = self.area_size_slider.Value / 100.0
         setcfg(
             "dimensions.measureframe.whitepoint.visual_editor",
-            "%f,%f,%f" % (x, y, scale),
+            f"{x:f},{y:f},{scale:f}",
         )
 
     def write(self, txt):

@@ -152,7 +152,7 @@ if __name__ == "__main__":
     try:
         print(test)
     except (OSError, LookupError, UnicodeError) as exception:
-        print("could not print %r:" % test, exception)
+        print(f"could not print {test!r}:", exception)
     print("wrapping stdout/stderr via encodestdio()")
     encodestdio()
     print(test)

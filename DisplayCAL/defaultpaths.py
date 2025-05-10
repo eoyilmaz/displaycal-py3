@@ -231,7 +231,7 @@ else:
                     for key, value in XDG.config_file_parser(f):
                         fn(key, value)
             except OSError as exception:
-                print("XDG: Couldn't read '%s':" % path, exception)
+                print(f"XDG: Couldn't read '{path}':", exception)
                 return False
             return True
 

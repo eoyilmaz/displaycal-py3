@@ -10168,7 +10168,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         args = '"{}" -c "{}"'.format(
             exe,
             "import sys;"
-            f"sys.path.insert(0, {repr(pydir)});"
+            f"sys.path.insert(0, {pydir!r});"
             "from DisplayCAL import wxMeasureFrame;"
             "wxMeasureFrame.main();"
             "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)",
@@ -13264,8 +13264,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     {"c": b"YES", "l": b"NO"}.get(getcfg(cfgname), b"NO"),
                 )
                 print(
-                    "Added DISPLAY_TYPE_REFRESH {}".format(
-                        repr(cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8"))
+                    "Added DISPLAY_TYPE_REFRESH {!r}".format(
+                        cgats[0].DISPLAY_TYPE_REFRESH.decode("utf-8")
                     )
                 )
         options_dispcal, options_colprof = get_options_from_ti3(reference_ti3)
@@ -19642,9 +19642,9 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
             try:
                 value = float(strval)
                 if (label[:3] == "RGB" or label == "XYZ_Y") and value > 100:
-                    raise ValueError(f"Value {repr(value)} is invalid")
+                    raise ValueError(f"Value {value!r} is invalid")
                 elif value < 0:
-                    raise ValueError(f"Negative value {repr(value)} is invalid")
+                    raise ValueError(f"Negative value {value!r} is invalid")
             except ValueError:
                 wx.Bell()
                 strval = f"{item[label]:.4f}"

@@ -122,8 +122,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 handler = "xy" if component in "xy" else "XYZ"
                 self.Bind(
                     floatspin.EVT_FLOATSPIN,
-                    getattr(self, "%s_%s_ctrl_handler" % (color, handler)),
-                    getattr(self, "%s_%s" % (color, component)),
+                    getattr(self, f"{color}_{handler}_ctrl_handler"),
+                    getattr(self, f"{color}_{component}"),
                 )
         self.black_point_cb.Bind(wx.EVT_CHECKBOX, self.black_point_enable_handler)
         self.chromatic_adaptation_btn.Bind(
@@ -283,7 +283,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
     def black_point_enable_handler(self, event):
         v = self.getcfg("synthprofile.black_luminance")
         for component in "XYZxy":
-            getattr(self, "black_%s" % component).Enable(
+            getattr(self, f"black_{component}").Enable(
                 v > 0 and self.black_point_cb.Value
             )
 
@@ -291,14 +291,14 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         luminance = self.getcfg("synthprofile.luminance")
         XYZ = []
         for component in "XYZ":
-            XYZ.append(getattr(self, "black_%s" % component).GetValue() / 100.0)
+            XYZ.append(getattr(self, f"black_{component}").GetValue() / 100.0)
             if component == "Y":
                 self.black_luminance_ctrl.SetValue(XYZ[-1] * luminance)
                 self.black_luminance_ctrl_handler(None)
                 if not XYZ[-1]:
                     XYZ = [0, 0, 0]
                     for i in range(3):
-                        getattr(self, "black_%s" % "XYZ"[i]).SetValue(0)
+                        getattr(self, "black_{}".format("XYZ"[i])).SetValue(0)
                     break
         self.parse_XYZ("black")
 
@@ -309,10 +309,10 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         )
         xy = []
         for component in "xy":
-            xy.append(getattr(self, "black_%s" % component).GetValue() or 1.0 / 3)
-            getattr(self, "black_%s" % component).SetValue(xy[-1])
+            xy.append(getattr(self, f"black_{component}").GetValue() or 1.0 / 3)
+            getattr(self, f"black_{component}").SetValue(xy[-1])
         for i, v in enumerate(colormath.xyY2XYZ(*xy + [Y])):
-            getattr(self, "black_%s" % "XYZ"[i]).SetValue(v * 100)
+            getattr(self, "black_{}".format("XYZ"[i])).SetValue(v * 100)
 
     def blue_XYZ_ctrl_handler(self, event):
         self.parse_XYZ("blue")
@@ -398,7 +398,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         wp_tgt = colormath.xyY2XYZ(x, y)
         self.cat = cat
         for color in ("red", "green", "blue", "white", "black"):
-            ctrls = [getattr(self, "%s_%s" % (color, component)) for component in "XYZ"]
+            ctrls = [getattr(self, f"{color}_{component}") for component in "XYZ"]
             X, Y, Z = (ctrl.GetValue() for ctrl in ctrls)
             XYZa = colormath.adapt(X, Y, Z, wp_src, wp_tgt, cat)
             for i, ctrl in enumerate(ctrls):
@@ -409,9 +409,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.Freeze()
         show = bool(self.colorspace_rgb_ctrl.Value)
         for color in ("red", "green", "blue"):
-            getattr(self, "label_%s" % color).Show(show)
+            getattr(self, f"label_{color}").Show(show)
             for component in "XYZxy":
-                getattr(self, "%s_%s" % (color, component)).Show(show)
+                getattr(self, f"{color}_{component}").Show(show)
         self.enable_btns()
         self.update_layout()
         self.Thaw()
@@ -483,14 +483,14 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.luminance_ctrl.SetValue(luminance)
         for i, color in enumerate(("white", "black")):
             for j, component in enumerate("XYZ"):
-                getattr(self, "%s_%s" % (color, component)).SetValue(
+                getattr(self, f"{color}_{component}").SetValue(
                     colors[i][j] / colors[0][1] * 100
                 )
             self.parse_XYZ(color)
         for i, color in enumerate(("red", "green", "blue")):
             xyY = colormath.XYZ2xyY(*colors[2 + i])
             for j, component in enumerate("xy"):
-                getattr(self, "%s_%s" % (color, component)).SetValue(xyY[j])
+                getattr(self, f"{color}_{component}").SetValue(xyY[j])
         self.parse_xy(None)
         self.black_XYZ_ctrl_handler(None)
         if len(colors[5:]) > 2:
@@ -566,11 +566,11 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         )
         for color in ("white", "red", "green", "blue", "black"):
             for component in "XYZ":
-                v = getattr(self, "%s_%s" % (color, component)).GetValue() / 100.0
+                v = getattr(self, f"{color}_{component}").GetValue() / 100.0
                 if color == "black":
                     key = "k"
                     if not self.black_point_cb.Value:
-                        v = XYZ["w%s" % component] * black_Y
+                        v = XYZ[f"w{component}"] * black_Y
                 else:
                     key = color[0]
                 XYZ[key + component] = v
@@ -613,10 +613,10 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             "synthprofile.luminance"
         )
         for component in "XYZ":
-            v = getattr(self, "%s_%s" % (name, component)).GetValue()
+            v = getattr(self, f"{name}_{component}").GetValue()
             XYZ[component] = v
             if name == "white" and set_blackpoint:
-                getattr(self, "black_%s" % (component)).SetValue(v * black_Y)
+                getattr(self, f"black_{component}").SetValue(v * black_Y)
         if "X" in XYZ and "Y" in XYZ and "Z" in XYZ:
             if XYZ["X"] + XYZ["Y"] + XYZ["Z"] == 0:
                 # Set black chromaticity to white chromaticity if XYZ is 0
@@ -626,9 +626,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             else:
                 xyY = colormath.XYZ2xyY(XYZ["X"], XYZ["Y"], XYZ["Z"])
             for i, component in enumerate("xy"):
-                getattr(self, "%s_%s" % (name, component)).SetValue(xyY[i])
+                getattr(self, f"{name}_{component}").SetValue(xyY[i])
                 if name == "white" and set_blackpoint:
-                    getattr(self, "black_%s" % (component)).SetValue(xyY[i])
+                    getattr(self, f"black_{component}").SetValue(xyY[i])
         self.enable_btns()
 
     def parse_xy(self, name=None, set_blackpoint=False):
@@ -639,23 +639,23 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         xy = {}
         for color in ("white", "red", "green", "blue"):
             for component in "xy":
-                v = getattr(self, "%s_%s" % (color, component)).GetValue()
+                v = getattr(self, f"{color}_{component}").GetValue()
                 xy[color[0] + component] = v
         if name == "white":
             wXYZ = colormath.xyY2XYZ(xy["wx"], xy["wy"], 1.0)
         else:
             wXYZ = []
             for component in "XYZ":
-                wXYZ.append(getattr(self, "white_%s" % component).GetValue() / 100.0)
+                wXYZ.append(getattr(self, f"white_{component}").GetValue() / 100.0)
         if name == "white":
             # Black Y scaled to 0..1 range
             black_Y = self.getcfg("synthprofile.black_luminance") / self.getcfg(
                 "synthprofile.luminance"
             )
             for i, component in enumerate("XYZ"):
-                getattr(self, "white_%s" % component).SetValue(wXYZ[i] * 100)
+                getattr(self, f"white_{component}").SetValue(wXYZ[i] * 100)
                 if set_blackpoint:
-                    getattr(self, "black_%s" % component).SetValue(
+                    getattr(self, f"black_{component}").SetValue(
                         wXYZ[i] * black_Y * 100
                     )
         has_rgb_xy = True
@@ -677,7 +677,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 v = (0, 0, 0)
             XYZ[color[0]] = v
             for i, component in enumerate("XYZ"):
-                getattr(self, "%s_%s" % (color, component)).SetValue(
+                getattr(self, f"{color}_{component}").SetValue(
                     XYZ[color[0]][i] * 100
                 )
         self.enable_btns()
@@ -696,11 +696,11 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 tech = self.tech[""]
             self.tech_ctrl.SetStringSelection(tech)
             for i, component in enumerate("XYZ"):
-                getattr(self, "white_%s" % component).SetValue(white[i] * 100)
+                getattr(self, f"white_{component}").SetValue(white[i] * 100)
             self.parse_XYZ("white", True)
             for color in ("red", "green", "blue"):
                 for i, component in enumerate("xy"):
-                    getattr(self, "%s_%s" % (color, component)).SetValue(
+                    getattr(self, f"{color}_{component}").SetValue(
                         locals()[color][i]
                     )
             self.parse_xy(None)

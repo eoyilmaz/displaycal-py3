@@ -25,7 +25,7 @@ class NTSTATUS(ctypes.c_long):
 
     def __repr__(self):
         value = ctypes.c_ulong.from_buffer(self).value
-        return "NTSTATUS(0x%08x)" % value
+        return f"NTSTATUS(0x{value:08x})"
 
 
 class UNICODE_STRING(ctypes.Structure):

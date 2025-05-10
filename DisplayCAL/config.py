@@ -1650,13 +1650,13 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             elif name == "copyright":
                 # Make sure DisplayCAL and Argyll version are up-to-date
                 pattern = re.compile(
-                    r"(%s(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*" % appname, re.I
+                    rf"({appname}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*", re.I
                 )
                 repl = create_replace_function("\\1%s", version)
                 value = re.sub(pattern, repl, value)
                 if appbasename != appname:
                     pattern = re.compile(
-                        r"(%s(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*" % appbasename,
+                        rf"({appbasename}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",
                         re.I,
                     )
                     repl = create_replace_function("\\1%s", version)

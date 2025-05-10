@@ -221,7 +221,7 @@ def _mp_generate_B2A_clut(
                     # Legacy CIELAB
                     L = Linterp(d * 100)
                     v = L, -128 + e * abmaxval, -128 + f * abmaxval
-                idata.append("%.6f %.6f %.6f" % tuple(v))
+                idata.append("{:.6f} {:.6f} {:.6f}".format(*tuple(v)))
                 # Lookup CIE -> device values through profile using xicclu
                 if not use_cam_clipping or (
                     pcs == "x" and a <= threshold and b <= threshold and c <= threshold
@@ -316,7 +316,7 @@ class WorkerBase:
                 if not self.tempdir:
                     msg = "there is none"
                 else:
-                    msg = "the previous (%s) no longer exists" % self.tempdir
+                    msg = f"the previous ({self.tempdir}) no longer exists"
                 print(f"{appname}: Creating a new temporary directory because", msg)
             try:
                 self.tempdir = tempfile.mkdtemp(prefix=f"{appname}-")
@@ -430,7 +430,7 @@ class Xicclu(WorkerBase):
         verbose=1,
     ):
         if not profile:
-            raise Error("Xicclu: Profile is %r" % profile)
+            raise Error(f"Xicclu: Profile is {profile!r}")
         WorkerBase.__init__(self)
         self.scale = scale
         self.convert_video_rgb_to_clut65 = convert_video_rgb_to_clut65
@@ -491,7 +491,7 @@ class Xicclu(WorkerBase):
         xicclu = safe_str(xicclu)
         cwd = safe_str(cwd)
         self.verbose = verbose
-        args = [xicclu, "-v%i" % verbose, "-s%s" % scale]
+        args = [xicclu, "-v%i" % verbose, f"-s{scale}"]
         self.show_actual_if_clipped = False
         if utilname == "xicclu":
             if (
@@ -543,8 +543,7 @@ class Xicclu(WorkerBase):
             if is_profile:
                 profile_act = ICCProfile(profile.fileName)
                 self.sessionlogfile.write(
-                    "Profile ID %s (actual %s)"
-                    % (hexlify(profile.ID), hexlify(profile_act.calculateID(False)))
+                    f"Profile ID {hexlify(profile.ID)} (actual {hexlify(profile_act.calculateID(False))})"
                 )
             if cwd:
                 self.log(lang.getstr("working_dir"))
@@ -693,8 +692,7 @@ class Xicclu(WorkerBase):
                     shutil.rmtree(self.tempdir, True)
                 except Exception as exception:
                     print(
-                        "Warning - temporary directory '%s' could not be removed: %s"
-                        % (self.tempdir, exception)
+                        f"Warning - temporary directory '{self.tempdir}' could not be removed: {exception}"
                     )
 
     def get(self, raw=False, get_clip=False, output_format=None, reverse=False):

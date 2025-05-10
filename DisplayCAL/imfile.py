@@ -116,7 +116,7 @@ class Image:
         elif self.bitdepth == 8:
             data = n.to_bytes(1, "big")
         else:
-            raise ValueError("Unsupported bitdepth: %r" % self.bitdepth)
+            raise ValueError(f"Unsupported bitdepth: {self.bitdepth!r}")
         return data
 
     def _write_dpx(self, stream, dimensions=None):
@@ -398,7 +398,7 @@ class Image:
             else:
                 file_format = "PNG"
         if not hasattr(self, f"_write_{file_format.lower()}"):
-            raise ValueError("Unsupported format: %r" % file_format)
+            raise ValueError(f"Unsupported format: {file_format!r}")
         if isinstance(stream_or_filename, str):
             stream = open(stream_or_filename, "wb")  # noqa: SIM115
         else:

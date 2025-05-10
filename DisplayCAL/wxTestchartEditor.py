@@ -1573,7 +1573,10 @@ END_DATA"""
                 # ref = ref[i]
                 # break
                 # if "XYZ_X" in ref:
-                # XYZ = [component / 100.0 for component in (ref["XYZ_X"], ref["XYZ_Y"], ref["XYZ_Z"])]
+                # XYZ = [
+                #     component / 100.0
+                #     for component in (ref["XYZ_X"], ref["XYZ_Y"], ref["XYZ_Z"])
+                # ]
                 # else:
                 # Fall back to default D65-ish values
                 XYZ = argyll_RGB2XYZ(
@@ -1593,7 +1596,9 @@ END_DATA"""
                 # for label in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
                 # for col in range(self.grid.GetNumberCols()):
                 # if self.label_b2a.get(self.grid.GetColLabelValue(col)) == label:
-                # self.grid.SetCellValue(event.GetRow(), col, str(round(sample[label], 4)))
+                # self.grid.SetCellValue(
+                #     event.GetRow(), col, str(round(sample[label], 4))
+                # )
                 # value_set = True
             elif label in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
                 # FIXME: Should this be removed? There are no XYZ fields in the editor
@@ -1645,9 +1650,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_single_channel_patches_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_single_channel_patches_handler2, event)
         else:
             wx.CallAfter(self.tc_single_channel_patches_handler2, event)
 
@@ -1669,9 +1674,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_gray_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_gray_handler2, event)
         else:
             wx.CallAfter(self.tc_gray_handler2, event)
 
@@ -1791,9 +1796,9 @@ END_DATA"""
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
         if event and event.GetEventType() == wx.EVT_TEXT.evtType[0]:
-            wx.CallLater(
-                3000, self.tc_multi_steps_handler2, event
-            )  # 3 seconds delay to allow user to finish keying in a value before it is validated
+            # 3 seconds delay to allow user
+            # to finish keying in a value before it is validated
+            wx.CallLater(3000, self.tc_multi_steps_handler2, event)
         else:
             wx.CallAfter(self.tc_multi_steps_handler2, event)
 
@@ -1992,8 +1997,9 @@ END_DATA"""
                 defaultDir=defaultDir,
                 defaultFile=defaultFile,
                 wildcard=(
-                    lang.getstr("filetype.ti1_ti3_txt")
-                    + "|*.cgats;*.cie;*.gam;*.icc;*.icm;*.jpg;*.jpeg;*.png;*.ti1;*.ti2;*.ti3;*.tif;*.tiff;*.txt"
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|*.cgats;*.cie;"
+                    "*.gam;*.icc;*.icm;*.jpg;*.jpeg;*.png;*.ti1;*.ti2;*.ti3;"
+                    "*.tif;*.tiff;*.txt"
                 ),
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             )
@@ -3781,17 +3787,23 @@ END_DATA"""
 
             fullspread_ba = {
                 "ERROR_OPTIMISED_PATCHES": "",  # OFPS in older Argyll CMS versions
-                # "ERROR_OPTIMISED_PATCHES": "R",  # Perc. space random - same keyword as OFPS in older Argyll CMS versions, don't use
+                # "ERROR_OPTIMISED_PATCHES": "R",  # Perc. space random
+                #                                    - same keyword as OFPS in older
+                #                                      Argyll CMS versions, don't use.
                 "IFP_PATCHES": "t",  # Inc. far point
                 "INC_FAR_PATCHES": "t",  # Inc. far point in older Argyll CMS versions
                 "OFPS_PATCHES": "",  # OFPS
                 "RANDOM_DEVICE_PATCHES": "r",  # Dev. space random
                 "RANDOM_PATCHES": "r",  # Dev. space random in older Argyll CMS versions
                 "RANDOM_PERCEPTUAL_PATCHES": "R",  # Perc. space random
-                # "RANDOM_PERCEPTUAL_PATCHES": "Q",  # Perc. space filling quasi-random - same keyword as perc. space random, don't use
+                # "RANDOM_PERCEPTUAL_PATCHES": "Q",  # Perc. space filling quasi-random
+                #                                      - same keyword as perc.
+                #                                        space random, don't use
                 "SIMPLEX_DEVICE_PATCHES": "i",  # Dev. space body centered cubic grid
-                "SIMPLEX_PERCEPTUAL_PATCHES": "I",  # Perc. space body centered cubic grid
-                "SPACEFILING_RANDOM_PATCHES": "q",  # Device space filling quasi-random, typo in older Argyll CMS versions
+                "SIMPLEX_PERCEPTUAL_PATCHES": "I",  # Perc. space body centered cubic
+                #                                     grid
+                "SPACEFILING_RANDOM_PATCHES": "q",  # Device space filling quasi-random,
+                #                                     typo in older Argyll CMS versions
                 "SPACEFILLING_RANDOM_PATCHES": "q",  # Device space filling quasi-random
             }
 

@@ -357,8 +357,13 @@ class LUTCanvas(plot.PlotCanvas):
                         idx = int(round(i / 255.0 * 4095))
                         self.point_grid[channel][idx] = float(n)
 
-        # for n in sorted(self.point_grid[0].keys()):
-        # print n, self.point_grid[0].get(n), self.point_grid[1].get(n), self.point_grid[2].get(n)
+        # for n in sorted(self.point_grid[0]):
+        #     print(
+        #         n,
+        #         self.point_grid[0].get(n),
+        #         self.point_grid[1].get(n),
+        #         self.point_grid[2].get(n)
+        #     )
 
         self.entryCount = irange[-1] + 1
 
@@ -1821,26 +1826,24 @@ class LUTFrame(BaseFrame):
                     slice=(0.00, 1.00), outoffset=1.0
                 )
             # if "R" in colorants and "G" in colorants and "B" in colorants:
-            # if self.profile.tags.rTRC == self.profile.tags.gTRC == self.profile.tags.bTRC:
-            # transfer_function = self.profile.tags.rTRC.get_transfer_function()
-            # elif ("R" in colorants and
-            # (not "G" in colorants or
-            # self.profile.tags.rTRC == self.profile.tags.gTRC) and
-            # (not "B" in colorants or
-            # self.profile.tags.rTRC == self.profile.tags.bTRC)):
-            # transfer_function = self.profile.tags.rTRC.get_transfer_function()
-            # elif ("G" in colorants and
-            # (not "R" in colorants or
-            # self.profile.tags.gTRC == self.profile.tags.rTRC) and
-            # (not "B" in colorants or
-            # self.profile.tags.gTRC == self.profile.tags.bTRC)):
-            # transfer_function = self.profile.tags.gTRC.get_transfer_function()
-            # elif ("B" in colorants and
-            # (not "G" in colorants or
-            # self.profile.tags.bTRC == self.profile.tags.gTRC) and
-            # (not "R" in colorants or
-            # self.profile.tags.bTRC == self.profile.tags.rTRC)):
-            # transfer_function = self.profile.tags.bTRC.get_transfer_function()
+            #     if (self.profile.tags.rTRC == self.profile.tags.gTRC == 
+            #        self.profile.tags.bTRC):
+            #         transfer_function = self.profile.tags.rTRC.get_transfer_function()
+            # elif ("R" in colorants and (not "G" in colorants or
+            #   self.profile.tags.rTRC == self.profile.tags.gTRC) and
+            #   (not "B" in colorants or
+            #   self.profile.tags.rTRC == self.profile.tags.bTRC)):
+            #     transfer_function = self.profile.tags.rTRC.get_transfer_function()
+            # elif ("G" in colorants and (not "R" in colorants or
+            #   self.profile.tags.gTRC == self.profile.tags.rTRC) and
+            #   (not "B" in colorants or
+            #   self.profile.tags.gTRC == self.profile.tags.bTRC)):
+            #     transfer_function = self.profile.tags.gTRC.get_transfer_function()
+            # elif ("B" in colorants and (not "G" in colorants or
+            #   self.profile.tags.bTRC == self.profile.tags.gTRC) and
+            #   (not "R" in colorants or
+            #   self.profile.tags.bTRC == self.profile.tags.rTRC)):
+            #     transfer_function = self.profile.tags.bTRC.get_transfer_function()
             if transfer_function and transfer_function[1] >= 0.95:
                 if self.tf_rTRC == self.tf_gTRC == self.tf_bTRC:
                     label = lang.getstr("rgb.trc")

@@ -490,7 +490,8 @@ def get_pids() -> list[int]:
     """
     if psapi is None:
         raise ImportError(
-            "psapi module is not available. Please ensure it is installed and accessible."
+            "psapi module is not available. "
+            "Please ensure it is installed and accessible."
         )
     pids_count = 1024
     while True:

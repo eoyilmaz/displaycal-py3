@@ -816,13 +816,15 @@ class LUT3DMixin:
                                         reshade_fx = reshade_fx_file.read()
                                     # Remove existing shader include
                                     reshade_fx = re.sub(
-                                        r"[ \t]*//\s*Automatically\s+\S+\s+by\s+%s\s+.+[ \t]*\r?\n?"
-                                        % appname,
+                                        r"[ \t]*//\s*Automatically\s+\S+\s+by\s+"
+                                        f"{appname}"
+                                        r"\s+.+[ \t]*\r?\n?",
                                         "",
                                         reshade_fx,
                                     )
                                     reshade_fx = re.sub(
-                                        r'[ \t]*#include\s+"ColorLookupTable.fx"[ \t]*\r?\n?',
+                                        r'[ \t]*#include\s+"ColorLookupTable.fx"'
+                                        "[ \t]*\r?\n?",
                                         "",
                                         reshade_fx,
                                     ).rstrip("\r\n")

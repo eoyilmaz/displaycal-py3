@@ -119,7 +119,8 @@ def main():
         )
         print("  --force      Force fresh download of viewer components")
         print(
-            "  --no-cache   Don't use viewer components cache (only uses existing cache if"
+            "  --no-cache   Don't use viewer components cache "
+            "(only uses existing cache if"
         )
         print("               embedding components, can be overridden with --force)")
         if gui:

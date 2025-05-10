@@ -1371,7 +1371,7 @@ Transform {
                 }
             ]
         }
-"""
+"""  # noqa: E501
         axes = ""
         if colorspace not in (
             "Lab",
@@ -1656,9 +1656,7 @@ Transform {
                 }
             ]
         }
-"""
-                % values
-            )
+""" % values)  # noqa: E501
         children = []
         sqrt3_100 = math.sqrt(3) * 100
         sqrt3_50 = math.sqrt(3) * 50

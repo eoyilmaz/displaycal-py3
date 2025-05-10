@@ -1,62 +1,53 @@
-# -----------------------------------------------------------------------------
-# Name:        wx.lib.plot.py
-# Purpose:     Line, Bar and Scatter Graphs
-#
-# Author:      Gordon Williams
-#
-# Created:     2003/11/03
-# RCS-ID:      $Id: plot.py 65712 2010-10-01 17:56:32Z RD $
-# Copyright:   (c) 2002
-# Licence:     Use as you wish.
-# -----------------------------------------------------------------------------
-# 12/15/2003 - Jeff Grimmett (grimmtooth@softhome.net)
-#
-# o 2.5 compatability update.
-# o Renamed to plot.py in the wx.lib directory.
-# o Reworked test frame to work with wx demo framework. This saves a bit
-#   of tedious cut and paste, and the test app is excellent.
-#
-# 12/18/2003 - Jeff Grimmett (grimmtooth@softhome.net)
-#
-# o wxScrolledMessageDialog -> ScrolledMessageDialog
-#
-# Oct 6, 2004  Gordon Williams (g_will@cyberus.ca)
-#   - Added bar graph demo
-#   - Modified line end shape from round to square.
-#   - Removed FloatDCWrapper for conversion to ints and ints in arguments
-#
-# Oct 15, 2004  Gordon Williams (g_will@cyberus.ca)
-#   - Imported modules given leading underscore to name.
-#   - Added Cursor Line Tracking and User Point Labels.
-#   - Demo for Cursor Line Tracking and Point Labels.
-#   - Size of plot preview frame adjusted to show page better.
-#   - Added helper functions PositionUserToScreen and PositionScreenToUser in PlotCanvas.
-#   - Added functions GetClosestPoints (all curves) and GetClosestPoint (only closest curve)
-#       can be in either user coords or screen coords.
-#
-# Jun 22, 2009  Florian Hoech (florian.hoech@gmx.de)
-#   - Fixed exception when drawing empty plots on Mac OS X
-#   - Fixed exception when trying to draw point labels on Mac OS X (Mac OS X
-#     point label drawing code is still slow and only supports wx.COPY)
-#   - Moved label positions away from axis lines a bit
-#   - Added PolySpline class and modified demo 1 and 2 to use it
-#   - Added center and diagonal lines option (Set/GetEnableCenterLines,
-#     Set/GetEnableDiagonals)
-#   - Added anti-aliasing option with optional high-resolution mode
-#     (Set/GetEnableAntiAliasing, Set/GetEnableHiRes) and demo
-#   - Added option to specify exact number of tick marks to use for each axis
-#     (SetXSpec(<number>, SetYSpec(<number>) -- work like 'min', but with
-#     <number> tick marks)
-#   - Added support for background and foreground colours (enabled via
-#     SetBackgroundColour/SetForegroundColour on a PlotCanvas instance)
-#   - Changed PlotCanvas printing initialization from occuring in __init__ to
-#     occur on access. This will postpone any IPP and / or CUPS warnings
-#     which appear on stderr on some Linux systems until printing functionality
-#     is actually used.
-#
-#
-
 """
+-----------------------------------------------------------------------------
+Name:        wx.lib.plot.py
+Purpose:     Line, Bar and Scatter Graphs
+Author:      Gordon Williams
+Created:     2003/11/03
+RCS-ID:      $Id: plot.py 65712 2010-10-01 17:56:32Z RD $
+Copyright:   (c) 2002
+Licence:     Use as you wish.
+-----------------------------------------------------------------------------
+12/15/2003 - Jeff Grimmett (grimmtooth@softhome.net)
+o 2.5 compatability update.
+o Renamed to plot.py in the wx.lib directory.
+o Reworked test frame to work with wx demo framework. This saves a bit
+  of tedious cut and paste, and the test app is excellent.
+12/18/2003 - Jeff Grimmett (grimmtooth@softhome.net)
+o wxScrolledMessageDialog -> ScrolledMessageDialog
+Oct 6, 2004  Gordon Williams (g_will@cyberus.ca)
+  - Added bar graph demo
+  - Modified line end shape from round to square.
+  - Removed FloatDCWrapper for conversion to ints and ints in arguments
+Oct 15, 2004  Gordon Williams (g_will@cyberus.ca)
+  - Imported modules given leading underscore to name.
+  - Added Cursor Line Tracking and User Point Labels.
+  - Demo for Cursor Line Tracking and Point Labels.
+  - Size of plot preview frame adjusted to show page better.
+  - Added helper functions PositionUserToScreen and PositionScreenToUser in
+    PlotCanvas.
+  - Added functions GetClosestPoints (all curves) and GetClosestPoint (only
+    closest curve) can be in either user coords or screen coords.
+Jun 22, 2009  Florian Hoech (florian.hoech@gmx.de)
+  - Fixed exception when drawing empty plots on Mac OS X
+  - Fixed exception when trying to draw point labels on Mac OS X (Mac OS X
+    point label drawing code is still slow and only supports wx.COPY)
+  - Moved label positions away from axis lines a bit
+  - Added PolySpline class and modified demo 1 and 2 to use it
+  - Added center and diagonal lines option (Set/GetEnableCenterLines,
+    Set/GetEnableDiagonals)
+  - Added anti-aliasing option with optional high-resolution mode
+    (Set/GetEnableAntiAliasing, Set/GetEnableHiRes) and demo
+  - Added option to specify exact number of tick marks to use for each axis
+    (SetXSpec(<number>, SetYSpec(<number>) -- work like 'min', but with
+    <number> tick marks)
+  - Added support for background and foreground colours (enabled via
+    SetBackgroundColour/SetForegroundColour on a PlotCanvas instance)
+  - Changed PlotCanvas printing initialization from occurring in __init__ to
+    occur on access. This will postpone any IPP and / or CUPS warnings
+    which appear on stderr on some Linux systems until printing functionality
+    is actually used.
+
 This is a simple light weight plotting module that can be used with
 Boa or easily integrated into your own wxPython application.  The
 emphasis is on small size and fast plotting for large data sets.  It
@@ -373,8 +364,8 @@ def scale_and_shift_point(x, y, scale=1, shift=0):
     return point
 
 
-def set_displayside(value):
-    """Wrapper around :class:`~wx.lib.plot._DisplaySide` that allows for "overloaded" calls.
+def set_display_side(value):
+    """Wrap around :class:`~wx.lib.plot._DisplaySide` to allow for "overloaded" calls.
 
     If ``value`` is a boolean: all 4 sides are set to ``value``
 
@@ -384,11 +375,16 @@ def set_displayside(value):
     If ``value`` is a 4-tuple, then each item is set individually: ``(bottom,
     left, top, right)``
 
-    :param value: Which sides to display.
-    :type value:   bool, 2-tuple of bool, or 4-tuple of bool
-    :raises: `TypeError` if setting an invalid value.
-    :raises: `ValueError` if the tuple has incorrect length.
-    :rtype: :class:`~wx.lib.plot._DisplaySide`
+    Args:
+        value (Union[bool, tuple(bool, bool), tuple(bool, bool, bool, bool)]): Which
+            sides to display.
+
+    Raises:
+        TypeError: If setting an invalid value.
+        ValueError: If the tuple has incorrect length.
+
+    Returns:
+        :class:`~wx.lib.plot._DisplaySide`
     """
     err_txt = "value must be a bool or a 2- or 4-tuple of bool"
 
@@ -613,13 +609,14 @@ class PolyMarker(PolyPoints):
         points - sequence (array, tuple or list) of (x,y) points
         **attr - key word attributes
             Defaults:
-                'colour'= 'black',          - wx.Pen Colour any wx.NamedColour
-                'width'= 1,                 - Pen width
-                'size'= 2,                  - Marker size
-                'fillcolour'= same as colour,      - wx.Brush Colour any wx.NamedColour
-                'fillstyle'= wx.SOLID,      - wx.Brush fill style (use wx.TRANSPARENT for no fill)
-                'marker'= 'circle'          - Marker shape
-                'legend'= ''                - Marker Legend to display
+                'colour'= 'black',            - wx.Pen Colour any wx.NamedColour
+                'width'= 1,                   - Pen width
+                'size'= 2,                    - Marker size
+                'fillcolour'= same as colour, - wx.Brush Colour any wx.NamedColour
+                'fillstyle'= wx.SOLID,        - wx.Brush fill style (use wx.TRANSPARENT
+                                                for no fill)
+                'marker'= 'circle'            - Marker shape
+                'legend'= ''                  - Marker Legend to display
 
             Marker Shapes:
                 - 'circle'
@@ -1056,7 +1053,8 @@ class PlotCanvas(wx.Panel):
                     "Choose a file with extension bmp, gif, xbm, xpm, png, or jpg",
                     ".",
                     "",
-                    "BMP files (*.bmp)|*.bmp|XBM files (*.xbm)|*.xbm|XPM file (*.xpm)|*.xpm|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg",
+                    "BMP files (*.bmp)|*.bmp|XBM files (*.xbm)|*.xbm|XPM file "
+                    "(*.xpm)|*.xpm|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg",
                     wx.SAVE | wx.OVERWRITE_PROMPT,
                 )
 
@@ -1277,7 +1275,8 @@ class PlotCanvas(wx.Panel):
         center line(s)."""
         if value not in [True, False, "Bottomleft-Topright", "Bottomright-Topleft"]:
             raise TypeError(
-                "Value should be True, False, Bottomleft-Topright or Bottomright-Topleft"
+                "Value should be True, False, Bottomleft-Topright "
+                "or Bottomright-Topleft"
             )
         self._diagonalsEnabled = value
         self.Redraw()
@@ -1342,7 +1341,7 @@ class PlotCanvas(wx.Panel):
 
     @enableTicks.setter
     def enableTicks(self, value):
-        self._ticksEnabled = set_displayside(value)
+        self._ticksEnabled = set_display_side(value)
         self.Redraw()
 
     def SetPointLabelFunc(self, func):

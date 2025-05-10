@@ -469,11 +469,13 @@ class ReportFrame(BaseFrame):
         path = getattr(self, f"{which}_profile_ctrl").GetPath()
         if which == "output":
             # if profile_path is None:
-            #   profile_path = get_current_profile_path(True, True)
-            #   self.output_profile_current_btn.Enable(self.output_profile_ctrl.IsShown() and
-            #   bool(profile_path) and
-            #   os.path.isfile(profile_path) and
-            #   profile_path != path)
+            #     profile_path = get_current_profile_path(True, True)
+            #     self.output_profile_current_btn.Enable(
+            #         self.output_profile_ctrl.IsShown() and
+            #         bool(profile_path) and
+            #         os.path.isfile(profile_path) and
+            #         profile_path != path
+            #     )
             profile = config.get_current_profile(True)
             path = profile.fileName if profile else None
             setcfg("measurement_report.output_profile", path)

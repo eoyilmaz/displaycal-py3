@@ -506,11 +506,12 @@ class UntetheredFrame(BaseFrame):
             self.is_measuring = False
         if "Spot read failed" in txt:
             self.last_error = txt
+
+        # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
         if "Result is XYZ:" in txt:
             self.last_error = None
             if getcfg("measurement.play_sound"):
                 self.measurement_sound.safe_play()
-            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
             XYZ = re.search(
                 r"XYZ:\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)", txt
             )

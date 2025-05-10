@@ -323,7 +323,8 @@ class WorkerBase:
             except Exception as exception:
                 self.tempdir = None
                 return Error(
-                    f"Error - couldn't create temporary directory: {safe_str(exception)}"
+                    "Error - couldn't create temporary directory: "
+                    f"{safe_str(exception)}"
                 )
         return self.tempdir
 

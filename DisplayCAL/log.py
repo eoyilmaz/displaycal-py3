@@ -341,15 +341,15 @@ def get_file_logger(
                         os.remove(logbackup)
                     except Exception as exception:
                         print(
-                            "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                            % (logbackup, exception)
+                            f"Warning - logfile backup '{logbackup}' "
+                            f"could not be removed during rollover: {exception}"
                         )
                 try:
                     os.rename(logfile, logbackup)
                 except Exception as exception:
                     print(
-                        "Warning - logfile '%s' could not be renamed to '%s' during rollover: %s"
-                        % (logfile, os.path.basename(logbackup), exception)
+                        f"Warning - logfile '{logfile}' could not be renamed to "
+                        f"'{os.path.basename(logbackup)}' during rollover: {exception}"
                     )
                 # Adapted from Python 2.6's
                 # logging.handlers.TimedRotatingFileHandler.getFilesToDelete
@@ -359,8 +359,8 @@ def get_file_logger(
                     fileNames = os.listdir(logdir)
                 except Exception as exception:
                     print(
-                        "Warning - log directory '%s' listing failed during rollover: %s"
-                        % (logdir, exception)
+                        f"Warning - log directory '{logdir}' "
+                        f"listing failed during rollover: {exception}"
                     )
                 else:
                     result = []
@@ -378,8 +378,8 @@ def get_file_logger(
                                 os.remove(logbackup)
                             except Exception as exception:
                                 print(
-                                    "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                                    % (logbackup, exception)
+                                    f"Warning - logfile backup '{logbackup}' "
+                                    f"could not be removed during rollover: {exception}"
                                 )
     if os.path.exists(logdir):
         try:

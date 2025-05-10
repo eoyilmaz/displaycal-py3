@@ -7,9 +7,17 @@ import uuid
 
 def post_multipart(host, selector, fields, files, charset="UTF-8"):
     """Post fields and files to an http host as multipart/form-data.
-    fields is a sequence of (name, value) elements for regular form fields.
-    files is a sequence of (name, filename, value) elements for data to be uploaded as files
-    Return the server's response page.
+
+    Args:
+        host: The host to post to.
+        selector: The URL path to post to.
+        fields: A sequence of (name, value) elements for regular form fields.
+        files: A sequence of (name, filename, value) elements for data to be
+            uploaded as files.
+        charset: The character set to use for encoding the fields and files.
+
+    Returns:
+        : the server's response page.
     """
     content_type, body = encode_multipart_formdata(fields, files, charset)
     h = http.client.HTTPConnection(host)
@@ -23,9 +31,15 @@ def post_multipart(host, selector, fields, files, charset="UTF-8"):
 
 
 def encode_multipart_formdata(fields, files, charset="UTF-8"):
-    """fields is a sequence of (name, value) elements for regular form fields.
-    files is a sequence of (name, filename, value) elements for data to be uploaded as files
-    Return (content_type, body) ready for httplib.HTTP instance
+    """Encode fields and files for multipart/form-data.
+
+    Args:
+        fields: A sequence of (name, value) elements for regular form fields.
+        files: A sequence of (name, filename, value) elements for data to be
+            uploaded as files.
+
+    Returns:
+        tuple[content_type, body]: Ready for httplib.HTTP instance.
     """
     BOUNDARY = b"----=_NextPart_" + uuid.uuid1().bytes
     CRLF = b"\r\n"

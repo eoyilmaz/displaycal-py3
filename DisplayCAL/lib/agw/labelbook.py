@@ -199,9 +199,9 @@ Version 0.6.
 __version__ = "0.6"
 
 
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------ #
 # Beginning Of IMAGENOTEBOOK wxPython Code
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------ #
 
 from enum import IntFlag
 from typing import Union
@@ -290,9 +290,9 @@ wxEVT_IMAGENOTEBOOK_PAGE_CHANGING: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
 wxEVT_IMAGENOTEBOOK_PAGE_CLOSING: int = wx.NewEventType()
 wxEVT_IMAGENOTEBOOK_PAGE_CLOSED: int = wx.NewEventType()
 
-# --------------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------------ #
 #        ImageNotebookEvent
-# --------------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------------ #
 
 EVT_IMAGENOTEBOOK_PAGE_CHANGED: wx.PyEventBinder = wx.EVT_NOTEBOOK_PAGE_CHANGED
 """Notify clients when the active page in FlatImageBook or LabelBook changes."""
@@ -817,7 +817,7 @@ class ImageContainerBase(wx.Panel):
             dc.Clear()
 
     def OnSize(self, event: wx.SizeEvent) -> None:
-        """Handle the ``wx.EVT_SIZE`` event for :class:`wx.ImageContainerBase`.
+        """Handle the wx.EVT_SIZE event for wx.ImageContainerBase.
 
         Args:
             event (wx.SizeEvent): a :class:`wx.SizeEvent` event to be processed.
@@ -826,7 +826,7 @@ class ImageContainerBase(wx.Panel):
         event.Skip()
 
     def OnEraseBackground(self, event: wx.EraseEvent) -> None:
-        """Handle the ``wx.EVT_ERASE_BACKGROUND`` event for :class:`wx.ImageContainerBase`.
+        """Handle the wx.EVT_ERASE_BACKGROUND event for wx.ImageContainerBase.
 
         Args:
             event (wx.EraseEvent): a :class:`EraseEvent` event to be processed.

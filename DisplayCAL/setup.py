@@ -924,7 +924,8 @@ def setup():
             "Environment :: Win32 (MS Windows)",
             "Environment :: X11 Applications",
             "Intended Audience :: End Users/Desktop",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: GNU General Public License v3 "
+            "or later (GPLv3+)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
@@ -935,7 +936,8 @@ def setup():
         ],
         "data_files": data_files,
         "description": description,
-        "download_url": f"{development_home_page}/releases/download/{version}/{name}-{version}.tar.gz",
+        "download_url": f"{development_home_page}/releases/download/"
+        f"{version}/{name}-{version}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,

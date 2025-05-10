@@ -249,7 +249,8 @@ def icc_device_link_to_madvr(
         # This can be used to ensure that the Graphics Card VideoLuts
         # are correctly setup to match what the 3dLut is expecting.
         #
-        # Note that the calibration curves are full range, never TV encoded output values
+        # Note that the calibration curves are full range,
+        # never TV encoded output values.
         #
         # Format is (little endian):
         #    4 byte magic number 'cal1'
@@ -761,10 +762,12 @@ class MadTPG(MadTPGBase):
 
 
 class MadTPG_Net(MadTPGBase):
-    """Implementation of madVR network protocol in pure python"""
-
+    """Implementation of madVR network protocol in pure python."""
     # Wireshark filter to help ananlyze traffic:
-    # (tcp.dstport != 1900 and tcp.dstport != 443) or (udp.dstport != 1900 and udp.dstport != 137 and udp.dstport != 138 and udp.dstport != 5355 and udp.dstport != 547 and udp.dstport != 10111)
+    # (tcp.dstport != 1900 and tcp.dstport != 443) or 
+    # (udp.dstport != 1900 and udp.dstport != 137 and 
+    # udp.dstport != 138 and udp.dstport != 5355 and 
+    # udp.dstport != 547 and udp.dstport != 10111)
 
     def __init__(self):
         MadTPGBase.__init__(self)
@@ -1467,7 +1470,10 @@ class MadTPG_Net(MadTPGBase):
                     if not component_:
                         # not a madvr component so ignore completely
                         continue
-                    pid_host = f"{client.get('processId', '?')}:{client.get('computerName', '')}"
+                    pid_host = (
+                        f"{client.get('processId', '?')}:"
+                        f"{client.get('computerName', '')}"
+                    )
                     formatted_client = f"[{component_} {pid_host}]"
                     if component_ != b"madTPG":
                         continue

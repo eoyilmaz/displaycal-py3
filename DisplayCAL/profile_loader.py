@@ -2598,29 +2598,34 @@ class ProfileLoader:
                                 )
                         if (debug or verbose > 1) and device:
                             print(
-                                f"Monitor {moninfo['Device']} active display device name:",
+                                f"Monitor {moninfo['Device']} "
+                                "active display device name:",
                                 device.DeviceName,
                             )
                             print(
-                                f"Monitor {moninfo['Device']} active display device string:",
+                                f"Monitor {moninfo['Device']} "
+                                "active display device string:",
                                 device.DeviceString,
                             )
                             print(
-                                "Monitor {} active display device state flags: 0x{:x}".format(
-                                    moninfo["Device"], device.StateFlags
-                                )
+                                f"Monitor {moninfo['Device']} "
+                                "active display device state flags: "
+                                f"0x{device.StateFlags:x}"
                             )
                             print(
-                                f"Monitor {moninfo['Device']} active display device ID:",
+                                f"Monitor {moninfo['Device']} "
+                                "active display device ID:",
                                 device.DeviceID,
                             )
                             print(
-                                f"Monitor {moninfo['Device']} active display device key:",
+                                f"Monitor {moninfo['Device']} "
+                                "active display device key:",
                                 device.DeviceKey,
                             )
                         elif debug or verbose > 1:
                             print(
-                                f"WARNING: Monitor {moninfo['Device']} has no active display device"
+                                f"WARNING: Monitor {moninfo['Device']} "
+                                "has no active display device"
                             )
                     self.profile_associations[key] = (profile_key, mtime, desc)
                     self.profiles[key] = None
@@ -3194,7 +3199,8 @@ class ProfileLoader:
                 print(f"Monitor {i:d} 1st display device name:", device0.DeviceName)
                 print(f"Monitor {i:d} 1st display device string:", device0.DeviceString)
                 print(
-                    f"Monitor {i:d} 1st display device state flags: 0x{device0.StateFlags:x}"
+                    f"Monitor {i:d} 1st display device state flags: "
+                    f"0x{device0.StateFlags:x}"
                 )
                 print(f"Monitor {i:d} 1st display device ID:", device0.DeviceID)
                 print(f"Monitor {i:d} 1st display device key:", device0.DeviceKey)

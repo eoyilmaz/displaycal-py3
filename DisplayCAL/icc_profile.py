@@ -98,7 +98,7 @@ COLOR_PROFILE_SUBTYPE = {
 }
 
 # http://msdn.microsoft.com/en-us/library/dd371955%28v=vs.85%29.aspx (wrong)
-# http://msdn.microsoft.com/en-us/library/windows/hardware/ff546018%28v=vs.85%29.aspx (ok)
+# http://msdn.microsoft.com/en-us/library/windows/hardware/ff546018%28v=vs.85%29.aspx (ok)  # noqa: E501
 COLOR_PROFILE_TYPE = {"ICC": 0, "DMP": 1, "CAMP": 2, "GMMP": 3}
 
 WCS_PROFILE_MANAGEMENT_SCOPE = {"SYSTEM_WIDE": 0, "CURRENT_USER": 1}
@@ -1571,7 +1571,9 @@ def create_synthetic_hdr_clut_profile(
                 # print(f"{Cd:6.3f} {C:6.3f}")
                 Cdiff.append(min(Cd / C, 1.0))
             # if Cdiff[-1] < 0.0001:
-            #     raise RuntimeError(f"#{i} RGB {R:5.3f} {G:5.3f} {B:5.3f} Cdiff {Cdiff[-1]:5.3f}")
+            #     raise RuntimeError(
+            #         f"#{i} RGB {R:5.3f} {G:5.3f} {B:5.3f} Cdiff {Cdiff[-1]:5.3f}"
+            #     )
             else:
                 Cdiff.append(1.0)
             display_LCH.append((Ld, Cd, Hd))
@@ -1700,7 +1702,8 @@ def create_synthetic_hdr_clut_profile(
                                 #         if debug:
                                 #             print(
                                 #                 "CLUT grid point "
-                                #                 f"{int(col_0):d} {int(col_1):d} {int(col_2):d}: "
+                                #                 f"{int(col_0):d} {int(col_1):d} "
+                                #                 f"{int(col_2):d}: "
                                 #                 f"C {C:6.4f} Cd {Cd:6.4f} "
                                 #                 f"HCmax {HCmax:6.4f} "
                                 #                 f"maxCc {maxCc:6.4f} "
@@ -1747,8 +1750,8 @@ def create_synthetic_hdr_clut_profile(
                             X, Y, Z = colormath.xyY2XYZ(x, y, Y)
                     else:
                         print(
-                            f"CLUT grid point {int(col_0):d} {int(col_1):d} {int(col_2):d}: "
-                            "blend = 0"
+                            "CLUT grid point "
+                            f"{int(col_0):d} {int(col_1):d} {int(col_2):d}: blend = 0"
                         )
                 # if backward_xicclu and forward_xicclu:
                 #     backward_xicclu((X, Y, Z))
@@ -2907,8 +2910,9 @@ def videoCardGamma(tagData, tagSignature):
 
 class CRInterpolation:
     """Catmull-Rom interpolation.
-    Curve passes through the points exactly, with neighbouring points influencing curvature.
-    points[] should be at least 3 points long.
+
+    Curve passes through the points exactly, with neighbouring points influencing
+    curvature.points[] should be at least 3 points long.
     """
 
     def __init__(self, points):
@@ -3621,7 +3625,8 @@ BEGIN_DATA
                         is_gray = False
                     # print(
                     #     i, y, x,
-                    #     "{:d} {:d} {:d}".format(*(int(v / 655.35 * 2.55) for v in grid[y][x])),
+                    #     "{:d} {:d} {:d}".format(*(int(v / 655.35 * 2.55)
+                    #     for v in grid[y][x])),
                     #     is_dark,
                     #     raw_input(is_gray) if is_gray else "",
                     # )
@@ -5150,9 +5155,11 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
         if "Unicode" in self:
             tagData.extend(
                 [
+                    # count of Unicode chars + 2 (UTF-16-BE BOM + trailing UTF-16 NUL,
+                    #                             1 char = 2 byte)
                     uInt32Number_tohex(
                         len(self.Unicode) + 2
-                    ),  # count of Unicode chars + 2 (UTF-16-BE BOM + trailing UTF-16 NUL, 1 char = 2 byte)
+                    ),
                     b"\xfe\xff" + self.Unicode.encode("utf-16-be", "replace") + b"\0\0",
                 ]
             )  # Unicode desc, \0\0 terminated
@@ -6148,8 +6155,8 @@ class ICCProfile:
                         for entry in search_path.glob(profile):
                             if entry.is_file():
                                 profile = str(entry)
-                                # TODO: update this to stay a Path instance after migration
-                                #       to pathlib is completed
+                                # TODO: update this to stay a Path instance after
+                                #       migration to pathlib is completed
                                 found_profile = True
                                 break
 
@@ -6591,7 +6598,8 @@ class ICCProfile:
                         if (tagDataOffset, tagDataSize) in tags:
                             if DEBUG:
                                 print(
-                                    "    tagDataOffset and tagDataSize indicate shared tag"
+                                    "    tagDataOffset and tagDataSize indicate "
+                                    "shared tag"
                                 )
                         else:
                             start = tagDataOffset - discard_len
@@ -7733,7 +7741,9 @@ class ICCProfile:
                 r_points, g_points, b_points, linear_points = tag.get_values()
                 points = r_points, g_points, b_points
                 # if r_points == g_points == b_points == linear_points:
-                # info["    Is linear".format(i)] = {True: "Yes"}.get(points[i] == linear_points, "No")
+                #     info["    Is linear".format(i)] = {
+                #         True: "Yes"
+                #     }.get(points[i] == linear_points, "No")
                 # else:
                 if True:
                     unique = tag.get_unique_values()
@@ -7797,7 +7807,8 @@ class ICCProfile:
                         label = "Illuminant-relative"
                     else:
                         label = "PCS-relative"
-                    # if self.connectionColorSpace == "Lab" and self.profileClass == "prtr":
+                    # if (self.connectionColorSpace == "Lab"
+                    #    and self.profileClass == "prtr"):
                     if self.profileClass == b"prtr":
                         color = [" ".join([file_format.format(v) for v in tag.ir.Lab])]
                         info[f"    {label} Lab"] = " ".join(color)
@@ -7844,11 +7855,17 @@ class ICCProfile:
                         if cct:
                             info["    PCS-relative CCT"] = f"{int(cct):d}K"
                         # if delta:
-                        #     info[u"        ΔE 2000 to daylight locus"] = f"{delta['E']:.2f}"
+                        #     info[u"        ΔE 2000 to daylight locus"] = (
+                        #         f"{delta['E']:.2f}"
+                        #     )
                         # kwargs = {"daylight": False}
-                        # cct, delta = colormath.xy_CCT_delta(*tag.pcs.xyY[:2], **kwargs)
+                        # cct, delta = colormath.xy_CCT_delta(
+                        #     *tag.pcs.xyY[:2], **kwargs
+                        # )
                         # if delta:
-                        #     info[u"        ΔE 2000 to blackbody locus"] = f"{delta['E']:.2f}"
+                        #     info[u"        ΔE 2000 to blackbody locus"] = (
+                        #         f"{delta['E']:.2f}"
+                        #     )
                 else:
                     info[name] = ""
                     info["    Illuminant-relative XYZ"] = " ".join(

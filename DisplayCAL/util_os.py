@@ -463,7 +463,7 @@ def _getgroups_win32(
     except ImportError:
         pass
 
-    return groups if names_only else groups
+    return groups
 
 
 def _getgroups_unix(username: Optional[str] = None, names_only: bool = False):

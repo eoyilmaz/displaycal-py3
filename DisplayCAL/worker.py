@@ -1135,7 +1135,7 @@ def get_cfg_option_from_args(option_name, argmatch, args, whole=False):
     return option
 
 
-def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]):
+def get_options_from_args(dispcal_args=None, colprof_args=None) -> tuple[str, str]:
     """Extract options used for dispcal and colprof from argument strings."""
     re_options_dispcal = [
         r"[moupHVFE]",
@@ -1150,7 +1150,10 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> ([str], [str]
         r"[bfakAB]\d+(?:\.\d+)?",
         r"(?:g(?:240|709|l|s)|[gG]\d+(?:\.\d+)?)",
         r"[pP]\d+(?:\.\d+)?,\d+(?:\.\d+)?,\d+(?:\.\d+)?",
-        r'X(?:\s*\d+|\s+["\'][^"\']+?["\'])',  # Argyll >= 1.3.0 colorimeter correction matrix / Argyll >= 1.3.4 calibration spectral sample
+        r'X(?:\s*\d+|\s+["\'][^"\']+?["\'])',  # Argyll >= 1.3.0 colorimeter correction
+        #                                          matrix /
+        #                                        Argyll >= 1.3.4 calibration spectral
+        #                                          sample
         r"I[bw]{,2}",  # Argyll >= 1.3.0 drift compensation
         r"YA",  # Argyll >= 1.5.0 disable adaptive mode
         r"Q\w+",
@@ -2011,7 +2014,7 @@ class Worker(WorkerBase):
         self.lastcmdname = None
         # Filter out warnings from OS components (e.g. shared libraries)
         # E.g.:
-        # Nov 26 16:28:16  dispcal[1006] <Warning>: void CGSUpdateManager::log() const: conn 0x1ec57 token 0x3ffffffffffd0a
+        # Nov 26 16:28:16  dispcal[1006] <Warning>: void CGSUpdateManager::log() const: conn 0x1ec57 token 0x3ffffffffffd0a  # noqa: E501
         prestrip = re.compile(
             r"\D+\s+\d+\s+\d+:\d+:\d+\s+\w+\[\d+]\s+<Warning>:[\S\s]*"
         )
@@ -3006,7 +3009,10 @@ class Worker(WorkerBase):
         return True
 
     def check_instrument_place_on_screen(self, txt):
-        """Check if instrument should be placed on screen by looking at Argyll CMS command output"""
+        """Check if instrument should be placed on screen.
+
+        This is done by looking at Argyll CMS command output.
+        """
         self.instrument_place_on_spot_msg = False
         if "place instrument on test window" in txt.lower():
             self.instrument_place_on_screen_msg = True
@@ -4296,7 +4302,8 @@ END_DATA
                     if mx > 235.0 / 255.0:
                         scale = ((235.0 - 16.0) / 255.0) / (mx - (16.0 / 255.0))
 
-                        # Scale all non-black value down towards black, to avoid clipping
+                        # Scale all non-black value down towards black,
+                        # to avoid clipping
                         for i, v in enumerate(RGB):
                             # Note if channel would clip in itself
                             if v > 235.0 / 255.0:
@@ -4429,7 +4436,8 @@ END_DATA
                                 )
                             )
                             logfiles.write(
-                                "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:.1f} K\n".format(
+                                "XYZ white {:6.4f} {:6.4f} {:6.4f}, "
+                                "CCT {:.1f} K\n".format(
                                     *(XYZscaled[i] + [colormath.XYZ2CCT(*XYZwscaled)])
                                 )
                             )
@@ -4530,7 +4538,8 @@ END_DATA
                                 if cond:
                                     # Black hack
                                     self.log(
-                                        "Black hack - forcing output RGB {:0.0f} {:0.0f} {:0.0f}".format(
+                                        "Black hack - forcing output RGB "
+                                        "{:0.0f} {:0.0f} {:0.0f}".format(
                                             *[
                                                 cLUT65_to_VidRGB(v / maxind) * 255
                                                 for v in abc
@@ -4591,42 +4600,46 @@ END_DATA
                                         clipmask, scale, full, uci, cin = clip[abc]
                                         del clip[abc]
                                         for j, v in enumerate(RGB):
-                                            if clipmask:
+                                            if not clipmask:
+                                                RGB[j] = v
+                                                continue
+                                            if (
+                                                input_encoding != "T"
+                                                and scale > 1
+                                                and v > 16.0 / 255.0
+                                            ):
+                                                # We got +ve clipping
+                                                # Re-scale all non-black values
+                                                v = (
+                                                    v - 16.0 / 255.0
+                                                ) * scale + 16.0 / 255.0
+
+                                            # Deal with -ve clipping and sync
+                                            if clipmask & (1 << j):
+                                                if full[j] == 0.0:
+                                                    # Only extrapolate in black
+                                                    # direction
+                                                    ifull = (
+                                                        1.0 - full[j]
+                                                    )  # Opposite limit to full
+
+                                                    # Do simple extrapolation
+                                                    # (Not perfect though)
+                                                    v = ifull + (v - ifull) * (
+                                                        uci[j] - ifull
+                                                    ) / (cin[j] - ifull)
+
+                                                # Clip or pass sync through
                                                 if (
-                                                    input_encoding != "T"
-                                                    and scale > 1
-                                                    and v > 16.0 / 255.0
+                                                    v < 0.0
+                                                    or v > 1.0
+                                                    or (
+                                                        preserve_sync
+                                                        and abs(uci[j] - full[j])
+                                                        < 1e-6
+                                                    )
                                                 ):
-                                                    # We got +ve clipping
-                                                    # Re-scale all non-black values
-                                                    v = (
-                                                        v - 16.0 / 255.0
-                                                    ) * scale + 16.0 / 255.0
-
-                                                # Deal with -ve clipping and sync
-                                                if clipmask & (1 << j):
-                                                    if full[j] == 0.0:
-                                                        # Only extrapolate in black direction
-                                                        ifull = (
-                                                            1.0 - full[j]
-                                                        )  # Opposite limit to full
-
-                                                        # Do simple extrapolation (Not perfect though)
-                                                        v = ifull + (v - ifull) * (
-                                                            uci[j] - ifull
-                                                        ) / (cin[j] - ifull)
-
-                                                    # Clip or pass sync through
-                                                    if (
-                                                        v < 0.0
-                                                        or v > 1.0
-                                                        or (
-                                                            preserve_sync
-                                                            and abs(uci[j] - full[j])
-                                                            < 1e-6
-                                                        )
-                                                    ):
-                                                        v = full[j]
+                                                    v = full[j]
 
                                             RGB[j] = v
 
@@ -5241,128 +5254,129 @@ END_DATA
             argyll_version_string = None
             self.reset_argyll_enum()
             for line in self.output:
-                if isinstance(line, str):
-                    n += 1
-                    line = line.strip()
-                    if argyll_version_string is None and "version" in line.lower():
-                        argyll_version_string = line[line.lower().find("version") + 8 :]
-                        if argyll_version_string != self.argyll_version_string:
-                            self.set_argyll_version_from_string(argyll_version_string)
-                        print(f"ArgyllCMS {self.argyll_version_string}")
-                        defaults["copyright"] = (
-                            f"No copyright. Created with {appname} {version} and "
-                            f"Argyll CMS {argyll_version_string}"
+                if not isinstance(line, str):
+                    continue
+                n += 1
+                line = line.strip()
+                if argyll_version_string is None and "version" in line.lower():
+                    argyll_version_string = line[line.lower().find("version") + 8 :]
+                    if argyll_version_string != self.argyll_version_string:
+                        self.set_argyll_version_from_string(argyll_version_string)
+                    print(f"ArgyllCMS {self.argyll_version_string}")
+                    defaults["copyright"] = (
+                        f"No copyright. Created with {appname} {version} and "
+                        f"Argyll CMS {argyll_version_string}"
+                    )
+
+                    if self.argyll_version > [1, 0, 4]:
+                        # Rate of blending from neutral to black point.
+                        defaults["calibration.black_point_rate.enabled"] = 1
+
+                    if (
+                        self.argyll_version >= [1, 7]
+                        and "Beta" not in self.argyll_version_string
+                    ):
+                        # Forced black point hack available
+                        # (Argyll CMS 1.7)
+                        defaults["calibration.black_point_hack"] = 1
+
+                    if self.argyll_version >= [1, 9, 4]:
+                        # Add CIE 2012 observers
+                        valid_observers = natsort(observers + ["2012_2", "2012_10"])
+                    else:
+                        valid_observers = observers
+                    for key in [
+                        "{}",
+                        "colorimeter_correction.{}",
+                        "colorimeter_correction.{}.reference",
+                    ]:
+                        key = key.format("observer")
+                        config.valid_values[key] = valid_observers
+                    continue
+                line = line.split(None, 1)
+                if len(line) and line[0][0] == "-":
+                    arg = line[0]
+                    value = line[-1].split(None, 1)[0]
+                    if arg == "-d" and not value.startswith("n"):
+                        # Argyll 2.0.2 started listing -d madvr and -d dummy
+                        # instead of -dmadvr and -ddummy
+                        # Use the non-space-delimited as the canonical form
+                        arg += value
+                    if arg == "-A":
+                        # Rate of blending from neutral to black point.
+                        defaults["calibration.black_point_rate.enabled"] = 1
+                    elif arg in non_standard_display_args:
+                        displays.append(arg)
+                    elif arg == "-b" and not line[-1].startswith("bright"):
+                        # Forced black point hack available
+                        # (Argyll CMS 1.7b 2014-12-22)
+                        defaults["calibration.black_point_hack"] = 1
+                    elif arg == "-dprisma[:host]":
+                        defaults["patterngenerator.prisma.argyll"] = 1
+                    elif arg in ("-dvirtual", "-ddummy"):
+                        # Custom modified Argyll V2.0.2 (-dvirtual)
+                        # or Argyll >= 2.0.2 (-d dummy)
+                        self.argyll_virtual_display = arg[2:]
+                        print("Argyll has virtual display support")
+                elif len(line) > 1 and line[1][0] == "=":
+                    value = line[1].strip(" ='")
+                    if arg == "-d":
+                        # Standard displays
+                        match = re.findall(
+                            r"(.+?),? at (-?\d+), (-?\d+), width (\d+), height (\d+)",
+                            value,
                         )
-
-                        if self.argyll_version > [1, 0, 4]:
-                            # Rate of blending from neutral to black point.
-                            defaults["calibration.black_point_rate.enabled"] = 1
-
-                        if (
-                            self.argyll_version >= [1, 7]
-                            and "Beta" not in self.argyll_version_string
-                        ):
-                            # Forced black point hack available
-                            # (Argyll CMS 1.7)
-                            defaults["calibration.black_point_hack"] = 1
-
-                        if self.argyll_version >= [1, 9, 4]:
-                            # Add CIE 2012 observers
-                            valid_observers = natsort(observers + ["2012_2", "2012_10"])
-                        else:
-                            valid_observers = observers
-                        for key in [
-                            "{}",
-                            "colorimeter_correction.{}",
-                            "colorimeter_correction.{}.reference",
-                        ]:
-                            key = key.format("observer")
-                            config.valid_values[key] = valid_observers
-                        continue
-                    line = line.split(None, 1)
-                    if len(line) and line[0][0] == "-":
-                        arg = line[0]
-                        value = line[-1].split(None, 1)[0]
-                        if arg == "-d" and not value.startswith("n"):
-                            # Argyll 2.0.2 started listing -d madvr and -d dummy
-                            # instead of -dmadvr and -ddummy
-                            # Use the non-space-delimited as the canonical form
-                            arg += value
-                        if arg == "-A":
-                            # Rate of blending from neutral to black point.
-                            defaults["calibration.black_point_rate.enabled"] = 1
-                        elif arg in non_standard_display_args:
-                            displays.append(arg)
-                        elif arg == "-b" and not line[-1].startswith("bright"):
-                            # Forced black point hack available
-                            # (Argyll CMS 1.7b 2014-12-22)
-                            defaults["calibration.black_point_hack"] = 1
-                        elif arg == "-dprisma[:host]":
-                            defaults["patterngenerator.prisma.argyll"] = 1
-                        elif arg in ("-dvirtual", "-ddummy"):
-                            # Custom modified Argyll V2.0.2 (-dvirtual)
-                            # or Argyll >= 2.0.2 (-d dummy)
-                            self.argyll_virtual_display = arg[2:]
-                            print("Argyll has virtual display support")
-                    elif len(line) > 1 and line[1][0] == "=":
-                        value = line[1].strip(" ='")
-                        if arg == "-d":
-                            # Standard displays
-                            match = re.findall(
-                                r"(.+?),? at (-?\d+), (-?\d+), width (\d+), height (\d+)",
-                                value,
+                        if len(match):
+                            xrandr_name = re.search(r", Output (.+)", match[0][0])
+                            if xrandr_name:
+                                xrandr_names[len(displays)] = xrandr_name.group(1)
+                            display = "{} @ {}, {}, {}x{}".format(*match[0])
+                            if " ".join(value.split()[-2:]) == "(Primary Display)":
+                                display += " [PRIMARY]"
+                            displays.append(display)
+                            self.display_rects.append(
+                                wx.Rect(*[int(item) for item in match[0][1:]])
                             )
-                            if len(match):
-                                xrandr_name = re.search(r", Output (.+)", match[0][0])
-                                if xrandr_name:
-                                    xrandr_names[len(displays)] = xrandr_name.group(1)
-                                display = "{} @ {}, {}, {}x{}".format(*match[0])
-                                if " ".join(value.split()[-2:]) == "(Primary Display)":
-                                    display += " [PRIMARY]"
-                                displays.append(display)
-                                self.display_rects.append(
-                                    wx.Rect(*[int(item) for item in match[0][1:]])
-                                )
-                        elif arg == "-dcc[:n]":
-                            # Chromecast
-                            if value:
-                                # Note the Chromecast name may be mangled due
-                                # to being UTF-8 encoded, but commandline output
-                                # will always be decoded to Unicode using the
-                                # stdout encoding, which may not be UTF-8
-                                # (e.g. under Windows). We can recover characters
-                                # valid in both UTF-8 and stdout encoding
-                                # by a re-encode/decode step
-                                displays.append(
-                                    f"Chromecast {line[0]}: {safe_str(value, enc)}"
-                                )
-                        elif arg == "-dprisma[:host]":
-                            # Prisma (via Argyll CMS)
-                            # <serial no>: <name> @ <ip>
-                            # 141550000000: prisma-0000 @ 172.31.31.162
-                            match = re.findall(r".+?: (.+) @ (.+)", value)
-                            if len(match):
-                                displays.append(
-                                    f"Prisma {line[0]}: {safe_str(match[0][0], enc)} "
-                                    f"@ {match[0][1]}"
-                                )
-                        elif arg == "-c" and enumerate_ports:
-                            if (
-                                re.match(r"/dev(?:/[\w.\-]+)*$", value)
-                                or re.match(r"COM\d+$", value)
-                            ) and getcfg("skip_legacy_serial_ports"):
-                                # Skip all legacy serial ports (this means we
-                                # deliberately don't support DTP92 and
-                                # Spectrolino, although they may work when
-                                # used with a serial to USB adaptor)
-                                continue
-                            value = value.split(None, 1)
-                            if len(value) > 1:
-                                value = value[1].split("'", 1)[0].strip("()")
-                            else:
-                                value = value[0]
-                            value = get_canonical_instrument_name(value)
-                            instruments.append(value)
+                    elif arg == "-dcc[:n]":
+                        # Chromecast
+                        if value:
+                            # Note the Chromecast name may be mangled due
+                            # to being UTF-8 encoded, but commandline output
+                            # will always be decoded to Unicode using the
+                            # stdout encoding, which may not be UTF-8
+                            # (e.g. under Windows). We can recover characters
+                            # valid in both UTF-8 and stdout encoding
+                            # by a re-encode/decode step
+                            displays.append(
+                                f"Chromecast {line[0]}: {safe_str(value, enc)}"
+                            )
+                    elif arg == "-dprisma[:host]":
+                        # Prisma (via Argyll CMS)
+                        # <serial no>: <name> @ <ip>
+                        # 141550000000: prisma-0000 @ 172.31.31.162
+                        match = re.findall(r".+?: (.+) @ (.+)", value)
+                        if len(match):
+                            displays.append(
+                                f"Prisma {line[0]}: {safe_str(match[0][0], enc)} "
+                                f"@ {match[0][1]}"
+                            )
+                    elif arg == "-c" and enumerate_ports:
+                        if (
+                            re.match(r"/dev(?:/[\w.\-]+)*$", value)
+                            or re.match(r"COM\d+$", value)
+                        ) and getcfg("skip_legacy_serial_ports"):
+                            # Skip all legacy serial ports (this means we
+                            # deliberately don't support DTP92 and
+                            # Spectrolino, although they may work when
+                            # used with a serial to USB adaptor)
+                            continue
+                        value = value.split(None, 1)
+                        if len(value) > 1:
+                            value = value[1].split("'", 1)[0].strip("()")
+                        else:
+                            value = value[0]
+                        value = get_canonical_instrument_name(value)
+                        instruments.append(value)
             if test:
                 inames = list(all_instruments.keys())
                 inames.sort()
@@ -6937,12 +6951,14 @@ BEGIN_DATA
                                 while not self.send_buffer:
                                     if not self.subprocess.isalive():
                                         self.log(
-                                            f"{appname}: Subprocess no longer alive (unknown reason)"
+                                            f"{appname}: Subprocess no longer alive "
+                                            f"(unknown reason)"
                                         )
                                         break
                                     sleep(0.05)
                                 self.log(
-                                    f"{appname}: Send buffer received: {self.send_buffer}"
+                                    f"{appname}: Send buffer received: "
+                                    f"{self.send_buffer}"
                                 )
                             if (
                                 self.send_buffer is not None
@@ -7377,7 +7393,10 @@ BEGIN_DATA
 
         if logfile:
             if source == "A2B":
-                msg = f"Generating B2A{tableno:d} table by inverting A2B{tableno:d} table\n"
+                msg = (
+                    f"Generating B2A{tableno:d} table by inverting "
+                    f"A2B{tableno:d} table\n"
+                )
             else:
                 msg = f"Re-generating B2A{tableno:d} table by interpolation\n"
             logfile.write(msg)
@@ -8819,7 +8838,7 @@ usage: spotread [-options] [logfile]
  -Y A                 Use non-adaptive integration time mode (if available).
  -W n|h|x             Override serial port flow control: n = none, h = HW, x = Xon/Xoff
  -D [level]           Print debug diagnostics to stderr
- logfile              Optional file to save reading results as text""".splitlines()
+ logfile              Optional file to save reading results as text""".splitlines()  # noqa: E501
                     )
                 measurement_modes_follow = False
                 technology_strings = self.get_technology_strings()
@@ -9740,12 +9759,15 @@ usage: spotread [-options] [logfile]
                         applescript = [
                             'tell application "System Preferences"',
                             "activate",
-                            'set current pane to pane id "com.apple.preference.displays"',
-                            'reveal (first anchor of current pane whose name is "displaysColorTab")',
+                            'set current pane to pane id '
+                            '"com.apple.preference.displays"',
+                            'reveal (first anchor of current pane whose name is '
+                            '"displaysColorTab")',
                             # This needs access for assistive devices enabled
                             # 'tell application "System Events"',
                             # 'tell process "System Preferences"',
-                            # 'select row 2 of table 1 of scroll area 1 of group 1 of tab group 1 of window "<Display name from EDID here>"',
+                            # 'select row 2 of table 1 of scroll area 1 of group 1 of '
+                            # 'tab group 1 of window "<Display name from EDID here>"',
                             # 'end tell',
                             # 'end tell',
                             "end tell",
@@ -10793,7 +10815,8 @@ usage: spotread [-options] [logfile]
                                     break
                             if pcs and input_curve_clipping and Labbp:
                                 self.log(
-                                    "Applying black offset L*a*b* {:.2f} {:.2f} {:.2f} to {}...".format(
+                                    "Applying black offset L*a*b* "
+                                    "{:.2f} {:.2f} {:.2f} to {}...".format(
                                         *(Labbp + (gamap_profile.getDescription(),))
                                     )
                                 )
@@ -11311,7 +11334,7 @@ usage: spotread [-options] [logfile]
                 )
         # Get profile max and avg err to be later added to metadata
         # Argyll outputs the following:
-        # Profile check complete, peak err = x.xxxxxx, avg err = x.xxxxxx, RMS = x.xxxxxx
+        # Profile check complete, peak err = x.xxxxxx, avg err = x.xxxxxx, RMS = x.xxxxxx  # noqa: E501
         peak = None
         avg = None
         rms = None
@@ -11601,7 +11624,9 @@ usage: spotread [-options] [logfile]
         profile.tags.A2B0.profile = profile
 
         # # Add black back in
-        # black_XYZ_D50 = colormath.adapt(*black_XYZ, whitepoint_source=white_XYZ, cat=cat)
+        # black_XYZ_D50 = colormath.adapt(
+        #     *black_XYZ, whitepoint_source=white_XYZ, cat=cat
+        # )
         # profile.tags.A2B0.apply_black_offset(black_XYZ_D50)
 
         return profile
@@ -12831,8 +12856,8 @@ usage: spotread [-options] [logfile]
     ):
         """Prepare a colprof commandline.
 
-        All options are read from the user configuration.
-        Profile name and display name can be overridden by passing thecorresponding arguments.
+        All options are read from the user configuration. Profile name and display
+        name can be overridden by passing thecorresponding arguments.
         """
         if profile_name is None:
             profile_name = getcfg("profile.name.expanded")
@@ -14019,7 +14044,8 @@ usage: spotread [-options] [logfile]
                     except Exception as exception:
                         self.log(traceback.format_exc(), fn=logfn)
                         self.log(
-                            f"{appname}: Exception in quit_terminate_command: {exception}",
+                            f"{appname}: Exception in quit_terminate_command: "
+                            f"{exception}",
                             fn=logfn,
                         )
                 elif hasattr(subprocess, "sendintr"):
@@ -14029,7 +14055,8 @@ usage: spotread [-options] [logfile]
                     except Exception as exception:
                         self.log(traceback.format_exc(), fn=logfn)
                         self.log(
-                            f"{appname}: Exception in quit_terminate_command: {exception}",
+                            f"{appname}: Exception in quit_terminate_command: "
+                            f"{exception}",
                             fn=logfn,
                         )
                     ts = time()
@@ -15158,14 +15185,12 @@ usage: spotread [-options] [logfile]
                 profile, XYZscaled, "a", "if", pcs="x", use_cam_clipping=True
             )
             logfiles.write(
-                "RGB black after inverse forward lookup {:6.4f} {:6.4f} {:6.4f}\n".format(
-                    *RGBscaled[0]
-                )
+                "RGB black after inverse forward lookup"
+                " {:6.4f} {:6.4f} {:6.4f}\n".format(*RGBscaled[0])
             )
             logfiles.write(
-                "RGB white after inverse forward lookup {:6.4f} {:6.4f} {:6.4f}\n".format(
-                    *RGBscaled[-1]
-                )
+                "RGB white after inverse forward lookup "
+                "{:6.4f} {:6.4f} {:6.4f}\n".format(*RGBscaled[-1])
             )
             if res != 256:
                 # Interpolate
@@ -16627,7 +16652,8 @@ BEGIN_DATA
                                         shutil.rmtree(dst, True)
                                     except Exception as exception:
                                         print(
-                                            f"Warning - directory '{dst}' could not be removed: {exception}"
+                                            f"Warning - directory '{dst}' "
+                                            f"could not be removed: {exception}"
                                         )
                                 else:
                                     if verbose >= 2:
@@ -16640,7 +16666,8 @@ BEGIN_DATA
                                         os.remove(dst)
                                     except Exception as exception:
                                         print(
-                                            f"Warning - file '{dst}' could not be removed: {exception}"
+                                            f"Warning - file '{dst}' "
+                                            f"could not be removed: {exception}"
                                         )
                             if remove:
                                 if verbose >= 2:
@@ -16809,7 +16836,8 @@ BEGIN_DATA
             self.patch_count = 0
             self.patterngenerator_sent_count = 0
         update = re.search(
-            r"[/\\] current|patch \d+ of |the instrument can be removed from the screen",
+            r"[/\\] current|patch \d+ of |"
+            r"the instrument can be removed from the screen",
             txt,
             re.I,
         )
@@ -16914,7 +16942,9 @@ BEGIN_DATA
                 # XXX: This can happen when pausing/unpausing?
                 # Need to investigate
                 self.log("Warning - did we loose sync with the pattern generator?")
-                # self.exec_cmd_returnvalue = Error(lang.getstr("patterngenerator.sync_lost"))
+                # self.exec_cmd_returnvalue = (
+                #     Error(lang.getstr("patterngenerator.sync_lost"))
+                # )
                 # self.abort_subprocess()
         if update and not (
             self.subprocess_abort

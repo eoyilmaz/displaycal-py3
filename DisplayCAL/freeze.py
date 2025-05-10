@@ -12,7 +12,6 @@ from fnmatch import fnmatch
 from time import strftime
 
 from py2exe import freeze
-from setuptools import Extension
 
 
 # Borrowed from setuptools
@@ -416,19 +415,7 @@ def build_py2exe():
                     desktopicons,
                 )
             )
-    sources = [os.path.join(name, "RealDisplaySizeMM.c")]
-    macros = [("NT", None)]
-    libraries = ["user32", "gdi32"]
-    link_args = None
-    extname = f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}.RealDisplaySizeMM"
-    RealDisplaySizeMM = Extension(
-        extname,
-        sources=sources,
-        define_macros=macros,
-        libraries=libraries,
-        extra_link_args=link_args,
-    )
-    ext_modules = [RealDisplaySizeMM]
+    ext_modules = []
     requires = []
     requires.append("pywin32 (>= 213.0)")
     packages = [name, f"{name}.lib", f"{name}.lib.agw"]
@@ -449,7 +436,8 @@ def build_py2exe():
             "Environment :: Win32 (MS Windows)",
             "Environment :: X11 Applications",
             "Intended Audience :: End Users/Desktop",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: GNU General Public License v3 "
+            "or later (GPLv3+)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
@@ -460,7 +448,8 @@ def build_py2exe():
         ],
         "data_files": data_files,
         "description": description,
-        "download_url": f"{development_home_page}/releases/download/{version}/{name}-{version}.tar.gz",
+        "download_url": f"{development_home_page}/releases/download/"
+            f"{version}/{name}-{version}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,
@@ -499,7 +488,7 @@ def build_py2exe():
                 for script, desc in scripts
             ]
         }
-        attrs["exclude_package_data"] = {name: ["RealDisplaySizeMM.c"]}
+        attrs["exclude_package_data"] = {}
         attrs["include_package_data"] = False
         install_requires = [req.replace("(", "").replace(")", "") for req in requires]
         attrs["install_requires"] = install_requires

@@ -759,7 +759,8 @@ def get_display_rects() -> list[tuple[int, int, int, int]]:
     """Return the Argyll enumerated display coordinates and sizes.
 
     Returns:
-        list[tuple[int, int, int, int]]: A list of wx.Rect objects representing the display coordinates and sizes.
+        list[tuple[int, int, int, int]]: A list of wx.Rect objects representing
+            the display coordinates and sizes.
     """
     from DisplayCAL.wxaddons import wx
 

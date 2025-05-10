@@ -294,7 +294,7 @@ def get_wayland_display(x, y, w, h):
     # The xrandr output is also interesting in that case:
     # $ xrandr
     # Screen 0: minimum 320 x 200, current 3660 x 1941, maximum 8192 x 8192
-    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950
+    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950  # noqa: E501
     #   3656x1941     59.96*+
     # Note the apparent mismatch between first and 2nd/3rd line.
     # Look for active display at x, y instead.

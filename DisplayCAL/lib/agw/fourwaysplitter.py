@@ -524,8 +524,8 @@ class FourWaySplitter(wx.Panel):
             idx (int): the index at which the window is located.
 
         Returns:
-            Union[None, wx.Window]: The window at the specified index or ``None`` if the index
-                is out of range.
+            Union[None, wx.Window]: The window at the specified index or `None`
+                if the index is out of range.
         """
         if len(self._windows) > idx:
             return self._windows[idx]
@@ -1152,7 +1152,7 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
-        """MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.
+        """A custom wx.Frame that demonstrates the usage of the FourWaySplitter.
 
         It initializes a frame with a FourWaySplitter containing four colored panels.
 

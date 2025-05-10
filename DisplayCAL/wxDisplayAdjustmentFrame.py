@@ -245,9 +245,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
             count = count + 1
 
-            # incase the 'fit button' style is applied, we set the rectangle width to the
+            # incase the 'fit button' style is applied,
+            # we set the rectangle width to the
             # text width plus padding
-            # Incase the style IS applied, but the style is either LEFT or RIGHT
+            # Incase the style IS applied,
+            # but the style is either LEFT or RIGHT
             # we ignore it
             normalFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
             dc.SetFont(normalFont)
@@ -282,8 +284,9 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                     rectWidth += 1
 
             # Check that we have enough space to draw the button
-            # If Pin button is used, consider its space as well (applicable for top/botton style)
-            # since in the left/right, its size is already considered in 'pos'
+            # If Pin button is used, consider its space as well (applicable
+            # for top/botton style) since in the left/right, its size is already
+            # considered in 'pos'
             pinBtnSize = (bUsePin and [20] or [0])[0]
 
             if pos + rectWidth + pinBtnSize > clientSize:
@@ -416,8 +419,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
 
 class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
-    """Override default agw ImageContainer to use BackgroundColour and ForegroundColour with no borders/labeltext and
-    hilite image instead of hilite shading
+    """Overridden agw.ImageContainer.
+
+    This is a subclass of L{FlatImageBook} that allows you to use
+    BackgroundColour and ForegroundColour with no borders/labeltext and hilite
+    image instead of hilite shading.
     """
 
     def __init__(
@@ -440,9 +446,10 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         )
 
     def SetAGWWindowStyleFlag(self, agwStyle):
-        """Sets the window style.
+        """Set the window style.
 
-        :param agwStyle: can be a combination of the following bits.
+        Args:
+            agwStyle: Can be a combination of the following bits.
 
          =========================== =========== ==================================================
          Window Styles               Hex Value   Description
@@ -462,7 +469,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
          ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
          ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
          =========================== =========== ==================================================
-        """
+        """  # noqa: E501
 
         self._agwStyle = agwStyle
 
@@ -1246,7 +1253,9 @@ class DisplayAdjustmentFrame(windowcls):
             event.Skip()
 
     def measurement_play_sound_handler(self, event):
-        # self.measurement_play_sound_ctrl.SetValue(not self.measurement_play_sound_ctrl.GetValue())
+        # self.measurement_play_sound_ctrl.SetValue(
+        #     not self.measurement_play_sound_ctrl.GetValue()
+        # )
         setcfg(
             "measurement.play_sound", int(not (bool(getcfg("measurement.play_sound"))))
         )
@@ -1280,7 +1289,9 @@ class DisplayAdjustmentFrame(windowcls):
         )
         if getcfg("measurement_mode") == "c":
             target_bl = re.search(
-                r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
+                (
+                    r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(
                     " ", r"\s+"
                 ),
                 txt,
@@ -1292,7 +1303,11 @@ class DisplayAdjustmentFrame(windowcls):
                     float(target_bl.groups()[0]),
                 ]
         initial_br = re.search(
-            r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)".replace(
+            (
+                r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, "
+                r"x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)"
+            ).replace(
                 " ", r"\s+"
             ),
             txt,
@@ -1313,9 +1328,9 @@ class DisplayAdjustmentFrame(windowcls):
             )
         else:
             current_br = re.search(
-                r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
-                    " ", r"\s+"
-                ),
+                (
+                    r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(" ", r"\s+"),
                 txt,
                 re.I,
             )
@@ -1330,7 +1345,10 @@ class DisplayAdjustmentFrame(windowcls):
                     current_bl = float(target_bl.groups()[1])
             else:
                 current_bl = re.search(
-                    r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) (?:\d+(?:\.\d+)?)".replace(
+                    (
+                        r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) "
+                        r"(?:\d+(?:\.\d+)?)"
+                    ).replace(
                         " ", r"\s+"
                     ),
                     txt,
@@ -1339,15 +1357,19 @@ class DisplayAdjustmentFrame(windowcls):
                 if current_bl:
                     current_bl = float(current_bl.groups()[0])
         xy_dE_rgb = re.search(
-            r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) R([=+-]+) G([=+-]+) B([=+-]+)".replace(
-                " ", r"\s+"
-            ),
+            (
+                r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) "
+                r"R([=+-]+) G([=+-]+) B([=+-]+)"
+            ).replace(" ", r"\s+"),
             txt,
             re.I,
         )
-        white_xy_dE_re = r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), (?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)".replace(
-            " ", r"\s+"
-        )
+        white_xy_dE_re = (
+            r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), "
+            r"Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), "
+            r"(?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)"
+        ).replace(" ", r"\s+")
         white_xy_dE = re.search(white_xy_dE_re, txt, re.I)
         black_xy_dE = re.search(white_xy_dE_re.replace(r"white", "black"), txt, re.I)
         white_xy_target = re.search(

@@ -309,15 +309,6 @@ class HLG:
 
 
 rgb_spaces = {
-    # http://brucelindbloom.com/WorkingSpaceInfo.html
-    # ACES: https://github.com/ampas/aces-dev/blob/master/docs/ACES_1.0.1.pdf?raw=true
-    # Adobe RGB: http://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
-    # DCI P3: http://www.hp.com/united-states/campaigns/workstations/pdfs/lp2480zx-dci--p3-emulation.pdf
-    #         http://dcimovies.com/specification/DCI_DCSS_v12_with_errata_2012-1010.pdf
-    # Rec. 2020: http://en.wikipedia.org/wiki/Rec._2020
-    #
-    # name              gamma             white                     primaries
-    #                                     point                     Rx      Ry      RY          Gx      Gy      GY          Bx      By      BY
     "ACES": (
         1.0,
         (0.95265, 1.0, 1.00883),
@@ -381,7 +372,13 @@ rgb_spaces = {
         (0.2950, 0.6050, 0.658132),
         (0.1500, 0.0750, 0.066985),
     ),
-    # "DCDM X'Y'Z'":      (2.6,             "E",                     (1.0000, 0.0000, 0.000000), (0.0000, 1.0000, 1.000000), (0.0000, 0.0000, 0.000000)),
+    # "DCDM X'Y'Z'": (
+    #     2.6,
+    #     "E",
+    #     (1.0000, 0.0000, 0.000000),
+    #     (0.0000, 1.0000, 1.000000),
+    #     (0.0000, 0.0000, 0.000000)
+    # ),
     "DCI P3": (
         2.6,
         (0.89459, 1.0, 0.95442),
@@ -488,6 +485,17 @@ rgb_spaces = {
         (0.1570, 0.0180, 0.016875),
     ),
 }
+"""
+http://brucelindbloom.com/WorkingSpaceInfo.html
+ACES: https://github.com/ampas/aces-dev/blob/master/docs/ACES_1.0.1.pdf?raw=true
+Adobe RGB: http://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+DCI P3: http://www.hp.com/united-states/campaigns/workstations/pdfs/lp2480zx-dci--p3-emulation.pdf
+        http://dcimovies.com/specification/DCI_DCSS_v12_with_errata_2012-1010.pdf
+Rec. 2020: http://en.wikipedia.org/wiki/Rec._2020
+
+name              gamma             white                     primaries
+                                    point                     Rx      Ry      RY          Gx      Gy      GY          Bx      By      BY
+"""  # noqa: E501
 
 
 def get_cat_matrix(cat="Bradford"):
@@ -3279,7 +3287,8 @@ class BT1886:
         self.apply_trc = apply_trc
 
     def apply(self, X, Y, Z):
-        """Apply BT.1886 black offset and gamma curve to the XYZ out of the input profile.
+        """Apply BT.1886 black offset + gamma curve to the XYZ out of the input profile.
+
         Do this in the colorspace defined by the input profile matrix lookup,
         so it will be relative XYZ. We assume that BT.1886 does a Rec709 to gamma
         viewing adjustment, on top of any source profile transfer curve

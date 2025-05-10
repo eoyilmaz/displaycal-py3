@@ -260,7 +260,10 @@ def run(
     The following will run SSH and execute 'ls -l' on the remote machine. The
     password 'secret' will be sent if the '(?i)password' pattern is ever seen::
 
-        run ("ssh username@machine.example.com 'ls -l'", events={'(?i)password':'secret\\n'})
+        run (
+            "ssh username@machine.example.com 'ls -l'",
+            events={'(?i)password':'secret\\n'}
+        )
 
     This will start mencoder to rip a video from DVD. This will also display
     progress ticks every 5 seconds as it runs. For example::
@@ -268,7 +271,11 @@ def run(
         from pexpect import *
         def print_ticks(d):
             print d['event_count'],
-        run ("mencoder dvd://1 -o video.avi -oac copy -ovc copy", events={TIMEOUT:print_ticks}, timeout=5)
+        run (
+            "mencoder dvd://1 -o video.avi -oac copy -ovc copy",
+            events={TIMEOUT:print_ticks},
+            timeout=5
+        )
 
     The 'events' argument should be a dictionary of patterns and responses.
     Whenever one of the patterns is seen in the command out run() will send the
@@ -535,11 +542,11 @@ class spawn_unix:
         self.logfile_send = None  # output to send (send, sendline)
         self.maxread = maxread  # max bytes to read at one time into buffer
         self.buffer = ""  # This is the read buffer. See maxread.
-        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.
+        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.  # noqa: E501
         # Most Linux machines don't like delaybeforesend to be below 0.03 (30 ms).
-        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.
-        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
-        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
+        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.  # noqa: E501
+        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
+        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
         self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
@@ -632,8 +639,11 @@ class spawn_unix:
         # If command is an int type then it may represent a file descriptor.
         if isinstance(command, int):
             raise ExceptionPexpect(
-                "Command is an int type. If this is a file descriptor then maybe you want to use fdpexpect.fdspawn "
-                "which takes an existing file descriptor instead of a command string."
+                "Command is an int type. "
+                "If this is a file descriptor "
+                "then maybe you want to use fdpexpect.fdspawn "
+                "which takes an existing file descriptor "
+                "instead of a command string."
             )
 
         if not isinstance(args, list):
@@ -865,7 +875,8 @@ class spawn_unix:
         following will work as expected::
 
             p = pexpect.spawn('cat')
-            p.sendline ('1234') # We will see this twice (once from tty echo and again from cat).
+            # We will see this twice (once from tty echo and again from cat).
+            p.sendline ('1234')
             p.expect (['1234'])
             p.expect (['1234'])
             p.setecho(False) # Turn off tty echo
@@ -878,7 +889,8 @@ class spawn_unix:
         will be lost::
 
             p = pexpect.spawn('cat')
-            p.sendline ('1234') # We will see this twice (once from tty echo and again from cat).
+            # We will see this twice (once from tty echo and again from cat).
+            p.sendline ('1234')
             p.setecho(False) # Turn off tty echo
             p.sendline ('abcd') # We will set this only once (echoed by cat).
             p.sendline ('wxyz') # We will set this only once (echoed by cat)
@@ -937,7 +949,8 @@ class spawn_unix:
                     "End Of File (EOF) in read_nonblocking(). Braindead platform."
                 )
         elif self.__irix_hack:
-            # This is a hack for Irix. It seems that Irix requires a long delay before checking isalive.
+            # This is a hack for Irix.
+            # It seems that Irix requires a long delay before checking isalive.
             # This adds a 2 second delay, but only when the child is terminated.
             r, w, e = self.__select([self.child_fd], [], [], 2)
             if not r and not self.isalive():
@@ -948,8 +961,10 @@ class spawn_unix:
 
         if not r:
             if not self.isalive():
-                # Some platforms, such as Irix, will claim that their processes are alive;
-                # then timeout on the select; and then finally admit that they are not alive.
+                # Some platforms, such as Irix,
+                # will claim that their processes are alive;
+                # then timeout on the select;
+                # and then finally admit that they are not alive.
                 self.flag_eof = True
                 raise EOF(
                     "End of File (EOF) in read_nonblocking(). Very pokey platform."
@@ -968,7 +983,8 @@ class spawn_unix:
             if s == b"":  # BSD style
                 self.flag_eof = True
                 raise EOF(
-                    "End Of File (EOF) in read_nonblocking(). Empty string style platform."
+                    "End Of File (EOF) in read_nonblocking(). "
+                    "Empty string style platform."
                 )
 
             if self.logfile is not None:
@@ -1248,7 +1264,8 @@ class spawn_unix:
             else:
                 raise e
 
-        # I have to do this twice for Solaris. I can't even believe that I figured this out...
+        # I have to do this twice for Solaris.
+        # I can't even believe that I figured this out...
         # If waitpid() returns 0 it means that no child process wishes to
         # report, and the value of status is undefined.
         if pid == 0:
@@ -1592,10 +1609,14 @@ class spawn_unix:
             import pexpect, struct, fcntl, termios, signal, sys
             def sigwinch_passthrough (sig, data):
                 s = struct.pack("HHHH", 0, 0, 0, 0)
-                a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
+                a = struct.unpack(
+                    'hhhh',
+                    fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+                )
                 global p
                 p.setwinsize(a[0],a[1])
-            p = pexpect.spawn('/bin/bash') # Note this is global and used in sigwinch_passthrough.
+            # Note this is global and used in sigwinch_passthrough.
+            p = pexpect.spawn('/bin/bash')
             signal.signal(signal.SIGWINCH, sigwinch_passthrough)
             p.interact()
         """
@@ -1668,13 +1689,16 @@ class spawn_unix:
                 return select.select(iwtd, owtd, ewtd, timeout)
             except OSError as e:
                 if e[0] == errno.EINTR:
-                    # if we loop back we have to subtract the amount of time we already waited.
+                    # if we loop back we have to subtract
+                    # the amount of time we already waited.
                     if timeout is not None:
                         timeout = end_time - time.time()
                         if timeout < 0:
                             return ([], [], [])
-                else:  # something else caused the select.error, so this really is an exception
-                    raise
+                else:
+                    # something else caused the select.error,
+                    # so this really is an exception
+                    raise e
 
     ##############################################################################
     # The following methods are no longer supported or allowed.
@@ -1753,10 +1777,10 @@ class spawn_windows(spawn_unix):
         self.logfile_send = None  # output to send (send, sendline)
         self.maxread = maxread  # max bytes to read at one time into buffer
         self.buffer = ""  # This is the read buffer. See maxread.
-        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.
-        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.
-        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.
-        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.
+        self.searchwindowsize = searchwindowsize  # Anything before searchwindowsize point is preserved, but not searched.  # noqa: E501
+        self.delaybeforesend = 0.05  # Sets sleep time used just before sending data to child. Time in seconds.  # noqa: E501
+        self.delayafterclose = 0.1  # Sets delay in close() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
+        self.delayafterterminate = 0.1  # Sets delay in terminate() method to allow kernel time to update process status. Time in seconds.  # noqa: E501
         self.softspace = False  # File-like object.
         self.name = f"<{repr(self)}>"  # File-like object.
         self.encoding = None  # File-like object.
@@ -2150,7 +2174,6 @@ class Wtty:
                 dirname = os.path.join(dirname, "lib")
                 spath.append(os.path.join(dirname, "library.zip"))
                 spath.append(os.path.join(dirname, "library.zip", appname))
-            # DEBUG: add lib/temp dir for debugging ArgyllCMS executables not starting problem
             spath.append(os.path.join(dirname, "temp"))
 
             pyargs.insert(0, "-S")  # skip 'import site'
@@ -2675,7 +2698,8 @@ class ConsoleReader:
             cursorinfo = consout.GetConsoleCursorInfo()
 
             while GetExitCodeProcess(self.__childProcess) == STILL_ACTIVE:
-                try:
+                # Only let child react to CTRL+C, ignore in ConsoleReader
+                with contextlib.suppress(KeyboardInterrupt):
                     if GetExitCodeProcess(parent) != STILL_ACTIVE:
                         try:
                             TerminateProcess(self.__childProcess, 0)
@@ -2688,8 +2712,12 @@ class ConsoleReader:
                     maxconsoleY = consinfo["Size"].Y / 2
 
                     if cursorPos.Y > maxconsoleY and not paused:  # noqa: SIM300
-                        # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
-                        # log('suspendThread', 'consolereader', logdir)
+                        # log(
+                        #     f"ConsoleReader.__init__: cursorPos {cursorPos}",
+                        #     "consolereader",
+                        #     logdir
+                        # )
+                        # log("suspendThread", "consolereader", logdir)
                         self.suspendThread()
                         paused = True
                         SetConsoleTitle(f"{path} (suspended)")
@@ -2697,8 +2725,12 @@ class ConsoleReader:
                         consout.SetConsoleCursorInfo(cursorinfo[0], 0)
 
                     if cursorPos.Y <= maxconsoleY and paused:  # noqa: SIM300
-                        # log('ConsoleReader.__init__: cursorPos %s' % cursorPos, 'consolereader', logdir)
-                        # log('resumeThread', 'consolereader', logdir)
+                        # log(
+                        #     f"ConsoleReader.__init__: cursorPos {cursorPos}",
+                        #     "consolereader",
+                        #     logdir
+                        # )
+                        # log("resumeThread", "consolereader", logdir)
                         self.resumeThread()
                         paused = False
                         SetConsoleTitle(path)
@@ -2706,9 +2738,6 @@ class ConsoleReader:
                         consout.SetConsoleCursorInfo(cursorinfo[0], cursorinfo[1])
 
                     time.sleep(0.1)
-                except KeyboardInterrupt:
-                    # Only let child react to CTRL+C, ignore in ConsoleReader
-                    pass
 
             SetConsoleTitle(f"ConsoleReader: {path} (terminated)")
             consout.SetConsoleCursorInfo(cursorinfo[0], 0)  # Hide cursor

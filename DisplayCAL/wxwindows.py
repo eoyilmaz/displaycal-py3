@@ -343,14 +343,16 @@ class AnimatedBitmap(wx.PyControl):
 
 class AuiBetterTabArt(AuiDefaultTabArt):
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
-        """Draws a single tab.
+        """Draw a single tab.
 
-        :param dc: a :class:`DC` device context;
-        :param wnd: a :class:`Window` instance object;
-        :param page: the tab control page associated with the tab;
-        :param Rect `in_rect`: rectangle the tab should be confined to;
-        :param integer `close_button_state`: the state of the close button on the tab;
-        :param bool `paint_control`: whether to draw the control inside a tab (if any) on a :class:`MemoryDC`.
+        Args:
+            dc: a :class:`DC` device context.
+            wnd: a :class:`Window` instance object.
+            page: the tab control page associated with the tab.
+            in_rect (Rect): rectangle the tab should be confined to.
+            close_button_state (int): the state of the close button on the tab.
+            paint_control (bool): whether to draw the control inside a tab (if
+                any) on a :class:`MemoryDC`.
         """
 
         # if the caption is empty, measure some temporary text
@@ -648,10 +650,11 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         return out_tab_rect, out_button_rect, x_extent
 
     def SetDefaultColours(self, base_colour=None):
-        """Sets the default colours, which are calculated from the given base colour.
+        """Set the default colours, which are calculated from the given base colour.
 
-        :param base_colour: an instance of :class:`Colour`. If defaulted to ``None``, a colour
-         is generated accordingly to the platform and theme.
+        Args:
+            base_colour: an instance of :class:`Colour`. If defaulted to ``None``,
+                a colour is generated accordingly to the platform and theme.
         """
 
         if base_colour is None:
@@ -1997,7 +2000,8 @@ class BaseFrame(wx.Frame):
                         print(f"{scripting_host} {command} returned", response)
                     else:
                         print(
-                            f"Warning - {scripting_host} not running under expected port",
+                            f"Warning - {scripting_host} not running under "
+                            "expected port",
                             port,
                         )
                     del conn
@@ -4466,7 +4470,8 @@ class CustomGrid(wx.grid.Grid):
                     if i not in rows:
                         add.append(i)
                 if len(desel) >= len(add):
-                    # in this case deselecting rows will take as long or longer than selecting, so use SelectRow to speed up the operation
+                    # in this case deselecting rows will take as long or longer
+                    # than selecting, so use SelectRow to speed up the operation
                     self.SelectRow(row)
                 else:
                     for i in desel:
@@ -5065,7 +5070,7 @@ class CustomColLabelRenderer:
             # align = grid.GetColLabelAlignment()
             # if align[1] == wx.ALIGN_CENTER:
             #     align = align[0], wx.ALIGN_CENTER_VERTICAL
-            # dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect, align[0] | align[1])
+            # dc.DrawLabel(f" grid.GetColLabelValue(col) ", orect, align[0] | align[1])
             dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect)
 
 
@@ -5386,11 +5391,14 @@ class BetterPyGauge(pygauge.PyGauge):
         self._timer.Stop()
 
     def Update(self, value, time=0):
-        """Update the gauge by adding `value` to it over `time` milliseconds. The `time` parameter
-        **must** be a multiple of 50 milliseconds.
+        """Update the gauge by adding `value` to it over `time` milliseconds.
 
-        :param value: The value to be added to the gauge;
-        :param time: The length of time in milliseconds that it will take to move the gauge.
+        The `time` parameter **must** be a multiple of 50 milliseconds.
+
+        Args:
+            value: The value to be added to the gauge.
+            time: The length of time in milliseconds that it will take to move
+                the gauge.
         """
         self._indeterminate = False
 

@@ -285,14 +285,15 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         dc.DrawBitmap(bmp, rect.x, rect.y, True)
 
     def SetCustomPaneBitmap(self, bmp, button, active, maximize=False):
-        """Sets a custom button bitmap for the pane button.
+        """Set a custom button bitmap for the pane button.
 
-        :param Bitmap `bmp`: the actual bitmap to set;
-        :param integer `button`: the button identifier;
-        :param bool `active`: whether it is the bitmap for the active button or not;
-        :param bool `maximize`: used to distinguish between the maximize and restore bitmaps.
+        Args:
+            bmp (Bitmap): The actual bitmap to set.
+            button (int): The button identifier.
+            active (bool): Whether it is the bitmap for the active button or not.
+            maximize (bool): Used to distinguish between the maximize and restore
+                bitmaps.
         """
-
         if button == aui.dockart.AUI_BUTTON_CLOSE:
             if active:
                 self._active_close_bitmap = bmp
@@ -1687,8 +1688,8 @@ class ProfileManager:
             if display_no is not None:
                 thread = threading.Thread(
                     target=self._install_profile_locked,
-                    name="VisualWhitepointEditor.ProfileInstallation[Display %d @ %d, %d, %dx%d]"
-                    % ((display_no,) + geometry),
+                    name="VisualWhitepointEditor.ProfileInstallation[Display"
+                        " %d @ %d, %d, %dx%d]" % ((display_no,) + geometry),
                     args=(display_no, profile, wrapup),
                 )
                 thread.start()
@@ -1747,11 +1748,12 @@ class VisualWhitepointEditor(wx.Frame):
     ):
         """Default class constructor.
 
-        :param colourData: a standard :class:`ColourData` (as used in :class:`ColourFrame`);
-         to hide the alpha channel control or not.
-        :param patterngenerator: a patterngenerator object
-        :param geometry: the geometry of the display the profile is assigned to
-        :param profile: the profile of the display with the given geometry
+        Args:
+            colourData (ColourData): A standard :class:`ColourData` (as used in
+                :class:`ColourFrame`) to hide the alpha channel control or not.
+            patterngenerator: A patterngenerator object.
+            geometry: The geometry of the display the profile is assigned to.
+            profile: The profile of the display with the given geometry.
         """
 
         self.patterngenerator = patterngenerator
@@ -2023,7 +2025,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.measure_btn.Bind(wx.EVT_BUTTON, self.measure)
 
     def SetProperties(self):
-        """Sets some initial properties for :class:`VisualWhitepointEditor` (sizes, values)."""
+        """Set some initial properties (sizes, values)."""
         min_w = self.redSpin.numctrl.GetTextExtent("255")[0] + s(30)
         self.redSpin.SetMinSize((min_w, -1))
         self.greenSpin.SetMinSize((min_w, -1))
@@ -2171,8 +2173,9 @@ class VisualWhitepointEditor(wx.Frame):
     def DrawMarkers(self, dc=None):
         """Draws the markers for all the controls.
 
-        :param dc: an instance of :class:`DC`. If `dc` is ``None``, a :class:`ClientDC` is
-         created on the fly.
+        Args:
+            dc (DC): If `dc` is ``None``, a :class:`ClientDC` is created on the
+                fly.
         """
 
         self.hsvBitmap.DrawMarkers(dc)
@@ -2371,14 +2374,22 @@ class VisualWhitepointEditor(wx.Frame):
         self._colourData.SetColour(self._colour.GetPyColour())
         return self._colourData
 
-    def GetRGBAColour(self):
-        """Returns a 4-elements tuple of red, green, blue, alpha components."""
+    def GetRGBAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of red, green, blue, alpha components.
 
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the red, green,
+                blue, and alpha components of the colour.
+        """
         return (self._colour.r, self._colour.g, self._colour.b, self._colour._alpha)
 
-    def GetHSVAColour(self):
-        """Returns a 4-elements tuple of hue, saturation, brightness, alpha components."""
-
+    def GetHSVAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of hue, saturation, brightness, alpha components.
+        
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the hue, saturation,
+                brightness, and alpha components of the colour.
+        """
         return (self._colour.h, self._colour.s, self._colour.v, self._colour._alpha)
 
     def EndModal(self, returncode=wx.ID_OK):

@@ -380,27 +380,26 @@ class PyGauge(wx.Window):
     def SetDrawValue(
         self, draw=True, drawPercent=True, font=None, colour=wx.BLACK, formatString=None
     ):
-        """Set whether percentage or current value should be drawn on the gauge for precise indication.
+        """Enable or disable drawing of value/percentage on the gauge.
 
         Args:
-            bool draw: a boolean value, which if ``True`` tells to start drawing
+            draw (bool): a boolean value, which if ``True`` tells to start drawing
                 value or percentage. If set to ``False`` nothing will be drawn
                 and other parameters will be ignored;
-            bool drawPercent: a boolean value which indicates that a percent
+            drawPercent (bool): a boolean value which indicates that a percent
                 should be drawn instead of value passed in :meth:`SetValue`;
-            wx.Font font: a font with which indication should be drawn,
+            font (wx.Font): a font with which indication should be drawn,
                 if ``None``, then ``wx.NORMAL_FONT`` will be used.
                 Usually text would be displayed centered in the control,
                 but if the text font is too large to be displayed
                 (either in width or height) the corresponding coordinate will be
                 set to zero;
-            wx.Colour colour: the colour with which indication should be drawn,
+            colour (wx.Colour): the colour with which indication should be drawn,
                 if ``None`` then ``wx.BLACK`` will be used;
-            string formatString: a string specifying format of the indication
+            formatString (str): a string specifying format of the indication
                 (should have one and only one number placeholder).
                 If set to ``None``, will use ``{:.0f}`` format string for values
-                and ``{:.0f}%`` format string for percentages. As described in
-                http://docs.python.org/library/string.html#format-specification-mini-language.
+                and ``{:.0f}%`` format string for percentages.
 
         Note:
             formatString will override addition of percent sign (after value)
@@ -429,7 +428,8 @@ class PyGauge(wx.Window):
         if formatString is not None:
             error_occurred = True
             try:
-                # This is to test if format string is valid. If not, it will be replaced with default one.
+                # This is to test if format string is valid.
+                # If not, it will be replaced with default one.
                 formatString.format(12.345)
                 error_occurred = False
             except Exception as e:
@@ -438,7 +438,8 @@ class PyGauge(wx.Window):
             if error_occurred:
                 formatString = None
 
-        # Here formatString is either valid formatting string, or None in case of error or None passed
+        # Here formatString is either valid formatting string,
+        # or None in case of error or None passed
         if formatString is None:
             if self._drawIndicatorText_drawPercent:
                 self._drawIndicatorText_formatString = "{:.0f}%"

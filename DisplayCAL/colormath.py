@@ -787,8 +787,8 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
     if not window or len(window) < 3 or len(window) % 2 != 1:
         if window:
             warnings.warn(
-                "Invalid window %r, size %i - using default (1, 1, 1)"
-                % (window, len(window)),
+                f"Invalid window {window!r}, size {len(window)} "
+                "- using default (1, 1, 1)",
                 Warning,
                 stacklevel=2,
             )
@@ -832,8 +832,8 @@ def smooth_avg(values, passes=1, window=None, protect=None):
     if not window or len(window) < 3 or len(window) % 2 != 1:
         if window:
             warnings.warn(
-                "Invalid window %r, size %i - using default (1, 1, 1)"
-                % (window, len(window)),
+                f"Invalid window {window!r}, size {len(window)} "
+                "- using default (1, 1, 1)",
                 Warning,
                 stacklevel=2,
             )
@@ -2815,9 +2815,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         af = xf
         xf = tt
 
-    logging.debug(
-        f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}"
-    )
+    logging.debug(f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     bx = xx + POWELL_GOLD * (xx - ax)  # Guess b beyond a -> x
     for i in range(di):
@@ -2943,7 +2941,8 @@ def linmin(cp, xi, di, ftol, func, fdata):
             # See if we're done
             if abs(xx - mx) <= (tol2 - 0.5 * (bx - ax)):
                 logging.debug(
-                    f"linmin: We're done because {abs(xx - mx):f} <= {tol2 - 0.5 * (bx - ax):f}"
+                    "linmin: We're done because "
+                    f"{abs(xx - mx):f} <= {tol2 - 0.5 * (bx - ax):f}"
                 )
                 break
 
@@ -3099,7 +3098,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
 
         # Loop over all directions in the set
         for i in range(di):
-            logging.debug("Looping over direction %d" % i)
+            logging.debug(f"Looping over direction {i}")
 
             for j in range(di):  # Extract this direction to make search vector
                 svec[j] = dmtx[j][i]
@@ -3520,14 +3519,14 @@ class Matrix3x3(list):
 
     def update(self, matrix):
         if len(matrix) != 3:
-            raise ValueError("Invalid number of rows for 3x3 matrix: %i" % len(matrix))
+            raise ValueError(f"Invalid number of rows for 3x3 matrix: {len(matrix)}")
         self._reset()
         while len(self):
             self.pop()
         for row in matrix:
             if len(row) != 3:
                 raise ValueError(
-                    "Invalid number of columns for 3x3 matrix: %i" % len(row)
+                    f"Invalid number of columns for 3x3 matrix: {len(row)}"
                 )
             self.append([])
             for column in row:

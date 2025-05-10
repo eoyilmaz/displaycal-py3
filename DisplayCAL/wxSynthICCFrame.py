@@ -237,10 +237,10 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             if increment < min_inc:
                 increment = min_inc
             self.black_luminance_ctrl.SetIncrement(increment)
-            fmt = "%%.%if" % self.black_luminance_ctrl.GetDigits()
-            if fmt % 0 < fmt % v < fmt % increment:
+            fmt = f"{{:.{self.black_luminance_ctrl.GetDigits()}f}}"
+            if fmt.format(0) < fmt.format(v) < fmt.format(increment):
                 v = increment if event else 0
-            elif fmt % v == fmt % 0:
+            elif fmt.format(v) == fmt.format(0):
                 v = 0
             v = round(v / increment) * increment
         self.black_luminance_ctrl.SetValue(v)
@@ -677,9 +677,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 v = (0, 0, 0)
             XYZ[color[0]] = v
             for i, component in enumerate("XYZ"):
-                getattr(self, f"{color}_{component}").SetValue(
-                    XYZ[color[0]][i] * 100
-                )
+                getattr(self, f"{color}_{component}").SetValue(XYZ[color[0]][i] * 100)
         self.enable_btns()
 
     def preset_ctrl_handler(self, event):
@@ -700,9 +698,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.parse_XYZ("white", True)
             for color in ("red", "green", "blue"):
                 for i, component in enumerate("xy"):
-                    getattr(self, f"{color}_{component}").SetValue(
-                        locals()[color][i]
-                    )
+                    getattr(self, f"{color}_{component}").SetValue(locals()[color][i])
             self.parse_xy(None)
             self.set_trc(gamma)
             self.panel.Thaw()

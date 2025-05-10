@@ -1566,9 +1566,7 @@ class FixedPoint:
         try:
             p = int(precision)
         except Exception as e:
-            raise TypeError(
-                f"precision not convertable to int: {precision!r}"
-            ) from e
+            raise TypeError(f"precision not convertable to int: {precision!r}") from e
         if p < 0:
             raise ValueError(f"precision must be >= 0: {precision!r}")
 

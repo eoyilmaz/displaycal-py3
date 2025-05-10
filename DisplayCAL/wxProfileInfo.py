@@ -1707,9 +1707,9 @@ class ProfileInfoFrame(LUTFrame):
             if page.colorspace in ("a*b*", "u*v*") or page.colorspace.startswith(
                 "DIN99"
             ):
-                format_ = "%.2f %.2f"
+                format_ = "{:.2f} {:.2f}"
             else:
-                format_ = "%.4f %.4f"
+                format_ = "{:.4f} {:.4f}"
             whitepoint_no = page.whitepoint_select.GetSelection()
             if whitepoint_no > 0:
                 if page.colorspace == "a*b*":
@@ -1748,24 +1748,24 @@ class ProfileInfoFrame(LUTFrame):
                     # xy
                     x, y = xy
                 cct, delta = colormath.xy_CCT_delta(x, y, daylight=whitepoint_no == 1)
-                status = format_ % xy
+                status = format_.format(xy)
                 if cct:
                     if delta:
                         locus = {"Blackbody": "blackbody", "Daylight": "daylight"}.get(
                             page.whitepoint_select.GetStringSelection(),
                             page.whitepoint_select.GetStringSelection(),
                         )
-                        status = "%s, CCT %i (%s %.2f)" % (
-                            format_ % xy,
+                        status = "{}, CCT {} ({} {:.2f})".format(
+                            format_.format(xy),
                             cct,
                             lang.getstr("delta_e_to_locus", locus),
                             delta["E"],
                         )
                     else:
-                        status = "%s, CCT %i" % (format_ % xy, cct)
+                        status = f"{format_.format(xy)}, CCT {cct}"
                 self.SetStatusText(status)
             else:
-                self.SetStatusText(format_ % xy)
+                self.SetStatusText(format_.format(xy))
         if isinstance(event, wx.MouseEvent):
             event.Skip()  # Go to next handler
 

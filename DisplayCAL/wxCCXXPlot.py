@@ -334,7 +334,9 @@ class CCXXPlot(wx.Frame):
             for observer in config.valid_values["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
-            x_label.extend(["{:9.6f} {:9.6f} {:9.6f}".format(*tuple(row)) for row in mtx])
+            x_label.extend(
+                ["{:9.6f} {:9.6f} {:9.6f}".format(*tuple(row)) for row in mtx]
+            )
             if ref:
                 ref_observer = cgats.queryv1("REFERENCE_OBSERVER")
                 if ref_observer:
@@ -375,11 +377,7 @@ class CCXXPlot(wx.Frame):
             x_label = ""
             if ref:
                 x_label += ref + ", "
-            x_label += "%.1fnm, %i-%inm" % (
-                (x_max - x_min) / (bands - 1.0),
-                x_min,
-                x_max,
-            )
+            x_label += f"{(x_max - x_min) / (bands - 1.0):.1f}nm, {x_min}-{x_max}nm"
 
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
 

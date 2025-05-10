@@ -694,8 +694,8 @@ class MeasureFrame(InvincibleFrame):
         if floor != ceil:
             # Dither using simple ordered pattern
             print(
-                "Dither 8 bit %.6f %.6f %.6f -> %i %i %i | %i %i %i"
-                % (rgb + floor + ceil)
+                f"Dither 8 bit {rgb[0]:.6f} {rgb[1]:.6f} {rgb[2]:.6f} -> "
+                f"{floor[0]} {floor[1]} {floor[2]} | {ceil[0]} {ceil[1]} {ceil[2]}"
             )
             img = wx.EmptyImage(*self.ClientSize, clear=False)
             buf = img.GetDataBuffer()

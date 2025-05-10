@@ -50,7 +50,7 @@ def _shutdown(sock, addr):
         sock.shutdown(SHUT_RDWR)
     except OSError as exception:
         if exception.errno != errno.ENOTCONN:
-            print("PatternGenerator: SHUT_RDWR for %s:%i failed:" % addr[:2], exception)
+            print(f"PatternGenerator: SHUT_RDWR for {addr[:2]}:{exception} failed:")
     sock.close()
 
 
@@ -390,7 +390,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
             if b"m" in query:
                 method = query[b"m"][0]
                 if data.get(method) == "Error" and "msg" in data:
-                    raise http.client.HTTPException("{}: {}".format(self.host, data["msg"]))
+                    raise http.client.HTTPException(f"{self.host}: {data['msg']}")
             for key in validate:
                 value = validate[key]
                 if key not in data:
@@ -419,7 +419,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
 
     def enable_processing(self, enable=True, size=10):
         win = 1 if enable else 2
-        self.invoke("Window", "win%i" % win, {"sz": size})
+        self.invoke("Window", f"win{win}", {"sz": size})
 
     def get_config(self):
         return self.invoke("Prisma", "settings", validate={"v": None, "settings": "Ok"})

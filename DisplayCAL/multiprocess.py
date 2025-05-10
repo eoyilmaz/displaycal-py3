@@ -132,7 +132,7 @@ def pool_slice(
                         break
                 perc = round(progress / num_workers)
                 if perc > prevperc:
-                    logfile.write("\r%i%%" % perc)
+                    logfile.write(f"\r{perc}%")
                     prevperc = perc
 
         threading.Thread(

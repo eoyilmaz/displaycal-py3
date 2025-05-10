@@ -7,8 +7,7 @@ from urllib.parse import unquote
 from DisplayCAL.meta import name as appname
 from DisplayCAL.meta import version as appversion
 
-WEBDISP_HTML = (
-    rf"""<!DOCTYPE html>
+WEBDISP_HTML = rf"""<!DOCTYPE html>
 <html>
 <head>
 <title>{appname} Web Display</title>
@@ -35,7 +34,6 @@ html, body {{
 </body>
 </html>
 """
-)
 
 WEBDISP_JS = r"""if (typeof XMLHttpRequest == "undefined") {
     XMLHttpRequest = function () {

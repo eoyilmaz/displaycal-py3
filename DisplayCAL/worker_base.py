@@ -491,7 +491,7 @@ class Xicclu(WorkerBase):
         xicclu = safe_str(xicclu)
         cwd = safe_str(cwd)
         self.verbose = verbose
-        args = [xicclu, "-v%i" % verbose, f"-s{scale}"]
+        args = [xicclu, f"-v{verbose}", f"-s{scale}"]
         self.show_actual_if_clipped = False
         if utilname == "xicclu":
             if (
@@ -543,7 +543,8 @@ class Xicclu(WorkerBase):
             if is_profile:
                 profile_act = ICCProfile(profile.fileName)
                 self.sessionlogfile.write(
-                    f"Profile ID {hexlify(profile.ID)} (actual {hexlify(profile_act.calculateID(False))})"
+                    f"Profile ID {hexlify(profile.ID)} "
+                    f"(actual {hexlify(profile_act.calculateID(False))})"
                 )
             if cwd:
                 self.log(lang.getstr("working_dir"))
@@ -645,7 +646,7 @@ class Xicclu(WorkerBase):
                 break
             perc = round(chunklen * (i + 1) / float(numrows) * 100)
             if perc > prevperc and self.logfile:
-                self.logfile.write("\r%i%%" % min(perc, 100))
+                self.logfile.write(f"\r{int(min(perc, 100))}%")
                 prevperc = perc
             if chunklen * (i + 1) > numrows - 1:
                 break
@@ -692,7 +693,8 @@ class Xicclu(WorkerBase):
                     shutil.rmtree(self.tempdir, True)
                 except Exception as exception:
                     print(
-                        f"Warning - temporary directory '{self.tempdir}' could not be removed: {exception}"
+                        f"Warning - temporary directory '{self.tempdir}' "
+                        f"could not be removed: {exception}"
                     )
 
     def get(self, raw=False, get_clip=False, output_format=None, reverse=False):
@@ -739,7 +741,7 @@ class Xicclu(WorkerBase):
                         self.sessionlogfile.write(line)
                     continue
                 elif self.sessionlogfile:
-                    self.sessionlogfile.write("#%i %s" % (j, line))
+                    self.sessionlogfile.write(f"#{j} {line}")
                 parts = line.split(b"->")[-1].strip().split()
                 clip = parts.pop() == b"(clip)"
                 if clip:

@@ -185,12 +185,10 @@ class LUT3DMixin:
         for color in ("white", "red", "green", "blue"):
             for coord in "xy":
                 getattr(self, f"lut3d_content_colorspace_{color[0]}_label").Enable(v)
-                getattr(self, f"lut3d_content_colorspace_{color}_{coord}").Enable(
+                getattr(self, f"lut3d_content_colorspace_{color}_{coord}").Enable(v)
+                getattr(self, f"lut3d_content_colorspace_{color}_{coord}_label").Enable(
                     v
                 )
-                getattr(
-                    self, f"lut3d_content_colorspace_{color}_{coord}_label"
-                ).Enable(v)
         self.lut3d_trc_black_output_offset_label.Enable(v)
         self.lut3d_trc_black_output_offset_ctrl.Enable(v)
         self.lut3d_trc_black_output_offset_intctrl.Enable(v)
@@ -787,8 +785,9 @@ class LUT3DMixin:
                                     "${VERSION}": version,
                                     "${WIDTH}": str(clut_size**2),
                                     "${HEIGHT}": str(clut_size),
-                                    "${FORMAT}": "RGBA%i"
-                                    % self.getcfg("3dlut.bitdepth.output"),
+                                    "${FORMAT}": "RGBA{}".format(
+                                        self.getcfg("3dlut.bitdepth.output")
+                                    ),
                                 },
                             )
                             reshade_shaders = os.path.join(dst_dir, "reshade-shaders")
@@ -829,7 +828,8 @@ class LUT3DMixin:
                                         reshade_fx,
                                     ).rstrip("\r\n")
                                     reshade_fx += (
-                                        f"{os.linesep * 2}// Automatically added by {appname} {version}{os.linesep}"
+                                        f"{os.linesep * 2}// Automatically added by "
+                                        f"{appname} {version}{os.linesep}"
                                     )
                                     reshade_fx += (
                                         '#include "ColorLookupTable.fx"' + os.linesep
@@ -1252,8 +1252,8 @@ class LUT3DMixin:
 
     def lut3d_hdr_update_sat_val(self):
         v = self.getcfg("3dlut.hdr_sat") * 100
-        self.lut3d_hdr_sat_ctrl_lum_val.Label = "%i%%" % (100 - v)
-        self.lut3d_hdr_sat_ctrl_sat_val.Label = "%i%%" % v
+        self.lut3d_hdr_sat_ctrl_lum_val.Label = f"{100 - v}%"
+        self.lut3d_hdr_sat_ctrl_sat_val.Label = f"{v}%"
 
     def lut3d_hdr_update_system_gamma(self):
         # Update system gamma for HLG based on ambient luminance (BT.2390-3)
@@ -1343,9 +1343,7 @@ class LUT3DMixin:
         for color in ("red", "green", "blue", "white"):
             for coord in "xy":
                 v = self.getcfg(f"3dlut.content.colorspace.{color}.{coord}")
-                getattr(
-                    self, f"lut3d_content_colorspace_{color}_{coord}"
-                ).SetValue(v)
+                getattr(self, f"lut3d_content_colorspace_{color}_{coord}").SetValue(v)
                 content_colors.append(round(v, 4))
         rgb_space_name = colormath.find_primaries_wp_xy_rgb_space_name(
             content_colors, self.lut3d_content_colorspace_names

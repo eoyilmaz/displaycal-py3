@@ -1137,7 +1137,8 @@ class LUTFrame(BaseFrame):
                 os.remove(cal)
             except Exception as exception:
                 print(
-                    f"Warning - temporary file '{cal}' could not be removed: {exception}"
+                    f"Warning - temporary file '{cal}' could not be removed: "
+                    f"{exception}"
                 )
 
     def key_handler(self, event):
@@ -1261,7 +1262,8 @@ class LUTFrame(BaseFrame):
                 os.remove(outfilename)
             except Exception as exception:
                 print(
-                    f"Warning - temporary file '{outfilename}' could not be removed: {exception}"
+                    f"Warning - temporary file '{outfilename}' could not be removed: "
+                    f"{exception}"
                 )
         if profile and (
             profile.is_loaded
@@ -1716,7 +1718,7 @@ class LUTFrame(BaseFrame):
         # Add toggle checkboxes for up to 16 channels
         self.toggles = []
         for i in range(16):
-            toggle = CustomCheckBox(parent, -1, "", name="toggle_channel_%i" % i)
+            toggle = CustomCheckBox(parent, -1, "", name=f"toggle_channel_{i}")
             toggle.SetForegroundColour(FGCOLOUR)
             toggle.SetMaxFontSize(11)
             toggle.SetValue(True)
@@ -1748,26 +1750,26 @@ class LUTFrame(BaseFrame):
                     if 2 in self.client.unique:  # Blue
                         unique.append(self.client.unique[2])
                     unique = min(unique)
-                    legend[-1] += " %.1f%% (%i/%i)" % (
+                    legend[-1] += " {:.1f}% ({}/{})".format(  # noqa: UP032
                         unique / (self.client.entryCount / 100.0),
                         unique,
                         self.client.entryCount,
                     )
                 else:
                     if 0 in self.client.unique:  # Red
-                        legend[-1] += " %.1f%% (%i/%i)" % (
+                        legend[-1] += " {:.1f}% ({}/{})".format(  # noqa: UP032
                             self.client.unique[0] / (self.client.entryCount / 100.0),
                             self.client.unique[0],
                             self.client.entryCount,
                         )
                     if 1 in self.client.unique:  # Green
-                        legend[-1] += " %.1f%% (%i/%i)" % (
+                        legend[-1] += " {:.1f}% ({}/{})".format(  # noqa: UP032
                             self.client.unique[1] / (self.client.entryCount / 100.0),
                             self.client.unique[1],
                             self.client.entryCount,
                         )
                     if 2 in self.client.unique:  # Blue
-                        legend[-1] += " %.1f%% (%i/%i)" % (
+                        legend[-1] += " {:.1f}% ({}/{})".format(  # noqa: UP032
                             self.client.unique[2] / (self.client.entryCount / 100.0),
                             self.client.unique[2],
                             self.client.entryCount,
@@ -1775,7 +1777,7 @@ class LUTFrame(BaseFrame):
                 unique = list(self.client.unique.values())
                 if 0 not in unique and "R=G=B" not in colorants:
                     unique = min(unique)
-                    legend[-1] += ", %s %.1f%% (%i/%i)" % (
+                    legend[-1] += ", {} {:.1f}% ({}/{})".format(
                         lang.getstr("grayscale"),
                         unique / (self.client.entryCount / 100.0),
                         unique,
@@ -1824,7 +1826,7 @@ class LUTFrame(BaseFrame):
                     slice=(0.00, 1.00), outoffset=1.0
                 )
             # if "R" in colorants and "G" in colorants and "B" in colorants:
-            #     if (self.profile.tags.rTRC == self.profile.tags.gTRC == 
+            #     if (self.profile.tags.rTRC == self.profile.tags.gTRC ==
             #        self.profile.tags.bTRC):
             #         transfer_function = self.profile.tags.rTRC.get_transfer_function()
             # elif ("R" in colorants and (not "G" in colorants or
@@ -1850,7 +1852,10 @@ class LUTFrame(BaseFrame):
                 if round(transfer_function[1], 2) == 1.0:
                     value = f"{transfer_function[0][0]}"
                 else:
-                    value = f"≈ {transfer_function[0][0]} (Δ {1 - transfer_function[1]:.2%})"
+                    value = (
+                        f"≈ {transfer_function[0][0]} "
+                        f"(Δ {1 - transfer_function[1]:.2%})"
+                    )
                 legend.append(" ".join([label, value]))
 
     def DrawLUT(self, event=None):
@@ -2042,7 +2047,7 @@ class LUTFrame(BaseFrame):
                     toggle.Label = ("Y", "Cb", "Cr")[channel]
                 elif curves_colorspace.endswith(b"CLR"):
                     curves_colorspace = b"nCLR"
-                    toggle.Label = "%i" % channel
+                    toggle.Label = f"{channel}"
                 elif curves_colorspace == b"Lab":
                     toggle.Label = ("L*", "a*", "b*")[channel]
                 else:

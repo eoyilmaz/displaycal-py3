@@ -1291,9 +1291,7 @@ class DisplayAdjustmentFrame(windowcls):
             target_bl = re.search(
                 (
                     r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
-                ).replace(
-                    " ", r"\s+"
-                ),
+                ).replace(" ", r"\s+"),
                 txt,
                 re.I,
             )
@@ -1307,9 +1305,7 @@ class DisplayAdjustmentFrame(windowcls):
                 r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, "
                 r"x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, "
                 r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)"
-            ).replace(
-                " ", r"\s+"
-            ),
+            ).replace(" ", r"\s+"),
             txt,
             re.I,
         )
@@ -1348,9 +1344,7 @@ class DisplayAdjustmentFrame(windowcls):
                     (
                         r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) "
                         r"(?:\d+(?:\.\d+)?)"
-                    ).replace(
-                        " ", r"\s+"
-                    ),
+                    ).replace(" ", r"\s+"),
                     txt,
                     re.I,
                 )
@@ -1417,16 +1411,17 @@ class DisplayAdjustmentFrame(windowcls):
                         sign = "-"
                     else:
                         sign = "\u00b1"  # plusminus
-                    label = "{} {:.2f} cd/m\u00b2\n{} {:.2f} cd/m\u00b2 ({}{:.2f}%)".format(
-                        lang.getstr(lstr),
-                        compare_br[1],
-                        lang.getstr("current"),
-                        float(current_br.groups()[0]),
-                        sign,
-                        abs(l_diff) * percent,
+                    label = (
+                        f"{lang.getstr(lstr)} {compare_br[1]:.2f} "
+                        f"cd/m\u00b2\n{lang.getstr('current')} "
+                        f"{float(current_br.groups()[0]):.2f} cd/m\u00b2 "
+                        f"({sign}{abs(l_diff) * percent:.2f}%)"
                     )
                 else:
-                    label = f"{lang.getstr('current')} {float(current_br.groups()[0]):.2f} cd/m\u00b2"
+                    label = (
+                        f"{lang.getstr('current')} "
+                        f"{float(current_br.groups()[0]):.2f} cd/m\u00b2"
+                    )
                 self.lb.GetCurrentPage().txt[
                     "luminance"
                 ].checkmark.GetContainingSizer().Show(
@@ -1528,13 +1523,15 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
+                    f"{lang.getstr('current')} "
+                    f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 initial_br = getattr(self.lb.GetCurrentPage(), "initial_br", None)
                 if initial_br and len(initial_br) > 3:
                     x, y, vdt, dE = get_xy_vt_dE(initial_br[2:])
                     label = (
-                        f"{lang.getstr(initial_br[0].lower())} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00\n"
+                        f"{lang.getstr(initial_br[0].lower())} "
+                        f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00\n"
                     ).replace("  ", " ") + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["rgb"], label)
         if white_xy_dE:
@@ -1549,13 +1546,14 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
+                    f"{lang.getstr('current')} "
+                    f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 if white_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(white_xy_target.groups())
-                    label = (
-                        f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n"
-                    ).replace("  ", " ") + label
+                    label = (f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n").replace(
+                        "  ", " "
+                    ) + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["white_point"], label)
         if black_xy_dE:
             x, y, vdt, dE = get_xy_vt_dE(black_xy_dE.groups())

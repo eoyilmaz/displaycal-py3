@@ -1034,7 +1034,7 @@ class BaseFrame(wx.Frame):
             self._msghandlercount += 1
             threading.Thread(
                 target=self.message_handler,
-                name="ScriptingHost.MessageHandler-%d" % self._msghandlercount,
+                name=f"ScriptingHost.MessageHandler-{self._msghandlercount}",
                 args=(conn, addrport),
             ).start()
         sys._appsocket.close()
@@ -1310,9 +1310,7 @@ class BaseFrame(wx.Frame):
                     )
                 else:
                     for port in ports:
-                        scripting_hosts.append(
-                            f"127.0.0.1:{port} {lockfilebasename}"
-                        )
+                        scripting_hosts.append(f"127.0.0.1:{port} {lockfilebasename}")
         scripting_hosts.sort()
         return scripting_hosts
 
@@ -1961,9 +1959,7 @@ class BaseFrame(wx.Frame):
             )
         else:
             if isinstance(response, dict):
-                response = [
-                    f"{name} = {value}" for name, value in response.items()
-                ]
+                response = [f"{name} = {value}" for name, value in response.items()]
             if isinstance(response, list):
                 response = "\n".join(response)
         try:
@@ -2021,12 +2017,15 @@ class BaseFrame(wx.Frame):
         if debug:
             if hasattr(event.GetEventObject(), "GetId"):
                 print(
-                    f"[D] focus_handler called for ID {event.GetEventObject().GetId()} {getevtobjname(event, self)} {event.GetEventObject().__class__}, event type "
+                    f"[D] focus_handler called for ID {event.GetEventObject().GetId()} "
+                    f"{getevtobjname(event, self)} "
+                    f"{event.GetEventObject().__class__}, event type "
                     f"{event.GetEventType()} {getevttype(event)}"
                 )
             else:
                 print(
-                    f"[D] focus_handler called for {getevtobjname(event, self)} {event.GetEventObject().__class__}, event type "
+                    f"[D] focus_handler called for {getevtobjname(event, self)} "
+                    f"{event.GetEventObject().__class__}, event type "
                     f"{event.GetEventType()} {getevttype(event)}"
                 )
             if (
@@ -2035,11 +2034,14 @@ class BaseFrame(wx.Frame):
                 and event.GetEventObject() != event.GetWindow()
             ):
                 print(
-                    f"[D] Focus moving from control ID {event.GetWindow().GetId()} {event.GetWindow().GetName()} {event.GetWindow().__class__}"
+                    f"[D] Focus moving from control ID {event.GetWindow().GetId()} "
+                    f"{event.GetWindow().GetName()} {event.GetWindow().__class__}"
                 )
             if getattr(self, "last_focused_ctrl", None):
                 print(
-                    f"[D] Last focused control: ID {self.last_focused_ctrl.GetId()} {self.last_focused_ctrl.GetName()} {self.last_focused_ctrl.__class__}"
+                    f"[D] Last focused control: ID {self.last_focused_ctrl.GetId()} "
+                    f"{self.last_focused_ctrl.GetName()} "
+                    f"{self.last_focused_ctrl.__class__}"
                 )
         if (
             getattr(self, "last_focused_ctrl", None)
@@ -2057,8 +2059,12 @@ class BaseFrame(wx.Frame):
             )
             if debug:
                 print(
-                    f"[D] Last focused control ID {self.last_focused_ctrl.GetId()} {self.last_focused_ctrl.GetName()} {self.last_focused_ctrl.__class__} processing "
-                    f"catchup event type {catchup_event.GetEventType()} {getevttype(catchup_event)}"
+                    "[D] Last focused control ID "
+                    f"{self.last_focused_ctrl.GetId()} "
+                    f"{self.last_focused_ctrl.GetName()} "
+                    f"{self.last_focused_ctrl.__class__} processing "
+                    "catchup event type "
+                    f"{catchup_event.GetEventType()} {getevttype(catchup_event)}"
                 )
             if self.last_focused_ctrl.ProcessEvent(catchup_event):
                 if debug:
@@ -2074,7 +2080,9 @@ class BaseFrame(wx.Frame):
         ):
             if debug:
                 print(
-                    f"[D] Setting last focused control to ID {event.GetEventObject().GetId()} {getevtobjname(event, self)} {event.GetEventObject().__class__}"
+                    "[D] Setting last focused control to ID "
+                    f"{event.GetEventObject().GetId()} "
+                    f"{getevtobjname(event, self)} {event.GetEventObject().__class__}"
                 )
             self.last_focused_ctrl = event.GetEventObject()
         if isinstance(event, wx.FocusEvent) or isinstance(
@@ -2772,7 +2780,11 @@ class HtmlWindow(wx.html.HtmlWindow):
             html = f"<body>{html}</body>"
         html = re.sub(
             r"<body[^>]*",
-            f'<body bgcolor="{bgcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" text="{text.GetAsString(wx.C2S_HTML_SYNTAX)}" link="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" alink="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" vlink="{vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}"',
+            f'<body bgcolor="{bgcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'text="{text.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'link="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'alink="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'vlink="{vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}"',
             html,
         )
         wx.html.HtmlWindow.SetPage(self, html)
@@ -4617,8 +4629,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
     def Create(self, parent, id, evtHandler):
         """Called to create the control, which must derive from wx.Control."""
         print(
-            f"CustomCellEditor.Create({parent!r}, {id!r}, {evtHandler!r}) was called. This "
-            "should not happen, but is unlikely an issue."
+            f"CustomCellEditor.Create({parent!r}, {id!r}, {evtHandler!r}) was called. "
+            "This should not happen, but is unlikely an issue."
         )
         self.SetControl(wx.StaticText(parent, -1, ""))
 
@@ -4666,8 +4678,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         to begin editing.  Set the focus to the edit control.
         """
         print(
-            f"CustomCellEditor.BeginEdit({row!r}, {col!r}, {grid!r}) was called. This "
-            "should not happen, but is unlikely an issue."
+            f"CustomCellEditor.BeginEdit({row!r}, {col!r}, {grid!r}) was called. "
+            "This should not happen, but is unlikely an issue."
         )
 
     def EndEdit(self, row, col, grid, value=None):
@@ -4675,8 +4687,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         has changed.  If necessary, the control may be destroyed.
         """
         print(
-            f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) was called. This "
-            "should not happen, but is unlikely an issue."
+            f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) "
+            "was called. This should not happen, but is unlikely an issue."
         )
         changed = None if wx.VERSION >= (2, 9) else False
         return changed

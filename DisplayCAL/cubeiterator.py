@@ -60,7 +60,7 @@ class Cube3D:
         if i < 0:
             i = self._len + i
         if i < 0 or i > self._len - 1:
-            raise IndexError("index %i out of range" % oi)
+            raise IndexError(f"index {oi} out of range")
         i += self._start
         return (
             i // self._size // self._size,

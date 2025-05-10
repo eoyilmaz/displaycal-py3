@@ -1017,7 +1017,7 @@ class spawn_unix:
         # worry about if I have to later modify read() or expect().
         # Note, it's OK if size==-1 in the regex. That just means it
         # will never match anything in which case we stop only on EOF.
-        cre = re.compile(r".{%d}" % size, re.DOTALL)
+        cre = re.compile(rf".{{{size}}}", re.DOTALL)
         index = self.expect([cre, self.delimiter])  # delimiter default is EOF
         if index == 0:
             return self.after  # self.before should be ''. Should I assert this?
@@ -2826,12 +2826,12 @@ class searcher_string:
     def __str__(self):
         """This returns a human-readable string that represents the state of
         the object."""
-        ss = [(ns[0], '    %d: "%s"' % ns) for ns in self._strings]
+        ss = [(ns[0], f'    {ns[0]}: "{ns[1]}"') for ns in self._strings]
         ss.append((-1, "searcher_string:"))
         if self.eof_index >= 0:
-            ss.append((self.eof_index, "    %d: EOF" % self.eof_index))
+            ss.append((self.eof_index, f"    {self.eof_index}: EOF"))
         if self.timeout_index >= 0:
-            ss.append((self.timeout_index, "    %d: TIMEOUT" % self.timeout_index))
+            ss.append((self.timeout_index, f"    {self.timeout_index}: TIMEOUT"))
         ss.sort()
         ss = list(zip(*ss))[1]
         return "\n".join(ss)
@@ -2920,14 +2920,14 @@ class searcher_re:
     def __str__(self):
         """Return a human-readable string that represents the state of the object."""
         ss = [
-            (n, '    %d: re.compile(r"%s")' % (n, str(s.pattern)))
+            (n, f'    {n}: re.compile(r"{s.pattern!s}")')
             for n, s in self._searches
         ]
         ss.append((-1, "searcher_re:"))
         if self.eof_index >= 0:
-            ss.append((self.eof_index, "    %d: EOF" % self.eof_index))
+            ss.append((self.eof_index, f"    {self.eof_index}: EOF"))
         if self.timeout_index >= 0:
-            ss.append((self.timeout_index, "    %d: TIMEOUT" % self.timeout_index))
+            ss.append((self.timeout_index, f"    {self.timeout_index}: TIMEOUT"))
         ss.sort()
         ss = list(zip(*ss))[1]
         return "\n".join(ss)

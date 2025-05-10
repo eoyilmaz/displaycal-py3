@@ -347,7 +347,7 @@ def install_profile(
 
             for n in range(1, maxtries + 1):
                 if logfn:
-                    logfn("Trying to import profile, attempt %i..." % n)
+                    logfn(f"Trying to import profile, attempt {n}...")
                 try:
                     p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
                     stdout, stderr = p.communicate()
@@ -364,8 +364,8 @@ def install_profile(
 
             if p.returncode != 0 and not os.path.isfile(profile_install_name):
                 raise CDTimeout(
-                    "Trying to import profile '%s' failed after "
-                    "%i tries." % (profile.fileName, n)
+                    f"Trying to import profile '{profile.fileName}' failed after "
+                    f"{n} tries."
                 )
 
     if not cdprofile:

@@ -466,7 +466,10 @@ class CGATS(dict):
 
         if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
             # Always normalize to Y = 100
-            reprstr = self.filename or f"<{self.__module__}.{self.__class__.__name__} instance at 0x{id(self):016x}>"
+            reprstr = self.filename or (
+                f"<{self.__module__}.{self.__class__.__name__} "
+                f"instance at 0x{id(self):016x}>"
+            )
             if self[0].normalize_to_y_100():
                 print("Normalized to Y = 100:", reprstr)
             else:
@@ -850,13 +853,13 @@ class CGATS(dict):
                         cur = gray
                         if prev_i not in added and debug:
                             print(
-                                f"INFO - appending prev {prev_values[:3]} to color because prev was"
-                                " same gray but got skipped"
+                                f"INFO - appending prev {prev_values[:3]} to color "
+                                "because prev was same gray but got skipped"
                             )
                         if debug:
                             print(
-                                f"INFO - appending cur to gray because prev {prev_values[:3]} was same "
-                                "gray"
+                                "INFO - appending cur to gray because prev "
+                                f"{prev_values[:3]} was same gray"
                             )
                     elif prev_values[:3] == [prev_values[:3][0]] * 3:
                         # Prev value was different gray
@@ -864,32 +867,33 @@ class CGATS(dict):
                         cur = gray
                         if prev_i not in added and debug:
                             print(
-                                f"INFO - appending prev {prev_values[:3]} to gray because prev was "
-                                "different gray but got skipped"
+                                f"INFO - appending prev {prev_values[:3]} to gray "
+                                "because prev was different gray but got skipped"
                             )
                         if debug:
                             print(
-                                f"INFO - appending cur to gray because prev {prev_values[:3]} was "
-                                "different gray"
+                                "INFO - appending cur to gray because prev "
+                                f"{prev_values[:3]} was different gray"
                             )
                     elif i < numvalues - 1:
                         if debug:
                             print(
-                                f"WARNING - skipping gray because prev {prev_values[:3]} was not gray"
+                                "WARNING - skipping gray because prev "
+                                f"{prev_values[:3]} was not gray"
                             )
                     else:
                         # Last
                         if debug:
                             print(
-                                f"INFO - appending cur to color because prev {prev_values[:3]} was not "
-                                "gray but cur is last"
+                                "INFO - appending cur to color because prev "
+                                f"{prev_values[:3]} was not gray but cur is last"
                             )
                 if not is_gray or cur is gray or i == numvalues - 1:
                     if prev_i not in added:
                         if debug and prev is cur is color:
                             print(
-                                f"INFO - appending prev {prev_values[:3]} to color because prev got "
-                                "skipped"
+                                f"INFO - appending prev {prev_values[:3]} "
+                                "to color because prev got skipped"
                             )
                         prev.append(prev_values)
                         added[prev_i] = True
@@ -917,9 +921,17 @@ class CGATS(dict):
                     gray = sorted(gray, key=functools.cmp_to_key(sort2))
             if debug:
                 for i, values in enumerate(gray):
-                    print("%4i" % (i + 1), "GRAY", ("%8.4f " * 3) % tuple(values[:3]))
+                    print(
+                        f"{i + 1:4d}",
+                        "GRAY",
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}"
+                    )
                 for i, values in enumerate(color):
-                    print("%4i" % (i + 1), "COLOR", ("%8.4f " * 3) % tuple(values[:3]))
+                    print(
+                        f"{i + 1:4d}",
+                        "COLOR",
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}"
+                    )
         else:
             color = valueslist
         checkerboard = []
@@ -966,8 +978,8 @@ class CGATS(dict):
         if len(checkerboard) != numvalues:
             # This should never happen
             print(
-                "Number of patches incorrect after re-ordering (is %i, should be %i)"
-                % (len(checkerboard), numvalues)
+                "Number of patches incorrect after re-ordering "
+                f"(is {len(checkerboard)}, should be {numvalues})"
             )
             return False
         return data.set_RGB_XYZ_values(checkerboard)
@@ -1426,22 +1438,22 @@ Transform {
                 }}
             ]
         }}
-"""
+"""  # noqa: E501
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"a", "+%i"' % (100 / scale),
-                    '"a", "-%i"' % (100 / scale),
-                    '"b +%i"' % (100 / scale),
-                    '"b -%i"' % (100 / scale),
+                    f'"a", "+{int(100 / scale)}"',
+                    f'"a", "-{int(100 / scale)}"',
+                    f'"b +{int(100 / scale)}"',
+                    f'"b -{int(100 / scale)}"',
                     '"L", "+100"',
                 )
             elif colorspace == "ICtCp":
                 scale = 2.0
                 radius /= 2.0
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    f'"Ct", "+0.5"',
-                    f'"Ct", "-0.5"',
-                    f'"Cp +0.5"',
-                    f'"Cp -0.5"',
+                    '"Ct", "+0.5"',
+                    '"Ct", "-0.5"',
+                    '"Cp +0.5"',
+                    '"Cp -0.5"',
                     '"I"',
                 )
                 pxcolor = "0.5 0.0 1.0"
@@ -1450,10 +1462,10 @@ Transform {
                 nycolor = "0.0 1.0 1.0"
             elif colorspace == "IPT":
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    f'"P", "+1.0',
-                    f'"P", "-1.0"',
-                    f'"T +1.0"',
-                    f'"T -1.0"',
+                    '"P", "+1.0',
+                    '"P", "-1.0"',
+                    '"T +1.0"',
+                    '"T -1.0"',
                     '"I"',
                 )
             else:
@@ -1495,8 +1507,7 @@ Transform {
                 "pycolor": pycolor,
                 "nycolor": nycolor,
             }
-            axes += (
-                """# L* axis
+            axes += """# L* axis
         Transform {{
             translation 0.0 0.0 0.0
             children [
@@ -1646,7 +1657,7 @@ Transform {
                 }}
             ]
         }}
-""".format(**values))  # noqa: E501
+""".format(**values)  # noqa: E501
         children = []
         sqrt3_100 = math.sqrt(3) * 100
         sqrt3_50 = math.sqrt(3) * 50
@@ -2074,8 +2085,7 @@ Transform {
                 if warn_only:
                     if logfile:
                         logfile.write(
-                            "Warning: Sample ID %i (%s %s) has %s = 0!\n"
-                            % (
+                            "Warning: Sample ID {} ({} {}) has {} = 0!\n".format(
                                 sample.SAMPLE_ID,
                                 color_rep[0],
                                 " ".join(

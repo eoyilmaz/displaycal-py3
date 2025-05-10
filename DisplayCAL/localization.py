@@ -22,9 +22,7 @@ def init(set_wx_locale=False):
             try:
                 langfiles = os.listdir(langdir)
             except Exception as exception:
-                print(
-                    f"Warning - directory '{langdir}' listing failed: {exception}"
-                )
+                print(f"Warning - directory '{langdir}' listing failed: {exception}")
             else:
                 for filename in langfiles:
                     name, ext = os.path.splitext(filename)

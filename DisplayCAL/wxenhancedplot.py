@@ -425,7 +425,8 @@ class PolyPoints:
         for name, value in list(attr.items()):
             if name not in list(self._attributes.keys()):
                 raise KeyError(
-                    f"Style attribute incorrect. Should be one of {list(self._attributes.keys())}"
+                    "Style attribute incorrect. Should be one of "
+                    f"{list(self._attributes.keys())}"
                 )
             self.attributes[name] = value
 
@@ -2501,11 +2502,11 @@ class PlotCanvas(wx.Panel):
         while t <= pow(10, upper):
             if majortick != int(np.floor(np.log10(t) + 1e-16)):
                 majortick = int(np.floor(np.log10(t) + 1e-16))
-                ticklabel = "1e%d" % majortick
+                ticklabel = f"1e{majortick}"
             else:
                 if upper - lower < 2:
                     minortick = int(t / pow(10, majortick) + 0.5)
-                    ticklabel = "%de%d" % (minortick, majortick)
+                    ticklabel = f"{minortick}e{majortick}"
                 else:
                     ticklabel = ""
             ticks.append((np.log10(t), ticklabel))
@@ -3024,12 +3025,14 @@ class TestFrame(wx.Frame):
         pntIn = mDataDict["pIndex"]
         legend = mDataDict["legend"]
         # make a string to display
-        s = "Crv# %i, '%s', Pt. (%.2f,%.2f), PtInd %i" % (cNum, legend, px, py, pntIn)
+        s = f"Crv# {cNum}, '{legend}', Pt. ({px:.2f},{py:.2f}), PtInd {pntIn}"
         dc.DrawText(s, int(sx), int(sy + 1))
         # -----------
 
     def OnMouseLeftDown(self, event):
-        s = "Left Mouse Down at Point: ({:.4f}, {:.4f})".format(*self.client._getXY(event))
+        s = "Left Mouse Down at Point: ({:.4f}, {:.4f})".format(
+            *self.client._getXY(event)
+        )
         self.SetStatusText(s)
         event.Skip()  # allows plotCanvas OnMouseLeftDown to be called
 

@@ -449,7 +449,7 @@ def build_py2exe():
         "data_files": data_files,
         "description": description,
         "download_url": f"{development_home_page}/releases/download/"
-            f"{version}/{name}-{version}.tar.gz",
+        f"{version}/{name}-{version}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,

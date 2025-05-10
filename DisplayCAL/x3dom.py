@@ -336,27 +336,29 @@ def get_vrml_axes(
                     }}
                 }}
             ]
-        }}""".format(**dict(
-        list(locals().items())
-        + list(
-            {
-                "xaxisx": maxx / 2.0 + offsetx,
-                "yaxisy": maxy / 2.0 + offsety,
-                "xyaxisz": offsetz - maxz / 2.0,
-                "zlabelx": offsetx - 10,
-                "zlabely": offsety - 10,
-                "zlabelz": maxz / 2.0 + offsetz + 5,
-                "xlabelx": maxx + offsetx + 5,
-                "xlabely": offsety - 5,
-                "ylabelx": offsetx - 5,
-                "ylabely": maxy + offsety + 5,
-                "zerolabel": "0" if zero else "",
-                "zerox": offsetx - 10,
-                "zeroy": offsety - 10,
-                "zeroz": offsetz - maxz / 2.0 - 5,
-            }.items()
+        }}""".format(
+        **dict(
+            list(locals().items())
+            + list(
+                {
+                    "xaxisx": maxx / 2.0 + offsetx,
+                    "yaxisy": maxy / 2.0 + offsety,
+                    "xyaxisz": offsetz - maxz / 2.0,
+                    "zlabelx": offsetx - 10,
+                    "zlabely": offsety - 10,
+                    "zlabelz": maxz / 2.0 + offsetz + 5,
+                    "xlabelx": maxx + offsetx + 5,
+                    "xlabely": offsety - 5,
+                    "ylabelx": offsetx - 5,
+                    "ylabely": maxy + offsety + 5,
+                    "zerolabel": "0" if zero else "",
+                    "zerox": offsetx - 10,
+                    "zeroy": offsety - 10,
+                    "zeroz": offsetz - maxz / 2.0 - 5,
+                }.items()
+            )
         )
-    ))
+    )
 
 
 def safe_print(*args, **kwargs):
@@ -426,7 +428,8 @@ def update_vrml(vrml, colorspace):
             if xyz:
                 points[i] = update_xyz(xyz)
         vrml = vrml.replace(
-            item, "point [{}{}".format(os.linesep, ("," + os.linesep).join(points).rstrip())
+            item,
+            "point [{}{}".format(os.linesep, ("," + os.linesep).join(points).rstrip()),
         )
     # Update spheres
     spheres = re.findall(
@@ -460,7 +463,7 @@ def update_vrml(vrml, colorspace):
         )
         vrml = re.sub(r'(string\s*\["b)\*\s+([+\-]?)\d+("\])', r"\1 \2\0$\3", vrml)
 
-        vrml = vrml.replace("\0$", "%i" % round(100.0 / scale))
+        vrml = vrml.replace("\0$", f"{round(100.0 / scale)}")
 
         # Add colorspace information
         vrml = re.sub(
@@ -610,13 +613,13 @@ def vrml2x3dom(vrml, worker=None):
         curprogress = int(i / maxi * 100)
         if worker:
             if curprogress > lastprogress:
-                worker.lastmsg.write("%i%%\n" % curprogress)
+                worker.lastmsg.write(f"{curprogress}%\n")
             if getattr(worker, "thread_abort", False):
                 return False
         if curprogress > lastprogress:
             lastprogress = curprogress
             end = None if curprogress < 100 else "\n"
-            _safe_print.write("\r%i%%" % curprogress, end=end)
+            _safe_print.write(f"\r{curprogress}%", end=end)
         if ord(c) < 32 and c not in "\n\r\t":
             raise VRMLParseError(f"Parse error: Got invalid character {c!r}")
         elif c == "{":

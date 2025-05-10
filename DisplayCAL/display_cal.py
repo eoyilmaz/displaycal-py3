@@ -7872,7 +7872,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 "metadata",
                 "metadata.json",
                 '{"org":{"freedesktop":{"openicc":{"device":{"monitor":['
-                f'{metadata.to_json()}]}}}}}}}}}}',
+                f"{metadata.to_json()}]}}}}}}}}}}",
             ),
             ("profile", "profile.icc", data),
         ]

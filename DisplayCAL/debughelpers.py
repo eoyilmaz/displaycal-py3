@@ -75,7 +75,9 @@ def handle_error(error, parent=None, silent=False, tb=True):
                 msg += (
                     "\n\nWARNING: Your version of wxPython ({}) is outdated "
                     "and no longer supported. You should consider updating "
-                    "to wxPython {} or newer.".format(wx.__version__, ".".join(str(n) for n in wx_recversion))
+                    "to wxPython {} or newer.".format(
+                        wx.__version__, ".".join(str(n) for n in wx_recversion)
+                    )
                 )
             app = wx.GetApp()
             if app is None and parent is None:

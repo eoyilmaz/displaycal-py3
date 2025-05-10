@@ -22,7 +22,7 @@ except ImportError:
 else:
     if not getattr(sys, "frozen", False) and "wx" not in sys.modules:
         with contextlib.suppress(wxversion.VersionError):
-            wxversion.select(["4.0", "3.0", "%i.%i.%i" % wx_minversion[:3]])
+            wxversion.select(["4.0", "3.0", "{}.{}.{}".format(*wx_minversion[:3])])
 
 import wx
 
@@ -1621,7 +1621,7 @@ class TempXmlResource:
         if scale > 1 or "gtk3" in wx.PlatformInfo:
             if not TempXmlResource._temp:
                 with contextlib.suppress(Exception):
-                    TempXmlResource._temp = tempfile.mkdtemp(prefix=appname + "-XRC-")
+                    TempXmlResource._temp = tempfile.mkdtemp(prefix=f"{appname}-XRC-")
             if TempXmlResource._temp and os.path.isdir(TempXmlResource._temp):
                 # Read original XML
                 with open(xmlpath, "rb") as xmlfile:
@@ -1630,19 +1630,17 @@ class TempXmlResource:
                 for tag in ("border", "hgap", "vgap"):
                     xml = re.sub(
                         rf"<{tag}>(\d+)</{tag}>",
-                        lambda match, tag=tag: f"<{tag}>{round(int(match.group(1)) * scale):d}</{tag}>",
+                        lambda match, tag=tag: f"<{tag}>{round(int(match.group(1)) * scale):d}</{tag}>",  # noqa: E501
                         xml,
                     )
                 for tag in ("size",):
                     xml = re.sub(
                         rf"<{tag}>(-?\d+)\s*,\s*(-?\d+)</{tag}>",
-                        lambda match, tag=tag: "<{}>{:d},{:d}</{}>".format(
-                            (tag,)
-                            + tuple(
+                        lambda match, tag=tag: f"<{tag}>{{:d}},{{:d}}</{tag}>".format(
+                            *tuple(
                                 round(int(v) * scale) if int(v) > 0 else int(v)
                                 for v in match.groups()
                             )
-                            + (tag,)
                         ),
                         xml,
                     )

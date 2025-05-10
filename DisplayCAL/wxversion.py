@@ -485,9 +485,7 @@ if __name__ == "__main__":
 
         # test
         ensureMinimal(version, optionsRequired)
-        print(
-            f"EM: Asked for {version}, ({optionsRequired}):\t got: {sys.path[0]}"
-        )
+        print(f"EM: Asked for {version}, ({optionsRequired}):\t got: {sys.path[0]}")
 
         # reset
         sys.path = savepath[:]

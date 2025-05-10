@@ -5157,9 +5157,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
                 [
                     # count of Unicode chars + 2 (UTF-16-BE BOM + trailing UTF-16 NUL,
                     #                             1 char = 2 byte)
-                    uInt32Number_tohex(
-                        len(self.Unicode) + 2
-                    ),
+                    uInt32Number_tohex(len(self.Unicode) + 2),
                     b"\xfe\xff" + self.Unicode.encode("utf-16-be", "replace") + b"\0\0",
                 ]
             )  # Unicode desc, \0\0 terminated

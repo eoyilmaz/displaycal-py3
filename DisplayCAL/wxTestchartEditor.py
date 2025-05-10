@@ -2072,11 +2072,15 @@ END_DATA"""
                     chart.insert(1, 'KEYWORD "APPROX_WHITE_POINT"')
                     chart.insert(
                         2,
-                        'APPROX_WHITE_POINT "{:.4f} {:.4f} {:.4f}"'.format(*tuple(v * 100 for v in list(nclprof.tags.wtpt.ir.values()))),
+                        'APPROX_WHITE_POINT "{:.4f} {:.4f} {:.4f}"'.format(
+                            *tuple(v * 100 for v in list(nclprof.tags.wtpt.ir.values()))
+                        ),
                     )
                 for k in nclprof.tags.ncl2:
                     v = nclprof.tags.ncl2[k]
-                    chart.insert(-1, "{:.4f} {:.4f} {:.4f}".format(*tuple(v.pcs.values())))
+                    chart.insert(
+                        -1, "{:.4f} {:.4f} {:.4f}".format(*tuple(v.pcs.values()))
+                    )
                 chart = "\n".join(chart)
 
         self.worker.start(
@@ -2877,7 +2881,7 @@ END_DATA"""
             repeatmax = getcfg("tc_export_repeat_patch_max")
             repeatmin = getcfg("tc_export_repeat_patch_min")
             maxcount = maxlen * repeatmax
-            filenameformat = "%%s-%%0%id%%s" % len(str(maxcount))
+            filename_format = f"{{:s}}-{{:0{len(str(maxcount))}d}}{{:s}}"
             count = 0
             secs = 0
             # Scale from screen dimensions to fixed 1080p viewport
@@ -2910,7 +2914,7 @@ END_DATA"""
         for i in range(maxlen):
             if self.worker.thread_abort:
                 break
-            self.worker.lastmsg.write("%d%%\n" % (100.0 / maxlen * (i + 1)))
+            self.worker.lastmsg.write(f"{100.0 / maxlen * (i + 1)}%\n")
             R, G, B = (
                 self.ti1[0].DATA[i]["RGB_R"],
                 self.ti1[0].DATA[i]["RGB_G"],
@@ -2937,7 +2941,7 @@ END_DATA"""
                 int(round(B / 100.0 * vscale)),
             )
             count += 1
-            filename = filenameformat % (name, count, ext)
+            filename = filename_format.format(name, count, ext)
             repeat = int(
                 round(repeatmin + ((repeatmax - repeatmin) / 100.0 * (100 - L)))
             )
@@ -2972,7 +2976,7 @@ END_DATA"""
                     continue
                 for _ in range(repeat - 1):
                     count += 1
-                    filecopyname = filenameformat % (name, count, ext)
+                    filecopyname = filename_format % (name, count, ext)
                     if file_format == "DPX":
                         imfile.write(
                             [[color]],
@@ -3414,7 +3418,9 @@ END_DATA"""
                 self.ti1 = ti1
         except Exception as exception:
             return Error(
-                "{}\n\n{}".format(lang.getstr("error.testchart.read", path), str(exception))
+                "{}\n\n{}".format(
+                    lang.getstr("error.testchart.read", path), str(exception)
+                )
             )
 
         white_patches = self.ti1.queryv1("WHITE_COLOR_PATCHES") or None

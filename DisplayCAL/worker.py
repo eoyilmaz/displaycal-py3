@@ -4635,8 +4635,7 @@ END_DATA
                                                     or v > 1.0
                                                     or (
                                                         preserve_sync
-                                                        and abs(uci[j] - full[j])
-                                                        < 1e-6
+                                                        and abs(uci[j] - full[j]) < 1e-6
                                                     )
                                                 ):
                                                     v = full[j]
@@ -9759,9 +9758,9 @@ usage: spotread [-options] [logfile]
                         applescript = [
                             'tell application "System Preferences"',
                             "activate",
-                            'set current pane to pane id '
+                            "set current pane to pane id "
                             '"com.apple.preference.displays"',
-                            'reveal (first anchor of current pane whose name is '
+                            "reveal (first anchor of current pane whose name is "
                             '"displaysColorTab")',
                             # This needs access for assistive devices enabled
                             # 'tell application "System Events"',

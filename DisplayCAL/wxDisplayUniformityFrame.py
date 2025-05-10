@@ -307,7 +307,7 @@ class DisplayUniformityFrame(BaseFrame):
     def measure(self, event=None):
         if event:
             self.index = event.GetEventObject().index
-            print("%s: Uniformity grid index %i" % (appname, self.index))
+            print(f"{appname}: Uniformity grid index {self.index}")
             self.is_measuring = True
             self.results[self.index] = []
             self.labels[self.index].SetLabel("")
@@ -320,12 +320,8 @@ class DisplayUniformityFrame(BaseFrame):
         self.panels[self.index].Refresh()
         self.panels[self.index].Update()
         print(
-            "%s: About to measure uniformity grid index %i @%i%%"
-            % (
-                appname,
-                self.index,
-                self.colors[len(self.results[self.index])].red / 2.55,
-            )
+            f"{appname}: About to measure uniformity grid index {self.index} "
+            f"@{self.colors[len(self.results[self.index])].red / 2.55}%"
         )
         # Use a delay to allow for TFT lag
         wx.CallLater(200, self.safe_send, " ")
@@ -381,10 +377,12 @@ class DisplayUniformityFrame(BaseFrame):
                     # Let the user choose a location for the results html
                     display_no, geometry, client_area = self.get_display()
                     # Translate from wx display index to Argyll display index
-                    geometry = "%i, %i, %ix%i" % tuple(geometry)
+                    geometry = (
+                        f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
+                    )
                     for i, display in enumerate(getcfg("displays")):
-                        if display.find("@ " + geometry) > -1:
-                            print("Found display %s at index %i" % (display, i))
+                        if display.find(f"@ {geometry}") > -1:
+                            print(f"Found display {display} at index {i}")
                             break
                     display = display.replace(" [PRIMARY]", "")
                     defaultFile = "Uniformity Check {} — {} — {}".format(

@@ -240,7 +240,7 @@ def get_file_logger(
                     instances -= 1
                 if instances:
                     filenames = [filename]
-                    filename += ".%i" % instances
+                    filename = f"{filename}.{instances}"
                     filenames.append(filename)
                     if filenames[0].endswith("-apply-profiles"):
                         # Running the profile loader always sends a close
@@ -257,7 +257,8 @@ def get_file_logger(
                                 logstat = os.stat(logfile)
                             except Exception as exception:
                                 print(
-                                    f"Warning - os.stat('{logfile}') failed: {exception}"
+                                    f"Warning - os.stat('{logfile}') failed: "
+                                    f"{exception}"
                                 )
                             else:
                                 mtimes[logstat.st_mtime] = filename
@@ -265,20 +266,20 @@ def get_file_logger(
                             filename = mtimes[sorted(mtimes.keys())[0]]
         if is_main_process:
             for lockfilepath in safe_glob(
-                os.path.join(confighome, lockbasename + ".mp-worker-*.lock")
+                os.path.join(confighome, f"{lockbasename}.mp-worker-*.lock")
             ):
                 with contextlib.suppress(Exception):
                     os.remove(lockfilepath)
         else:
             # Running as child from multiprocessing under Windows
-            lockbasename += ".mp-worker-"
+            lockbasename = f"{lockbasename}.mp-worker-"
             process_num = 1
             while os.path.isfile(
-                os.path.join(confighome, lockbasename + "%i.lock" % process_num)
+                os.path.join(confighome, f"{lockbasename}{process_num}.lock")
             ):
                 process_num += 1
             lockfilepath = os.path.join(
-                confighome, lockbasename + "%i.lock" % process_num
+                confighome, f"{lockbasename}{process_num}.lock"
             )
             try:
                 with open(lockfilepath, "w") as lockfile:
@@ -288,7 +289,7 @@ def get_file_logger(
             else:
                 atexit.register(os.remove, lockfilepath)
             when = "never"
-            filename += ".mp-worker-%i" % process_num
+            filename = f"{filename}.mp-worker-{process_num}"
             mode = "w"
     logfile = os.path.join(logdir, filename + ".log")
     for handler in logger.handlers:
@@ -391,9 +392,7 @@ def get_file_logger(
             filehandler.setFormatter(fileformatter)
             logger.addHandler(filehandler)
         except Exception as exception:
-            print(
-                f"Warning - logging to file '{logfile}' not possible: {exception}"
-            )
+            print(f"Warning - logging to file '{logfile}' not possible: {exception}")
     return logger
 
 

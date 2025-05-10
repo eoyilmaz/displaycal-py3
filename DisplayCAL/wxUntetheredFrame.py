@@ -492,12 +492,12 @@ class UntetheredFrame(BaseFrame):
             self.index_max = data_len - 1
             self.grid.AppendRows(data_len - self.grid.GetNumberRows())
             for i in self.cgats[0].DATA:
-                self.grid.SetRowLabelValue(i, "%i" % (i + 1))
+                self.grid.SetRowLabelValue(i, f"{i + 1}")
                 row = self.cgats[0].DATA[i]
                 RGB = []
                 for j, label in enumerate("RGB"):
                     value = int(round(row[f"RGB_{label}"] / 100.0 * 255))
-                    self.grid.SetCellValue(row.SAMPLE_ID - 1, j, "%i" % value)
+                    self.grid.SetCellValue(row.SAMPLE_ID - 1, j, f"{value}")
                     RGB.append(value)
                 self.grid.SetCellBackgroundColour(row.SAMPLE_ID - 1, 3, wx.Colour(*RGB))
         if "Connecting to the instrument" in txt:
@@ -534,9 +534,9 @@ class UntetheredFrame(BaseFrame):
             if debug or test or verbose > 1:
                 print("Last recorded Lab: {:.4f} {:.4f} {:.4f}".format(*Lab1))
                 print("Current Lab: {:.4f} {:.4f} {:.4f}".format(*Lab2))
-                print("Delta E to last recorded Lab: {:.4f}".format(delta["E"]))
-                print("Abs. delta L to last recorded Lab: {:.4f}".format(abs(delta["L"])))
-                print("Abs. delta C to last recorded Lab: {:.4f}".format(abs(delta["C"])))
+                print(f"Delta E to last recorded Lab: {delta['E']:.4f}")
+                print(f"Abs. delta L to last recorded Lab: {abs(delta['L']):.4f}")
+                print(f"Abs. delta C to last recorded Lab: {abs(delta['C']):.4f}")
             consecutive_white_patch = (
                 self.index
                 and is_white(row)
@@ -553,7 +553,7 @@ class UntetheredFrame(BaseFrame):
                         self.commit_sound.safe_play()
                     self.measure_count = 0
                     # Reset row label
-                    self.grid.SetRowLabelValue(self.index, "%i" % (self.index + 1))
+                    self.grid.SetRowLabelValue(self.index, f"{self.index + 1}")
                     # Update CGATS
                     query = self.cgats[0].queryi1(
                         {
@@ -602,7 +602,7 @@ class UntetheredFrame(BaseFrame):
                         if self.index != index:
                             # Mark the row containing the next/previous patch
                             self.grid.SetRowLabelValue(
-                                self.index, "\u25ba %i" % (self.index + 1)
+                                self.index, f"\u25ba {self.index + 1}"
                             )
                             self.grid.MakeCellVisible(self.index, 0)
         if "key to take a reading" in txt and not self.last_error:
@@ -689,8 +689,7 @@ class UntetheredFrame(BaseFrame):
     def show_RGB(self, clear_XYZ=True, mark_current_row=True):
         row = self.cgats[0].DATA[self.index]
         self.label_RGB.SetLabel(
-            "RGB %i %i %i"
-            % (
+            "RGB {} {} {}".format(
                 round(row["RGB_R"] / 100.0 * 255),
                 round(row["RGB_G"] / 100.0 * 255),
                 round(row["RGB_B"] / 100.0 * 255),
@@ -711,12 +710,12 @@ class UntetheredFrame(BaseFrame):
             self.panel_XYZ.Refresh()
             self.panel_XYZ.Update()
         if mark_current_row:
-            self.grid.SetRowLabelValue(self.index, "\u25ba %i" % (self.index + 1))
+            self.grid.SetRowLabelValue(self.index, f"\u25ba {self.index + 1}")
             self.grid.MakeCellVisible(self.index, 0)
         if self.index not in self.grid.GetSelectedRows():
             self.grid.SelectRow(self.index)
             self.grid.SetGridCursor(self.index, 0)
-        self.label_index.SetLabel("%i/%i" % (self.index + 1, len(self.cgats[0].DATA)))
+        self.label_index.SetLabel(f"{self.index + 1}/{len(self.cgats[0].DATA)}")
         self.label_index.GetContainingSizer().Layout()
 
     def show_XYZ(self):
@@ -735,7 +734,7 @@ class UntetheredFrame(BaseFrame):
 
     def update(self, index):
         # Reset row label
-        self.grid.SetRowLabelValue(self.index, "%i" % (self.index + 1))
+        self.grid.SetRowLabelValue(self.index, f"{self.index + 1}")
 
         self.index = index
         show_XYZ = self.index in self.measured

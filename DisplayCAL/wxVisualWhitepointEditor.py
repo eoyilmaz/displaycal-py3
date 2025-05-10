@@ -1561,8 +1561,8 @@ class ProfileManager:
                 display_profile = get_display_profile(display_no)
             except (OSError, ICCProfileInvalidError, IndexError) as exception:
                 print(
-                    "Could not get display profile for display %i" % (display_no + 1),
-                    "@ %i, %i, %ix%i:" % geometry,
+                    f"Could not get display profile for display {display_no + 1}",
+                    f"@ {geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}:",
                     exception,
                 )
             else:
@@ -1613,7 +1613,7 @@ class ProfileManager:
             profile.write()
         result = self._worker.exec_cmd(
             dispwin,
-            ["-v", "-d%i" % (display_no + 1), "-I", profile.fileName],
+            ["-v", f"-d{display_no + 1}", "-I", profile.fileName],
             capture_output=True,
             dry_run=False,
         )
@@ -1663,8 +1663,10 @@ class ProfileManager:
             geometry = self._display.Geometry.Get()
             threading.Thread(
                 target=self._manage_display,
-                name="VisualWhitepointEditor.DisplayManager[Display %d @ %d, %d, %dx%d]"
-                % ((display_no,) + geometry),
+                name=(
+                    f"VisualWhitepointEditor.DisplayManager[Display {display_no} @ "
+                    f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}]"
+                ),
                 args=(display_no, geometry),
             ).start()
             if not self._window.patterngenerator:
@@ -1689,7 +1691,8 @@ class ProfileManager:
                 thread = threading.Thread(
                     target=self._install_profile_locked,
                     name="VisualWhitepointEditor.ProfileInstallation[Display"
-                        " %d @ %d, %d, %dx%d]" % ((display_no,) + geometry),
+                    f" {display_no} @ "
+                    f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}]",
                     args=(display_no, profile, wrapup),
                 )
                 thread.start()
@@ -2385,7 +2388,7 @@ class VisualWhitepointEditor(wx.Frame):
 
     def GetHSVAColour(self) -> tuple[float, float, float, float]:
         """Return a tuple of hue, saturation, brightness, alpha components.
-        
+
         Returns:
             tuple[float, float, float, float]: A tuple containing the hue, saturation,
                 brightness, and alpha components of the colour.

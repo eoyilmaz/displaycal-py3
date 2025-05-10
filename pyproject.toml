@@ -202,7 +202,7 @@ select = [
     "YTT",  # flake-2020
 
 ]
-extend-ignore = ["E741", "E402"]
+extend-ignore = ["D203", "D213", "E741", "E402"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 12

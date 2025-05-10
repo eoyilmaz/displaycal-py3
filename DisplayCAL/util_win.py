@@ -225,7 +225,7 @@ def enable_calibration_management(enable: bool = True) -> bool:
 
 
 def enable_per_user_profiles(
-    enable: bool = True, display_no: int = 0, devicekey: str = None
+    enable: bool = True, display_no: int = 0, devicekey: Optional[str] = None
 ) -> bool:
     """Enable per user profiles under Vista/Windows 7.
 

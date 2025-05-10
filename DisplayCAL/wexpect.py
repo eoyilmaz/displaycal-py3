@@ -144,15 +144,15 @@ else:
 __version__ = "2.3"
 __revision__ = "$Revision: 399 $"
 __all__ = [
-    "ExceptionPexpect",
     "EOF",
     "TIMEOUT",
-    "spawn",
-    "run",
-    "which",
-    "split_command_line",
-    "__version__",
+    "ExceptionPexpect",
     "__revision__",
+    "__version__",
+    "run",
+    "spawn",
+    "split_command_line",
+    "which",
 ]
 
 

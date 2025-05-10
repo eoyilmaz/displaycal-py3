@@ -5525,7 +5525,7 @@ END_DATA
                 self.display_edid.append({})
                 self.display_manufacturers.append("")
                 self.display_names.append("Untethered")
-                #
+                # -
                 self.displays = displays
                 setcfg("displays", displays)
                 if (

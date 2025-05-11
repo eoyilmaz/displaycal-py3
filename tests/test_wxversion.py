@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+import tempfile
 
 from DisplayCAL import wxversion
 
@@ -31,34 +32,6 @@ def setup_ensure_debug(scope="function"):
     wxversion._EM_DEBUG = orig_debug
 
 
-# @pytest.fixture(scope="function")
-# def setup_select(version, options_required=False):
-#     # setup
-#     orig_sys_path = sys.path[:]
-
-#     # test
-#     wxversion.select(version, options_required)
-#     print(f"Asked for {version}, ({options_required}):\t got: {sys.path[0]}")
-
-#     # reset
-#     sys.path = orig_sys_path[:]
-#     wxversion._SELECTED = None
-
-
-# @pytest.fixture(scope="function")
-# def setup_ensure_minimal(version, options_required=False):
-#     # setup
-#     savepath = sys.path[:]
-
-#     # test
-#     wxversion.ensure_minimal(version, options_required)
-#     print(f"EM: Asked for {version}, ({options_required}):\t got: {sys.path[0]}")
-
-#     # reset
-#     sys.path = savepath[:]
-#     wxversion._SELECTED = None
-
-
 @pytest.fixture(scope="function")
 def setup_tests(setup_sys_path, setup_selected):
     sys.modules.pop("wx", None)
@@ -72,20 +45,22 @@ def setup_tests(setup_sys_path, setup_selected):
         "wx-2.6-gtk-ansi",
         "wx-2.7.1-gtk2-ansi",
     ]
+    temp_dir = tempfile.mkdtemp()
     for name in names:
-        d = os.path.join("/tmp", name)
+        d = os.path.join(temp_dir, name)
         os.mkdir(d)
         os.mkdir(os.path.join(d, "wx"))
 
     # setup sys.path to see those dirs
-    sys.path.append("/tmp")
+    sys.path.append(temp_dir)
     yield names
 
     # cleanup
     for name in names:
-        d = os.path.join("/tmp", name)
+        d = os.path.join(temp_dir, name)
         os.rmdir(os.path.join(d, "wx"))
         os.rmdir(d)
+    os.rmdir(temp_dir)
 
 
 def test_get_installed(setup_tests):
@@ -182,7 +157,10 @@ def test_select_consecutive(setup_tests):
     with pytest.raises(wxversion.VersionError) as cm:
         wxversion.select("2.5")
 
-    assert str(cm.value) == "A previously selected wx version does not match the new request."
+    assert (
+        str(cm.value)
+        == "A previously selected wx version does not match the new request."
+    )
 
 
 @pytest.mark.parametrize(

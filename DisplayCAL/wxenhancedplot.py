@@ -660,7 +660,7 @@ class PolyMarker(PolyPoints):
         return (s, s)
 
     def _drawmarkers(self, dc, coords, marker, size=1):
-        f = eval("self._" + marker)
+        f = getattr(self, f"_{marker}")
         f(dc, coords, size)
 
     def _circle(self, dc, coords, size=1):

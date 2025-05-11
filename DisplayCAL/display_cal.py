@@ -10165,14 +10165,20 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return retval
 
     def start_measureframe_subprocess(self):
-        args = '"{}" -c "{}"'.format(
-            exe,
+        """Start the measureframe subprocess."""
+        script = (
             "import sys;"
             f"sys.path.insert(0, {pydir!r});"
             "from DisplayCAL import wxMeasureFrame;"
             "wxMeasureFrame.main();"
-            "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)",
+            "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)"
         )
+        args = [
+            exe,
+            "-c",
+            script,
+        ]
+        env = os.environ.copy()
         if wx.Display.GetCount() == 1 and len(self.worker.display_rects) > 1:
             # Separate X screens, TwinView or similar
             display = wx.Display(0)
@@ -10209,20 +10215,26 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     display = RDSMM.get_x_display(display_no)
                     if display:
                         x_hostname, x_display, x_screen = display
-                args = f"DISPLAY={x_hostname}:{x_display}.{x_screen} {args}"
+                env["DISPLAY"] = f"{x_hostname}:{x_display}.{x_screen}"
         delayedresult.startWorker(
-            self.measureframe_consumer, self.measureframe_subprocess, wargs=(args,)
+            self.measureframe_consumer, self.measureframe_subprocess, wargs=(args, env)
         )
 
-    def measureframe_subprocess(self, args):
+    def measureframe_subprocess(self, args, env):
+        """Run the measureframe subprocess.
+
+        Args:
+            args (list): The command to run.
+            env (dict): The environment variables to set.
+        """
         returncode = -1
         try:
             p = sp.Popen(
-                args.encode(fs_enc),
-                shell=True,
+                args,
                 stdin=sp.PIPE,
                 stdout=sp.PIPE,
                 stderr=sp.PIPE,
+                env=env,
             )
         except Exception as exception:
             stderr = safe_str(exception)

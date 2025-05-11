@@ -3038,14 +3038,14 @@ def linmin(cp, xi, di, ftol, func, fdata):
     return xf
 
 
-def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
-    # Adapted from ArgyllCMS powell.c
+def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
+    """Standard interface for powell function.
 
-    """
-    Standard interface for powell function
-    return True on sucess, False on failure due to excessive iterions
-    Result will be in cp
+    Adapted from ArgyllCMS `powell.c`.
 
+    Returns:
+        bool: True on sucess, False on failure due to excessive iterions, result
+            will be in cp
     """
     DBL_EPSILON = 2.2204460492503131e-016
     # di  # Dimentionality
@@ -3173,12 +3173,9 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
 
 
 def xicc_tech_gamma(egamma, off, outoffset=0.0):
-    # Adapted from ArgyllCMS xicc.c
+    """Compute technical gamma for correct 50% response.
 
-    """
-    Given the effective gamma and the output offset Y,
-    return the technical gamma needed for the correct 50% response.
-
+    Adapted from ArgyllCMS xicc.c
     """
     gf = gam_fits()
     op = {}

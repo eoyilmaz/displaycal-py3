@@ -3736,6 +3736,10 @@ class Matrix3x3(list):
 
 
 class NumberTuple(tuple):
+    """Simple tuple with a few extra methods."""
+
+    __slots__ = ()
+
     def __repr__(self):
         return "({})".format(", ".join(str(value) for value in self))
 

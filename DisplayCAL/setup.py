@@ -1645,7 +1645,7 @@ def setup():
                 # Using sys.version in this way is consistent with setuptools
                 for path_ in safe_glob(path) + safe_glob(
                     os.path.join(
-                        f"{path}-{version}-py{sys.version[:3]}*.egg",
+                        f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg",
                         name,
                     )
                 ):

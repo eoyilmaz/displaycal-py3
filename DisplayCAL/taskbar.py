@@ -68,8 +68,8 @@ Here is the code for future reference:
 
 """
 
-import comtypes.client as cc
-import comtypes.gen.TaskbarLib as tbl
+from comtypes import client
+from comtypes.gen import TaskbarLib
 
 TBPF_NOPROGRESS = 0
 TBPF_INDETERMINATE = 0x1
@@ -77,8 +77,8 @@ TBPF_NORMAL = 0x2
 TBPF_ERROR = 0x4
 TBPF_PAUSED = 0x8
 
-taskbar = cc.CreateObject(
-    "{56FDF344-FD6D-11d0-958A-006097C9A090}", interface=tbl.ITaskbarList3
+taskbar = client.CreateObject(
+    "{56FDF344-FD6D-11d0-958A-006097C9A090}", interface=TaskbarLib.ITaskbarList3
 )
 taskbar.HrInit()
 

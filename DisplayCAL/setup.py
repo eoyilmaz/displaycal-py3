@@ -38,9 +38,7 @@ from time import strftime
 
 # Borrowed from setuptools
 def _find_all_simple(path):
-    """
-    Find all files under 'path'
-    """
+    """Find all files under 'path'."""
     results = (
         os.path.join(base, file)
         for base, dirs, files in os.walk(path, followlinks=True)

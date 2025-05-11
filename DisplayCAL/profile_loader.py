@@ -1261,7 +1261,7 @@ class ProfileLoader:
             # take care of calibration loading
 
             self._pid = os.getpid()
-            self._tid = threading.currentThread().ident
+            self._tid = threading.current_thread().ident
 
             class PLFrame(BaseFrame):
                 def __init__(self, pl):

@@ -564,7 +564,7 @@ def _exit(lockfilename, oport):
     for thread in threading.enumerate():
         if (
             thread.is_alive()
-            and thread is not threading.currentThread()
+            and thread is not threading.current_thread()
             and not thread.isDaemon()
         ):
             print("Waiting for thread %s to exit" % thread.getName())

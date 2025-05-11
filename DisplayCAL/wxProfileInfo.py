@@ -1748,7 +1748,7 @@ class ProfileInfoFrame(LUTFrame):
                     # xy
                     x, y = xy
                 cct, delta = colormath.xy_CCT_delta(x, y, daylight=whitepoint_no == 1)
-                status = format_.format(xy)
+                status = format_.format(*xy)
                 if cct:
                     if delta:
                         locus = {"Blackbody": "blackbody", "Daylight": "daylight"}.get(
@@ -1756,16 +1756,16 @@ class ProfileInfoFrame(LUTFrame):
                             page.whitepoint_select.GetStringSelection(),
                         )
                         status = "{}, CCT {} ({} {:.2f})".format(
-                            format_.format(xy),
+                            format_.format(*xy),
                             cct,
                             lang.getstr("delta_e_to_locus", locus),
                             delta["E"],
                         )
                     else:
-                        status = f"{format_.format(xy)}, CCT {cct}"
+                        status = f"{format_.format(*xy)}, CCT {cct}"
                 self.SetStatusText(status)
             else:
-                self.SetStatusText(format_.format(xy))
+                self.SetStatusText(format_.format(*xy))
         if isinstance(event, wx.MouseEvent):
             event.Skip()  # Go to next handler
 

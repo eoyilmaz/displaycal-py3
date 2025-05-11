@@ -6870,10 +6870,10 @@ BEGIN_DATA
                                     )
 
                                     def caffeinate_wait(proc):
-                                        proc.wait()  # noqa: B023
+                                        proc.wait()
                                         self.log(
                                             f"{appname}: caffeinate exited "
-                                            f"with code {proc.returncode}"  # noqa: B023
+                                            f"with code {proc.returncode}"
                                         )
 
                                     wait_thread = threading.Thread(

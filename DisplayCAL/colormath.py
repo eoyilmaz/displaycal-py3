@@ -2239,10 +2239,9 @@ def xyY2XYZ(x, y, Y=1.0):
 
 
 def LERP(a, b, c):
-    """LERP(a,b,c) = linear interpolation macro.
+    """linear interpolation macro.
 
     Is 'a' when c == 0.0 and 'b' when c == 1.0
-
     """
     return (b - a) * c + a
 

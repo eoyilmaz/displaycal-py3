@@ -287,11 +287,10 @@ def icc_device_link_to_madvr(
 
 
 def inet_pton(ip_string):
-    """inet_pton(string) -> packed IP representation
+    """Convert ip_string to packed IP representation.
 
-    Convert an IP address in string format to the  packed
-    binary format used in low-level network functions.
-
+    Convert an IP address in string format to the packed binary format used in
+    low-level network functions.
     """
     if ":" in ip_string:
         # IPv6

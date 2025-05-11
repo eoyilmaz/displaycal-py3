@@ -208,6 +208,7 @@ extend-ignore = [
     "D203",  # Incorrect blank line before class
     "D209",  # New line after last paragraph in docstring
     "D213",  # Multiline docstring summary second line
+    "D416",  # Missing section name colon
     "E741",  # Ambiguous variable name
     "E402",  # Module level import not at top of file
 ]

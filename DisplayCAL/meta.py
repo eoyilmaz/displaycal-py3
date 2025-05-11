@@ -41,6 +41,7 @@ longdesc = (
 )
 DOMAIN = "displaycal.net"
 development_home_page = "https://github.com/eoyilmaz/displaycal-py3"
+github_api_url = "https://api.github.com/repos/eoyilmaz/displaycal-py3"
 
 author_email = ", ".join(
     [

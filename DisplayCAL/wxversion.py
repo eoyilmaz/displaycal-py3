@@ -15,7 +15,9 @@
 #              entry in sys.path (usually current dir) - fhoech
 # ----------------------------------------------------------------------
 
-"""If you have more than one version of wxPython installed this module
+"""Utility module for wxPython to allow multiple versions to be installed.
+
+If you have more than one version of wxPython installed this module
 allows your application to choose which version of wxPython will be
 imported when it does 'import wx'.  The main function of this module
 is `select` and you use it like this::
@@ -76,12 +78,13 @@ found at: http://wiki.wxpython.org/index.cgi/MultiVersionInstalls
 
 """
 
+from __future__ import annotations
+
 import fnmatch
 import glob
 import os
 import re
 import sys
-from typing import Union
 
 _SELECTED = None
 _EM_DEBUG = 0
@@ -91,14 +94,14 @@ _WX_VERSION_PATTERN_PHOENIX = "wxPython-[0-9].*.egg"
 
 
 class VersionError(Exception):
-    pass
+    """Exception raised when a requested wxPython version is not found."""
 
 
 class AlreadyImportedError(VersionError):
-    pass
+    """Exception raised when wxPython has already been imported."""
 
 
-def select(versions, options_required=False):
+def select(versions: str | list[str], options_required: bool = False) -> None:
     """Search for a wxPython installation that matches version.
 
     If one is found then sys.path is modified so that version will be imported
@@ -107,10 +110,10 @@ def select(versions, options_required=False):
     before wxPython is imported.
 
     Args:
-        versions: Specifies the version to look for, it can either be a string
-            or a list of strings. Each string is compared to the installed
-            wxPythons and the best match is inserted into the sys.path,
-            allowing an 'import wx' to find that version.
+        versions (Union[str, list[str]]): Specifies the version to look for,
+            it can either be a string or a list of strings. Each string is
+            compared to the installed wxPythons and the best match is inserted
+            into the sys.path, allowing an 'import wx' to find that version.
 
             The version string is composed of the dotted version number (at
             least 2 of the 4 components) optionally followed by hyphen ('-')
@@ -143,7 +146,7 @@ def select(versions, options_required=False):
         # A version was previously selected, ensure that it matches
         # this new request
         for ver in versions:
-            if _SELECTED.score(_wxPackageInfo(ver), options_required) > 0:
+            if _SELECTED.score(WxPackageInfo(ver), options_required) > 0:
                 return
         # otherwise, raise an exception
         raise VersionError(
@@ -152,10 +155,7 @@ def select(versions, options_required=False):
 
     # If we get here then this is the first time wxversion is used,
     # ensure that wxPython hasn't been imported yet.
-    if "wx" in sys.modules or "wxPython" in sys.modules:
-        raise AlreadyImportedError(
-            "wxversion.select() must be called before wxPython is imported"
-        )
+    check_already_imported()
 
     # Look for a matching version and manipulate the sys.path as
     # needed to allow it to be imported.
@@ -174,7 +174,7 @@ def select(versions, options_required=False):
     _SELECTED = best_match
 
 
-def ensure_minimal(min_version, options_required=False) -> None:
+def ensure_minimal(min_version: str, options_required: bool = False) -> None:
     """Ensure the default wxPython version is >= `minVersion`.
 
     If not, attempt to find an installed version >= `minVersion`. If none are
@@ -190,21 +190,19 @@ def ensure_minimal(min_version, options_required=False) -> None:
         VersionError: If no matching version is found and the user declines to
             download.
     """
-    assert isinstance(min_version, str)
+    if not isinstance(min_version, str):
+        raise TypeError("min_version must be a string")
 
     # ensure that wxPython hasn't been imported yet.
-    if "wx" in sys.modules or "wxPython" in sys.modules:
-        raise AlreadyImportedError(
-            "wxversion.ensureMinimal() must be called before wxPython is imported"
-        )
+    check_already_imported()
 
     best_match = None
-    minv = _wxPackageInfo(min_version)
+    minv = WxPackageInfo(min_version)
 
     # check the default version first
     default_path = _find_default()
     if default_path:
-        defv = _wxPackageInfo(default_path, True)
+        defv = WxPackageInfo(default_path, True)
         if defv >= minv and minv.check_options(defv, options_required):
             best_match = defv
 
@@ -254,7 +252,20 @@ def ensure_minimal(min_version, options_required=False) -> None:
     _SELECTED = best_match
 
 
-def check_installed(versions : list[str], options_required : bool =False):
+def check_already_imported() -> None:
+    """Check if wxPython has already been imported.
+
+    Raises:
+        AlreadyImportedError: If wxPython has already been imported.
+    """
+    # ensure that wxPython hasn't been imported yet.
+    if "wx" in sys.modules or "wxPython" in sys.modules:
+        raise AlreadyImportedError(
+            "wxversion.ensureMinimal() must be called before wxPython is imported"
+        )
+
+
+def check_installed(versions: list[str], options_required: bool = False) -> bool:
     """Check if a version of wxPython installed that matches one of the versions given.
 
     This can be used to determine if calling `select` will succeed or not.
@@ -270,13 +281,13 @@ def check_installed(versions : list[str], options_required : bool =False):
     if isinstance(versions, str):
         versions = [versions]
     installed = _find_installed()
-    bestMatch = _get_best_match(installed, versions, options_required)
-    return bestMatch is not None
+    best_match = _get_best_match(installed, versions, options_required)
+    return best_match is not None
 
 
 def get_installed() -> list[str]:
     """Return a list of installed wxPython versions as strings.
-    
+
     Returns:
         list[str]: A list of installed wxPython versions in the format
             "wx-<version>".
@@ -285,32 +296,43 @@ def get_installed() -> list[str]:
     return [p.base.split("-", 1).pop() for p in installed]
 
 
-def _get_best_match(installed, versions, options_required):
+def _get_best_match(
+    installed: list[WxPackageInfo], versions: list[str], options_required: bool
+) -> WxPackageInfo | None:
     """Find the best match for the given versions in the installed wxPython packages.
-    
+
     Args:
-        installed (list[_wxPackageInfo]): List of installed wxPython packages.
+        installed (list[WxPackageInfo]): List of installed wxPython packages.
         versions (list[str]): List of version strings to match against.
         options_required (bool): Whether options are required for a match.
-    
+
     Returns:
-        _wxPackageInfo: The best matching wxPython package, or None if no match
+        WxPackageInfo: The best matching wxPython package, or None if no match
             is found.
     """
     best_match = None
     best_score = 0
     for pkg in installed:
         for ver in versions:
-            score = pkg.score(_wxPackageInfo(ver), options_required)
+            score = pkg.score(WxPackageInfo(ver), options_required)
             if score > best_score:
                 best_match = pkg
                 best_score = score
     return best_match
 
 
-def _find_installed(removeExisting=False):
+def _find_installed(remove_existing: bool = False) -> list[WxPackageInfo]:
+    """Scan sys.path for wxPython packages and return a list of them.
+
+    Args:
+        remove_existing (bool): If True, remove existing wxPython paths from
+            sys.path.
+
+    Returns:
+        list[WxPackageInfo]: A list of installed wxPython packages.
+    """
     installed = []
-    toRemove = []
+    to_remove = []
     for pth in sys.path:
         # empty means to look in the current dir
         if not pth:
@@ -327,7 +349,7 @@ def _find_installed(removeExisting=False):
         if fnmatch.fnmatchcase(base, _WX_VERSION_PATTERN) or fnmatch.fnmatchcase(
             base, _WX_VERSION_PATTERN_PHOENIX
         ):
-            toRemove.append(pth)
+            to_remove.append(pth)
             continue
 
         # now look in the dir for matching subdirs
@@ -340,7 +362,7 @@ def _find_installed(removeExisting=False):
             # and has a wx subdir
             if not os.path.exists(os.path.join(name, "wx")):
                 continue
-            installed.append(_wxPackageInfo(name, True))
+            installed.append(WxPackageInfo(name, True))
 
         # Phoenix
         name = os.path.join(pth, "wx")
@@ -349,20 +371,20 @@ def _find_installed(removeExisting=False):
             version_info = {}
             with open(phoenix_version_py, "rb") as f:
                 phoenix_version = f.read()
-            exec(
+            exec(  # noqa: S102
                 compile(phoenix_version, phoenix_version_py, "exec"),
                 {},
                 version_info,
             )
             if version_info["VERSION"] >= (4,):
-                pinfo = _wxPackageInfo(
+                pinfo = WxPackageInfo(
                     "{}-{}".format(name, version_info["VERSION_STRING"]), True
                 )
                 pinfo.pathname = pth
                 installed.append(pinfo)
 
-    if removeExisting:
-        for rem in toRemove:
+    if remove_existing:
+        for rem in to_remove:
             del sys.path[sys.path.index(rem)]
 
     installed.sort()
@@ -370,11 +392,11 @@ def _find_installed(removeExisting=False):
     return installed
 
 
-def _find_default() -> Union[None, str]:
+def _find_default() -> None | str:
     """Scan sys.path for a directory matching _pattern or a wx.pth file.
 
     Returns:
-        Union[None, str]: The path to the wxPython installation if found,
+        None | str: The path to the wxPython installation if found,
             otherwise None.
     """
     for pth in sys.path:
@@ -406,19 +428,38 @@ def _find_default() -> Union[None, str]:
     return None
 
 
-class _wxPackageInfo:
-    """A class to hold information about a wxPython package."""
+class WxPackageInfo:
+    """A class to hold information about a wxPython package.
 
-    def __init__(self, pathname, stripFirst=False):
+    Args:
+        pathname (str): The path to the wxPython package.
+        strip_first (bool): If True, strip the first component of the
+            version string.
+    """
+
+    def __init__(self, pathname: str, strip_first: bool = False) -> None:
         self.pathname = pathname
         self.base = os.path.basename(pathname)
         segments = self.base.split("-")
-        if stripFirst:
+        if strip_first:
             segments = segments[1:]
         self.version = tuple(segments[0].split("."))
         self.options = segments[1:]
 
-    def score(self, other, options_required):
+    def score(self, other: WxPackageInfo, options_required: bool) -> int:
+        """Calculate a score for this package against another.
+
+        The score is based on how many components of the version and
+        options match. The more components that match, the higher the
+        score.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+            options_required (bool): If True, require exact match on options.
+
+        Returns:
+            int: The score for this package against the other.
+        """
         score = 0
 
         # whatever number of version components given in other must
@@ -438,7 +479,16 @@ class _wxPackageInfo:
 
         return score
 
-    def check_options(self, other, options_required):
+    def check_options(self, other: WxPackageInfo, options_required: bool) -> bool:
+        """Check if the options of this package match those of another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+            options_required (bool): If True, require exact match on options.
+
+        Returns:
+            bool: True if the options match, False otherwise.
+        """
         # if options are not required then this always succeeds
         if not options_required:
             return True
@@ -446,25 +496,73 @@ class _wxPackageInfo:
         # the match fails.
         return all(opt in other.options for opt in self.options)
 
-    def __lt__(self, other):
+    def __lt__(self, other: WxPackageInfo) -> bool:
+        """Check if this package is less than another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+
+        Returns:
+            bool: True if this package is less than the other,
+                False otherwise.
+        """
         return self.version < other.version or (
             self.version == other.version and self.options < other.options
         )
 
-    def __le__(self, other):
+    def __le__(self, other: WxPackageInfo) -> bool:
+        """Check if this package is less than or equal to another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+
+        Returns:
+            bool: True if this package is less than or equal to the other,
+                False otherwise.
+        """
         return self.version <= other.version or (
             self.version == other.version and self.options <= other.options
         )
 
-    def __gt__(self, other):
+    def __gt__(self, other: WxPackageInfo) -> bool:
+        """Check if this package is greater than another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+
+        Returns:
+            bool: True if this package is greater than the other,
+                False otherwise.
+        """
         return self.version > other.version or (
             self.version == other.version and self.options > other.options
         )
 
-    def __ge__(self, other):
+    def __ge__(self, other: WxPackageInfo) -> bool:
+        """Check if this package is greater than or equal to another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+
+        Returns:
+            bool: True if this package is greater than or equal to the other,
+                False otherwise.
+        """
         return self.version >= other.version or (
             self.version == other.version and self.options >= other.options
         )
 
-    def __eq__(self, other):
-        return self.version == other.version and self.options == other.options
+    def __eq__(self, other: WxPackageInfo) -> bool:
+        """Check if this package is equal to another.
+
+        Args:
+            other (WxPackageInfo): The other package to compare against.
+
+        Returns:
+            bool: True if the packages are equal, False otherwise.
+        """
+        return (
+            isinstance(other, WxPackageInfo)
+            and self.version == other.version
+            and self.options == other.options
+        )

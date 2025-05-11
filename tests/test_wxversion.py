@@ -206,3 +206,13 @@ def test_select_ensure_minimal(
     else:
         with pytest.raises(wxversion.VersionError):
             wxversion.ensure_minimal(version, options_required=options_required)
+
+
+def test_select_ensure_minimal_min_version_is_not_string(
+    setup_tests, setup_ensure_debug
+):
+    """Test that ensure_minimal raises an error if the version is not a string."""
+    with pytest.raises(TypeError) as cm:
+        wxversion.ensure_minimal(2.6, options_required=False)
+
+    assert str(cm.value) == "min_version must be a string"

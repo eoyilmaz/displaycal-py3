@@ -202,7 +202,15 @@ select = [
     "YTT",  # flake-2020
 
 ]
-extend-ignore = ["COM812", "D203", "D213", "E741", "E402"]
+extend-ignore = [
+    "COM812",  # flake8-commas
+    "D107",  # skip docstring for __init__
+    "D203",  # Incorrect blank line before class
+    "D209",  # New line after last paragraph in docstring
+    "D213",  # Multiline docstring summary second line
+    "E741",  # Ambiguous variable name
+    "E402",  # Module level import not at top of file
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 12

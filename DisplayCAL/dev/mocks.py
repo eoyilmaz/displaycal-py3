@@ -7,11 +7,13 @@ well to check if the method was called (or not).
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Generator
-from types import ModuleType
-from typing import Any, overload
+from typing import Any, overload, TYPE_CHECKING
 
 from _pytest.monkeypatch import MonkeyPatch
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from types import ModuleType
 
 Call = tuple[tuple[Any, ...], dict[str, Any]]
 CallList = list[Call]

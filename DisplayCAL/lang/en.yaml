@@ -1106,7 +1106,7 @@
 "error.copy_failed": |-
   The file “%s” could not be copied to “%s”.
 "error.deletion": |-
-  An error occured while moving files to the %s. Some files might not have been removed.
+  An error occurred while moving files to the %s. Some files might not have been removed.
 "error.dir_creation": |-
   The directory “%s” could not be created. Maybe there are access restrictions. Please allow writing access or choose another directory.
 "error.dir_notdir": |-

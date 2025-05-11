@@ -4285,7 +4285,7 @@ END_DATA
                     Clip the incoming value RGB[] in place.
                     Return a bit mask of the channels that have/would clip,
                     scale all non-black values to avoid positive clipping and
-                    return the restoring scale factor (> 1.0) if this has occured,
+                    return the restoring scale factor (> 1.0) if this has occurred,
                     return the full value in the clip direction in full[],
                     and return the uncliped value in unclipped[].
 
@@ -14611,7 +14611,7 @@ usage: spotread [-options] [logfile]
                 cookie = iface_dict.get("cookie")
                 if cookie:
                     # Uninhibit. Note that if (e.g.) screensaver timeout has
-                    # occured during the time the session was inhibited, that
+                    # occurred during the time the session was inhibited, that
                     # may now kick in immediately after uninhibiting
                     uninhibit = iface_dict.get("uninhibit", "un_inhibit")
                     try:

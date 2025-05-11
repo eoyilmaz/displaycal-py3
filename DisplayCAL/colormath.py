@@ -3107,7 +3107,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
             lretv = retv
             retv = linmin(cp, svec, di, ftol, func, fdata)
 
-            # Record bigest function decrease, and dimension it occured on
+            # Record bigest function decrease, and dimension it occurred on
             if abs(lretv - retv) > del_:
                 del_ = abs(lretv - retv)
                 ibig = i

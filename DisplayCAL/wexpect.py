@@ -2064,7 +2064,10 @@ class spawn_windows(spawn_unix):
 
 
 class Wtty:
-    """"""
+    """This class is used to spawn a child process and connect to its
+    console. It is used by the spawn_windows class. This class is not
+    intended to be used directly.
+    """
 
     def __init__(self, timeout=30, codepage=None, columns=None, rows=None, cwd=None):
         self.__buffer = StringIO()
@@ -2101,7 +2104,7 @@ class Wtty:
         self.totalRead = 0
 
     def spawn(self, command, args=None, env=None):
-        """Spawns spawner.py with correct arguments."""
+        """Spawn spawner.py with correct arguments."""
         if args is None:
             args = []
 

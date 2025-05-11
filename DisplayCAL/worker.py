@@ -33,7 +33,7 @@ from functools import partial
 from hashlib import md5, sha256
 from io import BytesIO
 from pathlib import Path
-from threading import currentThread
+from threading import current_thread, main_thread
 from time import sleep, strftime, time
 
 import distro
@@ -2755,7 +2755,7 @@ class Worker(WorkerBase):
             getattr(self, "progress_start_timer", None)
             and self.progress_start_timer.IsRunning()
         ):
-            if currentThread().__class__.__name__ != "_MainThread":
+            if current_thread() != main_thread():
                 raise RuntimeError("GUI access in non-main thread!")
             # Instantiate the progress dialog instantly on access
             self.progress_start_timer.Notify()
@@ -3019,9 +3019,9 @@ class Worker(WorkerBase):
         elif "place instrument on spot" in txt.lower():
             self.instrument_place_on_spot_msg = True
         if (
-            self.instrument_place_on_screen_msg
-            or self.instrument_place_on_spot_msg
-            and not self.check_instrument_calibration_file()
+            (self.instrument_place_on_screen_msg
+             or self.instrument_place_on_spot_msg)
+             and not self.check_instrument_calibration_file()
         ):
             return
         if (
@@ -9521,7 +9521,7 @@ usage: spotread [-options] [logfile]
                             usb_ids[usb_id].append(instrument_name)
 
             # Check connected USB devices for supported instruments
-            not_main_thread = currentThread().__class__.__name__ != "_MainThread"
+            not_main_thread = current_thread() != main_thread()
             if not_main_thread:
                 # If running in a thread, need to call pythoncom.CoInitialize
                 pythoncom.CoInitialize()
@@ -10074,7 +10074,7 @@ usage: spotread [-options] [logfile]
         else:
             cmd = os.path.join(pydir, f"{appname}-apply-profiles.exe")
 
-        not_main_thread = currentThread().__class__.__name__ != "_MainThread"
+        not_main_thread = current_thread() != main_thread()
         if not_main_thread:
             # If running in a thread, need to call pythoncom.CoInitialize
             pythoncom.CoInitialize()
@@ -14013,8 +14013,8 @@ usage: spotread [-options] [logfile]
             hasattr(self, "thread")
             and self.thread.is_alive()
             and (
-                not hasattr(currentThread(), "name")
-                or currentThread().name != self.thread.name
+                not hasattr(current_thread(), "name")
+                or current_thread().name != self.thread.name
             )
         ):
             logfn = log

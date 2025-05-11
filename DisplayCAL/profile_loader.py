@@ -2830,7 +2830,8 @@ class ProfileLoader:
                     ramp = ((ctypes.c_ushort * 256) * 3)()
                     try:
                         result = self.gdi32.GetDeviceGammaRamp(hdc, ramp)
-                    except Exception:
+                    except Exception as e:
+                        print("Handled exception:", e)
                         continue
                     finally:
                         win32gui.DeleteDC(hdc)

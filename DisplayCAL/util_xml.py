@@ -36,9 +36,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
         xml.append("".join(start_tag))
 
         if children:
-            for child in children:
-                xml.append(child)
-
+            xml += children
             xml.append(f"{indent}</{elementname}>")
     else:
         xml.append(f"{indent}<{elementname}>{escape(str(d))}</{elementname}>")

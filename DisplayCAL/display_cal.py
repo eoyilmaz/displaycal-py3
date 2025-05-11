@@ -14223,13 +14223,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             choice = wx.ID_ANY
         else:
             choice = wx.ID_OK
-        for name, importer in [
+        importer_configurations = [
             ("i1d3", i1d3ccss or oeminst),
             ("spyd4", spyd4en or oeminst),
             ("icd", True),
-        ]:
-            if importer and getattr(dlg, name).GetValue():
-                importers[name] = importer
+        ]
+        importers = {
+            name: importer
+            for name, importer in importer_configurations
+            if importer and getattr(dlg, name).GetValue()
+        }
         asroot = dlg.install_systemwide.GetValue()
         dlg.Destroy()
         if choice == wx.ID_CANCEL:

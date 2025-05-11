@@ -15307,7 +15307,7 @@ BEGIN_DATA
                 cti3 = CGATS(temppathname + ".ti3")
             # Get RGB from measurement data
             RGBorig = []
-            for _, sample in cti3[0].DATA.items():
+            for sample in cti3[0].DATA.values():
                 RGB = []
                 for component in "RGB":
                     RGB.append(sample[f"RGB_{component}"])

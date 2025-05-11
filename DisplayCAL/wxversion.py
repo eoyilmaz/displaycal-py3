@@ -15,8 +15,7 @@
 #              entry in sys.path (usually current dir) - fhoech
 # ----------------------------------------------------------------------
 
-"""
-If you have more than one version of wxPython installed this module
+"""If you have more than one version of wxPython installed this module
 allows your application to choose which version of wxPython will be
 imported when it does 'import wx'.  The main function of this module
 is `select` and you use it like this::
@@ -404,7 +403,7 @@ def _find_default() -> Union[None, str]:
                 base = f.read()
             return os.path.join(pth, base)
 
-    return
+    return None
 
 
 class _wxPackageInfo:

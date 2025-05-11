@@ -184,7 +184,7 @@ if "phoenix" in wx.PlatformInfo:
 
     # Removed items
     wx.IconBundle.AddIconFromFile = (
-        lambda file, type=wx.BITMAP_TYPE_ANY: wx.IconBundle.AddIcon(file, type)
+        lambda file, type_=wx.BITMAP_TYPE_ANY: wx.IconBundle.AddIcon(file, type_)
     )
 
     def ContainsRect(self, *args):

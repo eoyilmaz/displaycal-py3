@@ -2790,7 +2790,7 @@ class Worker(WorkerBase):
         encoded_pwd = (
             codecs.encode(pwd.encode(), "base64").decode("utf-8").rstrip("=\n")
         )
-        self._pwdstr = f"{tempfile.gettempdir()}/{encoded_user_name}{encoded_pwd}"
+        self._pwdstr = f"/tmp/{encoded_user_name}{encoded_pwd}"  # noqa: S108
 
     def check_add_display_type_base_id(self, cgats, cfgname="measurement_mode"):
         """Add DISPLAY_TYPE_BASE_ID to CCMX"""

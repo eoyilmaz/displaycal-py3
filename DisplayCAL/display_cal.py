@@ -9854,8 +9854,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         writecfg()
         if pending_function_kwargs.get("wrapup", True):
             self.worker.wrapup(False)
-        if "wrapup" in pending_function_kwargs:
-            del pending_function_kwargs["wrapup"]
+        pending_function_kwargs.pop("wrapup", None)
         self.HideAll()
         self.set_pending_function(
             pending_function, *pending_function_args, **pending_function_kwargs

@@ -3093,16 +3093,14 @@ class ConfirmDialog(BaseInteractiveDialog):
 class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHistory):
     def __init__(self, *arguments, **namedarguments):
         self.history = namedarguments.get("history") or []
-        if "history" in namedarguments:
-            del namedarguments["history"]
+        namedarguments.pop("history", None)
 
         self.historyCallBack = None
         if callable(self.history):
             self.historyCallBack = self.history
             self.history = []
         name = namedarguments.get("name", "fileBrowseButtonWithHistory")
-        if "name" in namedarguments:
-            del namedarguments["name"]
+        namedarguments.pop("name", None)
         filebrowse.FileBrowseButton.__init__(self, *arguments, **namedarguments)
         self.SetName(name)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)

@@ -175,8 +175,7 @@ def can_update_cal(path):
             CGATSTypeError,
             CGATSValueError,
         ) as exception:
-            if path in cals:
-                del cals[path]
+            cals.pop(path, None)
             print(f"Warning - couldn't process CGATS file '{path}': {exception}")
         else:
             if cal.queryv1("DEVICE_CLASS") == "DISPLAY" and None not in (

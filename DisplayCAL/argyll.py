@@ -213,33 +213,32 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 # executables
                 writecfg()
                 break
-            else:
-                not_found = []
-                for name in argyll_names:
-                    if (
-                        not get_argyll_util(name, [path])
-                        and name not in argyll_optional
-                    ):
-                        not_found.append(
-                            f" {lang.getstr('or')} ".join(
-                                [
-                                    altname
-                                    for altname in [
-                                        altname + exe_ext
-                                        for altname in argyll_altnames[name]
-                                    ]
-                                    if "argyll" not in altname
+            not_found = []
+            for name in argyll_names:
+                if (
+                    not get_argyll_util(name, [path])
+                    and name not in argyll_optional
+                ):
+                    not_found.append(
+                        f" {lang.getstr('or')} ".join(
+                            [
+                                altname
+                                for altname in [
+                                    altname + exe_ext
+                                    for altname in argyll_altnames[name]
                                 ]
-                            )
+                                if "argyll" not in altname
+                            ]
                         )
-                InfoDialog(
-                    parent,
-                    msg="{}\n\n{}".format(
-                        path, lang.getstr("argyll.dir.invalid", ", ".join(not_found))
-                    ),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
+                    )
+            InfoDialog(
+                parent,
+                msg="{}\n\n{}".format(
+                    path, lang.getstr("argyll.dir.invalid", ", ".join(not_found))
+                ),
+                ok=lang.getstr("ok"),
+                bitmap=geticon(32, "dialog-error"),
+            )
         else:
             break
     dlg.Destroy()

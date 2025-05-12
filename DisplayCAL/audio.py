@@ -195,9 +195,8 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
                 _lib = "SDL"
                 _lib_version = "2.0" if libname.startswith("SDL2") else "1.2"
                 break
-            else:
-                sdl = dll
-                _server = None
+            sdl = dll
+            _server = None
     elif lib == "wx":
         try:
             import wx

@@ -359,7 +359,7 @@ def install_profile(
                     if logfn:
                         logfn("...ok")
                     break
-                elif logfn:
+                if logfn:
                     logfn("...failed!")
 
             if p.returncode != 0 and not os.path.isfile(profile_install_name):

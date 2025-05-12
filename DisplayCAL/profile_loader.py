@@ -3062,7 +3062,7 @@ class ProfileLoader:
             if "--oneshot" in sys.argv[1:]:
                 wx.CallAfter(self.exit)
                 break
-            elif "--profile-associations" in sys.argv[1:]:
+            if "--profile-associations" in sys.argv[1:]:
                 sys.argv.remove("--profile-associations")
                 wx.CallAfter(self._set_profile_associations, None)
             # Wait three seconds

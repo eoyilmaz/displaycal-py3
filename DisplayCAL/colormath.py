@@ -807,8 +807,7 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
                             windowsize += float(weight) * windowslice[k]
                         v = windowsize / sum(tmp_window)
                         break
-                    else:
-                        tmp_window = tmp_window[1:-1]
+                    tmp_window = tmp_window[1:-1]
             data.append(v)
         values = data
     return values
@@ -2851,7 +2850,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 xx = ux
                 xf = uf
                 break
-            elif uf > xf:  # Minimum is between a and u
+            if uf > xf:  # Minimum is between a and u
                 bx = ux
                 bf = uf
                 break

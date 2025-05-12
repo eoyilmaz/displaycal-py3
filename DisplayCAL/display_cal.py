@@ -13137,7 +13137,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 result = wx.ID_OK
                             if result == wx.ID_OK:
                                 break
-                            elif result == wx.ID_CANCEL:
+                            if result == wx.ID_CANCEL:
                                 return
                     elif cgats.queryv1("INSTRUMENT_TYPE_SPECTRAL") == b"YES":
                         if reference_ti3:
@@ -14639,7 +14639,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 if isinstance(result, Exception):
                     break
-                elif result:
+                if result:
                     if os.path.basename(result).lower() == "i1d3.zip":
                         # Extract contained CCSS files
                         result = self.worker.extract_archive(result)

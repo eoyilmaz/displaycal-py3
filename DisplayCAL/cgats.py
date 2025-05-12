@@ -387,7 +387,7 @@ class CGATS(dict):
                             # Strip comment
                             line = line[:i].strip()
                             break
-                        elif char in b" \t":
+                        if char in b" \t":
                             token_start = i + 1
             else:
                 # no comments or quotes
@@ -1066,11 +1066,10 @@ class CGATS(dict):
             if key in self:
                 if key + inc < 0:
                     break
-                else:
-                    self[key].key += inc
-                    self[key + inc] = self[key]
-                    if key == len(self) - 1:
-                        break
+                self[key].key += inc
+                self[key + inc] = self[key]
+                if key == len(self) - 1:
+                    break
 
     def add_data(self, data, key=None):
         """Add data to the CGATS structure.
@@ -1893,7 +1892,7 @@ Transform {
                             else:
                                 result = result_n
                             break
-                        elif len(result_n):
+                        if len(result_n):
                             if (
                                 get_value
                                 and isinstance(result_n, dict)
@@ -1909,7 +1908,7 @@ Transform {
                         if get_first:
                             result = result_n
                             break
-                        elif len(result_n):
+                        if len(result_n):
                             for i in result_n:
                                 n = len(result)
                                 if result_n[i] not in list(result.values()):
@@ -2343,8 +2342,7 @@ Transform {
                                     "XYZ_Z": white[2],
                                 }
                                 break
-                            else:
-                                white = None
+                            white = None
                 if not white:
                     return
             if white and (

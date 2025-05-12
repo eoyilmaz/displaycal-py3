@@ -859,7 +859,7 @@ class IdFactory:
                 cls.CurrentId = 100
             if id not in cls.ReservedIds:
                 break
-            elif cls.CurrentId == start_id:
+            if cls.CurrentId == start_id:
                 raise RuntimeError(
                     "Error: Out of IDs. Recommend shutting down application."
                 )

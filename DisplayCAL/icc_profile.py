@@ -4609,7 +4609,7 @@ class DictType(ICCProfileTag, AODict):
                 if "display_value" in value:
                     recordlen = 32
                     break
-                elif "display_name" in value:
+                if "display_name" in value:
                     recordlen = 24
         if recordlen > 16:
             keys += ("display_name",)

@@ -6915,7 +6915,7 @@ BEGIN_DATA
                         if self.subprocess.after is wexpect.EOF:
                             self.log(f"{appname}: Reached EOF (OK)")
                             break
-                        elif self.subprocess.after is wexpect.TIMEOUT:
+                        if self.subprocess.after is wexpect.TIMEOUT:
                             if not self.subprocess.isalive():
                                 self.log(
                                     f"{appname}: Subprocess no longer alive (timeout)"
@@ -9328,7 +9328,7 @@ usage: spotread [-options] [logfile]
             )
             if result is not True:
                 break
-            elif not uninstall:
+            if not uninstall:
                 self.exec_cmd(
                     "chmod",
                     ["0644", args[-1]],
@@ -9750,7 +9750,7 @@ usage: spotread [-options] [logfile]
                             else:
                                 result = True
                         break
-                    elif False:  # if sys.platform == "darwin":  # NEVER
+                    if False:  # if sys.platform == "darwin":  # NEVER
                         # After 'installing' a profile under Mac OS X by just
                         # copying it, show system preferences
                         applescript = [
@@ -9930,8 +9930,7 @@ usage: spotread [-options] [logfile]
                 if os.path.isdir(dirname):
                     # Use the first one that exists
                     break
-                else:
-                    dirname = None
+                dirname = None
             if not dirname:
                 # Create the first one in the list
                 dirname = iccprofiles_display_home[0]
@@ -10858,7 +10857,7 @@ usage: spotread [-options] [logfile]
                                         # devicelink
                                         collink_args.append("-ni")
                                         break
-                                    elif not ni and "-ni" in collink_args:
+                                    if not ni and "-ni" in collink_args:
                                         # Preserve input shaper curves in
                                         # devicelink
                                         collink_args.remove("-ni")

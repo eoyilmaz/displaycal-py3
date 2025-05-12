@@ -4,10 +4,12 @@ import codecs
 import contextlib
 import ctypes
 import datetime
+import functools
 import getpass
 import http.client
 import math
 import mimetypes
+import operator
 import os
 import platform
 import re
@@ -9859,7 +9861,7 @@ usage: spotread [-options] [logfile]
                 self.log(exception)
             else:
                 # Profile already in database, nothing to do
-                return None
+                return
         # gcm-import will check if the profile is already in the database
         # (based on profile ID), but will fail to overwrite a profile with the
         # same name. We need to remove those profiles so gcm-import can work.
@@ -11158,7 +11160,8 @@ usage: spotread [-options] [logfile]
                                     colormath.Interp(table.output[i], orange)
                                 )
                             num_workers = 1 if len(table.clut[0]) < 33 else None
-                            table.clut = sum(
+                            table.clut = functools.reduce(
+                                operator.iadd,
                                 pool_slice(
                                     _mp_apply,
                                     table.clut,
@@ -12405,7 +12408,7 @@ usage: spotread [-options] [logfile]
                 self.madtpg.show_progress_bar(6)
 
     def measure(self, apply_calibration=True):
-        """Measure the configured testchart"""
+        """Measure the configured testchart."""
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result

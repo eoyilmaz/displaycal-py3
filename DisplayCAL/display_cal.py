@@ -10459,7 +10459,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.Show()
 
     def calibrate_and_profile_finish(self, result):
-        """Build profile from characterization measurements"""
+        """Build profile from characterization measurements."""
         start_timers = True
         if not isinstance(result, Exception) and result:
             result = self.check_copy_ti3()
@@ -10968,6 +10968,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         allow_show_log=True,
         install_3dlut=False,
     ):
+        print(f"result (3): {result}")
         if not isinstance(result, Exception) and result:
             if getcfg("log.autoshow") and allow_show_log:
                 self.infoframe_toggle_handler(show=True)

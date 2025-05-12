@@ -708,9 +708,9 @@ class spawn_unix:
                 os.chdir(self.cwd)
             try:
                 if self.env is None:
-                    os.execv(self.command, self.args)
+                    os.execv(self.command, self.args)  # noqa: S606
                 else:
-                    os.execvpe(self.command, self.args, self.env)
+                    os.execvpe(self.command, self.args, self.env)  # noqa: S606
             finally:
                 if self.cwd is not None:
                     # Restore the original working dir

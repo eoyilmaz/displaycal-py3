@@ -7,7 +7,7 @@ well to check if the method was called (or not).
 from __future__ import annotations
 
 import contextlib
-from typing import Any, overload, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, overload
 
 from _pytest.monkeypatch import MonkeyPatch
 

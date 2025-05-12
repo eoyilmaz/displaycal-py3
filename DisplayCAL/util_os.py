@@ -624,7 +624,7 @@ def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
 def _set_cloexec(fd):
     """This is from Python2.7 version of tempfile."""
     if sys.platform == "win32":
-        return None
+        return
 
     import fcntl as _fcntl
 
@@ -1231,7 +1231,7 @@ class FileLock:
         """
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         """Exit the context manager."""
         self.unlock()
 
@@ -1324,7 +1324,7 @@ if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
             self.old_value = ctypes.c_long()
             self.success = self._disable(ctypes.byref(self.old_value))
 
-        def __exit__(self):
+        def __exit__(self, exc_type, exc_value, traceback):
             """Exit the context manager."""
             if self.success:
                 self._revert(self.old_value)

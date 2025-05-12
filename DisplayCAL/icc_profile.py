@@ -2,8 +2,10 @@ import binascii
 import contextlib
 import ctypes
 import datetime
+import functools
 import json
 import math
+import operator
 import os
 import pathlib
 import platform
@@ -1277,7 +1279,8 @@ def create_synthetic_hdr_clut_profile(
             num_workers -= 1
         num_batches = clutres // 6
 
-        HDR_XYZ = sum(
+        HDR_XYZ = functools.reduce(
+            operator.iadd,
             pool_slice(
                 _mp_hdr_tonemap,
                 HDR_XYZ,
@@ -3255,7 +3258,8 @@ class LUT16Type(ICCProfileTag):
             #     bp_out = (0, 0, 0)
 
             if bp != bp_out:
-                self.clut = sum(
+                self.clut = functools.reduce(
+                    operator.iadd,
                     pool_slice(
                         _mp_apply_black,
                         self.clut,

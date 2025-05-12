@@ -194,7 +194,7 @@ def device_id_from_edid(
             if name == "serial_32" and "serial_ascii" in edid:
                 # Only add numeric serial if no ascii serial
                 continue
-            elif name == "manufacturer":
+            if name == "manufacturer":
                 if quirk:
                     value = quirk_manufacturer(value)
             elif isinstance(value, str) and truncate_edid_strings:

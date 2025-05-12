@@ -736,11 +736,11 @@ class Xicclu(WorkerBase):
                     elif self.sessionlogfile:
                         self.sessionlogfile.write(line)
                     continue
-                elif b"->" not in line:
+                if b"->" not in line:
                     if self.sessionlogfile and line:
                         self.sessionlogfile.write(line)
                     continue
-                elif self.sessionlogfile:
+                if self.sessionlogfile:
                     self.sessionlogfile.write(f"#{j} {line}")
                 parts = line.split(b"->")[-1].strip().split()
                 clip = parts.pop() == b"(clip)"

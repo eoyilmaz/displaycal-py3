@@ -2050,7 +2050,7 @@ class ProfileLoader:
                         if "Failed to get the displays current ICC profile" in errortxt:
                             # Maybe just not configured
                             continue
-                        elif (
+                        if (
                             sys.platform == "win32"
                             or "Failed to set VideoLUT" in errortxt
                             or "We don't have access to the VideoLUT" in errortxt
@@ -2060,8 +2060,7 @@ class ProfileLoader:
                             errstr = lang.getstr("profile.load_error")
                         errors.append(": ".join([display, errstr]))
                         continue
-                    else:
-                        results.append(display)
+                    results.append(display)
                 if (
                     config.getcfg("profile_loader.verify_calibration")
                     or "--verify" in sys.argv[1:]
@@ -2871,8 +2870,7 @@ class ProfileLoader:
                                 )
                                 self.notify([msg], [], True, False)
                                 continue
-                            else:
-                                self.notify([], [], True, False)
+                            self.notify([], [], True, False)
                     # Check if video card matches profile vcgt
                     if (
                         not hwnds_pids_changed

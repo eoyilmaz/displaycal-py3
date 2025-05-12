@@ -486,7 +486,7 @@ def load_bitmap(
                 # Theme graphic
                 if i in (0, 3):
                     continue
-                elif i == 1:
+                if i == 1:
                     if scale < 1.75 or scale == 2:
                         continue
                     # HighDPI support. Try @4x version

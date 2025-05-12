@@ -456,7 +456,7 @@ def parse_hwdb_data(lines: list[str]) -> None:
         if line.strip().startswith("acpi:"):
             id_ = line.split(":")[1][:3]
             continue
-        elif line.strip().startswith("ID_VENDOR_FROM_DATABASE"):
+        if line.strip().startswith("ID_VENDOR_FROM_DATABASE"):
             name = line.split("=", 1)[1].strip()
         else:
             continue

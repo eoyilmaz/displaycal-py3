@@ -4353,25 +4353,24 @@ END_DATA
                                 ):
                                     # Don't lookup out of range values
                                     continue
-                                else:
-                                    RGB = [cLUT65_to_VidRGB(v) for v in RGB]
-                                    clip[abc] = clipVidRGB(RGB)
-                                    if a == b == c and a in (
-                                        math.ceil(level_16),
-                                        math.ceil(level_235),
-                                    ):
-                                        self.log(
-                                            "Input RGB (0..255) {:f} {:f} {:f}".format(
-                                                *[v * 255 for v in RGB]
-                                            )
+                                RGB = [cLUT65_to_VidRGB(v) for v in RGB]
+                                clip[abc] = clipVidRGB(RGB)
+                                if a == b == c and a in (
+                                    math.ceil(level_16),
+                                    math.ceil(level_235),
+                                ):
+                                    self.log(
+                                        "Input RGB (0..255) {:f} {:f} {:f}".format(
+                                            *[v * 255 for v in RGB]
                                         )
-                                    # Convert 16..235 to 0..255 for xicclu
-                                    RGB = [
-                                        colormath.convert_range(
-                                            v, 16.0 / 255, 235.0 / 255, 0, 1
-                                        )
-                                        for v in RGB
-                                    ]
+                                    )
+                                # Convert 16..235 to 0..255 for xicclu
+                                RGB = [
+                                    colormath.convert_range(
+                                        v, 16.0 / 255, 235.0 / 255, 0, 1
+                                    )
+                                    for v in RGB
+                                ]
                             RGB = [min(max(v, 0), 1) * 255 for v in RGB]
                             seenkey = tuple(int(round(v * 257)) for v in RGB)
                             seenkeys[abc] = seenkey
@@ -9516,9 +9515,8 @@ usage: spotread [-options] [logfile]
                         if entry.get("hid"):
                             # Skip HID devices
                             continue
-                        else:
-                            usb_ids[usb_id] = usb_ids.get(usb_id, [instrument_name])
-                            usb_ids[usb_id].append(instrument_name)
+                        usb_ids[usb_id] = usb_ids.get(usb_id, [instrument_name])
+                        usb_ids[usb_id].append(instrument_name)
 
             # Check connected USB devices for supported instruments
             not_main_thread = current_thread() != main_thread()
@@ -9841,9 +9839,8 @@ usage: spotread [-options] [logfile]
                     if isinstance(result, colord.CDObjectQueryError):
                         # Device ID was not found, try next one
                         continue
-                    else:
-                        # Either returned ok or there was another error
-                        break
+                    # Either returned ok or there was another error
+                    break
             return result
 
     def _install_profile_gcm(self, profile):
@@ -11592,8 +11589,7 @@ usage: spotread [-options] [logfile]
                                 # Range 0..1
                                 clut[-1].append(XYZ)
                                 continue
-                            else:
-                                XYZ = XYZ_out[i]
+                            XYZ = XYZ_out[i]
                             interpolated += 1
                         else:
                             actual += 1
@@ -11720,7 +11716,7 @@ usage: spotread [-options] [logfile]
         for ti1name, tagcls in [("d3-e4-s3-g52-m3-b0-f0", "XYZ"), (None, "TRC")]:
             if tagcls == omit:
                 continue
-            elif (
+            if (
                 tagcls == "TRC" and profile and "A2B0" in profile.tags and ptype == "s"
             ):
                 # Create TRC from forward lookup through A2B

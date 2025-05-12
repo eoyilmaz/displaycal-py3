@@ -421,10 +421,9 @@ class ScriptingClientFrame(SimpleTerminal):
                     for candidate in candidates:
                         if candidate.startswith(commonpart):
                             continue
-                        else:
-                            commonpart = commonpart[:-1]
-                            findcommon = False
-                            break
+                        commonpart = commonpart[:-1]
+                        findcommon = False
+                        break
                 if len(candidates) > 1:
                     self.add_text("\n{}\n".format(" ".join(candidates)))
                 self.add_text("\r> " + commonpart + lastline[endcol:])

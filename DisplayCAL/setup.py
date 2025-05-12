@@ -1407,8 +1407,7 @@ def setup():
             if os.path.exists(path):
                 if path in visited:
                     continue
-                else:
-                    visited.append(path)
+                visited.append(path)
                 if dry_run:
                     print(path)
                     continue
@@ -1432,8 +1431,7 @@ def setup():
                     if len(os.listdir(path)) == 0:
                         if path in visited:
                             continue
-                        else:
-                            visited.append(path)
+                        visited.append(path)
                         if dry_run:
                             print(path)
                             continue

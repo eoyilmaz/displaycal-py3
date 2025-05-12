@@ -464,11 +464,10 @@ class PyGauge(wx.Window):
                     self._value[i] = self._update_value[i]
                 else:
                     stop_timer = False
+            elif self._value[i] < self._update_value[i]:
+                self._value[i] = self._update_value[i]
             else:
-                if self._value[i] < self._update_value[i]:
-                    self._value[i] = self._update_value[i]
-                else:
-                    stop_timer = False
+                stop_timer = False
 
         if stop_timer:
             self._timer.Stop()

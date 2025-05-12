@@ -4634,26 +4634,25 @@ class DictType(ICCProfileTag, AODict):
                 if element is None:
                     offset = 0
                     size = 0
+                elif element in elements:
+                    # Use existing offset and size if same element
+                    offset, size = offsets[elements.index(element)]
                 else:
-                    if element in elements:
-                        # Use existing offset and size if same element
-                        offset, size = offsets[elements.index(element)]
+                    offset = storage_offset + len(b"".join(storage))
+                    if isinstance(element, MultiLocalizedUnicodeType):
+                        data = element.tagData
                     else:
-                        offset = storage_offset + len(b"".join(storage))
-                        if isinstance(element, MultiLocalizedUnicodeType):
-                            data = element.tagData
-                        else:
-                            data = str(element).encode("UTF-16-BE")
-                        size = len(data)
-                        if isinstance(element, MultiLocalizedUnicodeType):
-                            # Remember element, offset and size
-                            elements.append(element)
-                            offsets.append((offset, size))
-                        # Pad all data with binary zeros so it lies on
-                        # 4-byte boundaries
-                        padding = int(math.ceil(size / 4.0)) * 4 - size
-                        data += b"\0" * padding
-                        storage.append(data)
+                        data = str(element).encode("UTF-16-BE")
+                    size = len(data)
+                    if isinstance(element, MultiLocalizedUnicodeType):
+                        # Remember element, offset and size
+                        elements.append(element)
+                        offsets.append((offset, size))
+                    # Pad all data with binary zeros so it lies on
+                    # 4-byte boundaries
+                    padding = int(math.ceil(size / 4.0)) * 4 - size
+                    data += b"\0" * padding
+                    storage.append(data)
                 tagData.append(uInt32Number_tohex(offset))
                 tagData.append(uInt32Number_tohex(size))
         tagData.extend(storage)
@@ -4680,11 +4679,10 @@ class DictType(ICCProfileTag, AODict):
             return default
         if locale and "display_value" in item:
             return item.display_value.get_localized_string(*locale.split("_"))
+        elif isinstance(item, dict):
+            return item.value
         else:
-            if isinstance(item, dict):
-                return item.value
-            else:
-                return item
+            return item
 
     def setitem(self, name, value, display_name=None, display_value=None):
         """Convenience function to set items
@@ -5044,59 +5042,58 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
             try:
                 if charBytes == 1:
                     unicodeDescription = str(unicodeDescription, errors="replace")
-                else:
-                    if unicodeDescription[:2] == b"\xfe\xff":
-                        # UTF-16 Big Endian
-                        if DEBUG:
-                            print("UTF-16 Big endian")
-                        unicodeDescription = unicodeDescription[2:]
-                        if (
-                            len(unicodeDescription.split(b" "))
-                            == unicodeDescriptionLength - 1
-                        ):
-                            print(
-                                f"Warning (non-critical): '{tagData[:4]}' "
-                                "Unicode part starts with UTF-16 big "
-                                "endian BOM, but actual contents seem "
-                                "to be UTF-16 little endian"
-                            )
-                            # fix fubar'd desc
-                            unicodeDescription = str(
-                                b"\0".join(unicodeDescription.split(b" ")),
-                                "utf-16-le",
-                                errors="replace",
-                            )
-                        else:
-                            unicodeDescription = str(
-                                unicodeDescription, "utf-16-be", errors="replace"
-                            )
-                    elif unicodeDescription[:2] == b"\xff\xfe":
-                        # UTF-16 Little Endian
-                        if DEBUG:
-                            print("UTF-16 Little endian")
-                        unicodeDescription = unicodeDescription[2:]
-                        if unicodeDescription[0] == b"\0":
-                            print(
-                                f"Warning (non-critical): '{tagData[:4]}' "
-                                "Unicode part starts with UTF-16 "
-                                "little endian BOM, but actual "
-                                "contents seem to be UTF-16 big "
-                                "endian"
-                            )
-                            # fix fubar'd desc
-                            unicodeDescription = str(
-                                unicodeDescription, "utf-16-be", errors="replace"
-                            )
-                        else:
-                            unicodeDescription = str(
-                                unicodeDescription, "utf-16-le", errors="replace"
-                            )
+                elif unicodeDescription[:2] == b"\xfe\xff":
+                    # UTF-16 Big Endian
+                    if DEBUG:
+                        print("UTF-16 Big endian")
+                    unicodeDescription = unicodeDescription[2:]
+                    if (
+                        len(unicodeDescription.split(b" "))
+                        == unicodeDescriptionLength - 1
+                    ):
+                        print(
+                            f"Warning (non-critical): '{tagData[:4]}' "
+                            "Unicode part starts with UTF-16 big "
+                            "endian BOM, but actual contents seem "
+                            "to be UTF-16 little endian"
+                        )
+                        # fix fubar'd desc
+                        unicodeDescription = str(
+                            b"\0".join(unicodeDescription.split(b" ")),
+                            "utf-16-le",
+                            errors="replace",
+                        )
                     else:
-                        if DEBUG:
-                            print("ASSUMED UTF-16 Big Endian")
                         unicodeDescription = str(
                             unicodeDescription, "utf-16-be", errors="replace"
                         )
+                elif unicodeDescription[:2] == b"\xff\xfe":
+                    # UTF-16 Little Endian
+                    if DEBUG:
+                        print("UTF-16 Little endian")
+                    unicodeDescription = unicodeDescription[2:]
+                    if unicodeDescription[0] == b"\0":
+                        print(
+                            f"Warning (non-critical): '{tagData[:4]}' "
+                            "Unicode part starts with UTF-16 "
+                            "little endian BOM, but actual "
+                            "contents seem to be UTF-16 big "
+                            "endian"
+                        )
+                        # fix fubar'd desc
+                        unicodeDescription = str(
+                            unicodeDescription, "utf-16-be", errors="replace"
+                        )
+                    else:
+                        unicodeDescription = str(
+                            unicodeDescription, "utf-16-le", errors="replace"
+                        )
+                else:
+                    if DEBUG:
+                        print("ASSUMED UTF-16 Big Endian")
+                    unicodeDescription = str(
+                        unicodeDescription, "utf-16-be", errors="replace"
+                    )
                 unicodeDescription = unicodeDescription.strip("\0\n\r ")
                 if unicodeDescription:
                     if unicodeDescription.find("\0") < 0:
@@ -5754,21 +5751,20 @@ class XYZType(ICCProfileTag, XYZNumber):
             # Go from XYZ under PCS illuminant to XYZ illuminant-relative
             XYZ.X, XYZ.Y, XYZ.Z = self.profile.tags.chad.inverted() * list(XYZ.values())
             return XYZ
+        elif self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")):
+            # For profiles without 'chad' tag, the white/black point should
+            # already be illuminant-relative
+            return self
+        elif "chad" in self.profile.tags:
+            XYZ = self.__class__(profile=self.profile)
+            # Go from XYZ under PCS illuminant to XYZ illuminant-relative
+            XYZ.X, XYZ.Y, XYZ.Z = self.profile.tags.chad.inverted() * list(
+                self.values()
+            )
+            return XYZ
         else:
-            if self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")):
-                # For profiles without 'chad' tag, the white/black point should
-                # already be illuminant-relative
-                return self
-            elif "chad" in self.profile.tags:
-                XYZ = self.__class__(profile=self.profile)
-                # Go from XYZ under PCS illuminant to XYZ illuminant-relative
-                XYZ.X, XYZ.Y, XYZ.Z = self.profile.tags.chad.inverted() * list(
-                    self.values()
-                )
-                return XYZ
-            else:
-                # Go from XYZ under PCS illuminant to XYZ illuminant-relative
-                return self.adapt(pcs_illuminant, list(self.profile.tags.wtpt.values()))
+            # Go from XYZ under PCS illuminant to XYZ illuminant-relative
+            return self.adapt(pcs_illuminant, list(self.profile.tags.wtpt.values()))
 
     @property
     def pcs(self):
@@ -7531,14 +7527,13 @@ class ICCProfile:
                     )
                     if round(transfer_function[1], 2) == 1.0:
                         value = f"{transfer_function[0][0]}"
+                    elif transfer_function[1] >= 0.95:
+                        value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
+                            transfer_function[0][0],
+                            1 - transfer_function[1],
+                        )
                     else:
-                        if transfer_function[1] >= 0.95:
-                            value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
-                                transfer_function[0][0],
-                                1 - transfer_function[1],
-                            )
-                        else:
-                            value = "Unknown"
+                        value = "Unknown"
                     info["    Transfer function"] = value
             elif isinstance(tag, CurveType):
                 if len(tag) == 1:
@@ -7555,14 +7550,13 @@ class ICCProfile:
                     )
                     if round(transfer_function[1], 2) == 1.0:
                         value = f"{transfer_function[0][0]}"
+                    elif transfer_function[1] >= 0.95:
+                        value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
+                            transfer_function[0][0],
+                            1 - transfer_function[1],
+                        )
                     else:
-                        if transfer_function[1] >= 0.95:
-                            value = "≈ {} (Δ {:.2%})".format(  # noqa: UP032
-                                transfer_function[0][0],
-                                1 - transfer_function[1],
-                            )
-                        else:
-                            value = "Unknown"
+                        value = "Unknown"
                     info["    Transfer function"] = value
                     info["    Minimum Y"] = f"{tag[0] / 65535.0 * 100:6.4f}"
                     info["    Maximum Y"] = f"{tag[-1] / 65535.0 * 100:6.2f}"

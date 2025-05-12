@@ -1300,11 +1300,10 @@ class ProfileLoader:
                                         getcfg("profile.load_on_login") and 2
                                     )
                                 print("PLFrame.process_data: Releasing lock")
+                        elif data[0] == "reset-vcgt":
+                            self.pl._set_reset_gamma_ramps(None, len(data))
                         else:
-                            if data[0] == "reset-vcgt":
-                                self.pl._set_reset_gamma_ramps(None, len(data))
-                            else:
-                                self.pl._set_manual_restore(None, len(data))
+                            self.pl._set_manual_restore(None, len(data))
                         return "ok"
                     elif data[0] == "notify" and (
                         len(data) == 2
@@ -3367,13 +3366,12 @@ class ProfileLoader:
                         lstr = "app.detected.calibration_loading_disabled"
                         component = self.__other_component
                         sticky = True
+                elif self.__other_component[0:2] != (None, None):
+                    lstr = "app.detected"
+                    component = self.__other_component
                 else:
-                    if self.__other_component[0:2] != (None, None):
-                        lstr = "app.detected"
-                        component = self.__other_component
-                    else:
-                        lstr = "app.detection_lost"
-                        component = other_component
+                    lstr = "app.detection_lost"
+                    component = other_component
                 if component[1] == "madHcNetQueueWindow":
                     component_name = "madVR"
                     self._madvr_reset_cal = {}

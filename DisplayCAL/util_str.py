@@ -322,9 +322,8 @@ def make_ascii_printable(text, substitute=b""):
         temp_ascii_printable = ascii_printable.encode("utf-8")
         if isinstance(substitute, str):
             substitute = substitute.encode("utf-8")
-    else:
-        if isinstance(substitute, bytes):
-            substitute = substitute.decode("utf-8")
+    elif isinstance(substitute, bytes):
+        substitute = substitute.decode("utf-8")
 
     for i in range(len(text)):
         char = text[i : i + 1]

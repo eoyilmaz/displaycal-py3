@@ -2504,12 +2504,11 @@ class PlotCanvas(wx.Panel):
             if majortick != int(np.floor(np.log10(t) + 1e-16)):
                 majortick = int(np.floor(np.log10(t) + 1e-16))
                 ticklabel = f"1e{majortick}"
+            elif upper - lower < 2:
+                minortick = int(t / pow(10, majortick) + 0.5)
+                ticklabel = f"{minortick}e{majortick}"
             else:
-                if upper - lower < 2:
-                    minortick = int(t / pow(10, majortick) + 0.5)
-                    ticklabel = f"{minortick}e{majortick}"
-                else:
-                    ticklabel = ""
+                ticklabel = ""
             ticks.append((np.log10(t), ticklabel))
             t += inc(t)
         if len(ticks) == 0:

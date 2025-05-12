@@ -649,14 +649,13 @@ class FourWaySplitter(wx.Panel):
                 )
                 win3.Show()
 
-        else:
-            if self._expanded < len(self._windows):
-                for ii, win in enumerate(self._windows):
-                    if ii == self._expanded:
-                        win.SetSize(0, 0, width - 2 * border, height - 2 * border)
-                        win.Show()
-                    else:
-                        win.Hide()
+        elif self._expanded < len(self._windows):
+            for ii, win in enumerate(self._windows):
+                if ii == self._expanded:
+                    win.SetSize(0, 0, width - 2 * border, height - 2 * border)
+                    win.Show()
+                else:
+                    win.Hide()
 
     # Determine split mode
     def GetMode(self, pt: wx.Point) -> int:

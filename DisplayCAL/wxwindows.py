@@ -550,9 +550,8 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             text_offset = bitmap_offset + pagebitmap.GetWidth()
             text_offset += 3  # bitmap padding
 
-        else:
-            if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT == 0 or not close_button_width:
-                text_offset = tab_x + 8
+        elif agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT == 0 or not close_button_width:
+            text_offset = tab_x + 8
 
         draw_text = aui.ChopText(
             dc, caption, tab_width - (text_offset - tab_x) - close_button_width
@@ -1430,11 +1429,10 @@ class BaseFrame(wx.Frame):
                         wx.CallAfter(win.Close)
                     else:
                         response = "failed"
+                elif data[0] == "exit" and len(data) == 2:
+                    wx.CallAfter(self.close_all)
                 else:
-                    if data[0] == "exit" and len(data) == 2:
-                        wx.CallAfter(self.close_all)
-                    else:
-                        response = "invalid"
+                    response = "invalid"
             else:
                 response = "invalid"
         elif data[0] == "activate" and len(data) < 3:
@@ -4818,108 +4816,107 @@ class CustomCellRenderer(wx.grid.PyGridCellRenderer):
             image = self.specialbitmap.ConvertToImage()
             image.Rescale(rect[2], rect[3])
             dc.DrawBitmap(image.ConvertToBitmap(), rect[0], rect[1])
-        else:
-            if (isSelected or isCursor) and col_label:
+        elif (isSelected or isCursor) and col_label:
+            dc.SetBrush(wx.Brush(bgcolor))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
+            rect = orect
+            if not rowselect:
+                w = 60 + rect[3] * 2
+                if rect.Width > w:
+                    rect.Left += int((rect.Width - w) / 2.0)
+                    rect.Width = int(w)
+            offset = 1  # Selection offset from cell boundary
+            cb = 2  # Cursor border
+            left = not rowselect or col == 0 or not grid.GetColLabelValue(col - 1)
+            right = (
+                not rowselect
+                or col == grid.GetNumberCols() - 1
+                or not grid.GetColLabelValue(col + 1)
+            )
+            # We could use wx.GCDC, but it is buggy under wxGTK
+            # (grid doesn't refresh properly when scrolling).
+            # Implement our own supersampling antialiasing method
+            # using wx.MemoryDC and cached bitmaps.
+            # This has the drawback that it may use a lot of memory if
+            # a grid has many cells with different dimensions or color
+            # properties, but we make sure that old bitmaps are garbage
+            # collected if the grid or rows/cols are resized by binding
+            # resize events in CustomGrid initialization.
+            key = (
+                rect[2:]
+                + bgcolor.Get()
+                + color.Get()
+                + (left, right, not isSelected and isCursor)
+            )
+            if not self._selectionbitmaps.get(key):
+                scale = 4.0  # Supersampling factor
+                offset *= scale
+                cb *= scale
+                x, y, w, h = 0, 0, rect[2] * scale, rect[3] * scale
+                self._selectionbitmaps[key] = wx.EmptyBitmap(int(w), int(h))
+                paintdc = dc
+                dc = mdc = wx.MemoryDC(self._selectionbitmaps[key])
                 dc.SetBrush(wx.Brush(bgcolor))
                 dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(rect)
-                rect = orect
-                if not rowselect:
-                    w = 60 + rect[3] * 2
-                    if rect.Width > w:
-                        rect.Left += int((rect.Width - w) / 2.0)
-                        rect.Width = int(w)
-                offset = 1  # Selection offset from cell boundary
-                cb = 2  # Cursor border
-                left = not rowselect or col == 0 or not grid.GetColLabelValue(col - 1)
-                right = (
-                    not rowselect
-                    or col == grid.GetNumberCols() - 1
-                    or not grid.GetColLabelValue(col + 1)
+                dc.DrawRectangle(int(x), int(y), int(w), int(h))
+                dc.SetBrush(wx.Brush(color))
+                dc.SetPen(wx.TRANSPARENT_PEN)
+                draw = dc.DrawRoundedRectangle
+                draw(
+                    int(x + offset),
+                    int(y + offset),
+                    int(w - offset * 2),
+                    int(h - offset * 2),
+                    int(h / 2.0 - offset),
                 )
-                # We could use wx.GCDC, but it is buggy under wxGTK
-                # (grid doesn't refresh properly when scrolling).
-                # Implement our own supersampling antialiasing method
-                # using wx.MemoryDC and cached bitmaps.
-                # This has the drawback that it may use a lot of memory if
-                # a grid has many cells with different dimensions or color
-                # properties, but we make sure that old bitmaps are garbage
-                # collected if the grid or rows/cols are resized by binding
-                # resize events in CustomGrid initialization.
-                key = (
-                    rect[2:]
-                    + bgcolor.Get()
-                    + color.Get()
-                    + (left, right, not isSelected and isCursor)
-                )
-                if not self._selectionbitmaps.get(key):
-                    scale = 4.0  # Supersampling factor
-                    offset *= scale
-                    cb *= scale
-                    x, y, w, h = 0, 0, rect[2] * scale, rect[3] * scale
-                    self._selectionbitmaps[key] = wx.EmptyBitmap(int(w), int(h))
-                    paintdc = dc
-                    dc = mdc = wx.MemoryDC(self._selectionbitmaps[key])
-                    dc.SetBrush(wx.Brush(bgcolor))
-                    dc.SetPen(wx.TRANSPARENT_PEN)
-                    dc.DrawRectangle(int(x), int(y), int(w), int(h))
-                    dc.SetBrush(wx.Brush(color))
-                    dc.SetPen(wx.TRANSPARENT_PEN)
-                    draw = dc.DrawRoundedRectangle
-                    draw(
-                        int(x + offset),
+                if not left:
+                    dc.DrawRectangle(
+                        int(x), int(y + offset), int(h / 2.0), int(h - offset * 2)
+                    )
+                if not right:
+                    dc.DrawRectangle(
+                        int(x + w - h / 2.0),
                         int(y + offset),
-                        int(w - offset * 2),
+                        int(h / 2.0),
                         int(h - offset * 2),
-                        int(h / 2.0 - offset),
+                    )
+                if not isSelected and isCursor:
+                    dc.SetBrush(wx.Brush(bgcolor))
+                    draw(
+                        int(x + offset + cb),
+                        int(y + offset + cb),
+                        int(w - (offset + cb) * 2),
+                        int(h - (offset + cb) * 2),
+                        int(h / 2.0 - (offset + cb)),
                     )
                     if not left:
                         dc.DrawRectangle(
-                            int(x), int(y + offset), int(h / 2.0), int(h - offset * 2)
+                            int(x),
+                            int(y + offset + cb),
+                            int(h / 2.0),
+                            int(h - (offset + cb) * 2),
                         )
                     if not right:
                         dc.DrawRectangle(
                             int(x + w - h / 2.0),
-                            int(y + offset),
-                            int(h / 2.0),
-                            int(h - offset * 2),
-                        )
-                    if not isSelected and isCursor:
-                        dc.SetBrush(wx.Brush(bgcolor))
-                        draw(
-                            int(x + offset + cb),
                             int(y + offset + cb),
-                            int(w - (offset + cb) * 2),
+                            int(h / 2.0),
                             int(h - (offset + cb) * 2),
-                            int(h / 2.0 - (offset + cb)),
                         )
-                        if not left:
-                            dc.DrawRectangle(
-                                int(x),
-                                int(y + offset + cb),
-                                int(h / 2.0),
-                                int(h - (offset + cb) * 2),
-                            )
-                        if not right:
-                            dc.DrawRectangle(
-                                int(x + w - h / 2.0),
-                                int(y + offset + cb),
-                                int(h / 2.0),
-                                int(h - (offset + cb) * 2),
-                            )
-                    mdc.SelectObject(wx.NullBitmap)
-                    dc = paintdc
-                    img = self._selectionbitmaps[key].ConvertToImage()
-                    # Scale down to original size ("antialiasing")
-                    img.Rescale(rect[2], rect[3])
-                    self._selectionbitmaps[key] = img.ConvertToBitmap()
-                bmp = self._selectionbitmaps.get(key)
-                if bmp:
-                    dc.DrawBitmap(bmp, rect[0], rect[1])
-            else:
-                dc.SetBrush(wx.Brush(color))
-                dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(rect)
+                mdc.SelectObject(wx.NullBitmap)
+                dc = paintdc
+                img = self._selectionbitmaps[key].ConvertToImage()
+                # Scale down to original size ("antialiasing")
+                img.Rescale(rect[2], rect[3])
+                self._selectionbitmaps[key] = img.ConvertToBitmap()
+            bmp = self._selectionbitmaps.get(key)
+            if bmp:
+                dc.DrawBitmap(bmp, rect[0], rect[1])
+        else:
+            dc.SetBrush(wx.Brush(color))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
         dc.SetFont(grid.GetCellFont(row, col))
         dc.SetTextForeground(textcolor)
         self.DrawLabel(grid, dc, orect, row, col)
@@ -5312,11 +5309,10 @@ class BetterPyGauge(pygauge.PyGauge):
                         self._value[i] = self._update_value[i]
                     else:
                         stop = False
+                elif self._value[i] < self._update_value[i]:
+                    self._value[i] = self._update_value[i]
                 else:
-                    if self._value[i] < self._update_value[i]:
-                        self._value[i] = self._update_value[i]
-                    else:
-                        stop = False
+                    stop = False
             if self.pd and self.pd.taskbar:
                 self.pd.taskbar.set_progress_value(int(round(self.GetValue())))
             if stop:
@@ -6568,13 +6564,12 @@ class ProgressDialog(wx.Dialog):
         placed = False
         if pos:
             x, y = pos
+        elif self.Parent and self.Parent.IsShownOnScreen():
+            self.Center()
+            placed = True
         else:
-            if self.Parent and self.Parent.IsShownOnScreen():
-                self.Center()
-                placed = True
-            else:
-                x = getcfg("position.progress.x")
-                y = getcfg("position.progress.y")
+            x = getcfg("position.progress.x")
+            y = getcfg("position.progress.y")
         if not placed:
             self.SetSaneGeometry(x, y)
 
@@ -6589,9 +6584,8 @@ class ProgressDialog(wx.Dialog):
                 and self._fpprogress < self.gauge.GetRange()
             ):
                 self.sound.safe_play()
-        else:
-            if self.sound.is_playing:
-                self.sound.safe_stop()
+        elif self.sound.is_playing:
+            self.sound.safe_stop()
         self.set_sound_on_off_btn_bitmap()
 
     def get_sound_on_off_btn_bitmap(self):
@@ -7136,11 +7130,10 @@ class TabButton(PlateButton):
 
         if hl:
             txt_c = self._color["htxt"]
+        elif self.IsEnabled():
+            txt_c = self.GetForegroundColour()
         else:
-            if self.IsEnabled():
-                txt_c = self.GetForegroundColour()
-            else:
-                txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
+            txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
 
         gc.SetTextForeground(txt_c)
 
@@ -7451,19 +7444,18 @@ class TwoWaySplitter(FourWaySplitter):
                 win1.SetSize((rightw, self._splity))
                 win1.Show()
 
-        else:
-            if self._expanded < len(self._windows):
-                for ii, win in enumerate(self._windows):
-                    if ii == self._expanded:
-                        win.SetSize(
-                            (
-                                int(width - bar_size - 2 * border),
-                                int(height - 2 * border),
-                            )
+        elif self._expanded < len(self._windows):
+            for ii, win in enumerate(self._windows):
+                if ii == self._expanded:
+                    win.SetSize(
+                        (
+                            int(width - bar_size - 2 * border),
+                            int(height - 2 * border),
                         )
-                        win.Show()
-                    else:
-                        win.Hide()
+                    )
+                    win.Show()
+                else:
+                    win.Hide()
 
     # Draw the horizontal split
     def DrawSplitter(self, dc):

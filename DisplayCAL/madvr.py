@@ -1616,10 +1616,9 @@ class MadTPG_Net(MadTPGBase):
                         params = struct.unpack("<i", params[0:4])[0]
                     else:
                         params = False
-            else:
-                # Got a reply for a command we never issued?
-                if self.debug:
-                    safe_print(f"MadTPG_Net: Got reply {commandno} for unknown command")
+            # Got a reply for a command we never issued?
+            elif self.debug:
+                safe_print(f"MadTPG_Net: Got reply {commandno} for unknown command")
         record["params"] = params
         if self.debug:
             with _lock:

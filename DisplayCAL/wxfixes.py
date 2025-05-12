@@ -485,9 +485,8 @@ def BitmapButtonEnable(self, enable=True):
     if enable:
         if self._bitmaplabel.IsOk():
             self.SetBitmapLabel(self._bitmaplabel)
-    else:
-        if self._bitmapdisabled.IsOk():
-            self.SetBitmapLabel(self._bitmapdisabled)
+    elif self._bitmapdisabled.IsOk():
+        self.SetBitmapLabel(self._bitmapdisabled)
 
 
 def BitmapButtonDisable(self):
@@ -1558,12 +1557,11 @@ class PlateButton(platebtn.PlateButton):
             gc.DrawText(self.Label, int(t_x), int(txt_y))
             self.__DrawDropArrow(gc, int(width - 10), int((height // 2) - 2))
 
+        elif self.IsEnabled():
+            gc.SetTextForeground(self.GetForegroundColour())
         else:
-            if self.IsEnabled():
-                gc.SetTextForeground(self.GetForegroundColour())
-            else:
-                txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
-                gc.SetTextForeground(txt_c)
+            txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
+            gc.SetTextForeground(txt_c)
 
         # Draw bitmap and text
         if self._state["cur"] != platebtn.PLATE_PRESSED or not self.IsEnabled():

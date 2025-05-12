@@ -495,11 +495,10 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
         if className == "LabelBook":
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        elif agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+            self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
-                self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-            else:
-                self._mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self._mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.SetSizer(self._mainSizer)
 

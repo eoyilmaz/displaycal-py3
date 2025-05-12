@@ -177,12 +177,11 @@ class LineBufferedStream:
             if char == "\r":
                 while self.buf and not self.buf.endswith("\n"):
                     self.buf = self.buf[:-1]
+            elif char == "\n":
+                self.buf += self.linesep_out
+                self.commit()
             else:
-                if char == "\n":
-                    self.buf += self.linesep_out
-                    self.commit()
-                else:
-                    self.buf += char
+                self.buf += char
 
 
 class LineCache:

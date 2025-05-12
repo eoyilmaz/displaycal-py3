@@ -1155,16 +1155,15 @@ class ArtManager(wx.EvtHandler):
                 size = rect.width
                 sizeX = rect.width - 1
                 sizeY = rect.height - 1
+        elif trimToSquare:
+            size = rect.width
+            sizeX = sizeY = rect.width - 1
+            proportion = 1.0  # Square proportion is 1.0
         else:
-            if trimToSquare:
-                size = rect.width
-                sizeX = sizeY = rect.width - 1
-                proportion = 1.0  # Square proportion is 1.0
-            else:
-                sizeX = rect.width - 1
-                size = rect.height
-                sizeY = rect.height - 1
-                proportion = float(rect.width) / float(rect.height)
+            sizeX = rect.width - 1
+            size = rect.height
+            sizeY = rect.height - 1
+            proportion = float(rect.width) / float(rect.height)
         return size, sizeX, sizeY, proportion
 
     def _calculate_steps(
@@ -1327,43 +1326,39 @@ class ArtManager(wx.EvtHandler):
                         rect.x + i, rect.y, rect.x, int(rect.y + proportion * i)
                     )
                     dc.DrawPoint(rect.x, int(rect.y + proportion * i))
+            elif lower:
+                dc.DrawLine(
+                    int(rect.x + proportion * i),
+                    rect.y + sizeY,
+                    rect.x + sizeX,
+                    rect.y + i,
+                )
+                dc.DrawPoint(rect.x + sizeX, rect.y + i)
             else:
-                if lower:
-                    dc.DrawLine(
-                        int(rect.x + proportion * i),
-                        rect.y + sizeY,
-                        rect.x + sizeX,
-                        rect.y + i,
-                    )
-                    dc.DrawPoint(rect.x + sizeX, rect.y + i)
-                else:
-                    dc.DrawLine(
-                        int(rect.x + proportion * i), rect.y, rect.x, rect.y + i
-                    )
-                    dc.DrawPoint(rect.x, rect.y + i)
+                dc.DrawLine(int(rect.x + proportion * i), rect.y, rect.x, rect.y + i)
+                dc.DrawPoint(rect.x, rect.y + i)
+        elif rect.width > rect.height:
+            if lower:
+                dc.DrawLine(
+                    rect.x + i, rect.y + sizeY, rect.x + sizeX - i, rect.y + sizeY
+                )
+                dc.DrawPoint(rect.x + sizeX - i, rect.y + sizeY)
+            else:
+                dc.DrawLine(
+                    rect.x + sizeX - i,
+                    rect.y,
+                    rect.x + sizeX,
+                    int(rect.y + proportion * i),
+                )
+                dc.DrawPoint(rect.x + sizeX, int(rect.y + proportion * i))
         else:
-            if rect.width > rect.height:
-                if lower:
-                    dc.DrawLine(
-                        rect.x + i, rect.y + sizeY, rect.x + sizeX - i, rect.y + sizeY
-                    )
-                    dc.DrawPoint(rect.x + sizeX - i, rect.y + sizeY)
-                else:
-                    dc.DrawLine(
-                        rect.x + sizeX - i,
-                        rect.y,
-                        rect.x + sizeX,
-                        int(rect.y + proportion * i),
-                    )
-                    dc.DrawPoint(rect.x + sizeX, int(rect.y + proportion * i))
+            xTo = max(int(rect.x + sizeX - proportion * i), rect.x)
+            if lower:
+                dc.DrawLine(rect.x, rect.y + i, xTo, rect.y + sizeY)
+                dc.DrawPoint(xTo, rect.y + sizeY)
             else:
-                xTo = max(int(rect.x + sizeX - proportion * i), rect.x)
-                if lower:
-                    dc.DrawLine(rect.x, rect.y + i, xTo, rect.y + sizeY)
-                    dc.DrawPoint(xTo, rect.y + sizeY)
-                else:
-                    dc.DrawLine(xTo, rect.y, rect.x + sizeX, rect.y + i)
-                    dc.DrawPoint(rect.x + sizeX, rect.y + i)
+                dc.DrawLine(xTo, rect.y, rect.x + sizeX, rect.y + i)
+                dc.DrawPoint(rect.x + sizeX, rect.y + i)
 
     def PaintCrescentGradientBox(
         self,
@@ -1761,11 +1756,10 @@ class ArtManager(wx.EvtHandler):
                     return
                 else:
                     csstyle |= CS_DROPSHADOW  # Nothing to be done
+            elif csstyle & CS_DROPSHADOW:
+                csstyle &= ~(CS_DROPSHADOW)
             else:
-                if csstyle & CS_DROPSHADOW:
-                    csstyle &= ~(CS_DROPSHADOW)
-                else:
-                    return  # Nothing to be done
+                return  # Nothing to be done
 
             win32api.SetWindowLong(hwnd, win32con.GCL_STYLE, csstyle)
 
@@ -1819,45 +1813,44 @@ class ArtManager(wx.EvtHandler):
         # get the startLocationX
         if style & BU_EXT_RIGHT_TO_LEFT_STYLE:
             startLocationX = rect.x + rect.width - alignmentBuffer - bitmap.GetWidth()
-        else:
-            if style & BU_EXT_RIGHT_ALIGN_STYLE:
-                maxWidth = (
-                    rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
-                )  # the alignment is for both sides
+        elif style & BU_EXT_RIGHT_ALIGN_STYLE:
+            maxWidth = (
+                rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
+            )  # the alignment is for both sides
 
-                # get the truncated text. The text may stay as is, it is not a
-                # must that is will be truncated
-                fixedText = self.TruncateText(dc, text, maxWidth)
+            # get the truncated text. The text may stay as is, it is not a
+            # must that is will be truncated
+            fixedText = self.TruncateText(dc, text, maxWidth)
 
-                # get the fixed text dimensions
-                fixedTextWidth, _ = dc.GetTextExtent(fixedText)
+            # get the fixed text dimensions
+            fixedTextWidth, _ = dc.GetTextExtent(fixedText)
 
+            # calculate the start location
+            startLocationX = maxWidth - fixedTextWidth
+
+        elif style & BU_EXT_LEFT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = alignmentBuffer
+
+        else:  # meaning BU_EXT_CENTER_ALIGN_STYLE
+            maxWidth = (
+                rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
+            )  # the alignment is for both sides
+
+            # get the truncated text. The text may stay as is, it is not a
+            # must that is will be truncated
+            fixedText = self.TruncateText(dc, text, maxWidth)
+
+            # get the fixed text dimensions
+            fixedTextWidth, _ = dc.GetTextExtent(fixedText)
+
+            if maxWidth > fixedTextWidth:
+                # calculate the start location
+                startLocationX = (maxWidth - fixedTextWidth) / 2
+
+            else:
                 # calculate the start location
                 startLocationX = maxWidth - fixedTextWidth
-
-            elif style & BU_EXT_LEFT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = alignmentBuffer
-
-            else:  # meaning BU_EXT_CENTER_ALIGN_STYLE
-                maxWidth = (
-                    rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
-                )  # the alignment is for both sides
-
-                # get the truncated text. The text may stay as is, it is not a
-                # must that is will be truncated
-                fixedText = self.TruncateText(dc, text, maxWidth)
-
-                # get the fixed text dimensions
-                fixedTextWidth, _ = dc.GetTextExtent(fixedText)
-
-                if maxWidth > fixedTextWidth:
-                    # calculate the start location
-                    startLocationX = (maxWidth - fixedTextWidth) / 2
-
-                else:
-                    # calculate the start location
-                    startLocationX = maxWidth - fixedTextWidth
 
         # it is very important to validate that the start location is not less
         # than the alignment buffer
@@ -1909,20 +1902,17 @@ class ArtManager(wx.EvtHandler):
         # get the startLocationX
         if style & BU_EXT_RIGHT_TO_LEFT_STYLE:
             startLocationX = maxWidth - fixedTextWidth + alignmentBuffer
-        else:
-            if style & BU_EXT_LEFT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = bitmapOffset + alignmentBuffer
-            elif style & BU_EXT_RIGHT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = (
-                    maxWidth - fixedTextWidth + bitmapOffset + alignmentBuffer
-                )
-            else:  # meaning wxBU_EXT_CENTER_ALIGN_STYLE
-                # calculate the start location
-                startLocationX = (
-                    (maxWidth - fixedTextWidth) / 2 + bitmapOffset + alignmentBuffer
-                )
+        elif style & BU_EXT_LEFT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = bitmapOffset + alignmentBuffer
+        elif style & BU_EXT_RIGHT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = maxWidth - fixedTextWidth + bitmapOffset + alignmentBuffer
+        else:  # meaning wxBU_EXT_CENTER_ALIGN_STYLE
+            # calculate the start location
+            startLocationX = (
+                (maxWidth - fixedTextWidth) / 2 + bitmapOffset + alignmentBuffer
+            )
 
         # it is very important to validate that the start location is not less
         # than the alignment buffer

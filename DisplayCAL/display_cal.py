@@ -639,14 +639,13 @@ def app_update_confirm(
                 elif sys.platform == "darwin":
                     # We only support OS X 10.5+
                     suffix = "_osx10.6_x86_64_bin.tgz"
+                # Linux
+                elif platform.architecture()[0] == "64bit":
+                    # Assume x86_64
+                    suffix = "_linux_x86_64_bin.tgz"
                 else:
-                    # Linux
-                    if platform.architecture()[0] == "64bit":
-                        # Assume x86_64
-                        suffix = "_linux_x86_64_bin.tgz"
-                    else:
-                        # Assume x86
-                        suffix = "_linux_x86_bin.tgz"
+                    # Assume x86
+                    suffix = "_linux_x86_bin.tgz"
             elif sys.platform == "win32":
                 # Snapshots are only avaialble as ZIP
                 # or Regular stable versions are available as setup
@@ -8221,27 +8220,25 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 cal = True
         if cal is False:  # linear
             profile = None
+        elif cal is True:  # display profile
+            profile = get_display_profile()
+            if not profile:
+                cal = False
+        elif cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
+            try:
+                profile = ICCProfile(cal)
+            except (OSError, ICCProfileInvalidError) as exception:
+                show_result_dialog(exception, self)
+                profile = None
         else:
-            if cal is True:  # display profile
-                profile = get_display_profile()
-                if not profile:
-                    cal = False
-            elif cal.lower().endswith(".icc") or cal.lower().endswith(".icm"):
-                try:
-                    profile = ICCProfile(cal)
-                except (OSError, ICCProfileInvalidError) as exception:
-                    show_result_dialog(exception, self)
-                    profile = None
-            else:
-                profile = cal_to_fake_profile(cal)
+            profile = cal_to_fake_profile(cal)
         if profile:
             if verbose >= 1:
                 print(lang.getstr("calibration.loading"))
                 if profile.fileName:
                     print(profile.fileName)
-        else:
-            if verbose >= 1:
-                print(lang.getstr("calibration.resetting"))
+        elif verbose >= 1:
+            print(lang.getstr("calibration.resetting"))
         if (
             self.install_cal(
                 capture_output=True,
@@ -8255,9 +8252,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.lut_viewer_load_lut(profile=profile)
             if verbose >= 1:
                 print(lang.getstr("success"))
-        else:
-            if verbose >= 1:
-                print(lang.getstr("failure"))
+        elif verbose >= 1:
+            print(lang.getstr("failure"))
 
     def profile_load_on_login_handler(self, event=None):
         setcfg("profile.load_on_login", int(self.profile_load_on_login.GetValue()))
@@ -9810,17 +9806,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ok=lang.getstr("ok"),
                     bitmap=geticon(32, "dialog-information"),
                 )
-        else:
-            if isinstance(result, Exception):
-                wx.CallAfter(show_result_dialog, result, self)
-            elif not getcfg("dry_run"):
-                wx.CallAfter(
-                    InfoDialog,
-                    self,
-                    msg=lang.getstr("calibration.incomplete"),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
+        elif isinstance(result, Exception):
+            wx.CallAfter(show_result_dialog, result, self)
+        elif not getcfg("dry_run"):
+            wx.CallAfter(
+                InfoDialog,
+                self,
+                msg=lang.getstr("calibration.incomplete"),
+                ok=lang.getstr("ok"),
+                bitmap=geticon(32, "dialog-error"),
+            )
         self.Show(start_timers=start_timers)
 
     def setup_measurement(
@@ -10459,17 +10454,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 lang.getstr("calibration_profiling.complete"),
                 resume=True,
             )
-        else:
-            if isinstance(result, Exception):
-                wx.CallAfter(show_result_dialog, result, self)
-            elif not getcfg("dry_run"):
-                wx.CallAfter(
-                    InfoDialog,
-                    self,
-                    msg=lang.getstr("profiling.incomplete"),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
+        elif isinstance(result, Exception):
+            wx.CallAfter(show_result_dialog, result, self)
+        elif not getcfg("dry_run"):
+            wx.CallAfter(
+                InfoDialog,
+                self,
+                msg=lang.getstr("profiling.incomplete"),
+                ok=lang.getstr("ok"),
+                bitmap=geticon(32, "dialog-error"),
+            )
         self.Show(start_timers=start_timers)
 
     def check_copy_ti3(self):
@@ -10933,17 +10927,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 lang.getstr("profiling.complete"),
                 resume=True,
             )
-        else:
-            if isinstance(result, Exception):
-                wx.CallAfter(show_result_dialog, result, self)
-            elif not getcfg("dry_run"):
-                wx.CallAfter(
-                    InfoDialog,
-                    self,
-                    msg=lang.getstr("profiling.incomplete"),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
-                )
+        elif isinstance(result, Exception):
+            wx.CallAfter(show_result_dialog, result, self)
+        elif not getcfg("dry_run"):
+            wx.CallAfter(
+                InfoDialog,
+                self,
+                msg=lang.getstr("profiling.incomplete"),
+                ok=lang.getstr("ok"),
+                bitmap=geticon(32, "dialog-error"),
+            )
         self.Show(start_timers=start_timers)
 
     def profile_finish(
@@ -16877,10 +16870,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # L*a*b* cLUT
             if getcfg("testchart.auto_optimize") < 5:
                 setcfg("testchart.auto_optimize", 5)
-        else:
-            # Gamma or shaper + matrix
-            if getcfg("testchart.auto_optimize") > 2:
-                setcfg("testchart.auto_optimize", 1)
+        # Gamma or shaper + matrix
+        elif getcfg("testchart.auto_optimize") > 2:
+            setcfg("testchart.auto_optimize", 1)
         if path == "auto":
             self.set_testchart(path)
             return

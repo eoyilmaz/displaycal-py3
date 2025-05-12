@@ -1682,9 +1682,8 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             value = defval
             if debug > 1:
                 print(name, "- falling back to", value)
-        else:
-            if debug and not hasdef:
-                print("Warning - unknown option:", name)
+        elif debug and not hasdef:
+            print("Warning - unknown option:", name)
     if raw:
         return value
     if (

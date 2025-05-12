@@ -467,9 +467,8 @@ def setup():
             current_findall = find_packages
         except ImportError:
             pass
-    else:
-        if os.path.exists("use-setuptools"):
-            os.remove("use-setuptools")
+    elif os.path.exists("use-setuptools"):
+        os.remove("use-setuptools")
 
     if distutils.filelist.findall is current_findall:
         # Fix traversing unneeded dirs which can take a long time (minutes)
@@ -787,19 +786,18 @@ def setup():
                                     ],
                                 )
                             )
-                    else:
-                        if os.path.isdir("/etc/hotplug"):
-                            # USB using hotplug and Serial using udev
-                            # (older versions of Linux)
-                            devconf_files.append(
-                                (
-                                    "/etc/hotplug/usb",
-                                    [
-                                        os.path.join(pydir, "..", "misc", fname)
-                                        for fname in ["Argyll", "Argyll.usermap"]
-                                    ],
-                                )
+                    elif os.path.isdir("/etc/hotplug"):
+                        # USB using hotplug and Serial using udev
+                        # (older versions of Linux)
+                        devconf_files.append(
+                            (
+                                "/etc/hotplug/usb",
+                                [
+                                    os.path.join(pydir, "..", "misc", fname)
+                                    for fname in ["Argyll", "Argyll.usermap"]
+                                ],
                             )
+                        )
                     for entry in devconf_files:
                         for fname in entry[1]:
                             if os.path.isfile(fname):

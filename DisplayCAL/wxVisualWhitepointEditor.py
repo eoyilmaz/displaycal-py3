@@ -244,11 +244,10 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                     bmp = self._active_restore_bitmap
                 else:
                     bmp = self._inactive_restore_bitmap
+            elif pane.state & aui.dockart.optionActive:
+                bmp = self._active_maximize_bitmap
             else:
-                if pane.state & aui.dockart.optionActive:
-                    bmp = self._active_maximize_bitmap
-                else:
-                    bmp = self._inactive_maximize_bitmap
+                bmp = self._inactive_maximize_bitmap
 
         elif button == aui.dockart.AUI_BUTTON_MINIMIZE:
             if pane.state & aui.dockart.optionActive:
@@ -315,11 +314,10 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                     self._active_maximize_bitmap = bmp
                 else:
                     self._inactive_maximize_bitmap = bmp
+            elif active:
+                self._active_restore_bitmap = bmp
             else:
-                if active:
-                    self._active_restore_bitmap = bmp
-                else:
-                    self._inactive_restore_bitmap = bmp
+                self._inactive_restore_bitmap = bmp
 
         elif button == aui.dockart.AUI_BUTTON_MINIMIZE:
             if active:
@@ -1207,9 +1205,8 @@ class BrightCtrl(BaseLineCtrl):
         if direction > 0:
             if self._colour.v < 255:
                 self._colour.v += 1
-        else:
-            if self._colour.v > 0:
-                self._colour.v -= 1
+        elif self._colour.v > 0:
+            self._colour.v -= 1
 
         self._mainFrame.DrawMarkers()
 
@@ -1379,9 +1376,8 @@ class HSlider(BaseLineCtrl):
         if direction > 0:
             if self.Value < self.maxval:
                 self.Value += inc
-        else:
-            if self.Value > self.minval:
-                self.Value -= inc
+        elif self.Value > self.minval:
+            self.Value -= inc
         self._mainFrame.area_handler()
 
 

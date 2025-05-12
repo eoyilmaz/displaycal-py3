@@ -1253,9 +1253,8 @@ class LUTFrame(BaseFrame):
             )
             if not isinstance(result, Exception) and result:
                 profile = cal_to_fake_profile(outfilename)
-            else:
-                if isinstance(result, Exception):
-                    print(result)
+            elif isinstance(result, Exception):
+                print(result)
             # Important: lut_viewer_load_lut is called after measurements,
             # so make sure to only delete the temporary cal file we created
             try:
@@ -2060,13 +2059,12 @@ class LUTFrame(BaseFrame):
             lang.getstr("gamut"),
         ) or (self.profile and self.profile.connectionColorSpace == b"RGB"):
             self.xLabel = "".join(yLabel)
+        elif self.show_as_L.GetValue():
+            connection_colorspace = b"Lab"
+            self.xLabel = "L*"
         else:
-            if self.show_as_L.GetValue():
-                connection_colorspace = b"Lab"
-                self.xLabel = "L*"
-            else:
-                connection_colorspace = b"XYZ"
-                self.xLabel = "Y"
+            connection_colorspace = b"XYZ"
+            self.xLabel = "Y"
         self.yLabel = "".join(yLabel)
 
         self.show_as_L.Enable(bool(curves))

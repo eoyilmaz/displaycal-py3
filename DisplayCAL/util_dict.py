@@ -21,15 +21,14 @@ def dict_slice(obj, start=None, stop=None, step=None):
             )
         else:
             return dict(zip(all_keys[start:], [obj[key] for key in all_keys[start:]]))
+    elif stop:
+        return dict(zip(all_keys[:stop], [obj[key] for key in all_keys[:stop]]))
     else:
-        if stop:
-            return dict(zip(all_keys[:stop], [obj[key] for key in all_keys[:stop]]))
-        else:
-            start = 0
-            stop = len(all_keys)
-            return dict(
-                zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]])
-            )
+        start = 0
+        stop = len(all_keys)
+        return dict(
+            zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]])
+        )
 
 
 def dict_sort(obj, key=None):

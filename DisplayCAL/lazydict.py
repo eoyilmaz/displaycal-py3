@@ -535,9 +535,8 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                     if self.debug:
                         print("APPEND LWSTRIPPED", repr(line_lwstrip))
                     line = line_lwstrip
-                else:
-                    if self.debug:
-                        print("APPEND", repr(line))
+                elif self.debug:
+                    print("APPEND", repr(line))
                 value.append(line)
         if quote:
             raise ValueError(

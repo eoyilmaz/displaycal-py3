@@ -754,10 +754,9 @@ class GradientButton(wx.Control):
         tlw = wx.GetTopLevelParent(self)
         if isinstance(tlw, (wx.Dialog, wx.Frame)) and hasattr(tlw, "SetDefaultItem"):
             tlw.SetDefaultItem(self)
-        else:
+        elif hasattr(self, "SetDefault"):
             # Fallback: Set the button as the default in a different way if possible
-            if hasattr(self, "SetDefault"):
-                self.SetDefault()
+            self.SetDefault()
 
     def Notify(self) -> None:
         """Actually send a ``wx.EVT_BUTTON`` event to the listener (if any)."""

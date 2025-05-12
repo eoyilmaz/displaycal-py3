@@ -441,20 +441,19 @@ class CGATS(dict):
             elif len(values) > 1:
                 if values[0] == b"Date:":
                     context.datetime = line
-                else:
-                    if len(values) == 2 and b'"' not in values[0]:
-                        key, value = values[0].decode(), values[1]
-                        if value is not None:
-                            context = context.add_data({key: value.strip(b'"')})
-                        else:
-                            context = context.add_data({key: b""})
-                    elif strict:
-                        raise CGATSInvalidError(
-                            "Malformed {} file: {}".format(
-                                (context.parent and context.type) or "CGATS",
-                                self.filename or self,
-                            )
+                elif len(values) == 2 and b'"' not in values[0]:
+                    key, value = values[0].decode(), values[1]
+                    if value is not None:
+                        context = context.add_data({key: value.strip(b'"')})
+                    else:
+                        context = context.add_data({key: b""})
+                elif strict:
+                    raise CGATSInvalidError(
+                        "Malformed {} file: {}".format(
+                            (context.parent and context.type) or "CGATS",
+                            self.filename or self,
                         )
+                    )
             elif (
                 values
                 and values[0] not in (b"Comment:", b"Date:")
@@ -880,13 +879,12 @@ class CGATS(dict):
                                 "WARNING - skipping gray because prev "
                                 f"{prev_values[:3]} was not gray"
                             )
-                    else:
-                        # Last
-                        if debug:
-                            print(
-                                "INFO - appending cur to color because prev "
-                                f"{prev_values[:3]} was not gray but cur is last"
-                            )
+                    # Last
+                    elif debug:
+                        print(
+                            "INFO - appending cur to color because prev "
+                            f"{prev_values[:3]} was not gray but cur is last"
+                        )
                 if not is_gray or cur is gray or i == numvalues - 1:
                     if prev_i not in added:
                         if debug and prev is cur is color:

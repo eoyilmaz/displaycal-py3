@@ -896,9 +896,8 @@ class ImageContainerBase(wx.Panel):
             if pt.x > cltRect.x + cltRect.width - 4:
                 return True
 
-        else:
-            if pt.x < 4:
-                return True
+        elif pt.x < 4:
+            return True
 
         return False
 
@@ -983,22 +982,19 @@ class ImageContainerBase(wx.Panel):
             if bIsLabelContainer:
                 self.SetSizeHints(20, self._tabAreaSize[1])
 
+            elif style & ImageBookStyle.INB_BOTTOM or style & ImageBookStyle.INB_TOP:
+                self.SetSizeHints(self._tabAreaSize[0], 20)
             else:
-                if style & ImageBookStyle.INB_BOTTOM or style & ImageBookStyle.INB_TOP:
-                    self.SetSizeHints(self._tabAreaSize[0], 20)
-                else:
-                    self.SetSizeHints(20, self._tabAreaSize[1])
+                self.SetSizeHints(20, self._tabAreaSize[1])
 
+        elif bIsLabelContainer:
+            self.SetSizeHints(self._tabAreaSize[0], -1)
+
+        # Restore the tab area size
+        elif style & ImageBookStyle.INB_BOTTOM or style & ImageBookStyle.INB_TOP:
+            self.SetSizeHints(-1, self._tabAreaSize[1])
         else:
-            if bIsLabelContainer:
-                self.SetSizeHints(self._tabAreaSize[0], -1)
-
-            else:
-                # Restore the tab area size
-                if style & ImageBookStyle.INB_BOTTOM or style & ImageBookStyle.INB_TOP:
-                    self.SetSizeHints(-1, self._tabAreaSize[1])
-                else:
-                    self.SetSizeHints(self._tabAreaSize[0], -1)
+            self.SetSizeHints(self._tabAreaSize[0], -1)
 
         self.GetParent().GetSizer().Layout()
         self.Refresh()
@@ -2673,14 +2669,10 @@ class FlatBookBase(wx.Panel):
 
         if isinstance(self, LabelBook):
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        elif agwStyle & ImageBookStyle.INB_LEFT or agwStyle & ImageBookStyle.INB_RIGHT:
+            self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
-            if (
-                agwStyle & ImageBookStyle.INB_LEFT
-                or agwStyle & ImageBookStyle.INB_RIGHT
-            ):
-                self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-            else:
-                self._mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self._mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.SetSizer(self._mainSizer)
 

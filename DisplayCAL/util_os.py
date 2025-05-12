@@ -916,10 +916,9 @@ def safe_iglob(pathname: str) -> Iterator[str]:
         if basename:
             if os.path.lexists(pathname):
                 yield pathname
-        else:
-            # Patterns ending with a slash should match only directories
-            if os.path.isdir(dirname):
-                yield pathname
+        # Patterns ending with a slash should match only directories
+        elif os.path.isdir(dirname):
+            yield pathname
         return
     if not dirname:
         for name in safe_glob1(os.curdir, basename):

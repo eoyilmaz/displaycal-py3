@@ -802,10 +802,9 @@ def create_shaper_curves(
                     for j, v in enumerate((X, Y, Z))
                 )
                 R_X[i], G_Y[i], B_Z[i] = X, Y, Z
-            else:
-                if Y:
-                    Y2 = Y ** gammas_resized[1][i]
-                    R_X[i], G_Y[i], B_Z[i] = (v / Y * Y2 for v in (X, Y, Z))
+            elif Y:
+                Y2 = Y ** gammas_resized[1][i]
+                R_X[i], G_Y[i], B_Z[i] = (v / Y * Y2 for v in (X, Y, Z))
 
         for values in RGB:
             values[:] = colormath.interp_fill(values, values, numentries, True)
@@ -1017,36 +1016,33 @@ def _create_optimized_shaper_curves(
                 if gamma_type == "g":
                     gamma = egamma
                 trc.set_trc(gamma, 1)
-            else:
-                # Complex or gamma with offset
-                if gamma == -1023:
-                    # DICOM is a special case
-                    trc.set_dicom_trc(black_cdm2, white_cdm2)
-                elif gamma == -1886:
-                    # BT.1886 is a special case
-                    trc.set_bt1886_trc(black_Y)
-                elif gamma == -2084:
-                    # SMPTE 2084 is a special case
-                    trc.set_smpte2084_trc(black_cdm2, white_cdm2)
-                elif gamma > 0 and black_Y:
-                    # BT.1886-like or power law with offset
-                    if bpc and gamma_type == "g":
-                        # Use effective gamma needed to
-                        # achieve target effective gamma
-                        # after accounting for BPC
-                        eegamma = colormath.get_gamma(
-                            [(0.5, 0.5**egamma)], vmin=-black_Y
-                        )
-                    else:
-                        eegamma = egamma
-                    trc.set_bt1886_trc(black_Y, outoffset, eegamma, "g")
+            # Complex or gamma with offset
+            elif gamma == -1023:
+                # DICOM is a special case
+                trc.set_dicom_trc(black_cdm2, white_cdm2)
+            elif gamma == -1886:
+                # BT.1886 is a special case
+                trc.set_bt1886_trc(black_Y)
+            elif gamma == -2084:
+                # SMPTE 2084 is a special case
+                trc.set_smpte2084_trc(black_cdm2, white_cdm2)
+            elif gamma > 0 and black_Y:
+                # BT.1886-like or power law with offset
+                if bpc and gamma_type == "g":
+                    # Use effective gamma needed to
+                    # achieve target effective gamma
+                    # after accounting for BPC
+                    eegamma = colormath.get_gamma([(0.5, 0.5**egamma)], vmin=-black_Y)
                 else:
-                    # L*, sRGB, Rec. 709, SMPTE 240M, or
-                    # power law without offset
-                    if bpc and gamma_type == "g":
-                        # Use effective gamma
-                        gamma = egamma
-                    trc.set_trc(gamma)
+                    eegamma = egamma
+                trc.set_bt1886_trc(black_Y, outoffset, eegamma, "g")
+            else:
+                # L*, sRGB, Rec. 709, SMPTE 240M, or
+                # power law without offset
+                if bpc and gamma_type == "g":
+                    # Use effective gamma
+                    gamma = egamma
+                trc.set_trc(gamma)
             trc.apply_bpc()
             tf = trc.get_transfer_function(True, (0, 1), black_Y, outoffset)
             if logfn:
@@ -1297,17 +1293,16 @@ def get_python_and_pythonpath():
                 pythonpath.append(os.path.join(dirname, "library.zip"))
                 pythonpath.append(os.path.join(dirname, "library.zip", appname))
         python = os.path.join(dirname, "python.exe")
+    # Linux / Mac OS X
+    elif isapp:
+        python = os.path.join(dirname, "python")
     else:
-        # Linux / Mac OS X
-        if isapp:
-            python = os.path.join(dirname, "python")
-        else:
-            paths = os.defpath.split(os.pathsep)
-            python = (
-                which("python3.7", paths)
-                or which("python3.6", paths)
-                or "/usr/bin/env python"
-            )
+        paths = os.defpath.split(os.pathsep)
+        python = (
+            which("python3.7", paths)
+            or which("python3.6", paths)
+            or "/usr/bin/env python"
+        )
     return (python, pythonpath)
 
 
@@ -1368,18 +1363,17 @@ def http_request(
         if request_type == "GET":
             path += "?" + params
             params = None
+        elif files:
+            headers.update(
+                {"Content-Type": content_type, "Content-Length": str(len(params))}
+            )
         else:
-            if files:
-                headers.update(
-                    {"Content-Type": content_type, "Content-Length": str(len(params))}
-                )
-            else:
-                headers.update(
-                    {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "Accept": "text/plain",
-                    }
-                )
+            headers.update(
+                {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "text/plain",
+                }
+            )
     conn = http.client.HTTPConnection(domain)
     try:
         conn.request(request_type, path, params, headers)
@@ -2174,10 +2168,9 @@ class Worker(WorkerBase):
                 ):
                     # Adaptive measurement mode, Argyll >= 1.1.0 RC3
                     args.append("-V")
-            else:
-                if self.argyll_version[0:3] >= [1, 5, 0]:
-                    # Disable adaptive measurement mode
-                    args.append("-YA")
+            elif self.argyll_version[0:3] >= [1, 5, 0]:
+                # Disable adaptive measurement mode
+                args.append("-YA")
         if (
             instrument_name in ("Spyder4", "Spyder5")
             and self.argyll_version == [1, 7, 0]
@@ -3062,13 +3055,12 @@ class Worker(WorkerBase):
                 # run directly after dispcal
                 self.instrument_calibration_complete = False
                 self.instrument_place_on_screen()
-            else:
-                if self.isalive():
-                    # Delay to work-around a problem with i1D2 and Argyll 1.7
-                    # to 1.8.3 under Mac OS X 10.11 El Capitan where skipping
-                    # interactive display adjustment would botch the first
-                    # reading (black)
-                    wx.CallLater(1500, self.instrument_on_screen_continue)
+            elif self.isalive():
+                # Delay to work-around a problem with i1D2 and Argyll 1.7
+                # to 1.8.3 under Mac OS X 10.11 El Capitan where skipping
+                # interactive display adjustment would botch the first
+                # reading (black)
+                wx.CallLater(1500, self.instrument_on_screen_continue)
         elif self.instrument_place_on_spot_msg:
             self.log(f"{appname}: Assuming instrument on screen")
             self.instrument_on_screen = True
@@ -10162,9 +10154,8 @@ usage: spotread [-options] [logfile]
                                 + str(exception)
                             )
                     # Now try user scope
-                else:
-                    if not silent:
-                        result = Warning(lang.getstr("error.autostart_system"))
+                elif not silent:
+                    result = Warning(lang.getstr("error.autostart_system"))
             if autostart_home:
                 if autostart and os.path.isfile(autostart_lnkname):
                     # Remove existing user loader
@@ -10183,9 +10174,8 @@ usage: spotread [-options] [logfile]
                                 + "\n"
                                 + str(exception)
                             )
-            else:
-                if not silent:
-                    result = Warning(lang.getstr("error.autostart_user"))
+            elif not silent:
+                result = Warning(lang.getstr("error.autostart_user"))
         except Exception as exception:
             if not silent:
                 result = Warning(
@@ -13592,100 +13582,99 @@ usage: spotread [-options] [logfile]
             if not result:
                 return None, None
             args.append(cal)
-        else:
-            if cal is None:
-                if not profile_path:
-                    profile_save_path = os.path.join(
-                        getcfg("profile.save_path"), getcfg("profile.name.expanded")
+        elif cal is None:
+            if not profile_path:
+                profile_save_path = os.path.join(
+                    getcfg("profile.save_path"), getcfg("profile.name.expanded")
+                )
+                profile_path = os.path.join(
+                    profile_save_path, getcfg("profile.name.expanded") + profile_ext
+                )
+            result = check_profile_isfile(profile_path)
+            if isinstance(result, Exception):
+                return result, None
+            if not result:
+                return None, None
+            try:
+                profile = ICCProfile(profile_path)
+            except (OSError, ICCProfileInvalidError):
+                return (
+                    Error(lang.getstr("profile.invalid") + "\n" + profile_path),
+                    None,
+                )
+            if profile.profileClass != b"mntr" or profile.colorSpace != b"RGB":
+                return (
+                    Error(
+                        lang.getstr(
+                            "profile.unsupported",
+                            (profile.profileClass, profile.colorSpace),
+                        )
+                        + "\n"
+                        + profile_path
+                    ),
+                    None,
+                )
+            if install:
+                if getcfg("profile.install_scope") != "u" and (
+                    (
+                        (
+                            sys.platform == "darwin"
+                            or (
+                                sys.platform != "win32"
+                                and self.argyll_version >= [1, 1, 0]
+                            )
+                        )
+                        and (os.geteuid() == 0 or which("sudo"))
                     )
-                    profile_path = os.path.join(
-                        profile_save_path, getcfg("profile.name.expanded") + profile_ext
+                    or (
+                        sys.platform == "win32"
+                        and sys.getwindowsversion() >= (6,)
+                        and self.argyll_version > [1, 1, 1]
                     )
-                result = check_profile_isfile(profile_path)
+                ):
+                    # -S option is broken on Linux with current Argyll
+                    # releases
+                    args.append("-S" + getcfg("profile.install_scope"))
+                else:
+                    # Make sure user profile dir exists
+                    # (e.g. on Mac OS X 10.9 Mavericks, it does not by
+                    # default)
+                    for profile_dir in reversed(iccprofiles_home):
+                        if os.path.isdir(profile_dir):
+                            break
+                    if not os.path.isdir(profile_dir):
+                        try:
+                            os.makedirs(profile_dir)
+                        except OSError as exception:
+                            return exception, None
+                args.append("-I")
+                # Always copy to temp dir so if a user accidentally tries
+                # to install a profile from the location where it's already
+                # installed (e.g. system32/spool/drivers/color) it doesn't
+                # get nuked by dispwin
+                tmp_dir = self.create_tempdir()
+                if not tmp_dir or isinstance(tmp_dir, Exception):
+                    return tmp_dir, None
+                # Check directory and in/output file(s)
+                result = check_create_dir(tmp_dir)
                 if isinstance(result, Exception):
                     return result, None
-                if not result:
-                    return None, None
-                try:
-                    profile = ICCProfile(profile_path)
-                except (OSError, ICCProfileInvalidError):
-                    return (
-                        Error(lang.getstr("profile.invalid") + "\n" + profile_path),
-                        None,
+                profile_name = os.path.basename(profile_path)
+                if (
+                    sys.platform in ("win32", "darwin")
+                    or fs_enc.upper() not in ("UTF8", "UTF-8")
+                ) and re.search(r"[^\x20-\x7e]", profile_name):
+                    # Copy to temp dir and give ASCII-only name to
+                    # avoid profile install issues
+                    profile_tmp_path = os.path.join(
+                        tmp_dir,
+                        safe_asciize(profile_name).decode("utf-8", "ignore"),
                     )
-                if profile.profileClass != b"mntr" or profile.colorSpace != b"RGB":
-                    return (
-                        Error(
-                            lang.getstr(
-                                "profile.unsupported",
-                                (profile.profileClass, profile.colorSpace),
-                            )
-                            + "\n"
-                            + profile_path
-                        ),
-                        None,
-                    )
-                if install:
-                    if getcfg("profile.install_scope") != "u" and (
-                        (
-                            (
-                                sys.platform == "darwin"
-                                or (
-                                    sys.platform != "win32"
-                                    and self.argyll_version >= [1, 1, 0]
-                                )
-                            )
-                            and (os.geteuid() == 0 or which("sudo"))
-                        )
-                        or (
-                            sys.platform == "win32"
-                            and sys.getwindowsversion() >= (6,)
-                            and self.argyll_version > [1, 1, 1]
-                        )
-                    ):
-                        # -S option is broken on Linux with current Argyll
-                        # releases
-                        args.append("-S" + getcfg("profile.install_scope"))
-                    else:
-                        # Make sure user profile dir exists
-                        # (e.g. on Mac OS X 10.9 Mavericks, it does not by
-                        # default)
-                        for profile_dir in reversed(iccprofiles_home):
-                            if os.path.isdir(profile_dir):
-                                break
-                        if not os.path.isdir(profile_dir):
-                            try:
-                                os.makedirs(profile_dir)
-                            except OSError as exception:
-                                return exception, None
-                    args.append("-I")
-                    # Always copy to temp dir so if a user accidentally tries
-                    # to install a profile from the location where it's already
-                    # installed (e.g. system32/spool/drivers/color) it doesn't
-                    # get nuked by dispwin
-                    tmp_dir = self.create_tempdir()
-                    if not tmp_dir or isinstance(tmp_dir, Exception):
-                        return tmp_dir, None
-                    # Check directory and in/output file(s)
-                    result = check_create_dir(tmp_dir)
-                    if isinstance(result, Exception):
-                        return result, None
-                    profile_name = os.path.basename(profile_path)
-                    if (
-                        sys.platform in ("win32", "darwin")
-                        or fs_enc.upper() not in ("UTF8", "UTF-8")
-                    ) and re.search(r"[^\x20-\x7e]", profile_name):
-                        # Copy to temp dir and give ASCII-only name to
-                        # avoid profile install issues
-                        profile_tmp_path = os.path.join(
-                            tmp_dir,
-                            safe_asciize(profile_name).decode("utf-8", "ignore"),
-                        )
-                    else:
-                        profile_tmp_path = os.path.join(tmp_dir, profile_name)
-                    shutil.copyfile(profile_path, profile_tmp_path)
-                    profile_path = profile_tmp_path
-                args.append(profile_path)
+                else:
+                    profile_tmp_path = os.path.join(tmp_dir, profile_name)
+                shutil.copyfile(profile_path, profile_tmp_path)
+                profile_path = profile_tmp_path
+            args.append(profile_path)
         return cmd, args
 
     def prepare_targen(self):
@@ -13847,21 +13836,16 @@ usage: spotread [-options] [logfile]
             )
         elif re.match(r"\d+(?:\.\d+)? (?:[KM]iB)", lastmsg, re.I):
             keepGoing, skip = self.progress_wnd.Pulse("\n".join([msg, lastmsg]))
+        elif getattr(self.progress_wnd, "lastmsg", "") == msg or not msg:
+            keepGoing, skip = self.progress_wnd.Pulse()
         else:
-            if getattr(self.progress_wnd, "lastmsg", "") == msg or not msg:
-                keepGoing, skip = self.progress_wnd.Pulse()
-            else:
-                if "Setting up the instrument" in lastmsg:
-                    msg = lang.getstr("instrument.initializing")
-                elif "Created web server at" in msg:
-                    webserver = re.search(r"(http\:\/\/[^']+)", msg)
-                    if webserver:
-                        msg = (
-                            lang.getstr("webserver.waiting")
-                            + " "
-                            + webserver.groups()[0]
-                        )
-                keepGoing, skip = self.progress_wnd.Pulse(msg)
+            if "Setting up the instrument" in lastmsg:
+                msg = lang.getstr("instrument.initializing")
+            elif "Created web server at" in msg:
+                webserver = re.search(r"(http\:\/\/[^']+)", msg)
+                if webserver:
+                    msg = lang.getstr("webserver.waiting") + " " + webserver.groups()[0]
+            keepGoing, skip = self.progress_wnd.Pulse(msg)
         self.pause_continue()
         if hasattr(self.progress_wnd, "pause_continue"):
             if "read stopped at user request!" in lastmsg:
@@ -15498,11 +15482,10 @@ BEGIN_DATA
                 pcs = "x"
             else:
                 raise ValueError("Unknown CIE color representation " + color_rep)
-        else:
-            if pcs == "l":
-                color_rep = b"LAB"
-            elif pcs == "x":
-                color_rep = b"XYZ"
+        elif pcs == "l":
+            color_rep = b"LAB"
+        elif pcs == "x":
+            color_rep = b"XYZ"
 
         # get profile color space
         colorspace = profile.colorSpace
@@ -16691,34 +16674,33 @@ BEGIN_DATA
                                         else:
                                             result = result2
                                         remove = False
+                            elif os.path.isdir(src):
+                                if verbose >= 2:
+                                    print(
+                                        f"{appname}: Copying temporary "
+                                        f"directory tree {src} to {dst}"
+                                    )
+                                try:
+                                    shutil.copytree(src, dst)
+                                except Exception as exception:
+                                    print(
+                                        f"Warning - temporary directory '{src}' "
+                                        "could not be copied to "
+                                        f"'{dst}': {exception}"
+                                    )
                             else:
-                                if os.path.isdir(src):
-                                    if verbose >= 2:
-                                        print(
-                                            f"{appname}: Copying temporary "
-                                            f"directory tree {src} to {dst}"
-                                        )
-                                    try:
-                                        shutil.copytree(src, dst)
-                                    except Exception as exception:
-                                        print(
-                                            f"Warning - temporary directory '{src}' "
-                                            "could not be copied to "
-                                            f"'{dst}': {exception}"
-                                        )
-                                else:
-                                    if verbose >= 2:
-                                        print(
-                                            f"{appname}: Copying temporary "
-                                            f"file {src} to {dst}"
-                                        )
-                                    try:
-                                        shutil.copyfile(src, dst)
-                                    except Exception as exception:
-                                        print(
-                                            f"Warning - temporary file '{src}' could "
-                                            f"not be copied to '{dst}': {exception}"
-                                        )
+                                if verbose >= 2:
+                                    print(
+                                        f"{appname}: Copying temporary "
+                                        f"file {src} to {dst}"
+                                    )
+                                try:
+                                    shutil.copyfile(src, dst)
+                                except Exception as exception:
+                                    print(
+                                        f"Warning - temporary file '{src}' could "
+                                        f"not be copied to '{dst}': {exception}"
+                                    )
         if remove:
             try:
                 src_listdir = os.listdir(self.tempdir)

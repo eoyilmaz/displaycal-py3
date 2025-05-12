@@ -2102,29 +2102,26 @@ class ProfileInfoFrame(LUTFrame):
                         os.remove(outpath)
             if os.path.isfile(finalpath):
                 launch_file(finalpath)
+            elif os.path.isfile(vrmloutpath):
+                self.view_3d_consumer(True, None, None, vrmloutpath, x3d, x3dpath, html)
+            elif os.path.isfile(vrmlpath):
+                self.view_3d_consumer(
+                    True, colorspace, None, vrmlpath, x3d, x3dpath, html
+                )
             else:
-                if os.path.isfile(vrmloutpath):
-                    self.view_3d_consumer(
-                        True, None, None, vrmloutpath, x3d, x3dpath, html
-                    )
-                elif os.path.isfile(vrmlpath):
-                    self.view_3d_consumer(
-                        True, colorspace, None, vrmlpath, x3d, x3dpath, html
-                    )
-                else:
-                    # Create VRML file
-                    profile_paths = [profile_path]
-                    if comparison_profile_path:
-                        profile_paths.append(comparison_profile_path)
-                    self.worker.start(
-                        self.view_3d_consumer,
-                        self.worker.calculate_gamut,
-                        cargs=(colorspace, filename, None, x3d, x3dpath, html),
-                        wargs=(profile_paths, intent, direction, order, False),
-                        progress_msg=lang.getstr("gamut.view.create"),
-                        continue_next=x3d,
-                        fancy=False,
-                    )
+                # Create VRML file
+                profile_paths = [profile_path]
+                if comparison_profile_path:
+                    profile_paths.append(comparison_profile_path)
+                self.worker.start(
+                    self.view_3d_consumer,
+                    self.worker.calculate_gamut,
+                    cargs=(colorspace, filename, None, x3d, x3dpath, html),
+                    wargs=(profile_paths, intent, direction, order, False),
+                    progress_msg=lang.getstr("gamut.view.create"),
+                    continue_next=x3d,
+                    fancy=False,
+                )
 
     def view_3d_consumer(
         self, result, colorspace, filename, vrmlpath, x3d, x3dpath, html

@@ -441,10 +441,9 @@ if (!''.replace(/^/, String)) {
 }"""
             if encoding > 62:
                 decode = decode.replace("\\\\w", "[\\xa1-\\xff]")
-            else:
-                # perform the encoding inline for lower ascii values
-                if ascii < 36:
-                    decode = ENCODE.sub(inline, decode)
+            # perform the encoding inline for lower ascii values
+            elif ascii < 36:
+                decode = ENCODE.sub(inline, decode)
             # special case: when $count==0 there ar no keywords. i want to keep
             #  the basic shape of the unpacking funcion so i'll frig the code...
             if not count:
@@ -498,9 +497,8 @@ if (!''.replace(/^/, String)) {
         if specialChars:
             script = self.specialCompression(script)
             script = self.encodeSpecialChars(script)
-        else:
-            if compaction:
-                script = self.basicCompression(script)
+        elif compaction:
+            script = self.basicCompression(script)
         if encoding:
             script = self.encodeKeywords(script, encoding, fastDecode)
         return script

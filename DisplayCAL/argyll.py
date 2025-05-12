@@ -510,11 +510,10 @@ def get_argyll_instrument_config(what=None):
                 # USB using udev, where there are NOT /dev/bus/usb/00X/00X
                 # devices
                 filenames.append(fn("usb/45-Argyll.rules"))
-        else:
-            if os.path.isdir("/etc/hotplug"):
-                # USB using hotplug and Serial using udev
-                # (older versions of Linux)
-                filenames.extend(
-                    fn(filename) for filename in ("usb/Argyll", "usb/Argyll.usermap")
-                )
+        elif os.path.isdir("/etc/hotplug"):
+            # USB using hotplug and Serial using udev
+            # (older versions of Linux)
+            filenames.extend(
+                fn(filename) for filename in ("usb/Argyll", "usb/Argyll.usermap")
+            )
     return [filename for filename in filenames if filename]

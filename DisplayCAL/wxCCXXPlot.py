@@ -56,15 +56,14 @@ def nicenum(x, do_round):
             nf = 5.0
         else:
             nf = 10.0
+    elif f < 1.0:
+        nf = 1.0
+    elif f < 2.0:
+        nf = 2.0
+    elif f < 5.0:
+        nf = 5.0
     else:
-        if f < 1.0:
-            nf = 1.0
-        elif f < 2.0:
-            nf = 2.0
-        elif f < 5.0:
-            nf = 5.0
-        else:
-            nf = 10.0
+        nf = 10.0
     return nf * expt(10.0, ex)
 
 
@@ -302,11 +301,10 @@ class CCXXPlot(wx.Frame):
                     else:
                         # Colorimeter dimmer than ref
                         XYZ[:] = [v * Y_max for v in XYZ]
-                else:
-                    # Ref XYZ
-                    if Y_max > 1:
-                        # Colorimeter brighter than ref
-                        XYZ[:] = [v / Y_max for v in XYZ]
+                # Ref XYZ
+                elif Y_max > 1:
+                    # Colorimeter brighter than ref
+                    XYZ[:] = [v / Y_max for v in XYZ]
                 RGB = tuple(
                     int(v) for v in colormath.XYZ2RGB(*XYZ, scale=255, round_=True)
                 )

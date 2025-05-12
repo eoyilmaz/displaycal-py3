@@ -588,13 +588,12 @@ class ReportFrame(BaseFrame):
                                         self.XYZbpout = XYZbp
                                     else:
                                         self.XYZbpout = [0, 0, 0]
-                    else:
-                        # Profile selection has not changed
-                        # Restore cached XYZbp values
-                        if which == "output":
-                            self.XYZbpout = XYZbpout
-                        elif which == "input":
-                            self.XYZbpin = XYZbpin
+                    # Profile selection has not changed
+                    # Restore cached XYZbp values
+                    elif which == "output":
+                        self.XYZbpout = XYZbpout
+                    elif which == "input":
+                        self.XYZbpin = XYZbpin
                     setattr(self, f"{which}_profile", profile)
                     if not silent:
                         setcfg(

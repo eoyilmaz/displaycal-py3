@@ -1405,13 +1405,12 @@ def DIN99familyab2DIN99CH(a99, b99):
         h99ef = math.atan2(b99, a99) if b99 >= 0 else 2 * math.pi + math.atan2(b99, a99)
     elif a99 < 0:
         h99ef = math.atan2(b99, a99)
+    elif b99 > 0:
+        h99ef = math.pi / 2
+    elif b99 < 0:
+        h99ef = (3 * math.pi) / 2
     else:
-        if b99 > 0:
-            h99ef = math.pi / 2
-        elif b99 < 0:
-            h99ef = (3 * math.pi) / 2
-        else:
-            h99ef = 0.0
+        h99ef = 0.0
     H99 = h99ef * 180 / math.pi
     return C99, H99
 
@@ -2692,10 +2691,9 @@ def xy_CCT_delta(x, y, daylight=True, method=2000):
             # Daylight locus
             if 2500 <= cct <= 25000:
                 locus = CIEDCCT2XYZ(cct, 100.0)
-        else:
-            # Planckian locus
-            if 1667 <= cct <= 25000:
-                locus = planckianCT2XYZ(cct, 100.0)
+        # Planckian locus
+        elif 1667 <= cct <= 25000:
+            locus = planckianCT2XYZ(cct, 100.0)
         if locus:
             L2, a2, b2 = xyY2Lab(x, y, 100.0, locus)
             d = delta(L2, 0, 0, L2, a2, b2, method)
@@ -2981,13 +2979,12 @@ def linmin(cp, xi, di, ftol, func, fdata):
             if abs(de) >= tol1:  # If de moves as much as tol1 would
                 ux = xx + de  # use it
                 logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + de {de:f}")
-            else:  # else move by tol1 in direction de
-                if de > 0.0:
-                    ux = xx + tol1
-                    logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
-                else:
-                    ux = xx - tol1
-                    logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
+            elif de > 0.0:
+                ux = xx + tol1
+                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
+            else:
+                ux = xx - tol1
+                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
 
             # Evaluate function
             for i in range(di):

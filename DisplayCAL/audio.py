@@ -504,13 +504,12 @@ class _Sound:
                 self._is_playing = False
             elif fade_ms:
                 self.fade(fade_ms, False)
+            elif self._lib == "pyglet":
+                self._ch.pause()
+            elif self._lib == "SDL":
+                self._server.Mix_HaltChannel(self._ch)
             else:
-                if self._lib == "pyglet":
-                    self._ch.pause()
-                elif self._lib == "SDL":
-                    self._server.Mix_HaltChannel(self._ch)
-                else:
-                    self._snd.stop()
+                self._snd.stop()
             return True
         else:
             return False

@@ -1919,17 +1919,15 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                     )
                     return profile
             self.set_profile_ctrl_path(which)
-        else:
-            if which == "input":
-                self.set_profile_ctrl_path(which)
-                self.lut3d_update_encoding_controls()
-            else:
-                if not silent:
-                    setattr(self, f"{which}_profile", None)
-                    self.setcfg(f"3dlut.{which}.profile", None)
-                    if which == "output":
-                        self.lut3d_apply_cal_cb.Disable()
-                        self.lut3d_create_btn.Disable()
+        elif which == "input":
+            self.set_profile_ctrl_path(which)
+            self.lut3d_update_encoding_controls()
+        elif not silent:
+            setattr(self, f"{which}_profile", None)
+            self.setcfg(f"3dlut.{which}.profile", None)
+            if which == "output":
+                self.lut3d_apply_cal_cb.Disable()
+                self.lut3d_create_btn.Disable()
 
     def set_profile_ctrl_path(self, which):
         getattr(self, f"{which}_profile_ctrl").SetPath(

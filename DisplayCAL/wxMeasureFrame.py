@@ -389,11 +389,10 @@ class MeasureFrame(InvincibleFrame):
         if isinstance(self, wx.Dialog):
             if show:
                 self.ShowModal()
+            elif self.IsModal():
+                self.EndModal(wx.ID_OK)
             else:
-                if self.IsModal():
-                    self.EndModal(wx.ID_OK)
-                else:
-                    wx.Dialog.Hide(self)
+                wx.Dialog.Hide(self)
         else:
             wx.Frame.Show(self, show)
 

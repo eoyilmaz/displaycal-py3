@@ -1861,8 +1861,7 @@ class ArtManager(wx.EvtHandler):
 
         # it is very important to validate that the start location is not less
         # than the alignment buffer
-        if startLocationX < alignmentBuffer:
-            startLocationX = alignmentBuffer
+        startLocationX = max(startLocationX, alignmentBuffer)
 
         return startLocationX, startLocationY
 
@@ -1927,8 +1926,7 @@ class ArtManager(wx.EvtHandler):
 
         # it is very important to validate that the start location is not less
         # than the alignment buffer
-        if startLocationX < alignmentBuffer:
-            startLocationX = alignmentBuffer
+        startLocationX = max(startLocationX, alignmentBuffer)
 
         return startLocationX, startLocationY, fixedText
 
@@ -2064,13 +2062,11 @@ class ArtManager(wx.EvtHandler):
         if bmp.IsOk():
             # allocate extra space for the bitmap
             heightBmp = bmp.GetHeight() + 2
-            if height < heightBmp:
-                height = heightBmp
+            height = max(height, heightBmp)
 
             width += bmp.GetWidth() + 2
 
-        if height < HEIGHT:
-            height = HEIGHT
+        height = max(height, HEIGHT)
 
         dc.SelectBitmap(wx.NullBitmap)
 

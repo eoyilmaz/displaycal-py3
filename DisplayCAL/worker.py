@@ -14409,9 +14409,7 @@ usage: spotread [-options] [logfile]
             self.owner.stop_timers()
         if not parent:
             parent = self.owner
-        if progress_start < 1:
-            # Can't be zero!
-            progress_start = 1
+        progress_start = max(progress_start, 1)  # Can't be zero!
         self.activated = False
         self.cmdname = None
         self.cmdrun = False

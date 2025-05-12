@@ -508,8 +508,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
         if className == "FlatImageBook":
             scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
+            scale = max(scale, 1)
             if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
                 border = int(round(24 * scale))
                 self._pages.SetSizeHints(self._pages._nImgSize + border, -1)
@@ -1071,8 +1070,7 @@ class DisplayAdjustmentFrame(windowcls):
 
         # Set size
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         img_w, img_h = list(map(int, list(map(round, (84 * scale, 72 * scale)))))
         min_h = (
             (img_h + 8) * (self.lb.GetPageCount() - len(self.lb.disabled_pages)) + 2 - 8

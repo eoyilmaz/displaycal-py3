@@ -444,10 +444,8 @@ class MeasureFrame(InvincibleFrame):
         ]
         if measureframe_min_size[0] > size[0]:
             size = measureframe_min_size
-        if size[0] > display_client_size[0]:
-            size[0] = display_client_size[0]
-        if size[1] > display_client_size[1]:
-            size[1] = display_client_size[1]
+        size[0] = min(size[0], display_client_size[0])
+        size[1] = min(size[1], display_client_size[1])
         if max(size) >= max(display_client_size):
             scale = 50
         if debug:
@@ -482,10 +480,8 @@ class MeasureFrame(InvincibleFrame):
             display_rect[0] + round((display_size[0] - size[0]) * x),
             display_rect[1] + round((display_size[1] - size[1]) * y) - titlebar,
         ]
-        if measureframe_pos[0] < display_client_rect[0]:
-            measureframe_pos[0] = display_client_rect[0]
-        if measureframe_pos[1] < display_client_rect[1]:
-            measureframe_pos[1] = display_client_rect[1]
+        measureframe_pos[0] = max(measureframe_pos[0], display_client_rect[0])
+        measureframe_pos[1] = max(measureframe_pos[1], display_client_rect[1])
         if debug:
             print("[D]  measureframe_pos:", measureframe_pos)
         setcfg("dimensions.measureframe", ",".join(strlist((x, y, scale))))
@@ -770,16 +766,18 @@ class MeasureFrame(InvincibleFrame):
             if size[0] >= display_client_size[0]:
                 measureframe_pos[0] = 0.5
             elif measureframe_pos[0] != 0:
-                if display_size[0] - size[0] < measureframe_pos[0]:
-                    measureframe_pos[0] = display_size[0] - size[0]
+                measureframe_pos[0] = min(
+                    measureframe_pos[0], display_size[0] - size[0]
+                )
                 measureframe_pos[0] = 1.0 / (
                     (float(display_size[0]) - size[0]) / (measureframe_pos[0])
                 )
             if size[1] >= display_client_size[1]:
                 measureframe_pos[1] = 0.5
             elif measureframe_pos[1] != 0:
-                if display_size[1] - size[1] < measureframe_pos[1]:
-                    measureframe_pos[1] = display_size[1] - size[1]
+                measureframe_pos[1] = min(
+                    measureframe_pos[1], display_size[1] - size[1]
+                )
                 if sys.platform in ("darwin", "win32"):
                     titlebar = 0  # size already includes window decorations
                 else:

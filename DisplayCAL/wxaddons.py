@@ -78,14 +78,10 @@ def GetRealClientArea(self):
     # need to fix overlapping ClientArea on some Linux multi-display setups
     # the client area must be always smaller than the geometry
     clientarea = list(self.ClientArea)
-    if self.Geometry[0] > clientarea[0]:
-        clientarea[0] = self.Geometry[0]
-    if self.Geometry[1] > clientarea[1]:
-        clientarea[1] = self.Geometry[1]
-    if self.Geometry[2] < clientarea[2]:
-        clientarea[2] = self.Geometry[2]
-    if self.Geometry[3] < clientarea[3]:
-        clientarea[3] = self.Geometry[3]
+    clientarea[0] = max(clientarea[0], self.Geometry[0])
+    clientarea[1] = max(clientarea[1], self.Geometry[1])
+    clientarea[2] = min(clientarea[2], self.Geometry[2])
+    clientarea[3] = min(clientarea[3], self.Geometry[3])
     return wx.Rect(*clientarea)
 
 
@@ -111,8 +107,7 @@ wx.Window.GetAllChildren = GetAllChildren
 def GetDisplay(self):
     """Return the display the window is shown on"""
     display_no = wx.Display.GetFromWindow(self)
-    if display_no < 0:  # window outside visible area
-        display_no = 0
+    display_no = max(display_no, 0)  # window outside visible area
     return wx.Display(display_no)
 
 

@@ -2018,8 +2018,7 @@ class LabelContainer(ImageContainerBase):
         else:
             newWidth = eventSize.width
 
-        if newWidth < 100:  # Don't allow width to be lower than that
-            newWidth = 100
+        newWidth = max(newWidth, 100)  # Don't allow width to be lower than that
 
         self.SetSizeHints(newWidth, self._tabAreaSize.height)
         self.GetParent().Freeze()

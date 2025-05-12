@@ -4771,8 +4771,7 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
                 f"Warning (non-critical): '{tagData[:4]}' invalid record length "
                 f"(expected 12, got {recordSize})"
             )
-            if recordSize < 12:
-                recordSize = 12
+            recordSize = max(recordSize, 12)
         records = tagData[16 : 16 + recordSize * recordsCount]
         for _count in range(recordsCount):
             record = records[:recordSize]

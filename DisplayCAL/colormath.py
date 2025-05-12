@@ -2711,10 +2711,8 @@ def dmatrixz(nrl, nrh, ncl, nch):
     # nch  # Col high index
     m = {}
 
-    if nrh < nrl:  # Prevent failure for 0 dimension
-        nrh = nrl
-    if nch < ncl:
-        nch = ncl
+    nrh = max(nrh, nrl)  # Prevent failure for 0 dimension
+    nch = max(nch, ncl)
 
     rows = nrh - nrl + 1
     cols = nch - ncl + 1

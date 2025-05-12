@@ -446,8 +446,7 @@ if "gtk3" in wx.PlatformInfo:
                 max_width = 0
                 for line in label.splitlines():
                     width = self.GetTextExtent(line)[0]
-                    if width > max_width:
-                        max_width = width
+                    max_width = max(max_width, width)
                 self.Size = max_width, -1
                 self.MaxSize = self.Size[0], -1
 

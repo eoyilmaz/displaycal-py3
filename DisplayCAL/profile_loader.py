@@ -351,8 +351,7 @@ class FixProfileAssociationsDialog(ConfirmDialog):
         dlg = self
         dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         list_panel = wx.Panel(dlg, -1)
         list_panel.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
         list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -384,8 +383,7 @@ class FixProfileAssociationsDialog(ConfirmDialog):
         self.pl._set_display_profiles(dry_run=True)
         numdisp = min(len(self.pl.devices2profiles), 5)
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         hscroll = wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y)
         size = (640 * scale, (20 * numdisp + 25 + hscroll) * scale)
         list_ctrl = self.devices2profiles_ctrl
@@ -429,8 +427,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         self._exceptions = {}
         self.known_apps = known_apps
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         ConfirmDialog.__init__(
             self,
             None,
@@ -735,8 +732,7 @@ class ProfileAssociationsDialog(InfoDialog):
         dlg.add_btn.Bind(wx.EVT_BUTTON, dlg.add_profile)
         dlg.add_btn.Disable()
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         dlg.display_ctrl = wx.Choice(dlg, -1)
         dlg.display_ctrl.Bind(wx.EVT_CHOICE, dlg.update_profiles)
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -850,8 +846,7 @@ class ProfileAssociationsDialog(InfoDialog):
         )
         dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         list_panel = wx.Panel(dlg, -1)
         list_panel.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
         list_panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)

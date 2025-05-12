@@ -302,8 +302,7 @@ class AnimatedBitmap(wx.PyControl):
         dc.SetBackground(wx.Brush(self.Parent.BackgroundColour))
         dc.Clear()
         if self._bitmaps:
-            if self.frame > len(self._bitmaps) - 1:
-                self.frame = len(self._bitmaps) - 1
+            self.frame = min(self.frame, len(self._bitmaps) - 1)
             if self.dpiscale > 1:
                 dc.SetUserScale(self.dpiscale, self.dpiscale)
             dc.DrawBitmap(self._bitmaps[self.frame], 0, 0, True)
@@ -2742,8 +2741,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
         )
 
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         htmlwnd = HtmlWindow(
             self, -1, size=(332 * scale, 200 * scale), style=wx.BORDER_THEME
         )
@@ -4146,8 +4144,7 @@ class CustomGrid(wx.grid.Grid):
                     if self.GetColLabelSize() and not self.GetColLabelValue(col):
                         offset += 1
                         continue
-                    if col - offset < start_col:
-                        start_col = col - offset
+                    start_col = min(start_col, col - offset)
                     while len(clip[-1]) - 1 < col - offset:
                         clip[-1].append("")
                     clip[-1][col - offset] = self.GetCellValue(row, col)
@@ -4188,8 +4185,7 @@ class CustomGrid(wx.grid.Grid):
                         ):
                             offset += 1
                             continue
-                        if col - offset < start_col:
-                            start_col = col - offset
+                        start_col = min(start_col, col - offset)
                         while len(grid[-1]) - 1 < col - offset:
                             grid[-1].append(None)
                         grid[-1][col - offset] = cell

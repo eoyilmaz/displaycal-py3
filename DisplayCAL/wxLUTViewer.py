@@ -1560,8 +1560,7 @@ class LUTFrame(BaseFrame):
             yi = numpy.interp(x, xi, y)
             prev = getattr(self, f"tf_{sig}")
             for Y, v in zip(yi, x):
-                if Y <= yp[0]:  # noqa: SIM300
-                    Y = yp[0]
+                Y = max(yp[0], Y)  # noqa: SIM300
                 prev.append([Y, v])
 
     def move_handler(self, event):
@@ -1997,8 +1996,7 @@ class LUTFrame(BaseFrame):
                         yi = yp
                     xy = []
                     for Y, v in zip(yi, lin):
-                        if Y <= yp[0]:  # noqa: SIM300
-                            Y = yp[0]
+                        Y = max(yp[0], Y)  # noqa: SIM300
                         xy.append([v, Y])
                     data.append(xy)
                 curves = {"data": data, "entryCount": entry_count, "entrySize": 2}

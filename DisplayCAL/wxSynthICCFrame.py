@@ -234,8 +234,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             if increment < min_Y:
                 increment = min_Y * (white_Y / 100.0)
             min_inc = 1.0 / (10.0 ** self.black_luminance_ctrl.GetDigits())
-            if increment < min_inc:
-                increment = min_inc
+            increment = max(increment, min_inc)
             self.black_luminance_ctrl.SetIncrement(increment)
             fmt = f"{{:.{self.black_luminance_ctrl.GetDigits()}f}}"
             if fmt.format(0) < fmt.format(v) < fmt.format(increment):
@@ -322,8 +321,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
     def chromatic_adaptation_btn_handler(self, event):
         scale = self.getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         dlg = ConfirmDialog(
             self,
             title=lang.getstr("chromatic_adaptation"),

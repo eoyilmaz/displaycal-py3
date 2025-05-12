@@ -443,11 +443,9 @@ class AuiManager_LRDocking(aui.AuiManager):
             new_row_pixels_x = s(20)
             new_row_pixels_y = 0
 
-            if new_row_pixels_x > (part.rect.width * 20) / 100:
-                new_row_pixels_x = (part.rect.width * 20) / 100
+            new_row_pixels_x = min(new_row_pixels_x, (part.rect.width * 20) / 100)
 
-            if new_row_pixels_y > (part.rect.height * 20) / 100:
-                new_row_pixels_y = (part.rect.height * 20) / 100
+            new_row_pixels_y = min(new_row_pixels_y, (part.rect.height * 20) / 100)
 
             # determine if the mouse pointer is in a location that
             # will cause a new row to be inserted.  The hot spot positions
@@ -959,8 +957,7 @@ class HSVWheel(BasePyControl):
                 * 0.2
             )
         )
-        if colour.s > 255:
-            colour.s = 255
+        colour.s = min(colour.s, 255)
 
         mainFrame.CalcRects()
         self.DrawMarkers()
@@ -1159,10 +1156,8 @@ class BrightCtrl(BaseLineCtrl):
         d = brightRect.GetBottom() - pt.y
         d *= 255
         d /= brightRect.height
-        if d < 0:
-            d = 0
-        if d > 255:
-            d = 255
+        d = max(d, 0)
+        d = min(d, 255)
 
         mainFrame = self._mainFrame
         colour = self._colour
@@ -1296,10 +1291,8 @@ class HSlider(BaseLineCtrl):
         d = pt.x
         d *= self.maxval
         d /= brightRect.width
-        if d < self.minval:
-            d = self.minval
-        if d > self.maxval:
-            d = self.maxval
+        d = max(d, self.minval)
+        d = min(d, self.maxval)
         self.value = d
 
         self.DrawMarkers()
@@ -2326,10 +2319,8 @@ class VisualWhitepointEditor(wx.Frame):
 
         originalVal = getattr(self._colour, attribute)
         if colourVal != originalVal and self._initOver:
-            if colourVal < 0:
-                colourVal = 0
-            if colourVal > maxVal:
-                colourVal = maxVal
+            colourVal = max(colourVal, 0)
+            colourVal = min(colourVal, maxVal)
 
             setattr(self._colour, attribute, colourVal)
             if position < 3:

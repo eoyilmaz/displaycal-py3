@@ -705,14 +705,10 @@ class FourWaySplitter(wx.Panel):
         width, height = self.GetSize()
         barSize = self._GetSashSize()
 
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0
-        if x > width - barSize:
-            x = width - barSize
-        if y > height - barSize:
-            y = height - barSize
+        x = max(x, 0)
+        y = max(y, 0)
+        x = min(x, width - barSize)
+        y = min(y, height - barSize)
 
         self._splitx = x
         self._splity = y
@@ -1110,10 +1106,8 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent, use::
                 fourSplitter.SetHSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fhor:
             self._fhor = s
             self._SizeWindows()
@@ -1129,10 +1123,8 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent,
                 use::fourSplitter.SetVSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fver:
             self._fver = s
             self._SizeWindows()

@@ -423,8 +423,7 @@ def center(text, width=None):
     if width is None:
         width = 0
         for line in text:
-            if len(line) > width:
-                width = len(line)
+            width = max(width, len(line))
     for i, line in enumerate(text):
         text[i] = line.center(width)
     return "\n".join(text)

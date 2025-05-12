@@ -543,8 +543,7 @@ def app_update_confirm(
         log=True,
     )
     scale = getcfg("app.dpi") / config.get_default_dpi()
-    if scale < 1:
-        scale = 1
+    scale = max(scale, 1)
     if (
         argyll
         and sys.platform not in ("darwin", "win32")
@@ -775,8 +774,7 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     dlg.sizer2.Insert(0, dlg.info, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=12)
     dlg.sizer2.Insert(0, (32 + 7, 1))
     scale = getcfg("app.dpi") / config.get_default_dpi()
-    if scale < 1:
-        scale = 1
+    scale = max(scale, 1)
     dlg_list_ctrl = wx.ListCtrl(
         dlg,
         -1,
@@ -2300,8 +2298,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def OnResize(self, event):
         # Hide the header bitmap on small screens
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         self.header.GetContainingSizer().Show(self.header, self.Size[1] > 480 * scale)
         if not hasattr(self, "header_btm_bmp"):
             self.header_btm_bmp = self.header_btm.GetBitmap()
@@ -7653,8 +7650,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.display_settings = display_settings_tabs
         # Column layout
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         display_settings = (
             (  # 1st tab
                 lang.getstr("osd") + ": " + lang.getstr("settings.basic"),  # Tab title
@@ -7909,8 +7905,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 URL="https://icc.opensuse.org/",
             )
             border = dlg.sizer3.MinSize[0] - dlg.sizer2.MinSize[0] - hyperlink.Size[0]
-            if border < 24:
-                border = 24
+            border = max(border, 24)
             dlg.sizer2.Insert(
                 0,
                 hyperlink,
@@ -13747,8 +13742,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ),
                 )
                 scale = getcfg("app.dpi") / config.get_default_dpi()
-                if scale < 1:
-                    scale = 1
+                scale = max(scale, 1)
                 for i, label in enumerate(labels):
                     txt = wx.StaticText(
                         dlg,
@@ -18422,8 +18416,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             if self.related_files:
                 scale = getcfg("app.dpi") / config.get_default_dpi()
-                if scale < 1:
-                    scale = 1
+                scale = max(scale, 1)
                 scrolled = ScrolledPanel(dlg, -1, style=wx.VSCROLL)
                 sizer = scrolled.Sizer = wx.BoxSizer(wx.VERTICAL)
                 dlg.sizer3.Add(scrolled, flag=wx.TOP | wx.EXPAND, border=12)
@@ -19195,8 +19188,7 @@ class StartupFrame(start_cls):
             endalpha = 255
         if self.IsShown() and self._alpha < endalpha:
             self._alpha += 15
-            if self._alpha > endalpha:
-                self._alpha = endalpha
+            self._alpha = min(self._alpha, endalpha)
             self.SetTransparent(self._alpha)
             if sys.platform not in ("darwin", "win32"):
                 self.Refresh()
@@ -19271,8 +19263,7 @@ class StartupFrame(start_cls):
     def setup_frame_finish(self, app):
         if self.IsShown() and self._alpha > 0:
             self._alpha -= 15
-            if self._alpha < 0:
-                self._alpha = 0
+            self._alpha = max(self._alpha, 0)
             self.SetTransparent(self._alpha)
             if sys.platform not in ("darwin", "win32"):
                 self.Refresh()
@@ -19464,8 +19455,7 @@ class StartupFrame(start_cls):
 class MeasurementFileCheckSanityDialog(ConfirmDialog):
     def __init__(self, parent, ti3, suspicious, force=False):
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         ConfirmDialog.__init__(
             self,
             parent,

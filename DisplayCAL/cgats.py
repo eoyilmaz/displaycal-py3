@@ -1142,8 +1142,7 @@ class CGATS(dict):
                                 lencheck = len(parts[0])
                                 if len(parts) > 1:
                                     lencheck += abs(int(parts[1]))
-                                if lencheck > self.vmaxlen:
-                                    self.vmaxlen = lencheck
+                                self.vmaxlen = max(self.vmaxlen, lencheck)
                         elif (
                             self.root.normalize_fields and item.upper() == b"SAMPLENAME"
                         ):

@@ -313,14 +313,10 @@ class GamutCanvas(LUTCanvas):
                 for x, y in coords[:-1]:
                     xy.append((x, y))
                     if i == 0 or amount == 1:
-                        if x > max_x:
-                            max_x = x
-                        if y > max_y:
-                            max_y = y
-                        if x < min_x:
-                            min_x = x
-                        if y < min_y:
-                            min_y = y
+                        max_x = max(max_x, x)
+                        max_y = max(max_y, y)
+                        min_x = min(min_x, x)
+                        min_y = min(min_y, y)
 
                 xy2 = []
                 for j, (x, y) in enumerate(xy):
@@ -646,8 +642,7 @@ class GamutCanvas(LUTCanvas):
 class GamutViewOptions(wx_Panel):
     def __init__(self, *args, **kwargs):
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
 
         super().__init__(*args, **kwargs)
         self.SetBackgroundColour(BGCOLOUR)

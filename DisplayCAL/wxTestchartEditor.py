@@ -148,8 +148,7 @@ class TestchartEditor(BaseFrame):
         }
 
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
 
         if tc_use_alternate_preview:
             # splitter
@@ -1216,8 +1215,7 @@ class TestchartEditor(BaseFrame):
                         raise ValueError(lang.getstr("error.testchart.invalid", path))
                     row = [int(row[0])] + [float(v) for v in row[1:]]
                     for v in row[1:]:
-                        if v > maxval:
-                            maxval = v
+                        maxval = max(maxval, v)
                     rows.append(row)
         except Exception as exception:
             result = exception
@@ -2791,8 +2789,7 @@ END_DATA"""
         if filter_index < 5:
             # Image format
             scale = getcfg("app.dpi") / config.get_default_dpi()
-            if scale < 1:
-                scale = 1
+            scale = max(scale, 1)
             dlg = ConfirmDialog(
                 self,
                 title=lang.getstr("export"),

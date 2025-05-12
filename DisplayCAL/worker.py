@@ -3021,10 +3021,8 @@ class Worker(WorkerBase):
         elif "place instrument on spot" in txt.lower():
             self.instrument_place_on_spot_msg = True
         if (
-            (self.instrument_place_on_screen_msg
-             or self.instrument_place_on_spot_msg)
-             and not self.check_instrument_calibration_file()
-        ):
+            self.instrument_place_on_screen_msg or self.instrument_place_on_spot_msg
+        ) and not self.check_instrument_calibration_file():
             return
         if (
             self.instrument_place_on_screen_msg and "key to continue" in txt.lower()

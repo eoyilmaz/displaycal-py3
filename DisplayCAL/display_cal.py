@@ -5457,12 +5457,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.update_black_point_rate_ctrl()
             elif result == wx.ID_CANCEL:
                 return False
-        if (
-            profile
-            and (
-                getcfg("profile.type") != "S"
-                or not getcfg("profile.black_point_compensation")
-            )
+        if profile and (
+            getcfg("profile.type") != "S"
+            or not getcfg("profile.black_point_compensation")
         ):  # Warn about profile bugs
             dlg = ConfirmDialog(
                 self,

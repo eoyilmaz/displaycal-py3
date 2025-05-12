@@ -1514,7 +1514,7 @@ class LUTFrame(BaseFrame):
                     elif i == 2:
                         self.bTRC.append([x, v])
                 else:
-                    X, Y, Z = colormath.Lab2XYZ(*Lab_triplets[j], **{"scale": 100})
+                    X, Y, Z = colormath.Lab2XYZ(*Lab_triplets[j], scale=100)
                     if direction in ("b", "if"):
                         X = Z = Y
                     elif intent == "a":

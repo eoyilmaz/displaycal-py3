@@ -401,10 +401,10 @@ def get_scripts(excludes=None):
         script = os.path.basename(script)
         if script == appname.lower() + "-apply-profiles-launcher":
             continue
-        desktopfile = os.path.join(pydir, "..", "misc", f"{script}.desktop")
-        if os.path.isfile(desktopfile):
+        desktop_file = os.path.join(pydir, "..", "misc", f"{script}.desktop")
+        if os.path.isfile(desktop_file):
             cfg = ConfigParser()
-            cfg.read(desktopfile)
+            cfg.read(desktop_file)
             script = cfg.get("Desktop Entry", "Exec").split()[0]
             desc = cfg.get("Desktop Entry", "Name")
         else:
@@ -1067,23 +1067,21 @@ def setup():
             )
         attrs["windows"] = [
             Target(
-                **{
-                    "script": os.path.join(tmp_scripts_dir, script2pywname(script)),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                os.path.splitext(os.path.basename(script))[0] + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": desc,
-                }
+                script=os.path.join(tmp_scripts_dir, script2pywname(script)),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            os.path.splitext(os.path.basename(script))[0] + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {author}",
+                description=desc,
             )
             for script, desc in [
                 script_desc1
@@ -1096,25 +1094,23 @@ def setup():
         # Add profile loader launcher
         attrs["windows"].append(
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, script2pywname(apply_profiles_launcher[0])
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                appname + "-apply-profiles" + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": apply_profiles_launcher[1],
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, script2pywname(apply_profiles_launcher[0])
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            appname + "-apply-profiles" + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {author}",
+                description=apply_profiles_launcher[1],
             )
         )
 
@@ -1133,25 +1129,23 @@ def setup():
                 )
         attrs["console"] = [
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, script2pywname(script) + "-console"
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                os.path.splitext(os.path.basename(script))[0] + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": desc,
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, script2pywname(script) + "-console"
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            os.path.splitext(os.path.basename(script))[0] + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {author}",
+                description=desc,
             )
             for script, desc in [
                 script_desc2
@@ -1163,23 +1157,21 @@ def setup():
         # Programs without GUI
         attrs["console"].append(
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, appname + "-eeColor-to-madVR-converter"
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir, "theme", "icons", appname + "-3DLUT-maker.ico"
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": "Convert eeColor 65^3 to madVR 256^3 3D LUT "
-                    "(video levels in, video levels out)",
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, appname + "-eeColor-to-madVR-converter"
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir, "theme", "icons", appname + "-3DLUT-maker.ico"
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {author}",
+                description="Convert eeColor 65^3 to madVR 256^3 3D LUT "
+                "(video levels in, video levels out)",
             )
         )
 

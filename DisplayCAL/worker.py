@@ -6391,7 +6391,7 @@ BEGIN_DATA
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
                 )
-        if verbose >= 1 or not silent and (not silent or verbose >= 3):
+        if (verbose >= 1 or not silent) and (not silent or verbose >= 3):
             if not silent and dry_run and not self.cmdrun:
                 print(lang.getstr("dry_run"))
                 print("")
@@ -11192,7 +11192,7 @@ usage: spotread [-options] [logfile]
                         or not has_B2A
                     )
                 )
-                if process_A2B and getcfg("profile.b2a.hires") or not has_B2A:
+                if process_A2B and (getcfg("profile.b2a.hires") or not has_B2A):
                     if profchanged:
                         # We need to write the changed profile before
                         # enhancing B2A resolution!

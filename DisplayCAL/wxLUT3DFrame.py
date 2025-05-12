@@ -1718,7 +1718,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                     show_result_dialog(
                         Error(lang.getstr("file.missing", path)), parent=self
                     )
-                return
+                return None
             try:
                 profile = ICCProfile(path)
             except ICCProfileInvalidError:
@@ -1764,7 +1764,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                                 self.getcfg("3dlut.output.profile")
                             )
                             self.set_profile("input", silent=silent)
-                            return
+                            return None
                         else:
                             self.Freeze()
                             self.abstract_profile_cb.SetValue(False)
@@ -1805,14 +1805,14 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                                 except Exception as exception:
                                     show_result_dialog(exception, self)
                                     self.set_profile_ctrl_path(which)
-                                    return
+                                    return None
                                 else:
                                     if len(odata) != 1 or len(odata[0]) != 3:
                                         show_result_dialog(
                                             f"Blackpoint is invalid: {odata}", self
                                         )
                                         self.set_profile_ctrl_path(which)
-                                        return
+                                        return None
                                     self.XYZbpin = odata[0]
                             self.Freeze()
                             self.lut3d_trc_label.Show()
@@ -1852,14 +1852,14 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                                 except Exception as exception:
                                     show_result_dialog(exception, self)
                                     self.set_profile_ctrl_path(which)
-                                    return
+                                    return None
                                 else:
                                     if len(odata) != 1 or len(odata[0]) != 3:
                                         show_result_dialog(
                                             f"Blackpoint is invalid: {odata}", self
                                         )
                                         self.set_profile_ctrl_path(which)
-                                        return
+                                        return None
                                     if odata[0][1]:
                                         # Got above zero blackpoint from lookup
                                         self.XYZbpout = odata[0]
@@ -1900,7 +1900,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
                             self.Thaw()
                     setattr(self, f"{which}_profile", profile)
                     if which == "output" and not self.output_profile_ctrl.IsShown():
-                        return
+                        return None
                     self.setcfg(f"3dlut.{which}.profile", profile.fileName)
                     self.lut3d_create_btn.Enable(
                         bool(self.getcfg("3dlut.input.profile"))

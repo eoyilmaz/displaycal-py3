@@ -142,7 +142,7 @@ class Tag:
                 url = get_data_path("x3d-viewer/" + basename)
                 if not url:
                     _safe_print("Error: Resource not found:", basename)
-                    return
+                    return None
                 with open(url, "rb") as resource_file:
                     body = resource_file.read()
             if body.strip():

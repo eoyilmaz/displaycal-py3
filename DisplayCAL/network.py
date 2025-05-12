@@ -67,7 +67,7 @@ class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         elif "uri" in headers:
             newurl = headers.get("uri")
         else:
-            return
+            return None
 
         # Keep reference to new URL
         LoggingHTTPRedirectHandler.newurl = newurl

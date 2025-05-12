@@ -2355,7 +2355,7 @@ class Worker(WorkerBase):
 
         """
         if sys.platform == "win32" or os.geteuid() == 0:
-            return
+            return None
         self.auth_timestamp = 0
         ocmd = cmd
         if cmd and not os.path.isabs(cmd):
@@ -2857,7 +2857,7 @@ class Worker(WorkerBase):
             self, "thread_abort", False
         ):
             # If we are aborting, ignore request
-            return
+            return None
         self.progress_wnd.Pulse(" " * 4)
         if self.is_ambient_measurement:
             self.is_ambient_measurement = False
@@ -2872,7 +2872,7 @@ class Worker(WorkerBase):
             dlg_result = dlg.ShowModal()
             dlg.Destroy()
             if self.finished:
-                return
+                return None
             if dlg_result != wx.ID_OK:
                 self.abort_subprocess()
                 return False
@@ -3236,7 +3236,7 @@ END_DATA
                         return False
                     elif self._use_detected_video_levels is None:
                         # Retry
-                        return
+                        return None
                 self.log("Using limited range output levels")
             else:
                 self.log("Assuming full range output levels")
@@ -3282,7 +3282,7 @@ END_DATA
             self, "thread_abort", False
         ):
             # If we are aborting, ignore request
-            return
+            return None
         self.instrument_on_screen = False
         self.log(f"{appname}: Prompting to calibrate instrument")
         self.progress_wnd.Pulse(" " * 4)
@@ -3344,7 +3344,7 @@ END_DATA
                 f"{appname}: Ignoring instrument calibration prompt (worker "
                 "thread finished)"
             )
-            return
+            return None
         if dlg_result != wx.ID_OK:
             self.log(f"{appname}: Canceled instrument calibration prompt")
             self.abort_subprocess()
@@ -3441,7 +3441,7 @@ END_DATA
             self, "thread_abort", False
         ):
             # If we are aborting, ignore request
-            return
+            return None
         self.log(f"{appname}: Prompting to place instrument on screen")
         self.progress_wnd.Pulse(" " * 4)
         if self.use_madvr:
@@ -3484,7 +3484,7 @@ END_DATA
                 f"{appname}: Ignoring instrument placement prompt (worker thread "
                 "finished)"
             )
-            return
+            return None
         if dlg_result != wx.ID_OK:
             self.log(f"{appname}: Canceled instrument placement prompt")
             self.abort_subprocess()
@@ -3504,7 +3504,7 @@ END_DATA
             self, "thread_abort", False
         ):
             # If we are aborting, ignore request
-            return
+            return None
         self.log(f"{appname}: Prompting to reposition instrument sensor")
         self.progress_wnd.Pulse(" " * 4)
         fullscreen = False
@@ -3529,7 +3529,7 @@ END_DATA
                 f"{appname}: Ignoring instrument sensor repositioning prompt (worker "
                 "thread finished)"
             )
-            return
+            return None
         if dlg_result != wx.ID_OK:
             self.log(f"{appname}: Canceled instrument sensor repositioning prompt")
             self.abort_subprocess()
@@ -8491,7 +8491,7 @@ BEGIN_DATA
                 and not truncate_edid_strings
                 and not omit_manufacturer
             ):
-                return
+                return None
             if RDSMM:
                 display = RDSMM.get_display(display_no)
                 if display:
@@ -9479,7 +9479,7 @@ usage: spotread [-options] [logfile]
                     return installer_zip
                 elif not installer_zip:
                     # Cancelled
-                    return
+                    return None
 
                 installer = os.path.splitext(installer_zip)[0]
                 # Open installer ZIP archive
@@ -16521,7 +16521,7 @@ BEGIN_DATA
         if debug:
             print(f"[D] wrapup(copy={copy}, remove={remove})")
         if not self.tempdir or not os.path.isdir(self.tempdir):
-            return  # nothing to do
+            return None  # nothing to do
         if (
             isinstance(copy, Exception)
             and not isinstance(copy, (UnloggedError, UnloggedInfo, UnloggedWarning))

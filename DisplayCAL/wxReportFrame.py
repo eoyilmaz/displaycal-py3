@@ -496,7 +496,7 @@ class ReportFrame(BaseFrame):
                     show_result_dialog(
                         Error(lang.getstr("file.missing", path)), parent=self
                     )
-                return
+                return None
             if not profile:
                 try:
                     profile = ICCProfile(path)
@@ -552,14 +552,14 @@ class ReportFrame(BaseFrame):
                             except Exception as exception:
                                 show_result_dialog(exception, self)
                                 self.set_profile_ctrl_path(which)
-                                return
+                                return None
                             else:
                                 if len(odata) != 1 or len(odata[0]) != 3:
                                     show_result_dialog(
                                         f"Blackpoint is invalid: {odata}", self
                                     )
                                     self.set_profile_ctrl_path(which)
-                                    return
+                                    return None
                                 self.XYZbpin = odata[0]
                         elif which == "output":
                             # Get profile blackpoint so we can check if input
@@ -569,14 +569,14 @@ class ReportFrame(BaseFrame):
                             except Exception as exception:
                                 show_result_dialog(exception, self)
                                 self.set_profile_ctrl_path(which)
-                                return
+                                return None
                             else:
                                 if len(odata) != 1 or len(odata[0]) != 3:
                                     show_result_dialog(
                                         f"Blackpoint is invalid: {odata}", self
                                     )
                                     self.set_profile_ctrl_path(which)
-                                    return
+                                    return None
                                 if odata[0][1]:
                                     # Got above zero blackpoint from lookup
                                     self.XYZbpout = odata[0]

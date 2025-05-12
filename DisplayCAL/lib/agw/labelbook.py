@@ -2803,7 +2803,7 @@ class FlatBookBase(wx.Panel):
             The call to this function generates the page changing events.
         """
         if page >= len(self._windows) or page < 0:
-            return
+            return None
 
         # Fire a closing event
         event = ImageNotebookEvent(wxEVT_IMAGENOTEBOOK_PAGE_CLOSING, self.GetId())
@@ -3174,7 +3174,7 @@ class FlatBookBase(wx.Panel):
             page (int): an integer specifying the page to be returned.
         """
         if page >= len(self._windows):
-            return
+            return None
 
         return self._windows[page]
 
@@ -3236,7 +3236,7 @@ class FlatBookBase(wx.Panel):
             The call to this function does not generate the page changing events.
         """
         if page < 0 or page >= self.GetPageCount():
-            return
+            return None
 
         oldPage: int = self.GetSelection()
         if page >= 0 and page < len(self._windows):

@@ -256,18 +256,18 @@ def get_display(display_no: int = 0) -> Union[None, dict]:
 
     # Ensure _displays is not None after calling enumerate_displays
     if _displays is None:
-        return
+        return None
 
     # Translate from Argyll display index to enumerated display index using the
     # coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
 
     if is_virtual_display(display_no):
-        return
+        return None
 
     getcfg_displays = getcfg("displays")
     if len(getcfg_displays) < display_no:
-        return
+        return None
 
     argyll_display = getcfg_displays[display_no]
 
@@ -307,10 +307,10 @@ def get_wayland_display(x, y, w, h):
         )
         res = iface.get_resources()
     except DBusException:
-        return
+        return None
 
     if not res or len(res) < 2:
-        return
+        return None
 
     # See
     # https://github.com/GNOME/mutter/blob/master/src/org.gnome.Mutter.DisplayConfig.xml

@@ -1761,7 +1761,7 @@ def get_current_profile(include_display_profile=False):
         try:
             profile = ICCProfile(path, use_cache=True)
         except (OSError, ICCProfileInvalidError):
-            return
+            return None
         return profile
     elif include_display_profile:
         return get_display_profile()

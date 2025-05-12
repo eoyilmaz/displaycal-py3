@@ -1960,7 +1960,7 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
             from DisplayCAL import RealDisplaySizeMM as RDSMM
         except ImportError as exception:
             warnings.warn(str(exception), Warning, stacklevel=2)
-            return
+            return None
         display = RDSMM.get_display(display_no)
         if display:
             xrandr_name = display.get("xrandr_name")
@@ -2376,7 +2376,7 @@ def get_display_profile_linux(
             # Argyll's UCMM if libcolordcompat.so is not present
             if dlopen("libcolordcompat.so"):
                 # UCMM configuration might be stale, ignore
-                return
+                return None
             profile = _ucmm_get_display_profile(display_no, x_display_name, path_only)
             return profile
             # Try XrandR
@@ -2421,14 +2421,14 @@ def get_display_profile_linux(
                             print("Using X11")
                         else:
                             print("Couldn't get _ICC_PROFILE X atom")
-            return
+            return None
 
         # Read up to 8 MB of any X properties
         if DEBUG:
             print("Using xprop")
         xprop = which("xprop")
         if not xprop:
-            return
+            return None
         atom = "{}{}".format(option, "" if display_no == 0 else f"_{display_no}")
         tgt_proc = sp.Popen(
             [
@@ -5609,13 +5609,13 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
             # Parse calibration information to VCGT
             cal = self.ColorDeviceModel.find("Calibration")
             if cal is None:
-                return
+                return None
             agammaconf = cal.find("AdapterGammaConfiguration")
             if agammaconf is None:
-                return
+                return None
             pcurves = agammaconf.find("ParameterizedCurves")
             if pcurves is None:
-                return
+                return None
             vcgtData = "vcgt"
             vcgtData += b"\0" * 4
             vcgtData += uInt32Number_tohex(1)  # Type 1 = formula

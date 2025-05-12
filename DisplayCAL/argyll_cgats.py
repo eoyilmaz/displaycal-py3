@@ -89,7 +89,7 @@ def cal_to_fake_profile(cal):
     """
     vcgt, cal = cal_to_vcgt(cal, True)
     if not vcgt:
-        return
+        return None
     profile = ICCProfile()
     profile.fileName = cal.filename
     profile._data = b"\0" * 128

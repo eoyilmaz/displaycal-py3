@@ -193,7 +193,7 @@ def find_library(pattern: str, arch: Optional[str] = None) -> str:
         p = sp.Popen(["/sbin/ldconfig", "-p"], stdout=sp.PIPE)
         stdout, stderr = p.communicate()
     except Exception:
-        return
+        return None
 
     if not arch:
         try:

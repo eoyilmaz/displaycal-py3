@@ -141,7 +141,7 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             ctype = "text/plain; charset=UTF-8"
         else:
             self.send_error(404)
-            return
+            return None
         if self.server.patterngenerator.listening:
             try:
                 self.send_response(200)

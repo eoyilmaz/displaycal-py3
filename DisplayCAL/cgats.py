@@ -524,7 +524,7 @@ class CGATS(dict):
     def get_colorants(self):
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
         if len(color_rep) != 2:
-            return
+            return None
         query = {}
         colorants = []
         for i in range(len(color_rep[0])):
@@ -2340,7 +2340,7 @@ Transform {
                                 break
                             white = None
                 if not white:
-                    return
+                    return None
             if white and (
                 ("XYZ_X" in white and "XYZ_Y" in white and "XYZ_Z" in white)
                 or ("LAB_L" in white and "LAB_B" in white and "LAB_B" in white)

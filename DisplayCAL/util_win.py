@@ -167,7 +167,7 @@ def calibration_management_isenabled() -> bool:
         mscms = _get_mscms_windll()
         pbool = ctypes.pointer(ctypes.c_bool())
         if not mscms or not mscms.WcsGetCalibrationManagementState(pbool):
-            return
+            return None
         return bool(pbool.contents)
 
 
@@ -579,7 +579,7 @@ def per_user_profiles_isenabled(
             if not mscms or not mscms.WcsGetUsePerUserProfiles(
                 str(devicekey), CLASS_MONITOR, pbool
             ):
-                return
+                return None
             return bool(pbool.contents)
 
 

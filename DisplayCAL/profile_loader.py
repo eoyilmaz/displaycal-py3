@@ -3279,7 +3279,7 @@ class ProfileLoader:
 
         """
         if sys.platform != "win32":
-            return
+            return None
         self._is_other_running_lock.acquire()
         if enumerate_windows_and_processes:
             # At launch, we won't be able to determine if madVR is running via

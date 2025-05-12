@@ -218,7 +218,7 @@ def vrmlfile2x3dfile(
         vrmlpath = dlg.GetPath()
         dlg.Destroy()
         if result != wx.ID_OK:
-            return
+            return None
         config.setcfg("last_vrml_path", vrmlpath)
         config.writecfg(module="VRML-to-X3D-converter", options=("last_vrml_path",))
     filename, ext = os.path.splitext(vrmlpath)
@@ -251,7 +251,7 @@ def vrmlfile2x3dfile(
         result = dlg.ShowModal()
         dlg.Destroy()
         if result != wx.ID_OK:
-            return
+            return None
         x3dpath = dlg.GetPath()
         dirname = os.path.dirname(x3dpath)
     vrmlpath, x3dpath = [str(path) for path in (vrmlpath, x3dpath)]

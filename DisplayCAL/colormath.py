@@ -1229,7 +1229,7 @@ def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
     adaption matrix as found in an ICC profile's 'chad' tag"""
     if chad == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]:
         # Cannot figure out CAT from identity chad
-        return
+        return None
     for cat in cat_matrices:
         if is_similar_matrix(
             (

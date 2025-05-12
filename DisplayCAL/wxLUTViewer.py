@@ -2279,7 +2279,7 @@ class LUTFrame(BaseFrame):
                     show_result_dialog(
                         Error(lang.getstr("error.access_denied.write", fileName)), self
                     )
-                    return
+                    return None
                 fType = fileName[-3:].lower()
                 setcfg("last_filedialog_path", fileName)
             else:  # exit without saving

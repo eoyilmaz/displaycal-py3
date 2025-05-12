@@ -1609,7 +1609,7 @@ class ProfileManager:
         temp = self._worker.create_tempdir()
         if isinstance(temp, Exception):
             _show_result_after(temp)
-            return
+            return None
         if profile.fileName:
             profile_name = os.path.basename(profile.fileName)
         else:

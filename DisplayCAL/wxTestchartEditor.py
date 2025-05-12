@@ -3048,7 +3048,7 @@ END_DATA"""
                 show_result_dialog(
                     Error(lang.getstr("error.access_denied.write", path)), self
                 )
-                return
+                return None
             if checkoverwrite and os.path.isfile(path):
                 dlg = ConfirmDialog(
                     self,
@@ -3060,7 +3060,7 @@ END_DATA"""
                 result = dlg.ShowModal()
                 dlg.Destroy()
                 if result != wx.ID_OK:
-                    return
+                    return None
             setcfg("last_ti1_path", path)
             try:
                 with open(path, "wb") as file_:
@@ -3285,7 +3285,7 @@ END_DATA"""
     def tc_close_handler(self, event=None):
         if getattr(self.worker, "thread", None) and self.worker.thread.is_alive():
             self.worker.abort_subprocess(True)
-            return
+            return None
         if (not event or self.IsShownOnScreen()) and self.tc_check_save_ti1(False):
             setcfg("tc.saturation_sweeps", self.saturation_sweeps_intctrl.GetValue())
             for component in ("R", "G", "B"):

@@ -55,7 +55,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
     global _initialized, _lib, _lib_version, _server, pyglet, pyo, sdl, wx
     if _initialized and not reinit:
         # To re-initialize, explicitly set reinit to True
-        return
+        return None
     # Select the audio library we're going to use.
     # User choice or SDL > pyglet > pyo > wx
     if not lib:

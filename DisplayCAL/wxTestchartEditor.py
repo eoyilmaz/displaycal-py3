@@ -3081,7 +3081,7 @@ END_DATA"""
                     )
             except Exception as exception:
                 handle_error(
-                    Error(f"Error - testchart could not be saved: {str(exception)}"),
+                    Error(f"Error - testchart could not be saved: {exception!s}"),
                     parent=self,
                 )
             else:
@@ -4007,7 +4007,7 @@ END_DATA"""
                     print(lang.getstr("success"))
                 except Exception as exception:
                     result = Error(
-                        f"Error - testchart file could not be read: {str(exception)} "
+                        f"Error - testchart file could not be read: {exception!s} "
                     )
                 else:
                     result.filename = None

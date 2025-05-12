@@ -18524,7 +18524,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 except OSError as exc:
                     InfoDialog(
                         self,
-                        msg=f"{lang.getstr('error.deletion', trashcan)}\n\n{str(exc)}",
+                        msg=f"{lang.getstr('error.deletion', trashcan)}\n\n{exc!s}",
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )

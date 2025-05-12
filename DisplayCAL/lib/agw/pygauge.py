@@ -25,8 +25,7 @@
 # End Of Comments
 # ---------------------------------------------------------------------------- #
 
-"""
-:class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
+""":class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
 
 
 Description

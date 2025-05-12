@@ -125,8 +125,7 @@ def check_call_str(  # pylint: disable=too-many-arguments
     call_count: int = 1,
     as_property: bool = False,
 ) -> Generator[CallList, None, None]:
-    """
-    Context manager for mocking and checking a call to a method.
+    """Context manager for mocking and checking a call to a method.
 
     See `check_call` documentation.
     """

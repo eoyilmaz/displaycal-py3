@@ -606,8 +606,7 @@ def fix_edid_encoding(edid):
 
 
 def parse_edid_header(edid):
-    """
-    Parse the EDID header.
+    """Parse the EDID header.
 
     Args:
         edid (bytes): The raw EDID data.

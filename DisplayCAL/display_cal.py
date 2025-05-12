@@ -1,5 +1,4 @@
-"""
-DisplayCAL - display calibration and characterization powered by ArgyllCMS.
+"""DisplayCAL - display calibration and characterization powered by ArgyllCMS.
 
 Copyright (C) 2008, 2009 Florian Hoech
 

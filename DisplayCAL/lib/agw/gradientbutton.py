@@ -546,11 +546,10 @@ class GradientButton(wx.Control):
         return path
 
     def SetInitialSize(self, size: Optional[wx.Size] = None) -> None:
-        """
-        Given the current font and bezel width settings, calculate and set a good size.
+        """Calculate and set a suitable size based on font and bezel width.
 
         Args:
-            size (Optional[wx.Size]): an instance of :class:`wx.Size`.
+            size (Optional[wx.Size]): A :class:`wx.Size` instance.
         """
         if size is None:
             size = wx.DefaultSize

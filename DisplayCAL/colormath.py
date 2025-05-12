@@ -1,5 +1,4 @@
-"""
-Diverse color mathematical functions.
+"""Diverse color mathematical functions.
 
 Note:
 

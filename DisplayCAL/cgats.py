@@ -1,5 +1,4 @@
-"""
-Simple CGATS file parser class
+"""Simple CGATS file parser class
 
 Copyright (C) 2008 Florian Hoech
 """

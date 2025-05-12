@@ -33,8 +33,7 @@
 #
 # End Of Comments
 # --------------------------------------------------------------------------- #
-"""
-:class:`FloatSpin` implements a floating point :class:`SpinCtrl`.
+""":class:`FloatSpin` implements a floating point :class:`SpinCtrl`.
 
 
 Description

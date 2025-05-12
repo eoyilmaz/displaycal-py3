@@ -1128,8 +1128,7 @@ def build_whereis_args(
     unusual: bool,
     list_paths: list[str],
 ) -> list[str]:
-    """
-    Build arguments for the whereis command.
+    """Build arguments for the whereis command.
 
     Args:
         bin (bool): Whether to search for binaries.

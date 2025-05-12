@@ -1,14 +1,14 @@
 import contextlib
 
 import wx
-import wx.xrc as xrc
+from wx import xrc
 
 from DisplayCAL.log import safe_print
 
 try:
     from DisplayCAL import floatspin
 except ImportError:
-    import wx.lib.agw.floatspin as floatspin
+    from wx.lib.agw import floatspin
 
 
 class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):

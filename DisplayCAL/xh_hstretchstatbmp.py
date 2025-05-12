@@ -1,5 +1,5 @@
 import wx
-import wx.xrc as xrc
+from wx import xrc
 
 from DisplayCAL.log import safe_print
 

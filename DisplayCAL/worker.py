@@ -299,7 +299,7 @@ if sys.platform not in ("darwin", "win32"):
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning, stacklevel=2)
-import wx.lib.delayedresult as delayedresult
+from wx.lib import delayedresult
 
 INST_CAL_MSGS = [
     "Do a reflective white calibration",

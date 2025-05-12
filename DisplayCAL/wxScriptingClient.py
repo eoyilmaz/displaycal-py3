@@ -4,7 +4,7 @@ import socket
 import sys
 from time import sleep
 
-import wx.lib.delayedresult as delayedresult
+from wx.lib import delayedresult
 
 from DisplayCAL import (
     config,

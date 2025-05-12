@@ -493,9 +493,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         # Create new sizer with the requested orientaion
         className = self.GetName()
 
-        if className == "LabelBook":
-            self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        elif agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+        if className == "LabelBook" or agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
             self._mainSizer = wx.BoxSizer(wx.VERTICAL)

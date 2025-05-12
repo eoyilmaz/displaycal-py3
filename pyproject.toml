@@ -212,6 +212,7 @@ extend-ignore = [
     "D416",  # Missing section name colon
     "E741",  # Ambiguous variable name
     "E402",  # Module level import not at top of file
+    "RUF100", # Unused noqa
     "S105",  # Hardcoded password
 ]
 

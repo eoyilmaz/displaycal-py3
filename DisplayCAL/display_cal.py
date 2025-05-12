@@ -5459,8 +5459,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 return False
         if (
             profile
-            and getcfg("profile.type") != "S"
-            or not getcfg("profile.black_point_compensation")
+            and (
+                getcfg("profile.type") != "S"
+                or not getcfg("profile.black_point_compensation")
+            )
         ):  # Warn about profile bugs
             dlg = ConfirmDialog(
                 self,
@@ -6841,7 +6843,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if self.ambient_viewcond_adjust_cb.GetValue():
             self.ambient_viewcond_adjust_textctrl.Enable()
             v = self.ambient_viewcond_adjust_textctrl.GetValue()
-            if v and v < 0.000001 or v > sys.maxsize:
+            if v and (v < 0.000001 or v > sys.maxsize):
                 wx.Bell()
                 self.ambient_viewcond_adjust_textctrl.SetValue(
                     getcfg("calibration.ambient_viewcond_adjust.lux")

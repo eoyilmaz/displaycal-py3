@@ -2154,8 +2154,8 @@ class LUTFrame(BaseFrame):
         channels = {}
         for channel, toggle in enumerate(self.toggles):
             channels[channel] = (
-                toggle.IsShown() and toggle.GetValue() and toggle.Label or ""
-            )
+                toggle.IsShown() and toggle.GetValue() and toggle.Label
+            ) or ""
         wx.CallAfter(
             self.client.DrawLUT,
             curves,

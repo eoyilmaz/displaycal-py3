@@ -4880,7 +4880,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     + "\n\n"
                     + "\n".join(malformed_ccxx)
                 ),
-                self.Shown and self or None,
+                (self.Shown and self) or None,
             )
             msg = None
             if sys.platform == "darwin":
@@ -4904,7 +4904,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         + "\n".join(orphans)
                     )
             if msg:
-                show_result_dialog(msg, self.Shown and self or None)
+                show_result_dialog(msg, (self.Shown and self) or None)
             elif not add_cfg_ccxx:
                 # Need to refresh displays & instruments
                 self.Bind(wx.EVT_SHOW, self.check_update_controls_once)
@@ -15105,17 +15105,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ok=lang.getstr("ok"),
                 bitmap=geticon(32, "dialog-information"),
             )
-        if (
-            v
-            and "V" in v
-            and self.worker.argyll_version < [1, 1, 0]
-            or (
-                self.worker.argyll_version[0:3] == [1, 1, 0]
-                and (
-                    "Beta" in self.worker.argyll_version_string
-                    or "RC1" in self.worker.argyll_version_string
-                    or "RC2" in self.worker.argyll_version_string
-                )
+        if (v and "V" in v and self.worker.argyll_version < [1, 1, 0]) or (
+            self.worker.argyll_version[0:3] == [1, 1, 0]
+            and (
+                "Beta" in self.worker.argyll_version_string
+                or "RC1" in self.worker.argyll_version_string
+                or "RC2" in self.worker.argyll_version_string
             )
         ):
             # adaptive emissive mode was added in RC3

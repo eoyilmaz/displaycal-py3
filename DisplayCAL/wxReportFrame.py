@@ -886,8 +886,10 @@ class ReportFrame(BaseFrame):
             )
         )
         output_profile = (
-            hasattr(self, "presets")
-            and getcfg("measurement_report.output_profile") not in self.presets
+            (
+                hasattr(self, "presets")
+                and getcfg("measurement_report.output_profile") not in self.presets
+            )
             or not hasattr(self, "presets")
         ) and bool(getattr(self, "output_profile", None))
         self.measurement_report_btn.Enable(

@@ -1149,10 +1149,8 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.profiles_ctrl.SetStringItem(pindex, 0, description)
                 self.profiles_ctrl.SetStringItem(pindex, 1, profile)
             self.profiles_ctrl.Thaw()
-        if (
-            scope_changed
-            or profiles_changed
-            and (next or isinstance(event, wx.TimerEvent))
+        if scope_changed or (
+            profiles_changed and (next or isinstance(event, wx.TimerEvent))
         ):
             wx.CallAfter(self._next)
 
@@ -1730,7 +1728,7 @@ class ProfileLoader:
                             exceptions.append(f"{enabled:d}:{reset:d}:{path}")
                             print(
                                 f"Enabled={bool(enabled)}",
-                                "Action={}".format(reset and "Reset" or "Disable"),
+                                "Action={}".format((reset and "Reset") or "Disable"),
                                 path,
                             )
                         if not exceptions:
@@ -3728,7 +3726,7 @@ class ProfileLoader:
             self._exception_names.add(os.path.basename(key))
             print(
                 f"Enabled={bool(enabled)}",
-                "Action={}".format(reset and "Reset" or "Disable"),
+                "Action={}".format((reset and "Reset") or "Disable"),
                 path,
             )
 

@@ -895,7 +895,7 @@ def _create_optimized_shaper_curves(
         white_cdm2 = profile.tags.lumi.Y
     else:
         white_cdm2 = 100.0
-    black_Y = XYZbp and XYZbp[1] or 0
+    black_Y = (XYZbp and XYZbp[1]) or 0
     black_cdm2 = black_Y * white_cdm2
 
     # Calibration gamma defaults
@@ -2191,9 +2191,8 @@ class Worker(WorkerBase):
             and not defaults["patterngenerator.prisma.argyll"]
         )
         if display and not (get_arg("-dweb", args) or get_arg("-dmadvr", args)):
-            if (
-                (self.argyll_version <= [1, 0, 4] and not get_arg("-p", args))
-                or (self.argyll_version > [1, 0, 4] and not get_arg("-P", args))
+            if (self.argyll_version <= [1, 0, 4] and not get_arg("-p", args)) or (
+                (self.argyll_version > [1, 0, 4] and not get_arg("-P", args))
                 and f"-d{self.argyll_virtual_display}" not in args
             ):
                 if (
@@ -3324,15 +3323,19 @@ END_DATA
             msg="{}\n\n{}".format(
                 msg,
                 (
-                    self._detected_instrument
-                    and "{}{}".format(
-                        self._detected_instrument,
-                        self._detected_instrument_serial
-                        and " ({} {})".format(
-                            lang.getstr("serial_number"),
-                            self._detected_instrument_serial,
+                    (
+                        self._detected_instrument
+                        and "{}{}".format(
+                            self._detected_instrument,
+                            (
+                                self._detected_instrument_serial
+                                and " ({} {})".format(
+                                    lang.getstr("serial_number"),
+                                    self._detected_instrument_serial,
+                                )
+                            )
+                            or "",
                         )
-                        or "",
                     )
                     or self.get_instrument_name()
                 ),
@@ -3460,15 +3463,19 @@ END_DATA
             msg="{}\n\n{}".format(
                 lang.getstr("instrument.place_on_screen"),
                 (
-                    self._detected_instrument
-                    and "{}{}".format(
-                        self._detected_instrument,
-                        self._detected_instrument_serial
-                        and " ({} {})".format(
-                            lang.getstr("serial_number"),
-                            self._detected_instrument_serial,
+                    (
+                        self._detected_instrument
+                        and "{}{}".format(
+                            self._detected_instrument,
+                            (
+                                self._detected_instrument_serial
+                                and " ({} {})".format(
+                                    lang.getstr("serial_number"),
+                                    self._detected_instrument_serial,
+                                )
+                            )
+                            or "",
                         )
-                        or "",
                     )
                     or self.get_instrument_name()
                 ),
@@ -3608,7 +3615,7 @@ END_DATA
             path or getcfg("calibration.file") or defaults["calibration.file"]
         )[0]
         lut3d = [
-            getcfg("3dlut.gamap.use_b2a") and "gg" or "G",
+            (getcfg("3dlut.gamap.use_b2a") and "gg") or "G",
             "i{}".format(getcfg("3dlut.rendering_intent")),
             "r{:d}".format(getcfg("3dlut.size")),
             "e{}".format(getcfg("3dlut.encoding.input")),
@@ -4668,8 +4675,7 @@ END_DATA
                         )
                         or file_format == "madVR"
                     )
-                    or file_format == "icc"
-                )
+                ) or file_format == "icc"
                 result = self.exec_cmd(
                     collink,
                     args + [profile_in_basename, profile_out_basename, link_filename],
@@ -8208,7 +8214,7 @@ BEGIN_DATA
                 )
                 logfile.write(
                     "{} CAM Jab for clipping\n".format(
-                        use_cam_clipping and "Using" or "Not using"
+                        (use_cam_clipping and "Using") or "Not using"
                     )
                 )
 

@@ -428,7 +428,7 @@ class GradientButton(wx.Control):
         x, y, width, height = clientRect
 
         gradientRect.SetHeight(
-            gradientRect.GetHeight() // 2 + ((capture == self and [1] or [0])[0])
+            gradientRect.GetHeight() // 2 + (((capture == self and [1]) or [0])[0])
         )
         if capture != self:
             if self._mouseAction == HOVER:

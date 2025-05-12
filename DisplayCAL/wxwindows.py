@@ -621,7 +621,7 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             elif close_button_state == aui.AUI_BUTTON_STATE_PRESSED:
                 bmp = self._pressed_close_bmp
 
-            shift = (agwFlags & aui.AUI_NB_BOTTOM and [1] or [0])[0]
+            shift = ((agwFlags & aui.AUI_NB_BOTTOM and [1]) or [0])[0]
 
             if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT:
                 rect = wx.Rect(
@@ -749,7 +749,7 @@ class BaseApp(wx.App):
         # Restore prefix
         sys.prefix = prefix
 
-        if not kwargs.get("clearSigInt", True) or len(args) == 4 and not args[3]:
+        if not kwargs.get("clearSigInt", True) or (len(args) == 4 and not args[3]):
             # Install our own SIGINT handler, so we can do cleanup on receiving
             # SIGINT
             print("Installing SIGINT handler")
@@ -1952,7 +1952,7 @@ class BaseFrame(wx.Frame):
         elif responseformats[conn].startswith("xml"):
             response = (
                 '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-                + (responseformats[conn] == "xml.pretty" and "\n" or "")
+                + ((responseformats[conn] == "xml.pretty" and "\n") or "")
                 + dict2xml(
                     response, "response", pretty=responseformats[conn] == "xml.pretty"
                 )
@@ -2406,9 +2406,11 @@ class BaseFrame(wx.Frame):
                 # Move focus to the next control.
                 child.Bind(
                     wx.EVT_SET_FOCUS,
-                    lambda event: event.EventObject.AcceptsFocus()
-                    and event.EventObject.Navigate(
-                        int(not wx.GetKeyState(wx.WXK_SHIFT))
+                    lambda event: (
+                        event.EventObject.AcceptsFocus()
+                        and event.EventObject.Navigate(
+                            int(not wx.GetKeyState(wx.WXK_SHIFT))
+                        )
                     )
                     or event.Skip(),
                 )
@@ -3758,7 +3760,7 @@ class BorderGradientButton(GradientButton):
         x, y, width, height = clientRect
 
         gradientRect.SetHeight(
-            int(gradientRect.GetHeight() / 2 + ((capture == self and [1] or [0])[0]))
+            int(gradientRect.GetHeight() / 2 + (((capture == self and [1]) or [0])[0]))
         )
 
         fgcolor = self.ForegroundColour
@@ -7911,17 +7913,21 @@ def format_ui_element(child, file_format="plain"):
             getattr(child, "GetStringSelection", "")
             and " value " + demjson.encode(child.GetStringSelection())
         )
-        or (value is not None and " value " + demjson.encode(value) or ""),
+        or ((value is not None and " value " + demjson.encode(value)) or ""),
         (
-            items
-            and " items " + demjson.encode(items).strip("[]").replace('","', '" "')
+            (
+                items
+                and " items " + demjson.encode(items).strip("[]").replace('","', '" "')
+            )
             or ""
         ),
         (
-            cols
-            and " rows {} cols {}".format(
-                child.GetNumberRows(),
-                demjson.encode(cols).strip("[]").replace('","', '" "'),
+            (
+                cols
+                and " rows {} cols {}".format(
+                    child.GetNumberRows(),
+                    demjson.encode(cols).strip("[]").replace('","', '" "'),
+                )
             )
             or ""
         ),

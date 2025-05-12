@@ -5,7 +5,7 @@ with contextlib.suppress(ImportError):
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):
-    indent = pretty and "\t" * level or ""
+    indent = (pretty and "\t" * level) or ""
     xml = []
     attributes = []
     children = []
@@ -32,7 +32,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
                 )
 
         start_tag.extend(attributes)
-        start_tag.append(children and ">" or "/>")
+        start_tag.append((children and ">") or "/>")
         xml.append("".join(start_tag))
 
         if children:
@@ -41,7 +41,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
     else:
         xml.append(f"{indent}<{elementname}>{escape(str(d))}</{elementname}>")
 
-    return (pretty and "\n" or "").join(xml)
+    return ((pretty and "\n") or "").join(xml)
 
 
 def escape(xml):

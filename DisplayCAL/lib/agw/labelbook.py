@@ -625,7 +625,7 @@ class ImageContainerBase(wx.Panel):
                 =========================== =========== ================================
         """
         style: int = self.GetParent().GetAGWWindowStyleFlag()
-        res: bool = (style & flag and [True] or [False])[0]
+        res: bool = ((style & flag and [True]) or [False])[0]
         return res
 
     def ClearFlag(self, flag: int) -> None:
@@ -2184,10 +2184,8 @@ class LabelContainer(ImageContainerBase):
         underLinedFont.SetPointSize(
             int(underLinedFont.GetPointSize() * self.GetParent().GetFontSizeMultiple())
         )
-        if (
-            self.GetParent().GetFontBold()
-            or self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION)
-            and selected
+        if self.GetParent().GetFontBold() or (
+            self.HasAGWFlag(ImageBookStyle.INB_BOLD_TAB_SELECTION) and selected
         ):
             underLinedFont.SetWeight(wx.FONTWEIGHT_BOLD)
 
@@ -2731,7 +2729,7 @@ class FlatBookBase(wx.Panel):
                 style flags.
         """
         agwStyle: int = self.GetAGWWindowStyleFlag()
-        res: bool = (agwStyle & flag and [True] or [False])[0]
+        res: bool = ((agwStyle & flag and [True]) or [False])[0]
         return res
 
     def AddPage(
@@ -3233,9 +3231,9 @@ class FlatBookBase(wx.Panel):
         nMax: int = self.GetPageCount() - 1
 
         if forward:
-            newSelection: int = (nSel == nMax and [0] or [nSel + 1])[0]
+            newSelection: int = ((nSel == nMax and [0]) or [nSel + 1])[0]
         else:
-            newSelection = (nSel == 0 and [nMax] or [nSel - 1])[0]
+            newSelection = ((nSel == 0 and [nMax]) or [nSel - 1])[0]
 
         self.SetSelection(newSelection)
 

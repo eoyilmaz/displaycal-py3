@@ -451,7 +451,7 @@ class CGATS(dict):
                     elif strict:
                         raise CGATSInvalidError(
                             "Malformed {} file: {}".format(
-                                context.parent and context.type or "CGATS",
+                                (context.parent and context.type) or "CGATS",
                                 self.filename or self,
                             )
                         )
@@ -718,7 +718,7 @@ class CGATS(dict):
                 )
             result.append(b"END_DATA")
         if (
-            (self.parent and self.parent.type or self.type) == b"ROOT"
+            ((self.parent and self.parent.type) or self.type) == b"ROOT"
             and result
             and result[-1] != b""
             and lvl == 0
@@ -1130,8 +1130,7 @@ class CGATS(dict):
                                 if (
                                     self.parent.type != b"CAL"
                                     and item.startswith(b"RGB_")
-                                    or item.startswith(b"CMYK_")
-                                ):
+                                ) or item.startswith(b"CMYK_"):
                                     # Assuming 0..100, 4 decimal digits is
                                     # enough for roughly 19 bits integer
                                     # device values

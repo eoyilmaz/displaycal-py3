@@ -104,8 +104,7 @@ class _Trigger(_Dict2XML):
                 stop_at_duration_end=stop_at_duration_end,
                 cls_name="Repetition",
             )
-            or ""
-        )
+        ) or ""
         _Dict2XML.__init__(self, repetition=repetition, enabled=enabled)
 
 
@@ -125,8 +124,7 @@ class CalendarTrigger(_Trigger):
         self["schedule_by_day"] = (
             days_interval
             and _Dict2XML(days_interval=days_interval, cls_name="ScheduleByDay")
-            or ""
-        )
+        ) or ""
         self["schedule_by_week"] = (
             weeks_interval
             and _Dict2XML(
@@ -134,8 +132,7 @@ class CalendarTrigger(_Trigger):
                 weeks_interval=weeks_interval,
                 cls_name="ScheduleByWeek",
             )
-            or ""
-        )
+        ) or ""
         self["schedule_by_month"] = (
             months
             and _Dict2XML(
@@ -143,8 +140,7 @@ class CalendarTrigger(_Trigger):
                 months=_Dict2XML(items=months, cls_name="Months"),
                 cls_name="ScheduleByMonth",
             )
-            or ""
-        )
+        ) or ""
 
 
 class LogonTrigger(_Trigger):
@@ -171,7 +167,7 @@ class ExecAction(_Dict2XML):
         _Dict2XML.__init__(
             self,
             command=cmd,
-            arguments=args and sp.list2cmdline(args) or None,
+            arguments=(args and sp.list2cmdline(args)) or None,
             cls_name="Exec",
         )
 

@@ -727,16 +727,24 @@ class FourWaySplitter(wx.Panel):
         bar_size = self._GetSashSize()
 
         self._fhor = (
-            width > bar_size
-            and [(10000 * self._splitx + (width - bar_size - 1)) // (width - bar_size)]
+            (
+                width > bar_size
+                and [
+                    (10000 * self._splitx + (width - bar_size - 1))
+                    // (width - bar_size)
+                ]
+            )
             or [0]
         )[0]
 
         self._fver = (
-            height > bar_size
-            and [
-                (10000 * self._splity + (height - bar_size - 1)) // (height - bar_size)
-            ]
+            (
+                height > bar_size
+                and [
+                    (10000 * self._splity + (height - bar_size - 1))
+                    // (height - bar_size)
+                ]
+            )
             or [0]
         )[0]
 

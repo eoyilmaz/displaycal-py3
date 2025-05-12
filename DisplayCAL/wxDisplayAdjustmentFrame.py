@@ -200,7 +200,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         borderPen.SetWidth(1)
         dc.SetPen(borderPen)
         dc.DrawRectangle(0, 0, size.x, size.y)
-        bUsePin = (style & INB_USE_PIN_BUTTON and [True] or [False])[0]
+        bUsePin = ((style & INB_USE_PIN_BUTTON and [True]) or [False])[0]
 
         if bUsePin:
             # Draw the pin button
@@ -223,11 +223,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         if bUsePin:
             if style & INB_TOP or style & INB_BOTTOM:
-                pos = (style & INB_BORDER and [0] or [1])[0]
+                pos = ((style & INB_BORDER and [0]) or [1])[0]
             else:
-                pos = (style & INB_BORDER and [20] or [21])[0]
+                pos = ((style & INB_BORDER and [20]) or [21])[0]
         else:
-            pos = (style & INB_BORDER and [0] or [1])[0]
+            pos = ((style & INB_BORDER and [0]) or [1])[0]
 
         nPadding = 4  # Pad text with 2 pixels on the left and right
         nTextPaddingLeft = 2
@@ -274,8 +274,10 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
                 rectWidth = (
-                    (textWidth + nPadding * 2) > rectWidth
-                    and [nPadding * 2 + textWidth]
+                    (
+                        (textWidth + nPadding * 2) > rectWidth
+                        and [nPadding * 2 + textWidth]
+                    )
                     or [rectWidth]
                 )[0]
 
@@ -287,20 +289,18 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             # If Pin button is used, consider its space as well (applicable
             # for top/botton style) since in the left/right, its size is already
             # considered in 'pos'
-            pinBtnSize = (bUsePin and [20] or [0])[0]
+            pinBtnSize = ((bUsePin and [20]) or [0])[0]
 
             if pos + rectWidth + pinBtnSize > clientSize:
                 break
 
             # Calculate the button rectangle
             modRectWidth = (
-                (style & INB_LEFT or style & INB_RIGHT)
-                and [rectWidth - 2]
+                ((style & INB_LEFT or style & INB_RIGHT) and [rectWidth - 2])
                 or [rectWidth]
             )[0]
             modRectHeight = (
-                (style & INB_LEFT or style & INB_RIGHT)
-                and [rectHeight]
+                ((style & INB_LEFT or style & INB_RIGHT) and [rectHeight])
                 or [rectHeight - 2]
             )[0]
 
@@ -332,14 +332,14 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 if bUseYcoord:
                     imgXcoord = 0
                     imgYcoord = (
-                        style & INB_SHOW_ONLY_IMAGES and [pos] or [pos + imgTopPadding]
+                        (style & INB_SHOW_ONLY_IMAGES and [pos])
+                        or [pos + imgTopPadding]
                     )[0] + (8 * (count - 1))
 
                 else:
                     imgXcoord = pos + (rectWidth / 2) - (self._nImgSize / 2)
                     imgYcoord = (
-                        style & INB_SHOW_ONLY_IMAGES
-                        and [self._nImgSize / 2]
+                        (style & INB_SHOW_ONLY_IMAGES and [self._nImgSize / 2])
                         or [imgTopPadding]
                     )[0]
 
@@ -385,16 +385,20 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 if bUseYcoord:
                     textOffsetX = (rectWidth - textWidth) / 2
                     textOffsetY = (
-                        not style & INB_SHOW_ONLY_TEXT
-                        and [pos + self._nImgSize + imgTopPadding + 3]
+                        (
+                            not style & INB_SHOW_ONLY_TEXT
+                            and [pos + self._nImgSize + imgTopPadding + 3]
+                        )
                         or [pos + ((self._nImgSize * 2 - textHeight) / 2)]
                     )[0]
 
                 else:
                     textOffsetX = (rectWidth - textWidth) / 2 + pos + nTextPaddingLeft
                     textOffsetY = (
-                        not style & INB_SHOW_ONLY_TEXT
-                        and [self._nImgSize + imgTopPadding + 3]
+                        (
+                            not style & INB_SHOW_ONLY_TEXT
+                            and [self._nImgSize + imgTopPadding + 3]
+                        )
                         or [((self._nImgSize * 2 - textHeight) / 2)]
                     )[0]
 

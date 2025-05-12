@@ -1088,7 +1088,7 @@ class DisplayAdjustmentFrame(windowcls):
         # The button sizer will be as wide as the labelbook or wider,
         # so use it as reference
         w = self.btnsizer.CalcMin()[0] - img_w - 12
-        for pagenum in range(0, self.lb.GetPageCount()):
+        for pagenum in range(self.lb.GetPageCount()):
             page = self.lb.GetPage(pagenum)
             page.SetSize((w, -1))
             page.desc.SetLabel(page.desc.GetLabel().replace("\n", " "))
@@ -1617,7 +1617,7 @@ class DisplayAdjustmentFrame(windowcls):
         self.Freeze()
         self._setup()
         # Reset controls
-        for pagenum in range(0, self.lb.GetPageCount()):
+        for pagenum in range(self.lb.GetPageCount()):
             page = self.lb.GetPage(pagenum)
             page.initial_br = None
             page.target_bl = None

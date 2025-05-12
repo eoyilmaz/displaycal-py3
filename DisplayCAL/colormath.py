@@ -792,7 +792,7 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
                 stacklevel=2,
             )
         window = (1.0, 1.0, 1.0)
-    for _x in range(0, passes):
+    for _x in range(passes):
         data = []
         for j, v in enumerate(values):
             tmp_window = window

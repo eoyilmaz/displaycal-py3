@@ -4380,7 +4380,7 @@ class CurveType(ICCProfileTag, list):
             def power(a):
                 return colormath.specialpow(a, exp)
 
-        for i in range(0, size):
+        for i in range(size):
             self.append(vmin + power(float(i) / (size - 1)) * (vmax - vmin))
 
     def smooth_cr(self, length=64):
@@ -4537,7 +4537,7 @@ class DictType(ICCProfileTag, AODict):
             )
             return
         elements = {}
-        for n in range(0, numrecords):
+        for n in range(numrecords):
             record = tagData[16 + n * recordlen : 16 + (n + 1) * recordlen]
             if len(record) < recordlen:
                 print(
@@ -5256,7 +5256,7 @@ class VideoCardGammaType(ICCProfileTag, ADict):
             data = list(vcgt["data"])
             while len(data) < 3:
                 data.append(data[0])
-            irange = list(range(0, vcgt["entryCount"]))
+            irange = list(range(vcgt["entryCount"]))
             vmax = math.pow(256, vcgt["entrySize"]) - 1
             for i in irange:
                 j = i * (255.0 / (vcgt["entryCount"] - 1))
@@ -5273,7 +5273,7 @@ class VideoCardGammaType(ICCProfileTag, ADict):
                     n = int(round(float(data[2][i]) / vmax * 65535))
                     b_points.append([j, n])
         else:  # formula
-            irange = list(range(0, 256))
+            irange = list(range(256))
             step = 100.0 / 255.0
             for i in irange:
                 linear_points.append([i, i / 255.0 * 65535])
@@ -5353,7 +5353,7 @@ class VideoCardGammaFormulaType(VideoCardGammaType):
             amount = 256  # common value
         step = 1.0 / float(amount - 1)
         rgb = AODict([("red", []), ("green", []), ("blue", [])])
-        for i in range(0, amount):
+        for i in range(amount):
             for key in rgb:
                 rgb[key].append(
                     float(self[key + "Min"])
@@ -5379,7 +5379,7 @@ class VideoCardGammaFormulaType(VideoCardGammaType):
             8: uInt64Number_tohex,
         }
         for key in ("red", "green", "blue"):
-            for i in range(0, entryCount):
+            for i in range(entryCount):
                 vmin = float(self[key + "Min"])
                 vmax = float(self[key + "Max"])
                 gamma = float(self[key + "Gamma"])
@@ -5481,7 +5481,7 @@ class VideoCardGammaTableType(VideoCardGammaType):
     def resize(self, length=128):
         data = [[], [], []]
         for i, channel in enumerate(self.data):
-            for j in range(0, length):
+            for j in range(length):
                 j *= (len(channel) - 1) / float(length - 1)
                 if int(j) != j:
                     floor = channel[int(math.floor(j))]
@@ -5504,10 +5504,10 @@ class VideoCardGammaTableType(VideoCardGammaType):
     def smooth_cr(self, length=64):
         """Smooth video LUT curves (Catmull-Rom)."""
         resized = self.resized(length)
-        for i in range(0, len(self.data)):
+        for i in range(len(self.data)):
             step = float(length - 1) / (len(self.data[i]) - 1)
             interpolation = CRInterpolation(resized.data[i])
-            for j in range(0, len(self.data[i])):
+            for j in range(len(self.data[i])):
                 self.data[i][j] = interpolation(j * step)
 
     def smooth_avg(self, passes=1, window=None):
@@ -5541,7 +5541,7 @@ class VideoCardGammaTableType(VideoCardGammaType):
             8: uInt64Number_tohex,
         }
         for channel in self.data:
-            for i in range(0, self.entryCount):
+            for i in range(self.entryCount):
                 tagData.append(int2hex[self.entrySize](channel[i]))
         return b"".join(tagData)
 

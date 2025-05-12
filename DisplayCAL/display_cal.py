@@ -4363,7 +4363,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for key in iter(measurement_modes):
                 instrument_modes = list(measurement_modes[key])
                 for i, mode in reversed(
-                    list(zip(list(range(0, len(instrument_modes))), instrument_modes))
+                    list(zip(list(range(len(instrument_modes))), instrument_modes))
                 ):
                     if mode == lang.getstr("default"):
                         mode = lang.getstr("measurement_mode.adaptive")
@@ -4381,7 +4381,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             for key in iter(measurement_modes):
                 instrument_modes = list(measurement_modes[key])
                 for i, mode in reversed(
-                    list(zip(list(range(0, len(instrument_modes))), instrument_modes))
+                    list(zip(list(range(len(instrument_modes))), instrument_modes))
                 ):
                     if mode == lang.getstr("default"):
                         mode = lang.getstr("measurement_mode.highres")
@@ -9264,8 +9264,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if "data" in vcgt:
                 # table
                 cal_entrycount = vcgt["entryCount"]
-                for i in range(0, cal_entrycount):
-                    for j in range(0, 3):
+                for i in range(cal_entrycount):
+                    for j in range(3):
                         rgb[j].append(
                             float(vcgt["data"][j][i])
                             / (math.pow(256, vcgt["entrySize"]) - 1)
@@ -9274,7 +9274,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             else:
                 # formula
                 step = 100.0 / 255.0
-                for i in range(0, cal_entrycount):
+                for i in range(cal_entrycount):
                     # float2dec(v) fixes miniscule deviations in the calculated gamma
                     for j, name in enumerate(("red", "green", "blue")):
                         vmin = float2dec(vcgt[name + "Min"] * 255)
@@ -9615,9 +9615,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         "entryCount": 256,
                         "entrySize": 1,
                         "data": [
-                            list(range(0, 256)),
-                            list(range(0, 256)),
-                            list(range(0, 256)),
+                            list(range(256)),
+                            list(range(256)),
+                            list(range(256)),
                         ],
                     }
                 )

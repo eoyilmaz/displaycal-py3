@@ -522,7 +522,7 @@ def edid_decode_fraction(high, low):
     """
     result = 0.0
     high = (high << 2) | low
-    for i in range(0, 10):
+    for i in range(10):
         result += edid_get_bit(high, i) * math.pow(2, i - 10)
     return result
 

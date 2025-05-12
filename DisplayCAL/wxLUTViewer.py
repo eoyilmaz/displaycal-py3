@@ -269,7 +269,7 @@ class LUTCanvas(plot.PlotCanvas):
                 points[channel] = []
 
         if not vcgt:
-            irange = list(range(0, 256))
+            irange = list(range(256))
         elif "data" in vcgt:  # table
             data = list(vcgt["data"])
             while len(data) < len(channels):
@@ -278,7 +278,7 @@ class LUTCanvas(plot.PlotCanvas):
                 data[0], CurveType
             ):
                 # Coordinate list
-                irange = list(range(0, len(data[0])))
+                irange = list(range(len(data[0])))
                 set_linear_points = True
                 for channel in range(len(data)):
                     if channel in points:
@@ -294,7 +294,7 @@ class LUTCanvas(plot.PlotCanvas):
                             self.point_grid[channel][idx] = y
                         set_linear_points = False
             else:
-                irange = list(range(0, vcgt["entryCount"]))
+                irange = list(range(vcgt["entryCount"]))
                 maxv = math.pow(256, vcgt["entrySize"]) - 1
                 for i in irange:
                     j = i * (axis_y / (vcgt["entryCount"] - 1))
@@ -330,7 +330,7 @@ class LUTCanvas(plot.PlotCanvas):
                                 idx = int(round(j / 255.0 * 4095))
                                 self.point_grid[channel][idx] = n
         else:  # formula
-            irange = list(range(0, 256))
+            irange = list(range(256))
             step = 100.0 / axis_y
             for i in irange:
                 # float2dec(v) fixes miniscule deviations in the calculated gamma
@@ -1361,7 +1361,7 @@ class LUTFrame(BaseFrame):
         XYZ_triplets = []
         Lab_triplets = []
         devicevalues = []
-        for i in range(0, size):
+        for i in range(size):
             if direction in ("b", "if"):
                 if intent == "a":
                     # For display profiles, identical to relcol

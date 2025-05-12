@@ -4994,21 +4994,21 @@ END_DATA
             columns = (2, 0, 1)
         else:
             columns = (2, 1, 0)
-        for i in range(0, size):
+        for i in range(size):
             # Red
             if file_format == "eeColor" and not eecolor65 and i == size - 1:
                 # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                 continue
             RGB_triplet[columns[0]] = quantizer(step * i)
             RGB_index[columns[0]] = i
-            for j in range(0, size):
+            for j in range(size):
                 # Green
                 if file_format == "eeColor" and not eecolor65 and j == size - 1:
                     # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                     continue
                 RGB_triplet[columns[1]] = quantizer(step * j)
                 RGB_index[columns[1]] = j
-                for k in range(0, size):
+                for k in range(size):
                     # Blue
                     if self.thread_abort:
                         raise Info(lang.getstr("aborted"))
@@ -5053,7 +5053,7 @@ END_DATA
                 lut.append([f"# INPUT RANGE: {input_bits:d}"])
                 lut.append([f"# OUTPUT RANGE: {output_bits:d}"])
                 lut.append([])
-                for i in range(0, size):
+                for i in range(size):
                     lut[-1].append(f"{quantizer(i * step):d}")
             else:
                 # dcl
@@ -5903,9 +5903,9 @@ END_DATA
                         "entryCount": 256,
                         "entrySize": 1,
                         "data": [
-                            list(range(0, 256)),
-                            list(range(0, 256)),
-                            list(range(0, 256)),
+                            list(range(256)),
+                            list(range(256)),
+                            list(range(256)),
                         ],
                     }
                 )
@@ -14151,7 +14151,7 @@ usage: spotread [-options] [logfile]
 
     def _safe_send(self, bytes_, retry=3, obfuscate=False):
         """Safely send a keystroke to the current subprocess."""
-        for i in range(0, retry):
+        for i in range(retry):
             logbytes = "***" if obfuscate else bytes_
             self.logger.info(f"Sending key(s) {logbytes} ({i + 1:d})")
             try:

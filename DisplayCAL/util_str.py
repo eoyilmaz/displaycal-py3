@@ -24,9 +24,7 @@ ascii_printable = "".join(
 
 # Control chars are defined as charcodes in the decimal range 0-31 (inclusive)
 # except whitespace characters, plus charcode 127 (DEL)
-control_chars = "".join(
-    [chr(i) for i in list(range(0, 9)) + list(range(14, 32)) + [127]]
-)
+control_chars = "".join([chr(i) for i in list(range(9)) + list(range(14, 32)) + [127]])
 
 # Safe character substitution - can be used for filenames
 # i.e. no \/:*?"<>| will be added through substitution

@@ -928,7 +928,7 @@ class BaseFrame(wx.Frame):
         self.init()
 
     def FindWindowByName(self, name):
-        """wxPython Phoenix FindWindowByName descends into the parent windows,
+        """WxPython Phoenix FindWindowByName descends into the parent windows,
         we don't want that
         """
         for child in list(self.GetAllChildren()):
@@ -3141,7 +3141,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         return lang.getstr(name)
 
     def GetValue(self):
-        """retrieve current value of text control"""
+        """Retrieve current value of text control."""
         if self.textControl.GetSelection() > -1:
             return self.history[self.textControl.GetSelection()]
         return ""
@@ -4722,7 +4722,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         """
 
     def Destroy(self):
-        """final cleanup"""
+        """Do final cleanup."""
         super(self.__class__, self).Destroy()
 
     def Clone(self):

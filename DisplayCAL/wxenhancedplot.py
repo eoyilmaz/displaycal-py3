@@ -504,22 +504,24 @@ class PolyPoints:
 
 
 class PolyLine(PolyPoints):
-    """Class to define line type and style
-    - All methods except __init__ are private.
-    """
+    """Class to define line type and style.
 
-    _attributes = {"colour": "black", "width": 1, "style": wx.SOLID, "legend": ""}
+    All methods except __init__ are private.
 
-    def __init__(self, points, **attr):
-        """Creates PolyLine object
-        points - sequence (array, tuple or list) of (x,y) points making up line
-        **attr - key word attributes
+    Args:
+        points (list[tuple(float, float)]): Sequence (array, tuple or list) of
+            (x,y) points making up line.
+        attr (dict): Key word attributes:
             Defaults:
                 'colour'= 'black',          - wx.Pen Colour any wx.NamedColour
                 'width'= 1,                 - Pen width
                 'style'= wx.SOLID,          - wx.Pen style
                 'legend'= ''                - Line Legend to display
-        """
+    """
+
+    _attributes = {"colour": "black", "width": 1, "style": wx.SOLID, "legend": ""}
+
+    def __init__(self, points, **attr):
         PolyPoints.__init__(self, points, attr)
 
     def draw(self, dc, printerScale, coord=None):
@@ -2627,7 +2629,7 @@ class PlotPrintout(wx.Printout):
     # Do not change method names in this class,
     # we have to override wx.Printout methods here!
     def __init__(self, graph):
-        """graph is instance of plotCanvas to be printed or previewed"""
+        """Graph is instance of plotCanvas to be printed or previewed"""
         wx.Printout.__init__(self)
         self.graph = graph
 

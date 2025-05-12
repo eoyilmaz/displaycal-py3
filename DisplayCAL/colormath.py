@@ -2239,7 +2239,7 @@ def xyY2XYZ(x, y, Y=1.0):
 
 
 def LERP(a, b, c):
-    """linear interpolation macro.
+    """Linear interpolation macro.
 
     Is 'a' when c == 0.0 and 'b' when c == 1.0
     """
@@ -2739,7 +2739,7 @@ def dvector(nl, nh):
 
 def gam_fit(gf, v):
     # Adapted from ArgyllCMS xicc/xicc.c
-    """gamma + input offset function handed to powell()"""
+    """Gamma + input offset function handed to powell()"""
     gamma = v[0]
     rv = 0.0
 

@@ -34,7 +34,7 @@ _lock = threading.RLock()
 
 
 def _eintr_retry(func, *args):
-    """restart a system call interrupted by EINTR"""
+    """Restart a system call interrupted by EINTR"""
     while True:
         try:
             return func(*args)

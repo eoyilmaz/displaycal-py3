@@ -76,8 +76,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
 
         if not audio_lib:
             raise RuntimeError("No suitable audio library found!")
-        else:
-            return audio_lib
+        return audio_lib
     elif lib == "pyglet":
         if not getattr(sys, "frozen", False):
             # Use included pyglet

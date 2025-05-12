@@ -1546,7 +1546,7 @@ END_DATA"""
             value = float(strval)
             if value > 100:
                 raise ValueError(f"RGB value {value!r}% is invalid")
-            elif value < 0:
+            if value < 0:
                 raise ValueError(f"Negative RGB value {value!r}% is invalid")
         except ValueError:
             if not self.grid.GetBatchCount():

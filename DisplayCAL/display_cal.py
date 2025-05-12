@@ -19652,7 +19652,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
                 value = float(strval)
                 if (label[:3] == "RGB" or label == "XYZ_Y") and value > 100:
                     raise ValueError(f"Value {value!r} is invalid")
-                elif value < 0:
+                if value < 0:
                     raise ValueError(f"Negative value {value!r} is invalid")
             except ValueError:
                 wx.Bell()

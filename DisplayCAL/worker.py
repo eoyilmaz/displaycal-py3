@@ -3957,7 +3957,7 @@ END_DATA
                     )
                     if isinstance(result, Exception) and not getcfg("dry_run"):
                         raise result
-                    elif not result:
+                    if not result:
                         raise Error(
                             "\n\n".join(
                                 [lang.getstr("apply_cal.error"), "\n".join(self.errors)]
@@ -4155,7 +4155,7 @@ END_DATA
                 )
                 if isinstance(result, Exception) and not getcfg("dry_run"):
                     raise result
-                elif not result:
+                if not result:
                     raise Error(
                         "\n".join(self.errors)
                         or "{} {}".format(collink, lang.getstr("error"))
@@ -4188,7 +4188,7 @@ END_DATA
                 )
                 if isinstance(result, Exception) and not getcfg("dry_run"):
                     raise result
-                elif not result:
+                if not result:
                     raise Error(
                         "\n".join(self.errors)
                         or "{} {}".format(tools["cctiff"], lang.getstr("error"))
@@ -4211,7 +4211,7 @@ END_DATA
                 )
                 if isinstance(result, Exception) and not getcfg("dry_run"):
                     raise result
-                elif not result:
+                if not result:
                     raise Error(
                         "\n".join(self.errors)
                         or "{} {}".format(tools["tiffgamut"], lang.getstr("error"))
@@ -4946,7 +4946,7 @@ END_DATA
 
             if isinstance(result, Exception):
                 raise result
-            elif not result:
+            if not result:
                 raise UnloggedError(lang.getstr("aborted"))
 
         # We have to create the 3DLUT ourselves
@@ -9044,8 +9044,7 @@ usage: spotread [-options] [logfile]
                 # Connect & load 3D LUT
                 if self.madtpg_connect() and getattr(self.madtpg, methodname)(*args):
                     raise Info(lang.getstr("3dlut.install.success"))
-                else:
-                    raise Error(lang.getstr("3dlut.install.failure"))
+                raise Error(lang.getstr("3dlut.install.failure"))
             except Exception as exception:
                 return exception
         elif config.get_display_name(None, True) == "Prisma":
@@ -12804,9 +12803,8 @@ usage: spotread [-options] [logfile]
             except Exception as exception:
                 if raise_exceptions:
                     raise
-                else:
-                    self.exec_cmd_returnvalue = exception
-                    self.abort_subprocess()
+                self.exec_cmd_returnvalue = exception
+                self.abort_subprocess()
                 return
         if increase_sent_count:
             self.patterngenerator_sent_count += 1
@@ -15836,8 +15834,7 @@ BEGIN_DATA
             try:
                 if fields:
                     raise
-                else:
-                    labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
+                labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
                 ti3v = verify_cgats(ti3, labels, True)
             except CGATSKeyError as e:
                 missing = ", ".join(labels)

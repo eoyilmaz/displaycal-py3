@@ -219,8 +219,7 @@ def find(what, search):
         if hasattr(exception, "get_dbus_name"):
             if exception.get_dbus_name() == "org.freedesktop.ColorManager.NotFound":
                 raise CDObjectNotFoundError(safe_str(exception)) from exception
-            else:
-                raise CDObjectQueryError(safe_str(exception)) from exception
+            raise CDObjectQueryError(safe_str(exception)) from exception
         raise CDError(safe_str(exception)) from exception
 
 

@@ -740,7 +740,7 @@ class spawn_unix:
         pid = os.fork()
         if pid < 0:
             raise ExceptionPexpect("Error! Failed os.fork().")
-        elif pid == 0:
+        if pid == 0:
             # Child.
             os.close(parent_fd)
             self.__pty_make_controlling_tty(child_fd)
@@ -786,15 +786,13 @@ class spawn_unix:
         fd = os.open(child_name, os.O_RDWR)
         if fd < 0:
             raise ExceptionPexpect("Error! Could not open child pty, " + child_name)
-        else:
-            os.close(fd)
+        os.close(fd)
 
         # Verify we now have a controlling tty.
         fd = os.open("/dev/tty", os.O_WRONLY)
         if fd < 0:
             raise ExceptionPexpect("Error! Could not open controlling tty, /dev/tty")
-        else:
-            os.close(fd)
+        os.close(fd)
 
     def fileno(self):  # File-like object.
         """This returns the file descriptor of the pty for the child."""
@@ -968,8 +966,7 @@ class spawn_unix:
                 raise EOF(
                     "End of File (EOF) in read_nonblocking(). Very pokey platform."
                 )
-            else:
-                raise TIMEOUT("Timeout exceeded in read_nonblocking().")
+            raise TIMEOUT("Timeout exceeded in read_nonblocking().")
 
         if self.child_fd in r:
             try:
@@ -1260,8 +1257,7 @@ class spawn_unix:
                     "but there was no child process. "
                     "Did someone else call waitpid() on our process?"
                 ) from e
-            else:
-                raise e
+            raise e
 
         # I have to do this twice for Solaris.
         # I can't even believe that I figured this out...
@@ -1279,8 +1275,7 @@ class spawn_unix:
                         "There was no child process. "
                         "Did someone else call waitpid() on our process?"
                     ) from e
-                else:
-                    raise e
+                raise e
 
             # If pid is still 0 after two calls to waitpid() then
             # the process really is alive. This seems to work on all platforms,

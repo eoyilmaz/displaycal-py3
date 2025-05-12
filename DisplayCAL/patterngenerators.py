@@ -399,7 +399,7 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                             "response.invalid.missing_key", (self.host, key, raw)
                         )
                     )
-                elif value is not None and data[key] != value:
+                if value is not None and data[key] != value:
                     raise http.client.HTTPException(
                         lang.getstr(
                             "response.invalid.value", (self.host, key, value, raw)

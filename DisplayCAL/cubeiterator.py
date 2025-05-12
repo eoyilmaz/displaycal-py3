@@ -99,7 +99,6 @@ class Cube3DIterator(Cube3D):
     def __next__(self):
         if self._next == self._len:
             raise StopIteration
-        else:
-            result = self[self._next]
-            self._next += 1
-            return result
+        result = self[self._next]
+        self._next += 1
+        return result

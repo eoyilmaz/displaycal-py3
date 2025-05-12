@@ -622,7 +622,7 @@ def vrml2x3dom(vrml, worker=None):
             _safe_print.write(f"\r{curprogress}%", end=end)
         if ord(c) < 32 and c not in "\n\r\t":
             raise VRMLParseError(f"Parse error: Got invalid character {c!r}")
-        elif c == "{":
+        if c == "{":
             safe_print(indent, f"start tag {token!r}")
             indent += "  "
             attribute = False

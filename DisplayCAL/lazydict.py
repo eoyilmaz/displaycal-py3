@@ -421,13 +421,12 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                             safe_str(getattr(fileobj, "name", line)), i
                         )
                     )
-                else:
-                    if self.debug:
-                        print("START QUOTE")
-                    quote = line_lwstrip[0]
-                    if self.debug:
-                        print("+ APPEND LWSTRIPPED", repr(line_lwstrip))
-                    value.append(line_lwstrip)
+                if self.debug:
+                    print("START QUOTE")
+                quote = line_lwstrip[0]
+                if self.debug:
+                    print("+ APPEND LWSTRIPPED", repr(line_lwstrip))
+                value.append(line_lwstrip)
             elif line.startswith("  ") and (
                 style in block_styles or line_lwstrip != "\n"
             ):

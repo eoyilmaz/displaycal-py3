@@ -278,17 +278,15 @@ class TarFileProper(tarfile.TarFile):
             self._extract_member(tarinfo, os.path.join(path, name))
         except OSError as e:
             if self.errorlevel > 0:
-                raise
+                raise e
+            if e.filename is None:
+                self._dbg(1, f"tarfile: {e.strerror}")
             else:
-                if e.filename is None:
-                    self._dbg(1, f"tarfile: {e.strerror}")
-                else:
-                    self._dbg(1, f"tarfile: {e.strerror} {e.filename!r}")
+                self._dbg(1, f"tarfile: {e.strerror} {e.filename!r}")
         except tarfile.ExtractError as e:
             if self.errorlevel > 1:
-                raise
-            else:
-                self._dbg(1, f"tarfile: {e}")
+                raise e
+            self._dbg(1, f"tarfile: {e}")
 
     def extractall(self, path=".", members=None, full=True):
         """Extract all members from the archive to the current working
@@ -326,6 +324,5 @@ class TarFileProper(tarfile.TarFile):
                 self.chmod(tarinfo, dirpath)
             except tarfile.ExtractError as e:
                 if self.errorlevel > 1:
-                    raise
-                else:
-                    self._dbg(1, f"tarfile: {e}")
+                    raise e
+                self._dbg(1, f"tarfile: {e}")

@@ -6924,7 +6924,7 @@ BEGIN_DATA
                                     break
                                 eof = True
                             continue
-                        elif self.subprocess.after == "Password:" and loop < 1 and sudo:
+                        if self.subprocess.after == "Password:" and loop < 1 and sudo:
                             if pwdsent:
                                 self.subprocess.sendcontrol("C")
                                 authfailed = True
@@ -6938,7 +6938,7 @@ BEGIN_DATA
                             if not self.subprocess.isalive():
                                 break
                             continue
-                        elif self.measure_cmd:
+                        if self.measure_cmd:
                             if [
                                 keyhit_str
                                 for keyhit_str in keyhit_strs

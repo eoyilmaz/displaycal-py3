@@ -1744,8 +1744,6 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
 class ThemedGenBitmapTextButton(ThemedGenButton, GenBitmapTextButton):
     """A themed generic bitmapped button with text label"""
 
-    pass
-
 
 class BitmapWithThemedButton(wx.BoxSizer):
     def __init__(

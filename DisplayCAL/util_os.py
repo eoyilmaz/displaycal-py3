@@ -1287,19 +1287,13 @@ class FileLock:
 class Error(Exception):
     """Base class for exceptions in this module."""
 
-    pass
-
 
 class LockingError(Error):
     """Exception raised for errors in locking."""
 
-    pass
-
 
 class UnlockingError(Error):
     """Exception raised for errors in unlocking."""
-
-    pass
 
 
 if sys.platform == "win32" and sys.getwindowsversion() >= (6,):

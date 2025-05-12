@@ -587,7 +587,6 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
             # Keep trailing newlines
             if self.debug:
                 print("KEEP")
-            pass
         else:
             out = out.rstrip("\n")
             if style == ">i":
@@ -596,7 +595,6 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                 # Chomp trailing newlines
                 if self.debug:
                     print("CHOMP")
-                pass
             else:
                 # Clip trailing newlines (default)
                 if self.debug:

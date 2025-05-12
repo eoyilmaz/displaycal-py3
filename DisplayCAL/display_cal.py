@@ -1218,8 +1218,6 @@ def webbrowser_open(url, new=False):
 class Dummy:
     """Useful if we need an object to attach arbitrary attributes."""
 
-    pass
-
 
 class IncrementingInt:
     """A integer that increments by `step` each time it is used"""
@@ -7652,7 +7650,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 display_settings_tabs.SetArtProvider(art)
             except Exception as exception:
                 print(exception)
-                pass
         dlg.display_settings = display_settings_tabs
         # Column layout
         scale = getcfg("app.dpi") / config.get_default_dpi()

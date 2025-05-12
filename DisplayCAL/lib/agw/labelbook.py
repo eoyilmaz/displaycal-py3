@@ -834,7 +834,6 @@ class ImageContainerBase(wx.Panel):
         Note:
             This method is intentionally empty to reduce flicker.
         """
-        pass
 
     def HitTest(self, pt: wx.Point) -> tuple[int, int]:
         """Return the index of the tab at the specified position or NOT_FOUND if None.

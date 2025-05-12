@@ -1629,7 +1629,6 @@ class ProfileLoader:
                         with self.pl.lock:
                             if locked:
                                 print("TaskBarIcon.on_left_down: Acquired lock")
-                            pass
                             if locked:
                                 print("TaskBarIcon.on_left_down: Releasing lock")
                         self._show_notification_later = wx.CallLater(

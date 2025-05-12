@@ -452,9 +452,9 @@ vendors = [
 
 
 def get_canonical_instrument_name(
-    instrument_name : bytes | str,
-    replacements : Optional[dict] = None,
-    inverse : bool=False,
+    instrument_name: bytes | str,
+    replacements: Optional[dict] = None,
+    inverse: bool = False,
 ) -> str:
     """Get canonical instrument name.
 

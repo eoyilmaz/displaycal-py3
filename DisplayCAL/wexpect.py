@@ -823,7 +823,6 @@ class spawn_unix:
     def flush(self):  # File-like object.
         """This does nothing. It is here to support the interface for a
         File-like object."""
-        pass
 
     def isatty(self):  # File-like object.
         """This returns True if the file descriptor is open and connected to a

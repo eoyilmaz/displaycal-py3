@@ -787,5 +787,3 @@ def parse_edid_extension_blocks(edid):
 
 class WMIError(Exception):
     """Custom exception for WMI errors."""
-
-    pass

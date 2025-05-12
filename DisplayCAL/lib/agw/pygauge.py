@@ -308,7 +308,6 @@ class PyGauge(wx.Window):
         Note:
             This method is intentionally empty to reduce flicker.
         """
-        pass
 
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` event for :class:`PyGauge`.

@@ -215,10 +215,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 break
             not_found = []
             for name in argyll_names:
-                if (
-                    not get_argyll_util(name, [path])
-                    and name not in argyll_optional
-                ):
+                if not get_argyll_util(name, [path]) and name not in argyll_optional:
                     not_found.append(
                         f" {lang.getstr('or')} ".join(
                             [

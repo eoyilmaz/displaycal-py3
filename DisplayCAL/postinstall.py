@@ -108,7 +108,6 @@ if sys.platform == "win32":
 def postinstall_macos(prefix=None):
     """Do postinstall actions for macOS."""
     # TODO: implement
-    pass
 
 
 def postinstall_windows(prefix):

@@ -684,8 +684,6 @@ class BasePyControl(wx.PyControl):
         :note: This is intentionally empty to reduce flicker.
         """
 
-        pass
-
     def DrawMarkers(self, dc=None):
         """Draws the markers on top of the background bitmap.
 
@@ -694,8 +692,6 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def DrawLines(self, dc):
         """Draws the lines connecting the markers on top of the background bitmap.
 
@@ -703,8 +699,6 @@ class BasePyControl(wx.PyControl):
 
         :note: This method must be overridden in derived classes.
         """
-
-        pass
 
     def AcceptsFocusFromKeyboard(self):
         """Can this window be given focus by keyboard navigation? If not, the
@@ -738,8 +732,6 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def OnLeftUp(self, event):
         """Handles the ``wx.EVT_LEFT_UP`` for :class:`BasePyControl`.
 
@@ -748,8 +740,6 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def OnMotion(self, event):
         """Handles the ``wx.EVT_MOTION`` for :class:`BasePyControl`.
 
@@ -757,8 +747,6 @@ class BasePyControl(wx.PyControl):
 
         :note: This method must be overridden in derived classes.
         """
-
-        pass
 
     def OnSize(self, event):
         """Handles the ``wx.EVT_SIZE`` for :class:`BasePyControl`.
@@ -1012,8 +1000,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :note: This is intentionally empty to reduce flicker.
         """
-
-        pass
 
     def OnLeftDown(self, event):
         """Handles the ``wx.EVT_LEFT_DOWN`` for :class:`BaseLineCtrl`.

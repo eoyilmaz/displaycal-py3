@@ -256,7 +256,7 @@ class ReportFrame(BaseFrame):
                 v < config.valid_ranges["measurement_report.trc_gamma"][0]
                 or v > config.valid_ranges["measurement_report.trc_gamma"][1]
             ):
-                raise ValueError()
+                raise ValueError
         except ValueError:
             wx.Bell()
             self.mr_trc_gamma_ctrl.SetValue(str(getcfg("measurement_report.trc_gamma")))

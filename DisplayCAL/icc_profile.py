@@ -4385,7 +4385,7 @@ class CurveType(ICCProfileTag, list):
 
     def smooth_cr(self, length=64):
         """Smooth curves (Catmull-Rom)."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def smooth_avg(self, passes=1, window=None):
         """Smooth curves (moving average).

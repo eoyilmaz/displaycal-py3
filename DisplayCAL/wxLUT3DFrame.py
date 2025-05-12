@@ -298,7 +298,7 @@ class LUT3DMixin:
                 v < config.valid_ranges["3dlut.trc_gamma"][0]
                 or v > config.valid_ranges["3dlut.trc_gamma"][1]
             ):
-                raise ValueError()
+                raise ValueError
         except ValueError:
             wx.Bell()
             self.lut3d_trc_gamma_ctrl.SetValue(str(self.getcfg("3dlut.trc_gamma")))

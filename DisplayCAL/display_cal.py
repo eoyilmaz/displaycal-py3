@@ -743,7 +743,7 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
         try:
             json = json_module.load(resp)
             if not json:
-                raise ValueError()
+                raise ValueError
         except ValueError:
             InfoDialog(
                 parent,
@@ -6892,7 +6892,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 v = self.black_luminance_textctrl.GetValue()
                 if v < 0.000001 or v > 100000:
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.black_luminance_textctrl.SetValue(
@@ -6940,7 +6940,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 v = self.luminance_textctrl.GetValue()
                 if v < 0.000001 or v > 100000:
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.luminance_textctrl.SetValue(getcfg("calibration.luminance"))
@@ -7031,14 +7031,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 v = self.whitepoint_x_textctrl.GetValue()
                 if v < 0 or v > 1:
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.whitepoint_x_textctrl.SetValue(round(getcfg("whitepoint.x"), 4))
             try:
                 v = self.whitepoint_y_textctrl.GetValue()
                 if v < 0 or v > 1:
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.whitepoint_y_textctrl.SetValue(round(getcfg("whitepoint.y"), 4))
@@ -7083,7 +7083,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self.whitepoint_colortemp_textctrl.GetValue().replace(",", ".")
                 )
                 if v < 1000 or v > 15000:
-                    raise ValueError()
+                    raise ValueError
                 self.whitepoint_colortemp_textctrl.SetValue(str(stripzeros(v)))
             except ValueError:
                 wx.Bell()
@@ -7247,7 +7247,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             try:
                 v = float(self.trc_textctrl.GetValue().replace(",", "."))
                 if v == 0 or v > 10:
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.trc_textctrl.SetValue(str(getcfg("trc")))

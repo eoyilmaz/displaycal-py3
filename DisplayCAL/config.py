@@ -1630,7 +1630,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                 try:
                     value = [max(0, float(n)) for n in value.split(",")]
                     if len(value) != 3:
-                        raise ValueError()
+                        raise ValueError
                 except ValueError:
                     value = defaults[name]
                 else:

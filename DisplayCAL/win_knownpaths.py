@@ -181,7 +181,7 @@ def get_path(folderid, user_handle=UserHandle.common):
         _SHGetKnownFolderPath(ctypes.byref(fid), 0, user_handle, ctypes.byref(pPath))
         != S_OK
     ):
-        raise PathNotFoundException()
+        raise PathNotFoundException
     path = pPath.value
     _CoTaskMemFree(pPath)
     return path

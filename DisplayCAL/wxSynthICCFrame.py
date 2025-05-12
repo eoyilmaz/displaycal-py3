@@ -1190,7 +1190,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     v < config.valid_ranges["gamma"][0]
                     or v > config.valid_ranges["gamma"][1]
                 ):
-                    raise ValueError()
+                    raise ValueError
             except ValueError:
                 wx.Bell()
                 self.trc_gamma_ctrl.SetValue(str(self.getcfg("synthprofile.trc_gamma")))

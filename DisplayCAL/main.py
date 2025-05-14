@@ -56,7 +56,7 @@ from DisplayCAL.meta import (
     VERSION,
     VERSION_BASE,
     VERSION_STRING,
-    build,
+    BUILD,
     name as appname,
 )
 from DisplayCAL.multiprocess import mp
@@ -102,7 +102,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
         version = VERSION_STRING
         if VERSION > VERSION_BASE:
             version += " Beta"
-        print(pyname + runtype, version, build)
+        print(pyname + runtype, version, BUILD)
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)

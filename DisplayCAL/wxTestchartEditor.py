@@ -19,10 +19,8 @@ from DisplayCAL import (
 )
 from DisplayCAL import localization as lang
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
-from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ as argyll_RGB2XYZ
-from DisplayCAL.argyll_RGB2XYZ import (
-    XYZ2RGB as argyll_XYZ2RGB,
-)
+from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ as ARGYLL_RGB2XYZ
+from DisplayCAL.argyll_RGB2XYZ import XYZ2RGB as ARGYLL_XYZ2RGB
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,
@@ -1243,7 +1241,7 @@ END_DATA"""
                 if len(row) < 7:
                     # Missing XYZ, add via simple sRGB-like model
                     row.extend(
-                        v * 100 for v in argyll_RGB2XYZ(*[v / 100.0 for v in row[1:]])
+                        v * 100 for v in ARGYLL_RGB2XYZ(*[v / 100.0 for v in row[1:]])
                     )
                 data.add_data(row)
             # Create temp dir
@@ -1575,7 +1573,7 @@ END_DATA"""
                 # ]
                 # else:
                 # Fall back to default D65-ish values
-                XYZ = argyll_RGB2XYZ(
+                XYZ = ARGYLL_RGB2XYZ(
                     *[
                         component / 100.0
                         for component in (
@@ -1601,7 +1599,7 @@ END_DATA"""
                 if value < 0:
                     value = 0.0
                 sample[label] = value
-                RGB = argyll_XYZ2RGB(
+                RGB = ARGYLL_XYZ2RGB(
                     *[
                         component / 100.0
                         for component in (
@@ -3401,7 +3399,7 @@ END_DATA"""
                     data = ti1_1.queryv1("DATA")
                     data.parent.DATA_FORMAT.add_data(("XYZ_X", "XYZ_Y", "XYZ_Z"))
                     for sample in data.values():
-                        XYZ = argyll_RGB2XYZ(
+                        XYZ = ARGYLL_RGB2XYZ(
                             *[sample["RGB_" + channel] / 100.0 for channel in "RGB"]
                         )
                         for i, component in enumerate("XYZ"):

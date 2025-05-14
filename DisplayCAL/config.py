@@ -40,7 +40,7 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
     iccprofiles_home,
 )
 from DisplayCAL.meta import (  # noqa: F401
-    build,  # don't remove this, imported by other modules
+    BUILD,  # don't remove this, imported by other modules
     version,
 )
 from DisplayCAL.meta import (

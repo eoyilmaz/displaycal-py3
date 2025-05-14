@@ -471,7 +471,7 @@ def setup():
                     version_base = version_base_file.read().strip().split(".")
 
         print("Trying to get git information...")
-        lastmod = ""
+        LASTMOD = ""
         timestamp = None
         mtime = 0
 
@@ -486,7 +486,7 @@ def setup():
             timestamp = time.gmtime(mtime)
 
         if timestamp:
-            lastmod = f"{strftime('%Y-%m-%dT%H:%M:%S', timestamp)}Z"
+            LASTMOD = f"{strftime('%Y-%m-%dT%H:%M:%S', timestamp)}Z"
 
         if not dry_run:
             print("Generating __version__.py")
@@ -499,8 +499,8 @@ def setup():
                     f"\"{strftime('%Y-%m-%dT%H:%M:%S', gmtime(build_time))}Z\"\n"
                 )
 
-                if lastmod:
-                    versionpy.write(f"LASTMOD = {lastmod!r}\n")
+                if LASTMOD:
+                    versionpy.write(f"LASTMOD = {LASTMOD!r}\n")
 
                 if git_version:
                     print("Version", ".".join(version_base))
@@ -536,7 +536,7 @@ def setup():
         author,
         author_email,
         description,
-        lastmod,
+        LASTMOD,
         longdesc,
         DOMAIN,
         py_maxversion,
@@ -556,7 +556,7 @@ def setup():
     longdesc = fill(longdesc)
 
     if not lastmod_time:
-        lastmod_time = calendar.timegm(time.strptime(lastmod, "%Y-%m-%dT%H:%M:%SZ"))
+        lastmod_time = calendar.timegm(time.strptime(LASTMOD, "%Y-%m-%dT%H:%M:%SZ"))
 
     msiversion = ".".join(
         (

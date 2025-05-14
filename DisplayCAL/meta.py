@@ -4,18 +4,16 @@ import re
 
 try:
     from DisplayCAL.__version__ import (
-        BUILD_DATE as build,
+        BUILD_DATE as BUILD,
     )
     from DisplayCAL.__version__ import (
-        LASTMOD as lastmod,
-    )
-    from DisplayCAL.__version__ import (
+        LASTMOD,
         VERSION,
         VERSION_BASE,
         VERSION_STRING,
     )
 except ImportError:
-    build = lastmod = "1970-01-01T00:00:00Z"
+    BUILD = LASTMOD = "1970-01-01T00:00:00Z"
     VERSION = None
     VERSION_STRING = None
 

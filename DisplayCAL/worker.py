@@ -4171,7 +4171,7 @@ END_DATA
                 profile_src.write()
 
                 # Create link from source to destination profile
-                gam_link_filename = tempfile.mktemp(profile_ext, "gam-link-", dir=cwd)
+                gam_link_filename = tempfile.mktemp(profile_ext, "gam-link-", dir=cwd)  # noqa: S306
                 result = self.exec_cmd(
                     collink,
                     [
@@ -4211,7 +4211,7 @@ END_DATA
 
                 # Convert RGB image from source to destination to get source
                 # encoded within destination.
-                gam_out_tiff = tempfile.mktemp(".tif", "gam-out-", dir=cwd)
+                gam_out_tiff = tempfile.mktemp(".tif", "gam-out-", dir=cwd)  # noqa: S306
                 result = self.exec_cmd(
                     tools["cctiff"],
                     ["-p", gam_link_filename, gam_in_tiff, gam_out_tiff],
@@ -10886,7 +10886,7 @@ usage: spotread [-options] [logfile]
                                         # devicelink
                                         collink_args.remove("-ni")
                                         break
-                        link_profile = tempfile.mktemp(profile_ext, dir=self.tempdir)
+                        link_profile = tempfile.mktemp(profile_ext, dir=self.tempdir)  # noqa: S306
                         result = self.exec_cmd(
                             collink,
                             collink_args

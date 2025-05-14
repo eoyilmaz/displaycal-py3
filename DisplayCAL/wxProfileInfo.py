@@ -32,7 +32,7 @@ from DisplayCAL.icc_profile import (
     ParametricCurveType,
     VideoCardGammaType,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_slice, dict_sort
 from DisplayCAL.util_io import GzipFileProper

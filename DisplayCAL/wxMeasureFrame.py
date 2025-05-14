@@ -19,7 +19,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import floatlist, strlist
 from DisplayCAL.wxaddons import wx

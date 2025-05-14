@@ -4,8 +4,8 @@ import http.server
 import time
 from urllib.parse import unquote
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version_string as appversion
+from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import VERSION_STRING as appversion
 
 WEBDISP_HTML = rf"""<!DOCTYPE html>
 <html>

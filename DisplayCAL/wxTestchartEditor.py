@@ -50,7 +50,7 @@ from DisplayCAL.icc_profile import (
     ICCProfileInvalidError,
     NamedColor2Type,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
 from DisplayCAL.util_dict import swap_dict_keys_values
 from DisplayCAL.util_os import is_superuser, launch_file, waccess

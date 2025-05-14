@@ -18,7 +18,7 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug, test, verbose
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (

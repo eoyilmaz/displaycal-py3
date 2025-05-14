@@ -36,7 +36,7 @@ from DisplayCAL.lib.agw.fmresources import (
 )
 from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap

@@ -6,8 +6,8 @@ import shutil
 import sys
 import tempfile
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import wx_minversion
+from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import WX_MINVERSION
 
 if os.getenv("GTK_CSD", "0") != "0":
     # Work-around double window decorations, see
@@ -22,18 +22,18 @@ except ImportError:
 else:
     if not getattr(sys, "frozen", False) and "wx" not in sys.modules:
         with contextlib.suppress(wxversion.VersionError):
-            wxversion.select(["4.0", "3.0", "{}.{}.{}".format(*wx_minversion[:3])])
+            wxversion.select(["4.0", "3.0", "{}.{}.{}".format(*WX_MINVERSION[:3])])
 
 import wx
 
-if wx.VERSION < wx_minversion:  # noqa: SIM300
+if wx.VERSION < WX_MINVERSION:  # noqa: SIM300
     app = wx.GetApp() or wx.App(0)
     result = wx.MessageBox(
         "This application requires a version of wxPython "
         "greater than or equal to {}, but your most recent "
         "version is {}.\n\n"
         "Would you like to download a new version of wxPython?\n".format(
-            ".".join(str(n) for n in wx_minversion), wx.__version__
+            ".".join(str(n) for n in WX_MINVERSION), wx.__version__
         ),
         "wxPython Upgrade Needed",
         style=wx.YES_NO,

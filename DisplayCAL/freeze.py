@@ -54,24 +54,24 @@ sys.path.append(source_dir)
 
 from DisplayCAL.meta import (
     DOMAIN,
-    appstream_id,
-    author,
-    author_ascii,
-    author_email,
-    description,
-    development_home_page,
-    longdesc,
-    name,
-    py_maxversion,
-    py_minversion,
+    APPSTREAM_ID,
+    AUTHOR,
+    AUTHOR_ASCII,
+    AUTHOR_EMAIL,
+    DESCRIPTION,
+    DEVELOPMENT_HOME_PAGE,
+    LONG_DESCRIPTION,
+    NAME,
+    PY_MAXVERSION,
+    PY_MINVERSION,
     script2pywname,
-    version_string,
-    version_tuple,
+    VERSION_STRING,
+    VERSION_TUPLE,
 )
 from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str
 
-appname = name
+appname = NAME
 
 
 if sys.platform in ("darwin", "win32"):
@@ -130,7 +130,7 @@ config = {
         "win32": ["gi", "win32com.client.genpy"],
     },
     "package_data": {
-        name: [
+        NAME: [
             "beep.wav",
             "camera_shutter.wav",
             "ColorLookupTable.fx",
@@ -168,13 +168,13 @@ config = {
             "xrc/*.xrc",
         ]
     },
-    "xtra_package_data": {name: {"win32": [f"theme/icons/{name}-uninstall.ico"]}},
+    "xtra_package_data": {NAME: {"win32": [f"theme/icons/{NAME}-uninstall.ico"]}},
 }
 
 
 def add_lib_excludes(key, excludebits):
     for exclude in excludebits:
-        config["excludes"][key].extend([f"{name}.lib{exclude}", f"lib{exclude}"])
+        config["excludes"][key].extend([f"{NAME}.lib{exclude}", f"lib{exclude}"])
 
     for exclude in ("32", "64"):
         for pycompat in ("38", "39", "310", "311", "312", "313"):
@@ -185,8 +185,8 @@ def add_lib_excludes(key, excludebits):
                 continue
             config["excludes"][key].extend(
                 [
-                    f"{name}.lib{exclude}.python{pycompat}",
-                    f"{name}.lib{exclude}.python{pycompat}.RealDisplaySizeMM",
+                    f"{NAME}.lib{exclude}.python{pycompat}",
+                    f"{NAME}.lib{exclude}.python{pycompat}.RealDisplaySizeMM",
                 ]
             )
 
@@ -197,9 +197,9 @@ add_lib_excludes("win32", ["64" if bits == "32" else "32"])
 
 msiversion = ".".join(
     (
-        str(version_tuple[0]),
-        str(version_tuple[1]),
-        str(version_tuple[2]),
+        str(VERSION_TUPLE[0]),
+        str(VERSION_TUPLE[1]),
+        str(VERSION_TUPLE[2]),
     )
 )
 
@@ -283,14 +283,14 @@ def build_py2exe():
     cacert = certifi.where()
     if cacert:
         shutil.copyfile(cacert, os.path.join(pydir, "cacert.pem"))
-        config["package_data"][name].append("cacert.pem")
+        config["package_data"][NAME].append("cacert.pem")
     else:
         print("WARNING: cacert.pem from certifi project not found!")
 
     # on Mac OS X and Windows, we want data files in the package dir
     # (package_data will be ignored when using py2exe)
     package_data = {
-        name: ["theme/icons/22x22/*.png", "theme/icons/24x24/*.png"],
+        NAME: ["theme/icons/22x22/*.png", "theme/icons/24x24/*.png"],
     }
     scripts = get_scripts()
     # Doc files
@@ -307,16 +307,16 @@ def build_py2exe():
             [
                 os.path.relpath(
                     os.path.normpath(
-                        os.path.join(pydir, "..", "dist", f"{appstream_id}.appdata.xml")
+                        os.path.join(pydir, "..", "dist", f"{APPSTREAM_ID}.appdata.xml")
                     ),
                     source_dir,
                 )
             ],
         )
     )
-    data_files += get_data(data, "package_data", name, excludes=["theme/icons/*"])
+    data_files += get_data(data, "package_data", NAME, excludes=["theme/icons/*"])
     data_files += get_data(data, "data")
-    data_files += get_data(data, "xtra_package_data", name, sys.platform)
+    data_files += get_data(data, "xtra_package_data", NAME, sys.platform)
 
     # Add python and pythonw
     data_files.extend(
@@ -390,7 +390,7 @@ def build_py2exe():
         for iconpath in safe_glob(
             os.path.join(pydir, "theme", "icons", dname, "*.png")
         ):
-            if not os.path.basename(iconpath).startswith(name.lower()) or (
+            if not os.path.basename(iconpath).startswith(NAME.lower()) or (
                 sys.platform in ("darwin", "win32")
                 and dname in ("16x16", "32x32", "48x48", largest_iconbundle_icon_size)
             ):
@@ -416,18 +416,18 @@ def build_py2exe():
     ext_modules = []
     requires = []
     requires.append("pywin32 (>= 213.0)")
-    packages = [name, f"{name}.lib", f"{name}.lib.agw"]
+    packages = [NAME, f"{NAME}.lib", f"{NAME}.lib.agw"]
     # On Windows we want separate libraries
     packages.extend(
         [
-            f"{name}.lib{bits}",
-            f"{name}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}",
+            f"{NAME}.lib{bits}",
+            f"{NAME}.lib{bits}.python{sys.version_info[0]}{sys.version_info[1]}",
         ]
     )
 
     attrs = {
-        "author": author_ascii,
-        "author_email": author_email,
+        "author": AUTHOR_ASCII,
+        "author_email": AUTHOR_EMAIL,
         "classifiers": [
             "Development Status :: 5 - Production/Stable",
             "Environment :: MacOS X",
@@ -445,42 +445,42 @@ def build_py2exe():
             "Topic :: Multimedia :: Graphics",
         ],
         "data_files": data_files,
-        "description": description,
-        "download_url": f"{development_home_page}/releases/download/"
-        f"{version_string}/{name}-{version_string}.tar.gz",
+        "description": DESCRIPTION,
+        "download_url": f"{DEVELOPMENT_HOME_PAGE}/releases/download/"
+        f"{VERSION_STRING}/{NAME}-{VERSION_STRING}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
-        "long_description": longdesc,
+        "long_description": LONG_DESCRIPTION,
         "long_description_content_type": "text/x-rst",
-        "name": name,
+        "name": NAME,
         "packages": packages,
         "package_data": package_data,
-        "package_dir": {name: name},
+        "package_dir": {NAME: NAME},
         "platforms": [
             "Python >= {} <= {}".format(
-                ".".join(str(n) for n in py_minversion),
-                ".".join(str(n) for n in py_maxversion),
+                ".".join(str(n) for n in PY_MINVERSION),
+                ".".join(str(n) for n in PY_MAXVERSION),
             ),
             "Linux/Unix with X11",
             "Mac OS X >= 10.4",
             "Windows 2000 and newer",
         ],
         "requires": requires,
-        "provides": [name],
+        "provides": [NAME],
         "scripts": [],
         "url": f"https://{DOMAIN}/",
-        "version": msiversion if "bdist_msi" in sys.argv[1:] else version_string,
+        "version": msiversion if "bdist_msi" in sys.argv[1:] else VERSION_STRING,
     }
     if setuptools:
         attrs["entry_points"] = {
             "gui_scripts": [
                 "{} = {}.main:main{}".format(
                     script,
-                    name,
+                    NAME,
                     (
                         ""
-                        if script == name.lower()
-                        else script[len(name) :].lower().replace("-", "_")
+                        if script == NAME.lower()
+                        else script[len(NAME) :].lower().replace("-", "_")
                     ),
                 )
                 for script, desc in scripts
@@ -497,7 +497,7 @@ def build_py2exe():
             for script, desc in [
                 script_desc
                 for script_desc in scripts
-                if script_desc[0] != f"{name.lower()}-apply-profiles"
+                if script_desc[0] != f"{NAME.lower()}-apply-profiles"
                 or sys.platform != "darwin"
             ]
         )
@@ -510,7 +510,7 @@ def build_py2exe():
             pydir,
             "..",
             "misc",
-            name
+            NAME
             + (
                 f".exe.{arch}.VC90.manifest"
                 if hasattr(sys, "version_info") and sys.version_info[:2] >= (3, 8)
@@ -545,7 +545,7 @@ def build_py2exe():
                 )
             ],
             other_resources=[(24, 1, manifest_xml)],
-            copyright="© {} {}".format(strftime("%Y"), author),
+            copyright="© {} {}".format(strftime("%Y"), AUTHOR),
             description=desc,
         )
         for script, desc in [
@@ -574,13 +574,13 @@ def build_py2exe():
                 )
             ],
             other_resources=[(24, 1, manifest_xml)],
-            copyright="© {} {}".format(strftime("%Y"), author),
+            copyright="© {} {}".format(strftime("%Y"), AUTHOR),
             description=apply_profiles_launcher[1],
         )
     )
 
     # Programs that can run with and without GUI
-    console_scripts = [f"{name}-VRML-to-X3D-converter"]  # No "-console" suffix!
+    console_scripts = [f"{NAME}-VRML-to-X3D-converter"]  # No "-console" suffix!
     for console_script in console_scripts:
         console_script_path = os.path.join(tmp_scripts_dir, console_script + "-console")
         if not os.path.isfile(console_script_path):
@@ -605,7 +605,7 @@ def build_py2exe():
                 )
             ],
             other_resources=[(24, 1, manifest_xml)],
-            copyright="© {} {}".format(strftime("%Y"), author),
+            copyright="© {} {}".format(strftime("%Y"), AUTHOR),
             description=desc,
         )
         for script, desc in [
@@ -628,7 +628,7 @@ def build_py2exe():
                 )
             ],
             other_resources=[(24, 1, manifest_xml)],
-            copyright="© {} {}".format(strftime("%Y"), author),
+            copyright="© {} {}".format(strftime("%Y"), AUTHOR),
             description="Convert eeColor 65^3 to madVR 256^3 3D LUT "
             "(video levels in, video levels out)",
         )
@@ -639,7 +639,7 @@ def build_py2exe():
         "..",
         "dist",
         f"py2exe.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-        f"{name}-{version_string}",
+        f"{NAME}-{VERSION_STRING}",
     )
     os.makedirs(dist_dir, exist_ok=True)
     attrs["options"] = {
@@ -685,9 +685,9 @@ def build_py2exe():
             "include README.html",
             "include README-fr.html",
             "include CHANGES.html",
-            f"include {name}*.pyw",
-            f"include {name}-*.pyw",
-            f"include {name}-*.py",
+            f"include {NAME}*.pyw",
+            f"include {NAME}-*.pyw",
+            f"include {NAME}-*.py",
             "include use-distutils",
         ]
     )
@@ -719,11 +719,11 @@ def build_py2exe():
     for pymod in attrs.get("py_modules", []):
         manifest_in.append("include {}".format(os.path.join(*pymod.split("."))))
     manifest_in.append(
-        "include {}".format(os.path.join(name, "theme", "theme-info.txt"))
+        "include {}".format(os.path.join(NAME, "theme", "theme-info.txt"))
     )
     manifest_in.append(
         "recursive-include {} {} {}".format(
-            os.path.join(name, "theme", "icons"), "*.icns", "*.ico"
+            os.path.join(NAME, "theme", "icons"), "*.icns", "*.ico"
         )
     )
     manifest_in.append("include {}".format(os.path.join("man", "*.1")))

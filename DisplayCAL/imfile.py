@@ -4,8 +4,8 @@ import struct
 import time
 import zlib
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version_string
+from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import VERSION_STRING
 from DisplayCAL.util_str import safe_str
 
 TIFF_TAG_TYPE_BYTE = 1
@@ -187,7 +187,7 @@ class Image:
         )
         stream.write(
             safe_str(
-                b"%s %s" % (appname.encode(), version_string.encode())
+                b"%s %s" % (appname.encode(), VERSION_STRING.encode())
             ).ljust(100, b"\0")
         )  # Creator
         stream.write(b"\0" * 200)  # Project

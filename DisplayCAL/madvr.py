@@ -32,7 +32,7 @@ from DisplayCAL.icc_profile import (
     TextType,
 )
 from DisplayCAL.imfile import tiff_get_header
-from DisplayCAL.meta import version_string
+from DisplayCAL.meta import VERSION_STRING
 from DisplayCAL.network import get_network_addr
 
 CALLBACK = ctypes.CFUNCTYPE(
@@ -1403,7 +1403,7 @@ class MadTPG_Net(MadTPGBase):
             ("userName", str(getpass.getuser())),
             ("os", f"{platform.system()} {platform.release()}"),
             ("exeFile", os.path.basename(sys.executable)),
-            ("exeVersion", version_string),
+            ("exeVersion", VERSION_STRING),
             ("exeDescr", ""),
             ("exeIcon", ""),
         ]

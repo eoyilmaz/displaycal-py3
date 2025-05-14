@@ -156,7 +156,7 @@ __all__ = [
 ]
 
 
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 
 
 # Exception classes used by this module.

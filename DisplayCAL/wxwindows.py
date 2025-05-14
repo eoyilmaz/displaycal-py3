@@ -62,7 +62,7 @@ from DisplayCAL.lib.agw.fourwaysplitter import (
     FourWaySplitterEvent,
 )
 from DisplayCAL.lib.agw.gradientbutton import CLICK, HOVER, GradientButton
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.network import ScriptingClientSocket, get_network_addr
 from DisplayCAL.options import debug
 from DisplayCAL.util_os import launch_file, waccess

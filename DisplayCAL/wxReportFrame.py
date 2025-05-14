@@ -34,7 +34,7 @@ from DisplayCAL.icc_profile import (
     LUT16Type,
     XYZType,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
 from DisplayCAL.wxfixes import TempXmlResource

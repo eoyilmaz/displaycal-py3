@@ -14,15 +14,15 @@ from time import sleep
 
 
 # Python version check
-from DisplayCAL.meta import py_maxversion, py_minversion
+from DisplayCAL.meta import PY_MAXVERSION, PY_MINVERSION
 
 pyver = sys.version_info[:2]
-if pyver < py_minversion or pyver > py_maxversion:
+if pyver < PY_MINVERSION or pyver > PY_MAXVERSION:
     raise RuntimeError(
         "Need Python version >= %s <= %s, got %s"
         % (
-            ".".join(str(n) for n in py_minversion),
-            ".".join(str(n) for n in py_maxversion),
+            ".".join(str(n) for n in PY_MINVERSION),
+            ".".join(str(n) for n in PY_MAXVERSION),
             sys.version.split()[0],
         )
     )
@@ -57,7 +57,7 @@ from DisplayCAL.meta import (
     VERSION_BASE,
     VERSION_STRING,
     BUILD,
-    name as appname,
+    NAME as appname,
 )
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug, verbose

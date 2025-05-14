@@ -13,7 +13,7 @@ from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.icc_profile import CRInterpolation
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
 from DisplayCAL.wxaddons import wx

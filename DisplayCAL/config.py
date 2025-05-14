@@ -41,10 +41,10 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
 )
 from DisplayCAL.meta import (  # noqa: F401
     BUILD,  # don't remove this, imported by other modules
-    version_string,
+    VERSION_STRING,
 )
 from DisplayCAL.meta import (
-    name as appname,
+    NAME as appname,
 )
 from DisplayCAL.options import debug
 from DisplayCAL.safe_print import (  # noqa: F401
@@ -949,7 +949,7 @@ def runtimeconfig(pyfile):
     if sys.platform not in ("darwin", "win32"):
         data_dirs.extend(
             [
-                os.path.join(dir_, "doc", f"{appname}-{version_string}")
+                os.path.join(dir_, "doc", f"{appname}-{VERSION_STRING}")
                 for dir_ in xdg_data_dirs + [xdg_data_home]
             ]
         )
@@ -1253,7 +1253,7 @@ defaults = {
     "comport.number": 1,
     "comport.number.backup": 1,
     # Note: worker.Worker.enumerate_displays_and_ports() overwrites copyright
-    "copyright": f"No copyright. Created with {appname} {version_string} and ArgyllCMS",
+    "copyright": f"No copyright. Created with {appname} {VERSION_STRING} and ArgyllCMS",
     "dimensions.measureframe": "0.5,0.5,1.0",
     "dimensions.measureframe.unzoomed": "0.5,0.5,1.0",
     "dimensions.measureframe.whitepoint.visual_editor": "0.5,0.5,1.0",
@@ -1651,14 +1651,14 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                 pattern = re.compile(
                     rf"({appname}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*", re.I
                 )
-                repl = create_replace_function("\\1%s", version_string)
+                repl = create_replace_function("\\1%s", VERSION_STRING)
                 value = re.sub(pattern, repl, value)
                 if appbasename != appname:
                     pattern = re.compile(
                         rf"({appbasename}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",
                         re.I,
                     )
-                    repl = create_replace_function("\\1%s", version_string)
+                    repl = create_replace_function("\\1%s", VERSION_STRING)
                     value = re.sub(pattern, repl, value)
                 pattern = re.compile(
                     r"(Argyll(?:\s*CMS)?)((?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",

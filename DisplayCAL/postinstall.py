@@ -7,7 +7,7 @@ from io import StringIO
 from os.path import basename, splitext
 from subprocess import call
 
-from DisplayCAL.meta import name
+from DisplayCAL.meta import NAME
 from DisplayCAL.util_os import safe_glob, which
 
 recordfile_name = "INSTALLED_FILES"
@@ -126,7 +126,7 @@ def postinstall_windows(prefix):
         file_created(irecordfile_name)
         shutil.copy2(recordfile_name, irecordfile_name)
 
-    mainicon = os.path.join(modpath, "theme", "icons", f"{name}.ico")
+    mainicon = os.path.join(modpath, "theme", "icons", f"{NAME}.ico")
     if not os.path.exists(mainicon):
         print("warning - '{}' not found".format(mainicon.encode("MBCS", "replace")))
         return
@@ -142,7 +142,7 @@ def postinstall_windows(prefix):
 
     filenames = [
         filename
-        for filename in safe_glob(os.path.join(sys.prefix, "Scripts", f"{name}*"))
+        for filename in safe_glob(os.path.join(sys.prefix, "Scripts", f"{NAME}*"))
         if not filename.endswith("-script.py")
         and not filename.endswith("-script.pyw")
         and not filename.endswith(".manifest")
@@ -154,7 +154,7 @@ def postinstall_windows(prefix):
     for path in (startmenu_programs_common, startmenu_programs):
         if not path:
             continue
-        grppath = os.path.join(path, name)
+        grppath = os.path.join(path, NAME)
         if path == startmenu_programs:
             group = os.path.relpath(grppath, startmenu)
         else:
@@ -168,7 +168,7 @@ def postinstall_windows(prefix):
         if os.path.exists(grppath):
             print(
                 ("Created start menu group '{}' in {}").format(
-                    name,
+                    NAME,
                     (
                         str(path, "MBCS", "replace")
                         if not isinstance(path, str)
@@ -179,7 +179,7 @@ def postinstall_windows(prefix):
         else:
             print(
                 ("Failed to create start menu group '{}' in {}").format(
-                    name,
+                    NAME,
                     (
                         str(path, "MBCS", "replace")
                         if not isinstance(path, str)
@@ -213,19 +213,19 @@ def postinstall_windows(prefix):
                     tgtpath = os.path.join(modpath, filename)
                 try:
                     if lnkname == "Uninstall":
-                        uninstaller = os.path.join(sys.prefix, f"Remove{name}.exe")
+                        uninstaller = os.path.join(sys.prefix, f"Remove{NAME}.exe")
                         if os.path.exists(uninstaller):
                             create_shortcut(
                                 uninstaller,
                                 lnkname,
                                 lnkpath,
-                                f'-u "{os.path.join(sys.prefix, name)}-wininst.log"',
+                                f'-u "{os.path.join(sys.prefix, NAME)}-wininst.log"',
                                 sys.prefix,
                                 os.path.join(
                                     modpath,
                                     "theme",
                                     "icons",
-                                    f"{name}-uninstall.ico",
+                                    f"{NAME}-uninstall.ico",
                                 ),
                             )
                         else:
@@ -247,10 +247,10 @@ def postinstall_windows(prefix):
                                     modpath,
                                     "theme",
                                     "icons",
-                                    f"{name}-uninstall.ico",
+                                    f"{NAME}-uninstall.ico",
                                 ),
                             )
-                    elif lnkname.startswith(name):
+                    elif lnkname.startswith(NAME):
                         # When running from a
                         # bdist_wininst or bdist_msi
                         # installer, sys.executable

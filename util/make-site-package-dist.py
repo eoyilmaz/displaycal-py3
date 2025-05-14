@@ -10,10 +10,10 @@ from distutils.sysconfig import get_python_lib
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from DisplayCAL.meta import wx_minversion
+from DisplayCAL.meta import WX_MINVERSION
 
 # Search for a suitable wx version
-wx_minversion_str = ".".join(str(n) for n in wx_minversion[:2])
+wx_minversion_str = ".".join(str(n) for n in WX_MINVERSION[:2])
 wxversions_candidates = []
 for pth in sys.path:
     if not pth:

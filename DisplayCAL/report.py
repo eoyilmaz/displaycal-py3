@@ -8,7 +8,7 @@ from time import strftime
 from DisplayCAL import jspacker
 from DisplayCAL import localization as lang
 from DisplayCAL.config import get_data_path, initcfg
-from DisplayCAL.meta import version_short
+from DisplayCAL.meta import VERSION_SHORT
 
 
 def create(report_path, placeholders2data, pack=True, templatename="report"):
@@ -144,7 +144,7 @@ def update(report_path, pack=True):
     )
 
     placeholders2data = {
-        "${REPORT_VERSION}": version_short,
+        "${REPORT_VERSION}": VERSION_SHORT,
         "${CORRECTION_MATRIX}": "Unknown",
         "${ADAPTION}": "None",
         "${CAL_ENTRYCOUNT}": "null",

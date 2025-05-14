@@ -42,7 +42,7 @@ import tempfile
 import pywintypes
 import winerror
 
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.safe_print import enc
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin

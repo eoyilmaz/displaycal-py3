@@ -43,7 +43,7 @@ from DisplayCAL.icc_profile import (
     s15f16_is_equal,
 )
 from DisplayCAL.log import log
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files

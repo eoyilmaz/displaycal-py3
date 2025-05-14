@@ -158,14 +158,14 @@ from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    author,
-    development_home_page,
+    AUTHOR,
+    DEVELOPMENT_HOME_PAGE,
     get_latest_changelog_entry,
-    version_string,
-    version_short,
+    VERSION_STRING,
+    VERSION_SHORT,
 )
 from DisplayCAL.meta import (
-    name as appname,
+    NAME as appname,
 )
 from DisplayCAL.options import (
     debug,
@@ -466,7 +466,7 @@ def check_donation(parent, snapshot):
         and VERSION[0] > tuple(intlist(getcfg("last_launch").split(".")))[0]
     ):
         setcfg("show_donation_message", 1)
-    setcfg("last_launch", version_string)
+    setcfg("last_launch", VERSION_STRING)
     if getcfg("show_donation_message"):
         wx.CallAfter(donation_message, parent)
 
@@ -1968,7 +1968,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # UGLY HACK: This 'print' call fixes a GTK assertion and
         # segfault under Arch Linux when setting the window title
         print("")
-        title = f"{appname} {version_short}"
+        title = f"{appname} {VERSION_SHORT}"
         if VERSION > VERSION_BASE:
             title += " Beta"
         self.SetTitle(title)
@@ -8793,7 +8793,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         report_type = "Self Check" if self_check_report else "Measurement"
         defaultFile = "{} Report {} - {} - {}".format(
             report_type,
-            version_short,
+            VERSION_SHORT,
             re.sub(
                 r"[\\/:;*?\"<>|]+",
                 "_",
@@ -9532,7 +9532,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "${CAL_ENTRYCOUNT}": str(cal_entrycount),
             "${CAL_RGBLEVELS}": repr(cal_rgblevels),
             "${GRAYSCALE}": repr(gray) if gray else "null",
-            "${REPORT_VERSION}": version_short,
+            "${REPORT_VERSION}": VERSION_SHORT,
             "${REPORT_TYPE}": report_type,
         }
 
@@ -13957,7 +13957,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
                 cgats = re.sub(
                     rb'(\nORIGINATOR\s+)"Argyll[^"]+"',
-                    (rf'\1"{appname} {version_string}"').encode("utf-8"),  # noqa: UP012
+                    (rf'\1"{appname} {VERSION_STRING}"').encode("utf-8"),  # noqa: UP012
                     cgats,
                 )
                 metadata.append('FIT_METHOD "xy"')
@@ -18561,7 +18561,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         separator.BackgroundColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT)
         items.append(separator)
         items.append((1, 12))
-        version_title = version_short
+        version_title = VERSION_SHORT
         if VERSION > VERSION_BASE:
             version_title += " Beta"
         items.append(
@@ -18575,7 +18575,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 wx.StaticText(
                     self.aboutdialog.panel,
                     -1,
-                    f" {version_title} © {wrap(author, 55)}",
+                    f" {version_title} © {wrap(AUTHOR, 55)}",
                 ),
             ]
         )
@@ -18714,10 +18714,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             launch_file(license)
 
     def help_support_handler(self, event):
-        launch_file(f"{development_home_page}/issues")
+        launch_file(f"{DEVELOPMENT_HOME_PAGE}/issues")
 
     def bug_report_handler(self, event):
-        launch_file(f"{development_home_page}/issues")
+        launch_file(f"{DEVELOPMENT_HOME_PAGE}/issues")
 
     def app_update_check_handler(self, event, silent=False, argyll=False):
         if (
@@ -18884,7 +18884,7 @@ else:
 class StartupFrame(start_cls):
     def __init__(self):
         super().__init__()
-        title = f"{appname} {version_short}"
+        title = f"{appname} {VERSION_SHORT}"
         if VERSION > VERSION_BASE:
             title += " Beta"
         start_cls.__init__(
@@ -19334,7 +19334,7 @@ class StartupFrame(start_cls):
         )
         dc.SetFont(self.GetFont())
         # Version label
-        label_str = version_short
+        label_str = VERSION_SHORT
         if VERSION > VERSION_BASE:
             label_str += " Beta"
         dc.SetTextForeground("#101010")

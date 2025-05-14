@@ -52,11 +52,11 @@ from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    version_string,
-    version_short,
+    VERSION_STRING,
+    VERSION_SHORT,
 )
 from DisplayCAL.meta import (
-    name as appname,
+    NAME as appname,
 )
 from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_list import natsort_key_factory
@@ -2270,7 +2270,7 @@ class ProfileLoader:
         title = "{} {} {}".format(
             appname,
             lang.getstr("profile_loader").title(),
-            version_short,
+            VERSION_SHORT,
         )
         if VERSION > VERSION_BASE:
             title += " Beta"
@@ -3836,7 +3836,7 @@ def main():
                 BaseApp._run_exitfuncs()
         print(f"Usage: {os.path.basename(sys.argv[0])} [OPTION]...")
         print("Apply profiles to configured display devices and load calibration")
-        print(f"Version {version_string}")
+        print(f"Version {VERSION_STRING}")
         print("")
         print("Options:")
         print("  --help           Output this help text and exit")
@@ -3930,7 +3930,7 @@ def main():
                     for line in textwrap.fill(cfgdoc, 75).splitlines():
                         print(" " * 4 + line.rstrip())
     elif "-V" in sys.argv[1:] or "--version" in sys.argv[1:]:
-        print(f"{os.path.basename(sys.argv[0])} {version_string}")
+        print(f"{os.path.basename(sys.argv[0])} {VERSION_STRING}")
     else:
         if sys.platform == "win32":
             setup_profile_loader_task(exe, exedir, pydir)

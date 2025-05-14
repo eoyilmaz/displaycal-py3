@@ -11,7 +11,7 @@ from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
 
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as appname
 from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import debug

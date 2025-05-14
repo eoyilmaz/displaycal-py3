@@ -19220,7 +19220,7 @@ class StartupFrame(start_cls):
                     # consistent between reboots even
                     # if the connected instruments are
                     # the same.
-                    # For consistency’s sake, do it under
+                    # For consistency's sake, do it under
                     # all platforms.
                     or not inst_count
                     or inst_count > 1

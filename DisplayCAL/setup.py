@@ -1197,7 +1197,7 @@ def setup():
                 "excludes": config["excludes"]["all"] + config["excludes"]["win32"],
                 "bundle_files": 3 if wx.VERSION >= (2, 8, 10, 1) else 1,
                 "compressed": 1,
-                "optimize": 0,  # 0 = don’t optimize (generate .pyc)
+                "optimize": 0,  # 0 = don't optimize (generate .pyc)
                 # 1 = normal optimization (like python -O)
                 # 2 = extra optimization (like python -OO)
             }

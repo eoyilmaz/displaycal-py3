@@ -1181,7 +1181,7 @@ def four_color_matrix(
     if Y_correction:
         # The Y calibration factor kY is obtained as the ratio of the reference
         # luminance value to the matrix-corrected Y value, as defined in
-        # Four-Color Matrix Method for Correction of Tristimulus Colorimeters –
+        # Four-Color Matrix Method for Correction of Tristimulus Colorimeters -
         # Part 2
         MW = XmW, YmW, ZmW
         kY = YrW / (R * MW)[1]

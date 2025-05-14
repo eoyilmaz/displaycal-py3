@@ -10698,10 +10698,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             print("Retrieving factory calibration for ColorHug", serial)
                             url = (
                                 "https://raw.githubusercontent.com/hughski"
-                                "/colorhug-calibration/master/data/" + calibration
+                                f"/colorhug-calibration/master/data/{calibration}"
                             )
                             try:
-                                response = urllib.request.urlopen(url)
+                                response = urllib.request.urlopen(url)  # noqa: S310
                             except Exception as exception:
                                 self.measure_auto_finish(exception)
                                 return

@@ -417,7 +417,7 @@ def get_argyll_latest_version():
     try:
         changelog = re.search(
             r"(?<=Version ).{5}",
-            urllib.request.urlopen(f"{argyll_domain}/log.txt")
+            urllib.request.urlopen(f"{argyll_domain}/log.txt")  # noqa: S310
             .read(100)
             .decode("utf-8"),
         )

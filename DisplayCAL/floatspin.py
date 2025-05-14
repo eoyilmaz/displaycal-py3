@@ -35,7 +35,6 @@
 # --------------------------------------------------------------------------- #
 """:class:`FloatSpin` implements a floating point :class:`SpinCtrl`.
 
-
 Description
 ===========
 

@@ -7808,7 +7808,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             0,
             hyperlink,
             flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.LEFT,
-            border=int(round(32 + 12)),
+            border=round(32 + 12),
         )
         dlg.description_txt_ctrl.SetFocus()
         dlg.sizer0.SetSizeHints(dlg)

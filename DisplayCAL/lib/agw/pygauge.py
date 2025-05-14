@@ -27,7 +27,6 @@
 
 """:class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
 
-
 Description
 ===========
 

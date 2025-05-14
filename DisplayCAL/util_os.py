@@ -416,8 +416,7 @@ def getgroups(username: Optional[str] = None, names_only: bool = False) -> list[
     """
     if sys.platform == "win32":
         return _getgroups_win32(username, names_only)
-    else:
-        return _getgroups_unix(username, names_only)
+    return _getgroups_unix(username, names_only)
 
 
 def _getgroups_win32(
@@ -520,11 +519,10 @@ def is_superuser() -> bool:
     if sys.platform == "win32":
         if sys.getwindowsversion() >= (5, 1):
             return bool(ctypes.windll.shell32.IsUserAnAdmin())
-        else:
-            try:
-                return bool(ctypes.windll.advpack.IsNTAdmin(0, 0))
-            except Exception:
-                return False
+        try:
+            return bool(ctypes.windll.advpack.IsNTAdmin(0, 0))
+        except Exception:
+            return False
     else:
         return os.geteuid() == 0
 

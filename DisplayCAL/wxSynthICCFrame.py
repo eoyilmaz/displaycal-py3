@@ -722,8 +722,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     path = get_data_path(path)
                 if not path:
                     return "fail"
-                else:
-                    self.droptarget.OnDropFiles(0, 0, [path])
+                self.droptarget.OnDropFiles(0, 0, [path])
             return "ok"
         return "invalid"
 

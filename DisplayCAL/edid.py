@@ -160,10 +160,9 @@ def get_edid_windows(display_no, device):
 
     if wmi_connection:
         return get_edid_windows_wmi(id_, wmi_connection, not_main_thread)
-    elif sys.getwindowsversion() < (6,):
+    if sys.getwindowsversion() < (6,):
         return get_edid_windows_registry(id_, device)
-    else:
-        raise WMIError("No WMI connection")
+    raise WMIError("No WMI connection")
 
     return edid
 

@@ -184,7 +184,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
 
             app_update_check(parent, silent, argyll=True)
             return False
-        elif dlg_result == wx.ID_CANCEL:
+        if dlg_result == wx.ID_CANCEL:
             if callafter:
                 callafter(*callafter_args)
             return False
@@ -252,8 +252,7 @@ def check_set_argyll_bin(paths: Optional[list[str]] = None) -> bool:
     """
     if check_argyll_bin(paths):
         return True
-    else:
-        return set_argyll_bin()
+    return set_argyll_bin()
 
 
 def get_argyll_util(name, paths=None):
@@ -278,7 +277,7 @@ def get_argyll_util(name, paths=None):
     exe = argyll_utils.get(cache_key, {}).get(name, None)
     if exe:
         return exe
-    elif verbose >= 4:
+    if verbose >= 4:
         print("Info: Searching for", name, "in", os.pathsep.join(paths))
     for path in paths:
         for altname in argyll_altnames.get(name, []):

@@ -366,10 +366,9 @@ if "gtk3" in wx.PlatformInfo:
                 and state == wx.LIST_STATE_SELECTED
             ):
                 return self.GetSelectedRow()
-            else:
-                raise NotImplementedError(
-                    "GetNextItem is only implemented for returning the selected row"
-                )
+            raise NotImplementedError(
+                "GetNextItem is only implemented for returning the selected row"
+            )
 
         def GetItemCount(self):
             return len(self._items)
@@ -380,12 +379,10 @@ if "gtk3" in wx.PlatformInfo:
             if stateMask == wx.LIST_STATE_SELECTED:
                 if self.GetSelectedRow() == row:
                     return wx.LIST_STATE_SELECTED
-                else:
-                    return 0
-            else:
-                raise NotImplementedError(
-                    "GetItemState is only implemented to check if a row is selected"
-                )
+                return 0
+            raise NotImplementedError(
+                "GetItemState is only implemented to check if a row is selected"
+            )
 
         def Select(self, row, on=1):
             if on:
@@ -813,13 +810,12 @@ def get_dc_font_scale(dc):
         not isinstance(dc, wx.GCDC) and "gtk3" not in wx.PlatformInfo
     ):
         return sum(pointsize) / 2.0
-    else:
-        # On Linux, we need to correct the font size by a certain factor if
-        # wx.GCDC is used, to make text the same size as if wx.GCDC weren't used
-        from DisplayCAL.config import get_default_dpi, getcfg, set_default_app_dpi
+    # On Linux, we need to correct the font size by a certain factor if
+    # wx.GCDC is used, to make text the same size as if wx.GCDC weren't used
+    from DisplayCAL.config import get_default_dpi, getcfg, set_default_app_dpi
 
-        set_default_app_dpi()
-        scale = getcfg("app.dpi") / get_default_dpi()
+    set_default_app_dpi()
+    scale = getcfg("app.dpi") / get_default_dpi()
     if wx.VERSION < (2, 9):
         # On Linux, we need to correct the font size by a certain factor if
         # wx.GCDC is used, to make text the same size as if wx.GCDC weren't used
@@ -1492,8 +1488,7 @@ class PlateButton(platebtn.PlateButton):
             ypos = (self.GetSize()[1] - bh) // 2
             gc.DrawBitmap(bmp, int(xpos), int(ypos), bmp.GetMask() is not None)
             return bw + xpos
-        else:
-            return xpos
+        return xpos
 
     def __DrawButton(self):
         """Draw the button"""

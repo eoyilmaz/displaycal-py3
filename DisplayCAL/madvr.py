@@ -297,9 +297,8 @@ def inet_pton(ip_string):
         return "".join(
             [unhexlify(block.rjust(4, "0")) for block in ip_string.split(":")]
         )
-    else:
-        # IPv4
-        return "".join([chr(int(block)) for block in ip_string.split(".")])
+    # IPv4
+    return "".join([chr(int(block)) for block in ip_string.split(".")])
 
 
 def trunc(value, length):
@@ -754,8 +753,7 @@ class MadTPG(MadTPGBase):
         """Shows a specific RGB color test pattern"""
         if None not in (bgr, bgg, bgb):
             return self.mad.madVR_ShowRGBEx(r, g, b, bgr, bgg, bgb)
-        else:
-            return self.mad.madVR_ShowRGB(r, g, b)
+        return self.mad.madVR_ShowRGB(r, g, b)
 
     @property
     def uri(self):

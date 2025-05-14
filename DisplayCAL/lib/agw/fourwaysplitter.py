@@ -953,8 +953,7 @@ class FourWaySplitter(wx.Panel):
 
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).widthSash
-        else:
-            return 5
+        return 5
 
     def _GetBorderSize(self) -> int:
         """Use internally.
@@ -964,8 +963,7 @@ class FourWaySplitter(wx.Panel):
         """
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).border
-        else:
-            return 0
+        return 0
 
     # Draw the horizontal split
     def DrawSplitter(self, dc: wx.DC) -> None:

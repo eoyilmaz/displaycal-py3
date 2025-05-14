@@ -1613,10 +1613,10 @@ class ArtManager(wx.EvtHandler):
                 or version.find("NT") >= 0
             )
             return found
-        elif wx.Platform == "__WXMAC__":  # noqa: SIM103
+        if wx.Platform == "__WXMAC__":  # noqa: SIM103
             return True
-        else:  # Linux
-            return False
+        # Linux
+        return False
 
     def MakeWindowTransparent(self, wnd, amount):
         """Make a toplevel window transparent if the system supports it.
@@ -1756,8 +1756,7 @@ class ArtManager(wx.EvtHandler):
             if drop:
                 if csstyle & CS_DROPSHADOW:
                     return
-                else:
-                    csstyle |= CS_DROPSHADOW  # Nothing to be done
+                csstyle |= CS_DROPSHADOW  # Nothing to be done
             elif csstyle & CS_DROPSHADOW:
                 csstyle &= ~(CS_DROPSHADOW)
             else:
@@ -2144,8 +2143,7 @@ class ArtManager(wx.EvtHandler):
         """
         if not useLightColours and not self.IsDark(self.FrameColour()):
             return wx.Colour("GOLD")
-        else:
-            return self.LightColour(self.FrameColour(), 30)
+        return self.LightColour(self.FrameColour(), 30)
 
     def GetAlignBuffer(self) -> int:
         """Return the padding buffer for a text or bitmap.

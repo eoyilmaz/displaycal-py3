@@ -77,7 +77,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
         if not audio_lib:
             raise RuntimeError("No suitable audio library found!")
         return audio_lib
-    elif lib == "pyglet":
+    if lib == "pyglet":
         if not getattr(sys, "frozen", False):
             # Use included pyglet
             lib_dir = os.path.join(os.path.dirname(__file__), "lib")
@@ -228,16 +228,15 @@ def Sound(filename, loop=False, raise_exceptions=False):
     if (filename, loop) in _sounds:
         # Cache hit
         return _sounds[(filename, loop)]
-    else:
-        try:
-            sound = _Sound(filename, loop)
-        except Exception as exception:
-            if raise_exceptions:
-                raise exception
-            print(exception)
-            sound = _Sound(None, loop)
-        _sounds[(filename, loop)] = sound
-        return sound
+    try:
+        sound = _Sound(filename, loop)
+    except Exception as exception:
+        if raise_exceptions:
+            raise exception
+        print(exception)
+        sound = _Sound(None, loop)
+    _sounds[(filename, loop)] = sound
+    return sound
 
 
 class DummySound:
@@ -386,7 +385,7 @@ class _Sound:
             fade_in = not self.volume
         if fade_in and not self.is_playing:
             return self.play(fade_ms=fade_ms)
-        elif self._snd and self._lib != "wx":
+        if self._snd and self._lib != "wx":
             self._thread += 1
             threading.Thread(
                 target=self._fade,
@@ -400,7 +399,7 @@ class _Sound:
     def is_playing(self):
         if self._lib == "pyo":
             return bool(self._snd and self._snd.isOutputting())
-        elif self._lib == "pyglet":
+        if self._lib == "pyglet":
             return bool(
                 self._ch
                 and self._ch.playing
@@ -410,7 +409,7 @@ class _Sound:
                     or time.time() - self._play_timestamp < self._ch.source.duration
                 )
             )
-        elif self._lib == "SDL":
+        if self._lib == "SDL":
             return bool(self._ch is not None and self._server.Mix_Playing(self._ch))
         return self._is_playing
 
@@ -511,8 +510,7 @@ class _Sound:
             else:
                 self._snd.stop()
             return True
-        else:
-            return False
+        return False
 
 
 if __name__ == "__main__":

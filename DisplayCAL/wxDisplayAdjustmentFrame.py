@@ -173,8 +173,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         if self.PointOnSash(pt):
             return -1, IMG_OVER_EW_BORDER
-        else:
-            return -1, IMG_NONE
+        return -1, IMG_NONE
 
     def OnPaint(self, event):
         """Handles the ``wx.EVT_PAINT`` event for L{ImageContainer}.

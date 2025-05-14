@@ -1287,8 +1287,7 @@ END_DATA"""
                     path = get_data_path(path)
                 if not path:
                     return "fail"
-                else:
-                    self.droptarget.OnDropFiles(0, 0, [path])
+                self.droptarget.OnDropFiles(0, 0, [path])
             elif len(data) == 3:
                 # Create testchart
                 wx.CallAfter(self.tc_preview_handler, path=data[2])
@@ -1448,8 +1447,7 @@ END_DATA"""
                     elif self.ti1.modified:
                         self.tc_save_handler(True)
                 return
-            else:
-                event.Skip()
+            event.Skip()
         else:
             event.Skip()
 
@@ -2257,7 +2255,7 @@ END_DATA"""
                     self.worker.wrapup(False)
                 if isinstance(result, Exception):
                     return result
-                elif result:
+                if result:
                     if use_gamut:
                         chart = gam
                     else:
@@ -3301,10 +3299,9 @@ END_DATA"""
             if self.Parent:
                 setcfg("tc.show", 0)
                 return True
-            else:
-                self.writecfg()
-                # Need to use CallAfter to prevent hang under Windows if minimized
-                wx.CallAfter(self.Destroy)
+            self.writecfg()
+            # Need to use CallAfter to prevent hang under Windows if minimized
+            wx.CallAfter(self.Destroy)
         elif isinstance(event, wx.CloseEvent) and event.CanVeto():
             event.Veto()
         return None
@@ -3854,12 +3851,11 @@ END_DATA"""
             self.tc_update_controls()
             self.tc_preview(True)
             return True
-        else:
-            print(lang.getstr("aborted"))
-            if self.Parent and hasattr(self.Parent, "start_timers"):
-                self.Parent.start_timers()
-            if isinstance(result, Exception):
-                show_result_dialog(result, self)
+        print(lang.getstr("aborted"))
+        if self.Parent and hasattr(self.Parent, "start_timers"):
+            self.Parent.start_timers()
+        if isinstance(result, Exception):
+            show_result_dialog(result, self)
         return False
 
     def tc_get_increments(self, channel, vmaxlen=4):

@@ -975,8 +975,7 @@ class GamutViewOptions(wx_Panel):
             self.direction_select.SetSelection(index)
         if self.direction_select.IsShown():
             return {0: "f", 1: "ib"}.get(self.direction_select.GetSelection())
-        else:
-            return "f"
+        return "f"
 
     def draw(self, center=False):
         index = self.whitepoint_select.GetSelection()
@@ -1894,8 +1893,7 @@ class ProfileInfoFrame(LUTFrame):
             if key == 83 and self.profile:  # S
                 self.SaveFile()
                 return
-            else:
-                event.Skip()
+            event.Skip()
         elif key in (43, wx.WXK_NUMPAD_ADD):
             # + key zoom in
             self.client.zoom(-1)
@@ -1933,8 +1931,7 @@ class ProfileInfoFrame(LUTFrame):
                     path = get_data_path(path)
                 if not path:
                     return "fail"
-                else:
-                    self.droptarget.OnDropFiles(0, 0, [path])
+                self.droptarget.OnDropFiles(0, 0, [path])
             return "ok"
         return "invalid"
 

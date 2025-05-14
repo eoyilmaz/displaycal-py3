@@ -50,10 +50,9 @@ def specialpow(a, b, slope_limit=0):
             if slope_limit:
                 return min(-math.pow(-a, b), a / slope_limit)
             return -math.pow(-a, b)
-        else:
-            if slope_limit:
-                return max(math.pow(a, b), a / slope_limit)
-            return math.pow(a, b)
+        if slope_limit:
+            return max(math.pow(a, b), a / slope_limit)
+        return math.pow(a, b)
     if a < 0.0:
         signScale = -1.0
         a = -a
@@ -137,32 +136,31 @@ def DICOM(j, inverse=False):
             + H * math.pow(log10Y, 7)
             + I * math.pow(log10Y, 8)
         )
-    else:
-        logj = math.log(j)
-        a = -1.3011877
-        b = -2.5840191e-2
-        c = 8.0242636e-2
-        d = -1.0320229e-1
-        e = 1.3646699e-1
-        f = 2.8745620e-2
-        g = -2.5468404e-2
-        h = -3.1978977e-3
-        k = 1.2992634e-4
-        m = 1.3635334e-3
-        return (
-            a
-            + c * logj
-            + e * math.pow(logj, 2)
-            + g * math.pow(logj, 3)
-            + m * math.pow(logj, 4)
-        ) / (
-            1
-            + b * logj
-            + d * math.pow(logj, 2)
-            + f * math.pow(logj, 3)
-            + h * math.pow(logj, 4)
-            + k * math.pow(logj, 5)
-        )
+    logj = math.log(j)
+    a = -1.3011877
+    b = -2.5840191e-2
+    c = 8.0242636e-2
+    d = -1.0320229e-1
+    e = 1.3646699e-1
+    f = 2.8745620e-2
+    g = -2.5468404e-2
+    h = -3.1978977e-3
+    k = 1.2992634e-4
+    m = 1.3635334e-3
+    return (
+        a
+        + c * logj
+        + e * math.pow(logj, 2)
+        + g * math.pow(logj, 3)
+        + m * math.pow(logj, 4)
+    ) / (
+        1
+        + b * logj
+        + d * math.pow(logj, 2)
+        + f * math.pow(logj, 3)
+        + h * math.pow(logj, 4)
+        + k * math.pow(logj, 5)
+    )
 
 
 class HLG:
@@ -713,22 +711,21 @@ def interp_old(x, xp, fp, left=None, right=None):
         return yi
     if x in xp:
         return fp[xp.index(x)]
-    elif x < xp[0]:
+    if x < xp[0]:
         return fp[0] if left is None else left
-    elif x > xp[-1]:
+    if x > xp[-1]:
         return fp[-1] if right is None else right
-    else:
-        # Interpolate
-        lower = 0
-        higher = len(fp) - 1
-        for i, v in enumerate(xp):
-            if v < x and i > lower:
-                lower = i
-            elif v > x and i < higher:
-                higher = i
-        step = float(x - xp[lower])
-        steps = (xp[higher] - xp[lower]) / step
-        return fp[lower] + (fp[higher] - fp[lower]) / steps
+    # Interpolate
+    lower = 0
+    higher = len(fp) - 1
+    for i, v in enumerate(xp):
+        if v < x and i > lower:
+            lower = i
+        elif v > x and i < higher:
+            higher = i
+    step = float(x - xp[lower])
+    steps = (xp[higher] - xp[lower]) / step
+    return fp[lower] + (fp[higher] - fp[lower]) / steps
 
 
 # This is much faster than the old implementation
@@ -1215,12 +1212,10 @@ def get_gamma(values, scale=1.0, vmin=0.0, vmax=1.0, average=True, least_squares
             if not logxy or not logx2:
                 return 0
             return sum(logxy) / sum(logx2)
-        else:
-            if not gammas:
-                return 0
-            return sum(gammas) / len(gammas)
-    else:
-        return gammas
+        if not gammas:
+            return 0
+        return sum(gammas) / len(gammas)
+    return gammas
 
 
 def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
@@ -1299,15 +1294,13 @@ def cLUT65_to_VidRGB(v, size=65):
     if v <= 236.0 / 256:
         # Scale up to near black point
         return v * 256.0 / 255
-    else:
-        return 1 - (1 - v) * (1 - 236.0 / 255) / (1 - 236.0 / 256)
+    return 1 - (1 - v) * (1 - 236.0 / 255) / (1 - 236.0 / 256)
 
 
 def VidRGB_to_cLUT65(v, size=65):
     if v <= 236.0 / 255.0:
         return v * 255.0 / 256
-    else:
-        return 1 - (1 - v) * (1 - 236.0 / 256) / (1 - 236.0 / 255)
+    return 1 - (1 - v) * (1 - 236.0 / 256) / (1 - 236.0 / 255)
 
 
 def VidRGB_to_eeColor(v):
@@ -3217,8 +3210,7 @@ class Interp:
     def _interp(self, x):
         if self.use_numpy:
             return numpy.interp(x, self.xp, self.fp, self.left, self.right)
-        else:
-            return interp(x, self.xp, self.fp, self.left, self.right)
+        return interp(x, self.xp, self.fp, self.left, self.right)
 
 
 class BT1886:

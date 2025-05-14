@@ -152,19 +152,16 @@ class Tag:
                 if source and not basename.endswith(".swf"):
                     if basename.endswith(".css"):
                         return f"<style>{body}</style>"
-                    elif basename.endswith(".js"):
+                    if basename.endswith(".js"):
                         return f"<script>{body}"
-                    else:
-                        return body
-                else:
-                    return "file:///" + str(cachefilename).lstrip("/").replace(
-                        os.path.sep, "/"
-                    )
-            else:
-                _safe_print("Error: Empty document:", url)
-                if os.path.isfile(cachefilename):
-                    _safe_print("Removing", cachefilename)
-                    os.remove(cachefilename)
+                    return body
+                return "file:///" + str(cachefilename).lstrip("/").replace(
+                    os.path.sep, "/"
+                )
+            _safe_print("Error: Empty document:", url)
+            if os.path.isfile(cachefilename):
+                _safe_print("Removing", cachefilename)
+                os.remove(cachefilename)
             return None
 
         # Get HTML template from cache or online

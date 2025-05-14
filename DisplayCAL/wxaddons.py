@@ -257,8 +257,7 @@ def gamma_encode(R, G, B, alpha=wx.ALPHA_OPAQUE):
         ]
         RGBa.append(alpha)
         return RGBa
-    else:
-        return [R, G, B, alpha]
+    return [R, G, B, alpha]
 
 
 def get_platform_window_decoration_size():

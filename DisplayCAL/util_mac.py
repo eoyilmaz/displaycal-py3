@@ -18,8 +18,7 @@ def get_osascript_args_or_run(applescript, run=True):
     """Return arguments ready to use for osascript or run the AppleScript"""
     if run:
         return osascript(applescript)
-    else:
-        return get_osascript_args(applescript)
+    return get_osascript_args(applescript)
 
 
 def mac_app_activate(delay=0, mac_app_name="Finder"):

@@ -878,8 +878,7 @@ class ImageContainerBase(wx.Panel):
 
         if self.PointOnSash(pt):
             return -1, IMG_OVER_EW_BORDER
-        else:
-            return -1, IMG_NONE
+        return -1, IMG_NONE
 
     def PointOnSash(self, pt: wx.Point) -> bool:
         """Test whether pt is located on the sash.
@@ -1345,8 +1344,7 @@ class ImageContainer(ImageContainerBase):
 
         if style & (ImageBookStyle.INB_RIGHT | ImageBookStyle.INB_LEFT):
             return wx.Rect(1, pos, rectWidth, rectHeight)
-        else:
-            return wx.Rect(pos, 1, rectWidth, rectHeight)
+        return wx.Rect(pos, 1, rectWidth, rectHeight)
 
     def _draw_button(
         self,
@@ -1417,10 +1415,9 @@ class ImageContainer(ImageContainerBase):
             return wx.Rect(
                 buttonRect.x + 1, buttonRect.y, buttonRect.width - 1, buttonRect.height
             )
-        else:
-            return wx.Rect(
-                buttonRect.x, buttonRect.y + 1, buttonRect.width, buttonRect.height - 1
-            )
+        return wx.Rect(
+            buttonRect.x, buttonRect.y + 1, buttonRect.width, buttonRect.height - 1
+        )
 
     def _draw_button_content(
         self,

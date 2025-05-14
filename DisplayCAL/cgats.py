@@ -67,8 +67,7 @@ def sort_RGB_gray_to_top(a, b):
         if b[0] == b[1] == b[2]:
             return 0
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_RGB_to_top_factory(i1, i2, i3, i4):
@@ -77,8 +76,7 @@ def sort_RGB_to_top_factory(i1, i2, i3, i4):
             if b[i1] == b[i2] and 0 <= b[i3] < b[i4]:
                 return 0
             return -1
-        else:
-            return 0
+        return 0
 
     return sort_RGB_to_top
 
@@ -96,10 +94,9 @@ def sort_by_HSI(a, b):
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_HSL(a, b):
@@ -109,10 +106,9 @@ def sort_by_HSL(a, b):
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_HSV(a, b):
@@ -122,48 +118,43 @@ def sort_by_HSV(a, b):
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_RGB(a, b):
     if a[:3] > b[:3]:
         return 1
-    elif a[:3] < b[:3]:
+    if a[:3] < b[:3]:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_BGR(a, b):
     if a[:3][::-1] > b[:3][::-1]:
         return 1
-    elif a[:3] == b[:3]:
+    if a[:3] == b[:3]:
         return 0
-    else:
-        return -1
+    return -1
 
 
 def sort_by_RGB_sum(a, b):
     sum1, sum2 = sum(a[:3]), sum(b[:3])
     if sum1 > sum2:
         return 1
-    elif sum1 < sum2:
+    if sum1 < sum2:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_RGB_pow_sum(a, b):
     sum1, sum2 = sum(v**2.2 for v in a[:3]), sum(v**2.2 for v in b[:3])
     if sum1 > sum2:
         return 1
-    elif sum1 < sum2:
+    if sum1 < sum2:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def stable_sort_by_L(a, b):
@@ -174,10 +165,9 @@ def sort_by_L(a, b, stable=False):
     def sort(a1, b1):
         if a1 > b1:
             return 1
-        elif a1 < b1:
+        if a1 < b1:
             return -1
-        else:
-            return 0
+        return 0
 
     Lab1 = colormath.XYZ2Lab(*a[3:])
     Lab2 = colormath.XYZ2Lab(*b[3:])
@@ -187,8 +177,7 @@ def sort_by_L(a, b, stable=False):
             if v != 0:
                 return v
         return 0
-    else:
-        return sort(Lab1[0], Lab2[0])
+    return sort(Lab1[0], Lab2[0])
 
 
 def sort_by_luma_factory(RY, GY, BY, gamma=1):
@@ -197,10 +186,9 @@ def sort_by_luma_factory(RY, GY, BY, gamma=1):
         b = RY * b[0] ** gamma + GY * b[1] ** gamma + BY * b[2] ** gamma
         if a > b:
             return 1
-        elif a < b:
+        if a < b:
             return -1
-        else:
-            return 0
+        return 0
 
     return sort_by_luma
 
@@ -485,15 +473,14 @@ class CGATS(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        else:
-            raise AttributeError(name)
+        raise AttributeError(name)
 
     def __getitem__(self, name):
         if name == -1:
             return self.get(len(self) - 1)
-        elif name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
+        if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
             return getattr(self, name)
-        elif name in self:
+        if name in self:
             if str(name).upper() in ("INDEX", "SAMPLE_ID", "SAMPLEID"):
                 if not isinstance(self.get(name), (int, float)):
                     return self.get(name)
@@ -516,10 +503,9 @@ class CGATS(dict):
     def get(self, name, default=None):
         if name == -1:
             return dict.get(self, len(self) - 1, default)
-        elif name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
+        if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
             return getattr(self, name, default)
-        else:
-            return dict.get(self, name, default)
+        return dict.get(self, name, default)
 
     def get_colorants(self):
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
@@ -786,7 +772,7 @@ class CGATS(dict):
         data = self.queryv1("DATA")
         if not data:
             return False
-        elif field_names:
+        if field_names:
             data = data.queryi(field_names)
         return data
 
@@ -2348,17 +2334,15 @@ Transform {
             if colorspace == "XYZ":
                 if "XYZ_X" in white:
                     return white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                else:
-                    return colormath.Lab2XYZ(
-                        white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
-                    )
-            elif colorspace == "Lab":
+                return colormath.Lab2XYZ(
+                    white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
+                )
+            if colorspace == "Lab":
                 if "LAB_L" in white:
                     return white["LAB_L"], white["LAB_A"], white["LAB_B"]
-                else:
-                    return colormath.XYZ2Lab(
-                        white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                    )
+                return colormath.XYZ2Lab(
+                    white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
+                )
             return white
         return None
 

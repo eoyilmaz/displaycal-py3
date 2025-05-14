@@ -165,8 +165,7 @@ def AngleFromPoint(pt, center):
     if x == 0 and y == 0:
         return 0.0
 
-    else:
-        return atan2(y, x)
+    return atan2(y, x)
 
 
 class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
@@ -348,12 +347,11 @@ class AuiManager_LRDocking(aui.AuiManager):
 
         if target.IsToolbar():
             return self.DoDropToolbar(docks, panes, target, pt, offset)
-        else:
-            if target.IsFloating():
-                allow, hint = self.DoDropFloatingPane(docks, panes, target, pt)
-                if allow:
-                    return allow, hint
-            return self.DoDropNonFloatingPane(docks, panes, target, pt)
+        if target.IsFloating():
+            allow, hint = self.DoDropFloatingPane(docks, panes, target, pt)
+            if allow:
+                return allow, hint
+        return self.DoDropNonFloatingPane(docks, panes, target, pt)
 
     def DoDropNonFloatingPane(self, docks, panes, target, pt):
         """Handles the situation in which the dropped pane is not floating.

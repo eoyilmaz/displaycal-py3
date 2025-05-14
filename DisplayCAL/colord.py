@@ -166,7 +166,7 @@ def device_id_from_edid(
         device_id = device_ids.get(edid["hash"])
         if device_id:
             return device_id
-        elif (
+        if (
             sys.platform not in ("darwin", "win32")
             and query
             and isinstance(Colord, DBusObject)
@@ -240,8 +240,7 @@ def get_default_profile(device_id):
         profiles = properties.get("Profiles")
         if profiles:
             return profiles[0]
-        else:
-            raise CDError(f"Couldn't get default profile for device ID {device_id!r}")
+        raise CDError(f"Couldn't get default profile for device ID {device_id!r}")
 
 
 def get_devices_by_kind(kind):

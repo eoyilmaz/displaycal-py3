@@ -332,8 +332,7 @@ def run(
     if withexitstatus:
         child.close()
         return child_result, child.exitstatus
-    else:
-        return child_result
+    return child_result
 
 
 def spawn(
@@ -380,10 +379,9 @@ def spawn(
             columns,
             rows,
         )
-    else:
-        return spawn_unix(
-            command, args, timeout, maxread, searchwindowsize, logfile, cwd, env
-        )
+    return spawn_unix(
+        command, args, timeout, maxread, searchwindowsize, logfile, cwd, env
+    )
 
 
 class spawn_unix:
@@ -1032,8 +1030,7 @@ class spawn_unix:
         index = self.expect(["\r\n", self.delimiter])  # delimiter default is EOF
         if index == 0:
             return self.before + "\r\n"
-        else:
-            return self.before
+        return self.before
 
     def __iter__(self):  # File-like object.
         """This is to support iterators over a file-like object."""
@@ -1523,10 +1520,9 @@ class spawn_unix:
                 self.match = EOF
                 self.match_index = index
                 return self.match_index
-            else:
-                self.match = None
-                self.match_index = None
-                raise EOF(str(e) + "\n" + str(self)) from e
+            self.match = None
+            self.match_index = None
+            raise EOF(str(e) + "\n" + str(self)) from e
         except TIMEOUT as e:
             self.buffer = incoming
             self.before = incoming
@@ -1536,10 +1532,9 @@ class spawn_unix:
                 self.match = TIMEOUT
                 self.match_index = index
                 return self.match_index
-            else:
-                self.match = None
-                self.match_index = None
-                raise TIMEOUT(str(e) + "\n" + str(self)) from e
+            self.match = None
+            self.match_index = None
+            raise TIMEOUT(str(e) + "\n" + str(self)) from e
         except Exception:
             self.before = incoming
             self.after = None
@@ -2026,12 +2021,11 @@ class spawn_windows(spawn_unix):
 
         if self.wtty.isalive():
             return True
-        else:
-            self.exitstatus = GetExitCodeProcess(self.wtty.getchild())
-            # left-shift exit status by 8 bits like os.waitpid
-            self.status = self.exitstatus << 8
-            self.terminated = True
-            return False
+        self.exitstatus = GetExitCodeProcess(self.wtty.getchild())
+        # left-shift exit status by 8 bits like os.waitpid
+        self.status = self.exitstatus << 8
+        self.terminated = True
+        return False
 
     def getwinsize(self):
         """This returns the terminal window size of the child tty. The return

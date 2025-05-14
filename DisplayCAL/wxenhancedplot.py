@@ -441,10 +441,8 @@ class PolyPoints:
                 if self._logscale[1]:
                     data = self.log10(data, 1)
                 return data
-            else:
-                return self._points
-        else:
-            raise AttributeError(name)
+            return self._points
+        raise AttributeError(name)
 
     def log10(self, data, ind):
         data = np.compress(data[:, ind] > 0, data, 0)
@@ -2183,17 +2181,16 @@ class PlotCanvas(wx.Panel):
         font = self._fontCache.get(key, None)
         if font:
             return font  # yeah! cache hit
-        else:
-            kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
-            font = wx.Font(
-                int(s),
-                of.GetFamily(),
-                of.GetStyle(),
-                of.GetWeight(),
-                **{kwarg: of.GetFaceName()},
-            )
-            self._fontCache[key] = font
-            return font
+        kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
+        font = wx.Font(
+            int(s),
+            of.GetFamily(),
+            of.GetStyle(),
+            of.GetWeight(),
+            **{kwarg: of.GetFaceName()},
+        )
+        self._fontCache[key] = font
+        return font
 
     def _point2ClientCoord(self, corner1, corner2):
         """Converts user point coords to client screen int coords x,y,width,height"""
@@ -2214,9 +2211,8 @@ class PlotCanvas(wx.Panel):
         if spec == "none" or spec == "min" or isinstance(spec, (float, int)):
             if lower == upper:
                 return lower - 0.5, upper + 0.5
-            else:
-                return lower, upper
-        elif spec == "auto":
+            return lower, upper
+        if spec == "auto":
             range = upper - lower
             if range == 0.0:
                 return lower - 0.5, upper + 0.5
@@ -2231,14 +2227,12 @@ class PlotCanvas(wx.Panel):
             if mod != 0:
                 upper = upper - mod + grid
             return lower, upper
-        elif isinstance(spec, tuple):
+        if isinstance(spec, tuple):
             lower, upper = spec
             if lower <= upper:
                 return lower, upper
-            else:
-                return upper, lower
-        else:
-            raise ValueError(str(spec) + ": illegal axis specification")
+            return upper, lower
+        raise ValueError(str(spec) + ": illegal axis specification")
 
     def _drawAxes(self, dc, p1, p2, scale, shift, xticks, yticks):
         penWidth = (
@@ -2466,16 +2460,14 @@ class PlotCanvas(wx.Panel):
     def _xticks(self, *args):
         if self._logscale[0]:
             return self._logticks(*args)
-        else:
-            attr = {"numticks": self._xSpec}
-            return self._ticks(*args, **attr)
+        attr = {"numticks": self._xSpec}
+        return self._ticks(*args, **attr)
 
     def _yticks(self, *args):
         if self._logscale[1]:
             return self._logticks(*args)
-        else:
-            attr = {"numticks": self._ySpec}
-            return self._ticks(*args, **attr)
+        attr = {"numticks": self._ySpec}
+        return self._ticks(*args, **attr)
 
     def _logticks(self, lower, upper):
         # lower,upper = map(np.log10,[lower,upper])

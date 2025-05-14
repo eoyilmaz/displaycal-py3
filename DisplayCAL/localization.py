@@ -107,10 +107,9 @@ def getstr(id_str, strvars=None, lcode=None, default=None):
                     strvars[i] = s
                 lstr %= tuple(strvars)
         return lstr
-    else:
-        if debug and id_str and not isinstance(id_str, str) and " " not in id_str:
-            usage[id_str] = 0
-        return default or id_str
+    if debug and id_str and not isinstance(id_str, str) and " " not in id_str:
+        usage[id_str] = 0
+    return default or id_str
 
 
 def gettext(text):

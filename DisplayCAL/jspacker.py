@@ -112,12 +112,10 @@ class ParseMaster:
                 replacement = pattern.replacement
                 if callable(replacement):
                     return replacement(match, i)
-                elif isinstance(replacement, int):
+                if isinstance(replacement, int):
                     return match.group(replacement + i)
-                else:
-                    return replacement
-            else:
-                i = i + pattern.length
+                return replacement
+            i = i + pattern.length
 
         return None
 
@@ -261,9 +259,9 @@ class JavaScriptPacker:
 
         if ascii <= 10:
             return encode10
-        elif ascii <= 36:
+        if ascii <= 36:
             return encode36
-        elif ascii <= 62:
+        if ascii <= 62:
             return encode62
         return encode95
 

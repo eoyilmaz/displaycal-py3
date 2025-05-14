@@ -802,16 +802,14 @@ def create_synthetic_hdr_clut_profile(
                 v = colormath.convert_range(v, 0, bt2390.mmaxi, 0, 1)
                 v = colormath.specialpow(v, 1.0 / encpow, 2)
                 return colormath.convert_range(v, 0, 1, 0, bt2390.mmaxi)
-            else:
-                return v
+            return v
 
         def encf_inverse(v):
             if v < bt2390.mmaxi:
                 v = colormath.convert_range(v, 0, bt2390.mmaxi, 0, 1)
                 v = colormath.specialpow(v, encpow, 2)
                 return colormath.convert_range(v, 0, 1, 0, bt2390.mmaxi)
-            else:
-                return v
+            return v
 
     elif hdr_format == "HLG":
         # Note: Unlike the PQ black level lift, we apply HLG black offset as
@@ -2226,12 +2224,11 @@ def get_display_profile(
         return get_display_profile_windows(
             display_no, path_only, devicekey, use_active_display_device, use_registry
         )
-    elif sys.platform == "darwin":
+    if sys.platform == "darwin":
         return get_display_profile_macos(display_no, path_only)
-    else:
-        return get_display_profile_linux(
-            display_no, x_hostname, x_display, x_screen, path_only
-        )
+    return get_display_profile_linux(
+        display_no, x_hostname, x_display, x_screen, path_only
+    )
 
 
 def get_display_profile_windows(
@@ -2550,9 +2547,8 @@ def set_display_profile(
         else:
             scope = WCS_PROFILE_MANAGEMENT_SCOPE["SYSTEM_WIDE"]
         return _wcs_set_display_profile(str(devicekey), profile_name, scope)
-    else:
-        # TODO: Implement for XP
-        return False
+    # TODO: Implement for XP
+    return False
 
 
 def unset_display_profile(
@@ -2571,9 +2567,8 @@ def unset_display_profile(
         else:
             scope = WCS_PROFILE_MANAGEMENT_SCOPE["SYSTEM_WIDE"]
         return _wcs_unset_display_profile(str(devicekey), profile_name, scope)
-    else:
-        # TODO: Implement for XP
-        return False
+    # TODO: Implement for XP
+    return False
 
 
 def _blend_blackpoint(row, bp_in, bp_out, wp=None, use_bpc=False, weight=False):
@@ -2910,7 +2905,7 @@ def videoCardGamma(tagData, tagSignature):
     tagType = uInt32Number(tagData[8:12])
     if tagType == 0:  # table
         return VideoCardGammaTableType(tagData, tagSignature)
-    elif tagType == 1:  # formula
+    if tagType == 1:  # formula
         return VideoCardGammaFormulaType(tagData, tagSignature)
     return None
 
@@ -2963,8 +2958,7 @@ class ADict(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        else:
-            return self.__getattribute__(name)
+        return self.__getattribute__(name)
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -3047,15 +3041,14 @@ class ICCProfileTag:
         """t.__repr__() <==> repr(t)"""
         if isinstance(self, dict):
             return dict.__repr__(self)
-        elif isinstance(self, UserString):
+        if isinstance(self, UserString):
             return UserString.__repr__(self)
-        elif isinstance(self, list):
+        if isinstance(self, list):
             return list.__repr__(self)
-        else:
-            cls = self.__class__
-            if not self:
-                return f"{cls.__module__}.{cls.__name__}()"
-            return f"{cls.__module__}.{cls.__name__}({self.tagData!r})"
+        cls = self.__class__
+        if not self:
+            return f"{cls.__module__}.{cls.__name__}()"
+        return f"{cls.__module__}.{cls.__name__}({self.tagData!r})"
 
 
 class Text(ICCProfileTag, bytes):
@@ -4375,8 +4368,7 @@ class CurveType(ICCProfileTag, list):
             if power >= 0.0 and not vmin:
                 self[:] = [power]
                 return
-            else:
-                size = 1024
+            size = 1024
         self[:] = []
         if not callable(power):
             exp = power
@@ -4441,37 +4433,32 @@ class ParametricCurveType(ICCProfileTag):
     def __apply(self, v):
         if len(self.params) == 1:
             return v ** self.params["g"]
-        elif len(self.params) == 3:
+        if len(self.params) == 3:
             # CIE 122-1966
             if v >= -self.params["b"] / self.params["a"]:
                 return (self.params["a"] * v + self.params["b"]) ** self.params["g"]
-            else:
-                return 0
-        elif len(self.params) == 4:
+            return 0
+        if len(self.params) == 4:
             # IEC 61966-3
             if v >= -self.params["b"] / self.params["a"]:
                 return (self.params["a"] * v + self.params["b"]) ** self.params[
                     "g"
                 ] + self.params["c"]
-            else:
-                return self.params["c"]
-        elif len(self.params) == 5:
+            return self.params["c"]
+        if len(self.params) == 5:
             # IEC 61966-2.1 (sRGB)
             if v >= self.params["d"]:
                 return (self.params["a"] * v + self.params["b"]) ** self.params["g"]
-            else:
-                return self.params["c"] * v
-        elif len(self.params) == 7:
+            return self.params["c"] * v
+        if len(self.params) == 7:
             if v >= self.params["d"]:
                 return (self.params["a"] * v + self.params["b"]) ** self.params[
                     "g"
                 ] + self.params["e"]
-            else:
-                return self.params["c"] * v + self.params["f"]
-        else:
-            raise NotImplementedError(
-                f"Invalid number of parameters: {len(self.params):d}"
-            )
+            return self.params["c"] * v + self.params["f"]
+        raise NotImplementedError(
+            f"Invalid number of parameters: {len(self.params):d}"
+        )
 
     def apply(self, v):
         # clip result to [0, 1]
@@ -4672,8 +4659,7 @@ class DictType(ICCProfileTag, AODict):
             return default
         if locale and "display_name" in item:
             return item.display_name.get_localized_string(*locale.split("_"))
-        else:
-            return name
+        return name
 
     def getvalue(self, name, default=None, locale="en_US"):
         """Convenience function to get (localized) values"""
@@ -4682,10 +4668,9 @@ class DictType(ICCProfileTag, AODict):
             return default
         if locale and "display_value" in item:
             return item.display_value.get_localized_string(*locale.split("_"))
-        elif isinstance(item, dict):
+        if isinstance(item, dict):
             return item.value
-        else:
-            return item
+        return item
 
     def setitem(self, name, value, display_name=None, display_value=None):
         """Convenience function to set items
@@ -4805,10 +4790,9 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
             if self[b"en"]:
                 return list(self[b"en"].values())[0]
             return ""
-        elif len(self):
+        if len(self):
             return list(list(self.values())[0].values())[0]
-        else:
-            return ""
+        return ""
 
     def add_localized_string(self, languagecode, countrycode, localized_string):
         """Convenience function for adding localized strings"""
@@ -5760,20 +5744,19 @@ class XYZType(ICCProfileTag, XYZNumber):
             # Go from XYZ under PCS illuminant to XYZ illuminant-relative
             XYZ.X, XYZ.Y, XYZ.Z = self.profile.tags.chad.inverted() * list(XYZ.values())
             return XYZ
-        elif self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")):
+        if self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")):
             # For profiles without 'chad' tag, the white/black point should
             # already be illuminant-relative
             return self
-        elif "chad" in self.profile.tags:
+        if "chad" in self.profile.tags:
             XYZ = self.__class__(profile=self.profile)
             # Go from XYZ under PCS illuminant to XYZ illuminant-relative
             XYZ.X, XYZ.Y, XYZ.Z = self.profile.tags.chad.inverted() * list(
                 self.values()
             )
             return XYZ
-        else:
-            # Go from XYZ under PCS illuminant to XYZ illuminant-relative
-            return self.adapt(pcs_illuminant, list(self.profile.tags.wtpt.values()))
+        # Go from XYZ under PCS illuminant to XYZ illuminant-relative
+        return self.adapt(pcs_illuminant, list(self.profile.tags.wtpt.values()))
 
     @property
     def pcs(self):
@@ -5789,9 +5772,8 @@ class XYZType(ICCProfileTag, XYZNumber):
                 return XYZ
             pcs_illuminant = list(self.profile.illuminant.values())
             return self.adapt(list(self.profile.tags.wtpt.values()), pcs_illuminant)
-        else:
-            # Values should already be under PCS illuminant
-            return self
+        # Values should already be under PCS illuminant
+        return self
 
     @property
     def tagData(self):
@@ -7313,7 +7295,7 @@ class ICCProfile:
             return colormath.guess_cat(
                 self.tags.chad, self.tags.chad.inverted() * illuminant, illuminant
             )
-        elif isinstance(self.tags.get("arts"), chromaticAdaptionTag):
+        if isinstance(self.tags.get("arts"), chromaticAdaptionTag):
             return self.tags.arts.get_cat() or (matrix and self.tags.arts)
         return None
 

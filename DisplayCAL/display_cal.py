@@ -661,7 +661,7 @@ def app_update_confirm(
                 fancy=False,
             )
         return
-    elif result != wx.ID_CANCEL:
+    if result != wx.ID_CANCEL:
         path = "/"
         if argyll:
             path += "argyll"
@@ -1164,17 +1164,16 @@ def upload_colorimeter_correction(parent=None, params=None):
             bitmap=geticon(32, "dialog-information"),
         )
         return
-    else:
-        # Upload
-        params["put"] = True
-        resp = http_request(
-            parent,
-            f"colorimetercorrections.{DOMAIN}",
-            "POST",
-            path,
-            params,
-            failure_msg=failure_msg,
-        )
+    # Upload
+    params["put"] = True
+    resp = http_request(
+        parent,
+        f"colorimetercorrections.{DOMAIN}",
+        "POST",
+        path,
+        params,
+        failure_msg=failure_msg,
+    )
     if resp is not False:
         if resp.status == 201:
             wx.CallAfter(
@@ -5795,7 +5794,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             path = self.worker.download(f"https://{DOMAIN}/spyd2")
             if isinstance(path, Exception):
                 return path
-            elif not path:
+            if not path:
                 # Cancelled
                 return None
         return self.enable_spyder2(path, asroot)
@@ -7410,12 +7409,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if isinstance(result, Exception):
                 return result
             return self.worker.exec_cmd(cmd, args, skip_scripts=True)
-        else:
-            wx.CallAfter(
-                show_result_dialog,
-                Error(lang.getstr("argyll.util.not_found", "spotread")),
-                self,
-            )
+        wx.CallAfter(
+            show_result_dialog,
+            Error(lang.getstr("argyll.util.not_found", "spotread")),
+            self,
+        )
         return None
 
     def measure_uniformity_consumer(self, result):
@@ -7446,38 +7444,37 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         "profile.share.avg_dE_too_high",
                         (f"{avg_dE76:.2f}", f"{threshold:.2f}"),
                     )
-                else:
-                    # Check for EDID metadata
-                    metadata = profile.tags.meta
-                    if "EDID_mnft" in metadata:
-                        # Check and correct manufacturer if necessary
-                        manufacturer = get_manufacturer_name(metadata["EDID_mnft"])
-                        if manufacturer:
-                            manufacturer = colord.quirk_manufacturer(manufacturer)
-                            if (
-                                "EDID_manufacturer" not in metadata
-                                or metadata["EDID_manufacturer"] != manufacturer
-                            ):
-                                metadata["EDID_manufacturer"] = manufacturer
-                    if (
-                        "EDID_model_id" not in metadata
-                        or (
-                            "EDID_model" not in metadata
-                            and metadata["EDID_model_id"] == "0"
-                        )
-                        or "EDID_mnft_id" not in metadata
-                        or "EDID_mnft" not in metadata
-                        or "EDID_manufacturer" not in metadata
-                        or "OPENICC_automatic_generated" not in metadata
-                    ):
-                        return lang.getstr("profile.share.meta_missing")
-                    if (
-                        "B2A0" in profile.tags
-                        and isinstance(profile.tags.B2A0, LUT16Type)
-                        and profile.tags.B2A0.input_entries_count < 1024
-                    ):
-                        # 1024 is the Argyll value for a medium quality profile
-                        return lang.getstr("profile.share.b2a_resolution_too_low")
+                # Check for EDID metadata
+                metadata = profile.tags.meta
+                if "EDID_mnft" in metadata:
+                    # Check and correct manufacturer if necessary
+                    manufacturer = get_manufacturer_name(metadata["EDID_mnft"])
+                    if manufacturer:
+                        manufacturer = colord.quirk_manufacturer(manufacturer)
+                        if (
+                            "EDID_manufacturer" not in metadata
+                            or metadata["EDID_manufacturer"] != manufacturer
+                        ):
+                            metadata["EDID_manufacturer"] = manufacturer
+                if (
+                    "EDID_model_id" not in metadata
+                    or (
+                        "EDID_model" not in metadata
+                        and metadata["EDID_model_id"] == "0"
+                    )
+                    or "EDID_mnft_id" not in metadata
+                    or "EDID_mnft" not in metadata
+                    or "EDID_manufacturer" not in metadata
+                    or "OPENICC_automatic_generated" not in metadata
+                ):
+                    return lang.getstr("profile.share.meta_missing")
+                if (
+                    "B2A0" in profile.tags
+                    and isinstance(profile.tags.B2A0, LUT16Type)
+                    and profile.tags.B2A0.input_entries_count < 1024
+                ):
+                    # 1024 is the Argyll value for a medium quality profile
+                    return lang.getstr("profile.share.b2a_resolution_too_low")
         else:
             return lang.getstr("profile.share.meta_missing")
 
@@ -8487,7 +8484,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 result = dlg.ShowModal()
                 if result == wx.ID_CANCEL:
                     return None
-                elif result != wx.ID_OK:
+                if result != wx.ID_OK:
                     profile = None
         if not profile:
             defaultDir, defaultFile = get_verified_path("last_icc_path")
@@ -10093,7 +10090,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ):
                         self.worker.madtpg.shutdown()
                     return None
-                elif result != wx.ID_OK:
+                if result != wx.ID_OK:
                     # Error
                     return False
         elif display_name in ("Resolve", "Web @ localhost") or display_name.startswith(
@@ -10613,9 +10610,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if can_use_current_cal and reset_cal:
                 self.reset_cal()
             return False
-        elif not (can_use_current_cal or cal) or reset_cal:
+        if not (can_use_current_cal or cal) or reset_cal:
             return get_data_path("linear.cal")
-        elif cal:
+        if cal:
             if options_dispcal:
                 self.worker.options_dispcal = options_dispcal
             return cal
@@ -11038,7 +11035,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     # Create 3D LUT
                     self.lut3d_create_handler(None)
                     return
-                elif hasattr(self.worker, "_disabler"):
+                if hasattr(self.worker, "_disabler"):
                     # This shouldn't happen
                     self.worker.stop_progress()
                 if "meta" in profile.tags:
@@ -11759,8 +11756,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     path = get_data_path(path)
                 if not path:
                     return "fail"
-                else:
-                    self.droptarget.OnDropFiles(0, 0, [path])
+                self.droptarget.OnDropFiles(0, 0, [path])
         elif data[0] == "calibrate" and len(data) == 1:
             # Calibrate
             wx.CallAfter(
@@ -12914,7 +12910,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             result = -1
         if result == wx.ID_CANCEL:
             return None
-        elif result in (id_measure_reference, id_measure_colorimeter):
+        if result in (id_measure_reference, id_measure_colorimeter):
             # Select CCXX testchart
             ccxx_testchart = get_ccxx_testchart()
             if not ccxx_testchart:
@@ -15471,7 +15467,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.Destroy()
         if result == wx.ID_CANCEL:
             return False
-        elif result == wx.ID_OK and ti3.modified:
+        if result == wx.ID_OK and ti3.modified:
             if ti3.filename and os.path.exists(ti3.filename) and not force:
                 try:
                     ti3.write()
@@ -15623,38 +15619,37 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             return self.worker.exec_cmd(
                 sevenzip, args + [archive_path] + filenames, capture_output=True
             )
+        # Create gzipped TAR or ZIP archive
+        dirbasename = ""
+        if filenames == dirfilenames:
+            # Add whole folder to archive, so that the ZIP archive
+            # has one folder in it containing all files
+            dirbasename = os.path.basename(dirname)
+        if archive_path.lower().endswith(".tgz") or archive_path.lower().endswith(
+            ".tar.gz"
+        ):
+            # Create gzipped tar archive
+            archive = TarFileProper.open(archive_path, "w:gz", encoding="UTF-8")
+            writefile = archive.add
         else:
-            # Create gzipped TAR or ZIP archive
-            dirbasename = ""
-            if filenames == dirfilenames:
-                # Add whole folder to archive, so that the ZIP archive
-                # has one folder in it containing all files
-                dirbasename = os.path.basename(dirname)
-            if archive_path.lower().endswith(".tgz") or archive_path.lower().endswith(
-                ".tar.gz"
-            ):
-                # Create gzipped tar archive
-                archive = TarFileProper.open(archive_path, "w:gz", encoding="UTF-8")
-                writefile = archive.add
-            else:
-                archive = zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED)
-                writefile = archive.write
-            try:
-                with archive:
-                    for filename in filenames:
-                        if (
-                            exclude_ext
-                            and os.path.splitext(filename)[1].lower() in exclude_ext
-                        ):
-                            continue
-                        writefile(
-                            filename,
-                            os.path.join(dirbasename, os.path.basename(filename)),
-                        )
-            except Exception as exception:
-                return exception
-            else:
-                return True
+            archive = zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED)
+            writefile = archive.write
+        try:
+            with archive:
+                for filename in filenames:
+                    if (
+                        exclude_ext
+                        and os.path.splitext(filename)[1].lower() in exclude_ext
+                    ):
+                        continue
+                    writefile(
+                        filename,
+                        os.path.join(dirbasename, os.path.basename(filename)),
+                    )
+        except Exception as exception:
+            return exception
+        else:
+            return True
 
     def create_session_archive_consumer(self, result):
         if not result:
@@ -16641,14 +16636,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if self.whitepoint_ctrl.GetSelection() == 0:
             # Native
             return None
-        elif self.whitepoint_ctrl.GetSelection() == 1:
+        if self.whitepoint_ctrl.GetSelection() == 1:
             # Color temperature in kelvin
             return str(
                 stripzeros(
                     self.whitepoint_colortemp_textctrl.GetValue().replace(",", ".")
                 )
             )
-        elif self.whitepoint_ctrl.GetSelection() == 2:
+        if self.whitepoint_ctrl.GetSelection() == 2:
             x = self.whitepoint_x_textctrl.GetValue()
             with contextlib.suppress(ValueError):
                 x = round(x, 4)
@@ -16667,14 +16662,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def get_luminance(self):
         if self.luminance_ctrl.GetSelection() == 0:
             return None
-        else:
-            return str(stripzeros(self.luminance_textctrl.GetValue()))
+        return str(stripzeros(self.luminance_textctrl.GetValue()))
 
     def get_black_luminance(self):
         if self.black_luminance_ctrl.GetSelection() == 0:
             return None
-        else:
-            return str(stripzeros(self.black_luminance_textctrl.GetValue()))
+        return str(stripzeros(self.black_luminance_textctrl.GetValue()))
 
     def get_black_output_offset(self):
         return str(Decimal(self.black_output_offset_ctrl.GetValue()) / 100)
@@ -16685,28 +16678,25 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def get_black_point_rate(self):
         if defaults["calibration.black_point_rate.enabled"]:
             return str(self.black_point_rate_floatctrl.GetValue())
-        else:
-            return None
+        return None
 
     def get_trc_type(self):
         if self.trc_type_ctrl.GetSelection() == 1:
             return "G"
-        else:
-            return "g"
+        return "g"
 
     def get_trc(self):
         if self.trc_ctrl.GetSelection() in (1, 4, 7):
             return str(stripzeros(self.trc_textctrl.GetValue().replace(",", ".")))
-        elif self.trc_ctrl.GetSelection() == 2:
+        if self.trc_ctrl.GetSelection() == 2:
             return "l"
-        elif self.trc_ctrl.GetSelection() == 3:
+        if self.trc_ctrl.GetSelection() == 3:
             return "709"
-        elif self.trc_ctrl.GetSelection() == 5:
+        if self.trc_ctrl.GetSelection() == 5:
             return "240"
-        elif self.trc_ctrl.GetSelection() == 6:
+        if self.trc_ctrl.GetSelection() == 6:
             return "s"
-        else:
-            return ""
+        return ""
 
     def get_calibration_quality(self):
         return self.quality_ab[self.calibration_quality_ctrl.GetValue()]
@@ -18170,7 +18160,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self.load_cal(silent=True)
                 if options_dispcal and options_colprof:
                     return
-                elif options_dispcal:
+                if options_dispcal:
                     msg = lang.getstr("settings_loaded.cal_and_lut")
                 else:
                     msg = lang.getstr("settings_loaded.profile_and_lut")
@@ -18190,7 +18180,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # InfoDialog(self, msg=msg + "\n" + path, ok=lang.getstr("ok"),
             # bitmap=geticon(32, "dialog-information"))
             return
-        elif ext.lower() in (".icc", ".icm"):
+        if ext.lower() in (".icc", ".icm"):
             sel = self.calibration_file_ctrl.GetSelection()
             if len(self.recent_cals) > sel and self.recent_cals[sel] == path:
                 self.recent_cals.remove(self.recent_cals[sel])

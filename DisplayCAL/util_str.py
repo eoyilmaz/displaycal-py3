@@ -253,8 +253,7 @@ def asciize(obj):
         for char in obj.object[obj.start : obj.end]:
             chars += subst.get(char, normalencode(char).strip() or b"?")
         return chars, obj.end
-    else:
-        return obj.encode("ASCII", "asciize")
+    return obj.encode("ASCII", "asciize")
 
 
 codecs.register_error("asciize", asciize)
@@ -311,8 +310,7 @@ def escape(obj):
         for char in obj.object[obj.start : obj.end]:
             chars += subst.get(char, "\\u{}".format(hex(ord(char))[2:].rjust(4, "0")))
         return chars, obj.end
-    else:
-        return obj.encode("ASCII", "escape")
+    return obj.encode("ASCII", "escape")
 
 
 # TODO: convert this to a decorator

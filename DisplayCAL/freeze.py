@@ -241,10 +241,9 @@ def get_scripts(excludes=None):
         a, b = [os.path.splitext(v)[0] for v in (a, b)]
         if a > b:
             return 1
-        elif a < b:
+        if a < b:
             return -1
-        else:
-            return 0
+        return 0
 
     import functools
 

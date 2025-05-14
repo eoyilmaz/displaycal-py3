@@ -215,14 +215,13 @@ def enable_calibration_management(enable: bool = True) -> bool:
                 key, "CalibrationManagementEnabled", 0, winreg.REG_DWORD, int(enable)
             )
         return True
-    else:
-        # Using ctypes (must be called with elevated permissions)
-        mscms = _get_mscms_windll()
-        if not mscms:
-            return False
-        if not mscms.WcsSetCalibrationManagementState(enable):
-            raise get_windows_error(ctypes.windll.kernel32.GetLastError())
-        return True
+    # Using ctypes (must be called with elevated permissions)
+    mscms = _get_mscms_windll()
+    if not mscms:
+        return False
+    if not mscms.WcsSetCalibrationManagementState(enable):
+        raise get_windows_error(ctypes.windll.kernel32.GetLastError())
+    return True
 
 
 def enable_per_user_profiles(
@@ -383,8 +382,7 @@ def get_display_device(
     moninfo = monitors[display_no]
     if use_active_display_device:
         return get_active_display_device(moninfo["Device"])
-    else:
-        return get_first_display_device(moninfo["Device"], exception_cls)
+    return get_first_display_device(moninfo["Device"], exception_cls)
 
 
 def get_process_filename(pid: int, handle: int = 0) -> str:

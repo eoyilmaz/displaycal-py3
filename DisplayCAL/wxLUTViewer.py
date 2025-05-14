@@ -500,17 +500,17 @@ class LUTCanvas(plot.PlotCanvas):
     def get_color(self, channels_label, default="white"):
         if channels_label in ("RGB", "CMYK", "XYZ"):
             return "white"
-        elif channels_label in ("RG", "XY"):
+        if channels_label in ("RG", "XY"):
             return "yellow"
-        elif channels_label in ("RB", "XZ"):
+        if channels_label in ("RB", "XZ"):
             return "magenta"
-        elif channels_label in ("GB", "YZ"):
+        if channels_label in ("GB", "YZ"):
             return "cyan"
-        elif channels_label == "CM":
+        if channels_label == "CM":
             return "#0080FF"
-        elif channels_label == "CY":
+        if channels_label == "CY":
             return "#00FF00"
-        elif channels_label == "MY":
+        if channels_label == "MY":
             return "red"
         return default
 
@@ -1172,8 +1172,7 @@ class LUTFrame(BaseFrame):
             if key == 83 and self.profile:  # S
                 self.SaveFile()
                 return
-            else:
-                event.Skip()
+            event.Skip()
         elif key in (43, wx.WXK_NUMPAD_ADD):
             # + key zoom in
             self.client.zoom(-1)
@@ -1599,8 +1598,7 @@ class LUTFrame(BaseFrame):
                     path = get_data_path(path)
                 if not path:
                     return "fail"
-                else:
-                    self.droptarget.OnDropFiles(0, 0, [path])
+                self.droptarget.OnDropFiles(0, 0, [path])
             return "ok"
         return "invalid"
 

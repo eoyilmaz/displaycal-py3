@@ -1285,7 +1285,7 @@ class ProfileLoader:
                             len(data) == 1 and self.pl._is_displaycal_running()
                         ) or self.pl._is_other_running(False):
                             return "forbidden"
-                        elif data[-1] == "display-changed":
+                        if data[-1] == "display-changed":
                             if self.pl.lock.locked():
                                 print(
                                     "PLFrame.process_data: Waiting to acquire lock..."
@@ -1305,7 +1305,7 @@ class ProfileLoader:
                         else:
                             self.pl._set_manual_restore(None, len(data))
                         return "ok"
-                    elif data[0] == "notify" and (
+                    if data[0] == "notify" and (
                         len(data) == 2
                         or (len(data) == 3 and data[2] in ("silent", "sticky"))
                         or (
@@ -1321,7 +1321,7 @@ class ProfileLoader:
                             show_notification="silent" not in data[2:],
                         )
                         return "ok"
-                    elif data[0] == "setlanguage" and len(data) == 2:
+                    if data[0] == "setlanguage" and len(data) == 2:
                         config.setcfg("lang", data[1])
                         wx.CallAfter(self.pl.taskbar_icon.set_visual_state)
                         self.pl.writecfg()
@@ -3424,11 +3424,10 @@ class ProfileLoader:
             if enumerate_windows_and_processes:
                 # Check if gamma ramps were reset for current display
                 return self._madvr_reset_cal.get(self._current_display_key, True)
-            else:
-                # Check if gamma ramps were reset for any display
-                return len(self._madvr_reset_cal) < len(self.monitors) or True in list(
-                    self._madvr_reset_cal.values()
-                )
+            # Check if gamma ramps were reset for any display
+            return len(self._madvr_reset_cal) < len(self.monitors) or True in list(
+                self._madvr_reset_cal.values()
+            )
         return result
 
     def _madvr_connection_callback(

@@ -1625,7 +1625,7 @@ class FilteredStream:
                 # Buffer all data until we see a line ending
                 self._buffer += data
                 return
-            elif self._buffer:
+            if self._buffer:
                 # Assemble the full line from the buffer
                 data = self._buffer + data
                 self._buffer = ""
@@ -2692,8 +2692,7 @@ class Worker(WorkerBase):
             result = self.exec_cmd(cmd, args, skip_scripts=True)
             self.spotread_just_do_instrument_calibration = False
             return result
-        else:
-            return Error(lang.getstr("argyll.util.not_found", "spotread"))
+        return Error(lang.getstr("argyll.util.not_found", "spotread"))
 
     def instrument_can_use_ccxx(
         self, check_measurement_mode=True, instrument_name=None
@@ -3000,29 +2999,28 @@ class Worker(WorkerBase):
                         )
                         self.abort_subprocess()
                         return False
-                    else:
-                        fmt = {2: "<HHH", 4: "<III", 8: "<QQQ"}[spydx_cal_int_bytes]
-                        spydx_bcal = struct.unpack(fmt, spydx_bcal)
-                        self.log(
-                            f"{appname}: SpyderX sensor cal "
-                            f"{spydx_bcal[0]:d} {spydx_bcal[1]:d} {spydx_bcal[2]:d}"
+                    fmt = {2: "<HHH", 4: "<III", 8: "<QQQ"}[spydx_cal_int_bytes]
+                    spydx_bcal = struct.unpack(fmt, spydx_bcal)
+                    self.log(
+                        f"{appname}: SpyderX sensor cal "
+                        f"{spydx_bcal[0]:d} {spydx_bcal[1]:d} {spydx_bcal[2]:d}"
+                    )
+                    if max(spydx_bcal) > 15:
+                        # Black cal offsets too high - user error?
+                        self.exec_cmd_returnvalue = Error(
+                            lang.getstr("error.spyderx.black_cal_offsets_too_high")
                         )
-                        if max(spydx_bcal) > 15:
-                            # Black cal offsets too high - user error?
-                            self.exec_cmd_returnvalue = Error(
-                                lang.getstr("error.spyderx.black_cal_offsets_too_high")
+                        self.abort_subprocess()
+                        # Nuke the cal file
+                        try:
+                            os.remove(spydx_cal_fn)
+                        except OSError:
+                            self.log(
+                                f"{appname}: Warning - Could not remove "
+                                "SpyderX sensor cal file",
+                                spydx_cal_fn,
                             )
-                            self.abort_subprocess()
-                            # Nuke the cal file
-                            try:
-                                os.remove(spydx_cal_fn)
-                            except OSError:
-                                self.log(
-                                    f"{appname}: Warning - Could not remove "
-                                    "SpyderX sensor cal file",
-                                    spydx_cal_fn,
-                                )
-                            return False
+                        return False
         return True
 
     def check_instrument_place_on_screen(self, txt):
@@ -3257,7 +3255,7 @@ END_DATA
                         sleep(0.05)
                     if self._use_detected_video_levels is False:
                         return False
-                    elif self._use_detected_video_levels is None:
+                    if self._use_detected_video_levels is None:
                         # Retry
                         return None
                 self.log("Using limited range output levels")
@@ -5952,7 +5950,7 @@ END_DATA
                 cdinstall = self._attempt_install_profile_colord(srgb)
                 if not cdinstall:
                     return Error(lang.getstr("calibration.reset_error"))
-                elif isinstance(cdinstall, Exception):
+                if isinstance(cdinstall, Exception):
                     return UnloggedError(safe_str(cdinstall))
                 self.log(f"{appname}: Successfully assigned sRGB profile")
         self.use_patterngenerator = (
@@ -6502,7 +6500,7 @@ BEGIN_DATA
                         if use_madnet:
                             self.madtpg_disconnect()
                         return None
-                    elif isinstance(result, Exception):
+                    if isinstance(result, Exception):
                         if use_madnet:
                             self.madtpg_disconnect()
                         return result
@@ -7038,16 +7036,15 @@ BEGIN_DATA
                                     break
                             p["hProcess"].Close()
                             return self.retcode == 0
-                        else:
-                            self.subprocess = sp.Popen(
-                                cmdline,
-                                stdin=stdin,
-                                stdout=stdout,
-                                stderr=stderr,
-                                shell=shell,
-                                cwd=working_dir,
-                                startupinfo=startupinfo,
-                            )
+                        self.subprocess = sp.Popen(
+                            cmdline,
+                            stdin=stdin,
+                            stdout=stdout,
+                            stderr=stderr,
+                            shell=shell,
+                            cwd=working_dir,
+                            startupinfo=startupinfo,
+                        )
                     except Exception as exception:
                         self.retcode = -1
                         raise Error(str(exception)) from exception
@@ -8565,13 +8562,11 @@ BEGIN_DATA
                 # and os.getenv("XDG_SESSION_TYPE") == "wayland"
             ):
                 return self.argyll_virtual_display
-            else:
-                return "1"
+            return "1"
         if display_name == "Prisma" and not defaults["patterngenerator.prisma.argyll"]:
             if self.argyll_virtual_display:
                 return self.argyll_virtual_display
-            else:
-                return "1"
+            return "1"
         if display_name == "Prisma":
             host = getcfg("patterngenerator.prisma.host")
             with contextlib.suppress(OSError):
@@ -9452,7 +9447,7 @@ usage: spotread [-options] [logfile]
                         return Error(
                             lang.getstr("argyll.instrument.drivers.uninstall.failure")
                         )
-                    elif isinstance(result, Exception):
+                    if isinstance(result, Exception):
                         return result
                     output = universal_newlines("".join(self.output))
                     for entry in output.split("\n\n"):
@@ -9511,7 +9506,7 @@ usage: spotread [-options] [logfile]
                 )
                 if isinstance(installer_zip, Exception):
                     return installer_zip
-                elif not installer_zip:
+                if not installer_zip:
                     # Cancelled
                     return None
 
@@ -9592,7 +9587,7 @@ usage: spotread [-options] [logfile]
                             output = universal_newlines("".join(self.output))
                             if isinstance(result, Exception):
                                 return result
-                            elif not result or "Failed to install driver" in output:
+                            if not result or "Failed to install driver" in output:
                                 return Error(
                                     lang.getstr(
                                         "argyll.instrument.drivers.install.failure"
@@ -10414,8 +10409,7 @@ usage: spotread [-options] [logfile]
             self.recent.write(lang.getstr("gamut.view.create"))
             sleep(0.75)  # Allow time for progress window to update
             return self.calculate_gamut(profile_path)
-        else:
-            return None, None
+        return None, None
 
     def create_profile(
         self,
@@ -10523,8 +10517,7 @@ usage: spotread [-options] [logfile]
                             "ti1/d3-e4-s5-g52-m5-b0-f0",
                         ):
                             return Error(lang.getstr("file.missing", ti1_filename))
-                        else:
-                            continue
+                        continue
                     ti1 = CGATS(ti1_path)
                     (
                         ti1_extracted,
@@ -11866,7 +11859,7 @@ usage: spotread [-options] [logfile]
                     self.log(exception)
                 if not result:
                     return UnloggedError("\n".join(self.errors))
-                elif isinstance(result, Exception):
+                if isinstance(result, Exception):
                     return result
                 try:
                     os.remove(f"{outname}.0.ti3")
@@ -13191,7 +13184,7 @@ usage: spotread [-options] [logfile]
                     rslt = extract_fix_copy_cal(cal, calcopy)
                     if isinstance(rslt, ICCProfileInvalidError):
                         return Error(lang.getstr("profile.invalid") + "\n" + cal), None
-                    elif isinstance(rslt, Exception):
+                    if isinstance(rslt, Exception):
                         traceback.print_exc()
                         return (
                             Error(
@@ -14360,8 +14353,7 @@ usage: spotread [-options] [logfile]
             return os.path.isfile(
                 os.path.join(os.path.dirname(spyd2en), "spyd2PLD.bin")
             )
-        else:
-            return self.argyll_support_file_exists("spyd2PLD.bin", scope=scope)
+        return self.argyll_support_file_exists("spyd2PLD.bin", scope=scope)
 
     def spyder4_cal_exists(self):
         """Check if the Spyder4/5 calibration file exists in any of the known
@@ -15294,82 +15286,81 @@ BEGIN_DATA
             profile.write(outfilename)
             self.wrapup(False)
             return True
-        else:
-            # Re-create profile
-            cti3 = None
-            if isinstance(profile.tags.get("targ"), Text):
-                # Get measurement data
-                try:
-                    cti3 = CGATS(profile.tags.targ)
-                except (OSError, CGATSError):
-                    pass
-                else:
-                    if 0 not in cti3 or cti3[0].type.strip() != b"CTI3":
-                        # Not Argyll measurement data
-                        cti3 = None
-            if not cti3:
-                # Use fakeread
-                fakeread = get_argyll_util("fakeread")
-                if not fakeread:
-                    profile.fileName = ofilename
-                    self.wrapup(False)
-                    return Error(lang.getstr("argyll.util.not_found", "fakeread"))
-                shutil.copyfile(defaults["testchart.file"], temppathname + ".ti1")
-                result = self.exec_cmd(fakeread, [temporig, temppathname])
-                if not result or isinstance(result, Exception):
-                    profile.fileName = ofilename
-                    self.wrapup(False)
-                    return result
-                cti3 = CGATS(temppathname + ".ti3")
-            # Get RGB from measurement data
-            RGBorig = []
-            for sample in cti3[0].DATA.values():
-                RGB = []
-                for component in "RGB":
-                    RGB.append(sample[f"RGB_{component}"])
-                RGBorig.append(RGB)
-            # Lookup RGB -> scaled RGB through calibration
-            RGBscaled = self.xicclu(cal, RGBorig, scale=100)
-            if has_nonlinear_vcgt:
-                # Undo original calibration
-                RGBscaled = self.xicclu(ocal, RGBscaled, direction="b", scale=100)
-            # Update CAL in ti3 file
-            if 1 in cti3 and cti3[1].type.strip() == b"CAL":
-                cti3[1].DATA = cal[0].DATA
+        # Re-create profile
+        cti3 = None
+        if isinstance(profile.tags.get("targ"), Text):
+            # Get measurement data
+            try:
+                cti3 = CGATS(profile.tags.targ)
+            except (OSError, CGATSError):
+                pass
             else:
-                cti3[1] = cal[0]
-            # Lookup scaled RGB -> XYZ through profile
-            RGBscaled2XYZ = self.xicclu(profile, RGBscaled, "a", pcs="x", scale=100)
-            # Update measurement data
-            if "LUMINANCE_XYZ_CDM2" in cti3[0]:
-                XYZa = [
-                    float(v) * XYZwscaled[i]
-                    for i, v in enumerate(cti3[0].LUMINANCE_XYZ_CDM2.split())
-                ]
-                cti3[0].add_keyword(
-                    "LUMINANCE_XYZ_CDM2", " ".join([str(v) for v in XYZa])
-                )
-            for i, sample in cti3[0].DATA.items():
-                for j, component in enumerate("XYZ"):
-                    sample["XYZ_" + component] = (
-                        RGBscaled2XYZ[i][j] / XYZwscaled[1] * 100
-                    )
-            cti3.write(temppathname + ".ti3")
-            # Preserve custom tags
-            display_name = profile.getDeviceModelDescription()
-            display_manufacturer = profile.getDeviceManufacturerDescription()
-            tags = {}
-            for tagname in ("mmod", "meta"):
-                if tagname in profile.tags:
-                    tags[tagname] = profile.tags[tagname]
-            if temp:
-                os.remove(temporig)
-            os.remove(tempcopy)
-            # Compute profile
-            self.options_targen = ["-d3"]
-            return self.create_profile(
-                outfilename, True, display_name, display_manufacturer, tags
+                if 0 not in cti3 or cti3[0].type.strip() != b"CTI3":
+                    # Not Argyll measurement data
+                    cti3 = None
+        if not cti3:
+            # Use fakeread
+            fakeread = get_argyll_util("fakeread")
+            if not fakeread:
+                profile.fileName = ofilename
+                self.wrapup(False)
+                return Error(lang.getstr("argyll.util.not_found", "fakeread"))
+            shutil.copyfile(defaults["testchart.file"], temppathname + ".ti1")
+            result = self.exec_cmd(fakeread, [temporig, temppathname])
+            if not result or isinstance(result, Exception):
+                profile.fileName = ofilename
+                self.wrapup(False)
+                return result
+            cti3 = CGATS(temppathname + ".ti3")
+        # Get RGB from measurement data
+        RGBorig = []
+        for sample in cti3[0].DATA.values():
+            RGB = []
+            for component in "RGB":
+                RGB.append(sample[f"RGB_{component}"])
+            RGBorig.append(RGB)
+        # Lookup RGB -> scaled RGB through calibration
+        RGBscaled = self.xicclu(cal, RGBorig, scale=100)
+        if has_nonlinear_vcgt:
+            # Undo original calibration
+            RGBscaled = self.xicclu(ocal, RGBscaled, direction="b", scale=100)
+        # Update CAL in ti3 file
+        if 1 in cti3 and cti3[1].type.strip() == b"CAL":
+            cti3[1].DATA = cal[0].DATA
+        else:
+            cti3[1] = cal[0]
+        # Lookup scaled RGB -> XYZ through profile
+        RGBscaled2XYZ = self.xicclu(profile, RGBscaled, "a", pcs="x", scale=100)
+        # Update measurement data
+        if "LUMINANCE_XYZ_CDM2" in cti3[0]:
+            XYZa = [
+                float(v) * XYZwscaled[i]
+                for i, v in enumerate(cti3[0].LUMINANCE_XYZ_CDM2.split())
+            ]
+            cti3[0].add_keyword(
+                "LUMINANCE_XYZ_CDM2", " ".join([str(v) for v in XYZa])
             )
+        for i, sample in cti3[0].DATA.items():
+            for j, component in enumerate("XYZ"):
+                sample["XYZ_" + component] = (
+                    RGBscaled2XYZ[i][j] / XYZwscaled[1] * 100
+                )
+        cti3.write(temppathname + ".ti3")
+        # Preserve custom tags
+        display_name = profile.getDeviceModelDescription()
+        display_manufacturer = profile.getDeviceManufacturerDescription()
+        tags = {}
+        for tagname in ("mmod", "meta"):
+            if tagname in profile.tags:
+                tags[tagname] = profile.tags[tagname]
+        if temp:
+            os.remove(temporig)
+        os.remove(tempcopy)
+        # Compute profile
+        self.options_targen = ["-d3"]
+        return self.create_profile(
+            outfilename, True, display_name, display_manufacturer, tags
+        )
 
     def chart_lookup(
         self,
@@ -16161,10 +16152,9 @@ BEGIN_DATA
                         return DownloadError(
                             lang.getstr("file.hash.malformed", filename), orig_uri
                         )
-                    else:
-                        hashesdict[Path(name_hash[1].decode().lstrip("*"))] = name_hash[
-                            0
-                        ]
+                    hashesdict[Path(name_hash[1].decode().lstrip("*"))] = name_hash[
+                        0
+                    ]
                     expectedhash_hex = hashesdict[filename]
                 if not expectedhash_hex:
                     response.close()
@@ -16388,8 +16378,7 @@ BEGIN_DATA
                         ),
                     )
                 )
-            else:
-                print(f"Verified hash SHA-256= {actualhash_hex}")
+            print(f"Verified hash SHA-256= {actualhash_hex}")
         return download_path
 
     def process_argyll_download(self, result, exit=False):

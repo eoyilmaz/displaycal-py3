@@ -1591,8 +1591,7 @@ class FixedPoint:
     def __abs__(self):
         if self.n >= 0:
             return self.copy()
-        else:
-            return -self
+        return -self
 
     def __add__(self, other):
         n1, n2, p = _norm(self, other)

@@ -837,8 +837,7 @@ class BaseApp(wx.App):
         if hasattr(wx.App, "OnExit"):
             result = wx.App.OnExit(self)
             return result if result is not None else 0
-        else:
-            return 0
+        return 0
 
     @staticmethod
     def _run_exitfuncs():
@@ -890,8 +889,7 @@ class BaseApp(wx.App):
                     self._query_end_session = self.TopWindow
                     print("Main top-level application window processed close event")
                     return
-                else:
-                    print("Failed to close main top-level application window")
+                print("Failed to close main top-level application window")
             if event.CanVeto():
                 event.Veto()
                 print("Vetoed query to end session")
@@ -4118,7 +4116,7 @@ class CustomGrid(wx.grid.Grid):
                 # A
                 self.SelectAll()
                 return
-            elif keycode in (67, 88):
+            if keycode in (67, 88):
                 # C / X
                 clip = []
                 cells = self.GetSelection()
@@ -4147,7 +4145,7 @@ class CustomGrid(wx.grid.Grid):
                 wx.TheClipboard.SetData(clipdata)
                 wx.TheClipboard.Close()
                 return
-            elif keycode == 86 and self.IsEditable():
+            if keycode == 86 and self.IsEditable():
                 # V
                 do = wx.TextDataObject()
                 wx.TheClipboard.Open()
@@ -4434,12 +4432,11 @@ class CustomGrid(wx.grid.Grid):
                     self.SelectRow(i, True)
                 self.EndBatch()
                 return False
-            elif ctrl:
+            if ctrl:
                 if self.IsInSelection(row, 0):
                     self.DeselectRow(row)
                     return True
-                else:
-                    self.SelectRow(row, True)
+                self.SelectRow(row, True)
         return False
 
 
@@ -5166,8 +5163,7 @@ def fancytext_Renderer_getCurrentColor(self):
     font = self.fonts[-1]
     if "color" in font:
         return wx.TheColourDatabase.FindColour(font["color"])
-    else:
-        return wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+    return wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
 
 
 fancytext.Renderer._font = None
@@ -6423,8 +6419,7 @@ class ProgressDialog(wx.Dialog):
     def sound_get_delay(self):
         if self.sound is self.processor_sound:
             return 3000
-        else:
-            return 1500
+        return 1500
 
     def elapsed_time_handler(self, event):
         self.elapsed_time.Label = strftime("%H:%M:%S", gmtime(time() - self.time))
@@ -7022,8 +7017,7 @@ class TabButton(PlateButton):
             ypos -= 8  # Tab hilite
             gc.DrawBitmap(bmp, xpos, ypos, bmp.GetMask() is not None)
             return bw + xpos
-        else:
-            return xpos
+        return xpos
 
     def __DrawHighlight(self, gc, width, height):
         """Draw the main highlight/pressed state

@@ -435,6 +435,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
             except Exception as exception:
                 return exception
         return cal_lines
+    return None
 
 
 def extract_device_gray_primaries(

@@ -1241,6 +1241,7 @@ def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
             2,
         ):
             return cat
+    return None
 
 
 def CIEDCCT2xyY(T, scale=1.0):
@@ -1290,8 +1291,7 @@ def CIEDCCT2XYZ(T, scale=1.0):
 
     """
     xyY = CIEDCCT2xyY(T, scale)
-    if xyY:
-        return xyY2XYZ(*xyY)
+    return xyY2XYZ(*xyY) if xyY else None
 
 
 # cLUT Input value tweaks to make Video encoded black land on
@@ -1992,6 +1992,7 @@ def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
             continue
         if get_rgb_space_primaries_wp_xy(rgb_space_name, digits)[: len(xy)] == xy:
             return rgb_space_name
+    return None
 
 
 def get_rgb_space(rgb_space=None, scale=1.0):
@@ -2144,8 +2145,7 @@ def planckianCT2XYZ(T, scale=1.0):
 
     """
     xyY = planckianCT2xyY(T, scale)
-    if xyY:
-        return xyY2XYZ(*xyY)
+    return xyY2XYZ(*xyY) if xyY else None
 
 
 def planckianCT2xyY(T, scale=1.0):

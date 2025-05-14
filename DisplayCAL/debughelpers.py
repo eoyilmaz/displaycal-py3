@@ -35,6 +35,7 @@ def getevttype(event):
     typeId = event.GetEventType()
     if typeId in wxEventTypes:
         return wxEventTypes[typeId]
+    return None
 
 
 def handle_error(error, parent=None, silent=False, tb=True):

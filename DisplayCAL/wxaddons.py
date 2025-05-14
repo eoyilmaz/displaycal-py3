@@ -335,7 +335,7 @@ def draw_granger_rainbow(dc, x=0, y=0, width=1920, height=1080):
 
 
 def create_granger_rainbow_bitmap(width=1920, height=1080, filename=None):
-    """Create a granger rainbow bitmap"""
+    """Create a granger rainbow bitmap."""
     # Main bitmap
     bmp = wx.EmptyBitmap(width, height)
     mdc = wx.MemoryDC(bmp)
@@ -362,8 +362,7 @@ def create_granger_rainbow_bitmap(width=1920, height=1080, filename=None):
             ".xpm": wx.BITMAP_TYPE_XPM,
         }.get(ext, wx.BITMAP_TYPE_PNG)
         bmp.SaveFile(filename, bmp_type)
-    else:
-        return bmp
+    return bmp
 
 
 def get_parent_frame(window):
@@ -373,6 +372,7 @@ def get_parent_frame(window):
         if isinstance(parent, wx.Frame):
             return parent
         parent = parent.Parent
+    return None
 
 
 class CustomEvent(wx.PyEvent):
@@ -692,6 +692,7 @@ class PopupMenu:
             item = menu.FindItemById(id)
             if item:
                 return item
+        return None
 
     def FindMenu(self, title):
         for i, (_menu, label) in enumerate(self._menus):

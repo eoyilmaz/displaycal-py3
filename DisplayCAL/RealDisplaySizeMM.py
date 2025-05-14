@@ -281,6 +281,7 @@ def get_display(display_no: int = 0) -> Union[None, dict]:
         geometry = b"".join(desc.split(b"@ ")[-1:])
         if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
             return display
+    return None
 
 
 def get_wayland_display(x, y, w, h):
@@ -350,18 +351,20 @@ def get_wayland_display(x, y, w, h):
         if w_mm and h_mm:
             wayland_display["size_mm"] = (w_mm, h_mm)
         return wayland_display
+    return None
 
 
 def get_x_display(display_no=0):
     if (display := get_display(display_no)) and (name := display.get("name")):
         return _get_x_display(name)
+    return None
 
 
 def get_x_icc_profile_atom_id(display_no=0):
-    if display := get_display(display_no):
-        return display.get("icc_profile_atom_id")
+    display = get_display(display_no)
+    return display.get("icc_profile_atom_id") if display else None
 
 
 def get_x_icc_profile_output_atom_id(display_no=0):
-    if display := get_display(display_no):
-        return display.get("icc_profile_output_atom_id")
+    display = get_display(display_no)
+    return display.get("icc_profile_output_atom_id") if display else None

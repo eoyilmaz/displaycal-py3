@@ -1652,15 +1652,16 @@ class ProfileLoader:
 
                 def check_user_attention(self):
                     dlgs = get_dialogs()
-                    if dlgs:
-                        wx.Bell()
-                        for dlg in dlgs:
-                            # Need to request user attention for all open
-                            # dialogs because calling it only on the topmost
-                            # one does not guarantee taskbar flash
-                            dlg.RequestUserAttention()
-                        dlg.Raise()
-                        return dlg
+                    if not dlgs:
+                        return None
+                    wx.Bell()
+                    for dlg in dlgs:
+                        # Need to request user attention for all open
+                        # dialogs because calling it only on the topmost
+                        # one does not guarantee taskbar flash
+                        dlg.RequestUserAttention()
+                    dlg.Raise()
+                    return dlg
 
                 def open_display_settings(self, event):
                     print("Menu command: Open display settings")
@@ -2152,55 +2153,64 @@ class ProfileLoader:
             dlg.ShowModalThenDestroy()
 
     def elevate(self):
-        if sys.getwindowsversion() >= (6,):
-            loader_args = []
-            if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
-                # cmd = os.path.join(exedir, "pythonw.exe")
-                cmd = exe
-                pyw = os.path.normpath(
-                    os.path.join(pydir, "..", appname + "-apply-profiles.pyw")
-                )
-                if os.path.exists(pyw):
-                    # Running from source or 0install
-                    # Check if this is a 0install implementation, in which
-                    # case we want to call 0launch with the appropriate
-                    # command
-                    if re.match(
-                        r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir))
-                    ):
-                        cmd = which("0install-win.exe") or "0install-win.exe"
-                        loader_args.extend(
-                            [
-                                "run",
-                                "--batch",
-                                "--no-wait",
-                                "--offline",
-                                "--command=run-apply-profiles",
-                                f"http://{DOMAIN}/0install/{appname}.xml",
-                            ]
-                        )
-                    else:
-                        # Running from source
-                        loader_args.append(pyw)
-                else:
-                    # Regular install
-                    loader_args.append(
-                        get_data_path(
-                            "/".join(["scripts", appname + "-apply-profiles"])
-                        )
+        """Elevate the process to run as administrator.
+
+        Returns:
+            bool: True if the process was elevated, False otherwise.
+        """
+        if sys.getwindowsversion() < (6,):
+            return False
+
+        loader_args = []
+        if os.path.basename(exe).lower() not in ("python.exe", "pythonw.exe"):
+            cmd = os.path.join(pydir, appname + "-apply-profiles.exe")
+        else:
+            # cmd = os.path.join(exedir, "pythonw.exe")
+            cmd = exe
+            pyw = os.path.normpath(
+                os.path.join(pydir, "..", appname + "-apply-profiles.pyw")
+            )
+            if os.path.exists(pyw):
+                # Running from source or 0install
+                # Check if this is a 0install implementation, in which
+                # case we want to call 0launch with the appropriate
+                # command
+                if re.match(
+                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir))
+                ):
+                    cmd = which("0install-win.exe") or "0install-win.exe"
+                    loader_args.extend(
+                        [
+                            "run",
+                            "--batch",
+                            "--no-wait",
+                            "--offline",
+                            "--command=run-apply-profiles",
+                            f"http://{DOMAIN}/0install/{appname}.xml",
+                        ]
                     )
+                else:
+                    # Running from source
+                    loader_args.append(pyw)
             else:
-                cmd = os.path.join(pydir, appname + "-apply-profiles.exe")
-            loader_args.append("--profile-associations")
-            try:
-                run_as_admin(cmd, loader_args)
-            except pywintypes.error as exception:
-                if exception.args[0] != winerror.ERROR_CANCELLED:
-                    show_result_dialog(exception)
-            else:
-                self.shutdown()
-                wx.CallLater(50, self.exit)
-                return True
+                # Regular install
+                loader_args.append(
+                    get_data_path(
+                        "/".join(["scripts", appname + "-apply-profiles"])
+                    )
+                )
+
+        loader_args.append("--profile-associations")
+        try:
+            run_as_admin(cmd, loader_args)
+        except pywintypes.error as exception:
+            if exception.args[0] != winerror.ERROR_CANCELLED:
+                show_result_dialog(exception)
+        else:
+            self.shutdown()
+            wx.CallLater(50, self.exit)
+            return True
+        return False
 
     def exit(self, event=None):
         print(f"Executing ProfileLoader.exit({event})")
@@ -3254,9 +3264,7 @@ class ProfileLoader:
                 self.__other_component = filename, cls, 0
 
     def _is_known_window_class(self, cls):
-        for partial in self._known_window_classes:
-            if partial in cls:
-                return True
+        return any(partial in cls for partial in self._known_window_classes)
 
     def _is_buggy_video_driver(self, moninfo):
         # Intel video drivers won't reload gamma ramps if the

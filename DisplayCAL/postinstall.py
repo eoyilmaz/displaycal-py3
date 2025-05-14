@@ -8,7 +8,7 @@ from os.path import basename, splitext
 from subprocess import call
 
 from DisplayCAL.meta import name
-from DisplayCAL.util_os import relpath, safe_glob, which
+from DisplayCAL.util_os import safe_glob, which
 
 recordfile_name = "INSTALLED_FILES"
 
@@ -156,9 +156,9 @@ def postinstall_windows(prefix):
             continue
         grppath = os.path.join(path, name)
         if path == startmenu_programs:
-            group = relpath(grppath, startmenu)
+            group = os.path.relpath(grppath, startmenu)
         else:
-            group = relpath(grppath, startmenu_common)
+            group = os.path.relpath(grppath, startmenu_common)
 
         if not os.path.exists(grppath):
             with contextlib.suppress(Exception):

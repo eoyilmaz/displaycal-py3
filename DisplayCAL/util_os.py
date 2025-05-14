@@ -227,6 +227,7 @@ def find_library(pattern: str, arch: Optional[str] = None) -> str:
         if fnmatch.fnmatch(filename, pattern):
             path = parts[1].strip()
             return path
+    return None
 
 
 def expanduseru(path: str) -> str:
@@ -397,8 +398,7 @@ def getenvu(name: str, default: Optional[str] = None) -> str:
         ctypes.windll.kernel32.GetEnvironmentVariableW(name, buffer, length)
         return buffer.value
     var = os.getenv(name, default)
-    if isinstance(var, str):
-        return var if isinstance(var, str) else var.encode(fs_enc)
+    return var if isinstance(var, str) else var.encode(fs_enc)
 
 
 def getgroups(username: Optional[str] = None, names_only: bool = False) -> list[str]:
@@ -850,26 +850,6 @@ def readlink(path: str):
     if len(rpath) > 4 and rpath[0:4] == "\\??\\":
         rpath = rpath[4:]
     return rpath
-
-
-def relpath(path: str, start: str) -> str:
-    """Return a relative version of a path.
-
-    Args:
-        path (str): The path to convert.
-        start (str): The starting path.
-
-    Returns:
-        str: The relative path.
-    """
-    path = os.path.abspath(path).split(os.path.sep)
-    start = os.path.abspath(start).split(os.path.sep)
-    if path == start:
-        return "."
-    elif path[: len(start)] == start:
-        return os.path.sep.join(path[len(start) :])
-    elif start[: len(path)] == path:
-        return os.path.sep.join([".."] * (len(start) - len(path)))
 
 
 def safe_glob(pathname: str) -> list[str]:

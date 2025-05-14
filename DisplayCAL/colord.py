@@ -204,6 +204,7 @@ def device_id_from_edid(
     if len(parts) > 1:
         device_id = "-".join(parts)
         return device_id
+    return None
 
 
 def find(what, search):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from DisplayCAL.util_str import strtr
 
@@ -453,7 +452,7 @@ vendors = [
 
 def get_canonical_instrument_name(
     instrument_name: bytes | str,
-    replacements: Optional[dict] = None,
+    replacements: None | dict = None,
     inverse: bool = False,
 ) -> str:
     """Get canonical instrument name.

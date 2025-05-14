@@ -508,6 +508,7 @@ class ScriptingClientFrame(SimpleTerminal):
             return exception
         if not wx.GetApp().IsMainLoopRunning():
             delayedresult.AbortEvent()()
+        return None
 
     def send_command_handler(self, command, additional_commands=None):
         self.add_text("\n")

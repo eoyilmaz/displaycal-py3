@@ -68,7 +68,7 @@ from DisplayCAL.meta import (
     version,
     version_tuple,
 )
-from DisplayCAL.util_os import getenvu, relpath, safe_glob
+from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str
 
 appname = name
@@ -226,7 +226,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
                 os.path.join(tgt_dir, os.path.dirname(pth))
             )
             safe_path = [
-                relpath(p, src_dir) for p in safe_glob(os.path.join(resource_dir, pth))
+                os.path.relpath(p, src_dir) for p in safe_glob(os.path.join(resource_dir, pth))
             ]
             data.append((normalized_path, safe_path))
     return data
@@ -300,14 +300,14 @@ def build_py2exe():
     data_files += get_data(doc, "doc", excludes=["LICENSE.txt"])
     if data_files:
         data_files.append(
-            (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+            (doc, [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
         )
     # metainfo / appdata.xml
     data_files.append(
         (
             os.path.join(os.path.dirname(data), "metainfo"),
             [
-                relpath(
+                os.path.relpath(
                     os.path.normpath(
                         os.path.join(pydir, "..", "dist", f"{appstream_id}.appdata.xml")
                     ),
@@ -701,7 +701,7 @@ def build_py2exe():
         for datafile in datafiles:
             manifest_in.append(
                 "include {}".format(
-                    relpath(os.path.sep.join(datafile.split("/")), source_dir)
+                    os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
                     or datafile
                 )
             )

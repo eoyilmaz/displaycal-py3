@@ -387,15 +387,27 @@ def _get_kind_str(kind):
     }.get(kind, str(kind))
 
 
-def _get_selected_menu_item(id, menu):
+def _get_selected_menu_item(id : int, menu : Menu) -> None | MenuItem:
+    """Recursively search for a menu item by ID in the menu and its submenus.
+
+    Args:
+        id (int): The ID of the menu item to search for.
+        menu (Menu): The menu to search in.
+
+    Returns:
+        None | MenuItem: The found menu item or None if not found.
+    """
     if id in menu._menuitems:
         return menu._menuitems[id]
-    else:
-        for item in menu.MenuItems:
-            if item.subMenu:
-                item = _get_selected_menu_item(id, item.subMenu)
-                if item:
-                    return item
+
+    for item in menu.MenuItems:
+        if not item.subMenu:
+            continue
+        item = _get_selected_menu_item(id, item.subMenu)
+        if item:
+            return item
+
+    return None
 
 
 def main():

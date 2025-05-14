@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import codecs
 import re
 import string
@@ -263,9 +265,21 @@ def safe_asciize(obj) -> bytes:
 
     This function either takes a string or an exception as argument (when used
     as error handler for encode or decode).
+
+    Args:
+        obj (str | bytes | Exception): A ``str``, ``bytes``, or ``Exception``
+            value.
+
+    Returns:
+        bytes: A ``bytes`` value that is ASCII safe.
     """
-    chars = b""
+    if not isinstance(obj, (str, bytes, Exception)):
+        raise TypeError(
+            f"obj should be a str, bytes, or Exception, not {obj.__class__.__name__}"
+        )
+
     if isinstance(obj, Exception):
+        chars = b""
         for char in obj.object[obj.start : obj.end]:
             if char in safesubst:
                 subst_char = safesubst[char]
@@ -275,10 +289,11 @@ def safe_asciize(obj) -> bytes:
                     subst_char = normalencode(char).strip() or subst_char
             chars += subst_char
         return chars, obj.end
-    elif isinstance(obj, str):
-        return obj.encode("ASCII", "safe_asciize")
-    elif isinstance(obj, bytes):
-        return obj.decode("utf-8").encode("ASCII", "safe_asciize")
+
+    if isinstance(obj, bytes):
+        obj = obj.decode("utf-8")
+
+    return obj.encode("ASCII", "safe_asciize")
 
 
 codecs.register_error("safe_asciize", safe_asciize)
@@ -438,20 +453,36 @@ def create_replace_function(template, values):
     return replace_function
 
 
-def ellipsis_(text, maxlen=64, pos="r"):
+def ellipsis_(text : str | bytes, maxlen : int = 64, pos : str = "r") -> str | bytes:
     """Truncate text to maxlen characters and add ellipsis if it was longer.
 
     Ellipsis position can be 'm' (middle) or 'r' (right).
+
+    Args:
+        text (Union[str, bytes]): A ``str`` or ``bytes`` value.
+        maxlen (int): Maximum length of the string.
+        pos (str): Position of the ellipsis ('m' or 'r').
+
+    Returns:
+        Union[str, bytes]: A ``str`` or ``bytes`` value that is truncated to
+            the maximum length and has an ellipsis added if it was longer.
     """
     if len(text) <= maxlen:
         return text
+
+    if pos not in ("m", "r"):
+        raise ValueError(
+            f"pos must be 'm' or 'r', not {pos!r}"
+        )
+
     ellipsis_char = "\u2026"
+
     if isinstance(text, bytes):
         ellipsis_char = b"u\xc2\x826"
     if pos == "r":
         return text[: maxlen - 1] + ellipsis_char
-    elif pos == "m":
-        return text[: int(maxlen / 2)] + ellipsis_char + text[int(-maxlen / 2 + 1) :]
+    # elif pos == "m":
+    return text[: int(maxlen / 2)] + ellipsis_char + text[int(-maxlen / 2 + 1) :]
 
 
 def hexunescape(match):
@@ -482,10 +513,14 @@ def indent(text, prefix, predicate=None):
 
 def universal_newlines(txt):
     """Return txt with all new line formats converted to POSIX newlines."""
+    if not isinstance(txt, (str, bytes)):
+        raise TypeError(
+            f"txt should be a str or bytes, not {txt.__class__.__name__}"
+        )
     if isinstance(txt, str):
         return txt.replace("\r\n", "\n").replace("\r", "\n")
-    elif isinstance(txt, bytes):
-        return txt.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    # elif isinstance(txt, bytes):
+    return txt.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
 
 
 def replace_control_chars(txt, replacement=" ", collapse=False):

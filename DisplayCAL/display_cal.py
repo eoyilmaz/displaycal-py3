@@ -992,9 +992,10 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
     dlg.Destroy()
     if result != wx.ID_OK:
         return False
-    # Important: Do not use parsed CGATS, order of keywords may be
+    # Important: Do not use parsed CGATS,
+    # order of keywords may be
     # different from raw data so MD5 will be different
-    colorimeter_correction_check_overwrite(parent, cgats[index])
+    return colorimeter_correction_check_overwrite(parent, cgats[index])
 
 
 def colorimeter_correction_check_overwrite(
@@ -5415,7 +5416,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.panel.Thaw()
 
     def check_show_macos_bugs_warning(self, cal=True, profile=True):
-        """Warn about specific macOS bugs"""
+        """Warn about specific macOS bugs."""
         if sys.platform != "darwin" or intlist(platform.mac_ver()[0].split(".")) < [
             10,
             8,
@@ -5450,26 +5451,29 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.update_black_point_rate_ctrl()
             elif result == wx.ID_CANCEL:
                 return False
-        if profile and (
+        if not profile or not (
             getcfg("profile.type") != "S"
             or not getcfg("profile.black_point_compensation")
-        ):  # Warn about profile bugs
-            dlg = ConfirmDialog(
-                self,
-                msg=lang.getstr("macos.bugs.profile.warning"),
-                ok=lang.getstr("yes"),
-                alt=lang.getstr("no"),
-                bitmap=geticon(32, "dialog-warning"),
-            )
-            result = dlg.ShowModal()
-            dlg.Destroy()
-            if result == wx.ID_OK:
-                setcfg("profile.type", "S")
-                setcfg("profile.black_point_compensation", 1)
-                self.update_profile_type_ctrl()
-                self.update_bpc()
-            elif result == wx.ID_CANCEL:
-                return False
+        ):
+            return None 
+        # Warn about profile bugs
+        dlg = ConfirmDialog(
+            self,
+            msg=lang.getstr("macos.bugs.profile.warning"),
+            ok=lang.getstr("yes"),
+            alt=lang.getstr("no"),
+            bitmap=geticon(32, "dialog-warning"),
+        )
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        if result == wx.ID_OK:
+            setcfg("profile.type", "S")
+            setcfg("profile.black_point_compensation", 1)
+            self.update_profile_type_ctrl()
+            self.update_bpc()
+        elif result == wx.ID_CANCEL:
+            return False
+        return None
 
     def update_black_output_offset_ctrl(self):
         self.black_output_offset_ctrl.SetValue(
@@ -5660,81 +5664,82 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self, event, check_instrument_setup=False, callafter=None, callafter_args=None
     ):
         self.update_menus()
-        if check_set_argyll_bin():
-            msg = lang.getstr("oem.import.auto")
-            if sys.platform == "win32":
-                msg = " ".join([lang.getstr("oem.import.auto_windows"), msg])
-            dlg = ConfirmDialog(
+        if not check_set_argyll_bin():
+            return None
+        msg = lang.getstr("oem.import.auto")
+        if sys.platform == "win32":
+            msg = " ".join([lang.getstr("oem.import.auto_windows"), msg])
+        dlg = ConfirmDialog(
+            self,
+            title=lang.getstr("enable_spyder2"),
+            msg=msg,
+            ok=lang.getstr("auto"),
+            cancel=lang.getstr("cancel"),
+            bitmap=geticon(32, "dialog-information"),
+            alt=lang.getstr("file.select"),
+        )
+        needroot = self.worker.argyll_version < [1, 2, 0]
+        dlg.install_user = wx.RadioButton(
+            dlg, -1, lang.getstr("install_user"), style=wx.RB_GROUP
+        )
+        dlg.install_user.Enable(not needroot)
+        dlg.install_user.SetValue(not needroot)
+        dlg.sizer3.Add(dlg.install_user, flag=wx.TOP | wx.ALIGN_LEFT, border=16)
+        dlg.install_systemwide = wx.RadioButton(
+            dlg, -1, lang.getstr("install_local_system")
+        )
+        dlg.install_user.Enable(not needroot)
+        dlg.install_systemwide.SetValue(needroot)
+        dlg.install_user.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
+        dlg.install_systemwide.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
+        install_scope_handler(dlg=dlg)
+        dlg.sizer3.Add(
+            dlg.install_systemwide, flag=wx.TOP | wx.ALIGN_LEFT, border=4
+        )
+        dlg.sizer0.SetSizeHints(dlg)
+        dlg.sizer0.Layout()
+        choice = dlg.ShowModal() if event else wx.ID_OK
+        asroot = dlg.install_systemwide.GetValue()
+        dlg.Destroy()
+        if choice == wx.ID_CANCEL:
+            return None
+        if choice == wx.ID_OK:
+            # Auto
+            path = None
+        else:
+            # Prompt for installer executable
+            defaultDir, defaultFile = expanduseru("~"), ""
+            dlg = wx.FileDialog(
                 self,
-                title=lang.getstr("enable_spyder2"),
-                msg=msg,
-                ok=lang.getstr("auto"),
-                cancel=lang.getstr("cancel"),
-                bitmap=geticon(32, "dialog-information"),
-                alt=lang.getstr("file.select"),
+                lang.getstr("file.select"),
+                defaultDir=defaultDir,
+                defaultFile=defaultFile,
+                wildcard=lang.getstr("filetype.any") + "|*",
+                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             )
-            needroot = self.worker.argyll_version < [1, 2, 0]
-            dlg.install_user = wx.RadioButton(
-                dlg, -1, lang.getstr("install_user"), style=wx.RB_GROUP
-            )
-            dlg.install_user.Enable(not needroot)
-            dlg.install_user.SetValue(not needroot)
-            dlg.sizer3.Add(dlg.install_user, flag=wx.TOP | wx.ALIGN_LEFT, border=16)
-            dlg.install_systemwide = wx.RadioButton(
-                dlg, -1, lang.getstr("install_local_system")
-            )
-            dlg.install_user.Enable(not needroot)
-            dlg.install_systemwide.SetValue(needroot)
-            dlg.install_user.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
-            dlg.install_systemwide.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
-            install_scope_handler(dlg=dlg)
-            dlg.sizer3.Add(
-                dlg.install_systemwide, flag=wx.TOP | wx.ALIGN_LEFT, border=4
-            )
-            dlg.sizer0.SetSizeHints(dlg)
-            dlg.sizer0.Layout()
-            choice = dlg.ShowModal() if event else wx.ID_OK
-            asroot = dlg.install_systemwide.GetValue()
+            dlg.Center(wx.BOTH)
+            result = dlg.ShowModal()
+            path = dlg.GetPath()
             dlg.Destroy()
-            if choice == wx.ID_CANCEL:
+            if result != wx.ID_OK:
                 return None
-            if choice == wx.ID_OK:
-                # Auto
-                path = None
-            else:
-                # Prompt for installer executable
-                defaultDir, defaultFile = expanduseru("~"), ""
-                dlg = wx.FileDialog(
-                    self,
-                    lang.getstr("file.select"),
-                    defaultDir=defaultDir,
-                    defaultFile=defaultFile,
-                    wildcard=lang.getstr("filetype.any") + "|*",
-                    style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                )
-                dlg.Center(wx.BOTH)
-                result = dlg.ShowModal()
-                path = dlg.GetPath()
-                dlg.Destroy()
-                if result != wx.ID_OK:
-                    return None
-            if asroot:
-                result = self.worker.authenticate(
-                    get_argyll_util("spyd2en"), lang.getstr("enable_spyder2"), self
-                )
-                if result not in (True, None):
-                    if isinstance(result, Exception):
-                        show_result_dialog(result, self)
-                    return None
-            self.worker.start(
-                self.enable_spyder2_consumer,
-                self.enable_spyder2_producer,
-                cargs=(check_instrument_setup, callafter, callafter_args),
-                wargs=(path, asroot),
-                progress_msg=lang.getstr("enable_spyder2"),
-                fancy=False,
+        if asroot:
+            result = self.worker.authenticate(
+                get_argyll_util("spyd2en"), lang.getstr("enable_spyder2"), self
             )
-            return (event and None) or True
+            if result not in (True, None):
+                if isinstance(result, Exception):
+                    show_result_dialog(result, self)
+                return None
+        self.worker.start(
+            self.enable_spyder2_consumer,
+            self.enable_spyder2_producer,
+            cargs=(check_instrument_setup, callafter, callafter_args),
+            wargs=(path, asroot),
+            progress_msg=lang.getstr("enable_spyder2"),
+            fancy=False,
+        )
+        return (event and None) or True
 
     def enable_spyder2(self, path, asroot):
         cmd, args = get_argyll_util("spyd2en"), ["-v"]
@@ -7413,6 +7418,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 Error(lang.getstr("argyll.util.not_found", "spotread")),
                 self,
             )
+        return None
 
     def measure_uniformity_consumer(self, result):
         self.Show()
@@ -10615,6 +10621,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if options_dispcal:
                 self.worker.options_dispcal = options_dispcal
             return cal
+        return None
 
     def restore_measurement_mode(self):
         if getcfg("measurement_mode.backup", False):
@@ -10637,26 +10644,25 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def measure_auto(self, measure_auto_after, *measure_auto_after_args):
         """Automatically create a CCMX with EDID reference"""
-        if getcfg("measurement_mode") == "auto" and not getattr(
-            self, "measure_auto_after", None
-        ):
-            if not self.worker.get_display_edid():
-                self.measure_auto_finish(Error("EDID not available"))
-                return True
-            self.measure_auto_after = measure_auto_after
-            self.measure_auto_after_args = measure_auto_after_args
-            if not is_ccxx_testchart():
-                ccxx_testchart = get_ccxx_testchart()
-                if not ccxx_testchart:
-                    self.measure_auto_finish(
-                        Error(lang.getstr("not_found", lang.getstr("ccxx.ti1")))
-                    )
-                    return True
-                setcfg("testchart.file.backup", getcfg("testchart.file"))
-                self.set_testchart(ccxx_testchart)
-            self.setup_ccxx_measurement()
-            self.just_measure(get_data_path("linear.cal"), self.measure_auto_finish)
+        if getcfg("measurement_mode") != "auto" or getattr(self, "measure_auto_after", None):
+            return None
+        if not self.worker.get_display_edid():
+            self.measure_auto_finish(Error("EDID not available"))
             return True
+        self.measure_auto_after = measure_auto_after
+        self.measure_auto_after_args = measure_auto_after_args
+        if not is_ccxx_testchart():
+            ccxx_testchart = get_ccxx_testchart()
+            if not ccxx_testchart:
+                self.measure_auto_finish(
+                    Error(lang.getstr("not_found", lang.getstr("ccxx.ti1")))
+                )
+                return True
+            setcfg("testchart.file.backup", getcfg("testchart.file"))
+            self.set_testchart(ccxx_testchart)
+        self.setup_ccxx_measurement()
+        self.just_measure(get_data_path("linear.cal"), self.measure_auto_finish)
+        return True
 
     def measure_auto_finish(self, result):
         ti3_path = os.path.join(
@@ -14392,7 +14398,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             path, ccmx_dir
                         )
                         if imported == 0:
-                            raise Info()
+                            raise Info
                     except ValueError as exception:
                         result = Error(
                             lang.getstr("file.invalid") + "\n" + str(exception)
@@ -16652,6 +16658,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             with contextlib.suppress(ValueError):
                 y = round(y, 4)
             return str(stripzeros(x)) + "," + str(stripzeros(y))
+        return None
 
     def get_whitepoint_locus(self):
         n = self.whitepoint_colortemp_locus_ctrl.GetSelection()
@@ -17225,6 +17232,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 callafter,
                 callafter_args,
             )
+        return None
 
     def check_update_controls_producer(
         self,

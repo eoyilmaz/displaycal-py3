@@ -2842,6 +2842,7 @@ class FlatBookBase(wx.Panel):
         closedEvent.SetSelection(page)
         closedEvent.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(closedEvent)
+        return True
 
     def RemovePage(self, page: int) -> bool:
         """Delete the specified page, without deleting the associated window.

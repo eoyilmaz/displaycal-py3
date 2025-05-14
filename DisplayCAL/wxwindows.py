@@ -828,6 +828,7 @@ class BaseApp(wx.App):
         if paths:
             self.MacOpenFiles(paths)
             return paths
+        return None
 
     def OnExit(self):
         print("Executing BaseApp.OnExit()")
@@ -932,6 +933,7 @@ class BaseFrame(wx.Frame):
         for child in list(self.GetAllChildren()):
             if hasattr(child, "Name") and child.Name == name:
                 return child
+        return None
 
     def __OnDestroy(self, event):
         if event.GetEventObject() is self:
@@ -7783,6 +7785,7 @@ def get_widget(win, id_name_label):
                 or child.Label == id_name_label
             ):
                 return child
+    return None
 
 
 def get_toplevel_window(id_name_label):
@@ -7799,6 +7802,7 @@ def get_toplevel_window(id_name_label):
             and win.IsShown()
         ):
             return win
+    return None
 
 
 def is_scripting_allowed(win, child):
@@ -7992,6 +7996,8 @@ def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
         if dlg_ok and isinstance(result, DownloadError):
             launch_file(result.url)
         return dlg_ok
+
+    return None
 
 
 def test():

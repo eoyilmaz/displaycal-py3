@@ -655,10 +655,9 @@ class Xicclu(WorkerBase):
     def __enter__(self):
         return self
 
-    def __exit__(self, etype=None, value=None, tb=None):
+    def __exit__(self, exc_type, exec_value, traceback_):
         self.exit()
-        if tb:
-            return False
+        return not traceback_
 
     def close(self, raise_exception=True):
         if self.closed:

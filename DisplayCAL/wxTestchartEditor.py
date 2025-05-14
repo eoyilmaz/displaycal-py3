@@ -3307,6 +3307,7 @@ END_DATA"""
                 wx.CallAfter(self.Destroy)
         elif isinstance(event, wx.CloseEvent) and event.CanVeto():
             event.Veto()
+        return None
 
     def tc_move_handler(self, event=None):
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
@@ -3859,6 +3860,7 @@ END_DATA"""
                 self.Parent.start_timers()
             if isinstance(result, Exception):
                 show_result_dialog(result, self)
+        return False
 
     def tc_get_increments(self, channel, vmaxlen=4):
         channel.sort()

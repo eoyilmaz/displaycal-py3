@@ -883,14 +883,15 @@ class MadTPG_Net(MadTPGBase):
         """Unbind (remove) a handler from an event
 
         If handler is None, remove all handlers for the event.
-
         """
-        if event_name in self._event_handlers:
-            if handler in self._event_handlers[event_name]:
-                self._event_handlers[event_name].remove(handler)
-                return handler
-            else:
-                return self._event_handlers.pop(event_name)
+        if event_name not in self._event_handlers:
+            return None
+
+        if handler in self._event_handlers[event_name]:
+            self._event_handlers[event_name].remove(handler)
+            return handler
+
+        return self._event_handlers.pop(event_name)
 
     def _dispatch_event(self, event_name, event_data=None):
         """Dispatch events"""

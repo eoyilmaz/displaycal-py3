@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import errno
 import os
 import socket
@@ -23,13 +25,13 @@ def get_network_addr():
         s.close()
 
 
-def get_valid_host(hostname=None):
-    """Tries to verify the hostname by resolving to an IPv4 address.
+def get_valid_host(hostname : None | str = None) -> tuple[str, str]:
+    """Try to verify the hostname by resolving to an IPv4 address.
 
     Both hostname with and without .local suffix will be tried if necessary.
 
-    Returns a tuple hostname, addr
-
+    Returns:
+        tuple[str, str]: A tuple of hostname, addr
     """
     if hostname is None:
         hostname = socket.gethostname()
@@ -37,17 +39,18 @@ def get_valid_host(hostname=None):
     if hostname.endswith(".local"):
         hostnames.insert(0, os.path.splitext(hostname)[0])
     elif "." not in hostname:
-        hostnames.insert(0, hostname + ".local")
+        hostnames.insert(0, f"{hostname}.local")
+
     while hostnames:
         hostname = hostnames.pop()
         try:
             addr = socket.gethostbyname(hostname)
-        except OSError:
+        except OSError as e:
             if not hostnames:
-                raise
+                raise e
         else:
             return hostname, addr
-
+    return None, None
 
 class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     """Like urllib2.HTTPRedirectHandler, but logs redirections"""

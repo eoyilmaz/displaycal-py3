@@ -582,6 +582,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             )
         ):
             return XYZ
+        return None
 
     def green_XYZ_ctrl_handler(self, event):
         self.parse_XYZ("green")

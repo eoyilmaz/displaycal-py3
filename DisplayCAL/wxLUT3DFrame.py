@@ -398,6 +398,7 @@ class LUT3DMixin:
             self.lut3dframe.lut3d_update_encoding_controls()
         elif self.Parent:
             self.Parent.lut3d_update_encoding_controls()
+        return None
 
     def lut3d_bitdepth_input_ctrl_handler(self, event):
         self.lut3d_set_option(
@@ -1928,6 +1929,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             if which == "output":
                 self.lut3d_apply_cal_cb.Disable()
                 self.lut3d_create_btn.Disable()
+        return None
 
     def set_profile_ctrl_path(self, which):
         getattr(self, f"{which}_profile_ctrl").SetPath(

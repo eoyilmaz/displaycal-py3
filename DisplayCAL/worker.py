@@ -1,4 +1,6 @@
 # stdlib
+from __future__ import annotations
+
 import atexit
 import codecs
 import contextlib
@@ -1080,8 +1082,18 @@ def _applycal_bug_workaround(profile):
 
 
 def get_current_profile_path(
-    include_display_profile=True, save_profile_if_no_path=False
-):
+    include_display_profile : bool = True,
+    save_profile_if_no_path : bool = False,
+) -> str | None:
+    """Get the current profile path from the configuration.
+    
+    Args:
+        include_display_profile (bool): Whether to include the display profile.
+        save_profile_if_no_path (bool): Whether to save the profile if it has no path.
+
+    Returns:
+        NOne | str: The profile path or None if not found.
+    """
     profile = None
     profile_path = getcfg("calibration.file", False)
     if profile_path:
@@ -1106,6 +1118,8 @@ def get_current_profile_path(
                     profile.write()
     if profile:
         return profile.fileName
+
+    return profile
 
 
 def parse_argument_string(args):
@@ -1306,11 +1320,17 @@ def get_python_and_pythonpath():
     return (python, pythonpath)
 
 
-def get_arg(argmatch, args, whole=False):
-    """Return first found entry beginning with the argmatch string or None"""
+def get_arg(argmatch, args, whole=False) -> tuple[int, str] | None:
+    """Return first found entry beginning with the argmatch string or None.
+
+    Returns:
+        None: if no match found.
+        tuple[int, str]: index and value of the match.
+    """
     for i, arg in enumerate(args):
         if (whole and arg == argmatch) or (not whole and arg.startswith(argmatch)):
             return i, arg
+    return None
 
 
 def get_default_headers():
@@ -1962,6 +1982,7 @@ class WPopen(sp.Popen):
             if wexpect.TIMEOUT in patterns:
                 return self.match
             raise self.match
+        return None
 
     def send(self, s):
         self.stdin.write(s)
@@ -2788,27 +2809,28 @@ class Worker(WorkerBase):
 
     def check_add_display_type_base_id(self, cgats, cfgname="measurement_mode"):
         """Add DISPLAY_TYPE_BASE_ID to CCMX"""
-        if not cgats.queryv1("DISPLAY_TYPE_BASE_ID"):
-            # c, l (most colorimeters)
-            # R (ColorHug and Colorimétre HCFR)
-            # F (ColorHug)
-            # f (ColorMunki Smile)
-            # g (DTP94)
+        if cgats.queryv1("DISPLAY_TYPE_BASE_ID"):
+            return False
+        # c, l (most colorimeters)
+        # R (ColorHug and Colorimétre HCFR)
+        # F (ColorHug)
+        # f (ColorMunki Smile)
+        # g (DTP94)
 
-            # IMPORTANT: Make changes aswell in the following locations:
-            # - DisplayCAL.MainFrame.create_colorimeter_correction_handler
-            # - DisplayCAL.MainFrame.get_ccxx_measurement_modes
-            # - DisplayCAL.MainFrame.set_ccxx_measurement_modes
-            # - DisplayCAL.MainFrame.update_colorimeter_correction_matrix_ctrl_items
-            # - worker.Worker.instrument_can_use_ccxx
-            cgats[0].add_keyword(
-                "DISPLAY_TYPE_BASE_ID",
-                {"c": 2, "l": 1, "R": 2, "F": 1, "f": 1, "g": 3}.get(
-                    getcfg(cfgname), 1
-                ),
-            )
-            print(f"Added DISPLAY_TYPE_BASE_ID {cgats[0].DISPLAY_TYPE_BASE_ID!r}")
-            return True
+        # IMPORTANT: Make changes aswell in the following locations:
+        # - DisplayCAL.MainFrame.create_colorimeter_correction_handler
+        # - DisplayCAL.MainFrame.get_ccxx_measurement_modes
+        # - DisplayCAL.MainFrame.set_ccxx_measurement_modes
+        # - DisplayCAL.MainFrame.update_colorimeter_correction_matrix_ctrl_items
+        # - worker.Worker.instrument_can_use_ccxx
+        cgats[0].add_keyword(
+            "DISPLAY_TYPE_BASE_ID",
+            {"c": 2, "l": 1, "R": 2, "F": 1, "f": 1, "g": 3}.get(
+                getcfg(cfgname), 1
+            ),
+        )
+        print(f"Added DISPLAY_TYPE_BASE_ID {cgats[0].DISPLAY_TYPE_BASE_ID!r}")
+        return True
 
     def check_display_conf_oy_compat(self, display_no):
         """Check the screen configuration for oyranos-monitor compatibility
@@ -2878,6 +2900,7 @@ class Worker(WorkerBase):
                 return False
         if self.safe_send(" "):
             self.progress_wnd.Pulse(lang.getstr("please_wait"))
+        return None
 
     def check_instrument_calibration(self, txt):
         """Check if current instrument needs sensor calibration by looking
@@ -3357,6 +3380,7 @@ END_DATA
             if sys.platform == "win32":
                 self.madtpg.set_osd_text("\u25b6")  # "Play" symbol
             self.madtpg_restore_settings(False, fullscreen)
+        return None
 
     def abort_all(self, confirm=False):
         aborted = False
@@ -3434,9 +3458,13 @@ END_DATA
             if getattr(self, "progress_wnd", None):
                 self.progress_wnd.Resume()
 
-    def instrument_place_on_screen(self):
-        """Show a dialog asking user to place the instrument on the screen
-        and give an option to cancel"""
+    def instrument_place_on_screen(self) -> None | bool:
+        """Prompt user to place the instrument on the screen.
+
+        Returns:
+            None: if the user canceled the dialog.
+            bool: True if the user confirmed the dialog.
+        """
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -3498,8 +3526,15 @@ END_DATA
             if sys.platform == "win32":
                 self.madtpg.set_osd_text("\u25b6")  # "Play" symbol
             self.madtpg_restore_settings(False, fullscreen)
+        return None
 
     def instrument_reposition_sensor(self):
+        """Show a dialog asking user to reposition the instrument sensor.
+        
+        Returns:
+            None: if the user canceled the dialog.
+            bool: True if the user confirmed the dialog.
+        """
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -3539,6 +3574,7 @@ END_DATA
             if sys.platform == "win32":
                 self.madtpg.set_osd_text("\u25b6")  # "Play" symbol
             self.madtpg_restore_settings(False, fullscreen)
+        return None
 
     def clear_argyll_info(self):
         """Clear Argyll CMS version, detected displays and instruments."""
@@ -9803,42 +9839,44 @@ usage: spotread [-options] [logfile]
     def _attempt_install_profile_colord(self, profile, device_id=None):
         if not device_id:
             device_id = self.get_device_id(quirk=False, query=True)
-        if device_id:
-            result = False
-            # Try a range of possible device IDs
-            device_ids = [
-                device_id,
-                self.get_device_id(quirk=True, truncate_edid_strings=True),
-                self.get_device_id(quirk=True, use_serial_32=False),
-                self.get_device_id(
-                    quirk=True, use_serial_32=False, truncate_edid_strings=True
-                ),
-                self.get_device_id(quirk=True),
-                self.get_device_id(quirk=False, truncate_edid_strings=True),
-                self.get_device_id(quirk=False, use_serial_32=False),
-                self.get_device_id(
-                    quirk=False, use_serial_32=False, truncate_edid_strings=True
-                ),
-                # Try with manufacturer omitted
-                self.get_device_id(omit_manufacturer=True),
-                self.get_device_id(truncate_edid_strings=True, omit_manufacturer=True),
-                self.get_device_id(use_serial_32=False, omit_manufacturer=True),
-                self.get_device_id(
-                    use_serial_32=False,
-                    truncate_edid_strings=True,
-                    omit_manufacturer=True,
-                ),
-            ]
-            for device_id in dict.fromkeys(device_ids):
-                if device_id:
-                    # NOTE: This can block
-                    result = self._install_profile_colord(profile, device_id)
-                    if isinstance(result, colord.CDObjectQueryError):
-                        # Device ID was not found, try next one
-                        continue
-                    # Either returned ok or there was another error
-                    break
-            return result
+        if not device_id:
+            return None
+        result = False
+        # Try a range of possible device IDs
+        device_ids = [
+            device_id,
+            self.get_device_id(quirk=True, truncate_edid_strings=True),
+            self.get_device_id(quirk=True, use_serial_32=False),
+            self.get_device_id(
+                quirk=True, use_serial_32=False, truncate_edid_strings=True
+            ),
+            self.get_device_id(quirk=True),
+            self.get_device_id(quirk=False, truncate_edid_strings=True),
+            self.get_device_id(quirk=False, use_serial_32=False),
+            self.get_device_id(
+                quirk=False, use_serial_32=False, truncate_edid_strings=True
+            ),
+            # Try with manufacturer omitted
+            self.get_device_id(omit_manufacturer=True),
+            self.get_device_id(truncate_edid_strings=True, omit_manufacturer=True),
+            self.get_device_id(use_serial_32=False, omit_manufacturer=True),
+            self.get_device_id(
+                use_serial_32=False,
+                truncate_edid_strings=True,
+                omit_manufacturer=True,
+            ),
+        ]
+        for device_id in dict.fromkeys(device_ids):
+            if not device_id:
+                continue
+            # NOTE: This can block
+            result = self._install_profile_colord(profile, device_id)
+            if isinstance(result, colord.CDObjectQueryError):
+                # Device ID was not found, try next one
+                continue
+            # Either returned ok or there was another error
+            break
+        return result
 
     def _install_profile_gcm(self, profile):
         """Install profile using gcm-import"""
@@ -14245,6 +14283,7 @@ usage: spotread [-options] [logfile]
             ) as exception:
                 return exception
         self.terminal.cgats = cgats
+        return None
 
     def setup_inout(self, basename=None):
         """Setup in/outfile basename and session logfile."""

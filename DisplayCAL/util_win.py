@@ -214,6 +214,7 @@ def enable_calibration_management(enable: bool = True) -> bool:
             winreg.SetValueEx(
                 key, "CalibrationManagementEnabled", 0, winreg.REG_DWORD, int(enable)
             )
+        return True
     else:
         # Using ctypes (must be called with elevated permissions)
         mscms = _get_mscms_windll()
@@ -251,23 +252,24 @@ def enable_per_user_profiles(
         device = get_display_device(display_no)
         if device:
             devicekey = device.DeviceKey
-    if devicekey:
-        if USE_REGISTRY:
-            with _get_icm_display_device_key(devicekey) as key:
-                winreg.SetValueEx(
-                    key, "UsePerUserProfiles", 0, winreg.REG_DWORD, int(enable)
-                )
-        else:
-            # Using ctypes - this leaks registry key handles internally in
-            # WcsSetUsePerUserProfiles since Windows 10 1903
-            mscms = _get_mscms_windll()
-            if not mscms:
-                return False
-            if not mscms.WcsSetUsePerUserProfiles(
-                str(devicekey), CLASS_MONITOR, enable
-            ):
-                raise get_windows_error(ctypes.windll.kernel32.GetLastError())
-        return True
+    if not devicekey:
+        return False
+    if USE_REGISTRY:
+        with _get_icm_display_device_key(devicekey) as key:
+            winreg.SetValueEx(
+                key, "UsePerUserProfiles", 0, winreg.REG_DWORD, int(enable)
+            )
+    else:
+        # Using ctypes - this leaks registry key handles internally in
+        # WcsSetUsePerUserProfiles since Windows 10 1903
+        mscms = _get_mscms_windll()
+        if not mscms:
+            return False
+        if not mscms.WcsSetUsePerUserProfiles(
+            str(devicekey), CLASS_MONITOR, enable
+        ):
+            raise get_windows_error(ctypes.windll.kernel32.GetLastError())
+    return True
 
 
 def get_display_devices(devicename: str) -> list["PyDISPLAY_DEVICE"]:
@@ -337,6 +339,7 @@ def get_active_display_device(
             len(devices) == 1 or device.StateFlags & DISPLAY_DEVICE_ATTACHED
         ):
             return device
+    return None
 
 
 def get_active_display_devices(
@@ -562,25 +565,26 @@ def per_user_profiles_isenabled(
         device = get_display_device(display_no)
         if device:
             devicekey = device.DeviceKey
-    if devicekey:
-        if USE_REGISTRY:
-            with _get_icm_display_device_key(devicekey) as key:
-                try:
-                    return bool(winreg.QueryValueEx(key, "UsePerUserProfiles")[0])
-                except OSError as exception:
-                    if exception.args[0] == winerror.ERROR_FILE_NOT_FOUND:
-                        return False
-                    raise
-        else:
-            # Using ctypes - this leaks registry key handles internally in
-            # WcsGetUsePerUserProfiles since Windows 10 1903
-            mscms = _get_mscms_windll()
-            pbool = ctypes.pointer(ctypes.c_bool())
-            if not mscms or not mscms.WcsGetUsePerUserProfiles(
-                str(devicekey), CLASS_MONITOR, pbool
-            ):
-                return None
-            return bool(pbool.contents)
+    if not devicekey:
+        return None
+    if USE_REGISTRY:
+        with _get_icm_display_device_key(devicekey) as key:
+            try:
+                return bool(winreg.QueryValueEx(key, "UsePerUserProfiles")[0])
+            except OSError as exception:
+                if exception.args[0] == winerror.ERROR_FILE_NOT_FOUND:
+                    return False
+                raise
+    else:
+        # Using ctypes - this leaks registry key handles internally in
+        # WcsGetUsePerUserProfiles since Windows 10 1903
+        mscms = _get_mscms_windll()
+        pbool = ctypes.pointer(ctypes.c_bool())
+        if not mscms or not mscms.WcsGetUsePerUserProfiles(
+            str(devicekey), CLASS_MONITOR, pbool
+        ):
+            return None
+        return bool(pbool.contents)
 
 
 def run_as_admin(

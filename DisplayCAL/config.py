@@ -724,6 +724,7 @@ def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> Union[None
             if debug:
                 print(f"[D] Found display {geometry} at index {i}")
             return i
+    return None
 
 
 def get_display_number(display_no: int) -> int:
@@ -1765,6 +1766,7 @@ def get_current_profile(include_display_profile=False):
         return profile
     elif include_display_profile:
         return get_display_profile()
+    return None
 
 
 def get_display_profile(display_no=None):

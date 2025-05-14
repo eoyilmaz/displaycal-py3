@@ -165,6 +165,7 @@ class Tag:
                 if os.path.isfile(cachefilename):
                     _safe_print("Removing", cachefilename)
                     os.remove(cachefilename)
+            return None
 
         # Get HTML template from cache or online
         html = get_resource(

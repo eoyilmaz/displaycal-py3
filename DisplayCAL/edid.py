@@ -563,6 +563,8 @@ def edid_parse_string(desc):
         desc = desc.replace(b"\x00", b"-")
         return bytes(desc)
 
+    return None
+
 
 def parse_edid(edid):
     """Parse raw EDID data (binary string) and return dict.

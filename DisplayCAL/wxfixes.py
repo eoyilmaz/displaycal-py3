@@ -200,6 +200,7 @@ if "phoenix" in wx.PlatformInfo:
         for index, sizeritem in enumerate(self.Children):
             if sizeritem.Window == window:
                 return index
+        return None
 
     wx.Sizer.GetItemIndex = GetItemIndex
     wx.TopLevelWindow.Restore = lambda self: self.Iconize(False)
@@ -514,6 +515,7 @@ def FindMenuItem(self, label):
             fixed_label = GTKMenuItemGetFixedLabel(menuitem.GetItemLabelText())
         if fixed_label == label:
             return menuitem.GetId()
+    return None
 
 
 wx.Menu.FindItem = FindMenuItem

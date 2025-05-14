@@ -2311,71 +2311,73 @@ Transform {
 
     def get_white_cie(self, colorspace=None):
         """Get the 'white' from the CIE values (if any)."""
-        data_format = self.get_cie_data_format()
-        if data_format:
-            if "RGB_R" in list(data_format.values()):
-                white = {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
-            elif "CMYK_C" in list(data_format.values()):
-                white = {"CMYK_C": 0, "CMYK_M": 0, "CMYK_Y": 0, "CMYK_K": 0}
-            else:
-                white = None
-            if white:
-                white = self.queryi1(white)
+        if not (data_format := self.get_cie_data_format()):
+            return None
+        if "RGB_R" in list(data_format.values()):
+            white = {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
+        elif "CMYK_C" in list(data_format.values()):
+            white = {"CMYK_C": 0, "CMYK_M": 0, "CMYK_Y": 0, "CMYK_K": 0}
+        else:
+            white = None
+        if white:
+            white = self.queryi1(white)
+        if not white:
+            for key in ("LUMINANCE_XYZ_CDM2", "APPROX_WHITE_POINT"):
+                white = self.queryv1(key)
+                if white:
+                    try:
+                        white = [float(v) for v in white.split()]
+                    except ValueError:
+                        white = None
+                    else:
+                        if len(white) == 3:
+                            white = [v / white[1] * 100 for v in white]
+                            white = {
+                                "XYZ_X": white[0],
+                                "XYZ_Y": white[1],
+                                "XYZ_Z": white[2],
+                            }
+                            break
+                        white = None
             if not white:
-                for key in ("LUMINANCE_XYZ_CDM2", "APPROX_WHITE_POINT"):
-                    white = self.queryv1(key)
-                    if white:
-                        try:
-                            white = [float(v) for v in white.split()]
-                        except ValueError:
-                            white = None
-                        else:
-                            if len(white) == 3:
-                                white = [v / white[1] * 100 for v in white]
-                                white = {
-                                    "XYZ_X": white[0],
-                                    "XYZ_Y": white[1],
-                                    "XYZ_Z": white[2],
-                                }
-                                break
-                            white = None
-                if not white:
-                    return None
-            if white and (
-                ("XYZ_X" in white and "XYZ_Y" in white and "XYZ_Z" in white)
-                or ("LAB_L" in white and "LAB_B" in white and "LAB_B" in white)
-            ):
-                if colorspace == "XYZ":
-                    if "XYZ_X" in white:
-                        return white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                    else:
-                        return colormath.Lab2XYZ(
-                            white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
-                        )
-                elif colorspace == "Lab":
-                    if "LAB_L" in white:
-                        return white["LAB_L"], white["LAB_A"], white["LAB_B"]
-                    else:
-                        return colormath.XYZ2Lab(
-                            white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                        )
-                return white
+                return None
+        if white and (
+            ("XYZ_X" in white and "XYZ_Y" in white and "XYZ_Z" in white)
+            or ("LAB_L" in white and "LAB_B" in white and "LAB_B" in white)
+        ):
+            if colorspace == "XYZ":
+                if "XYZ_X" in white:
+                    return white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
+                else:
+                    return colormath.Lab2XYZ(
+                        white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
+                    )
+            elif colorspace == "Lab":
+                if "LAB_L" in white:
+                    return white["LAB_L"], white["LAB_A"], white["LAB_B"]
+                else:
+                    return colormath.XYZ2Lab(
+                        white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
+                    )
+            return white
+        return None
 
     def get_cie_data_format(self):
         """Check if DATA_FORMAT defines any CIE XYZ or LAB columns.
 
-        Return the DATA_FORMAT on success or None on failure.
-
+        Returns:
+            bytes | None: The DATA_FORMAT on success or None on failure.
         """
         if data_format := self.queryv1("DATA_FORMAT"):
             cie = {}
             for channel in (b"LAB_L", b"LAB_A", b"LAB_B"):
                 cie[channel] = channel in list(data_format.values())
-            if len(list(cie.values())) in {0, 3}:
+            if len(list(cie.values())) in [0, 3]:
                 for channel in (b"XYZ_X", b"XYZ_Y", b"XYZ_Z"):
                     cie[channel] = channel in list(data_format.values())
                 if len([v for v in iter(cie.values()) if v is not False]) in {3, 6}:
                     return data_format
+        return None
 
     pop = remove
 

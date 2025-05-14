@@ -490,128 +490,130 @@ class ReportFrame(BaseFrame):
             if which == "input":
                 XYZbpin = self.XYZbpin
                 self.XYZbpin = [0, 0, 0]
-        if path or profile:
-            if path and not os.path.isfile(path):
-                if not silent:
-                    show_result_dialog(
-                        Error(lang.getstr("file.missing", path)), parent=self
-                    )
-                return None
-            if not profile:
-                try:
-                    profile = ICCProfile(path)
-                except ICCProfileInvalidError:
-                    if not silent:
-                        show_result_dialog(
-                            Error(f"{lang.getstr('profile.invalid')}\n{path}"),
-                            parent=self,
-                        )
-                except OSError as exception:
-                    if not silent:
-                        show_result_dialog(exception, parent=self)
-            if profile:
-                profile_path = profile.fileName
-                if (
-                    (
-                        which == "simulation"
-                        and (
-                            profile.profileClass not in (b"mntr", b"prtr")
-                            or profile.colorSpace not in (b"CMYK", b"RGB")
-                        )
-                    )
-                    or (
-                        which == "output"
-                        and (
-                            profile.profileClass != b"mntr"
-                            or profile.colorSpace != b"RGB"
-                        )
-                    )
-                    or (which == "devlink" and profile.profileClass != b"link")
-                ):
-                    show_result_dialog(
-                        NotImplementedError(
-                            lang.getstr(
-                                "profile.unsupported",
-                                (profile.profileClass, profile.colorSpace),
-                            )
-                        ),
-                        parent=self,
-                    )
-                else:
-                    if (
-                        not getattr(self, f"{which}_profile", None)
-                        or getattr(self, f"{which}_profile").fileName
-                        != profile.fileName
-                    ):
-                        # Profile selection has changed
-                        if which == "simulation":
-                            # Get profile blackpoint so we can check if it makes
-                            # sense to show TRC type and output offset controls
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return None
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return None
-                                self.XYZbpin = odata[0]
-                        elif which == "output":
-                            # Get profile blackpoint so we can check if input
-                            # values would be clipped
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return None
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return None
-                                if odata[0][1]:
-                                    # Got above zero blackpoint from lookup
-                                    self.XYZbpout = odata[0]
-                                else:
-                                    # Got zero blackpoint from lookup.
-                                    # Try chardata instead.
-                                    XYZbp = profile.get_chardata_bkpt()
-                                    if XYZbp:
-                                        self.XYZbpout = XYZbp
-                                    else:
-                                        self.XYZbpout = [0, 0, 0]
-                    # Profile selection has not changed
-                    # Restore cached XYZbp values
-                    elif which == "output":
-                        self.XYZbpout = XYZbpout
-                    elif which == "input":
-                        self.XYZbpin = XYZbpin
-                    setattr(self, f"{which}_profile", profile)
-                    if not silent:
-                        setcfg(
-                            f"measurement_report.{which}_profile",
-                            profile and profile_path,
-                        )
-                        if which == "simulation":
-                            self.use_simulation_profile_ctrl_handler(None)
-                        elif hasattr(self, "XYZbpin"):
-                            self.mr_update_main_controls()
-                    return profile
-            if path:
-                self.set_profile_ctrl_path(which)
-        else:
+        if not path and not profile:
             setattr(self, f"{which}_profile", None)
             if not silent:
                 setcfg(f"measurement_report.{which}_profile", None)
                 self.mr_update_main_controls()
+            return None
+        if path and not os.path.isfile(path):
+            if not silent:
+                show_result_dialog(
+                    Error(lang.getstr("file.missing", path)), parent=self
+                )
+            return None
+        if not profile:
+            try:
+                profile = ICCProfile(path)
+            except ICCProfileInvalidError:
+                if not silent:
+                    show_result_dialog(
+                        Error(f"{lang.getstr('profile.invalid')}\n{path}"),
+                        parent=self,
+                    )
+            except OSError as exception:
+                if not silent:
+                    show_result_dialog(exception, parent=self)
+        if profile:
+            profile_path = profile.fileName
+            if (
+                (
+                    which == "simulation"
+                    and (
+                        profile.profileClass not in (b"mntr", b"prtr")
+                        or profile.colorSpace not in (b"CMYK", b"RGB")
+                    )
+                )
+                or (
+                    which == "output"
+                    and (
+                        profile.profileClass != b"mntr"
+                        or profile.colorSpace != b"RGB"
+                    )
+                )
+                or (which == "devlink" and profile.profileClass != b"link")
+            ):
+                show_result_dialog(
+                    NotImplementedError(
+                        lang.getstr(
+                            "profile.unsupported",
+                            (profile.profileClass, profile.colorSpace),
+                        )
+                    ),
+                    parent=self,
+                )
+            else:
+                if (
+                    not getattr(self, f"{which}_profile", None)
+                    or getattr(self, f"{which}_profile").fileName
+                    != profile.fileName
+                ):
+                    # Profile selection has changed
+                    if which == "simulation":
+                        # Get profile blackpoint so we can check if it makes
+                        # sense to show TRC type and output offset controls
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            self.XYZbpin = odata[0]
+                    elif which == "output":
+                        # Get profile blackpoint so we can check if input
+                        # values would be clipped
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            if odata[0][1]:
+                                # Got above zero blackpoint from lookup
+                                self.XYZbpout = odata[0]
+                            else:
+                                # Got zero blackpoint from lookup.
+                                # Try chardata instead.
+                                XYZbp = profile.get_chardata_bkpt()
+                                if XYZbp:
+                                    self.XYZbpout = XYZbp
+                                else:
+                                    self.XYZbpout = [0, 0, 0]
+                # Profile selection has not changed
+                # Restore cached XYZbp values
+                elif which == "output":
+                    self.XYZbpout = XYZbpout
+                elif which == "input":
+                    self.XYZbpin = XYZbpin
+                setattr(self, f"{which}_profile", profile)
+                if not silent:
+                    setcfg(
+                        f"measurement_report.{which}_profile",
+                        profile and profile_path,
+                    )
+                    if which == "simulation":
+                        self.use_simulation_profile_ctrl_handler(None)
+                    elif hasattr(self, "XYZbpin"):
+                        self.mr_update_main_controls()
+                return profile
+        if path:
+            self.set_profile_ctrl_path(which)
+        return None
+
 
     def set_profile_ctrl_path(self, which):
         getattr(self, f"{which}_profile_ctrl").SetPath(

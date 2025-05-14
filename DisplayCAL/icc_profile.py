@@ -1976,32 +1976,35 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
                         "monitor_name": device_ids[display_no].split("xrandr-", 1).pop()
                     }
                     device_ids = [device_ids[display_no]]
-    if edid_:
-        for device_id in dict.fromkeys(device_ids):
-            if device_id:
-                try:
-                    profile = colord.get_default_profile(device_id)
-                    profile_path = profile.properties.get("Filename")
-                except colord.CDObjectQueryError:
-                    # Device ID was not found, try next one
-                    continue
-                except colord.CDError as exception:
-                    warnings.warn(str(exception), Warning, stacklevel=2)
-                except colord.DBusException as exception:
-                    warnings.warn(str(exception), Warning, stacklevel=2)
-                else:
-                    if profile_path:
-                        if "hash" in edid_:
-                            colord.device_ids[edid_["hash"]] = device_id
-                        if path_only:
-                            print(
-                                "Got profile from colord for display "
-                                f"{int(display_no):d} ({device_id}):",
-                                profile_path,
-                            )
-                            return profile_path
-                        return ICCProfile(profile_path, use_cache=use_cache)
-                break
+    if not edid_:
+        return None
+    for device_id in dict.fromkeys(device_ids):
+        if not device_id:
+            continue
+        try:
+            profile = colord.get_default_profile(device_id)
+            profile_path = profile.properties.get("Filename")
+        except colord.CDObjectQueryError:
+            # Device ID was not found, try next one
+            continue
+        except colord.CDError as exception:
+            warnings.warn(str(exception), Warning, stacklevel=2)
+        except colord.DBusException as exception:
+            warnings.warn(str(exception), Warning, stacklevel=2)
+        else:
+            if profile_path:
+                if "hash" in edid_:
+                    colord.device_ids[edid_["hash"]] = device_id
+                if path_only:
+                    print(
+                        "Got profile from colord for display "
+                        f"{int(display_no):d} ({device_id}):",
+                        profile_path,
+                    )
+                    return profile_path
+                return ICCProfile(profile_path, use_cache=use_cache)
+        break
+    return None
 
 
 def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True):
@@ -2041,6 +2044,8 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
                     return profile_path
                 return ICCProfile(profile_path, use_cache=use_cache)
 
+    return None
+
 
 def _wcs_get_display_profile(
     devicekey,
@@ -2069,6 +2074,7 @@ def _wcs_get_display_profile(
         if path_only:
             return os.path.join(iccprofiles[0], buf.value)
         return ICCProfile(buf.value, use_cache=use_cache)
+    return None
 
 
 def _win10_1903_take_process_handles_snapshot():
@@ -2909,6 +2915,7 @@ def videoCardGamma(tagData, tagSignature):
         return VideoCardGammaTableType(tagData, tagSignature)
     elif tagType == 1:  # formula
         return VideoCardGammaFormulaType(tagData, tagSignature)
+    return None
 
 
 class CRInterpolation:
@@ -4193,6 +4200,7 @@ class CurveType(ICCProfileTag, list):
         for i, v in enumerate(self):
             X, Y, Z = colormath.xyY2XYZ(x, y, v / 65535.0)
             self[i] = bt1886.apply(X, Y, Z)[1] * 65535.0
+        return None
 
     def set_dicom_trc(self, black_cdm2=0.05, white_cdm2=100, size=None):
         """Set the response to the DICOM Grayscale Standard Display Function
@@ -5192,15 +5200,18 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
             localizedTypes = ("Macintosh", "ASCII")
         else:
             localizedTypes = ("Unicode", "ASCII")
+
         for localizedType in localizedTypes:
-            if localizedType in self:
-                value = self[localizedType]
-                if not isinstance(value, str):
-                    # Even ASCII description may contain non-ASCII chars, so
-                    # assume system encoding and convert to unicode, replacing
-                    # unknown chars
-                    value = value.decode("utf-8", "replace")
-                return value
+            if localizedType not in self:
+                continue
+            value = self[localizedType]
+            if not isinstance(value, str):
+                # Even ASCII description may contain non-ASCII chars, so
+                # assume system encoding and convert to unicode, replacing
+                # unknown chars
+                value = value.decode("utf-8", "replace")
+            return value
+        return None
 
 
 def TextType(tagData, tagSignature):
@@ -5605,39 +5616,42 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
         """
         if quantize and not isinstance(quantize, int):
             raise ValueError(f"Invalid quantization bits: {quantize!r}")
-        if "ColorDeviceModel" in self:
-            # Parse calibration information to VCGT
-            cal = self.ColorDeviceModel.find("Calibration")
-            if cal is None:
-                return None
-            agammaconf = cal.find("AdapterGammaConfiguration")
-            if agammaconf is None:
-                return None
-            pcurves = agammaconf.find("ParameterizedCurves")
-            if pcurves is None:
-                return None
-            vcgtData = "vcgt"
-            vcgtData += b"\0" * 4
-            vcgtData += uInt32Number_tohex(1)  # Type 1 = formula
-            for color in ("Red", "Green", "Blue"):
-                trc = pcurves.find(color + "TRC")
-                if trc is None:
-                    trc = {}
-                vcgtData += u16Fixed16Number_tohex(float(trc.get("Gamma", 1)))
-                vcgtData += u16Fixed16Number_tohex(float(trc.get("Offset1", 0)))
-                vcgtData += u16Fixed16Number_tohex(float(trc.get("Gain", 1)))
-            vcgt = VideoCardGammaFormulaType(vcgtData, "vcgt")
-            if quantize:
-                if quantize in (8, 16, 32, 64):
-                    entrySize = quantize / 8
-                elif quantize < 32:
-                    entrySize = 4
-                else:
-                    entrySize = 8
-                vcgt = vcgt.getTableType(entrySize=entrySize, quantizer=quantizer)
-                if quantize not in (8, 16, 32, 64):
-                    vcgt.quantize(quantize, quantizer)
-            return vcgt
+
+        if "ColorDeviceModel" not in self:
+            return None
+
+        # Parse calibration information to VCGT
+        cal = self.ColorDeviceModel.find("Calibration")
+        if cal is None:
+            return None
+        agammaconf = cal.find("AdapterGammaConfiguration")
+        if agammaconf is None:
+            return None
+        pcurves = agammaconf.find("ParameterizedCurves")
+        if pcurves is None:
+            return None
+        vcgtData = "vcgt"
+        vcgtData += b"\0" * 4
+        vcgtData += uInt32Number_tohex(1)  # Type 1 = formula
+        for color in ("Red", "Green", "Blue"):
+            trc = pcurves.find(color + "TRC")
+            if trc is None:
+                trc = {}
+            vcgtData += u16Fixed16Number_tohex(float(trc.get("Gamma", 1)))
+            vcgtData += u16Fixed16Number_tohex(float(trc.get("Offset1", 0)))
+            vcgtData += u16Fixed16Number_tohex(float(trc.get("Gain", 1)))
+        vcgt = VideoCardGammaFormulaType(vcgtData, "vcgt")
+        if quantize:
+            if quantize in (8, 16, 32, 64):
+                entrySize = quantize / 8
+            elif quantize < 32:
+                entrySize = 4
+            else:
+                entrySize = 8
+            vcgt = vcgt.getTableType(entrySize=entrySize, quantizer=quantizer)
+            if quantize not in (8, 16, 32, 64):
+                vcgt.quantize(quantize, quantizer)
+        return vcgt
 
 
 class XYZNumber(AODict):
@@ -5846,6 +5860,8 @@ class chromaticAdaptionTag(colormath.Matrix3x3, s15Fixed16ArrayType):
             cat_matrix = colormath.cat_matrices[cat_name]
             if colormath.is_similar_matrix(self.applied(q), cat_matrix.applied(q), 4):
                 return cat_name
+
+        return None
 
 
 class NamedColor2Value:
@@ -7297,7 +7313,6 @@ class ICCProfile:
 
         If 'matrix' is True, and 'arts' tag is present, return actual matrix
         instead of name if no match to known matrices.
-
         """
         illuminant = list(self.illuminant.values())
         if isinstance(self.tags.get("chad"), chromaticAdaptionTag):
@@ -7306,6 +7321,7 @@ class ICCProfile:
             )
         elif isinstance(self.tags.get("arts"), chromaticAdaptionTag):
             return self.tags.arts.get_cat() or (matrix and self.tags.arts)
+        return None
 
     def isSame(self, profile, force_calculation=False):
         """Compare the ID of profiles.
@@ -7909,40 +7925,46 @@ class ICCProfile:
 
     def get_chardata_bkpt(self, illuminant_relative=False):
         """Get blackpoint from embeded characterization data ('targ' tag)"""
-        if isinstance(self.tags.get("targ"), Text):
-            from DisplayCAL.cgats import CGATS
+        if not isinstance(self.tags.get("targ"), Text):
+            return None
 
-            ti3 = CGATS(self.tags.targ)
-            if 0 in ti3:
-                black = ti3[0].queryi({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})
-                # May be several samples for black. Average them.
-                if black:
-                    XYZbp = [0, 0, 0]
-                    for sample in black.values():
-                        for i, component in enumerate("XYZ"):
-                            if "XYZ_" + component in sample:
-                                XYZbp[i] += sample["XYZ_" + component] / 100.0
-                    for i in range(3):
-                        XYZbp[i] /= len(black)
-                    if not illuminant_relative:
-                        # Adapt to D50
-                        white = ti3.get_white_cie()
-                        if white:
-                            XYZwp = [
-                                v / 100.0
-                                for v in (
-                                    white["XYZ_X"],
-                                    white["XYZ_Y"],
-                                    white["XYZ_Z"],
-                                )
-                            ]
-                        else:
-                            XYZwp = list(self.tags.wtpt.ir.values())
-                        cat = self.guess_cat() or "Bradford"
-                        XYZbp = colormath.adapt(
-                            *XYZbp, whitepoint_source=XYZwp, cat=cat
-                        )
-                    return XYZbp
+        from DisplayCAL.cgats import CGATS
+
+        ti3 = CGATS(self.tags.targ)
+        if 0 not in ti3:
+            return None
+
+        black = ti3[0].queryi({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})
+        # May be several samples for black. Average them.
+        if not black:
+            return None
+
+        XYZbp = [0, 0, 0]
+        for sample in black.values():
+            for i, component in enumerate("XYZ"):
+                if "XYZ_" + component in sample:
+                    XYZbp[i] += sample["XYZ_" + component] / 100.0
+        for i in range(3):
+            XYZbp[i] /= len(black)
+        if not illuminant_relative:
+            # Adapt to D50
+            white = ti3.get_white_cie()
+            if white:
+                XYZwp = [
+                    v / 100.0
+                    for v in (
+                        white["XYZ_X"],
+                        white["XYZ_Y"],
+                        white["XYZ_Z"],
+                    )
+                ]
+            else:
+                XYZwp = list(self.tags.wtpt.ir.values())
+            cat = self.guess_cat() or "Bradford"
+            XYZbp = colormath.adapt(
+                *XYZbp, whitepoint_source=XYZwp, cat=cat
+            )
+        return XYZbp
 
     def optimize(self, return_bytes_saved=False, update_ID=True):
         """Optimize the tag data so that shared tags are only recorded once.

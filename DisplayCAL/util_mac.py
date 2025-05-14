@@ -125,6 +125,7 @@ def get_serial():
     match = re.search(r'"IOPlatformSerialNumber"\s*=\s*"([^"]*)"', output.decode())
     if match:
         return match.group(1)
+    return None
 
 
 def get_model_id():

@@ -151,3 +151,4 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 return s
             except BaseException:
                 pass
+        return None

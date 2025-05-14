@@ -119,6 +119,8 @@ class ParseMaster:
             else:
                 i = i + pattern.length
 
+        return None
+
     # encode escaped characters
     def _escape(self, string, escapeChar=None):
         def repl(match):

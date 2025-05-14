@@ -82,7 +82,7 @@ from DisplayCAL.meta import (
     version_tuple,
     wx_minversion,
 )
-from DisplayCAL.util_os import getenvu, relpath, safe_glob
+from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str
 
 appname = name
@@ -368,12 +368,12 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
                 os.path.join(tgt_dir, os.path.dirname(pth))
             )
             safe_path = [
-                relpath(p, src_dir) for p in safe_glob(os.path.join(src_dir, pth))
+                os.path.relpath(p, src_dir) for p in safe_glob(os.path.join(src_dir, pth))
             ]
             if pkgname:
                 # try looking for the "{src_dir}/{pkgname}/{pth}" too
                 safe_path += [
-                    relpath(p, src_dir)
+                    os.path.relpath(p, src_dir)
                     for p in safe_glob(os.path.join(src_dir, pkgname, pth))
                 ]
             data.append((normalized_path, safe_path))
@@ -627,7 +627,7 @@ def setup():
             )
         )
         data_files.append(
-            (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+            (doc, [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
         )
 
     # metainfo / appdata.xml
@@ -635,7 +635,7 @@ def setup():
         (
             os.path.join(os.path.dirname(data), "metainfo"),
             [
-                relpath(
+                os.path.relpath(
                     os.path.normpath(
                         os.path.join(pydir, "..", "dist", f"{appstream_id}.appdata.xml")
                     ),
@@ -1269,7 +1269,7 @@ def setup():
             and attrs["data_files"]
         ):
             if data_basedir.startswith(cmd.install_data + os.path.sep):
-                data_basedir = relpath(data_basedir, cmd.install_data)
+                data_basedir = os.path.relpath(data_basedir, cmd.install_data)
             for i, f in enumerate(attrs["data_files"]):
                 if isinstance(f, str):
                     attrs["data_files"][i] = change_root(data_basedir, f)
@@ -1476,7 +1476,7 @@ def setup():
             for datafile in datafiles:
                 manifest_in.append(
                     "include {}".format(
-                        relpath(os.path.sep.join(datafile.split("/")), source_dir)
+                        os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
                         or datafile
                     )
                 )

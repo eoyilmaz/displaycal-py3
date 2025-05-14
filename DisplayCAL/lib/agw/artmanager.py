@@ -1537,6 +1537,8 @@ class ArtManager(wx.EvtHandler):
 
             tempText = tempText[:-1]
 
+        return None
+
     def DrawButton(
         self,
         dc: wx.DC,

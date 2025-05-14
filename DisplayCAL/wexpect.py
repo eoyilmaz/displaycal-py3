@@ -160,7 +160,7 @@ from DisplayCAL.meta import name as appname
 
 
 # Exception classes used by this module.
-class ExceptionPexpect(Exception):
+class ExceptionPexpect(Exception):  # noqa: N818
     """Base class for all exceptions raised by this module."""
 
     def __init__(self, value):

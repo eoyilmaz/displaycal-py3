@@ -3,6 +3,7 @@
 This one won't stop showing updates to the icon like wx.TaskBarIcon
 
 """
+from __future__ import annotations
 
 import contextlib
 import ctypes

@@ -362,7 +362,7 @@ def install_profile(
                     logfn("...failed!")
 
             if p.returncode != 0 and not os.path.isfile(profile_install_name):
-                raise CDTimeout(
+                raise CDTimeoutError(
                     f"Trying to import profile '{profile.fileName}' failed after "
                     f"{n} tries."
                 )
@@ -384,7 +384,7 @@ def install_profile(
             sleep(1)
 
         if not cdprofile:
-            raise CDTimeout(
+            raise CDTimeoutError(
                 f"Querying for profile {profile_id!r} returned no result for {timeout} "
                 "secs"
             )
@@ -528,7 +528,7 @@ class CDObjectNotFoundError(CDObjectQueryError):
     pass
 
 
-class CDTimeout(CDError):
+class CDTimeoutError(CDError):
     pass
 
 

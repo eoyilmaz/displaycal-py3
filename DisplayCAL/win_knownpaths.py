@@ -169,7 +169,7 @@ _SHGetKnownFolderPath.argtypes = [
 ]
 
 
-class PathNotFoundException(Exception):
+class PathNotFoundError(Exception):
     pass
 
 
@@ -181,7 +181,7 @@ def get_path(folderid, user_handle=UserHandle.common):
         _SHGetKnownFolderPath(ctypes.byref(fid), 0, user_handle, ctypes.byref(pPath))
         != S_OK
     ):
-        raise PathNotFoundException
+        raise PathNotFoundError
     path = pPath.value
     _CoTaskMemFree(pPath)
     return path
@@ -203,7 +203,7 @@ if __name__ == "__main__":
             print(get_path(folderid))
         else:
             print(get_path(folderid, getattr(UserHandle, sys.argv[2])))
-    except PathNotFoundException:
+    except PathNotFoundError:
         print('Folder not found "{}"'.format(" ".join(sys.argv[1:])), file=sys.stderr)
         sys.exit(1)
 

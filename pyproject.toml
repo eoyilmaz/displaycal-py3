@@ -204,6 +204,7 @@ select = [
 ]
 extend-ignore = [
     "COM812",  # flake8-commas
+    "D104",  # Missing docstring in in publish package
     "D107",  # skip docstring for __init__
     "D203",  # Incorrect blank line before class
     "D209",  # New line after last paragraph in docstring

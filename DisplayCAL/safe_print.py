@@ -43,16 +43,17 @@ class SafePrinter:
         fn=None,
         encoding=None,
     ):
-        """Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
+        r"""Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
         converting all other objects to safe string representations.
 
-        sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end='\\n',
+        sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end=r'\n',
                              file=sys.stdout, fn=None)
-        sprint(value, ..., pad=False, padchar=' ', sep=' ', end='\\n',
+        sprint(value, ..., pad=False, padchar=' ', sep=' ', end=r'\n',
                file=sys.stdout, fn=None)
 
-        Writes the values to a stream (default sys.stdout), honoring its encoding and
-        replacing characters not present in the encoding with question marks silently.
+        Writes the values to a stream (default sys.stdout), honoring its
+        encoding and replacing characters not present in the encoding with
+        question marks silently.
 
         Optional keyword arguments:
         pad:     pad the lines to n chars, or os.getenv('COLUMNS') if True.

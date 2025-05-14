@@ -212,11 +212,11 @@ def run(
     cwd=None,
     env=None,
 ):
-    """This function runs the given command; waits for it to finish; then
+    r"""This function runs the given command; waits for it to finish; then
     returns all output as a string. STDERR is included in output. If the full
     path to the command is not given then the path is searched.
 
-    Note that lines are terminated by CR/LF (\\r\\n) combination even on
+    Note that lines are terminated by CR/LF (\r\n) combination even on
     UNIX-like systems because this is the standard for pseudo ttys. If you set
     'withexitstatus' to true, then run will return a tuple of (command_output,
     exitstatus). If 'withexitstatus' is false then this returns just
@@ -261,7 +261,7 @@ def run(
 
         run (
             "ssh username@machine.example.com 'ls -l'",
-            events={'(?i)password':'secret\\n'}
+            events={'(?i)password': r'secret\n'}
         )
 
     This will start mencoder to rip a video from DVD. This will also display
@@ -1017,11 +1017,11 @@ class spawn_unix:
         return self.before
 
     def readline(self, size=-1):  # File-like object.
-        """This reads and returns one entire line. A trailing newline is kept
+        r"""This reads and returns one entire line. A trailing newline is kept
         in the string, but may be absent when a file ends with an incomplete
-        line. Note: This readline() looks for a \\r\\n pair even on UNIX
+        line. Note: This readline() looks for a \r\n pair even on UNIX
         because this is what the pseudo tty device returns. So contrary to what
-        you may expect you will receive the newline as \\r\\n. An empty string
+        you may expect you will receive the newline as \r\n. An empty string
         is returned when EOF is hit immediately. Currently, the size argument is
         mostly ignored, so this behavior is not standard for a file-like
         object. If size is 0 then an empty string is returned."""

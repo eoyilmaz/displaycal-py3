@@ -647,10 +647,9 @@ def strtr(txt, replacements):
 
 
 def wrap(text, width=70):
-    """A word-wrap function that preserves existing line breaks and spaces.
+    r"""A word-wrap function that preserves existing line breaks and spaces.
 
-    Expects that existing line breaks are posix newlines (\\n).
-
+    Expects that existing line breaks are posix newlines (\n).
     """
     return reduce(
         lambda line, word, width=width: "{}{}{}".format(

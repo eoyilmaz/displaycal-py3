@@ -10,7 +10,7 @@ sys.path.insert(
 )
 
 
-from DisplayCAL.meta import author, description, DOMAIN, name, version, version_tuple
+from DisplayCAL.meta import author, description, DOMAIN, name, version_string, version_tuple
 
 
 def mktempver(
@@ -22,12 +22,12 @@ def mktempver(
         "prodvers": str(version_tuple),
         "CompanyName": DOMAIN,
         "FileDescription": description_,
-        "FileVersion": f"{version}",
+        "FileVersion": f"{version_string}",
         "InternalName": name_,
         "LegalCopyright": f"© {author}",
         "OriginalFilename": f"{name_}.exe",
         "ProductName": name_,
-        "ProductVersion": f"{version}",
+        "ProductVersion": f"{version_string}",
     }
     version_template.close()
     tempdir = tempfile.mkdtemp()

@@ -52,7 +52,7 @@ from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    version,
+    version_string,
     version_short,
 )
 from DisplayCAL.meta import (
@@ -3836,7 +3836,7 @@ def main():
                 BaseApp._run_exitfuncs()
         print(f"Usage: {os.path.basename(sys.argv[0])} [OPTION]...")
         print("Apply profiles to configured display devices and load calibration")
-        print(f"Version {version}")
+        print(f"Version {version_string}")
         print("")
         print("Options:")
         print("  --help           Output this help text and exit")
@@ -3930,7 +3930,7 @@ def main():
                     for line in textwrap.fill(cfgdoc, 75).splitlines():
                         print(" " * 4 + line.rstrip())
     elif "-V" in sys.argv[1:] or "--version" in sys.argv[1:]:
-        print(f"{os.path.basename(sys.argv[0])} {version}")
+        print(f"{os.path.basename(sys.argv[0])} {version_string}")
     else:
         if sys.platform == "win32":
             setup_profile_loader_task(exe, exedir, pydir)

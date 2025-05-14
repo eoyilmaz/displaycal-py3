@@ -65,7 +65,7 @@ from DisplayCAL.meta import (
     py_maxversion,
     py_minversion,
     script2pywname,
-    version,
+    version_string,
     version_tuple,
 )
 from DisplayCAL.util_os import getenvu, safe_glob
@@ -447,7 +447,7 @@ def build_py2exe():
         "data_files": data_files,
         "description": description,
         "download_url": f"{development_home_page}/releases/download/"
-        f"{version}/{name}-{version}.tar.gz",
+        f"{version_string}/{name}-{version_string}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,
@@ -469,7 +469,7 @@ def build_py2exe():
         "provides": [name],
         "scripts": [],
         "url": f"https://{DOMAIN}/",
-        "version": msiversion if "bdist_msi" in sys.argv[1:] else version,
+        "version": msiversion if "bdist_msi" in sys.argv[1:] else version_string,
     }
     if setuptools:
         attrs["entry_points"] = {
@@ -639,7 +639,7 @@ def build_py2exe():
         "..",
         "dist",
         f"py2exe.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-        f"{name}-{version}",
+        f"{name}-{version_string}",
     )
     os.makedirs(dist_dir, exist_ok=True)
     attrs["options"] = {

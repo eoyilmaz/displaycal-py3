@@ -5,7 +5,7 @@ import time
 from urllib.parse import unquote
 
 from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version as appversion
+from DisplayCAL.meta import version_string as appversion
 
 WEBDISP_HTML = rf"""<!DOCTYPE html>
 <html>

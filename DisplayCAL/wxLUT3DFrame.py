@@ -41,7 +41,7 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
 )
 from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version
+from DisplayCAL.meta import version_string
 from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import stripzeros
 from DisplayCAL.util_os import islink, readlink, safe_glob, waccess
@@ -783,7 +783,7 @@ class LUT3DMixin:
                             clut_fx = strtr(
                                 clut_fx,
                                 {
-                                    "${VERSION}": version,
+                                    "${VERSION}": version_string,
                                     "${WIDTH}": str(clut_size**2),
                                     "${HEIGHT}": str(clut_size),
                                     "${FORMAT}": "RGBA{}".format(
@@ -830,7 +830,7 @@ class LUT3DMixin:
                                     ).rstrip("\r\n")
                                     reshade_fx += (
                                         f"{os.linesep * 2}// Automatically added by "
-                                        f"{appname} {version}{os.linesep}"
+                                        f"{appname} {version_string}{os.linesep}"
                                     )
                                     reshade_fx += (
                                         '#include "ColorLookupTable.fx"' + os.linesep

@@ -161,7 +161,7 @@ from DisplayCAL.meta import (
     author,
     development_home_page,
     get_latest_changelog_entry,
-    version,
+    version_string,
     version_short,
 )
 from DisplayCAL.meta import (
@@ -466,7 +466,7 @@ def check_donation(parent, snapshot):
         and VERSION[0] > tuple(intlist(getcfg("last_launch").split(".")))[0]
     ):
         setcfg("show_donation_message", 1)
-    setcfg("last_launch", version)
+    setcfg("last_launch", version_string)
     if getcfg("show_donation_message"):
         wx.CallAfter(donation_message, parent)
 
@@ -13957,7 +13957,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
                 cgats = re.sub(
                     rb'(\nORIGINATOR\s+)"Argyll[^"]+"',
-                    (rf'\1"{appname} {version}"').encode("utf-8"),  # noqa: UP012
+                    (rf'\1"{appname} {version_string}"').encode("utf-8"),  # noqa: UP012
                     cgats,
                 )
                 metadata.append('FIT_METHOD "xy"')

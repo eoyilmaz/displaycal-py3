@@ -5,7 +5,7 @@ import time
 import zlib
 
 from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version
+from DisplayCAL.meta import version_string
 from DisplayCAL.util_str import safe_str
 
 TIFF_TAG_TYPE_BYTE = 1
@@ -186,7 +186,9 @@ class Image:
             time.strftime("%Y:%m:%d:%H:%M:%S").encode() + tzoffset.encode() + b"\0\0"
         )
         stream.write(
-            safe_str(b"%s %s" % (appname, version)).ljust(100, b"\0")
+            safe_str(
+                b"%s %s" % (appname.encode(), version_string.encode())
+            ).ljust(100, b"\0")
         )  # Creator
         stream.write(b"\0" * 200)  # Project
         stream.write(b"\0" * 200)  # Copyright

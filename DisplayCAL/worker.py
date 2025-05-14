@@ -182,7 +182,7 @@ from DisplayCAL.icc_profile import (
     set_display_profile,
 )
 from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
-from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, version
+from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, version_string
 from DisplayCAL.meta import name as appname
 from DisplayCAL.multiprocess import cpu_count, pool_slice
 from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
@@ -1352,7 +1352,7 @@ def get_default_headers():
             platform.machine(),
         )
     return {
-        "User-Agent": f"{appname}/{version} ({oscpu})",
+        "User-Agent": f"{appname}/{version_string} ({oscpu})",
         "Accept-Language": f"{lang.getcode()},*;q=0.5",
     }
 
@@ -4732,7 +4732,7 @@ END_DATA
                     [
                         ("CMF_product", appname),
                         ("CMF_binary", appname),
-                        ("CMF_version", version),
+                        ("CMF_version", version_string),
                         (
                             "collink.args",
                             sp.list2cmdline(
@@ -5076,7 +5076,7 @@ END_DATA
 
         valsep = " "
         if file_format not in ("dcl", "png"):
-            lut = [[f"# Created with {appname} {version}"]]
+            lut = [[f"# Created with {appname} {version_string}"]]
             linesep = "\n"
         if file_format in ("3dl", "dcl"):
             maxval = math.pow(2, output_bits) - 1
@@ -5293,7 +5293,7 @@ END_DATA
                         self.set_argyll_version_from_string(argyll_version_string)
                     print(f"ArgyllCMS {self.argyll_version_string}")
                     defaults["copyright"] = (
-                        f"No copyright. Created with {appname} {version} and "
+                        f"No copyright. Created with {appname} {version_string} and "
                         f"Argyll CMS {argyll_version_string}"
                     )
 
@@ -12000,7 +12000,7 @@ usage: spotread [-options] [logfile]
                 profile.tags.meta = DictType()
         if tags is True or (tags and "meta" in tags):
             profile.tags.meta.update(
-                {"CMF_product": appname, "CMF_binary": appname, "CMF_version": version}
+                {"CMF_product": appname, "CMF_binary": appname, "CMF_version": version_string}
             )
             # Set license
             profile.tags.meta["License"] = getcfg("profile.license")

@@ -32,7 +32,7 @@ def create_appdmg(zeroinstall=False):
         dmgname = name + "-0install"
         srcdir = "0install"
     else:
-        dmgname = name + "-" + version
+        dmgname = name + "-" + version_string
         srcdir = f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}"
 
     retcode = subprocess.call(
@@ -300,8 +300,8 @@ def replace_placeholders(
         "PACKAGE": name,
         "PY_MAXVERSION": ".".join(str(n) for n in py_maxversion),
         "PY_MINVERSION": ".".join(str(n) for n in py_minversion),
-        "VERSION": version,
-        "VERSION_SHORT": re.sub(r"(?:\.0){1,2}$", "", version),
+        "VERSION": version_string,
+        "VERSION_SHORT": re.sub(r"(?:\.0){1,2}$", "", version_string),
         "URL": f"https://{DOMAIN.lower()}/",
         # For share counts...
         "HTTPURL": f"http://{DOMAIN.lower()}/",
@@ -525,7 +525,7 @@ def setup():
 
     global name, name_html, author, author_email, description, longdesc
     global DOMAIN, py_maxversion, py_minversion
-    global version, version_lin, version_mac
+    global version_string, version_lin, version_mac
     global version_src, version_tuple, version_win
     global wx_minversion, appstream_id
 
@@ -541,7 +541,7 @@ def setup():
         DOMAIN,
         py_maxversion,
         py_minversion,
-        version,
+        version_string,
         version_lin,
         version_mac,
         version_src,
@@ -749,14 +749,14 @@ def setup():
                 inno_script = template % {
                     "AppCopyright": f"© {strftime('%Y')} {author}",
                     "AppName": name,
-                    "AppVerName": version,
+                    "AppVerName": version_string,
                     "AppPublisher": author,
                     "AppPublisherURL": f"https://{DOMAIN}/",
                     "AppSupportURL": f"https://{DOMAIN}/",
                     "AppUpdatesURL": f"https://{DOMAIN}/",
                     "VersionInfoVersion": ".".join(map(str, version_tuple)),
-                    "VersionInfoTextVersion": version,
-                    "AppVersion": version,
+                    "VersionInfoTextVersion": version_string,
+                    "AppVersion": version_string,
                     "Platform": get_platform(),
                     "PythonVersion": f"{sys.version_info[0]}.{sys.version_info[1]}",
                     "URL": f"https://{DOMAIN}/",
@@ -1005,7 +1005,7 @@ def setup():
             .strip(),
             "CHANGELOG": format_changelog(changelog, "rpm"),
         }
-        tgz_file_path = Path(pydir, "dist", f"{name}-{version}.tar.gz")
+        tgz_file_path = Path(pydir, "dist", f"{name}-{version_string}.tar.gz")
 
         if tgz_file_path.is_file():
             with open(tgz_file_path, "rb") as f:
@@ -1052,11 +1052,11 @@ def setup():
             dependencies[i] = " ".join(dependencies[i])
 
         release = 1  # TODO: parse setup.cfg
-        rpm_filename = Path(pydir, "dist", f"{name}-{version}-{release}.{arch}.rpm")
+        rpm_filename = Path(pydir, "dist", f"{name}-{version_string}-{release}.{arch}.rpm")
 
         if not dry_run:
             # remove target directory (and contents) if it already exists
-            target_dir = Path(pydir, "dist", f"{name}-{version}")
+            target_dir = Path(pydir, "dist", f"{name}-{version_string}")
 
             if target_dir.exists():
                 shutil.rmtree(target_dir)
@@ -1075,16 +1075,16 @@ def setup():
             # update changelog
             shutil.copy2(
                 Path(pydir, "dist", "debian.changelog"),
-                Path(pydir, "dist", f"{name}-{version}", "debian", "changelog"),
+                Path(pydir, "dist", f"{name}-{version_string}", "debian", "changelog"),
             )
             # update rules
             shutil.copy2(
                 Path(pydir, "misc", "alien.rules"),
-                Path(pydir, "dist", f"{name}-{version}", "debian", "rules"),
+                Path(pydir, "dist", f"{name}-{version_string}", "debian", "rules"),
             )
             # update control
             control_filename = Path(
-                pydir, "dist", f"{name}-{version}", "debian", "control"
+                pydir, "dist", f"{name}-{version_string}", "debian", "control"
             )
             shutil.copy2(Path(pydir, "dist", "debian.control"), control_filename)
 
@@ -1135,7 +1135,7 @@ def setup():
             cmds.append((cmdname, script, desc))
 
         # Get archive digest
-        extract = f"{name}-{version}"
+        extract = f"{name}-{version_string}"
         archive_name = f"{extract}.tar.gz"
         archive_path = Path(pydir, "dist", archive_name)
 
@@ -1250,7 +1250,7 @@ def setup():
 
                     for implementation in group.getElementsByTagName("implementation"):
                         match = (
-                            implementation.getAttribute("version") == version
+                            implementation.getAttribute("version") == version_string
                             and implementation.getAttribute("stability") == stability
                         )
 
@@ -1259,7 +1259,7 @@ def setup():
 
                     if not match:
                         implementation = domtree.createElement("implementation")
-                        implementation.setAttribute("version", version)
+                        implementation.setAttribute("version", version_string)
                         implementation.setAttribute(
                             "released", strftime("%Y-%m-%d", gmtime(lastmod_time))
                         )
@@ -1291,7 +1291,7 @@ def setup():
                     archive.setAttribute("extract", extract)
                     archive.setAttribute(
                         "href",
-                        f"http://{DOMAIN}/download.php?version={version}&"
+                        f"http://{DOMAIN}/download.php?version={version_string}&"
                         f"suffix=.tar.gz{folder}",
                     )
                     archive.setAttribute("size", str(os.stat(archive_path).st_size))
@@ -1544,10 +1544,10 @@ def setup():
         create_appdmg(zeroinstall)
 
     if bdist_pkg:
-        version_dir = Path(pydir, "dist", version)
+        version_dir = Path(pydir, "dist", version_string)
         replace_placeholders(
             Path(pydir, "misc", name + ".pkgproj"),
-            Path(version_dir, name + "-" + version + ".pkgproj"),
+            Path(version_dir, name + "-" + version_string + ".pkgproj"),
             lastmod_time,
             {"PYDIR": pydir},
         )
@@ -1556,18 +1556,18 @@ def setup():
                 pydir,
                 "dist",
                 f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-                f"{name}-{version}",
+                f"{name}-{version_string}",
             ),
             version_dir,
         )
-        os.rename(Path(version_dir, f"{name}-{version}"), Path(version_dir, name))
+        os.rename(Path(version_dir, f"{name}-{version_string}"), Path(version_dir, name))
 
         if (
             subprocess.call(
                 [
                     "/usr/local/bin/packagesbuild",
                     "-v",
-                    Path(version_dir, f"{name}-{version}.pkgproj"),
+                    Path(version_dir, f"{name}-{version_string}.pkgproj"),
                 ]
             )
             == 0
@@ -1575,7 +1575,7 @@ def setup():
             # Success
             os.rename(
                 Path(version_dir, f"{name}.pkg"),
-                Path(version_dir, f"{name}-{version}.pkg"),
+                Path(version_dir, f"{name}-{version_string}.pkg"),
             )
 
 

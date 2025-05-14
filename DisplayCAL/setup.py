@@ -78,7 +78,7 @@ from DisplayCAL.meta import (
     py_maxversion,
     py_minversion,
     script2pywname,
-    version,
+    version_string,
     version_tuple,
     wx_minversion,
 )
@@ -200,13 +200,13 @@ msiversion = ".".join(
 plist_dict = {
     "CFBundleDevelopmentRegion": "English",
     "CFBundleExecutable": name,
-    "CFBundleGetInfoString": version,
+    "CFBundleGetInfoString": version_string,
     "CFBundleIdentifier": ".".join(reversed(DOMAIN.split("."))) + "." + name,
     "CFBundleInfoDictionaryVersion": "6.0",
-    "CFBundleLongVersionString": version,
+    "CFBundleLongVersionString": version_string,
     "CFBundleName": name,
     "CFBundlePackageType": "APPL",
-    "CFBundleShortVersionString": version,
+    "CFBundleShortVersionString": version_string,
     "CFBundleSignature": "????",
     "CFBundleVersion": ".".join(map(str, version_tuple)),
     "NSHumanReadableCopyright": f"© {strftime('%Y')} {author}",
@@ -434,7 +434,7 @@ def setup():
             os.path.sep,
             "rpm",
             "BUILD",
-            f"{name}-{version}",
+            f"{name}-{version_string}",
             os.path.basename(os.path.abspath(sys.argv[0])),
         )
     )
@@ -574,7 +574,7 @@ def setup():
         elif "suse" in doc_layout:
             doc = os.path.join("doc", "packages", name)
         else:
-            doc = os.path.join("doc", f"{name}-{version}")
+            doc = os.path.join("doc", f"{name}-{version_string}")
 
         if not install_data:
             data = os.path.join("share", data)
@@ -932,7 +932,7 @@ def setup():
         "data_files": data_files,
         "description": description,
         "download_url": f"{development_home_page}/releases/download/"
-        f"{version}/{name}-{version}.tar.gz",
+        f"{version_string}/{name}-{version_string}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
         "long_description": longdesc,
@@ -954,7 +954,7 @@ def setup():
         "provides": [name],
         "scripts": [],
         "url": f"https://{DOMAIN}/",
-        "version": msiversion if "bdist_msi" in sys.argv[1:] else version,
+        "version": msiversion if "bdist_msi" in sys.argv[1:] else version_string,
     }
 
     if setuptools:
@@ -1006,7 +1006,7 @@ def setup():
             "..",
             "dist",
             f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-            f"{name}-{version}",
+            f"{name}-{version_string}",
         )
         from py2app.build_app import py2app as py2app_cls
 
@@ -1177,7 +1177,7 @@ def setup():
             "..",
             "dist",
             f"py2exe.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-            f"{name}-{version}",
+            f"{name}-{version_string}",
         )
         attrs["options"] = {
             "py2exe": {
@@ -1327,10 +1327,10 @@ def setup():
                     paths += (
                         safe_glob(path)
                         + safe_glob(
-                            f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg"
+                            f"{path}-{version_string}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg"
                         )
                         + safe_glob(
-                            f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg-info"
+                            f"{path}-{version_string}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg-info"
                         )
                     )
 
@@ -1622,7 +1622,7 @@ def setup():
                 vc90crt_copy_files(dist_dir)
                 vc90crt_copy_files(os.path.join(dist_dir, "lib"))
             else:
-                vc90crt_copy_files(os.path.join(dist_dir, name + "-" + version))
+                vc90crt_copy_files(os.path.join(dist_dir, name + "-" + version_string))
 
         if do_full_install and not is_rpm_build and not skip_postinstall:
             from DisplayCAL.postinstall import postinstall
@@ -1632,7 +1632,7 @@ def setup():
                 # Using sys.version in this way is consistent with setuptools
                 for path_ in safe_glob(path) + safe_glob(
                     os.path.join(
-                        f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg",
+                        f"{path}-{version_string}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg",
                         name,
                     )
                 ):

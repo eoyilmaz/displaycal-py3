@@ -19,7 +19,7 @@ from DisplayCAL.config import (
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import name as appname
-from DisplayCAL.meta import version as appversion
+from DisplayCAL.meta import version_string as appversion
 from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame

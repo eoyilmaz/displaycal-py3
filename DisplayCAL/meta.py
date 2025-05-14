@@ -50,15 +50,15 @@ name = "DisplayCAL"
 appstream_id = ".".join(reversed([name] + DOMAIN.split(".")))
 name_html = '<span class="appname">Display<span>CAL</span></span>'
 
-py_minversion = (3, 8)
+py_minversion = (3, 9)
 py_maxversion = (3, 13)
 
-version = VERSION_STRING
+version_string = VERSION_STRING
 version_lin = VERSION_STRING  # Linux
 version_mac = VERSION_STRING  # Mac OS X
 version_win = VERSION_STRING  # Windows
 version_src = VERSION_STRING
-version_short = re.sub(r"(?:\.0){1,2}$", "", version)
+version_short = re.sub(r"(?:\.0){1,2}$", "", version_string)
 version_tuple = VERSION  # only ints allowed and must be exactly 3 values
 
 wx_minversion = (2, 8, 11)

@@ -628,7 +628,6 @@ class PolyMarker(PolyPoints):
                 - 'cross'
                 - 'plus'
         """
-
         PolyPoints.__init__(self, points, attr)
 
     def draw(self, dc, printerScale, coord=None):
@@ -838,7 +837,6 @@ class PlotCanvas(wx.Panel):
     ):
         """Constructs a panel, which can be a child of a frame or
         any other non-control window"""
-
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
 
         sizer = wx.FlexGridSizer(2, 2, 0, 0)
@@ -1561,7 +1559,6 @@ class PlotCanvas(wx.Panel):
 
     def Draw(self, graphics, xAxis=None, yAxis=None, dc=None):
         """Wrapper around _Draw, which handles log axes"""
-
         graphics.setLogScale(self.getLogScale())
 
         # check Axis is either tuple or none
@@ -1593,7 +1590,6 @@ class PlotCanvas(wx.Panel):
         dc - drawing context - doesn't have to be specified.
         If it's not, the offscreen buffer is used
         """
-
         if dc is None:
             # sets new dc and clears it
             dc = wx.BufferedDC(wx.ClientDC(self.canvas), self._Buffer)

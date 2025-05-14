@@ -1718,7 +1718,6 @@ class GamapFrame(BaseFrame):
 
     def update_controls(self):
         """Update controls with values from the configuration"""
-
         # B2A quality
         enable_gamap = getcfg("profile.type") in ("l", "x", "X")
         enable_b2a_extra = getcfg("profile.type") in ("l", "x", "X")
@@ -3235,7 +3234,6 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def init_controls(self):
         """Initialize the main window controls and their event handlers."""
-
         for child in (
             self.display_box_label,
             self.instrument_box_label,

@@ -683,7 +683,6 @@ def blend_blackpoint(
     for input black first
 
     """
-
     wp = get_whitepoint(wp)
 
     for i, bp in enumerate((bp_in, bp_out)):
@@ -1649,7 +1648,6 @@ def Luv2RGB(
 
 def u_v_2xy(u, v):
     """Convert from u'v' to xy"""
-
     x = (9.0 * u) / (6 * u - 16 * v + 12)
     y = (4 * v) / (6 * u - 16 * v + 12)
 
@@ -1658,7 +1656,6 @@ def u_v_2xy(u, v):
 
 def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
     """Convert from Luv to XYZ"""
-
     Xr, Yr, Zr = get_whitepoint(whitepoint)
 
     Y = math.pow((L + 16.0) / 116.0, 3) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
@@ -2547,7 +2544,6 @@ def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
 
 def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
     """Convert from XYZ to CIE Lu'v'"""
-
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -2568,7 +2564,6 @@ def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
 
 def XYZ2Luv(X, Y, Z, whitepoint=None):
     """Convert from XYZ to Luv"""
-
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -3284,7 +3279,6 @@ class BT1886:
         Rec709 curve and the output offset pure 2.4 gamma curve)
 
         """
-
         logging.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
         out = self.bwd_matrix * (X, Y, Z)
@@ -3361,7 +3355,6 @@ class BT2390:
         rolled-off highlights)
 
         """
-
         self.black_cdm2 = black_cdm2
         self.white_cdm2 = white_cdm2
         self.master_black_cdm2 = master_black_cdm2

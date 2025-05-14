@@ -173,7 +173,6 @@ class ExceptionPexpect(Exception):
         """This returns an abbreviated stack trace with lines that only concern
         the caller. In other words, the stack trace inside the Pexpect module
         is not included."""
-
         tblist = traceback.extract_tb(sys.exc_info()[2])
         # tblist = filter(self.__filter_not_pexpect, tblist)
         tblist = [item for item in tblist if self.__filter_not_pexpect(item)]

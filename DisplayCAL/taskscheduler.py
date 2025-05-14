@@ -334,7 +334,6 @@ class TaskScheduler:
         same name first, otherwise raise KeyError.
 
         """
-
         kwargs = locals()
         del kwargs["self"]
         del kwargs["replace_existing"]

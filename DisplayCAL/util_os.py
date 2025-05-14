@@ -479,7 +479,6 @@ def _getgroups_unix(username: Optional[str] = None, names_only: bool = False):
     Returns:
         list[str]: A list of groups.
     """
-
     groups = []
     if username is None:
         groups = [grp.getgrgid(g) for g in os.getgroups()]

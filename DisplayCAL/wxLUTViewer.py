@@ -1280,7 +1280,6 @@ class LUTFrame(BaseFrame):
 
     def lookup_tone_response_curves(self, intent="r"):
         """Lookup Y -> RGB tone values through TRC tags or LUT"""
-
         profile = self.profile
 
         # Final number of coordinates

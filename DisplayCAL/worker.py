@@ -4325,7 +4325,6 @@ END_DATA
                     and return the uncliped value in unclipped[].
 
                     """
-
                     clipmask = 0
                     scale = 1.0
                     full = [None] * 3
@@ -7409,7 +7408,6 @@ BEGIN_DATA
         It is also possible to re-generate a B2A table by interpolating
         the B2A table itself.
         """
-
         if tableno is None:
             tableno = 1 if "A2B1" in profile.tags else 0
         if not clutres:

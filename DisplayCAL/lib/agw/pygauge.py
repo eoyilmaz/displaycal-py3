@@ -178,7 +178,6 @@ class PyGauge(wx.Window):
 
     def GetBorderColour(self):
         """Return the :class:`PyGauge` border colour."""
-
         return self._border_colour
 
     def SetBorderColour(self, colour):
@@ -187,7 +186,6 @@ class PyGauge(wx.Window):
         Args:
             colour: an instance of :class:`wx.Colour`.
         """
-
         self._border_colour = colour
 
     SetBorderColor = SetBorderColour
@@ -195,7 +193,6 @@ class PyGauge(wx.Window):
 
     def GetBarColour(self) -> wx.Colour:
         """Return the :class:`PyGauge` main bar colour."""
-
         return self._barColour[0]
 
     def SetBarColour(self, colour) -> None:
@@ -204,7 +201,6 @@ class PyGauge(wx.Window):
         Args:
             colour: an instance of :class:`wx.Colour`.
         """
-
         if not isinstance(colour, list):
             self._barColour = [colour]
         else:
@@ -217,7 +213,6 @@ class PyGauge(wx.Window):
 
     def GetBarGradient(self):
         """Returns a tuple containing the gradient start and end colours."""
-
         if self._barGradient is None:
             return None
 
@@ -246,7 +241,6 @@ class PyGauge(wx.Window):
         Returns:
             int: Pixels between the border and the progress bar.
         """
-
         return self._border_padding
 
     def SetBorderPadding(self, padding: int) -> None:
@@ -315,7 +309,6 @@ class PyGauge(wx.Window):
         Args:
             event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         rect = self.GetClientRect()
 
@@ -486,7 +479,6 @@ class PyGauge(wx.Window):
             time: The length of time in milliseconds that it will take to move
                 the gauge.
         """
-
         if not isinstance(value, list):
             value = [value]
 

@@ -142,7 +142,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
          ====================== ======= ================================
 
         """
-
         if self.GetParent().GetParent().is_busy:
             return -1, IMG_NONE
 
@@ -182,7 +181,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         style = self.GetParent().GetAGWWindowStyleFlag()
 
@@ -474,7 +472,6 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
          ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
          =========================== =========== ==================================================
         """  # noqa: E501
-
         self._agwStyle = agwStyle
 
         # Check that we are not in initialization process

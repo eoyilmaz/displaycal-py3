@@ -268,7 +268,6 @@ def get_scripts(excludes=None):
 
 def build_py2exe():
     """py2exe builder that uses the new freeze API."""
-
     use_sdl = False
     sys.path.insert(1, os.path.join(pydir, "..", "util"))
 

@@ -353,7 +353,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             paint_control (bool): whether to draw the control inside a tab (if
                 any) on a :class:`MemoryDC`.
         """
-
         # if the caption is empty, measure some temporary text
         caption = page.caption
         if not caption:
@@ -654,7 +653,6 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             base_colour: an instance of :class:`Colour`. If defaulted to ``None``,
                 a colour is generated accordingly to the platform and theme.
         """
-
         if base_colour is None:
             base_colour = aui.GetBaseColour()
 
@@ -3413,7 +3411,6 @@ class FlatShadedButton(GradientButton):
         """Overridden base class virtual. Determines the best size of the
         button based on the label and bezel size.
         """
-
         if not getattr(self, "_lastBestSize", None):
             dummy = "FfGgJjPpYy"
             label = self.GetLabel() or dummy
@@ -3454,7 +3451,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.FocusEvent` event to be processed.
         """
-
         self._hasFocus = True
         self._mouseAction = HOVER
         self.Refresh()
@@ -3465,7 +3461,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         self._hasFocus = False
         pos = wx.GetMousePosition()
         if self.IsShownOnScreen() and not self.ClientRect.Contains(
@@ -3481,7 +3476,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         if sys.platform != "win32":
             # AutoBufferedPaintDCFactory is the magic needed for crisp text
             # rendering in HiDPI mode under OS X and Linux
@@ -3680,7 +3674,6 @@ class BorderGradientButton(GradientButton):
         :param percent: determines how dark the colour will be. `percent` = 100
          returns black, `percent` = 0 returns `colour`.
         """
-
         rd = colour.Red()
         gd = colour.Green()
         bd = colour.Blue()
@@ -3701,7 +3694,6 @@ class BorderGradientButton(GradientButton):
         """Overridden base class virtual. Determines the best size of the
         button based on the label and bezel size.
         """
-
         label = self.GetLabel()
         if not label:
             return wx.Size(112, 48)
@@ -3739,7 +3731,6 @@ class BorderGradientButton(GradientButton):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         if sys.platform != "win32":
             # AutoBufferedPaintDCFactory is the magic needed for crisp text
             # rendering in HiDPI mode under OS X and Linux
@@ -4542,7 +4533,6 @@ class CustomCheckBox(wx.Panel):
 
     def SendCheckBoxEvent(self):
         """Actually sends the event to the checkbox."""
-
         self.Value = not self.Value
         checkEvent = wx.CommandEvent(
             wx.wxEVT_COMMAND_CHECKBOX_CLICKED, self._cb.GetId()
@@ -4563,7 +4553,6 @@ class CustomCheckBox(wx.Panel):
         """Returns the state of CustomCheckBox, True if checked, False
         otherwise.
         """
-
         return self._cb.Value
 
     def IsChecked(self):
@@ -4571,14 +4560,12 @@ class CustomCheckBox(wx.Panel):
         latter, it returns True if the CustomCheckBox is checked and False
         otherwise.
         """
-
         return self._cb.Value
 
     def SetValue(self, state):
         """Sets the CustomCheckBox to the given state. This does not cause a
         wx.wxEVT_COMMAND_CHECKBOX_CLICKED event to get emitted.
         """
-
         self._cb.Value = state
 
     def GetLabel(self):
@@ -5242,7 +5229,6 @@ class BetterPyGauge(pygauge.PyGauge):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
         dc.SetBackground(wx.Brush(self.Parent.BackgroundColour))
@@ -6726,7 +6712,6 @@ class SimpleBook(labelbook.FlatBookBase):
 
     def CreateImageContainer(self):
         """Creates the image container (LabelContainer) class for L{FlatImageBook}."""
-
         return labelbook.ImageContainerBase(
             self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
         )
@@ -7411,7 +7396,6 @@ class TwoWaySplitter(FourWaySplitter):
 
     def _GetSashSize(self):
         """Used internally."""
-
         if self.HasFlag(wx.SP_NOSASH):
             return 0
 
@@ -7465,7 +7449,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param dc: an instance of `wx.DC`.
         """
-
         backColour = wx.Colour(*[int(v * 0.85) for v in self.BackgroundColour[:3]])
         dc.SetBrush(wx.Brush(backColour, wx.SOLID))
         dc.SetPen(wx.Pen(backColour))
@@ -7513,7 +7496,6 @@ class TwoWaySplitter(FourWaySplitter):
          ================= ==============================
 
         """
-
         barSize = self._GetSashSize()
         flag = wx.BOTH
 
@@ -7545,7 +7527,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         self.SetCursor(wx.STANDARD_CURSOR)
 
     def OnLeftDClick(self, event):
@@ -7586,7 +7567,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         if not self.IsEnabled():
             return
 
@@ -7621,7 +7601,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         if self.HasFlag(wx.SP_NOSASH):
             return
 

@@ -773,7 +773,6 @@ class PopupMenu:
 
     def popup(self):
         """Popup the list of menus (with actual menus as submenus)"""
-
         top_menu = wx.Menu()
 
         for menu, label in self._menus:

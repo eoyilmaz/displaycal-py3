@@ -714,7 +714,6 @@ def create_synthetic_smpte2084_clut_profile(
            1.0 = Preserve hue
 
     """
-
     if not rolloff:
         raise NotImplementedError("rolloff needs to be True")
 
@@ -769,7 +768,6 @@ def create_synthetic_hdr_clut_profile(
     cat="Bradford",
 ):
     """Create a synthetic HDR cLUT profile from a colorspace definition"""
-
     rgb_space = colormath.get_rgb_space(rgb_space)
     content_rgb_space = colormath.get_rgb_space(content_rgb_space)
 
@@ -1897,7 +1895,6 @@ def create_synthetic_hlg_clut_profile(
            "RGB" (not recommended, saturation loss, pleasing hue shift)
 
     """
-
     if not rolloff:
         raise NotImplementedError("rolloff needs to be True")
 
@@ -3804,7 +3801,6 @@ BEGIN_DATA
     @property
     def tagData(self):
         """Return raw tag data."""
-
         if (self._matrix, self._input, self._clut, self._output) == (None,) * 4:
             return self._tagData
         tagData = [
@@ -4413,7 +4409,6 @@ class CurveType(ICCProfileTag, list):
     @property
     def tagData(self):
         """Return raw tag data."""
-
         # Identity
         curveEntriesCount = 0 if len(self) == 1 and self[0] == 1.0 else len(self)
         tagData = [b"curv", b"\0" * 4, uInt32Number_tohex(curveEntriesCount)]
@@ -5839,7 +5834,6 @@ class chromaticAdaptionTag(colormath.Matrix3x3, s15Fixed16ArrayType):
     @property
     def tagData(self):
         """Return raw tag data."""
-
         tagData = [b"sf32", b"\0" * 4]
         for row in self:
             for column in row:

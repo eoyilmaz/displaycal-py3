@@ -88,7 +88,6 @@ def rad2deg(x):
 
     :param x: a float representing an angle in radians.
     """
-
     return 180.0 * x / pi
 
 
@@ -97,7 +96,6 @@ def deg2rad(x):
 
     :param x: a float representing an angle in degrees.
     """
-
     return x * pi / 180.0
 
 
@@ -151,7 +149,6 @@ def Distance(pt1, pt2):
     :param pt1: an instance of :class:`Point`;
     :param pt2: another instance of :class:`Point`.
     """
-
     distance = sqrt((pt1.x - pt2.x) ** 2.0 + (pt1.y - pt2.y) ** 2.0)
     return int(round(distance))
 
@@ -163,7 +160,6 @@ def AngleFromPoint(pt, center):
     :param pt: an instance of :class:`Point`;
     :param center: a float value representing the center.
     """
-
     y = -1 * (pt.y - center.y)
     x = pt.x - center.x
     if x == 0 and y == 0:
@@ -207,7 +203,6 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         :param integer `orient`: the gradient (if any) orientation;
         :param Rect `rect`: the background rectangle.
         """
-
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.Brush(wx.Colour(51, 51, 51)))
         dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height)
@@ -222,7 +217,6 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         :param Rect `_rect`: the pane caption rectangle;
         :param pane: the pane for which the button is drawn.
         """
-
         if not pane:
             return
 
@@ -529,7 +523,6 @@ class Colour:
 
         :param colour: a standard :class:`Colour`.
         """
-
         self.r = colour.Red()
         self.g = colour.Green()
         self.b = colour.Blue()
@@ -539,7 +532,6 @@ class Colour:
 
     def ToRGB(self):
         """Converts a HSV triplet into a RGB triplet."""
-
         maxVal = self.v
         delta = (maxVal * self.s) / 255.0
         minVal = maxVal - delta
@@ -587,7 +579,6 @@ class Colour:
 
     def ToHSV(self):
         """Converts a RGB triplet into a HSV triplet."""
-
         minVal = float(min(self.r, min(self.g, self.b)))
         maxVal = float(max(self.r, max(self.g, self.b)))
         delta = maxVal - minVal
@@ -621,7 +612,6 @@ class Colour:
 
     def GetPyColour(self):
         """Returns the wxPython :class:`Colour` associated with this instance."""
-
         return wx.Colour(int(self.r), int(self.g), int(self.b), int(self._alpha))
 
 
@@ -637,7 +627,6 @@ class BasePyControl(wx.PyControl):
         :param parent: the control parent;
         :param bitmap: the background bitmap for this custom control.
         """
-
         wx.PyControl.__init__(self, parent, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -657,7 +646,6 @@ class BasePyControl(wx.PyControl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.Draw(dc)
@@ -706,7 +694,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def AcceptsFocus(self):
@@ -717,7 +704,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def OnLeftDown(self, event):
@@ -749,7 +735,6 @@ class BasePyControl(wx.PyControl):
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
-
         self.Refresh()
 
     def DoGetBestSize(self):
@@ -758,7 +743,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(self._bitmap.GetWidth(), self._bitmap.GetHeight())
 
 
@@ -820,7 +804,6 @@ class HSVWheel(BasePyControl):
 
         :param parent: the control parent window.
         """
-
         BasePyControl.__init__(self, parent, bitmap=getbitmap("theme/colorwheel"))
         self._bitmap = (
             self._bitmap.ConvertToImage()
@@ -839,7 +822,6 @@ class HSVWheel(BasePyControl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -878,7 +860,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
         self._mouseIn = False
 
@@ -894,7 +875,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         if self.GetCapture():
             self.ReleaseMouse()
             self._mouseIn = False
@@ -904,7 +884,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
 
         if self.GetCapture() and self._mouseIn:
@@ -915,7 +894,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         if self._mainFrame._initOver:
@@ -928,7 +906,6 @@ class HSVWheel(BasePyControl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         return Distance(pt, self._mainFrame._centre) <= (self._bitmap.Size[0]) / 2
 
     def TrackPoint(self, pt):
@@ -936,7 +913,6 @@ class HSVWheel(BasePyControl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         if not self._mouseIn:
             return
 
@@ -976,7 +952,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param parent: the control parent window.
         """
-
         wx.PyControl.__init__(self, parent, size=size, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -1001,7 +976,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
         theRect = self.GetClientRect()
 
@@ -1017,7 +991,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         if self.GetCapture():
             self.ReleaseMouse()
         self.Refresh()  # Needed for proper redrawing after click under OS X
@@ -1027,7 +1000,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
 
         if self.GetCapture():
@@ -1038,12 +1010,10 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
-
         self.Refresh()
 
     def BuildRect(self):
         """Internal method."""
-
         brightRect = wx.Rect(*self.GetClientRect())
         brightRect.x += s(2)
         brightRect.y += s(2)
@@ -1062,7 +1032,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def AcceptsFocus(self):
@@ -1073,7 +1042,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
 
@@ -1088,7 +1056,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param parent: the control parent window.
         """
-
         BaseLineCtrl.__init__(self, parent, size=(s(20), s(102)))
         self._colour = colour or self._mainFrame._colour
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -1099,7 +1066,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.DrawMarkers(dc)
@@ -1109,7 +1075,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(s(20), s(102))
 
     def Draw(self, dc):
@@ -1149,7 +1114,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         brightRect = self.BuildRect()
         d = brightRect.GetBottom() - pt.y
         d *= 255
@@ -1171,7 +1135,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -1225,7 +1188,6 @@ class HSlider(BaseLineCtrl):
 
         :param parent: the control parent window.
         """
-
         BaseLineCtrl.__init__(self, parent, size=(s(140), s(8)))
         self.value = value
         self.minval = minval
@@ -1244,7 +1206,6 @@ class HSlider(BaseLineCtrl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.DrawMarkers(dc)
@@ -1254,7 +1215,6 @@ class HSlider(BaseLineCtrl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(s(140), s(8))
 
     def BuildRect(self):
@@ -1283,7 +1243,6 @@ class HSlider(BaseLineCtrl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         brightRect = self.BuildRect()
         d = pt.x
         d *= self.maxval
@@ -1302,7 +1261,6 @@ class HSlider(BaseLineCtrl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -1733,7 +1691,6 @@ class VisualWhitepointEditor(wx.Frame):
             geometry: The geometry of the display the profile is assigned to.
             profile: The profile of the display with the given geometry.
         """
-
         self.patterngenerator = patterngenerator
         self.update_patterngenerator_event = threading.Event()
 
@@ -2014,7 +1971,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def DoLayout(self):
         """Layouts all the controls in the :class:`VisualWhitepointEditor`."""
-
         margin = s(12)
 
         dialogSizer = wx.FlexGridSizer(1, 2, 0, 0)
@@ -2105,7 +2061,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def InitFrame(self):
         """Initialize the :class:`VisualWhitepointEditor`."""
-
         hsvRect = self.hsvBitmap.GetClientRect()
         self._centre = wx.Point(
             int(hsvRect.x + hsvRect.width / 2), int(hsvRect.y + hsvRect.height / 2)
@@ -2140,7 +2095,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def CalcRects(self):
         """Calculates the brightness control user-selected rect."""
-
         RECT_WIDTH = s(5)
 
         pt = self.PtFromAngle(self._colour.h, self._colour.s, self._centre)
@@ -2155,25 +2109,21 @@ class VisualWhitepointEditor(wx.Frame):
             dc (DC): If `dc` is ``None``, a :class:`ClientDC` is created on the
                 fly.
         """
-
         self.hsvBitmap.DrawMarkers(dc)
         self.brightCtrl.DrawMarkers(dc)
         self.bgBrightCtrl.DrawMarkers(dc)
 
     def DrawHSB(self):
         """Refreshes the HSB colour wheel."""
-
         self.hsvBitmap.Refresh()
 
     def DrawBright(self):
         """Refreshes the brightness control."""
-
         self.brightCtrl.Refresh()
         self.bgBrightCtrl.Refresh()
 
     def SetSpinVals(self):
         """Sets the values for all the spin controls."""
-
         self.redSpin.SetValue(self._colour.r)
         self.greenSpin.SetValue(self._colour.g)
         self.blueSpin.SetValue(self._colour.b)
@@ -2213,7 +2163,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def SetPanelColours(self):
         """Assigns colours to the colour panels."""
-
         self.newColourPanel.BackgroundColour = self._colour.GetPyColour()
         self._bgcolour.h = self._colour.h
         self._bgcolour.s = self._colour.s
@@ -2226,7 +2175,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`CloseEvent` event to be processed.
         """
-
         if self.IsFullScreen():
             self.ShowFullScreen(False)
         event.Skip()
@@ -2236,7 +2184,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`KeyEvent` event to be processed.
         """
-
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             if self.IsFullScreen():
                 self.ShowFullScreen(False)
@@ -2275,7 +2222,6 @@ class VisualWhitepointEditor(wx.Frame):
         :param sat: a float representing the colour saturation value;
         :param center: a float value representing the center.
         """
-
         angle = deg2rad(angle)
         sat = min(
             sat * ((self.hsvBitmap._bitmap.Size[0] - s(12)) / 2) / 51.0,
@@ -2296,7 +2242,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`SpinEvent` event to be processed.
         """
-
         obj = event.GetEventObject().Parent
         position = self.spinCtrls.index(obj)
         colourVal = event.GetString()
@@ -2312,7 +2257,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def AssignColourValue(self, attribute, colourVal, maxVal, position):
         """Common code to handle spin control changes."""
-
         originalVal = getattr(self._colour, attribute)
         if colourVal != originalVal and self._initOver:
             colourVal = max(colourVal, 0)
@@ -2328,7 +2272,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def DrawAll(self):
         """Draws all the custom controls after a colour change."""
-
         if self._initOver and not self._inDrawAll:
             self._inDrawAll = True
 
@@ -2346,7 +2289,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def GetColourData(self):
         """Returns a wxPython compatible :class:`ColourData`."""
-
         self._colourData.SetColour(self._colour.GetPyColour())
         return self._colourData
 

@@ -1,7 +1,7 @@
 import contextlib
 
 with contextlib.suppress(ImportError):
-    from xml.etree import ElementTree as ET
+    from defusedxml import ElementTree as ET
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):

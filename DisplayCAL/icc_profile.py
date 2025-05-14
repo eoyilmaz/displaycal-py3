@@ -5575,7 +5575,7 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
             size = uInt32Number(tagData[12 + j : 16 + j])
             if offset and size:
                 from io import StringIO
-                from xml.etree import ElementTree
+                from defusedxml import ElementTree
 
                 it = ElementTree.iterparse(StringIO(tagData[offset : offset + size]))
                 for _event, elem in it:
@@ -6210,7 +6210,7 @@ class ICCProfile:
         if data[:5] == b"<?xml" or data[:10] == b"<\0?\0x\0m\0l\0":
             # Microsoft WCS profile
             from io import BytesIO
-            from xml.etree import ElementTree
+            from defusedxml import ElementTree
 
             self.fileName = None
             self._data = data

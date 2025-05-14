@@ -408,11 +408,10 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
                     )
             data["raw"] = raw
             return data
-        if validate:
-            if raw != validate:
-                raise http.client.HTTPException(
-                    lang.getstr("response.invalid", (self.host, raw))
-                )
+        if validate and raw != validate:
+            raise http.client.HTTPException(
+                lang.getstr("response.invalid", (self.host, raw))
+            )
         return raw
 
     def disable_processing(self, size=10):

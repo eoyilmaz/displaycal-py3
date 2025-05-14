@@ -977,7 +977,7 @@ class BaseFrame(wx.Frame):
     def listen(self):
         if isinstance(getattr(sys, "_appsocket", None), socket.socket):
             addr, port = sys._appsocket.getsockname()
-            if addr == "0.0.0.0":
+            if addr == "0.0.0.0":  # noqa: S104
                 with contextlib.suppress(OSError):
                     addr = get_network_addr()
             print(lang.getstr("app.listening", (addr, port)))

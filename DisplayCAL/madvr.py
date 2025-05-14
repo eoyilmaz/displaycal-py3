@@ -1738,7 +1738,7 @@ class MadTPG_Net(MadTPGBase):
         except OSError as exception:
             safe_print("MadTPG_Net:", exception)
             addr = None
-        return "%s:%s" % (addr or ("0.0.0.0", 0))
+        return "{}:{}".format(*addr) if addr else ("0.0.0.0", 0)  #noqa: S104
 
 
 class MadTPG_Net_Sender:

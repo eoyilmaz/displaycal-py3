@@ -1,6 +1,7 @@
 import html
 from datetime import datetime
 from html.parser import HTMLParser
+from typing import ClassVar
 
 htmlparser = HTMLParser()
 import contextlib
@@ -731,7 +732,7 @@ class AutocompleteComboBox(wx.ComboBox):
 class BaseApp(wx.App):
     """Application base class implementing common functionality."""
 
-    _exithandlers = []
+    _exithandlers: ClassVar[list] = []
     _query_end_session = None
 
     def __init__(self, *args, **kwargs):
@@ -5957,7 +5958,7 @@ class LogWindow(InvincibleFrame):
 class ProgressDialog(wx.Dialog):
     """A progress dialog."""
 
-    bitmaps = {}
+    bitmaps: ClassVar[dict] = {}
 
     def __init__(
         self,

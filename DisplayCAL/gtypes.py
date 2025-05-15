@@ -1,4 +1,5 @@
 from ctypes import Structure, c_char_p, c_int, c_uint
+from typing import ClassVar
 
 
 class gchar_p(c_char_p):
@@ -23,4 +24,8 @@ class GQuark(guint32):
 
 
 class GError(Structure):
-    _fields_ = [("DOMAIN", GQuark), ("code", gint), ("message", gchar_p)]
+    _fields_: ClassVar[list[tuple]] = [
+        ("DOMAIN", GQuark),
+        ("code", gint),
+        ("message", gchar_p),
+    ]

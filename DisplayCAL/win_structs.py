@@ -1,6 +1,7 @@
 import ctypes
 import functools
 from ctypes import wintypes
+from typing import ClassVar
 
 
 @functools.total_ordering
@@ -29,7 +30,7 @@ class NTSTATUS(ctypes.c_long):
 
 
 class UNICODE_STRING(ctypes.Structure):
-    _fields_ = [
+    _fields_: ClassVar[list[tuple]] = [
         ("Length", wintypes.USHORT),
         ("MaximumLength", wintypes.USHORT),
         ("Buffer", wintypes.LPWSTR),

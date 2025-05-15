@@ -85,8 +85,8 @@ new-release:
 
 .PHONY: tests
 tests:
-	@printf "\n\033[36m--- $@: Run Tests ---\033[0m\n"
-	@printf "\n\033[36m--- $@: Using virtualenv at '$(VIRTUALENV_DIR)' ---\033[0m\n"; \
+	@printf "\n\033[36m--- $@: Run Tests ---\033[0m"
+	@printf "\n\033[36m--- $@: Using virtualenv at '$(VIRTUALENV_DIR)' ---\033[0m"; \
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
 	pytest -n auto -W ignore --color=yes --cov-report term;

@@ -39,6 +39,7 @@ from io import BytesIO
 from pathlib import Path
 from threading import current_thread, main_thread
 from time import sleep, strftime, time
+from typing import ClassVar
 
 import distro
 from send2trash import send2trash
@@ -1561,7 +1562,7 @@ class FilteredStream:
         "The instrument can be removed from the screen",
     ] + INST_CAL_MSGS
 
-    substitutions = {
+    substitutions: ClassVar[dict] = {
         r"\^\[": "",  # ESC key on Linux/OSX
         "patch ": "Patch ",
         re.compile(r"Point \d+", re.I): "",

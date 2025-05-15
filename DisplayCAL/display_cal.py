@@ -1778,14 +1778,13 @@ class GamapFrame(BaseFrame):
 class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     """Display calibrator main application window."""
 
-    # XYZbpout will be set to the blackpoint of the selected profile. This is
-    # used to determine if 3D LUT or measurement report black output offset
-    # controls should be shown. Set an initial value slightly above zero so
-    # output offset controls are shown if the selected profile doesn't exist
-    # and "Create 3D LUT after profiling" is disabled.
-    XYZbpout = [0.001, 0.001, 0.001]
-
     def __init__(self, worker):
+        # XYZbpout will be set to the blackpoint of the selected profile. This is
+        # used to determine if 3D LUT or measurement report black output offset
+        # controls should be shown. Set an initial value slightly above zero so
+        # output offset controls are shown if the selected profile doesn't exist
+        # and "Create 3D LUT after profiling" is disabled.
+        self.XYZbpout = [0.001, 0.001, 0.001]
         # Check for required resource files and get pre-canned testcharts
         self.dist_testcharts = []
         self.dist_testchart_names = []

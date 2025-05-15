@@ -4,6 +4,7 @@ import sys
 import threading
 import types
 from time import sleep
+from typing import ClassVar
 
 from DisplayCAL import floatspin
 from DisplayCAL.colormath import specialpow
@@ -556,7 +557,7 @@ class BetterWindowDisabler:
 
     """
 
-    windows = set()
+    windows: ClassVar[set] = set()
 
     def __init__(self, skip=None, toplevelparent=None, include_menus=False):
         self._windows = []
@@ -835,7 +836,7 @@ class IdFactory:
     """Inspired by wxPython 4 (Phoenix) wx.IdManager"""
 
     CurrentId = 100
-    ReservedIds = set()
+    ReservedIds: ClassVar[set] = set()
 
     @classmethod
     def NewId(cls) -> int:

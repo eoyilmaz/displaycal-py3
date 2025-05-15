@@ -427,10 +427,12 @@ else:
 
 wx.AnyButton._SetBitmapLabel = wx.AnyButton.SetBitmapLabel
 
+
 def SetBitmapLabel(self, bitmap):
     """Override the SetBitmapLabel to avoid flickering."""
     if self.GetBitmapLabel() != bitmap:
         self._SetBitmapLabel(self, bitmap)
+
 
 wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 

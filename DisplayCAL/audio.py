@@ -26,6 +26,7 @@ from ctypes import (
     c_uint16,
     c_uint32,
 )
+from typing import ClassVar
 
 if sys.platform == "win32":
     try:
@@ -279,7 +280,7 @@ class SDL_RWops(Structure):
 
 
 class Mix_Chunk(Structure):
-    _fields_ = [
+    _fields_: ClassVar[list[tuple]] = [
         ("allocated", c_int),
         ("abuf", POINTER(c_uint8)),
         ("alen", c_uint32),

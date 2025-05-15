@@ -4,7 +4,7 @@
 
 import random
 from io import BytesIO
-from typing import Callable, Optional, Union
+from typing import Callable, ClassVar, Optional, Union
 
 import wx
 
@@ -766,14 +766,14 @@ class ArtManager(wx.EvtHandler):
     _alignment_buffer = 7
     _menu_theme: int = STYLE_XP
     _vertical_gradient = False
-    _renderers: dict[int, RendererBase] = {STYLE_XP: None, STYLE_2007: None}
+    _renderers: ClassVar[dict[int, RendererBase]] = {STYLE_XP: None, STYLE_2007: None}
     _bmp_shadow_enabled = False
     _ms2007sunken = False
     _draw_mb_border = True
     _menu_bg_factor = 5
     _menu_bar_colour_scheme: str = _("Default")
     _raise_trace_back = True
-    _bitmaps: dict[str, wx.Bitmap] = {}
+    _bitmaps: ClassVar[dict[str, wx.Bitmap]] = {}
     _transparency = 255
 
     def __init__(self) -> None:

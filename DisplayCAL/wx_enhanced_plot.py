@@ -101,6 +101,7 @@ Zooming controls with mouse (when enabled):
 import contextlib
 import functools
 import string as _string
+from typing import ClassVar
 
 import numpy as np
 import wx
@@ -251,7 +252,7 @@ class TempStyle:
        -- The Genie
     """
 
-    _valid_types = {"both", "pen", "brush"}
+    _valid_types: ClassVar[set[str]] = {"both", "pen", "brush"}
     _err_str = (
         "No DC provided and unable to determine DC from context for function "
         "`{func_name}`. When `{cls_name}` is used as a decorator, the "
@@ -516,7 +517,7 @@ class PolyLine(PolyPoints):
                 'legend'= ''                - Line Legend to display
     """
 
-    _attributes = {
+    _attributes: ClassVar[dict] = {
         "colour": "black",
         "width": 1,
         "style": wx.PENSTYLE_SOLID,
@@ -558,7 +559,7 @@ class PolySpline(PolyLine):
     - All methods except __init__ are private.
     """
 
-    _attributes = {
+    _attributes: ClassVar[dict] = {
         "colour": "black",
         "width": 1,
         "style": wx.PENSTYLE_SOLID,
@@ -603,7 +604,7 @@ class PolyMarker(PolyPoints):
     - All methods except __init__ are private.
     """
 
-    _attributes = {
+    _attributes: ClassVar[dict] = {
         "colour": "black",
         "width": 1,
         "size": 2,
@@ -847,6 +848,8 @@ class PlotCanvas(wx.Panel):
         """Constructs a panel, which can be a child of a frame or
         any other non-control window"""
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
+
+        self._multiples = [(2.0, np.log10(2.0)), (5.0, np.log10(5.0))]
 
         sizer = wx.FlexGridSizer(2, 2, 0, 0)
         self.canvas = wx.Window(self, -1)
@@ -2554,8 +2557,6 @@ class PlotCanvas(wx.Panel):
             ticks.append((t, file_format % (t,)))
             t = t + grid
         return ticks
-
-    _multiples = [(2.0, np.log10(2.0)), (5.0, np.log10(5.0))]
 
     def _adjustScrollbars(self):
         if self._sb_ignore:

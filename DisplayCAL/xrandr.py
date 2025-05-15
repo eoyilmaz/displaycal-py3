@@ -11,6 +11,7 @@ from ctypes import (
     pointer,
     util,
 )
+from typing import ClassVar
 
 libx11pth = util.find_library("X11")
 if not libx11pth:
@@ -38,7 +39,7 @@ Atom = c_ulong
 
 class Display(Structure):
     __slots__ = []
-    _fields_ = [("_opaque_struct", c_int)]
+    _fields_: ClassVar[list[tuple]] = [("_opaque_struct", c_int)]
 
 
 try:

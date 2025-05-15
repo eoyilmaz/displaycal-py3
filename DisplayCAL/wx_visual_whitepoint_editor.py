@@ -13,6 +13,7 @@ import sys
 import threading
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
+from typing import ClassVar
 
 from wx.lib.agw import aui
 from wx.lib.intctrl import IntCtrl
@@ -1462,7 +1463,7 @@ class ProfileManager:
 
     """
 
-    managers = []
+    managers: ClassVar[list] = []
 
     def __init__(self, window, geometry=None, profile=None):
         self._display = window.GetDisplay()

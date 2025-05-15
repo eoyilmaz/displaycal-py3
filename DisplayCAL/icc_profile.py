@@ -17,6 +17,7 @@ import warnings
 from collections import UserString
 from copy import copy
 from hashlib import md5
+from typing import ClassVar
 from weakref import WeakValueDictionary
 
 from DisplayCAL.util_dict import dict_sort
@@ -6130,7 +6131,7 @@ class ICCProfile:
     first time.
     """
 
-    _recent = []
+    _recent: ClassVar[list] = []
 
     def __new__(cls, profile=None, load=True, use_cache=False):
         key = None

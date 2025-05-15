@@ -29,11 +29,12 @@
 import ctypes
 import sys
 from ctypes import windll, wintypes
+from typing import ClassVar
 from uuid import UUID
 
 
 class GUID(ctypes.Structure):  # [1]
-    _fields_ = [
+    _fields_: ClassVar[list[tuple]] = [
         ("Data1", wintypes.DWORD),
         ("Data2", wintypes.WORD),
         ("Data3", wintypes.WORD),

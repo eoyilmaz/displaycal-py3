@@ -2,6 +2,7 @@ import ctypes
 import os
 import sys
 from ctypes import wintypes
+from typing import ClassVar
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -21,7 +22,7 @@ SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
 class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
-    _fields_ = [
+    _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
         ("HandleValue", wintypes.HANDLE),
@@ -41,7 +42,7 @@ PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
 class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
-    _fields_ = [
+    _fields_: ClassVar[list[tuple]] = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),
         ("_Handles", SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * 1),

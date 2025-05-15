@@ -1458,7 +1458,10 @@ class FixedPoint:
             import math
 
             f, e = math.frexp(abs(value))
-            assert f == 0 or 0.5 <= f < 1.0
+            if f != 0 and not (0.5 <= f < 1.0):
+                raise OverflowError(
+                    f"FixedPoint can't represent {value!r} exactly."
+                )
             # |value| = f * 2**e exactly
 
             # Suck up CHUNK bits at a time; 28 is enough so that we suck
@@ -1470,10 +1473,16 @@ class FixedPoint:
             while f:
                 f = math.ldexp(f, CHUNK)
                 digit = int(f)
-                assert digit >> CHUNK == 0
+                if digit >> CHUNK != 0:
+                    raise OverflowError(
+                        f"FixedPoint can't represent {value!r} exactly."
+                    )
                 top = (top << CHUNK) | digit
                 f = f - digit
-                assert 0.0 <= f < 1.0
+                if not (0.0 <= f < 1.0):
+                    raise OverflowError(
+                        f"FixedPoint can't represent {value!r} exactly."
+                    )
                 e = e - CHUNK
 
             # now |value| = top * 2**e exactly
@@ -1714,7 +1723,8 @@ def _tento(n, cache=None):
 
 
 def _norm(x, y, isinstance=isinstance, FixedPoint=FixedPoint, _tento=_tento):
-    assert isinstance(x, FixedPoint)
+    if not isinstance(x, FixedPoint):
+        raise TypeError(f"first arg must be a FixedPoint: {x!r}")
     if not isinstance(y, FixedPoint):
         y = FixedPoint(y, x.p)
     xn, yn = x.n, y.n
@@ -1753,7 +1763,8 @@ def cmp(a, b):
 
 
 def _roundquotient(x, y):
-    assert y > 0
+    if y <= 0:
+        raise ValueError("y must be > 0")
     n, leftover = divmod(x, y)
     c = cmp(leftover << 1, y)
     # c < 0 <-> leftover < y/2, etc
@@ -1806,8 +1817,12 @@ def _string2exact(s):
         fracpart = m.group("frac")
         if fracpart is None or fracpart == "":
             fracpart = "0"
-    assert intpart
-    assert fracpart
+
+    if intpart is None:
+        raise ValueError("intpart should not be None!")
+
+    if fracpart is None:
+        raise ValueError("fracpart should not be None!")
 
     i, f = int(intpart), int(fracpart)
     nfrac = len(fracpart)
@@ -1844,7 +1859,6 @@ def focus_next_keyboard_focusable_control(control):
     """Focus the next control in tab order that can gain focus.
 
     If the shift key is held down, tab order is reversed.
-
     """
     # Find the last panel in the hierarchy of parents
     parent = control.Parent

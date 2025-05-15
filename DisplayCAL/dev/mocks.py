@@ -101,7 +101,7 @@ def check_call(  # pylint: disable=too-many-arguments
     exception that will be raised by the mocked method instead of returning a value.
     If a Callable is passed, it will be called and its return value returned.
     """
-    assert (call_args_list is not None and call_kwargs_list is not None) or (
+    assert (call_args_list is not None and call_kwargs_list is not None) or (  # noqa: S101
         call_args_list is None and call_kwargs_list is None
     ), "call_args and call_kwargs must be None or have a value (list/dict if empty)"
     monkeypatch = MonkeyPatch()
@@ -129,7 +129,7 @@ def check_call_str(  # pylint: disable=too-many-arguments
 
     See `check_call` documentation.
     """
-    assert (call_args_list is not None and call_kwargs_list is not None) or (
+    assert (call_args_list is not None and call_kwargs_list is not None) or (  # noqa: S101
         call_args_list is None and call_kwargs_list is None
     ), "call_args and call_kwargs must be None or have a value (list/dict if empty)"
     monkeypatch = MonkeyPatch()
@@ -149,15 +149,15 @@ def assert_calls(
 ) -> None:
     """Check that the calls made to the mocked function are correct."""
     if call_count != -1:
-        assert len(calls) == call_count, (
+        assert len(calls) == call_count, (  # noqa: S101
             f"Expected {call_count} calls to {m_name} but got: {len(calls)}"
         )
     if call_args_list and call_kwargs_list:
         for idx, call_args in enumerate(call_args_list):
-            assert call_args == calls[idx][0], (
+            assert call_args == calls[idx][0], (  # noqa: S101
                 f"Args to {m_name}: {call_args} expected: {call_args}"
             )
         for idx, call_kwargs in enumerate(call_kwargs_list):
-            assert call_kwargs == calls[idx][1], (
+            assert call_kwargs == calls[idx][1], (  # noqa: S101
                 f"Kwargs to {m_name}: {call_kwargs} expected: {call_kwargs}"
             )

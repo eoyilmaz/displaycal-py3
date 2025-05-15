@@ -456,7 +456,8 @@ class FourWaySplitter(wx.Panel):
             idx (int): the index at which the window will be inserted;
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window not in self._windows, "A window can only be in the splitter once!"
+        if window in self._windows:
+            raise RuntimeError("A window can only be in the splitter once!")
 
         self._windows.insert(idx, window)
 
@@ -470,7 +471,8 @@ class FourWaySplitter(wx.Panel):
         Args:
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window in self._windows, "Unknown window!"
+        if window not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx = self._windows.index(window)
         del self._windows[idx]
@@ -487,7 +489,8 @@ class FourWaySplitter(wx.Panel):
             oldWindow (wx.Window): an instance of :class:`wx.Window`;
             newWindow (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert oldWindow in self._windows, "Unknown window!"
+        if oldWindow not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx = self._windows.index(oldWindow)
         self._windows[idx] = newWindow
@@ -501,8 +504,8 @@ class FourWaySplitter(wx.Panel):
             window1 (wx.Window): an instance of :class:`wx.Window`;
             window2 (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert window1 in self._windows, "Unknown window!"
-        assert window2 in self._windows, "Unknown window!"
+        if window1 not in self._windows or window2 not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx1 = self._windows.index(window1)
         idx2 = self._windows.index(window2)

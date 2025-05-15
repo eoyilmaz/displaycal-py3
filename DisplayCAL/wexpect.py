@@ -671,8 +671,10 @@ class spawn_unix:
 
         self.name = "<" + " ".join(self.args) + ">"
 
-        assert self.pid is None, "The pid member should be None."
-        assert self.command is not None, "The command member should not be None."
+        if self.pid is not None:
+            raise ValueError("The pid member should be None.")
+        if self.command is None:
+            raise ValueError("The command member should not be None.")
 
         if self.use_native_pty_fork:
             try:

@@ -616,7 +616,7 @@ def parse_edid_header(edid):
     """
     result = {
         "edid": edid,
-        "hash": md5(edid).hexdigest(),
+        "hash": md5(edid).hexdigest(),  # noqa: S324
         "header": edid[HEADER[0] : HEADER[1]],
         "manufacturer_id": parse_manufacturer_id(
             edid[MANUFACTURER_ID[0] : MANUFACTURER_ID[1]]

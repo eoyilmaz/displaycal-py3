@@ -6160,7 +6160,7 @@ class ICCProfile:
         elif isinstance(profile, bytes):
             # Binary string
             if use_cache:
-                key = md5(profile).hexdigest()
+                key = md5(profile).hexdigest()  # noqa: S324
 
         if use_cache:
             chk = _iccprofilecache.get(key)
@@ -6657,7 +6657,7 @@ class ICCProfile:
             + b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
             + data[100:]
         )
-        ID = md5(data).digest()
+        ID = md5(data).digest()  # noqa: S324
         if setID:
             if ID != self.ID:
                 # No longer reflects original profile

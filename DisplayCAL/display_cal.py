@@ -1147,7 +1147,7 @@ def upload_colorimeter_correction(parent=None, params=None):
         # Remove CREATED date for calculating hash
         {
             "get": True,
-            "hash": md5(
+            "hash": md5(  # noqa: S324
                 re.sub(
                     rb'\nCREATED\s+".+?"\n', rb"\n\n", bytes(params["cgats"])
                 ).strip()
@@ -12258,7 +12258,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.Bell()
             return
 
-        key = md5(bytes(cgats)).digest()
+        key = md5(bytes(cgats)).digest()  # noqa: S324
         plotwindow = self.ccxx_plot_windows.get(key)
         if not plotwindow:
             plotwindow = CCXXPlot(self, cgats, self.worker)
@@ -13908,7 +13908,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                     metadata.append(
                         '{}_HASH "md5:{}"'.format(  # noqa: UP032
-                            label, md5(bytes(meas).strip()).hexdigest()
+                            label, md5(bytes(meas).strip()).hexdigest()  # noqa: S324
                         )
                     )
             if debug or test:

@@ -147,7 +147,7 @@ class LogFile:
     def __init__(self, filename, logdir, when="never", backupCount=0):
         self.filename = filename
         self._logger = get_file_logger(
-            md5(filename.encode()).hexdigest(),
+            md5(filename.encode()).hexdigest(),  # noqa: S324
             when=when,
             backupCount=backupCount,
             logdir=logdir,

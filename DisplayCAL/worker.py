@@ -2799,7 +2799,7 @@ class Worker(WorkerBase):
     @pwd.setter
     def pwd(self, pwd):
         encoded_user_name = codecs.encode(
-            md5(getpass.getuser().encode()).hexdigest().encode(), "base64"
+            md5(getpass.getuser().encode()).hexdigest().encode(), "base64"  # noqa: S324
         )[:5].decode("utf-8")
         encoded_pwd = (
             codecs.encode(pwd.encode(), "base64").decode("utf-8").rstrip("=\n")

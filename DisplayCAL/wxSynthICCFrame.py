@@ -952,7 +952,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 profile.tags.kTRC.set_bt1886_trc(
                     black[1], outoffset, trc, self.getcfg("synthprofile.trc_gamma_type")
                 )
-        elif trc == -2084 or trc == -2:
+        elif trc in (-2084, -2):
             # SMPTE 2084 or HLG
             hdr_format = "PQ" if trc == -2084 else "HLG"
             minmll = self.getcfg("3dlut.hdr_minmll")

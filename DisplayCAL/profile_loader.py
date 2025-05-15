@@ -2314,9 +2314,8 @@ class ProfileLoader:
                 window
                 for window in list(wx.GetTopLevelWindows())
                 if not isinstance(window, wx.Dialog)
-                and window.Name != "TaskBarNotification"
-                and window.Name != "DisplayIdentification"
-                and window.Name != "profile_info"
+                and window.Name
+                not in {"TaskBarNotification", "DisplayIdentification", "profile_info"}
             ]
         )
         numwindows = len(windows)

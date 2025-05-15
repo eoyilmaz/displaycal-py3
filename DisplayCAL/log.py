@@ -408,7 +408,7 @@ def setup_logging(logdir, name=APPNAME, ext=".py", backupCount=5, confighome=Non
             filename=name,
             confighome=confighome,
         )
-        if name == APPNAME or name == "dispcalGUI":
+        if name in (APPNAME, "dispcalGUI"):
             streamhandler = logging.StreamHandler(LOGBUFFER)
             streamformatter = logging.Formatter("%(asctime)s %(message)s")
             streamhandler.setFormatter(streamformatter)

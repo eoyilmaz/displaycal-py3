@@ -14436,13 +14436,9 @@ usage: spotread [-options] [logfile]
         self.instrument_place_on_screen_msg = False
         self.instrument_sensor_position_msg = False
         self.interactive_frame = interactive_frame
-        self.is_single_measurement = (
-            interactive_frame == "ambient"
-            or interactive_frame == "luminance"
-            or (
-                isinstance(interactive_frame, wx.TopLevelWindow)
-                and interactive_frame.Name == "VisualWhitepointEditor"
-            )
+        self.is_single_measurement = interactive_frame in {"ambient", "luminance"} or (
+            isinstance(interactive_frame, wx.TopLevelWindow)
+            and interactive_frame.Name == "VisualWhitepointEditor"
         )
         self.is_ambient_measurement = interactive_frame == "ambient"
         self.lastcmdname = None

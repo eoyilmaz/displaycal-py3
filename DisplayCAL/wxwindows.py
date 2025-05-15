@@ -1443,11 +1443,7 @@ class BaseFrame(wx.Frame):
                 except ValueError:
                     id_name_label = data[1]
                 for win in reversed(list(wx.GetTopLevelWindows())):
-                    if (
-                        win.Id == id_name_label
-                        or win.Name == id_name_label
-                        or win.Label == id_name_label
-                    ) and win.IsShown():
+                    if id_name_label in (win.Id, win.Name, win.Label) and win.IsShown():
                         break
                 else:
                     win = None
@@ -1594,11 +1590,7 @@ class BaseFrame(wx.Frame):
                         menu_pos_label = data[1]
                 for i, (menu, label) in enumerate(menubar.GetMenus()):
                     label = label.lstrip("&_")
-                    if (
-                        len(data) == 2
-                        and label != menu_pos_label
-                        and i != menu_pos_label
-                    ):
+                    if len(data) == 2 and menu_pos_label not in (label, i):
                         continue
                     if responseformats[conn] != "plain" and label not in menulabels:
                         menuitems = []
@@ -4258,7 +4250,7 @@ class CustomGrid(wx.grid.Grid):
                     if not changed:
                         wx.Bell()
                     return
-            elif event.KeyCode == wx.WXK_RETURN or event.KeyCode == wx.WXK_NUMPAD_ENTER:
+            elif event.KeyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
                 self.EnableCellEditControl()
                 return
         event.Skip()
@@ -7753,9 +7745,7 @@ def get_widget(win, id_name_label):
             id_name_label = int(id_name_label)
         for child in list(win.GetAllChildren()):
             if is_scripting_allowed(win, child) and (
-                child.Id == id_name_label
-                or child.Name == id_name_label
-                or child.Label == id_name_label
+                id_name_label in (child.Id, child.Name, child.Label)
             ):
                 return child
     return None
@@ -7765,15 +7755,7 @@ def get_toplevel_window(id_name_label):
     with contextlib.suppress(ValueError):
         id_name_label = int(id_name_label)
     for win in reversed(list(wx.GetTopLevelWindows())):
-        if (
-            win
-            and (
-                win.Id == id_name_label
-                or win.Name == id_name_label
-                or win.Label == id_name_label
-            )
-            and win.IsShown()
-        ):
+        if win and (id_name_label in (win.Id, win.Name, win.Label)) and win.IsShown():
             return win
     return None
 

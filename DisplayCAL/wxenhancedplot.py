@@ -2208,7 +2208,7 @@ class PlotCanvas(wx.Panel):
 
     def _axisInterval(self, spec, lower, upper):
         """Returns sensible axis range for given spec"""
-        if spec == "none" or spec == "min" or isinstance(spec, (float, int)):
+        if spec in {"none", "min"} or isinstance(spec, (float, int)):
             if lower == upper:
                 return lower - 0.5, upper + 0.5
             return lower, upper

@@ -147,12 +147,6 @@ from DisplayCAL.debughelpers import (
     Warn,
     handle_error,
 )
-from DisplayCAL.defaultpaths import (
-    APPDATA,
-    CACHE,
-    ICCPROFILES_DISPLAY_HOME,
-    ICCPROFILES_HOME,
-)
 from DisplayCAL.edid import WMIError, get_edid
 from DisplayCAL.icc_profile import (
     GAMUT_VOLUME_SRGB,
@@ -1108,7 +1102,7 @@ def get_current_profile_path(
         if profile and not profile.fileName and save_profile_if_no_path:
             if profile.ID == "\0" * 16:
                 profile.calculateID()
-            profile_cache_path = os.path.join(CACHE, "icc")
+            profile_cache_path = os.path.join(defaultpaths.CACHE, "icc")
             if check_create_dir(profile_cache_path) is True:
                 profile.fileName = os.path.join(
                     profile_cache_path,
@@ -2922,9 +2916,9 @@ class Worker(WorkerBase):
         # otherwise...
         if self._detected_instrument and "SpyderX" in self._detected_instrument:
             if sys.platform == "win32":
-                cachepath = os.path.join(APPDATA, "Cache")
+                cachepath = os.path.join(defaultpaths.APPDATA, "Cache")
             else:
-                cachepath = CACHE
+                cachepath = defaultpaths.CACHE
             spydx_cal_fn = os.path.join(
                 cachepath,
                 "ArgyllCMS",
@@ -9258,7 +9252,7 @@ usage: spotread [-options] [logfile]
                     # gcm-import doesn't seem to return a useful exit code or
                     # stderr output, so check for our profile
                     profilename = os.path.basename(profile.fileName)
-                    for dirname in ICCPROFILES_HOME:
+                    for dirname in defaultpaths.ICCPROFILES_HOME:
                         profile_install_path = os.path.join(dirname, profilename)
                         if os.path.isfile(profile_install_path):
                             colord_install = Warn(lang.getstr("profile.import.success"))
@@ -9894,7 +9888,7 @@ usage: spotread [-options] [logfile]
         # (based on profile ID), but will fail to overwrite a profile with the
         # same name. We need to remove those profiles so gcm-import can work.
         profilename = os.path.basename(profile.fileName)
-        for dirname in ICCPROFILES_HOME:
+        for dirname in defaultpaths.ICCPROFILES_HOME:
             profile_install_path = os.path.join(dirname, profilename)
             if (
                 os.path.isfile(profile_install_path)
@@ -9959,14 +9953,14 @@ usage: spotread [-options] [logfile]
         else:
             result = True
             dirname = None
-            for dirname in ICCPROFILES_DISPLAY_HOME:
+            for dirname in defaultpaths.ICCPROFILES_DISPLAY_HOME:
                 if os.path.isdir(dirname):
                     # Use the first one that exists
                     break
                 dirname = None
             if not dirname:
                 # Create the first one in the list
-                dirname = ICCPROFILES_DISPLAY_HOME[0]
+                dirname = defaultpaths.ICCPROFILES_DISPLAY_HOME[0]
                 try:
                     os.makedirs(dirname)
                 except Exception as exception:
@@ -13677,7 +13671,7 @@ usage: spotread [-options] [logfile]
                     # Make sure user profile dir exists
                     # (e.g. on Mac OS X 10.9 Mavericks, it does not by
                     # default)
-                    for profile_dir in reversed(ICCPROFILES_HOME):
+                    for profile_dir in reversed(defaultpaths.ICCPROFILES_HOME):
                         if os.path.isdir(profile_dir):
                             break
                     if not os.path.isdir(profile_dir):

@@ -139,10 +139,10 @@ if sys.platform == "win32":
     LOGDIR = os.path.join(DATA_HOME, "logs")
     if APPBASENAME != APPNAME:
         DATA_DIRS.extend(os.path.join(dir_, APPNAME) for dir_ in COMMONAPPDATA)
-        DATA_DIRS.append(os.path.join(commonprogramfiles, APPNAME))
+        DATA_DIRS.append(os.path.join(COMMON_PROGRAM_FILES, APPNAME))
     DATA_DIRS.append(DATA_HOME)
     DATA_DIRS.extend(os.path.join(dir_, APPBASENAME) for dir_ in COMMONAPPDATA)
-    DATA_DIRS.append(os.path.join(commonprogramfiles, APPBASENAME))
+    DATA_DIRS.append(os.path.join(COMMON_PROGRAM_FILES, APPBASENAME))
     EXE_EXT = ".exe"
     PROFILE_EXT = ".icm"
 elif sys.platform == "darwin":

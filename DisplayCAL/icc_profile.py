@@ -47,13 +47,13 @@ except ImportError:
 
     colord = Colord()
 from DisplayCAL import colormath, edid, imfile
-from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
+from DisplayCAL.defaultpaths import ICCPROFILES, ICCPROFILES_HOME
 from DisplayCAL.encoding import get_encodings
-from DisplayCAL.options import test_input_curve_clipping
+from DisplayCAL.options import TEST_INPUT_CURVE_CLIPPING
 from DisplayCAL.util_list import intlist
 
 if sys.platform not in ("darwin", "win32"):
-    from DisplayCAL.defaultpaths import xdg_config_dirs, xdg_config_home
+    from DisplayCAL.defaultpaths import XDG_CONFIG_DIRS, XDG_CONFIG_HOME
     from DisplayCAL.edid import get_edid
     from DisplayCAL.util_x import get_display
 
@@ -928,7 +928,7 @@ def create_synthetic_hdr_clut_profile(
             prevpow = nextpow
             # Apply a slight power to segments to optimize encoding
             nextpow = eotf(eetf(encf(iv + segment)))
-        if nextpow > prevpow or test_input_curve_clipping:
+        if nextpow > prevpow or TEST_INPUT_CURVE_CLIPPING:
             prevs = 1.0 - (v - iv) / segment
             nexts = (v - iv) / segment
             vv = prevs * prevpow + nexts * nextpow
@@ -1001,7 +1001,7 @@ def create_synthetic_hdr_clut_profile(
             check = tonemap and eetf(n + (1 / (entries - 1.0))) > threshold
         elif hdr_format == "HLG":
             check = maxsignal < 1 and n >= maxsignal
-        if check and not test_input_curve_clipping:
+        if check and not TEST_INPUT_CURVE_CLIPPING:
             # Linear interpolate shaper for last n cLUT steps to prevent
             # clipping in shaper
             if k is None:
@@ -2011,7 +2011,7 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
         search.append((b"EDID", b"0x" + binascii.hexlify(edid["edid"]).upper()))
     # Fallback to X11 name
     search.append((b"NAME", name))
-    for path in [xdg_config_home] + xdg_config_dirs:
+    for path in [XDG_CONFIG_HOME] + XDG_CONFIG_DIRS:
         color_jcnf = os.path.join(path, "color.jcnf")
         if not os.path.isfile(color_jcnf):
             continue
@@ -2067,7 +2067,7 @@ def _wcs_get_display_profile(
         raise util_win.get_windows_error(ctypes.windll.kernel32.GetLastError())
     if buf.value:
         if path_only:
-            return os.path.join(iccprofiles[0], buf.value)
+            return os.path.join(ICCPROFILES[0], buf.value)
         return ICCProfile(buf.value, use_cache=use_cache)
     return None
 
@@ -2142,10 +2142,10 @@ def _winreg_get_display_profile(
         filename = filenames.pop()
     if not filename and not current_user:
         # fall back to sRGB
-        filename = os.path.join(iccprofiles[0], "sRGB Color Space Profile.icm")
+        filename = os.path.join(ICCPROFILES[0], "sRGB Color Space Profile.icm")
     if filename:
         if path_only:
-            return os.path.join(iccprofiles[0], filename)
+            return os.path.join(ICCPROFILES[0], filename)
         return ICCProfile(filename, use_cache=use_cache)
     return None
 
@@ -2205,7 +2205,7 @@ def _winreg_get_display_profiles(monkey, current_user=False):
     return [
         filename
         for filename in filenames
-        if os.path.isfile(os.path.join(iccprofiles[0], filename))
+        if os.path.isfile(os.path.join(ICCPROFILES[0], filename))
     ]
 
 
@@ -4456,9 +4456,7 @@ class ParametricCurveType(ICCProfileTag):
                     "g"
                 ] + self.params["e"]
             return self.params["c"] * v + self.params["f"]
-        raise NotImplementedError(
-            f"Invalid number of parameters: {len(self.params):d}"
-        )
+        raise NotImplementedError(f"Invalid number of parameters: {len(self.params):d}")
 
     def apply(self, v):
         # clip result to [0, 1]
@@ -6139,7 +6137,7 @@ class ICCProfile:
             p = pathlib.Path(profile) if isinstance(profile, str) else profile
 
             if not p.is_file() and not p.is_absolute():
-                search_paths = list(set(iccprofiles_home + iccprofiles))
+                search_paths = list(set(ICCPROFILES_HOME + ICCPROFILES))
                 found_profile = False
                 while search_paths and not found_profile:
                     search_path = pathlib.Path(search_paths.pop(0))
@@ -7941,9 +7939,7 @@ class ICCProfile:
             else:
                 XYZwp = list(self.tags.wtpt.ir.values())
             cat = self.guess_cat() or "Bradford"
-            XYZbp = colormath.adapt(
-                *XYZbp, whitepoint_source=XYZwp, cat=cat
-            )
+            XYZbp = colormath.adapt(*XYZbp, whitepoint_source=XYZwp, cat=cat)
         return XYZbp
 
     def optimize(self, return_bytes_saved=False, update_ID=True):

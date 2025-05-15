@@ -83,7 +83,7 @@ from DisplayCAL.argyll_cgats import (
     verify_ti1_rgb_xyz,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
-from DisplayCAL.argyll_names import viewconds
+from DisplayCAL.argyll_names import VIEWCONDS
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,
@@ -102,13 +102,13 @@ from DisplayCAL.colormath import (
     xyY2CCT,
 )
 from DisplayCAL.config import (
-    autostart,
-    autostart_home,
-    defaults,
-    enc,
-    exe,
-    exe_ext,
-    fs_enc,
+    AUTOSTART,
+    AUTOSTART_HOME,
+    DEFAULTS,
+    ENC,
+    EXE,
+    EXE_EXT,
+    FS_ENC,
     get_ccxx_testchart,
     get_current_profile,
     get_data_path,
@@ -122,11 +122,11 @@ from DisplayCAL.config import (
     initcfg,
     is_ccxx_testchart,
     is_profile,
-    isexe,
-    profile_ext,
-    pydir,
-    resfiles,
-    script_ext,
+    ISEXE,
+    PROFILE_EXT,
+    PYDIR,
+    RES_FILES,
+    SCRIPT_EXT,
     setcfg,
     setcfg_cond,
     writecfg,
@@ -153,7 +153,7 @@ from DisplayCAL.icc_profile import (
     XYZType,
     chromaticAdaptionTag,
 )
-from DisplayCAL.log import logbuffer
+from DisplayCAL.log import LOGBUFFER
 from DisplayCAL.meta import (
     AUTHOR,
     DEVELOPMENT_HOME_PAGE,
@@ -165,14 +165,14 @@ from DisplayCAL.meta import (
     get_latest_changelog_entry,
 )
 from DisplayCAL.meta import (
-    NAME as appname,
+    NAME as APPNAME,
 )
 from DisplayCAL.options import (
-    debug,
-    force_skip_initial_instrument_detection,
-    test,
-    test_update,
-    verbose,
+    DEBUG,
+    FORCE_SKIP_INITIAL_INSTRUMENT_DETECTION,
+    TEST,
+    TEST_UPDATE,
+    VERBOSE,
 )
 from DisplayCAL.patterngenerators import WebWinHTTPPatternGeneratorServer
 from DisplayCAL.util_decimal import float2dec, stripzeros
@@ -333,7 +333,7 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
     occurs."""
     global APP_IS_UPTODATE
     if argyll:
-        if test_update:
+        if TEST_UPDATE:
             argyll_version = [0, 0, 0]
         elif parent and hasattr(parent, "worker"):
             argyll_version = parent.worker.argyll_version
@@ -432,7 +432,7 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
     elif not argyll and not snapshot and VERSION > VERSION_BASE:
         app_update_check(parent, silent, True)
     elif not argyll:
-        print(lang.getstr("update_check.uptodate", appname))
+        print(lang.getstr("update_check.uptodate", APPNAME))
         if check_argyll_bin():
             app_update_check(parent, silent, argyll=True)
         elif silent:
@@ -450,7 +450,7 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
         wx.CallAfter(
             app_uptodate,
             parent,
-            "ArgyllCMS" if not globals().get("APP_IS_UPTODATE") else appname,
+            "ArgyllCMS" if not globals().get("APP_IS_UPTODATE") else APPNAME,
         )
     else:
         print(lang.getstr("update_check.uptodate", "ArgyllCMS"))
@@ -461,9 +461,8 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
 def check_donation(parent, snapshot):
     # Show donation popup if user did not choose "don't show again".
     # Reset donation popup after a major update.
-    if (
-        not snapshot
-        and VERSION[0] > next(iter(intlist(getcfg("last_launch").split("."))))
+    if not snapshot and VERSION[0] > next(
+        iter(intlist(getcfg("last_launch").split(".")))
     ):
         setcfg("show_donation_message", 1)
     setcfg("last_launch", VERSION_STRING)
@@ -471,7 +470,7 @@ def check_donation(parent, snapshot):
         wx.CallAfter(donation_message, parent)
 
 
-def app_uptodate(parent=None, appname=appname):
+def app_uptodate(parent=None, appname=APPNAME):
     """Show a dialog confirming application is up-to-date"""
     dlg = InfoDialog(
         parent,
@@ -508,9 +507,9 @@ def app_update_confirm(
     zeroinstall = (
         not argyll
         and os.path.exists(
-            os.path.normpath(os.path.join(pydir, "..", appname + ".pyw"))
+            os.path.normpath(os.path.join(PYDIR, "..", APPNAME + ".pyw"))
         )
-        and re.match(r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir)))
+        and re.match(r"sha\d+(?:new)?", os.path.basename(os.path.dirname(PYDIR)))
         and (which("0install-win.exe") or which("0install"))
     )
     download = argyll and not check_argyll_bin()
@@ -525,7 +524,7 @@ def app_update_confirm(
         newversion_desc = "ArgyllCMS"
         newversion = get_argyll_latest_version()
     else:
-        newversion_desc = appname
+        newversion_desc = APPNAME
     newversion_desc += f" {newversion}"
     if snapshot:
         newversion_desc += " Beta"
@@ -598,24 +597,24 @@ def app_update_confirm(
                 kwargs = {}
             sp.Popen(
                 [
-                    zeroinstall.encode(fs_enc),
+                    zeroinstall.encode(FS_ENC),
                     "run",
                     "--refresh",
                     "--version",
                     newversion,
-                    f"http://{DOMAIN}/0install/{appname}.xml",
+                    f"http://{DOMAIN}/0install/{APPNAME}.xml",
                 ],
                 **kwargs,
             )
         else:
             consumer = worker.process_download
-            dlname = appname
+            dlname = APPNAME
             sep = "-"
             domain = DOMAIN
             if argyll:
                 consumer = worker.process_argyll_download
                 # force Argyll downloads
-                domain = config.defaults.get("argyll.domain").split("/")[-1]
+                domain = config.DEFAULTS.get("argyll.domain").split("/")[-1]
                 dlname = "Argyll"
                 sep = "_V"
                 if sys.platform == "win32":
@@ -655,7 +654,7 @@ def app_update_confirm(
             worker.start(
                 consumer,
                 worker.download,
-                ckwargs={"exit": dlname == appname},
+                ckwargs={"exit": dlname == APPNAME},
                 wargs=(f"https://{domain}/{folder}/{dlname}{sep}{newversion}{suffix}",),
                 progress_msg=lang.getstr("downloading"),
                 fancy=False,
@@ -1252,7 +1251,7 @@ class ExtraArgsFrame(BaseFrame):
         self.init()
         self.Bind(wx.EVT_CLOSE, self.OnClose, self)
 
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.set_child_ctrls_as_attrs(self)
 
@@ -1346,7 +1345,7 @@ class GamapFrame(BaseFrame):
         self.init()
         self.Bind(wx.EVT_CLOSE, self.OnClose, self)
 
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.panel = xrc.XRCCTRL(self, "panel")
 
@@ -1414,7 +1413,7 @@ class GamapFrame(BaseFrame):
             self.profile_quality_b2a_ctrl_handler,
             id=self.b2a_hires_cb.GetId(),
         )
-        for v in config.valid_values["profile.b2a.hires.size"]:
+        for v in config.VALID_VALUES["profile.b2a.hires.size"]:
             v = f"{v}x{v}x{v}" if v > -1 else lang.getstr("auto")
             self.b2a_size_ctrl.Append(v)
         self.Bind(
@@ -1435,7 +1434,7 @@ class GamapFrame(BaseFrame):
 
         self.default_intent_ab = {}
         self.default_intent_ba = {}
-        for i, ri in enumerate(config.valid_values["gamap_default_intent"]):
+        for i, ri in enumerate(config.VALID_VALUES["gamap_default_intent"]):
             self.default_intent_ab[i] = ri
             self.default_intent_ba[ri] = i
 
@@ -1447,7 +1446,7 @@ class GamapFrame(BaseFrame):
         self.Hide()
 
     def b2a_size_ctrl_handler(self, event):
-        v = config.valid_values["profile.b2a.hires.size"][
+        v = config.VALID_VALUES["profile.b2a.hires.size"][
             self.b2a_size_ctrl.GetSelection()
         ]
         if (
@@ -1657,7 +1656,7 @@ class GamapFrame(BaseFrame):
         self.gamap_profile.dialogTitle = lang.getstr("gamap.profile")
         self.gamap_profile.fileMask = lang.getstr("filetype.icc") + "|*.icc;*.icm"
 
-        intents = list(config.intents)
+        intents = list(config.INTENTS)
         if (
             self.Parent
             and hasattr(self.Parent, "worker")
@@ -1687,7 +1686,7 @@ class GamapFrame(BaseFrame):
         # else:
         viewconds_out_ignore = []
 
-        for v in viewconds:
+        for v in VIEWCONDS:
             if (
                 self.Parent
                 and hasattr(self.Parent, "worker")
@@ -1711,7 +1710,7 @@ class GamapFrame(BaseFrame):
         self.gamap_default_intent_ctrl.SetItems(
             [
                 lang.getstr("gamap.intents." + v)
-                for v in config.valid_values["gamap_default_intent"]
+                for v in config.VALID_VALUES["gamap_default_intent"]
             ]
         )
 
@@ -1732,7 +1731,7 @@ class GamapFrame(BaseFrame):
             enable_b2a_extra and not self.low_quality_b2a_cb.GetValue()
         )
         self.b2a_size_ctrl.SetSelection(
-            config.valid_values["profile.b2a.hires.size"].index(
+            config.VALID_VALUES["profile.b2a.hires.size"].index(
                 getcfg("profile.b2a.hires.size")
             )
         )
@@ -1750,7 +1749,7 @@ class GamapFrame(BaseFrame):
         self.gamap_perceptual_intent_ctrl.SetStringSelection(
             self.intents_ab.get(
                 getcfg("gamap_perceptual_intent"),
-                self.intents_ab.get(defaults["gamap_perceptual_intent"]),
+                self.intents_ab.get(DEFAULTS["gamap_perceptual_intent"]),
             )
         )
         self.gamap_saturation_cb.SetValue(
@@ -1759,19 +1758,19 @@ class GamapFrame(BaseFrame):
         self.gamap_saturation_intent_ctrl.SetStringSelection(
             self.intents_ab.get(
                 getcfg("gamap_saturation_intent"),
-                self.intents_ab.get(defaults["gamap_saturation_intent"]),
+                self.intents_ab.get(DEFAULTS["gamap_saturation_intent"]),
             )
         )
         self.gamap_src_viewcond_ctrl.SetStringSelection(
             self.viewconds_ab.get(
                 getcfg("gamap_src_viewcond", False),
-                self.viewconds_ab.get(defaults.get("gamap_src_viewcond")),
+                self.viewconds_ab.get(DEFAULTS.get("gamap_src_viewcond")),
             )
         )
         self.gamap_out_viewcond_ctrl.SetStringSelection(
             self.viewconds_ab.get(
                 getcfg("gamap_out_viewcond"),
-                self.viewconds_ab.get(defaults.get("gamap_out_viewcond")),
+                self.viewconds_ab.get(DEFAULTS.get("gamap_out_viewcond")),
             )
         )
 
@@ -1794,7 +1793,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.dist_testchart_names = []
         self.menubar = None
         missing = []
-        for filename in resfiles:
+        for filename in RES_FILES:
             path, ext = (
                 get_data_path(os.path.sep.join(filename.split("/"))),
                 os.path.splitext(filename)[1],
@@ -1857,7 +1856,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if None in (x, y):
             self.Center()
         self.Bind(wx.EVT_MOVE, self.OnMove, self)
-        if verbose >= 1:
+        if VERBOSE >= 1:
             print(lang.getstr("success"))
 
         # Check for and load default calibration
@@ -1871,7 +1870,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.load_display_profile_cal(None)
 
         self.init_timers()
-        if verbose >= 1:
+        if VERBOSE >= 1:
             print(lang.getstr("ready"))
 
     def log(self):
@@ -1884,17 +1883,17 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.logoffset = 1
         else:
             self.logoffset = 0
-        logbuffer.seek(0)
+        LOGBUFFER.seek(0)
         msg = "".join(
-            [line.decode("UTF-8", "replace") for line in logbuffer][self.logoffset :]
+            [line.decode("UTF-8", "replace") for line in LOGBUFFER][self.logoffset :]
         ).rstrip()
-        logbuffer.truncate(0)
+        LOGBUFFER.truncate(0)
         if msg:
             self.infoframe.Log(msg)
 
     def init_defaults(self):
         """Initialize GUI-specific defaults."""
-        defaults.update(
+        DEFAULTS.update(
             {
                 "position.info.x": self.GetDisplay().ClientArea[0] + 30,
                 "position.info.y": self.GetDisplay().ClientArea[1] + 30,
@@ -1939,7 +1938,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Left side - commmandline, right side - internal enumeration
         self.quality_ba = swap_dict_keys_values(self.quality_ab)
 
-        self.testchart_defaults = config.testchart_defaults
+        self.testchart_defaults = config.TESTCHART_DEFAULTS
         self.testcharts = []
         self.testchart_names = []
 
@@ -1968,12 +1967,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # UGLY HACK: This 'print' call fixes a GTK assertion and
         # segfault under Arch Linux when setting the window title
         print("")
-        title = f"{appname} {VERSION_SHORT}"
+        title = f"{APPNAME} {VERSION_SHORT}"
         if VERSION > VERSION_BASE:
             title += " Beta"
         self.SetTitle(title)
         self.SetMaxSize((-1, -1))
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.Bind(wx.EVT_CLOSE, self.OnClose, self)
         self.Bind(wx.EVT_SIZE, self.OnResize, self)
         self.Bind(wx.EVT_DISPLAY_CHANGED, self.check_update_controls)
@@ -2348,7 +2347,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """Create & initialize the info (log) window and its controls."""
         self.infoframe = LogWindow(self)
         self.infoframe.Bind(wx.EVT_CLOSE, self.infoframe_close_handler, self.infoframe)
-        self.infoframe.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.infoframe.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         if show:
             self.infoframe_toggle_handler(show=show)
 
@@ -2442,7 +2441,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         items = [
             lang.getstr("testchart." + v)
-            for v in config.valid_values["testchart.patch_sequence"]
+            for v in config.VALID_VALUES["testchart.patch_sequence"]
         ]
         self.testchart_patch_sequence_ctrl.Items = items
 
@@ -2567,7 +2566,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.profile_type_ctrl.SetSelection(
             self.profile_types_ba.get(
                 getcfg("profile.type"),
-                self.profile_types_ba.get(defaults["profile.type"], 0),
+                self.profile_types_ba.get(DEFAULTS["profile.type"], 0),
             )
         )
 
@@ -2735,7 +2734,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.menuitem_use_separate_lut_access = options_advanced.FindItemById(
             options_advanced.FindItem("use_separate_lut_access")
         )
-        if sys.platform not in ("darwin", "win32") or test:
+        if sys.platform not in ("darwin", "win32") or TEST:
             self.Bind(
                 wx.EVT_MENU,
                 self.use_separate_lut_access_handler,
@@ -2967,7 +2966,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.menuitem_uninstall_argyll_instrument_conf = tools_instrument.FindItemById(
             tools_instrument.FindItem("argyll.instrument.configuration_files.uninstall")
         )
-        if sys.platform in ("darwin", "win32") and not test:
+        if sys.platform in ("darwin", "win32") and not TEST:
             tools_instrument.RemoveItem(self.menuitem_install_argyll_instrument_conf)
             tools_instrument.RemoveItem(self.menuitem_uninstall_argyll_instrument_conf)
         else:
@@ -2990,7 +2989,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 tools_instrument.FindItem("argyll.instrument.drivers.uninstall")
             )
         )
-        if sys.platform == "win32" or test:
+        if sys.platform == "win32" or TEST:
             # Windows may need an Argyll CMS instrument driver
             self.Bind(
                 wx.EVT_MENU,
@@ -3000,7 +2999,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             # Other OS do not need an Argyll CMS instrument driver
             tools_instrument.RemoveItem(self.menuitem_install_argyll_instrument_drivers)
-        if (sys.platform == "win32" and sys.getwindowsversion() >= (6,)) or test:
+        if (sys.platform == "win32" and sys.getwindowsversion() >= (6,)) or TEST:
             # Windows Vista and newer can uninstall Argyll CMS instrument driver
             self.Bind(
                 wx.EVT_MENU,
@@ -3041,7 +3040,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         languages = self.menubar.GetMenu(self.menubar.FindMenu("menu.language"))
         llist = [
-            (lang.ldict[lcode].get("!language", ""), lcode) for lcode in lang.ldict
+            (lang.LDICT[lcode].get("!language", ""), lcode) for lcode in lang.LDICT
         ]
         llist.sort()
         # Map language code to ISO 3166-1 alpha-2 country code
@@ -3066,7 +3065,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 font.SetWeight(wx.BOLD)
                 menuitem.SetFont(font)
             # Map numerical event id to language string
-            lang.ldict[lcode].menuitem_id = menuitem.GetId()
+            lang.LDICT[lcode].menuitem_id = menuitem.GetId()
             self.Bind(wx.EVT_MENU, self.set_language_handler, menuitem)
 
         help = self.menubar.GetMenu(self.menubar.FindMenu("menu.help"))
@@ -3145,7 +3144,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.menuitem_skip_legacy_serial_ports.Check(
             bool(getcfg("skip_legacy_serial_ports"))
         )
-        if sys.platform not in ("darwin", "win32") or test:
+        if sys.platform not in ("darwin", "win32") or TEST:
             has_separate_lut_access = self.worker.has_separate_lut_access()
             self.menuitem_use_separate_lut_access.Check(
                 has_separate_lut_access or bool(getcfg("use_separate_lut_access"))
@@ -3171,7 +3170,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.menuitem_advanced_options.Enable(bool(getcfg("show_advanced_options")))
         spyd2en = get_argyll_util("spyd2en")
         spyder2_firmware_exists = self.worker.spyder2_firmware_exists()
-        if sys.platform not in ("darwin", "win32") or test:
+        if sys.platform not in ("darwin", "win32") or TEST:
             installed = get_argyll_instrument_config("installed")
             installable = get_argyll_instrument_config()
             # Only enable if not yet installed and installable
@@ -3314,10 +3313,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
 
         # Display update delay & settle time
-        min_val, max_val = config.valid_ranges["measure.min_display_update_delay_ms"]
+        min_val, max_val = config.VALID_RANGES["measure.min_display_update_delay_ms"]
         self.min_display_update_delay_ms.SetRange(min_val, max_val)
 
-        min_val, max_val = config.valid_ranges["measure.display_settle_time_mult"]
+        min_val, max_val = config.VALID_RANGES["measure.display_settle_time_mult"]
         self.display_settle_time_mult.SetDigits(
             len(str(stripzeros(min_val)).split(".")[-1])
         )
@@ -3351,7 +3350,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             or self.update_ffp_insertion_ctrl()
             or self.update_estimated_measurement_times(),
         )
-        min_val, max_val = config.valid_ranges[
+        min_val, max_val = config.VALID_RANGES[
             "patterngenerator.ffp_insertion.interval"
         ]
         self.ffp_insertion_interval.SetRange(min_val, max_val)
@@ -3362,7 +3361,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
             or self.update_estimated_measurement_times(),
         )
-        min_val, max_val = config.valid_ranges[
+        min_val, max_val = config.VALID_RANGES[
             "patterngenerator.ffp_insertion.duration"
         ]
         self.ffp_insertion_duration.SetRange(min_val, max_val)
@@ -3508,7 +3507,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Tonal response curve (TRC)
         self.Bind(wx.EVT_CHOICE, self.trc_ctrl_handler, id=self.trc_ctrl.GetId())
         self.trc_textctrl.SetItems(self.trc_presets)
-        self.trc_textctrl.SetValue(str(defaults["gamma"]))
+        self.trc_textctrl.SetValue(str(DEFAULTS["gamma"]))
         self.Bind(wx.EVT_COMBOBOX, self.trc_ctrl_handler, id=self.trc_textctrl.GetId())
         self.trc_textctrl.Bind(wx.EVT_KILL_FOCUS, self.trc_ctrl_handler)
         self.Bind(
@@ -3601,8 +3600,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             id=self.create_testchart_btn.GetId(),
         )
         self.testchart_patches_amount_ctrl.SetRange(
-            config.valid_values["testchart.auto_optimize"][1],
-            config.valid_values["testchart.auto_optimize"][-1],
+            config.VALID_VALUES["testchart.auto_optimize"][1],
+            config.VALID_VALUES["testchart.auto_optimize"][-1],
         )
         self.testchart_patches_amount_ctrl.Bind(
             wx.EVT_SLIDER, self.testchart_patches_amount_ctrl_handler
@@ -3734,11 +3733,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def set_language_handler(self, event):
         """Set a new language globally and on-the-fly."""
-        for lcode in lang.ldict:
-            if lang.ldict[lcode].menuitem_id == event.GetId():
+        for lcode in lang.LDICT:
+            if lang.LDICT[lcode].menuitem_id == event.GetId():
                 # Get the previously marked menu item
                 menuitem = self.menubar.FindItemById(
-                    lang.ldict[lang.getcode()].menuitem_id
+                    lang.LDICT[lang.getcode()].menuitem_id
                 )
                 if hasattr(self, "tcframe"):
                     if not self.tcframe.tc_close_handler():
@@ -3752,7 +3751,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 font.SetWeight(wx.NORMAL)
                 menuitem.SetFont(font)
                 # Set the currently marked menu item's font weight to bold
-                menuitem = self.menubar.FindItemById(lang.ldict[lcode].menuitem_id)
+                menuitem = self.menubar.FindItemById(lang.LDICT[lcode].menuitem_id)
                 font = menuitem.Font
                 font.SetWeight(wx.BOLD)
                 menuitem.SetFont(font)
@@ -3801,13 +3800,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     # Remember current log window contents
                     if not self.infoframe.IsShownOnScreen():
                         # Append buffer of non-shown log window
-                        logbuffer.seek(0)
-                        log_txt += logbuffer.read()
-                    logbuffer.truncate(0)
-                    logbuffer.write(log_txt)
+                        LOGBUFFER.seek(0)
+                        log_txt += LOGBUFFER.read()
+                    LOGBUFFER.truncate(0)
+                    LOGBUFFER.write(log_txt)
                 self.infoframe.Destroy()
                 self.init_infoframe(show=getcfg("log.show"))
-                if sys.platform in ("darwin", "win32") or isexe:
+                if sys.platform in ("darwin", "win32") or ISEXE:
                     self.measureframe.Destroy()
                     self.init_measureframe()
                 if hasattr(self, "lut_viewer"):
@@ -3850,7 +3849,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     continue
                 conn.send_command("getappname")
                 remote_appname = conn.get_single_response()
-                if remote_appname == appname:
+                if remote_appname == APPNAME:
                     print("Warning - connected to self, skipping")
                     del conn
                     continue
@@ -3863,12 +3862,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         f"({ip_port}):",
                         response,
                     )
-                if remote_appname == f"{appname}-apply-profiles":
+                if remote_appname == f"{APPNAME}-apply-profiles":
                     # Update notification text of profile loader
                     conn.send_command(
                         "notify '{}' silent sticky".format(
                             lang.getstr(
-                                "app.detected.calibration_loading_disabled", appname
+                                "app.detected.calibration_loading_disabled", APPNAME
                             )
                         )
                     )
@@ -4036,7 +4035,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "gamap_src_viewcond": None,
             "gamap_out_viewcond": None,
             "testchart.file": "auto",
-            "trc": defaults["gamma"],
+            "trc": DEFAULTS["gamma"],
             "whitepoint.colortemp": None,
             "whitepoint.x": None,
             "whitepoint.y": None,
@@ -4046,7 +4045,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if override:
             override_default.update(override)
         override = override_default
-        for name in defaults:
+        for name in DEFAULTS:
             if (
                 name not in skip
                 and name not in override
@@ -4062,8 +4061,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if name.endswith(".backup") and name == "measurement_mode.backup":
                     setcfg("measurement_mode", getcfg("measurement_mode.backup"))
                 default = None
-                if verbose >= 3:
-                    print(f"Restoring {name} to {defaults[name]}")
+                if VERBOSE >= 3:
+                    print(f"Restoring {name} to {DEFAULTS[name]}")
                 setcfg(name, default)
         for name in override:
             if (
@@ -4091,7 +4090,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not self.updatingctrls and self.IsShownOnScreen():
             # update_controls which is called from cal_changed might cause a
             # another cal_changed call, in which case we can skip it
-            if debug:
+            if DEBUG:
                 print("[D] cal_changed")
             if setchanged:
                 setcfg("settings.changed", 1)
@@ -4117,7 +4116,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def update_displays(self, update_ccmx_items=False, set_height=False):
         """Update the display selector controls."""
-        if debug:
+        if DEBUG:
             print("[D] update_displays")
         self.panel.Freeze()
         self.displays = []
@@ -4131,7 +4130,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         display_lut_sizer = self.display_ctrl.GetContainingSizer()
         display_sizer = self.display_lut_link_ctrl.GetContainingSizer()
         comport_sizer = self.comport_ctrl.GetContainingSizer()
-        if sys.platform not in ("darwin", "win32") or test:
+        if sys.platform not in ("darwin", "win32") or TEST:
             use_lut_ctrl = self.worker.has_separate_lut_access() or bool(
                 getcfg("use_separate_lut_access")
             )
@@ -4343,7 +4342,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if measurement_modes_ab[instrument_type]:
                 measurement_mode = measurement_modes_ab[instrument_type][0]
             else:
-                measurement_mode = defaults["measurement_mode"]
+                measurement_mode = DEFAULTS["measurement_mode"]
         if instrument_features.get("adaptive_mode") and (
             self.worker.argyll_version[0:3] > [1, 1, 0]
             or (
@@ -5054,7 +5053,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if ext.lower() in (".icc", ".icm"):
                 profile_path = cal
             else:
-                profile_path = filename + profile_ext
+                profile_path = filename + PROFILE_EXT
             profile_exists = os.path.exists(profile_path)
         else:
             filename = None
@@ -5166,7 +5165,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.whitepoint_colortemp_loci_ba.get(
                 getcfg("whitepoint.colortemp.locus"),
                 self.whitepoint_colortemp_loci_ba.get(
-                    defaults["whitepoint.colortemp.locus"]
+                    DEFAULTS["whitepoint.colortemp.locus"]
                 ),
             )
         )
@@ -5216,7 +5215,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.trc_ctrl.SetSelection(0)
             self.trc_type_ctrl.SetSelection(
                 self.trc_types_ba.get(
-                    getcfg("trc.type"), self.trc_types_ba.get(defaults["trc.type"])
+                    getcfg("trc.type"), self.trc_types_ba.get(DEFAULTS["trc.type"])
                 )
             )
         self.show_trc_controls()
@@ -5249,7 +5248,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
         q = self.quality_ba.get(
             getcfg("calibration.quality"),
-            self.quality_ba.get(defaults["calibration.quality"]),
+            self.quality_ba.get(DEFAULTS["calibration.quality"]),
         )
         self.calibration_quality_ctrl.SetValue(q)
         self.set_calibration_quality_label(self.quality_ab[q])
@@ -5271,7 +5270,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             q = (
                 self.quality_ba.get(
                     getcfg("profile.quality"),
-                    self.quality_ba.get(defaults["profile.quality"]),
+                    self.quality_ba.get(DEFAULTS["profile.quality"]),
                 )
                 - 1
             )
@@ -5452,7 +5451,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             getcfg("profile.type") != "S"
             or not getcfg("profile.black_point_compensation")
         ):
-            return None 
+            return None
         # Warn about profile bugs
         dlg = ConfirmDialog(
             self,
@@ -5486,7 +5485,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         show = (
             self.trc_ctrl.GetSelection() > 0
             and bool(getcfg("show_advanced_options"))
-            and defaults["calibration.black_point_rate.enabled"]
+            and DEFAULTS["calibration.black_point_rate.enabled"]
         )
         self.black_point_rate_label.GetContainingSizer().Show(
             self.black_point_rate_label, show
@@ -5497,7 +5496,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.black_point_rate_ctrl.Enable(
             enable
             and getcfg("calibration.black_point_correction") < 1
-            and defaults["calibration.black_point_rate.enabled"]
+            and DEFAULTS["calibration.black_point_rate.enabled"]
         )
         self.black_point_rate_floatctrl.GetContainingSizer().Show(
             self.black_point_rate_floatctrl, show
@@ -5505,7 +5504,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.black_point_rate_floatctrl.Enable(
             enable
             and getcfg("calibration.black_point_correction") < 1
-            and defaults["calibration.black_point_rate.enabled"]
+            and DEFAULTS["calibration.black_point_rate.enabled"]
         )
         self.calpanel.Layout()
         self.panel.Thaw()
@@ -5644,7 +5643,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.update_estimated_measurement_times()
 
     def calibration_update_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] calibration_update_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -5690,9 +5689,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         dlg.install_user.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
         dlg.install_systemwide.Bind(wx.EVT_RADIOBUTTON, install_scope_handler)
         install_scope_handler(dlg=dlg)
-        dlg.sizer3.Add(
-            dlg.install_systemwide, flag=wx.TOP | wx.ALIGN_LEFT, border=4
-        )
+        dlg.sizer3.Add(dlg.install_systemwide, flag=wx.TOP | wx.ALIGN_LEFT, border=4)
         dlg.sizer0.SetSizeHints(dlg)
         dlg.sizer0.Layout()
         choice = dlg.ShowModal() if event else wx.ID_OK
@@ -6140,7 +6137,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def lut3d_set_path(self, path=None, set_mr_sim_profile=True):
         self.lut3d_path = self.worker.lut3d_get_filename(path)
-        devlink = os.path.splitext(self.lut3d_path)[0] + profile_ext
+        devlink = os.path.splitext(self.lut3d_path)[0] + PROFILE_EXT
         mr_option_changed = False
         if devlink != getcfg("measurement_report.devlink_profile"):
             setcfg("measurement_report.devlink_profile", devlink)
@@ -6225,7 +6222,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         lut3d_input_profile = getcfg("3dlut.input.profile")
         if lut3d_input_profile not in list(self.input_profiles.values()):
             if not lut3d_input_profile or not os.path.isfile(lut3d_input_profile):
-                lut3d_input_profile = defaults["3dlut.input.profile"]
+                lut3d_input_profile = DEFAULTS["3dlut.input.profile"]
                 setcfg("3dlut.input.profile", lut3d_input_profile)
             else:
                 try:
@@ -6264,7 +6261,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
 
     def profile_quality_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] profile_quality_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6291,7 +6288,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         wx.CallAfter(self.check_testchart_patches_amount)
 
     def calibration_file_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] calibration_file_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6369,7 +6366,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return True
 
     def calibration_quality_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] calibration_quality_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6404,7 +6401,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
 
     def interactive_display_adjustment_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] interactive_display_adjustment_ctrl_handler called "
                 f"for ID {event.GetId()} {getevtobjname(event, self)} event type "
@@ -6452,7 +6449,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.calpanel.Thaw()
 
     def black_point_correction_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] black_point_correction_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6472,16 +6469,16 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         setcfg("calibration.black_point_correction", v)
         self.black_point_rate_ctrl.Enable(
             getcfg("calibration.black_point_correction") < 1
-            and defaults["calibration.black_point_rate.enabled"]
+            and DEFAULTS["calibration.black_point_rate.enabled"]
         )
         self.black_point_rate_floatctrl.Enable(
             getcfg("calibration.black_point_correction") < 1
-            and defaults["calibration.black_point_rate.enabled"]
+            and DEFAULTS["calibration.black_point_rate.enabled"]
         )
         self.update_profile_name()
 
     def black_point_rate_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] black_point_rate_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6502,7 +6499,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.update_profile_name()
 
     def black_output_offset_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] black_output_offset_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6612,7 +6609,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             | wx.FRAME_TOOL_WINDOW
             | wx.FRAME_FLOAT_ON_PARENT,
         )
-        frame.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        frame.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         panel = wx.Panel(frame, size=(int(get_default_size()),) * 2)
         panel.SetBackgroundColour(color)
         btncls = ThemedGenButton if wx.Platform == "__WXMSW__" else wx.Button
@@ -6821,7 +6818,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ):
             event.Skip()
             return
-        if debug:
+        if DEBUG:
             print(
                 "[D] ambient_viewcond_adjust_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6874,7 +6871,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ):
             event.Skip()
             return
-        if debug:
+        if DEBUG:
             print(
                 "[D] black_luminance_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6921,7 +6918,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ):
             event.Skip()
             return
-        if debug:
+        if DEBUG:
             print(
                 "[D] luminance_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -6962,7 +6959,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             event.Skip()
 
     def whitepoint_colortemp_locus_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] whitepoint_colortemp_locus_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -7006,7 +7003,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ):
             event.Skip()
             return
-        if debug:
+        if DEBUG:
             print(
                 "[D] whitepoint_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -7168,7 +7165,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.CallAfter(self.check_3dlut_relcol_rendering_intent)
 
     def trc_type_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] trc_type_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -7190,7 +7187,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             event.Skip()
             self.show_trc_controls(True)
             return
-        if debug:
+        if DEBUG:
             print(
                 "[D] trc_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -7321,7 +7318,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             setcfg("trc.type.backup", None)
             self.trc_type_ctrl.SetSelection(
                 self.trc_types_ba.get(
-                    getcfg("trc.type"), self.trc_types_ba.get(defaults["trc.type"])
+                    getcfg("trc.type"), self.trc_types_ba.get(DEFAULTS["trc.type"])
                 )
             )
 
@@ -7365,10 +7362,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         dlg.sizer3.Add(sizer, flag=wx.TOP, border=12)
         cols = wx.Choice(
-            dlg, -1, choices=list(map(str, config.valid_values["uniformity.cols"]))
+            dlg, -1, choices=list(map(str, config.VALID_VALUES["uniformity.cols"]))
         )
         rows = wx.Choice(
-            dlg, -1, choices=list(map(str, config.valid_values["uniformity.rows"]))
+            dlg, -1, choices=list(map(str, config.VALID_VALUES["uniformity.rows"]))
         )
         cols.SetStringSelection(str(getcfg("uniformity.cols")))
         rows.SetStringSelection(str(getcfg("uniformity.rows")))
@@ -7566,7 +7563,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             msg=lang.getstr("profile.share.enter_info"),
             ok=lang.getstr("upload"),
             cancel=lang.getstr("cancel"),
-            bitmap=geticon(32, appname + "-profile-info"),
+            bitmap=geticon(32, APPNAME + "-profile-info"),
             alt=lang.getstr("save"),
             wrap=100,
         )
@@ -7873,9 +7870,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             http_request,
             ckwargs={},
             wkwargs={
-                "domain": DOMAIN if test else "icc.opensuse.org",
+                "domain": DOMAIN if TEST else "icc.opensuse.org",
                 "request_type": "POST",
-                "path": "/print_r_post.php" if test else "/upload",
+                "path": "/print_r_post.php" if TEST else "/upload",
                 "params": params,
                 "files": files,
             },
@@ -8147,14 +8144,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 return
             setcfg("last_cal_or_icc_path", path)
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("calibration.loading"))
                 print(path)
             if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
                 try:
                     profile = ICCProfile(path)
                 except (OSError, ICCProfileInvalidError):
-                    if verbose >= 1:
+                    if VERBOSE >= 1:
                         print(lang.getstr("failure"))
                     InfoDialog(
                         self,
@@ -8175,10 +8172,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     is True
                 ):
                     self.lut_viewer_load_lut(profile=profile)
-                    if verbose >= 1:
+                    if VERBOSE >= 1:
                         print(lang.getstr("success"))
                 elif not getcfg("dry_run"):
-                    if verbose >= 1:
+                    if VERBOSE >= 1:
                         print(lang.getstr("failure"))
                     InfoDialog(
                         self,
@@ -8199,10 +8196,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     is True
                 ):
                     self.lut_viewer_load_lut(profile=cal_to_fake_profile(path))
-                    if verbose >= 1:
+                    if VERBOSE >= 1:
                         print(lang.getstr("success"))
                 elif not getcfg("dry_run"):
-                    if verbose >= 1:
+                    if VERBOSE >= 1:
                         print(lang.getstr("failure"))
 
     def preview_handler(self, event=None, preview=False):
@@ -8234,11 +8231,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         else:
             profile = cal_to_fake_profile(cal)
         if profile:
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("calibration.loading"))
                 if profile.fileName:
                     print(profile.fileName)
-        elif verbose >= 1:
+        elif VERBOSE >= 1:
             print(lang.getstr("calibration.resetting"))
         if (
             self.install_cal(
@@ -8251,9 +8248,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             is True
         ):
             self.lut_viewer_load_lut(profile=profile)
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("success"))
-        elif verbose >= 1:
+        elif VERBOSE >= 1:
             print(lang.getstr("failure"))
 
     def profile_load_on_login_handler(self, event=None):
@@ -8294,7 +8291,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Profile loader not running? Fall back to config files
 
                 # 1. Remember current config
-                items = config.cfg.items(config.configparser.DEFAULTSECT)
+                items = config.CFG.items(config.configparser.DEFAULTSECT)
 
                 # 2. Read in profile loader config. Result is unison of current
                 #    config and profile loader config.
@@ -8304,7 +8301,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 #    options)
                 for name, value in items:
                     if not name.startswith("profile_loader"):
-                        config.cfg.set(config.configparser.DEFAULTSECT, name, value)
+                        config.CFG.set(config.configparser.DEFAULTSECT, name, value)
 
                 # 4. Write profile loader config with values updated from
                 #    current config
@@ -8314,7 +8311,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
 
                 # 5. Remove profile loader options from current config
-                for name in defaults:
+                for name in DEFAULTS:
                     if name.startswith("profile_loader"):
                         setcfg(name, None)
 
@@ -8341,7 +8338,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         profile_path=None,
         skip_scripts=False,
         silent=False,
-        title=appname,
+        title=APPNAME,
     ):
         """Install (load) a calibration from a calibration file or profile."""
         if config.is_virtual_display():
@@ -8452,7 +8449,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def select_profile(
         self,
         parent=None,
-        title=appname,
+        title=APPNAME,
         msg=None,
         check_profile_class=True,
         ignore_current_profile=False,
@@ -8478,7 +8475,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     ok=lang.getstr("profile.current"),
                     cancel=lang.getstr("cancel"),
                     alt=lang.getstr("browse"),
-                    bitmap=geticon(32, appname + "-profile-info"),
+                    bitmap=geticon(32, APPNAME + "-profile-info"),
                 )
                 dlg.ok.SetDefault()
                 result = dlg.ShowModal()
@@ -8545,7 +8542,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def measurement_report_handler(self, event, path=None):
         self_check_report = wx.GetKeyState(wx.WXK_ALT)
 
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if not check_set_argyll_bin():
             return
@@ -8650,7 +8647,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             and config.get_display_name(None, True) in ("madVR", "Prisma")
             and getcfg("3dlut.enable")
         )
-        if debug:
+        if DEBUG:
             for n, p in {
                 "profile": profile,
                 "devlink": devlink,
@@ -9012,7 +9009,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ti1_path = os.path.join(temp, f"{name}.ti1")
         profile_path = os.path.join(temp, f"{name}.icc")
 
-        if debug:
+        if DEBUG:
             print(f"save_path: {save_path}")
             print(f"name: {name}")
             print(f"ext: {ext}")
@@ -9417,7 +9414,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         observer = get_cfg_option_from_args(
             "observer", "-Q", self.worker.options_dispread
         )
-        if observer != defaults["observer"]:
+        if observer != DEFAULTS["observer"]:
             instrument += " \u2014 " + self.observers_ab.get(observer, observer)
 
         ccmx = "None"
@@ -9455,7 +9452,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         reference_observer = cgats.queryv1("REFERENCE_OBSERVER")
                         if (
                             reference_observer
-                            and reference_observer != defaults["observer"]
+                            and reference_observer != DEFAULTS["observer"]
                         ):
                             reference_observer = self.observers_ab.get(
                                 reference_observer, reference_observer
@@ -9525,9 +9522,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "${TESTCHART}": os.path.basename(chart.filename),
             "${ADAPTION}": str(profile.guess_cat(False) or cat),
             "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),
-            "${REF}": bytes(ti3_ref).decode(enc, "replace").replace('"', "&quot;"),
+            "${REF}": bytes(ti3_ref).decode(ENC, "replace").replace('"', "&quot;"),
             "${MEASURED}": bytes(ti3_joined)
-            .decode(enc, "replace")
+            .decode(ENC, "replace")
             .replace('"', "&quot;"),
             "${CAL_ENTRYCOUNT}": str(cal_entrycount),
             "${CAL_RGBLEVELS}": repr(cal_rgblevels),
@@ -9552,7 +9549,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not cal:
             cal = getcfg("calibration.file", False)
         if cal and check_set_argyll_bin():
-            if verbose >= 1 and load_vcgt:
+            if VERBOSE >= 1 and load_vcgt:
                 print(lang.getstr("calibration.loading"))
                 print(cal)
             if (
@@ -9575,17 +9572,17 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     profile = cal_to_fake_profile(cal)
                 self.lut_viewer_load_lut(profile=profile)
-                if verbose >= 1 and silent and load_vcgt:
+                if VERBOSE >= 1 and silent and load_vcgt:
                     print(lang.getstr("success"))
                 return True
-            if verbose >= 1 and load_vcgt:
+            if VERBOSE >= 1 and load_vcgt:
                 print(lang.getstr("failure"))
         return False
 
     def reset_cal(self, event=None):
         """Reset video card gamma table to linear"""
         if check_set_argyll_bin():
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("calibration.resetting"))
             if (
                 self.install_cal(
@@ -9616,10 +9613,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 profile.size = len(profile.data)
                 profile.is_loaded = True
                 self.lut_viewer_load_lut(profile=profile)
-                if verbose >= 1:
+                if VERBOSE >= 1:
                     print(lang.getstr("success"))
                 return True
-            if verbose >= 1 and not getcfg("dry_run"):
+            if VERBOSE >= 1 and not getcfg("dry_run"):
                 print(lang.getstr("failure"))
         return False
 
@@ -9628,7 +9625,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         profile = get_display_profile()
         if not check_set_argyll_bin():
             return False
-        if verbose >= 1 and (getcfg("calibration.autoload") or event):
+        if VERBOSE >= 1 and (getcfg("calibration.autoload") or event):
             print(lang.getstr("calibration.loading_from_display_profile"))
             if profile and profile.fileName:
                 print(profile.fileName)
@@ -9641,11 +9638,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ) is True:
             if lut_viewer_load_lut:
                 self.lut_viewer_load_lut(profile=profile)
-            if verbose >= 1 and (getcfg("calibration.autoload") or event):
+            if VERBOSE >= 1 and (getcfg("calibration.autoload") or event):
                 print(lang.getstr("success"))
             return True
         if (
-            verbose >= 1
+            VERBOSE >= 1
             and not getcfg("dry_run")
             and (getcfg("calibration.autoload") or event)
         ):
@@ -9712,7 +9709,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         wx.CallAfter(infoframe.Show)
 
     def calibrate_btn_handler(self, event):
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if self.check_show_macos_bugs_warning(profile=False) is False:
             return
@@ -9754,7 +9751,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     not getcfg("profile.update")
                     and not self.worker.dispcal_create_fast_matrix_shaper
                 )
-                or self.check_overwrite(profile_ext)
+                or self.check_overwrite(PROFILE_EXT)
             )
         ):
             self.setup_measurement(self.just_calibrate)
@@ -9852,7 +9849,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.call_pending_function()
         elif (
             sys.platform in ("darwin", "win32")
-            or isexe
+            or ISEXE
             or self.worker._use_patternwindow
         ):
             # Preliminary Wayland support. This still needs a lot
@@ -9866,12 +9863,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """Setup observer control. Choice of available observers varies with
         ArgyllCMS version."""
         self.observers_ab = {}
-        for observer in config.valid_values["observer"]:
+        for observer in config.VALID_VALUES["observer"]:
             self.observers_ab[observer] = lang.getstr("observer." + observer)
         self.observers_ba = swap_dict_keys_values(self.observers_ab)
         self.observer_ctrl.SetItems(list(self.observers_ab.values()))
 
-    def setup_patterngenerator(self, parent=None, title=appname, upload=False):
+    def setup_patterngenerator(self, parent=None, title=APPNAME, upload=False):
         if not parent:
             parent = self
         retval = True
@@ -9914,7 +9911,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 preset = wx.Choice(
                     dlg,
                     -1,
-                    choices=config.valid_values["patterngenerator.prisma.preset"],
+                    choices=config.VALID_VALUES["patterngenerator.prisma.preset"],
                 )
                 preset.SetStringSelection(getcfg("patterngenerator.prisma.preset"))
                 sizer.Add(preset, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL, border=8)
@@ -10153,13 +10150,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """Start the measureframe subprocess."""
         script = (
             "import sys;"
-            f"sys.path.insert(0, {pydir!r});"
+            f"sys.path.insert(0, {PYDIR!r});"
             "from DisplayCAL import wxMeasureFrame;"
             "wxMeasureFrame.main();"
             "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)"
         )
         args = [
-            exe,
+            EXE,
             "-c",
             script,
         ]
@@ -10252,7 +10249,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def get_set_display(self, update_ccmx_items=False):
         """Get the currently configured display number, and set the
         display device selection"""
-        if debug:
+        if DEBUG:
             print("[D] get_set_display")
         if self.worker.displays:
             self.display_ctrl.SetSelection(
@@ -10367,7 +10364,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         writecfg()
         if (
             sys.platform in ("darwin", "win32")
-            or isexe
+            or ISEXE
             or self.worker._use_patternwindow
         ):
             if self.worker._use_patternwindow:
@@ -10377,7 +10374,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.measureframe.show_controls(False)
             else:
                 self.measureframe.Hide()
-        if debug:
+        if DEBUG:
             print("[D] Calling pending function with args:", self.pending_function_args)
         wx.CallLater(
             100,
@@ -10389,7 +10386,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def calibrate_and_profile_btn_handler(self, event):
         """Setup calibration and characterization measurements"""
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if self.check_show_macos_bugs_warning() is False:
             return
@@ -10397,7 +10394,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             check_set_argyll_bin()
             and self.check_overwrite(".cal")
             and self.check_overwrite(".ti3")
-            and self.check_overwrite(profile_ext)
+            and self.check_overwrite(PROFILE_EXT)
         ):
             self.setup_measurement(self.calibrate_and_profile)
 
@@ -10479,7 +10476,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def start_profile_worker(self, success_msg, resume=False):
         name = getcfg("profile.name.expanded")
-        path = os.path.join(getcfg("profile.save_path"), name, name + profile_ext)
+        path = os.path.join(getcfg("profile.save_path"), name, name + PROFILE_EXT)
         self.lut3d_set_path(path, set_mr_sim_profile=False)
         continue_next = getcfg("3dlut.create") and not os.path.isfile(self.lut3d_path)
         self.worker.interactive = False
@@ -10639,7 +10636,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def measure_auto(self, measure_auto_after, *measure_auto_after_args):
         """Automatically create a CCMX with EDID reference"""
-        if getcfg("measurement_mode") != "auto" or getattr(self, "measure_auto_after", None):
+        if getcfg("measurement_mode") != "auto" or getattr(
+            self, "measure_auto_after", None
+        ):
             return None
         if not self.worker.get_display_edid():
             self.measure_auto_finish(Error("EDID not available"))
@@ -10674,7 +10673,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             edid = self.worker.get_display_edid()
             defaultFile = (
                 edid.get("monitor_name", edid.get("ascii", str(edid["product_id"])))
-                + profile_ext
+                + PROFILE_EXT
             )
             profile_path = os.path.join(self.worker.tempdir, defaultFile)
             profile = ICCProfile.from_edid(edid)
@@ -10758,14 +10757,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
     def profile_btn_handler(self, event):
         """Setup characterization measurements"""
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if self.check_show_macos_bugs_warning(cal=False) is False:
             return
         if (
             check_set_argyll_bin()
             and self.check_overwrite(".ti3")
-            and self.check_overwrite(profile_ext)
+            and self.check_overwrite(PROFILE_EXT)
         ):
             apply_calibration = self.current_cal_choice(
                 silent=isinstance(event, CustomEvent)
@@ -10964,7 +10963,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     getcfg("profile.name.expanded"),
                     getcfg("profile.name.expanded"),
                 )
-                profile_path = profile_save_path + profile_ext
+                profile_path = profile_save_path + PROFILE_EXT
             self.cal = profile_path
             profile = None
             filename, ext = os.path.splitext(profile_path)
@@ -11090,7 +11089,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 break
             if config.is_virtual_display() or install_3dlut:
                 installable = False
-                title = appname
+                title = APPNAME
                 if self.lut3d_path and os.path.isfile(self.lut3d_path):
                     # 3D LUT file already exists
                     if getcfg("3dlut.format") in (
@@ -11136,7 +11135,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 title=title,
                 ok=ok,
                 cancel=cancel,
-                bitmap=geticon(32, appname + "-profile-info"),
+                bitmap=geticon(32, APPNAME + "-profile-info"),
                 alt=share_profile,
             )
             if cinfo or vinfo:
@@ -11218,7 +11217,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # Profile loader not running? Fall back to config files
 
                         # 1. Remember current config
-                        items = config.cfg.items(config.configparser.DEFAULTSECT)
+                        items = config.CFG.items(config.configparser.DEFAULTSECT)
 
                         # 2. Read in profile loader config. Result is unison of
                         #    current config and profile loader config.
@@ -11230,15 +11229,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             if name != "profile.load_on_login" and not name.startswith(
                                 "profile_loader"
                             ):
-                                config.cfg.set(
+                                config.CFG.set(
                                     config.configparser.DEFAULTSECT, name, value
                                 )
 
                         # 4. Remove profile loader options from current config
-                        for name in defaults:
+                        for name in DEFAULTS:
                             if name.startswith("profile_loader"):
                                 setcfg(name, None)
-                if sys.platform != "darwin" or test:
+                if sys.platform != "darwin" or TEST:
                     os_cal = (
                         sys.platform == "win32"
                         and sys.getwindowsversion() >= (6, 1)
@@ -11293,7 +11292,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         and sys.getwindowsversion() >= (6,)
                         and self.worker.argyll_version > [1, 1, 1]
                     )
-                    or test
+                    or TEST
                 ):
                     # Linux, OSX or Vista and later
                     # NOTE: System install scope is currently not implemented
@@ -11645,7 +11644,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "create-colorimeter-correction",
             "create-profile [filename]",
             "curve-viewer [filename]",
-            appname + " [filename]",
+            APPNAME + " [filename]",
             "enable-spyder2",
             "import-colorimeter-corrections [filename...]",
             "install-profile [filename]",
@@ -11743,7 +11742,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if len(data) == 3:
                 # Create testchart
                 response = self.tcframe.process_data(data)
-        elif (data[0] == appname and len(data) < 3) or (
+        elif (data[0] == APPNAME and len(data) < 3) or (
             data[0] == "load" and len(data) == 2
         ):
             # Main window
@@ -11829,7 +11828,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.CallAfter(self.restore_defaults_handler, include=data[1:])
         elif data[0] == "setlanguage" and len(data) == 2:
             setcfg("lang", data[1])
-            menuitem = self.menubar.FindItemById(lang.ldict[lang.getcode()].menuitem_id)
+            menuitem = self.menubar.FindItemById(lang.LDICT[lang.getcode()].menuitem_id)
             event = CustomEvent(wx.EVT_MENU.typeId, menuitem)
             wx.CallAfter(self.set_language_handler, event)
         elif (
@@ -11872,7 +11871,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.update_use_video_lut()
 
     def init_lut_viewer(self, event=None, profile=None, show=None):
-        if debug:
+        if DEBUG:
             print(
                 "[D] init_lut_viewer",
                 profile.getDescription() if profile else None,
@@ -11908,7 +11907,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     profile = get_display_profile() or False
             if show is None:
                 show = not self.lut_viewer.IsShownOnScreen()
-            if debug:
+            if DEBUG:
                 print(
                     "[D] init_lut_viewer (2)",
                     profile.getDescription() if profile else None,
@@ -11918,7 +11917,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.show_lut_handler(profile=profile, show=show)
 
     def lut_viewer_load_lut(self, event=None, profile=None, force_draw=False):
-        if debug:
+        if DEBUG:
             print(
                 "[D] lut_viewer_load_lut",
                 profile.getDescription() if profile else None,
@@ -11933,7 +11932,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.lut_viewer.load_lut(profile)
 
     def show_lut_handler(self, event=None, profile=None, show=None):
-        if debug:
+        if DEBUG:
             print(
                 "[D] show_lut_handler",
                 profile.getDescription() if profile else None,
@@ -12048,7 +12047,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ffp_show = show_advanced_options and (
             (
                 display_name == "Prisma"
-                and not defaults["patterngenerator.prisma.argyll"]
+                and not DEFAULTS["patterngenerator.prisma.argyll"]
             )
             or display_name == "Resolve"
             or (
@@ -12448,7 +12447,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     else:
                         measurement_mode = None
                     observer_ctrl = dlg.observer_reference_ctrl
-                if debug or verbose >= 2:
+                if DEBUG or VERBOSE >= 2:
                     print("check_last_ccxx_ti3", name)
                     print("instrument =", instrument)
                     print("measurement_mode =", measurement_mode)
@@ -12458,7 +12457,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         getattr(dlg, f"{name}_ti3").GetValue(),
                     )
                 ti3 = getcfg(f"last_{name}_ti3_path", False)
-                if debug or verbose >= 2:
+                if DEBUG or VERBOSE >= 2:
                     print(f"last_{name}_ti3_path =", ti3)
                 if ti3:
                     if os.path.isfile(ti3):
@@ -12472,7 +12471,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             cgats_instrument = get_canonical_instrument_name(
                                 cgats_instrument
                             )
-                        if debug or verbose >= 2:
+                        if DEBUG or VERBOSE >= 2:
                             print("cgats_instrument =", cgats_instrument)
                         if name == "reference":
                             if getcfg(cfgname + ".projector"):
@@ -12497,11 +12496,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 and cgats.queryv1("SPECTRAL_BANDS") > 36
                             ):
                                 cgats_measurement_mode += "H"
-                        if debug or verbose >= 2:
+                        if DEBUG or VERBOSE >= 2:
                             print("cgats_measurement_mode =", cgats_measurement_mode)
                         cgats_observer = cgats.queryv1("OBSERVER")
                         if not cgats_observer:
-                            cgats_observer = defaults["observer"].encode("utf-8")
+                            cgats_observer = DEFAULTS["observer"].encode("utf-8")
                         if event.GetId() == dlg.reference_ti3.textControl.Id:
                             setcfg(
                                 "colorimeter_correction.observer.reference",
@@ -12519,10 +12518,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                 observer_ctrl.GetStringSelection()
                             ]
                         else:
-                            observer = defaults["observer"]
-                        if debug or verbose >= 2:
+                            observer = DEFAULTS["observer"]
+                        if DEBUG or VERBOSE >= 2:
                             print("observer =", observer)
-                        if debug or verbose >= 2:
+                        if DEBUG or VERBOSE >= 2:
                             print("cgats_observer =", cgats_observer)
                         if (
                             cgats_instrument.decode("utf-8") != instrument
@@ -12532,7 +12531,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             ti3 = None
                     else:
                         ti3 = None
-                if debug or verbose >= 2:
+                if DEBUG or VERBOSE >= 2:
                     print(f"last_{name}_ti3_path =", ti3)
                 bmp = geticon(16, "checkmark") if ti3 else geticon(16, "empty")
                 getattr(dlg, f"measure_{name}").SetBitmapLabel(bmp)
@@ -12762,7 +12761,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         instrument_name
                     )
                     and getcfg("colorimeter_correction.observer")
-                    != defaults["colorimeter_correction.observer"]
+                    != DEFAULTS["colorimeter_correction.observer"]
                 )
                 dlg.observer_label.Show(show)
                 dlg.observer_ctrl.Show(show)
@@ -13330,7 +13329,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             reference_ti3.queryv1("DISPLAY_TYPE_REFRESH"), b"LCD"
         )
         technology_strings = self.worker.get_technology_strings()
-        if debug:
+        if DEBUG:
             print(
                 "reference_ti3.queryv1('DISPLAY_TYPE_REFRESH'): "
                 f"{reference_ti3.queryv1('DISPLAY_TYPE_REFRESH')}"
@@ -13592,15 +13591,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # This shouldn't happen
                         white = colormath.get_whitepoint("D65", scale=100)
                         print(
-                            appname + ": Warning - could not find white - "
+                            APPNAME + ": Warning - could not find white - "
                             "dE calculation will be inaccurate"
                         )
                     white_abs.append(white)
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     print("ref white {:.6f} {:.6f} {:.6f}".format(*white_abs[0]))
                 white_ref = [v / white_abs[0][1] for v in white_abs[0]]
                 if getcfg("ccmx.use_four_color_matrix_method"):
-                    print(f"{appname}: Creating matrix using four-color method")
+                    print(f"{APPNAME}: Creating matrix using four-color method")
                     XYZ = []
                     for j, meas in enumerate((reference_ti3, colorimeter_ti3)):
                         for R, G, B in [
@@ -13616,7 +13615,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             X, Y, Z = (v * white_abs[j][1] / 100.0 for v in (X, Y, Z))
                             XYZ.extend((X, Y, Z))
                     R = colormath.four_color_matrix(*XYZ)
-                    print(f"{appname}: Correction matrix is:")
+                    print(f"{APPNAME}: Correction matrix is:")
                     ccmx = CGATS(source)
                     for i in range(3):
                         print("  {:.6f} {:.6f} {:.6f}".format(*R[i]))
@@ -13657,7 +13656,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     get_manufacturer_name("???")
                 manufacturers = dict([name, id_] for id_, name in PNP_ID_CACHE.items())
                 manufacturer_id = manufacturers.get(manufacturer)
-            if debug:
+            if DEBUG:
                 print(f"manufacturer_id: {manufacturer_id}")
                 print(f"manufacturer   : {manufacturer}")
             if manufacturer_id and not re.search(
@@ -13834,14 +13833,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             int(round(v)) for v in colormath.XYZ2RGB(X, Y, Z, scale=255)
                         ]
                         grid.SetCellBackgroundColour(row, 3 + j, wx.Colour(*RGB))
-                    if debug or verbose > 1:
+                    if DEBUG or VERBOSE > 1:
                         print(
                             "ref {:.6f} {:.6f} {:.6f}, ".format(*XYZabs[0]),
                             "col {:.6f} {:.6f} {:.6f}".format(*XYZabs[1]),
                         )
                     Lab_ref = colormath.XYZ2Lab(*XYZabs[0] + [white_abs[0]])
                     Lab_tgt = colormath.XYZ2Lab(*XYZabs[1] + [white_abs[0]])
-                    if debug or verbose > 1:
+                    if DEBUG or VERBOSE > 1:
                         print(
                             "ref Lab {:.6f} {:.6f} {:.6f}, ".format(*Lab_ref),
                             "col Lab {:.6f} {:.6f} {:.6f}".format(*Lab_tgt),
@@ -13866,11 +13865,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     grid.SetCellValue(row, 8, f"{deltaE:.4f}")
                 print("")
                 print(
-                    f"{appname}: Fit error is max {max(deltaE_94):.6f}, "
+                    f"{APPNAME}: Fit error is max {max(deltaE_94):.6f}, "
                     f"avg {sum(deltaE_94) / len(deltaE_94):.6f} DE94"
                 )
                 print(
-                    f"{appname}: Fit error is max {max(deltaE_00):.6f}, "
+                    f"{APPNAME}: Fit error is max {max(deltaE_00):.6f}, "
                     f"avg {sum(deltaE_00) / len(deltaE_00):.6f} DE00"
                 )
                 grid.DefaultCellBackgroundColour = grid.LabelBackgroundColour
@@ -13908,10 +13907,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                     metadata.append(
                         '{}_HASH "md5:{}"'.format(  # noqa: UP032
-                            label, md5(bytes(meas).strip()).hexdigest()  # noqa: S324
+                            label,
+                            md5(bytes(meas).strip()).hexdigest(),  # noqa: S324
                         )
                     )
-            if debug or test:
+            if DEBUG or TEST:
                 # Add original measurement data to CGATS as meta
                 ccmx_data_format = []
                 for colorspace in ("RGB", "XYZ"):
@@ -13957,14 +13957,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if colorimeter_ti3 and getcfg("ccmx.use_four_color_matrix_method"):
                 cgats = re.sub(
                     rb'(\nORIGINATOR\s+)"Argyll[^"]+"',
-                    (rf'\1"{appname} {VERSION_STRING}"').encode("utf-8"),  # noqa: UP012
+                    (rf'\1"{APPNAME} {VERSION_STRING}"').encode("utf-8"),  # noqa: UP012
                     cgats,
                 )
                 metadata.append('FIT_METHOD "xy"')
             else:
                 metadata.append('FIT_METHOD "ΔE*94"')
             if metadata:
-                if debug:
+                if DEBUG:
                     print(f"medatadata: {metadata}")
                 cgats = re.sub(
                     rb'(\nREFERENCE\s+"[^"]*"\n)',
@@ -14044,7 +14044,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Check hash
                 if globals()[algo_hash[0]](meas).hexdigest() == algo_hash[-1]:
                     params[label.lower() + "_cgats"] = meas
-        if debug or test:
+        if DEBUG or TEST:
             print(list(params.keys()))
         # Upload correction
         self.worker.interactive = False
@@ -14084,7 +14084,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             cgats = cgatsfile.read().decode()
         originator = re.search(r'\nORIGINATOR\s+"Argyll', cgats)
         if not originator:
-            originator = re.search(r'\nORIGINATOR\s+"' + appname, cgats)
+            originator = re.search(r'\nORIGINATOR\s+"' + APPNAME, cgats)
         if not originator:
             InfoDialog(
                 self,
@@ -14096,7 +14096,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.upload_colorimeter_correction(cgats)
 
     def comport_ctrl_handler(self, event=None, force=False):
-        if debug and event:
+        if DEBUG and event:
             print(
                 "[D] comport_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -14283,7 +14283,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self, result, i1d3, i1d3ccss, spyd4, spyd4en, icd, oeminst, path, asroot
     ):
         """Import colorimeter correction(s) from path"""
-        if debug:
+        if DEBUG:
             print("import_colorimeter_correction <-")
             print("   result:", result)
             print("   i1d3:", i1d3)
@@ -14358,7 +14358,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                                     else:
                                         self.worker.wrapup(False)
                         else:
-                            result = Error(lang.getstr("file.missing", "7z" + exe_ext))
+                            result = Error(lang.getstr("file.missing", "7z" + EXE_EXT))
                     elif i1d3ccss and (
                         "colormunki" in os.path.basename(path).lower()
                         or "i1profiler" in os.path.basename(path).lower()
@@ -14447,7 +14447,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     spyd4 = result
             else:
                 result = Error(lang.getstr("error.file_type_unsupported") + "\n" + path)
-        if debug:
+        if DEBUG:
             print("import_colorimeter_correction ->")
             print("   result:", result)
             print("   i1d3:", i1d3)
@@ -14701,7 +14701,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             return temp
         if ext.lower() == ".7z":
             if not (sevenzip := get_program_file("7z", "7-zip")):
-                return Error(lang.getstr("file.missing", f"7z{exe_ext}"))
+                return Error(lang.getstr("file.missing", f"7z{EXE_EXT}"))
             # Extract from 7z archive (flat hierarchy, not using dirnames)
             result = self.worker.exec_cmd(
                 sevenzip,
@@ -14722,14 +14722,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if not is_session_archive:
                 # Doesn't seem to be a session archive
                 return Error(
-                    lang.getstr(
-                        "error.not_a_session_archive", os.path.basename(path)
-                    )
+                    lang.getstr("error.not_a_session_archive", os.path.basename(path))
                 )
             if os.path.isdir(os.path.join(temp, basename)):
                 # Remove empty directory
                 shutil.rmtree(os.path.join(temp, basename))
-            
+
         else:
             if path.lower().endswith(".tgz") or path.lower().endswith(".tar.gz"):
                 # Gzipped TAR archive
@@ -14746,7 +14744,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     # Check if a session archive
                     info = None
                     for ext_ in (".icc", ".icm", ".cal"):
-                        for name in (f"{basename}/{basename}{ext_}", f"{basename}{ext_}"):
+                        for name in (
+                            f"{basename}/{basename}{ext_}",
+                            f"{basename}{ext_}",
+                        ):
                             if isinstance(archive, zipfile.ZipFile):
                                 # If the ZIP file was created with Unicode
                                 # names stored in the file, 'name' will already
@@ -14808,7 +14809,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.worker.wrapup(False)
 
     def display_ctrl_handler(self, event, load_lut=True, update_ccmx_items=True):
-        if debug:
+        if DEBUG:
             print(
                 "[D] display_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -14829,13 +14830,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 bool(int(getcfg("display_lut.link"))),
             )
         if load_lut:
-            if debug:
+            if DEBUG:
                 print(
                     "[D] display_ctrl_handler -> lut_viewer_load_lut",
                     profile.getDescription() if profile else None,
                 )
             self.lut_viewer_load_lut(profile=profile)
-            if debug:
+            if DEBUG:
                 print("[D] display_ctrl_handler -> lut_viewer_load_lut END")
         self.update_use_video_lut()
         # Enable 3D LUT tab for virtual displays & eeColor
@@ -14930,13 +14931,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             backup = os.getenv(f"ARGYLL_{name.upper()}_BACKUP")
             current = os.getenv(f"ARGYLL_{name.upper()}")
             if backup or current:
-                valuetype = type(defaults[f"measure.{name}"])
+                valuetype = type(DEFAULTS[f"measure.{name}"])
                 with contextlib.suppress(TypeError, ValueError):
                     spinvalue = valuetype(backup or current)
         spinctrl.SetValue(spinvalue)
 
     def display_lut_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] display_lut_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -14949,7 +14950,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         setcfg("display_lut.number", i + 1)
 
     def display_lut_link_ctrl_handler(self, event, link=None):
-        if debug:
+        if DEBUG:
             print(
                 "[D] display_lut_link_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -14995,7 +14996,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not hasattr(self, "display_tech_info_tooltip_window"):
             id_str = "info.display_tech"
             lcode = lang.getcode()
-            if lcode in ("ko", "zh_cn", "zh_hk") and lang.ldict.get(lcode, {}).get(
+            if lcode in ("ko", "zh_cn", "zh_hk") and lang.LDICT.get(lcode, {}).get(
                 id_str
             ):
                 wrap = 66
@@ -15071,7 +15072,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.display_tech_info_tooltip_window.Raise()
 
     def measurement_mode_ctrl_handler(self, event=None):
-        if debug:
+        if DEBUG:
             print(
                 "[D] measurement_mode_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -15081,7 +15082,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if v and "p" in v and self.worker.argyll_version < [1, 1, 0]:
             self.measurement_mode_ctrl.SetSelection(
                 self.measurement_modes_ba[self.get_instrument_type()].get(
-                    defaults["measurement_mode"], 1
+                    DEFAULTS["measurement_mode"], 1
                 )
             )
             v = None
@@ -15102,7 +15103,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # adaptive emissive mode was added in RC3
             self.measurement_mode_ctrl.SetSelection(
                 self.measurement_modes_ba[self.get_instrument_type()].get(
-                    defaults["measurement_mode"], 1
+                    DEFAULTS["measurement_mode"], 1
                 )
             )
             v = None
@@ -15192,7 +15193,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
 
     def profile_type_ctrl_handler(self, event):
-        if debug and event:
+        if DEBUG and event:
             print(
                 "[D] profile_type_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -15280,7 +15281,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg(
                     "testchart.auto_optimize",
                     max(
-                        config.valid_values["testchart.auto_optimize"][1],
+                        config.VALID_VALUES["testchart.auto_optimize"][1],
                         int(round(colormath.cbrt(recommended))),
                     ),
                 )
@@ -15478,7 +15479,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return True
 
     def profile_name_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] profile_name_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -15489,7 +15490,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.Bell()
             x = self.profile_name_textctrl.GetInsertionPoint()
             if oldval == "":
-                newval = defaults.get("profile.name", "")
+                newval = DEFAULTS.get("profile.name", "")
             else:
                 newval = re.sub(r"[\\/:;*?\"<>|]+", "", oldval).lstrip("-")[:80]
                 # Windows silently strips any combination of trailing spaces and dots
@@ -15556,7 +15557,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "." + strtr(lut3d_format, {"eeColor": "txt", "madVR": "3dlut"})
             for lut3d_format in [
                 f
-                for f in config.valid_values["3dlut.format"]
+                for f in config.VALID_VALUES["3dlut.format"]
                 if f not in ("icc", "icm", "png")
             ]
         ]
@@ -15714,7 +15715,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             f"%cf\t{lang.getstr('calibration.black_output_offset')}",
             f"%ck\t{lang.getstr('calibration.black_point_correction')}",
         ]
-        if defaults["calibration.black_point_rate.enabled"]:
+        if DEFAULTS["calibration.black_point_rate.enabled"]:
             info.append(f"%cA\t{lang.getstr('calibration.black_point_rate')}")
         info.extend(
             [
@@ -15819,7 +15820,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     lang.getstr("save_as"),
                     defaultDir,
                     defaultFile,
-                    wildcard=lang.getstr("filetype.icc") + "|*" + profile_ext,
+                    wildcard=lang.getstr("filetype.icc") + "|*" + PROFILE_EXT,
                     style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
                 )
                 dlg.Center(wx.BOTH)
@@ -15830,7 +15831,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return
                 filename, ext = os.path.splitext(profile_save_path)
                 if ext.lower() not in (".icc", ".icm"):
-                    profile_save_path += profile_ext
+                    profile_save_path += PROFILE_EXT
                 profile.setDescription(os.path.basename(filename))
             else:
                 result = wx.ID_OK
@@ -15949,7 +15950,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             collected_ti3s.append((path_, ti3_lines))
         if collected_ti3s:
             if len(collected_ti3s) > 1:
-                source_filename = os.path.splitext(defaults["last_ti3_path"])[0]
+                source_filename = os.path.splitext(DEFAULTS["last_ti3_path"])[0]
                 source_ext = ".ti3"
             path = collected_ti3s[0][0]
             is_tmp = False
@@ -15970,8 +15971,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self,
                 lang.getstr("save_as"),
                 defaultDir,
-                os.path.basename(source_filename) + profile_ext,
-                wildcard=lang.getstr("filetype.icc") + "|*" + profile_ext,
+                os.path.basename(source_filename) + PROFILE_EXT,
+                wildcard=lang.getstr("filetype.icc") + "|*" + PROFILE_EXT,
                 style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
             )
             dlg.Center(wx.BOTH)
@@ -15992,7 +15993,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     return
                 filename, ext = os.path.splitext(profile_save_path)
                 if ext.lower() not in (".icc", ".icm"):
-                    profile_save_path += profile_ext
+                    profile_save_path += PROFILE_EXT
                     if os.path.exists(profile_save_path):
                         dlg = ConfirmDialog(
                             self,
@@ -16130,7 +16131,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         edid = self.worker.get_display_edid()
         defaultFile = (
             edid.get("monitor_name", edid.get("ascii", str(edid["product_id"])))
-            + profile_ext
+            + PROFILE_EXT
         )
         defaultDir = get_verified_path(
             None, os.path.join(getcfg("profile.save_path"), defaultFile)
@@ -16141,7 +16142,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             lang.getstr("save_as"),
             defaultDir,
             defaultFile,
-            wildcard=lang.getstr("filetype.icc") + "|*" + profile_ext,
+            wildcard=lang.getstr("filetype.icc") + "|*" + PROFILE_EXT,
             style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         dlg.Center(wx.BOTH)
@@ -16510,7 +16511,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.profile_name_textctrl.ChangeValue(getcfg("profile.name"))
             profile_name = self.create_profile_name()
             if not self.check_profile_name(profile_name):
-                self.profile_name_textctrl.ChangeValue(defaults.get("profile.name", ""))
+                self.profile_name_textctrl.ChangeValue(DEFAULTS.get("profile.name", ""))
                 profile_name = self.create_profile_name()
         profile_name = make_argyll_compatible_path(profile_name)
         if profile_name != self.profile_name.GetLabel():
@@ -16542,7 +16543,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         data_files = []
         if sys.platform != "darwin":
             if "l" in scope:
-                for commonappdata in config.commonappdata:
+                for commonappdata in config.COMMONAPPDATA:
                     data_files += safe_glob(
                         os.path.join(commonappdata, "color", wildcard)
                     )
@@ -16550,12 +16551,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         os.path.join(commonappdata, "ArgyllCMS", wildcard)
                     )
             if "u" in scope:
-                data_files += safe_glob(os.path.join(config.appdata, "color", wildcard))
+                data_files += safe_glob(os.path.join(config.APPDATA, "color", wildcard))
         else:
             if "l" in scope:
-                data_files += safe_glob(os.path.join(config.library, "color", wildcard))
+                data_files += safe_glob(os.path.join(config.LIBRARY, "color", wildcard))
                 data_files += safe_glob(
-                    os.path.join(config.library, "ArgyllCMS", wildcard)
+                    os.path.join(config.LIBRARY, "ArgyllCMS", wildcard)
                 )
                 if [1, 9] <= self.worker.argyll_version <= [1, 9, 1]:
                     # Argyll CMS 1.9 and 1.9.1 use *nix locations due to a
@@ -16565,18 +16566,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
             if "u" in scope:
                 data_files += safe_glob(
-                    os.path.join(config.library_home, "color", wildcard)
+                    os.path.join(config.LIBRARY_HOME, "color", wildcard)
                 )
                 if [1, 9] <= self.worker.argyll_version <= [1, 9, 1]:
                     # Argyll CMS 1.9 and 1.9.1 use *nix locations due to a
                     # configuration problem
                     data_files += safe_glob(
                         os.path.join(
-                            config.home, ".local", "share", "ArgyllCMS", wildcard
+                            config.HOME, ".local", "share", "ArgyllCMS", wildcard
                         )
                     )
         if "u" in scope:
-            data_files += safe_glob(os.path.join(config.appdata, "ArgyllCMS", wildcard))
+            data_files += safe_glob(os.path.join(config.APPDATA, "ArgyllCMS", wildcard))
         filenames = list(data_files)
         data_files = []
         mapping = {}
@@ -16675,7 +16676,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return str(Decimal(self.black_point_correction_ctrl.GetValue()) / 100)
 
     def get_black_point_rate(self):
-        if defaults["calibration.black_point_rate.enabled"]:
+        if DEFAULTS["calibration.black_point_rate.enabled"]:
             return str(self.black_point_rate_floatctrl.GetValue())
         return None
 
@@ -16725,7 +16726,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self.calibration_file_ctrl.Thaw()
 
     def testchart_ctrl_handler(self, event):
-        if debug:
+        if DEBUG:
             print(
                 "[D] testchart_ctrl_handler called for ID "
                 f"{event.GetId()} {getevtobjname(event, self)} event type "
@@ -16831,7 +16832,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         sel = self.testchart_patch_sequence_ctrl.Selection
         setcfg(
             "testchart.patch_sequence",
-            config.valid_values["testchart.patch_sequence"][sel],
+            config.VALID_VALUES["testchart.patch_sequence"][sel],
         )
         self.profile_settings_changed()
         self.update_estimated_measurement_time("testchart")
@@ -16874,7 +16875,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             path = self.dist_testcharts[
                 self.dist_testchart_names.index(os.path.basename(path))
             ]
-            if debug:
+            if DEBUG:
                 print("[D] set_default_testchart testchart.file:", path)
             setcfg("testchart.file", path)
         if (
@@ -16906,7 +16907,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             ok=lang.getstr("ok"),
                             bitmap=geticon(32, "dialog-error"),
                         )
-                    elif verbose >= 1:
+                    elif VERBOSE >= 1:
                         print(lang.getstr("error.testchart.missing", ti1))
                     return False
             else:
@@ -16950,7 +16951,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
             path = getcfg("calibration.file", False)
             if not path or path.lower().endswith(".cal"):
-                path = defaults["testchart.file"]
+                path = DEFAULTS["testchart.file"]
         self.create_testchart_btn.Enable(
             path != "auto" and not getcfg("profile.update")
         )
@@ -17026,7 +17027,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 return
             if path != getcfg("calibration.file", False):
                 self.profile_settings_changed()
-            if debug:
+            if DEBUG:
                 print("[D] set_testchart testchart.file:", path)
             setcfg("testchart.file", path)
             if path not in self.testcharts:
@@ -17046,7 +17047,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.testchart_patches_amount.SetLabel(str(ti1.queryv1("NUMBER_OF_SETS")))
             self._current_testchart_path = path
         except Exception as exception:
-            error = traceback.format_exc() if debug else exception
+            error = traceback.format_exc() if DEBUG else exception
             InfoDialog(
                 self,
                 msg=lang.getstr("error.testchart.read", path) + "\n\n" + str(error),
@@ -17315,11 +17316,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self.create_testchart_btn_handler(None)
         if displays != self.worker.displays:
             self.update_displays(update_ccmx_items=True)
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("display_detected"))
         if comports != self.worker.instruments:
             self.update_comports()
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("comport_detected"))
             if event and not callafter:
                 # Check if we should import colorimeter corrections
@@ -17641,9 +17642,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 return
         black_point_correction = False
         if options_dispcal or options_colprof:
-            if debug:
+            if DEBUG:
                 print("[D] options_dispcal:", options_dispcal)
-            if debug:
+            if DEBUG:
                 print("[D] options_colprof:", options_colprof)
             ccxxsetting = getcfg("colorimeter_correction_matrix_file").split(":", 1)[0]
             ccmx = None
@@ -17902,7 +17903,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         continue
             setcfg("calibration.file", path)
             if "CTI3" in ti3_lines:
-                if debug:
+                if DEBUG:
                     print("[D] load_cal_handler testchart.file:", path)
                 setcfg("testchart.file", path)
             if 'USE_BLACK_POINT_COMPENSATION "YES"' in ti3_lines:
@@ -18343,7 +18344,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         setcfg("calibration.file", path)
         self.update_controls(update_profile_name=update_profile_name)
         if "CTI3" in ti3_lines:
-            if debug:
+            if DEBUG:
                 print("[D] load_cal_handler testchart.file:", path)
             setcfg("testchart.file", path)
         writecfg()
@@ -18386,7 +18387,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.related_files = {}
             for entry in dircontents:
                 fn, ext = os.path.splitext(entry)
-                if ext.lower() in (".app", script_ext):
+                if ext.lower() in (".app", SCRIPT_EXT):
                     fn, ext = os.path.splitext(fn)
                 if (
                     fn.startswith(os.path.splitext(os.path.basename(cal))[0])
@@ -18568,7 +18569,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 HyperLinkCtrl(
                     self.aboutdialog.panel,
                     -1,
-                    label=appname,
+                    label=APPNAME,
                     URL=f"https://{DOMAIN}/",
                 ),
                 wx.StaticText(
@@ -18584,7 +18585,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     self.aboutdialog.panel,
                     -1,
                     label="ArgyllCMS",
-                    URL=config.defaults.get("argyll.domain"),
+                    URL=config.DEFAULTS.get("argyll.domain"),
                 ),
                 wx.StaticText(
                     self.aboutdialog.panel,
@@ -18600,9 +18601,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             wx.StaticText(self.aboutdialog.panel, -1, f"{lang.getstr('translations')}:")
         )
         lauthors = {}
-        for lcode in lang.ldict:
-            lauthor = lang.ldict[lcode].get("!author", "")
-            language = lang.ldict[lcode].get("!language", "")
+        for lcode in lang.LDICT:
+            lauthor = lang.LDICT[lcode].get("!author", "")
+            language = lang.LDICT[lcode].get("!language", "")
             if lauthor and language:
                 if not lauthors.get(lauthor):
                     lauthors[lauthor] = []
@@ -18740,7 +18741,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if show:
             self.log()
         else:
-            logbuffer.truncate(0)
+            LOGBUFFER.truncate(0)
         self.infoframe.Show(show)
         self.menuitem_show_log.Check(show)
         self.menuitem_log_autoshow.Enable(not show)
@@ -18756,7 +18757,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.aboutdialog.Hide()
         if hasattr(self, "extra_args"):
             self.extra_args.Hide()
-        logbuffer.truncate(0)
+        LOGBUFFER.truncate(0)
         self.infoframe.Hide()
         if hasattr(self, "tcframe"):
             self.tcframe.Hide()
@@ -18825,7 +18826,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 event.Veto()
             self.worker.abort_subprocess(True)
             return
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if not hasattr(self, "tcframe") or self.tcframe.tc_close_handler():
             # If resources are missing, XRC shows an error dialog.
@@ -18848,7 +18849,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             writecfg()
             if getattr(self, "thread", None) and self.thread.is_alive():
                 self.Disable()
-                if debug:
+                if DEBUG:
                     print("Waiting for child thread to exit...")
                 self.thread.join()
             self.listening = False
@@ -18883,7 +18884,7 @@ else:
 class StartupFrame(start_cls):
     def __init__(self):
         super().__init__()
-        title = f"{appname} {VERSION_SHORT}"
+        title = f"{APPNAME} {VERSION_SHORT}"
         if VERSION > VERSION_BASE:
             title += " Beta"
         start_cls.__init__(
@@ -18892,7 +18893,7 @@ class StartupFrame(start_cls):
             title="{}: {}".format(title, lang.getstr("startup")),
             style=wx.FRAME_SHAPED | wx.NO_BORDER,
         )
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         if wx.VERSION >= (2, 8, 12, 1):
             # Setup shape. Required to get rid of window shadow under Ubuntu.
             # Note that shaped windows seem to be broken (won't show at all)
@@ -19207,7 +19208,7 @@ class StartupFrame(start_cls):
             self.setup_frame,
             self.worker.enumerate_displays_and_ports,
             wkwargs={
-                "enumerate_ports": not force_skip_initial_instrument_detection
+                "enumerate_ports": not FORCE_SKIP_INITIAL_INSTRUMENT_DETECTION
                 and (
                     getcfg("enumerate_ports.auto")
                     # Always detect instruments when
@@ -19241,7 +19242,7 @@ class StartupFrame(start_cls):
                 error = traceback.format_exc()
             print(error)
             show_result_dialog(UnloggedError(exception))
-        if verbose >= 1:
+        if VERBOSE >= 1:
             print(lang.getstr("initializing_gui"))
         app = wx.GetApp()
         app.frame = MainFrame(self.worker)
@@ -19807,12 +19808,12 @@ def main():
     initcfg()
     lang.init()
     # Startup messages
-    if verbose >= 1:
+    if VERBOSE >= 1:
         print(lang.getstr("startup"))
     if sys.platform != "darwin":
-        if not autostart:
+        if not AUTOSTART:
             print(lang.getstr("warning.autostart_system"))
-        if not autostart_home:
+        if not AUTOSTART_HOME:
             print(lang.getstr("warning.autostart_user"))
     app = BaseApp(0)  # Don't redirect stdin/stdout
     app.TopWindow = StartupFrame()

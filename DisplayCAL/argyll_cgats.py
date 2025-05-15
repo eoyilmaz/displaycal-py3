@@ -29,7 +29,7 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     WcsProfilesTagType,
 )
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 
 cals = {}
 
@@ -127,17 +127,17 @@ def cal_to_vcgt(cal, return_cgats=False):
     if data_format := cal.queryv1("DATA_FORMAT"):
         for field in required_fields:
             if field.encode("utf-8") not in list(data_format.values()):
-                if debug:
+                if DEBUG:
                     print(f"[D] Missing required field: {field}")
                 return None
         for field in list(data_format.values()):
             if field.decode("utf-8") not in required_fields:
-                if debug:
+                if DEBUG:
                     print(f"[D] Unknown field: {field}")
                 return None
     entries = cal.queryv(required_fields)
     if len(entries) < 1:
-        if debug:
+        if DEBUG:
             print(f"[D] No entries found in calibration {cal.filename}")
         return None
     vcgt = VideoCardGammaTableType(b"", "vcgt")

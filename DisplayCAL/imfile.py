@@ -4,7 +4,7 @@ import struct
 import time
 import zlib
 
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import VERSION_STRING
 from DisplayCAL.util_str import safe_str
 
@@ -186,9 +186,7 @@ class Image:
             time.strftime("%Y:%m:%d:%H:%M:%S").encode() + tzoffset.encode() + b"\0\0"
         )
         stream.write(
-            safe_str(
-                b"%s %s" % (appname.encode(), VERSION_STRING.encode())
-            ).ljust(100, b"\0")
+            safe_str(f"{APPNAME} {VERSION_STRING}".encode()).ljust(100, b"\0")
         )  # Creator
         stream.write(b"\0" * 200)  # Project
         stream.write(b"\0" * 200)  # Copyright

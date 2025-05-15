@@ -16,8 +16,8 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug, test, verbose
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG, TEST, VERBOSE
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
     BaseFrame,
@@ -49,7 +49,7 @@ class UntetheredFrame(BaseFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="untetheredframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.sizer = wx.FlexGridSizer(2, 1, 0, 0)
         self.sizer.AddGrowableCol(0)
         self.sizer.AddGrowableRow(0)
@@ -528,7 +528,7 @@ class UntetheredFrame(BaseFrame):
             Lab1 = colormath.XYZ2Lab(*self.last_XYZ)
             Lab2 = colormath.XYZ2Lab(*XYZ)
             delta = colormath.delta(*Lab1 + Lab2)
-            if debug or test or verbose > 1:
+            if DEBUG or TEST or VERBOSE > 1:
                 print("Last recorded Lab: {:.4f} {:.4f} {:.4f}".format(*Lab1))
                 print("Current Lab: {:.4f} {:.4f} {:.4f}".format(*Lab2))
                 print(f"Delta E to last recorded Lab: {delta['E']:.4f}")

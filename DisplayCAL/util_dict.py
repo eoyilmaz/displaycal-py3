@@ -24,9 +24,7 @@ def dict_slice(obj, start=None, stop=None, step=None):
         return dict(zip(all_keys[:stop], [obj[key] for key in all_keys[:stop]]))
     start = 0
     stop = len(all_keys)
-    return dict(
-        zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]])
-    )
+    return dict(zip(all_keys[start:stop], [obj[key] for key in all_keys[start:stop]]))
 
 
 def dict_sort(obj, key=None):

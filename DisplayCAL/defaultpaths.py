@@ -48,54 +48,54 @@ elif sys.platform == "win32":
 
 from DisplayCAL.util_os import expanduseru, expandvarsu, getenvu
 
-home = expanduseru("~")
+HOME = expanduseru("~")
 if sys.platform == "win32":
     # Always specify create=1 for SHGetSpecialFolderPath so we don't get an
     # exception if the folder does not yet exist
     try:
-        library_home = appdata = SHGetSpecialFolderPath(0, CSIDL_APPDATA, 1)
+        LIBRARY_HOME = APPDATA = SHGetSpecialFolderPath(0, CSIDL_APPDATA, 1)
     except Exception as exception:
         raise Exception(
             f"FATAL - Could not get/create user application data folder: {exception}"
         ) from exception
     try:
-        localappdata = SHGetSpecialFolderPath(0, CSIDL_LOCAL_APPDATA, 1)
+        LOCALAPPDATA = SHGetSpecialFolderPath(0, CSIDL_LOCAL_APPDATA, 1)
     except Exception:
-        localappdata = os.path.join(appdata, "Local")
-    cache = localappdata
+        LOCALAPPDATA = os.path.join(APPDATA, "Local")
+    CACHE = LOCALAPPDATA
     # Argyll CMS uses ALLUSERSPROFILE for local system wide app related data
     # Note: On Windows Vista and later, ALLUSERSPROFILE and COMMON_APPDATA
     # are actually the same ('C:\ProgramData'), but under Windows XP the former
     # points to 'C:\Documents and Settings\All Users' while COMMON_APPDATA
     # points to 'C:\Documents and Settings\All Users\Application Data'
-    allusersprofile = getenvu("ALLUSERSPROFILE")
-    if allusersprofile:
-        commonappdata = [allusersprofile]
+    ALLUSERSPROFILE = getenvu("ALLUSERSPROFILE")
+    if ALLUSERSPROFILE:
+        COMMONAPPDATA = [ALLUSERSPROFILE]
     else:
         try:
-            commonappdata = [SHGetSpecialFolderPath(0, CSIDL_COMMON_APPDATA, 1)]
+            COMMONAPPDATA = [SHGetSpecialFolderPath(0, CSIDL_COMMON_APPDATA, 1)]
         except Exception as exception:
             raise Exception(
                 "FATAL - Could not get/create common application data folder: "
                 f"{exception}"
             ) from exception
-    library = commonappdata[0]
+    LIBRARY = COMMONAPPDATA[0]
     try:
-        commonprogramfiles = SHGetSpecialFolderPath(0, CSIDL_PROGRAM_FILES_COMMON, 1)
+        COMMON_PROGRAM_FILES = SHGetSpecialFolderPath(0, CSIDL_PROGRAM_FILES_COMMON, 1)
     except Exception as exception:
         raise Exception(
             f"FATAL - Could not get/create common program files folder: {exception}"
         ) from exception
     try:
-        autostart = SHGetSpecialFolderPath(0, CSIDL_COMMON_STARTUP, 1)
+        AUTOSTART = SHGetSpecialFolderPath(0, CSIDL_COMMON_STARTUP, 1)
     except Exception:
-        autostart = None
+        AUTOSTART = None
     try:
-        autostart_home = SHGetSpecialFolderPath(0, CSIDL_STARTUP, 1)
+        AUTOSTART_HOME = SHGetSpecialFolderPath(0, CSIDL_STARTUP, 1)
     except Exception:
-        autostart_home = None
+        AUTOSTART_HOME = None
     try:
-        iccprofiles = [
+        ICCPROFILES = [
             os.path.join(
                 SHGetSpecialFolderPath(0, CSIDL_SYSTEM), "spool", "drivers", "color"
             )
@@ -104,31 +104,31 @@ if sys.platform == "win32":
         raise Exception(
             f"FATAL - Could not get system folder: {exception}"
         ) from exception
-    iccprofiles_home = iccprofiles
+    ICCPROFILES_HOME = ICCPROFILES
     try:
-        programs = SHGetSpecialFolderPath(0, CSIDL_PROGRAMS, 1)
+        PROGRAMS = SHGetSpecialFolderPath(0, CSIDL_PROGRAMS, 1)
     except Exception:
-        programs = None
+        PROGRAMS = None
     try:
-        commonprograms = [SHGetSpecialFolderPath(0, CSIDL_COMMON_PROGRAMS, 1)]
+        COMMON_PROGRAMS = [SHGetSpecialFolderPath(0, CSIDL_COMMON_PROGRAMS, 1)]
     except Exception:
-        commonprograms = []
+        COMMON_PROGRAMS = []
 elif sys.platform == "darwin":
-    library_home = os.path.join(home, "Library")
-    cache = os.path.join(library_home, "Caches")
-    library = os.path.join(os.path.sep, "Library")
-    prefs = os.path.join(os.path.sep, "Library", "Preferences")
-    prefs_home = os.path.join(home, "Library", "Preferences")
-    appdata = os.path.join(home, "Library", "Application Support")
-    commonappdata = [os.path.join(os.path.sep, "Library", "Application Support")]
-    autostart = autostart_home = None
-    iccprofiles = [
+    LIBRARY_HOME = os.path.join(HOME, "Library")
+    CACHE = os.path.join(LIBRARY_HOME, "Caches")
+    LIBRARY = os.path.join(os.path.sep, "Library")
+    PREFS = os.path.join(os.path.sep, "Library", "Preferences")
+    PREFS_HOME = os.path.join(HOME, "Library", "Preferences")
+    APPDATA = os.path.join(HOME, "Library", "Application Support")
+    COMMONAPPDATA = [os.path.join(os.path.sep, "Library", "Application Support")]
+    AUTOSTART = AUTOSTART_HOME = None
+    ICCPROFILES = [
         os.path.join(os.path.sep, "Library", "ColorSync", "Profiles"),
         os.path.join(os.path.sep, "System", "Library", "ColorSync", "Profiles"),
     ]
-    iccprofiles_home = [os.path.join(home, "Library", "ColorSync", "Profiles")]
-    programs = os.path.join(os.path.sep, "Applications")
-    commonprograms = []
+    ICCPROFILES_HOME = [os.path.join(HOME, "Library", "ColorSync", "Profiles")]
+    PROGRAMS = os.path.join(os.path.sep, "Applications")
+    COMMON_PROGRAMS = []
 else:
     # Linux
 
@@ -136,31 +136,31 @@ else:
         # TODO: This class is a complete hack and it should be refactored,
         #       and no hacks like relaying on `locals()` should be used.
 
-        cache_home = getenvu("XDG_CACHE_HOME", expandvarsu("$HOME/.cache"))
-        config_home = getenvu("XDG_CONFIG_HOME", expandvarsu("$HOME/.config"))
-        config_dir_default = "/etc/xdg"
-        config_dirs = list(
+        CACHE_HOME = getenvu("XDG_CACHE_HOME", expandvarsu("$HOME/.cache"))
+        CONFIG_HOME = getenvu("XDG_CONFIG_HOME", expandvarsu("$HOME/.config"))
+        CONFIG_DIR_DEFAULT = "/etc/xdg"
+        CONFIG_DIRS = list(
             map(
                 os.path.normpath,
-                getenvu("XDG_CONFIG_DIRS", config_dir_default).split(os.pathsep),
+                getenvu("XDG_CONFIG_DIRS", CONFIG_DIR_DEFAULT).split(os.pathsep),
             )
         )
-        if config_dir_default not in config_dirs:
-            config_dirs.append(config_dir_default)
-        data_home_default = expandvarsu("$HOME/.local/share")
-        data_home = getenvu("XDG_DATA_HOME", data_home_default)
-        data_dirs_default = "/usr/local/share:/usr/share:/var/lib"
-        data_dirs = list(
+        if CONFIG_DIR_DEFAULT not in CONFIG_DIRS:
+            CONFIG_DIRS.append(CONFIG_DIR_DEFAULT)
+        DATA_HOME_DEFAULT = expandvarsu("$HOME/.local/share")
+        DATA_HOME = getenvu("XDG_DATA_HOME", DATA_HOME_DEFAULT)
+        DATA_DIRS_DEFAULT = "/usr/local/share:/usr/share:/var/lib"
+        DATA_DIRS = list(
             map(
                 os.path.normpath,
-                getenvu("XDG_DATA_DIRS", data_dirs_default).split(os.pathsep),
+                getenvu("XDG_DATA_DIRS", DATA_DIRS_DEFAULT).split(os.pathsep),
             )
         )
-        data_dirs.extend(
+        DATA_DIRS.extend(
             list(
                 filter(
-                    lambda data_dir, data_dirs=data_dirs: data_dir not in data_dirs,
-                    data_dirs_default.split(os.pathsep),
+                    lambda data_dir, data_dirs=DATA_DIRS: data_dir not in data_dirs,
+                    DATA_DIRS_DEFAULT.split(os.pathsep),
                 )
             )
         )
@@ -170,7 +170,7 @@ else:
             locale_dir = LOCALEDIR
 
             if not os.path.isdir(locale_dir):
-                for path in XDG.data_dirs:
+                for path in XDG.DATA_DIRS:
                     path = os.path.join(path, "locale")
                     if os.path.isdir(path):
                         locale_dir = path
@@ -204,8 +204,8 @@ else:
         def get_config_files(filename):
             paths = []
 
-            for xdg_config_dir in [XDG.config_home] + XDG.config_dirs:
-                path = os.path.join(xdg_config_dir, filename)
+            for config_dir in [XDG.CONFIG_HOME] + XDG.CONFIG_DIRS:
+                path = os.path.join(config_dir, filename)
                 if os.path.isfile(path):
                     paths.append(path)
 
@@ -239,42 +239,42 @@ else:
         attr = getattr(XDG, name)
         if isinstance(attr, (str, list)):
             # TODO: Using `locals()` is not a good practice.
-            locals()["xdg_" + name] = attr
+            locals()[f"XDG_{name}"] = attr
     del name, attr
 
-    cache = XDG.cache_home
-    library_home = appdata = XDG.data_home
-    commonappdata = XDG.data_dirs
-    library = commonappdata[0]
-    autostart = None
-    for dir_ in XDG.config_dirs:
+    CACHE = XDG.CACHE_HOME
+    LIBRARY_HOME = APPDATA = XDG.DATA_HOME
+    COMMONAPPDATA = XDG.DATA_DIRS
+    LIBRARY = COMMONAPPDATA[0]
+    AUTOSTART = None
+    for dir_ in XDG.CONFIG_DIRS:
         if os.path.isdir(dir_):
-            autostart = os.path.join(dir_, "autostart")
+            AUTOSTART = os.path.join(dir_, "autostart")
             break
-    if not autostart:
-        autostart = os.path.join(XDG.config_dir_default, "autostart")
-    autostart_home = os.path.join(XDG.config_home, "autostart")
-    iccprofiles = []
-    for dir_ in XDG.data_dirs:
+    if not AUTOSTART:
+        AUTOSTART = os.path.join(XDG.CONFIG_DIR_DEFAULT, "autostart")
+    AUTOSTART_HOME = os.path.join(XDG.CONFIG_HOME, "autostart")
+    ICCPROFILES = []
+    for dir_ in XDG.DATA_DIRS:
         if os.path.isdir(dir_):
-            iccprofiles.append(os.path.join(dir_, "color", "icc"))
-    iccprofiles.append("/var/lib/color")
-    iccprofiles_home = [
-        os.path.join(XDG.data_home, "color", "icc"),
-        os.path.join(XDG.data_home, "icc"),
+            ICCPROFILES.append(os.path.join(dir_, "color", "icc"))
+    ICCPROFILES.append("/var/lib/color")
+    ICCPROFILES_HOME = [
+        os.path.join(XDG.DATA_HOME, "color", "icc"),
+        os.path.join(XDG.DATA_HOME, "icc"),
         expandvarsu("$HOME/.color/icc"),
     ]
-    programs = os.path.join(XDG.data_home, "applications")
-    commonprograms = [os.path.join(dir_, "applications") for dir_ in XDG.data_dirs]
+    PROGRAMS = os.path.join(XDG.DATA_HOME, "applications")
+    COMMON_PROGRAMS = [os.path.join(dir_, "applications") for dir_ in XDG.DATA_DIRS]
 
 if sys.platform in ("darwin", "win32"):
-    iccprofiles_display = iccprofiles
-    iccprofiles_display_home = iccprofiles_home
+    ICCPROFILES_DISPLAY = ICCPROFILES
+    ICCPROFILES_DISPLAY_HOME = ICCPROFILES_HOME
 else:
-    iccprofiles_display = [
-        os.path.join(dir_, "devices", "display") for dir_ in iccprofiles
+    ICCPROFILES_DISPLAY = [
+        os.path.join(dir_, "devices", "display") for dir_ in ICCPROFILES
     ]
-    iccprofiles_display_home = [
-        os.path.join(dir_, "devices", "display") for dir_ in iccprofiles_home
+    ICCPROFILES_DISPLAY_HOME = [
+        os.path.join(dir_, "devices", "display") for dir_ in ICCPROFILES_HOME
     ]
     del dir_

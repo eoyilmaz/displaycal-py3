@@ -7,7 +7,7 @@ root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, root)
 
 from DisplayCAL import jsondict
-from DisplayCAL.config import confighome
+from DisplayCAL.config import CONFIG_HOME
 from DisplayCAL.util_os import listdir_re
 
 
@@ -58,7 +58,7 @@ def main():
                 if match not in keys:
                     keys[match.decode("UTF-8")] = 1
     print(len(keys), "unique keys in py/pyw/xrc")
-    usage_path = os.path.join(confighome, "localization_usage.json")
+    usage_path = os.path.join(CONFIG_HOME, "localization_usage.json")
     if os.path.isfile(usage_path):
         usage = jsondict.JSONDict(usage_path)
         usage.load()

@@ -1,10 +1,10 @@
 import traceback
 
 from DisplayCAL.meta import WX_RECVERSION
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_str import box
 
-wxEventTypes = {}
+WX_EVENT_TYPES = {}
 
 
 def getevtobjname(event, window=None):
@@ -21,7 +21,7 @@ def getevtobjname(event, window=None):
 
 def getevttype(event):
     """Get and return the event object's type."""
-    if not wxEventTypes:
+    if not WX_EVENT_TYPES:
         from DisplayCAL.wxaddons import wx
 
         try:
@@ -29,12 +29,12 @@ def getevttype(event):
                 if name.find("EVT_") == 0:
                     attr = getattr(wx, name)
                     if hasattr(attr, "evtType"):
-                        wxEventTypes[attr.evtType[0]] = name
+                        WX_EVENT_TYPES[attr.evtType[0]] = name
         except Exception:
             pass
     typeId = event.GetEventType()
-    if typeId in wxEventTypes:
-        return wxEventTypes[typeId]
+    if typeId in WX_EVENT_TYPES:
+        return WX_EVENT_TYPES[typeId]
     return None
 
 
@@ -52,7 +52,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         and tbstr.strip() != "None"
         and isinstance(error, Exception)
         and (
-            debug
+            DEBUG
             or not isinstance(error, EnvironmentError)
             or not getattr(error, "filename", None)
         )

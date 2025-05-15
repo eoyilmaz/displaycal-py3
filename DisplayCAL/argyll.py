@@ -18,19 +18,19 @@ from typing import Optional
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.argyll_names import (
-    altnames as argyll_altnames,
+    ALTNAMES as argyll_altnames,
 )
 
 # Local Imports
 from DisplayCAL.argyll_names import (
-    names as argyll_names,
+    NAMES as argyll_names,
 )
 from DisplayCAL.argyll_names import (
-    optional as argyll_optional,
+    OPTIONAL as argyll_optional,
 )
 from DisplayCAL.config import (
-    exe_ext,
-    fs_enc,
+    EXE_EXT,
+    FS_ENC,
     get_data_path,
     get_verified_path,
     getcfg,
@@ -38,11 +38,11 @@ from DisplayCAL.config import (
     setcfg,
     writecfg,
 )
-from DisplayCAL.options import debug, verbose
+from DisplayCAL.options import DEBUG, VERBOSE
 from DisplayCAL.util_os import getenvu, safe_glob, which
 from DisplayCAL.util_str import make_filename_safe
 
-argyll_utils = {}
+ARGYLL_UTILS = {}
 
 
 def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
@@ -69,25 +69,25 @@ def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
         if cur_dir == prev_dir:
             continue
         if name in argyll_optional:
-            if verbose:
+            if VERBOSE:
                 print(
                     f"Warning: Optional Argyll executable {exe} is not "
                     "in the same directory as the main executables "
                     f"({prev_dir})."
                 )
         else:
-            if verbose:
+            if VERBOSE:
                 print(
                     f"Error: Main Argyll executable {exe} is not in the "
                     f"same directory as the other executables ({prev_dir})."
                 )
             return False
 
-    if verbose >= 3:
+    if VERBOSE >= 3:
         print("Argyll binary directory:", cur_dir)
-    if debug:
+    if DEBUG:
         print("[D] check_argyll_bin OK")
-    if debug >= 2:
+    if DEBUG >= 2:
         if not paths:
             paths = getenvu("PATH", os.defpath).split(os.pathsep)
             argyll_dir = (getcfg("argyll.dir") or "").rstrip(os.path.sep)
@@ -97,15 +97,15 @@ def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
                 paths = [argyll_dir] + paths
         print("[D] Search path:\n  ", "\n  ".join(paths))
     # Fedora doesn't ship Rec709.icm
-    config.defaults["3dlut.input.profile"] = (
+    config.DEFAULTS["3dlut.input.profile"] = (
         get_data_path(os.path.join("ref", "Rec709.icm"))
         or get_data_path(os.path.join("ref", "sRGB.icm"))
         or ""
     )
-    config.defaults["testchart.reference"] = (
+    config.DEFAULTS["testchart.reference"] = (
         get_data_path(os.path.join("ref", "ColorChecker.cie")) or ""
     )
-    config.defaults["gamap_profile"] = (
+    config.DEFAULTS["gamap_profile"] = (
         get_data_path(os.path.join("ref", "sRGB.icm")) or ""
     )
     return True
@@ -205,7 +205,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 path = os.path.join(path, "bin")
             result = check_argyll_bin([path])
             if result:
-                if verbose >= 3:
+                if VERBOSE >= 3:
                     print("Setting Argyll binary directory:", path)
                 setcfg("argyll.dir", path)
                 # Always write cfg directly after setting Argyll directory so
@@ -221,7 +221,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                             [
                                 altname
                                 for altname in [
-                                    altname + exe_ext
+                                    altname + EXE_EXT
                                     for altname in argyll_altnames[name]
                                 ]
                                 if "argyll" not in altname
@@ -274,19 +274,19 @@ def get_argyll_util(name, paths=None):
                 paths.remove(argyll_dir)
             paths = [argyll_dir] + paths
     cache_key = os.pathsep.join(paths)
-    exe = argyll_utils.get(cache_key, {}).get(name, None)
+    exe = ARGYLL_UTILS.get(cache_key, {}).get(name, None)
     if exe:
         return exe
-    if verbose >= 4:
+    if VERBOSE >= 4:
         print("Info: Searching for", name, "in", os.pathsep.join(paths))
     for path in paths:
         for altname in argyll_altnames.get(name, []):
-            exe = which(f"{altname}{exe_ext}", [path])
+            exe = which(f"{altname}{EXE_EXT}", [path])
             if exe:
                 break
         if exe:
             break
-    if verbose >= 4:
+    if VERBOSE >= 4:
         if exe:
             print("Info:", name, "=", exe)
         else:
@@ -297,9 +297,9 @@ def get_argyll_util(name, paths=None):
                 os.pathsep.join(paths),
             )
     if exe:
-        if cache_key not in argyll_utils:
-            argyll_utils[cache_key] = {}
-        argyll_utils[cache_key][name] = exe
+        if cache_key not in ARGYLL_UTILS:
+            ARGYLL_UTILS[cache_key] = {}
+        ARGYLL_UTILS[cache_key][name] = exe
     return exe
 
 
@@ -375,7 +375,7 @@ def get_argyll_version_string(name, silent=False, paths=None):
         startupinfo = None
     try:
         p = sp.Popen(
-            [cmd.encode(fs_enc), "-?"],
+            [cmd.encode(FS_ENC), "-?"],
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.STDOUT,
@@ -413,7 +413,7 @@ def get_argyll_latest_version():
     Returns:
         str: The latest version number. Returns
     """
-    argyll_domain = config.defaults.get("argyll.domain", "")
+    argyll_domain = config.DEFAULTS.get("argyll.domain", "")
     try:
         changelog = re.search(
             r"(?<=Version ).{5}",
@@ -424,12 +424,12 @@ def get_argyll_latest_version():
     except urllib.error.URLError:
         # no internet connection
         # return the default version
-        return config.defaults.get("argyll.version")
+        return config.DEFAULTS.get("argyll.version")
     result = changelog.group()
     print(f"Latest ArgyllCMS version: {result} (from {argyll_domain}/log.txt)")
     if not result:
         # no version found
-        return config.defaults.get("argyll.version")
+        return config.DEFAULTS.get("argyll.version")
     return result
 
 

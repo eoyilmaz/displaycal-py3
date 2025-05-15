@@ -28,7 +28,7 @@ try:
 except OSError as e:
     raise ImportError("Couldn't load libXrandr") from e
 
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 
 XA_CARDINAL = 6
 XA_INTEGER = 19
@@ -145,7 +145,7 @@ class XDisplay:
             == 0
             and ret_len.value > 0
         ):
-            if debug:
+            if DEBUG:
                 print("ret_type:", ret_type.value)
                 print("ret_format:", ret_format.value)
                 print("ret_len:", ret_len.value)
@@ -186,7 +186,7 @@ class XDisplay:
             == 0
             and ret_len.value > 0
         ):
-            if debug:
+            if DEBUG:
                 print("ret_type:", ret_type.value)
                 print("ret_format:", ret_format.value)
                 print("ret_len:", ret_len.value)

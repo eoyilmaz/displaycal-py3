@@ -34,7 +34,7 @@ if sys.platform == "win32":
     except ImportError:
         win32api = None
 
-from DisplayCAL.config import pydir
+from DisplayCAL.config import PYDIR
 from DisplayCAL.util_os import dlopen, getenvu
 from DisplayCAL.util_str import safe_str
 
@@ -134,7 +134,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
         MIX_DEFAULT_FORMAT = AUDIO_S16LSB if sys.byteorder == "little" else AUDIO_S16MSB
         if sys.platform == "win32":
             pth = getenvu("PATH")
-            libpth = os.path.join(pydir, "lib")
+            libpth = os.path.join(PYDIR, "lib")
             if not pth.startswith(libpth + os.pathsep):
                 pth = libpth + os.pathsep + pth
                 os.environ["PATH"] = safe_str(pth)

@@ -36,8 +36,8 @@ from DisplayCAL.lib.agw.fmresources import (
 )
 from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap
 from DisplayCAL.wxaddons import wx
@@ -62,7 +62,7 @@ def get_panel(parent, size=wx.DefaultSize):
     scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
     size = tuple(int(round(v * scale)) for v in size)
     panel = wx_Panel(parent, wx.ID_ANY, size=size)
-    if debug:
+    if DEBUG:
         from random import randint
 
         panel.SetBackgroundColour(
@@ -747,7 +747,7 @@ class DisplayAdjustmentFrame(windowcls):
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="displayadjustmentframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.FlexGridSizer(0, 3, 0, 0)
         self.sizer.AddGrowableCol(1)

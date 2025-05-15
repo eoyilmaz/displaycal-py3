@@ -21,8 +21,8 @@ from DisplayCAL import (
     localization as lang,
 )
 from DisplayCAL.config import (
-    defaults,
-    fs_enc,
+    DEFAULTS,
+    FS_ENC,
     get_argyll_display_number,
     get_default_dpi,
     get_display_name,
@@ -31,7 +31,7 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     initcfg,
-    profile_ext,
+    PROFILE_EXT,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -41,7 +41,7 @@ from DisplayCAL.icc_profile import (
     WcsProfilesTagType,
     get_display_profile,
 )
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import safe_asciize, wrap
 from DisplayCAL.worker import (
@@ -1471,7 +1471,7 @@ class ProfileManager:
         self._profiles = {}
         self._srgb_profile = ICCProfile.from_named_rgb_space("sRGB")
         self._srgb_profile.setDescription(
-            f"{appname} Visual Whitepoint Editor Temporary Profile"
+            f"{APPNAME} Visual Whitepoint Editor Temporary Profile"
         )
         self._srgb_profile.calculateID()
         self._window = window
@@ -1569,10 +1569,10 @@ class ProfileManager:
         if profile.fileName:
             profile_name = os.path.basename(profile.fileName)
         else:
-            profile_name = profile.getDescription() + profile_ext
+            profile_name = profile.getDescription() + PROFILE_EXT
         if (
             sys.platform in ("win32", "darwin")
-            or fs_enc.upper() not in ("UTF8", "UTF-8")
+            or FS_ENC.upper() not in ("UTF8", "UTF-8")
         ) and re.search(r"[^\x20-\x7e]", profile_name):
             profile_name = safe_asciize(profile_name)
         profile.fileName = os.path.join(temp, profile_name)
@@ -1669,7 +1669,7 @@ class ProfileManager:
 
 class VisualWhitepointEditor(wx.Frame):
     """This is the VisualWhitepointEditor main class implementation.
-    
+
     Args:
         parent (wx.Window): The parent window.
         colourData (ColourData): A standard :class:`ColourData` (as used in
@@ -1717,7 +1717,7 @@ class VisualWhitepointEditor(wx.Frame):
             )
             self._mgr.SetArtProvider(AuiDarkDockArt())
 
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         if colourData:
             self._colourData = colourData
@@ -2453,13 +2453,13 @@ class VisualWhitepointEditor(wx.Frame):
     def reset_handler(self, event):
         RGB = []
         for attribute in "rgb":
-            RGB.append(defaults["whitepoint.visual_editor." + attribute])
+            RGB.append(DEFAULTS[f"whitepoint.visual_editor.{attribute}"])
         self._colourData.SetColour(wx.Colour(*RGB))
         self._colour.r, self._colour.g, self._colour.b = self._colourData.GetColour()[
             :3
         ]
         self._colour.ToHSV()
-        self._bgcolour.v = defaults["whitepoint.visual_editor.bg_v"]
+        self._bgcolour.v = DEFAULTS["whitepoint.visual_editor.bg_v"]
         self.DrawAll()
 
     def set_area_size_slider_max(self):
@@ -2506,7 +2506,7 @@ class VisualWhitepointEditor(wx.Frame):
 
     def zoomnormal_handler(self, event):
         scale = float(
-            defaults["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
+            DEFAULTS["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
         )
         self.area_size_slider.SetValue(int(round(scale * 100)))
         self.area_handler()

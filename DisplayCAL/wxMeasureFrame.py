@@ -7,20 +7,20 @@ import warnings
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    defaults,
+    DEFAULTS,
     get_argyll_display_number,
     get_default_dpi,
     get_display_number,
     get_display_rects,
     getcfg,
     geticon,
-    scale_adjustment_factor,
+    SCALE_ADJUSTMENT_FACTOR,
     setcfg,
     writecfg,
 )
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_list import floatlist, strlist
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxfixes import (
@@ -65,7 +65,7 @@ def get_default_size():
                 )
             else:
                 display_size_mm = floatlist(display_size_mm)
-        if debug:
+        if DEBUG:
             print("[D]  display_size_mm:", display_size_mm)
         if not len(display_size_mm) or 0 in display_size_mm:
             ppi_def = get_default_dpi()
@@ -125,7 +125,7 @@ def get_default_size():
         display_size[0] / display_size_mm[0],
         display_size[1] / display_size_mm[1],
     )
-    if debug:
+    if DEBUG:
         print("[D]  H px_per_mm:", px_per_mm[0])
         print("[D]  V px_per_mm:", px_per_mm[1])
     return round(100.0 * max(px_per_mm))
@@ -150,7 +150,7 @@ class MeasureFrame(InvincibleFrame):
             style=style,
             name="measureframe",
         )
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.Bind(wx.EVT_CLOSE, self.close_handler, self)
         if os.getenv("XDG_SESSION_TYPE") != "wayland":
             self.Bind(wx.EVT_MOVE, self.move_handler, self)
@@ -407,7 +407,7 @@ class MeasureFrame(InvincibleFrame):
         configuration.
 
         """
-        if debug:
+        if DEBUG:
             print("[D] measureframe.place_n_zoom")
         if None in (x, y, scale):
             cur_x, cur_y, cur_scale = floatlist(self.get_dimensions().split(","))
@@ -418,25 +418,25 @@ class MeasureFrame(InvincibleFrame):
             if scale is None:
                 scale = cur_scale
         scale = min(scale, 50.0)  # Argyll max
-        if debug:
+        if DEBUG:
             print("[D]  x:", x)
             print("[D]  y:", y)
             print("[D]  scale:", scale)
-            print("[D]  scale_adjustment_factor:", scale_adjustment_factor)
-        scale /= float(scale_adjustment_factor)
-        if debug:
+            print("[D]  scale_adjustment_factor:", SCALE_ADJUSTMENT_FACTOR)
+        scale /= float(SCALE_ADJUSTMENT_FACTOR)
+        if DEBUG:
             print("[D]  scale / scale_adjustment_factor:", scale)
         display = self.get_display(getcfg("display.number") - 1)
         display_client_rect = display[2]
         display_client_size = display_client_rect[2:]
-        if debug:
+        if DEBUG:
             print("[D]  display_client_rect:", display_client_rect)
             print("[D]  display_client_size:", display_client_size)
         measureframe_min_size = [max(self.sizer.GetMinSize())] * 2
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_min_size:", measureframe_min_size)
         default_measureframe_size = get_default_size()
-        defaults["size.measureframe"] = default_measureframe_size
+        DEFAULTS["size.measureframe"] = default_measureframe_size
         size = [
             min(display_client_size[0], default_measureframe_size * scale),
             min(display_client_size[1], default_measureframe_size * scale),
@@ -447,7 +447,7 @@ class MeasureFrame(InvincibleFrame):
         size[1] = min(size[1], display_client_size[1])
         if max(size) >= max(display_client_size):
             scale = 50
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_size:", size)
         size[0] = size[1] = int(max(size))
         if (
@@ -466,10 +466,10 @@ class MeasureFrame(InvincibleFrame):
             self.SetSize(size)
             self.SetMaxSize(size)
         display_rect = display[1]
-        if debug:
+        if DEBUG:
             print("[D]  display_rect:", display_rect)
         display_size = display_rect[2:]
-        if debug:
+        if DEBUG:
             print("[D]  display_size:", display_size)
         if sys.platform in ("darwin", "win32"):
             titlebar = 0  # size already includes window decorations
@@ -481,13 +481,13 @@ class MeasureFrame(InvincibleFrame):
         ]
         measureframe_pos[0] = max(measureframe_pos[0], display_client_rect[0])
         measureframe_pos[1] = max(measureframe_pos[1], display_client_rect[1])
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_pos:", measureframe_pos)
         setcfg("dimensions.measureframe", ",".join(strlist((x, y, scale))))
         self.SetPosition(measureframe_pos)
 
     def zoomin_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_zoomin_handler")
         # We can't use self.get_dimensions() here because if we are near
         # fullscreen, next magnification step will be larger than normal
@@ -505,7 +505,7 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def zoomout_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_zoomout_handler")
         # We can't use self.get_dimensions() here because if we are
         # fullscreen, scale will be 50, thus changes won't be visible quickly
@@ -523,23 +523,23 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def zoomnormal_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_zoomnormal_handler")
         x, y = None, None
-        scale = floatlist(defaults["dimensions.measureframe"].split(","))[2]
+        scale = floatlist(DEFAULTS["dimensions.measureframe"].split(","))[2]
         self.place_n_zoom(x, y, scale=scale)
 
     def zoommax_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_zoommax_handler")
         display_client_rect = self.get_display()[2]
-        if debug:
+        if DEBUG:
             print("[D]  display_client_rect:", display_client_rect)
         display_client_size = display_client_rect[2:]
-        if debug:
+        if DEBUG:
             print("[D]  display_client_size:", display_client_size)
         size = self.GetSize()
-        if debug:
+        if DEBUG:
             print(" size:", size)
         if max(size) >= max(display_client_size) - 50:
             dim = getcfg("dimensions.measureframe.unzoomed")
@@ -549,13 +549,13 @@ class MeasureFrame(InvincibleFrame):
             self.place_n_zoom(x=0.5, y=0.5, scale=50.0)
 
     def center_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_center_handler")
-        x, y = floatlist(defaults["dimensions.measureframe"].split(","))[:2]
+        x, y = floatlist(DEFAULTS["dimensions.measureframe"].split(","))[:2]
         self.place_n_zoom(x, y)
 
     def close_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] measureframe_close_handler")
         if self.Parent:
             if self.Parent.worker.is_working():
@@ -640,23 +640,23 @@ class MeasureFrame(InvincibleFrame):
 
     def focus_handler(self, event=None):
         event.Skip()
-        if debug:
+        if DEBUG:
             print("SET_FOCUS", event.EventObject.Name)
         if event.EventObject is self and getattr(self, "last_focused", None) not in (
             None,
             self,
         ):
             self.last_focused.SetFocus()
-            if debug:
+            if DEBUG:
                 print(self.last_focused.Name + ".SetFocus()")
 
     def focus_lost_handler(self, e):
         e.Skip()
-        if debug:
+        if DEBUG:
             print("KILL_FOCUS", e.EventObject.Name)
         if e.EventObject is not self:
             self.last_focused = e.EventObject
-            if debug and self.last_focused:
+            if DEBUG and self.last_focused:
                 print("last_focused", self.last_focused.Name)
 
     def show_handler(self, e):
@@ -729,26 +729,26 @@ class MeasureFrame(InvincibleFrame):
 
         Returns x, y and scale in Argyll coordinates (0.0...1.0).
         """
-        if debug:
+        if DEBUG:
             print("[D] measureframe.get_dimensions")
         display = self.get_display()
         display_rect = display[1]
         display_size = display_rect[2:]
         display_client_rect = display[2]
         display_client_size = display_client_rect[2:]
-        if debug:
+        if DEBUG:
             print("[D]  display_size:", display_size)
             print("[D]  display_client_size:", display_client_size)
         default_measureframe_size = float(get_default_size())
-        if debug:
+        if DEBUG:
             print("[D]  default_measureframe_size:", default_measureframe_size)
         measureframe_pos = floatlist(self.GetScreenPosition())
         measureframe_pos[0] -= display_rect[0]
         measureframe_pos[1] -= display_rect[1]
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_pos:", measureframe_pos)
         size = floatlist(self.GetSize())
-        if debug:
+        if DEBUG:
             print(" size:", size)
         if max(size) >= max(display_client_size) - 50:
             # Fullscreen?
@@ -758,10 +758,10 @@ class MeasureFrame(InvincibleFrame):
             scale = (float(display_size[0]) / default_measureframe_size) / (
                 float(display_size[0]) / size[0]
             )
-            if debug:
+            if DEBUG:
                 print("[D]  scale:", scale)
-                print("[D]  scale_adjustment_factor:", scale_adjustment_factor)
-            scale *= float(scale_adjustment_factor)
+                print("[D]  scale_adjustment_factor:", SCALE_ADJUSTMENT_FACTOR)
+            scale *= float(SCALE_ADJUSTMENT_FACTOR)
             if size[0] >= display_client_size[0]:
                 measureframe_pos[0] = 0.5
             elif measureframe_pos[0] != 0:
@@ -785,14 +785,14 @@ class MeasureFrame(InvincibleFrame):
                     (float(display_size[1] - size[1]))
                     / (float(measureframe_pos[1] + titlebar))
                 )
-        if debug:
+        if DEBUG:
             print("[D]  scale:", scale)
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_pos:", measureframe_pos)
         measureframe_dimensions = ",".join(
             str(max(0, n)) for n in measureframe_pos + [scale]
         )
-        if debug:
+        if DEBUG:
             print("[D]  measureframe_dimensions:", measureframe_dimensions)
         return measureframe_dimensions
 

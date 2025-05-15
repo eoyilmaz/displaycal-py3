@@ -264,9 +264,7 @@ def enable_per_user_profiles(
         mscms = _get_mscms_windll()
         if not mscms:
             return False
-        if not mscms.WcsSetUsePerUserProfiles(
-            str(devicekey), CLASS_MONITOR, enable
-        ):
+        if not mscms.WcsSetUsePerUserProfiles(str(devicekey), CLASS_MONITOR, enable):
             raise get_windows_error(ctypes.windll.kernel32.GetLastError())
     return True
 

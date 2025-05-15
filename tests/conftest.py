@@ -114,7 +114,7 @@ def setup_argyll():
     # download from source
     get_argyll_latest_version.cache_clear()
     argyll_version = get_argyll_latest_version()
-    argyll_domain = config.defaults.get("argyll.domain", "")
+    argyll_domain = config.DEFAULTS.get("argyll.domain", "")
     argyll_download_url = {
         "win32": f"{argyll_domain}/Argyll_V{argyll_version}_win64_exe.zip",
         "darwin": f"{argyll_domain}/Argyll_V{argyll_version}_osx10.6_x86_64_bin.tgz",

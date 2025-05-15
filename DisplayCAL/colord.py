@@ -6,11 +6,11 @@ import warnings
 from binascii import hexlify
 from time import sleep
 
-from DisplayCAL.options import use_colord_gi
+from DisplayCAL.options import USE_COLORD_GI
 
 try:
     # XXX D-Bus API is more complete currently
-    if not use_colord_gi:
+    if not USE_COLORD_GI:
         raise ImportError("")
     from gi.repository import Colord, Gio
 except ImportError:
@@ -25,7 +25,7 @@ from DisplayCAL.util_os import which
 from DisplayCAL.util_str import safe_str
 
 if sys.platform not in ("darwin", "win32"):
-    from DisplayCAL.defaultpaths import xdg_data_home
+    from DisplayCAL.defaultpaths import XDG_DATA_HOME
 
     if not Colord:
         try:
@@ -283,7 +283,7 @@ def install_profile(
 
     """
     profile_install_name = os.path.join(
-        xdg_data_home, "icc", os.path.basename(profile.fileName)
+        XDG_DATA_HOME, "icc", os.path.basename(profile.fileName)
     )
 
     profile_exists = os.path.isfile(profile_install_name)

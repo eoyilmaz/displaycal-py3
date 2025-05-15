@@ -18,20 +18,20 @@ from DisplayCAL import (
 from DisplayCAL.colord import device_id_from_edid
 from DisplayCAL.colormath import smooth_avg
 from DisplayCAL.config import (
-    appbasename,
-    autostart,
-    autostart_home,
-    confighome,
-    enc,
-    exe,
-    exedir,
+    APPBASENAME,
+    AUTOSTART,
+    AUTOSTART_HOME,
+    CONFIG_HOME,
+    ENC,
+    EXE,
+    EXEDIR,
     get_data_path,
     get_default_dpi,
     get_icon_bundle,
     getcfg,
     geticon,
-    iccprofiles,
-    pydir,
+    ICCPROFILES,
+    PYDIR,
     setcfg,
 )
 from DisplayCAL.debughelpers import Error, UnloggedError, handle_error
@@ -56,9 +56,9 @@ from DisplayCAL.meta import (
     VERSION_STRING,
 )
 from DisplayCAL.meta import (
-    NAME as appname,
+    NAME as APPNAME,
 )
-from DisplayCAL.options import debug, verbose
+from DisplayCAL.options import DEBUG, VERBOSE
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.util_os import (
     getenvu,
@@ -116,13 +116,13 @@ if sys.platform == "win32":
         win_ver,
     )
 
-    if islink(exe):
+    if islink(EXE):
         try:
-            exe = readlink(exe)
+            EXE = readlink(EXE)
         except Exception:
             pass
         else:
-            exedir = os.path.dirname(exe)
+            EXEDIR = os.path.dirname(EXE)
 
 
 def setup_profile_loader_task(exe, exedir, pydir):
@@ -133,7 +133,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
 
     from DisplayCAL import taskscheduler
 
-    taskname = f"{appname} Profile Loader Launcher"
+    taskname = f"{APPNAME} Profile Loader Launcher"
 
     try:
         ts = taskscheduler.TaskScheduler()
@@ -153,10 +153,10 @@ def setup_profile_loader_task(exe, exedir, pydir):
         if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
             cmd = os.path.join(exedir, "pythonw.exe")
             pyw = os.path.normpath(
-                os.path.join(pydir, "..", f"{appname}-apply-profiles.pyw")
+                os.path.join(pydir, "..", f"{APPNAME}-apply-profiles.pyw")
             )
             script = get_data_path(
-                "/".join(["scripts", f"{appname}-apply-profiles-launcher"])
+                "/".join(["scripts", f"{APPNAME}-apply-profiles-launcher"])
             )
             if os.path.exists(pyw):
                 # Running from source or 0install
@@ -177,7 +177,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
                             "--offline",
                             "--command=run-apply-profiles",
                             "--",
-                            f"http://{DOMAIN}/0install/{appname}.xml",
+                            f"http://{DOMAIN}/0install/{APPNAME}.xml",
                             "--task",
                         ]
                     )
@@ -189,7 +189,7 @@ def setup_profile_loader_task(exe, exedir, pydir):
                 loader_args.append(script)
         else:
             # Standalone executable
-            cmd = os.path.join(pydir, f"{appname}-apply-profiles-launcher.exe")
+            cmd = os.path.join(pydir, f"{APPNAME}-apply-profiles-launcher.exe")
         # Start at login, restart when resuming from sleep,
         # restart daily at 04:00
         triggers = [
@@ -227,24 +227,24 @@ def setup_profile_loader_task(exe, exedir, pydir):
                 actions=actions,
             )
         except Exception:
-            if debug:
+            if DEBUG:
                 exception = traceback.format_exc()
             print(
                 f"Warning - Could not create task {taskname}:",
                 exception,
             )
             if ts.stdout:
-                print(str(ts.stdout, encoding=enc, errors="replace"))
+                print(str(ts.stdout, encoding=ENC, errors="replace"))
         else:
-            print(str(ts.stdout, encoding=enc, errors="replace"))
+            print(str(ts.stdout, encoding=ENC, errors="replace"))
             if created:
                 # Remove autostart entries, if any
-                name = f"{appname} Profile Loader"
+                name = f"{APPNAME} Profile Loader"
                 entries = []
-                if autostart:
-                    entries.append(os.path.join(autostart, f"{name}.lnk"))
-                if autostart_home:
-                    entries.append(os.path.join(autostart_home, f"{name}.lnk"))
+                if AUTOSTART:
+                    entries.append(os.path.join(AUTOSTART, f"{name}.lnk"))
+                if AUTOSTART_HOME:
+                    entries.append(os.path.join(AUTOSTART_HOME, f"{name}.lnk"))
                 for entry in entries:
                     if os.path.isfile(entry):
                         print("Removing", entry)
@@ -269,9 +269,9 @@ def setup_profile_loader_task(exe, exedir, pydir):
             exception,
         )
         if ts.stdout:
-            print(str(ts.stdout, encoding=enc, errors="replace"))
+            print(str(ts.stdout, encoding=ENC, errors="replace"))
     else:
-        print(str(ts.stdout, encoding=enc, errors="replace"))
+        print(str(ts.stdout, encoding=ENC, errors="replace"))
     print("setup_profile_loader_task end 4")
 
 
@@ -349,7 +349,7 @@ class FixProfileAssociationsDialog(ConfirmDialog):
             wrap=128,
         )
         dlg = self
-        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles"))
         scale = getcfg("app.dpi") / get_default_dpi()
         scale = max(scale, 1)
         list_panel = wx.Panel(dlg, -1)
@@ -440,7 +440,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         dlg = self
 
         dlg.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
+            config.get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles")
         )
 
         dlg.delete_btn = wx.Button(dlg.buttonpanel, -1, lang.getstr("delete"))
@@ -704,7 +704,7 @@ class ProfileAssociationsDialog(InfoDialog):
             wrap=128,
         )
         dlg = self
-        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles"))
         dlg.message.Hide()
         dlg.set_as_default_btn = wx.Button(
             dlg.buttonpanel, -1, lang.getstr("set_as_default")
@@ -841,10 +841,10 @@ class ProfileAssociationsDialog(InfoDialog):
             title=lang.getstr("add"),
             ok=lang.getstr("ok"),
             cancel=lang.getstr("cancel"),
-            bitmap=geticon(32, appname + "-profile-info"),
+            bitmap=geticon(32, APPNAME + "-profile-info"),
             wrap=128,
         )
-        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles"))
+        dlg.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles"))
         scale = getcfg("app.dpi") / get_default_dpi()
         scale = max(scale, 1)
         list_panel = wx.Panel(dlg, -1)
@@ -868,8 +868,8 @@ class ProfileAssociationsDialog(InfoDialog):
         list_ctrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, lambda e: dlg.ok.Disable())
         list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, lambda e: dlg.EndModal(wx.ID_OK))
         profiles = []
-        for pth in safe_glob(os.path.join(iccprofiles[0], "*.ic[cm]")) + safe_glob(
-            os.path.join(iccprofiles[0], "*.cdmp")
+        for pth in safe_glob(os.path.join(ICCPROFILES[0], "*.ic[cm]")) + safe_glob(
+            os.path.join(ICCPROFILES[0], "*.cdmp")
         ):
             try:
                 profile = ICCProfile(pth)
@@ -1207,11 +1207,11 @@ class ProfileLoader:
         )
         self._known_apps = {
             known_app.lower()
-            for known_app in config.defaults["profile_loader.known_apps"].split(";")
+            for known_app in config.DEFAULTS["profile_loader.known_apps"].split(";")
             + config.getcfg("profile_loader.known_apps").split(";")
         }
         self._known_window_classes = set(
-            config.defaults["profile_loader.known_window_classes"].split(";")
+            config.DEFAULTS["profile_loader.known_window_classes"].split(";")
             + config.getcfg("profile_loader.known_window_classes").split(";")
         )
         self._buggy_video_drivers = {
@@ -1350,7 +1350,7 @@ class ProfileLoader:
 
                 @property
                 def _active_icon(self):
-                    if debug > 1:
+                    if DEBUG > 1:
                         print(f"[DEBUG] _active_icon[{self._icon_index:d}]")
                     icon = self._active_icons[self._icon_index]
                     return icon
@@ -1535,7 +1535,7 @@ class ProfileLoader:
                 def animate(self, enumerate_windows_and_processes=False, idle=False):
                     if not self.pl.monitoring:
                         return
-                    if debug > 1:
+                    if DEBUG > 1:
                         print(
                             "[DEBUG] animate(enumerate_windows_and_processes="
                             f"{enumerate_windows_and_processes}, idle={idle})"
@@ -1555,11 +1555,11 @@ class ProfileLoader:
                             enumerate_windows_and_processes,
                             idle,
                         )
-                    if debug > 1:
+                    if DEBUG > 1:
                         print("[DEBUG] /animate")
 
                 def get_icon(self, enumerate_windows_and_processes=False, idle=False):
-                    if debug > 1:
+                    if DEBUG > 1:
                         print(
                             "[DEBUG] "
                             "get_icon(enumerate_windows_and_processes="
@@ -1591,7 +1591,7 @@ class ProfileLoader:
                             icon = self._idle_icon if idle else self._active_icon
                     else:
                         icon = self._inactive_icon
-                    if debug > 1:
+                    if DEBUG > 1:
                         print("[DEBUG] /get_icon")
                     return icon
 
@@ -1772,7 +1772,7 @@ class ProfileLoader:
                 ):
                     if not self.pl.monitoring:
                         return
-                    if debug > 1:
+                    if DEBUG > 1:
                         print(
                             "[DEBUG] set_visual_state(enumerate_windows_and_processes="
                             f"{enumerate_windows_and_processes}, idle={idle})"
@@ -1781,7 +1781,7 @@ class ProfileLoader:
                         self.get_icon(enumerate_windows_and_processes, idle),
                         self.pl.get_title(),
                     )
-                    if debug > 1:
+                    if DEBUG > 1:
                         print("[DEBUG] /set_visual_state")
 
                 def show_notification(
@@ -1795,7 +1795,7 @@ class ProfileLoader:
                     if wx.VERSION < (3,) or not self.pl._check_keep_running():
                         wx.Bell()
                         return
-                    if debug > 1:
+                    if DEBUG > 1:
                         print(
                             f"[DEBUG] show_notification(text={text!r}, "
                             f"sticky={sticky}, show_notification={show_notification}, "
@@ -1856,20 +1856,20 @@ class ProfileLoader:
                             )
                             text += f"\n{display}: {desc}"
                     if not show_notification:
-                        if debug > 1:
+                        if DEBUG > 1:
                             print("[DEBUG] /show_notification")
                         return
                     if getattr(self, "_notification", None):
                         self._notification.fade("out")
                         if toggle:
-                            if debug > 1:
+                            if DEBUG > 1:
                                 print("[DEBUG] /show_notification")
                             return
                     bitmap = wx.BitmapFromIcon(self.get_icon())
                     self._notification = TaskBarNotification(
                         bitmap, self.pl.get_title(), text
                     )
-                    if debug > 1:
+                    if DEBUG > 1:
                         print("[DEBUG] /show_notification")
 
             self.taskbar_icon = TaskBarIcon(self)
@@ -2089,7 +2089,7 @@ class ProfileLoader:
         )
 
     def _notify(self, results, errors, sticky=False, show_notification=False):
-        if debug > 1:
+        if DEBUG > 1:
             print(
                 f"[DEBUG] notify(results={results!r}, errors={errors!r}, "
                 f"sticky={sticky}, show_notification={show_notification})"
@@ -2100,7 +2100,7 @@ class ProfileLoader:
         self.taskbar_icon.show_notification(
             "\n".join(results), sticky, show_notification, flags
         )
-        if debug > 1:
+        if DEBUG > 1:
             print("[DEBUG] /notify")
 
     def apply_profiles_and_warn_on_error(self, event=None, index=None):
@@ -2125,7 +2125,7 @@ class ProfileLoader:
                 show=False,
             )
             dlg.SetIcons(
-                config.get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
+                config.get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles")
             )
             dlg.do_not_show_again_cb = wx.CheckBox(
                 dlg, -1, lang.getstr("dialog.do_not_show_again")
@@ -2162,13 +2162,13 @@ class ProfileLoader:
             return False
 
         loader_args = []
-        if os.path.basename(exe).lower() not in ("python.exe", "pythonw.exe"):
-            cmd = os.path.join(pydir, appname + "-apply-profiles.exe")
+        if os.path.basename(EXE).lower() not in ("python.exe", "pythonw.exe"):
+            cmd = os.path.join(PYDIR, APPNAME + "-apply-profiles.exe")
         else:
             # cmd = os.path.join(exedir, "pythonw.exe")
-            cmd = exe
+            cmd = EXE
             pyw = os.path.normpath(
-                os.path.join(pydir, "..", appname + "-apply-profiles.pyw")
+                os.path.join(PYDIR, "..", APPNAME + "-apply-profiles.pyw")
             )
             if os.path.exists(pyw):
                 # Running from source or 0install
@@ -2176,7 +2176,7 @@ class ProfileLoader:
                 # case we want to call 0launch with the appropriate
                 # command
                 if re.match(
-                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir))
+                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(PYDIR))
                 ):
                     cmd = which("0install-win.exe") or "0install-win.exe"
                     loader_args.extend(
@@ -2186,7 +2186,7 @@ class ProfileLoader:
                             "--no-wait",
                             "--offline",
                             "--command=run-apply-profiles",
-                            f"http://{DOMAIN}/0install/{appname}.xml",
+                            f"http://{DOMAIN}/0install/{APPNAME}.xml",
                         ]
                     )
                 else:
@@ -2195,9 +2195,7 @@ class ProfileLoader:
             else:
                 # Regular install
                 loader_args.append(
-                    get_data_path(
-                        "/".join(["scripts", appname + "-apply-profiles"])
-                    )
+                    get_data_path("/".join(["scripts", APPNAME + "-apply-profiles"]))
                 )
 
         loader_args.append("--profile-associations")
@@ -2252,7 +2250,7 @@ class ProfileLoader:
                 bitmap=config.geticon(32, "dialog-warning"),
             )
             dlg.SetIcons(
-                config.get_icon_bundle([256, 48, 32, 16], appname + "-apply-profiles")
+                config.get_icon_bundle([256, 48, 32, 16], APPNAME + "-apply-profiles")
             )
             result = dlg.ShowModal()
             dlg.Destroy()
@@ -2268,7 +2266,7 @@ class ProfileLoader:
 
     def get_title(self):
         title = "{} {} {}".format(
-            appname,
+            APPNAME,
             lang.getstr("profile_loader").title(),
             VERSION_SHORT,
         )
@@ -2522,7 +2520,7 @@ class ProfileLoader:
                         i, path_only=True, devicekey=devicekey
                     )
                 except IndexError:
-                    if debug:
+                    if DEBUG:
                         print(f"Display {key} ({display}) no longer present?")
                     self._next = False
                     break
@@ -2530,7 +2528,7 @@ class ProfileLoader:
                     if (
                         exception.args[0] != errno.ENOENT
                         and exception.args != self._last_exception_args
-                    ) or debug:
+                    ) or DEBUG:
                         self._last_exception_args = exception.args
                         print(
                             "Could not get display profile for display "
@@ -2560,7 +2558,7 @@ class ProfileLoader:
                     # One second delay to allow display configuration
                     # to settle
                     if not self._check_display_changed(dry_run=True):
-                        if debug:
+                        if DEBUG:
                             print("Delay 1s")
                         timeout = 0
                         while (
@@ -2596,7 +2594,7 @@ class ProfileLoader:
                                     profile_name,
                                     desc,
                                 )
-                        if (debug or verbose > 1) and device:
+                        if (DEBUG or VERBOSE > 1) and device:
                             print(
                                 f"Monitor {moninfo['Device']} "
                                 "active display device name:",
@@ -2622,7 +2620,7 @@ class ProfileLoader:
                                 "active display device key:",
                                 device.DeviceKey,
                             )
-                        elif debug or verbose > 1:
+                        elif DEBUG or VERBOSE > 1:
                             print(
                                 f"WARNING: Monitor {moninfo['Device']} "
                                 "has no active display device"
@@ -2780,7 +2778,7 @@ class ProfileLoader:
                 if getcfg("profile_loader.track_other_processes"):
                     hwnds_pids_changed = self._hwnds_pids != previous_hwnds_pids
                     if (
-                        (debug or verbose > 1)
+                        (DEBUG or VERBOSE > 1)
                         and hwnds_pids_changed
                         and previous_hwnds_pids
                     ):
@@ -2819,7 +2817,7 @@ class ProfileLoader:
                     try:
                         hdc = win32gui.CreateDC(moninfo["Device"], None, None)
                     except Exception as exception:
-                        if exception.args != self._last_exception_args or debug:
+                        if exception.args != self._last_exception_args or DEBUG:
                             self._last_exception_args = exception.args
                             print(
                                 "Couldn't create DC for",
@@ -2892,7 +2890,7 @@ class ProfileLoader:
                     # Important: Do not break here because we still want to
                     # detect changed profile associations
                     continue
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     if self._manual_restore:
                         print("Manual restore flag:", self._manual_restore)
                     if profile_association_changed:
@@ -2917,12 +2915,12 @@ class ProfileLoader:
                     else:
                         print(lang.getstr("calibration.loading_from_display_profile"))
                         print(f"{display_desc}:", desc)
-                elif verbose > 1 and getcfg("profile_loader.track_other_processes"):
+                elif VERBOSE > 1 and getcfg("profile_loader.track_other_processes"):
                     print("Preserving calibration state for display", display)
                 try:
                     hdc = win32gui.CreateDC(moninfo["Device"], None, None)
                 except Exception as exception:
-                    if exception.args != self._last_exception_args or debug:
+                    if exception.args != self._last_exception_args or DEBUG:
                         self._last_exception_args = exception.args
                         print(
                             "Couldn't create DC for",
@@ -3022,11 +3020,11 @@ class ProfileLoader:
                 if displaycal_running != self._is_displaycal_running():
                     if displaycal_running:
                         msg = lang.getstr(
-                            "app.detection_lost.calibration_loading_enabled", appname
+                            "app.detection_lost.calibration_loading_enabled", APPNAME
                         )
                     else:
                         msg = lang.getstr(
-                            "app.detected.calibration_loading_disabled", appname
+                            "app.detected.calibration_loading_disabled", APPNAME
                         )
                     displaycal_running = self._is_displaycal_running()
                     print(msg)
@@ -3156,7 +3154,7 @@ class ProfileLoader:
             device = get_active_display_device(moninfo["Device"])
             if device:
                 self._active_displays.append(device.DeviceKey)
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 print(
                     "Found monitor {:d} {} flags 0x{:x}".format(
                         i, moninfo["Device"], moninfo["Flags"]
@@ -3180,7 +3178,7 @@ class ProfileLoader:
                     print(f"WARNING: Monitor {i:d} has no active display device")
             # Get monitor descriptive string
             display, edid = get_display_name_edid(device, moninfo, i)
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 print(f"Monitor {i:d} active display description:", display)
                 print(
                     "Enumerating 1st display device for monitor {:d} {}".format(
@@ -3195,7 +3193,7 @@ class ProfileLoader:
                     exception,
                 )
                 device0 = None
-            if (debug or verbose > 1) and device0:
+            if (DEBUG or VERBOSE > 1) and device0:
                 print(f"Monitor {i:d} 1st display device name:", device0.DeviceName)
                 print(f"Monitor {i:d} 1st display device string:", device0.DeviceString)
                 print(
@@ -3206,7 +3204,7 @@ class ProfileLoader:
                 print(f"Monitor {i:d} 1st display device key:", device0.DeviceKey)
             if device0:
                 display0, edid0 = get_display_name_edid(device0)
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     print(f"Monitor {i:d} 1st display description:", display0)
             if (
                 device0
@@ -3278,7 +3276,7 @@ class ProfileLoader:
         return False
 
     def _is_displaycal_running(self):
-        displaycal_lockfile = os.path.join(confighome, appbasename + ".lock")
+        displaycal_lockfile = os.path.join(CONFIG_HOME, APPBASENAME + ".lock")
         return os.path.isfile(displaycal_lockfile)
 
     def _is_other_running(self, enumerate_windows_and_processes=True):
@@ -3518,23 +3516,23 @@ class ProfileLoader:
     def _set_display_profiles(self, dry_run=False):
         if not self._can_fix_profile_associations():
             return
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print("-" * 80)
             print("Checking profile associations")
             print("")
         self.devices2profiles = {}
         for i, (display, _edid, moninfo, device) in enumerate(self.monitors):
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 print(
                     f"Enumerating display devices for monitor {i:d} {moninfo['Device']}"
                 )
             devices = get_display_devices(moninfo["Device"])
             if not devices:
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     print(f"WARNING: Monitor {i:d} has no display devices")
                 continue
             active_device = get_active_display_device(None, devices=devices)
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 if active_device:
                     print(
                         f"Monitor {i:d} active display device name:",
@@ -3582,7 +3580,7 @@ class ProfileLoader:
                     profile,
                     get_profile_desc(profile),
                 )
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     print(f"{display_edid[0]} ({device.DeviceKey}): {profile}")
             # Set the active profile
             device = active_device
@@ -3841,7 +3839,7 @@ def main():
         print("Options:")
         print("  --help           Output this help text and exit")
         print("  --force          Force loading of calibration/profile (if it has been")
-        print(f"                   disabled in {appname}.ini)")
+        print(f"                   disabled in {APPNAME}.ini)")
         print("  --skip           Skip initial loading of calibration")
         if sys.platform == "win32":
             print("  --oneshot        Exit after loading calibration")
@@ -3856,11 +3854,11 @@ def main():
 
             print(
                 "Configuration options ({}):".format(
-                    os.path.join(confighome, appbasename + "-apply-profiles.ini")
+                    os.path.join(CONFIG_HOME, APPBASENAME + "-apply-profiles.ini")
                 )
             )
             print("")
-            for cfgname, cfgdefault in sorted(config.defaults.items()):
+            for cfgname, cfgdefault in sorted(config.DEFAULTS.items()):
                 if (
                     cfgname.startswith("profile_loader.")
                     or cfgname == "profile.load_on_login"
@@ -3909,11 +3907,11 @@ def main():
                     else:
                         continue
                     # Name and valid values
-                    valid = config.valid_values.get(cfgname)
+                    valid = config.VALID_VALUES.get(cfgname)
                     if valid:
                         valid = "[{}]".format("|".join(f"{v}" for v in valid))
                     else:
-                        valid = config.valid_ranges.get(cfgname)
+                        valid = config.VALID_RANGES.get(cfgname)
                         if valid:
                             valid = "[{}..{}]".format(*tuple(valid))
                         elif isinstance(cfgdefault, int):
@@ -3933,7 +3931,7 @@ def main():
         print(f"{os.path.basename(sys.argv[0])} {VERSION_STRING}")
     else:
         if sys.platform == "win32":
-            setup_profile_loader_task(exe, exedir, pydir)
+            setup_profile_loader_task(EXE, EXEDIR, PYDIR)
 
         config.initcfg("apply-profiles")
 

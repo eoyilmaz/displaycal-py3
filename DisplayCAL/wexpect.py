@@ -156,7 +156,7 @@ __all__ = [
 ]
 
 
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 
 
 # Exception classes used by this module.
@@ -2149,7 +2149,7 @@ class Wtty:
             if getattr(sys, "frozen", False)
             else os.path.abspath(os.path.dirname(__file__))
         )
-        logdir = appname if getattr(sys, "frozen", False) else dirname
+        logdir = APPNAME if getattr(sys, "frozen", False) else dirname
         logdir = os.path.basename(logdir)
         spath = [dirname]
         pyargs = ["-c"]
@@ -2159,11 +2159,11 @@ class Wtty:
             # py2exe: Needs appropriate 'zipfile' option in setup script and
             # 'bundle_files' 3
             spath.append(os.path.join(dirname, "library.zip"))
-            spath.append(os.path.join(dirname, "library.zip", appname))
+            spath.append(os.path.join(dirname, "library.zip", APPNAME))
             if os.path.isdir(os.path.join(dirname, "lib")):
                 dirname = os.path.join(dirname, "lib")
                 spath.append(os.path.join(dirname, "library.zip"))
-                spath.append(os.path.join(dirname, "library.zip", appname))
+                spath.append(os.path.join(dirname, "library.zip", APPNAME))
             spath.append(os.path.join(dirname, "temp"))
 
             pyargs.insert(0, "-S")  # skip 'import site'
@@ -2967,7 +2967,7 @@ def log(e, suffix="", logdir=None):
     #     print e
     if not logdir:
         if getattr(sys, "frozen", False):
-            logdir = appname
+            logdir = APPNAME
         else:
             logdir = os.path.split(os.path.dirname(os.path.abspath(__file__)))
             if logdir[-1] == "lib":
@@ -2980,7 +2980,7 @@ def log(e, suffix="", logdir=None):
     else:
         parent = os.getenv("XDG_DATA_HOME", os.path.expandvars("$HOME/.local/share"))
     # If old user data directory exists, use its basename
-    if logdir == appname and os.path.isdir(os.path.join(parent, "dispcalGUI")):
+    if logdir == APPNAME and os.path.isdir(os.path.join(parent, "dispcalGUI")):
         logdir = "dispcalGUI"
     logdir = os.path.join(parent, logdir)
     if sys.platform != "darwin":

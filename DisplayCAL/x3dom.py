@@ -9,10 +9,10 @@ import urllib.request
 from DisplayCAL import colormath
 from DisplayCAL import localization as lang
 from DisplayCAL.config import get_data_path
-from DisplayCAL.defaultpaths import cache as cachepath
+from DisplayCAL.defaultpaths import CACHE as CACHEPATH
 from DisplayCAL.log import safe_print as _safe_print
 from DisplayCAL.meta import DOMAIN
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_io import GzipFileProper
 from DisplayCAL.util_str import StrList, create_replace_function
 
@@ -112,7 +112,7 @@ class Tag:
             cache_uri = "/".join([".".join(reversed(domain.split("."))), path])
             # com.domain/path -> com.domain.path
             cache_uri = re.sub(r"^([^/]+)/", "\\1.", cache_uri)
-            cachedir = os.path.join(cachepath, os.path.join(*cache_uri.split("/")))
+            cachedir = os.path.join(CACHEPATH, os.path.join(*cache_uri.split("/")))
             if not os.path.isdir(cachedir):
                 _safe_print("Creating cache directory:", cachedir)
                 os.makedirs(cachedir)
@@ -221,7 +221,7 @@ class Tag:
 
 def _attrchk(attribute, token, tag, indent):
     if attribute:
-        if debug and tag.attributes.get(token):
+        if DEBUG and tag.attributes.get(token):
             safe_print(indent, f"attribute {token!r} {tag.attributes[token]!r}")
         attribute = False
     return attribute
@@ -360,7 +360,7 @@ def get_vrml_axes(
 
 
 def safe_print(*args, **kwargs):
-    if debug:
+    if DEBUG:
         _safe_print(*args, **kwargs)
 
 

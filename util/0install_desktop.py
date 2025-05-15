@@ -5,7 +5,7 @@ import re
 import shutil
 import sys
 
-from DisplayCAL.meta import NAME as appname, DOMAIN, script2pywname
+from DisplayCAL.meta import NAME as APPNAME, DOMAIN, script2pywname
 
 
 def zeroinstall_desktop(datadir="/usr/share"):
@@ -13,8 +13,8 @@ def zeroinstall_desktop(datadir="/usr/share"):
     appdir = os.path.join(datadir, "applications")
     if not os.path.isdir(appdir):
         os.makedirs(appdir)
-    feeduri = f"http://{DOMAIN}/0install/{appname}.xml"
-    for desktopfilename in glob(os.path.join("misc", "%s*.desktop" % appname.lower())):
+    feeduri = f"http://{DOMAIN}/0install/{APPNAME}.xml"
+    for desktopfilename in glob(os.path.join("misc", "%s*.desktop" % APPNAME.lower())):
         desktopbasename = os.path.basename(desktopfilename)
         scriptname = re.sub(r"\.desktop$", "", desktopbasename)
         for size in [16, 22, 24, 32, 48, 128, 256]:
@@ -25,7 +25,7 @@ def zeroinstall_desktop(datadir="/usr/share"):
                 os.makedirs(icondir)
             shutil.copy(
                 os.path.join(
-                    appname,
+                    APPNAME,
                     "theme",
                     "icons",
                     "%sx%s" % (size, size),
@@ -36,13 +36,13 @@ def zeroinstall_desktop(datadir="/usr/share"):
         with open(desktopfilename) as desktopfile:
             contents = desktopfile.read()
         cmdname = script2pywname(scriptname)
-        if cmdname == appname:
+        if cmdname == APPNAME:
             cmd = ""
         else:
-            cmd = re.sub(r"^%s" % appname, " --command=run", cmdname)
+            cmd = re.sub(r"^%s" % APPNAME, " --command=run", cmdname)
         for pattern, repl in [("Exec=.+", "Exec=0launch%s -- %s %%f" % (cmd, feeduri))]:
             contents = re.sub(pattern, repl, contents)
-        if cmdname == appname:
+        if cmdname == APPNAME:
             desktopbasename = ("zeroinstall-" + desktopbasename).lower()
         with open(os.path.join(appdir, desktopbasename), "w") as desktopfile:
             desktopfile.write(contents)

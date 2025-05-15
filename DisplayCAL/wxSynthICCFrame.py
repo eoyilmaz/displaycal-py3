@@ -20,12 +20,12 @@ from DisplayCAL.cgats import (
     CGATSInvalidError,
 )
 from DisplayCAL.config import (
-    enc,
+    ENC,
     get_data_path,
     get_verified_path,
     getcfg,
     hascfg,
-    profile_ext,
+    PROFILE_EXT,
     setcfg,
 )
 from DisplayCAL.debughelpers import Error
@@ -42,9 +42,9 @@ from DisplayCAL.icc_profile import (
     create_synthetic_hdr_clut_profile,
     s15f16_is_equal,
 )
-from DisplayCAL.log import log
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug
+from DisplayCAL.log import LOG
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files
 from DisplayCAL.util_os import waccess
@@ -67,7 +67,7 @@ from DisplayCAL.wxwindows import (
 class SynthICCFrame(BaseFrame, LUT3DMixin):
     """Synthetic ICC creation window"""
 
-    cfg = config.cfg
+    cfg = config.CFG
 
     def __init__(self, parent=None):
         self.res = TempXmlResource(get_data_path(os.path.join("xrc", "synthicc.xrc")))
@@ -89,7 +89,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.Bind(wx.EVT_SIZE, self.OnSize)
 
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], appname + "-synthprofile")
+            config.get_icon_bundle([256, 48, 32, 16], APPNAME + "-synthprofile")
         )
 
         self.set_child_ctrls_as_attrs(self)
@@ -159,7 +159,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.save_btn.Hide()
 
-        config.defaults.update(
+        config.DEFAULTS.update(
             {
                 "position.synthiccframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.synthiccframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -188,7 +188,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.Refresh()  # Prevents distorted drawing under Windows
 
     def OnClose(self, event=None):
-        if sys.platform == "darwin" or debug:
+        if sys.platform == "darwin" or DEBUG:
             self.focus_handler(event)
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
@@ -786,7 +786,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             lang.getstr("save_as"),
             defaultDir=defaultDir,
             defaultFile=defaultFile,
-            wildcard=lang.getstr("filetype.icc") + "|*" + profile_ext,
+            wildcard=lang.getstr("filetype.icc") + "|*" + PROFILE_EXT,
             style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         dlg.Center(wx.BOTH)
@@ -795,7 +795,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         dlg.Destroy()
         if path:
             if os.path.splitext(path)[1].lower() not in (".icc", ".icm"):
-                path += profile_ext
+                path += PROFILE_EXT
             if not waccess(path, os.W_OK):
                 show_result_dialog(
                     Error(lang.getstr("error.access_denied.write", path)), self
@@ -996,13 +996,13 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                     ):
                         linebuffered_logfiles.append(print)
                     else:
-                        linebuffered_logfiles.append(log)
+                        linebuffered_logfiles.append(LOG)
                     logfiles = Files(
                         [
                             LineBufferedStream(
                                 FilteredStream(
                                     Files(linebuffered_logfiles),
-                                    enc,
+                                    ENC,
                                     discard="",
                                     linesep_in="\n",
                                     triggers=[],
@@ -1185,8 +1185,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             try:
                 v = float(self.trc_gamma_ctrl.GetValue().replace(",", "."))
                 if (
-                    v < config.valid_ranges["gamma"][0]
-                    or v > config.valid_ranges["gamma"][1]
+                    v < config.VALID_RANGES["gamma"][0]
+                    or v > config.VALID_RANGES["gamma"][1]
                 ):
                     raise ValueError
             except ValueError:

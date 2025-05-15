@@ -15,41 +15,39 @@ if sys.platform == "win32":
     pass
 
 from DisplayCAL import colormath
-from DisplayCAL.argyll_names import intents, observers, video_encodings, viewconds
+from DisplayCAL.argyll_names import INTENTS, OBSERVERS, VIDEO_ENCODINGS, VIEWCONDS
 
 if sys.platform == "win32":
     from DisplayCAL.defaultpaths import commonprogramfiles
 elif sys.platform == "darwin":
-    from DisplayCAL.defaultpaths import library, library_home, prefs, prefs_home
+    from DisplayCAL.defaultpaths import LIBRARY, LIBRARY_HOME, PREFS, PREFS_HOME
 else:
     from DisplayCAL.defaultpaths import (
-        xdg_config_dir_default,
-        xdg_config_home,
-        xdg_data_dirs,
-        xdg_data_home,
-        xdg_data_home_default,
+        XDG_CONFIG_DIR_DEFAULT,
+        XDG_CONFIG_HOME,
+        XDG_DATA_DIRS,
+        XDG_DATA_HOME,
+        XDG_DATA_HOME_DEFAULT,
     )
 
 from DisplayCAL.defaultpaths import (  # noqa: F401
-    appdata,
-    autostart,  # don't remove this, imported by other modules
-    autostart_home,  # don't remove this, imported by other modules
-    commonappdata,
-    home,  # don't remove this, imported by other modules
-    iccprofiles,
-    iccprofiles_home,
+    APPDATA,
+    AUTOSTART,  # don't remove this, imported by other modules
+    AUTOSTART_HOME,  # don't remove this, imported by other modules
+    COMMONAPPDATA,
+    HOME,  # don't remove this, imported by other modules
+    ICCPROFILES,
+    ICCPROFILES_HOME,
 )
 from DisplayCAL.meta import (  # noqa: F401
     BUILD,  # don't remove this, imported by other modules
     VERSION_STRING,
 )
-from DisplayCAL.meta import (
-    NAME as appname,
-)
-from DisplayCAL.options import debug
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import (  # noqa: F401
-    enc,  # don't remove this, imported by other modules
-    fs_enc,
+    ENC,  # don't remove this, imported by other modules
+    FS_ENC,
 )
 from DisplayCAL.util_io import StringIOu as StringIO
 from DisplayCAL.util_os import (
@@ -66,127 +64,128 @@ if TYPE_CHECKING:
 
 configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
 
-exe = sys.executable
-exedir = os.path.dirname(exe)
-exename = os.path.basename(exe)
+EXE = sys.executable
+EXEDIR = os.path.dirname(EXE)
+EXENAME = os.path.basename(EXE)
 
-isexe = sys.platform != "darwin" and getattr(sys, "frozen", False)
+ISEXE = sys.platform != "darwin" and getattr(sys, "frozen", False)
 
-if isexe and (_meipass2 := os.getenv("_MEIPASS2")):
+if ISEXE and (_meipass2 := os.getenv("_MEIPASS2")):
     os.environ["_MEIPASS2"] = _meipass2.replace("/", os.path.sep)
 
-pyfile = (
-    exe
-    if isexe
+PYFILE = (
+    EXE
+    if ISEXE
     else (os.path.isfile(sys.argv[0]) and sys.argv[0])
     or os.path.join(os.path.dirname(__file__), "main.py")
 )
-pypath = exe if isexe else os.path.abspath(pyfile)
+PYPATH = EXE if ISEXE else os.path.abspath(PYFILE)
 # Mac OS X: isapp should only be true for standalone, not 0install
-isapp = (
+ISAPP = (
     sys.platform == "darwin"
-    and exe.split(os.path.sep)[-3:-1] == ["Contents", "MacOS"]
-    and os.path.exists(os.path.join(exedir, "..", "Resources", "xrc"))
+    and EXE.split(os.path.sep)[-3:-1] == ["Contents", "MacOS"]
+    and os.path.exists(os.path.join(EXEDIR, "..", "Resources", "xrc"))
 )
-if isapp:
-    pyname, pyext = os.path.splitext(exe.split(os.path.sep)[-4])
-    pydir = os.path.normpath(os.path.join(exedir, "..", "Resources"))
+if ISAPP:
+    PYNAME, PYEXT = os.path.splitext(EXE.split(os.path.sep)[-4])
+    PYDIR = os.path.normpath(os.path.join(EXEDIR, "..", "Resources"))
 else:
-    pyname, pyext = os.path.splitext(os.path.basename(pypath))
-    pydir = os.path.dirname(
-        exe if isexe else os.path.abspath(os.path.dirname(__file__))
+    PYNAME, PYEXT = os.path.splitext(os.path.basename(PYPATH))
+    PYDIR = os.path.dirname(
+        EXE if ISEXE else os.path.abspath(os.path.dirname(__file__))
     )
 
 # TODO: Modifying ``data_dirs`` here was not an elegant solution,
 #       and it is not solving the problem either.
-data_dirs = [
+DATA_DIRS = [
     # venv/share/DisplayCAL
-    os.path.join(os.path.dirname(os.path.dirname(pypath)), "share", "DisplayCAL"),
+    os.path.join(os.path.dirname(os.path.dirname(PYPATH)), "share", "DisplayCAL"),
     # venv/lib/python3.x/site-packages/DisplayCAL
-    pydir,
+    PYDIR,
     # venv/share
-    os.path.join(os.path.dirname(pydir), "share"),
+    os.path.join(os.path.dirname(PYDIR), "share"),
     # venv/lib/python3.x/site-packages/DisplayCAL-*.egg/share/DisplayCAL
-    os.path.join(os.path.dirname(pydir), "share", "DisplayCAL"),
+    os.path.join(os.path.dirname(PYDIR), "share", "DisplayCAL"),
 ]
 
 
-extra_data_dirs = []
+EXTRA_DATA_DIRS = []
 # Search directories on PATH for data directories so Argyll reference files can
 # be found automatically if Argyll directory not explicitly configured
 for dir_ in getenvu("PATH", "").split(os.pathsep):
     dir_parent = os.path.dirname(dir_)
     if os.path.isdir(os.path.join(dir_parent, "ref")):
-        extra_data_dirs.append(dir_parent)
+        EXTRA_DATA_DIRS.append(dir_parent)
 
-appbasename = appname
+APPBASENAME = APPNAME
 # If old user data directory exists, use its basename
-if os.path.isdir(os.path.join(appdata, "dispcalGUI")):
-    appbasename = "dispcalGUI"
-    data_dirs.append(os.path.join(appdata, appname))
-datahome = os.path.join(appdata, appbasename)
+if os.path.isdir(os.path.join(APPDATA, "dispcalGUI")):
+    APPBASENAME = "dispcalGUI"
+    DATA_DIRS.append(os.path.join(APPDATA, APPNAME))
+DATA_HOME = os.path.join(APPDATA, APPBASENAME)
 if sys.platform == "win32":
-    if pydir.lower().startswith(exedir.lower()) and pydir != exedir:
+    if PYDIR.lower().startswith(EXEDIR.lower()) and PYDIR != EXEDIR:
         # We are installed in a subfolder of the executable directory
         # (e.g. C:\Python26\Lib\site-packages\DisplayCAL)
         # we need to add the executable directory to the data directories so
         # files in subfolders of the executable directory which are not in
         # Lib\site-packages\DisplayCAL can be found
         # (e.g. Scripts\displaycal-apply-profiles)
-        data_dirs.append(exedir)
-    script_ext = ".cmd"
-    scale_adjustment_factor = 1.0
-    config_sys = os.path.join(commonappdata[0], appbasename)
-    confighome = os.path.join(appdata, appbasename)
-    logdir = os.path.join(datahome, "logs")
-    if appbasename != appname:
-        data_dirs.extend(os.path.join(dir_, appname) for dir_ in commonappdata)
-        data_dirs.append(os.path.join(commonprogramfiles, appname))
-    data_dirs.append(datahome)
-    data_dirs.extend(os.path.join(dir_, appbasename) for dir_ in commonappdata)
-    data_dirs.append(os.path.join(commonprogramfiles, appbasename))
-    exe_ext = ".exe"
-    profile_ext = ".icm"
-else:
-    if sys.platform == "darwin":
-        script_ext = ".command"
-        mac_create_app = True
-        scale_adjustment_factor = 1.0
-        config_sys = os.path.join(prefs, appbasename)
-        confighome = os.path.join(prefs_home, appbasename)
-        logdir = os.path.join(expanduseru("~"), "Library", "Logs", appbasename)
-        if appbasename != appname:
-            data_dirs.append(os.path.join(commonappdata[0], appname))
-        data_dirs.append(datahome)
-        data_dirs.append(os.path.join(commonappdata[0], appbasename))
-    else:
-        script_ext = ".sh"
-        scale_adjustment_factor = 1.0
-        config_sys = os.path.join(xdg_config_dir_default, appbasename)
-        confighome = os.path.join(xdg_config_home, appbasename)
-        logdir = os.path.join(datahome, "logs")
-        if appbasename != appname:
-            datahome_default = os.path.join(xdg_data_home_default, appname)
-            if datahome_default not in data_dirs:
-                data_dirs.append(datahome_default)
-            data_dirs.extend(os.path.join(dir_, appname) for dir_ in xdg_data_dirs)
-        data_dirs.append(datahome)
-        datahome_default = os.path.join(xdg_data_home_default, appbasename)
-        if datahome_default not in data_dirs:
-            data_dirs.append(datahome_default)
-        data_dirs.extend(os.path.join(dir_, appbasename) for dir_ in xdg_data_dirs)
-        extra_data_dirs.extend(
-            os.path.join(dir_, "argyllcms") for dir_ in xdg_data_dirs
-        )
-        extra_data_dirs.extend(
-            os.path.join(dir_, "color", "argyll") for dir_ in xdg_data_dirs
-        )
-    exe_ext = ""
-    profile_ext = ".icc"
+        DATA_DIRS.append(EXEDIR)
+    SCRIPT_EXT = ".cmd"
+    SCALE_ADJUSTMENT_FACTOR = 1.0
+    CONFIG_SYS = os.path.join(COMMONAPPDATA[0], APPBASENAME)
+    CONFIG_HOME = os.path.join(APPDATA, APPBASENAME)
+    LOGDIR = os.path.join(DATA_HOME, "logs")
+    if APPBASENAME != APPNAME:
+        DATA_DIRS.extend(os.path.join(dir_, APPNAME) for dir_ in COMMONAPPDATA)
+        DATA_DIRS.append(os.path.join(commonprogramfiles, APPNAME))
+    DATA_DIRS.append(DATA_HOME)
+    DATA_DIRS.extend(os.path.join(dir_, APPBASENAME) for dir_ in COMMONAPPDATA)
+    DATA_DIRS.append(os.path.join(commonprogramfiles, APPBASENAME))
+    EXE_EXT = ".exe"
+    PROFILE_EXT = ".icm"
+elif sys.platform == "darwin":
+    SCRIPT_EXT = ".command"
+    MAC_CREATE_APP = True
+    SCALE_ADJUSTMENT_FACTOR = 1.0
+    CONFIG_SYS = os.path.join(PREFS, APPBASENAME)
+    CONFIG_HOME = os.path.join(PREFS_HOME, APPBASENAME)
+    LOGDIR = os.path.join(expanduseru("~"), "Library", "Logs", APPBASENAME)
+    if APPBASENAME != APPNAME:
+        DATA_DIRS.append(os.path.join(COMMONAPPDATA[0], APPNAME))
+    DATA_DIRS.append(DATA_HOME)
+    DATA_DIRS.append(os.path.join(COMMONAPPDATA[0], APPBASENAME))
+    EXE_EXT = ""
+    PROFILE_EXT = ".icc"
+else:  # Linux
+    SCRIPT_EXT = ".sh"
+    SCALE_ADJUSTMENT_FACTOR = 1.0
+    CONFIG_SYS = os.path.join(XDG_CONFIG_DIR_DEFAULT, APPBASENAME)
+    CONFIG_HOME = os.path.join(XDG_CONFIG_HOME, APPBASENAME)
+    LOGDIR = os.path.join(DATA_HOME, "logs")
+    if APPBASENAME != APPNAME:
+        DATA_HOME_DEFAULT = os.path.join(XDG_DATA_HOME_DEFAULT, APPNAME)
+        if DATA_HOME_DEFAULT not in DATA_DIRS:
+            DATA_DIRS.append(DATA_HOME_DEFAULT)
+        DATA_DIRS.extend(os.path.join(dir_, APPNAME) for dir_ in XDG_DATA_DIRS)
+    DATA_DIRS.append(DATA_HOME)
+    DATA_HOME_DEFAULT = os.path.join(XDG_DATA_HOME_DEFAULT, APPBASENAME)
+    if DATA_HOME_DEFAULT not in DATA_DIRS:
+        DATA_DIRS.append(DATA_HOME_DEFAULT)
+    DATA_DIRS.extend(os.path.join(dir_, APPBASENAME) for dir_ in XDG_DATA_DIRS)
+    EXTRA_DATA_DIRS.extend(
+        os.path.join(dir_, "argyllcms") for dir_ in XDG_DATA_DIRS
+    )
+    EXTRA_DATA_DIRS.extend(
+        os.path.join(dir_, "color", "argyll") for dir_ in XDG_DATA_DIRS
+    )
+    EXE_EXT = ""
+    PROFILE_EXT = ".icc"
 
-storage = os.path.join(datahome, "storage")
+STORAGE = os.path.join(DATA_HOME, "storage")
 
-resfiles = [
+RES_FILES = [
     # Only essentials
     "lang/en.yaml",
     "beep.wav",
@@ -208,21 +207,21 @@ resfiles = [
     "xrc/synthicc.xrc",
 ]
 
-bitmaps = {}
+BITMAPS = {}
 
 # Does the device not support iterative calibration?
-uncalibratable_displays = ("Untethered$",)
+UNCALIBRATABLE_DISPLAYS = ("Untethered$",)
 
 # Can the device generate patterns of its own?
-patterngenerators = ("madVR$", "Resolve$", "Chromecast ", "Prisma ", "Prisma$")
+PATTERN_GENERATORS = ("madVR$", "Resolve$", "Chromecast ", "Prisma ", "Prisma$")
 
-non_argyll_displays = uncalibratable_displays + ("Resolve$",)
+NON_ARGYLL_DISPLAYS = UNCALIBRATABLE_DISPLAYS + ("Resolve$",)
 
 # Is the device directly connected or e.g. driven via network?
 # (note that madVR can technically be both, but the endpoint is always directly
 # connected to a display so we have videoLUT access via madVR's API.
 # Only devices which don't support that are considered 'untethered' in this context)
-untethered_displays = non_argyll_displays + (
+UNTETHERED_DISPLAYS = NON_ARGYLL_DISPLAYS + (
     "Web$",
     "Chromecast ",
     "Prisma ",
@@ -230,11 +229,11 @@ untethered_displays = non_argyll_displays + (
 )
 
 # Is the device not an actual display device (i.e. is it not a TV or monitor)?
-virtual_displays = untethered_displays + ("madVR$",)
+VIRTUAL_DISPLAYS = UNTETHERED_DISPLAYS + ("madVR$",)
 
 
 def is_special_display(
-    display: Optional[str] = None, tests: list[str] = virtual_displays
+    display: Optional[str] = None, tests: list[str] = VIRTUAL_DISPLAYS
 ) -> bool:
     """Check if the display is a special display.
 
@@ -259,15 +258,15 @@ def is_uncalibratable_display(display: Optional[str] = None) -> bool:
     Returns:
         bool: True if the display is uncalibratable, False otherwise.
     """
-    return is_special_display(display, uncalibratable_displays)
+    return is_special_display(display, UNCALIBRATABLE_DISPLAYS)
 
 
 def is_patterngenerator(display=None):
-    return is_special_display(display, patterngenerators)
+    return is_special_display(display, PATTERN_GENERATORS)
 
 
 def is_non_argyll_display(display=None):
-    return is_special_display(display, non_argyll_displays)
+    return is_special_display(display, NON_ARGYLL_DISPLAYS)
 
 
 def is_untethered_display(display: Optional[str] = None) -> bool:
@@ -279,7 +278,7 @@ def is_untethered_display(display: Optional[str] = None) -> bool:
     Returns:
         bool: True if the display is untethered, False otherwise.
     """
-    return is_special_display(display, untethered_displays)
+    return is_special_display(display, UNTETHERED_DISPLAYS)
 
 
 def is_virtual_display(display: Optional[str] = None) -> bool:
@@ -291,7 +290,7 @@ def is_virtual_display(display: Optional[str] = None) -> bool:
     Returns:
         bool: True if the display is virtual, False otherwise.
     """
-    return is_special_display(display, virtual_displays)
+    return is_special_display(display, VIRTUAL_DISPLAYS)
 
 
 def check_3dlut_format(devicename) -> bool:
@@ -335,9 +334,9 @@ def getbitmap(
     Returns:
         wx.Bitmap: The bitmap.
     """
-    if name not in bitmaps:
-        bitmaps[name] = create_bitmap(name, display_missing_icon, scale, use_mask)
-    return bitmaps[name]
+    if name not in BITMAPS:
+        BITMAPS[name] = create_bitmap(name, display_missing_icon, scale, use_mask)
+    return BITMAPS[name]
 
 
 def create_bitmap(
@@ -375,9 +374,7 @@ def create_bitmap(
         h = int(round(h * scale))
     if parts[-1] == "empty":
         return create_empty_bitmap(w, h, use_mask)
-    return load_bitmap(
-        name, parts, ow, oh, w, h, scale, use_mask, display_missing_icon
-    )
+    return load_bitmap(name, parts, ow, oh, w, h, scale, use_mask, display_missing_icon)
 
 
 def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
@@ -433,7 +430,7 @@ def load_bitmap(
     """
     from DisplayCAL.wxaddons import wx
 
-    if parts[-1].startswith(appname):
+    if parts[-1].startswith(APPNAME):
         parts[-1] = parts[-1].lower()
     oname = parts[-1]
     if "#" in oname:
@@ -497,7 +494,7 @@ def load_bitmap(
                     # Try original size
                     parts[-1] = oname
         if sys.platform not in ("darwin", "win32") and parts[-1].startswith(
-            appname.lower()
+            APPNAME.lower()
         ):
             # Search /usr/share/icons on Linux first
             path = get_data_path(
@@ -660,10 +657,10 @@ def get_argyll_data_dir() -> str:
 
     if sys.platform == "darwin" and argyll_version < [1, 5, 0]:
         return os.path.join(
-            library if is_superuser() else library_home, argyll_data_dirname
+            LIBRARY if is_superuser() else LIBRARY_HOME, argyll_data_dirname
         )
     return os.path.join(
-        commonappdata[0] if is_superuser() else appdata, argyll_data_dirname
+        COMMONAPPDATA[0] if is_superuser() else APPDATA, argyll_data_dirname
     )
 
 
@@ -719,7 +716,7 @@ def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> Union[None
     geometry = f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
     for i, display in enumerate(getcfg("displays")):
         if display.find(f"@ {geometry}") > -1:
-            if debug:
+            if DEBUG:
                 print(f"[D] Found display {geometry} at index {i}")
             return i
     return None
@@ -748,7 +745,7 @@ def get_display_number(display_no: int) -> int:
         for i in range(wx.Display.GetCount()):
             geometry = "{:d}, {:d}, {:d}x{:d}".format(*wx.Display(i).Geometry)
             if display.endswith(f"@ {geometry}"):
-                if debug:
+                if DEBUG:
                     print(f"[D] Found display {geometry} at index {i}")
                 return i
     return 0
@@ -824,7 +821,7 @@ def get_measureframe_dimensions(dimensions_measureframe=None, percent=10) -> str
     if not dimensions_measureframe:
         dimensions_measureframe = getcfg("dimensions.measureframe")
     dimensions_measureframe = [float(n) for n in dimensions_measureframe.split(",")]
-    dimensions_measureframe[2] *= defaults["size.measureframe"]
+    dimensions_measureframe[2] *= DEFAULTS["size.measureframe"]
     dimensions_measureframe[2] /= get_display_rects()[0][2]
     dimensions_measureframe[2] *= percent
     return ",".join([str(min(n, 50)) for n in dimensions_measureframe])
@@ -851,13 +848,13 @@ def get_data_path(relpath, rex=None):
         or (isinstance(os.path.altsep, str) and relpath.endswith(os.path.altsep))
     ):
         return None
-    dirs = list(data_dirs)
+    dirs = list(DATA_DIRS)
     argyll_dir = getcfg("argyll.dir") or os.path.dirname(
-        os.path.realpath(which(f"dispcal{exe_ext}") or "")
+        os.path.realpath(which(f"dispcal{EXE_EXT}") or "")
     )
     if argyll_dir and os.path.isdir(os.path.join(argyll_dir, "..", "ref")):
         dirs.append(os.path.dirname(argyll_dir))
-    dirs.extend(extra_data_dirs)
+    dirs.extend(EXTRA_DATA_DIRS)
     intersection = []
     paths = []
     for dir_ in dirs:
@@ -910,20 +907,20 @@ def runtimeconfig(pyfile):
     # global safe_log
     from DisplayCAL.log import setup_logging
 
-    setup_logging(logdir, pyname, pyext, confighome=confighome)
-    if debug:
-        print("[D] pydir:", pydir)
-    if isapp:
+    setup_logging(LOGDIR, PYNAME, PYEXT, confighome=CONFIG_HOME)
+    if DEBUG:
+        print("[D] pydir:", PYDIR)
+    if ISAPP:
         runtype = ".app"
-    elif isexe:
-        if debug:
-            print("[D] _MEIPASS2 or pydir:", getenvu("_MEIPASS2", exedir))
-        if getenvu("_MEIPASS2", exedir) not in data_dirs:
-            data_dirs.insert(1, getenvu("_MEIPASS2", exedir))
-        runtype = exe_ext
+    elif ISEXE:
+        if DEBUG:
+            print("[D] _MEIPASS2 or pydir:", getenvu("_MEIPASS2", EXEDIR))
+        if getenvu("_MEIPASS2", EXEDIR) not in DATA_DIRS:
+            DATA_DIRS.insert(1, getenvu("_MEIPASS2", EXEDIR))
+        runtype = EXE_EXT
     else:
-        pydir_parent = os.path.dirname(pydir)
-        if debug:
+        pydir_parent = os.path.dirname(PYDIR)
+        if DEBUG:
             print(
                 "[D] dirname(os.path.abspath(sys.argv[0])):",
                 os.path.dirname(os.path.abspath(sys.argv[0])),
@@ -931,56 +928,56 @@ def runtimeconfig(pyfile):
             print("[D] pydir parent:", pydir_parent)
         if (
             os.path.dirname(os.path.abspath(sys.argv[0])) == pydir_parent
-            and pydir_parent not in data_dirs
+            and pydir_parent not in DATA_DIRS
         ):
             # Add the parent directory of the package directory to our list of
             # data directories if it is the directory containing the currently
             # run script (e.g. when running from source)
-            data_dirs.insert(1, pydir_parent)
-        runtype = pyext
+            DATA_DIRS.insert(1, pydir_parent)
+        runtype = PYEXT
     for dir_ in sys.path:
         if not isinstance(dir_, str):
-            dir_ = dir_.encode(fs_enc)
-        dir_ = os.path.abspath(os.path.join(dir_, appname))
-        if dir_ not in data_dirs and os.path.isdir(dir_):
-            data_dirs.append(dir_)
-            if debug:
+            dir_ = dir_.encode(FS_ENC)
+        dir_ = os.path.abspath(os.path.join(dir_, APPNAME))
+        if dir_ not in DATA_DIRS and os.path.isdir(dir_):
+            DATA_DIRS.append(dir_)
+            if DEBUG:
                 print("[D] from sys.path:", dir_)
     if sys.platform not in ("darwin", "win32"):
-        data_dirs.extend(
+        DATA_DIRS.extend(
             [
-                os.path.join(dir_, "doc", f"{appname}-{VERSION_STRING}")
-                for dir_ in xdg_data_dirs + [xdg_data_home]
+                os.path.join(dir_, "doc", f"{APPNAME}-{VERSION_STRING}")
+                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
             ]
         )
-        data_dirs.extend(
+        DATA_DIRS.extend(
             [
-                os.path.join(dir_, "doc", "packages", appname)
-                for dir_ in xdg_data_dirs + [xdg_data_home]
+                os.path.join(dir_, "doc", "packages", APPNAME)
+                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
             ]
         )
-        data_dirs.extend(
+        DATA_DIRS.extend(
             [
-                os.path.join(dir_, "doc", appname)
-                for dir_ in xdg_data_dirs + [xdg_data_home]
+                os.path.join(dir_, "doc", APPNAME)
+                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
             ]
         )
-        data_dirs.extend(
+        DATA_DIRS.extend(
             [
-                os.path.join(dir_, "doc", appname.lower())  # Debian
-                for dir_ in xdg_data_dirs + [xdg_data_home]
+                os.path.join(dir_, "doc", APPNAME.lower())  # Debian
+                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
             ]
         )
-        data_dirs.extend(
+        DATA_DIRS.extend(
             [
                 os.path.join(dir_, "icons", "hicolor")
-                for dir_ in xdg_data_dirs + [xdg_data_home]
+                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
             ]
         )
-    if debug:
-        print("[D] Data files search paths:\n[D]", "\n[D] ".join(data_dirs))
-    defaults["calibration.file"] = get_data_path("presets/default.icc") or ""
-    defaults["measurement_report.chart"] = (
+    if DEBUG:
+        print("[D] Data files search paths:\n[D]", "\n[D] ".join(DATA_DIRS))
+    DEFAULTS["calibration.file"] = get_data_path("presets/default.icc") or ""
+    DEFAULTS["measurement_report.chart"] = (
         get_data_path(os.path.join("ref", "verify_extended.ti1")) or ""
     )
     return runtype
@@ -992,11 +989,11 @@ class CaseSensitiveConfigParser(configparser.RawConfigParser):
 
 
 # User settings
-cfg = CaseSensitiveConfigParser()
-cfg["Default"] = {}
+CFG = CaseSensitiveConfigParser()
+CFG["Default"] = {}
 
 
-valid_ranges = {
+VALID_RANGES = {
     "3dlut.hdr_peak_luminance": [100.0, 10000.0],
     "3dlut.hdr_minmll": [0.0, 0.1],
     "3dlut.hdr_maxmll": [100.0, 10000.0],
@@ -1042,13 +1039,13 @@ valid_ranges = {
     "whitepoint.visual_editor.r": [0, 255],
 }
 
-valid_values = {
+VALID_VALUES = {
     "3d.format": ["HTML", "VRML", "X3D"],
     "3dlut.bitdepth.input": [8, 10, 12, 14, 16],
     "3dlut.bitdepth.output": [8, 10, 12, 14, 16],
-    "3dlut.encoding.input": list(video_encodings),
+    "3dlut.encoding.input": list(VIDEO_ENCODINGS),
     # collink: xvYCC output encoding is not supported
-    "3dlut.encoding.output": [v for v in video_encodings if v not in ("T", "x", "X")],
+    "3dlut.encoding.output": [v for v in VIDEO_ENCODINGS if v not in ("T", "x", "X")],
     "3dlut.format": [
         "3dl",
         "cube",
@@ -1064,7 +1061,7 @@ valid_values = {
     "3dlut.hdr_display": [0, 1],
     "3dlut.image.layout": ["h", "v"],
     "3dlut.image.order": ["rgb", "bgr"],
-    "3dlut.rendering_intent": intents,
+    "3dlut.rendering_intent": INTENTS,
     "3dlut.size": [5, 9, 16, 17, 24, 32, 33, 64, 65],
     "3dlut.trc": [
         "bt1886",
@@ -1076,8 +1073,8 @@ valid_values = {
     ],
     "3dlut.trc_gamma_type": ["b", "B"],
     "calibration.quality": ["v", "l", "m", "h", "u"],
-    "colorimeter_correction.observer": observers,
-    "colorimeter_correction.observer.reference": observers,
+    "colorimeter_correction.observer": OBSERVERS,
+    "colorimeter_correction.observer.reference": OBSERVERS,
     "colorimeter_correction.type": ["matrix", "spectral"],
     # Measurement modes as supported by Argyll -y parameter
     # 'l' = 'n' (non-refresh-type display, e.g. LCD)
@@ -1088,12 +1085,12 @@ valid_values = {
     # per-instrument supported modes
     "measurement_mode": [None, "auto"] + list(string.digits[1:] + string.ascii_letters),
     "gamap_default_intent": ["a", "r", "p", "s"],
-    "gamap_perceptual_intent": intents,
-    "gamap_saturation_intent": intents,
-    "gamap_src_viewcond": viewconds,
+    "gamap_perceptual_intent": INTENTS,
+    "gamap_saturation_intent": INTENTS,
+    "gamap_src_viewcond": VIEWCONDS,
     "gamap_out_viewcond": ["mt", "mb", "md", "jm", "jd"],
     "measurement_report.trc_gamma_type": ["b", "B"],
-    "observer": observers,
+    "observer": OBSERVERS,
     "patterngenerator.detect_video_levels": [0, 1],
     "patterngenerator.prisma.preset": [
         "Movie",
@@ -1148,25 +1145,25 @@ valid_values = {
     "whitepoint.colortemp.locus": ["t", "T"],
 }
 
-content_rgb_space = colormath.get_rgb_space("DCI P3 D65")
-crx, cry = content_rgb_space[2:][0][:2]
-cgx, cgy = content_rgb_space[2:][1][:2]
-cbx, cby = content_rgb_space[2:][2][:2]
-cwx, cwy = colormath.XYZ2xyY(*content_rgb_space[1])[:2]
-defaults = {
+CONTENT_RGB_SPACE = colormath.get_rgb_space("DCI P3 D65")
+CRX, CRY = CONTENT_RGB_SPACE[2:][0][:2]
+CGX, CGY = CONTENT_RGB_SPACE[2:][1][:2]
+CBX, CBY = CONTENT_RGB_SPACE[2:][2][:2]
+CWX, CWY = colormath.XYZ2xyY(*CONTENT_RGB_SPACE[1])[:2]
+DEFAULTS = {
     "3d.format": "HTML",
     "3dlut.apply_black_offset": 0,
     "3dlut.apply_trc": 1,
     "3dlut.bitdepth.input": 10,
     "3dlut.bitdepth.output": 12,
-    "3dlut.content.colorspace.blue.x": cbx,
-    "3dlut.content.colorspace.blue.y": cby,
-    "3dlut.content.colorspace.green.x": cgx,
-    "3dlut.content.colorspace.green.y": cgy,
-    "3dlut.content.colorspace.red.x": crx,
-    "3dlut.content.colorspace.red.y": cry,
-    "3dlut.content.colorspace.white.x": cwx,
-    "3dlut.content.colorspace.white.y": cwy,
+    "3dlut.content.colorspace.blue.x": CBX,
+    "3dlut.content.colorspace.blue.y": CBY,
+    "3dlut.content.colorspace.green.x": CGX,
+    "3dlut.content.colorspace.green.y": CGY,
+    "3dlut.content.colorspace.red.x": CRX,
+    "3dlut.content.colorspace.red.y": CRY,
+    "3dlut.content.colorspace.white.x": CWX,
+    "3dlut.content.colorspace.white.y": CWY,
     "3dlut.create": 0,
     "3dlut.trc": "bt1886",
     "3dlut.trc_gamma": 2.4,
@@ -1253,7 +1250,7 @@ defaults = {
     "comport.number": 1,
     "comport.number.backup": 1,
     # Note: worker.Worker.enumerate_displays_and_ports() overwrites copyright
-    "copyright": f"No copyright. Created with {appname} {VERSION_STRING} and ArgyllCMS",
+    "copyright": f"No copyright. Created with {APPNAME} {VERSION_STRING} and ArgyllCMS",
     "dimensions.measureframe": "0.5,0.5,1.0",
     "dimensions.measureframe.unzoomed": "0.5,0.5,1.0",
     "dimensions.measureframe.whitepoint.visual_editor": "0.5,0.5,1.0",
@@ -1405,7 +1402,7 @@ defaults = {
     "profile.b2a.hires.diagpng": 2,
     "profile.b2a.hires.size": -1,
     "profile.b2a.hires.smooth": 1,
-    "profile.save_path": storage,  # directory
+    "profile.save_path": STORAGE,  # directory
     # Force profile type to single shaper + matrix due to OS X bugs with cLUT
     # profiles and matrix profiles with individual shaper curves
     "profile.type": "X" if sys.platform != "darwin" else "S",
@@ -1566,11 +1563,11 @@ defaults = {
     "x3dom.cache": 1,
     "x3dom.embed": 0,
 }
-lcode, lenc = locale.getlocale()
-if lcode:
-    defaults["lang"] = lcode.split("_")[0].lower()
+LCODE, LENC = locale.getlocale()
+if LCODE:
+    DEFAULTS["lang"] = LCODE.split("_")[0].lower()
 
-testchart_defaults = {
+TESTCHART_DEFAULTS = {
     "s": {None: "auto"},  # shaper + matrix
     "l": {None: "auto"},  # lut
     "g": {None: "auto"},  # gamma + matrix
@@ -1578,16 +1575,16 @@ testchart_defaults = {
 
 
 def _init_testcharts():
-    for testcharts in list(testchart_defaults.values()):
+    for testcharts in list(TESTCHART_DEFAULTS.values()):
         for chart in [value for value in list(testcharts.values()) if value != "auto"]:
-            resfiles.append(os.path.join("ti1", chart))
-    testchart_defaults["G"] = testchart_defaults["g"]
-    testchart_defaults["S"] = testchart_defaults["s"]
+            RES_FILES.append(os.path.join("ti1", chart))
+    TESTCHART_DEFAULTS["G"] = TESTCHART_DEFAULTS["g"]
+    TESTCHART_DEFAULTS["S"] = TESTCHART_DEFAULTS["s"]
     for key in ("X", "x"):
-        testchart_defaults[key] = testchart_defaults["l"]
+        TESTCHART_DEFAULTS[key] = TESTCHART_DEFAULTS["l"]
 
 
-def getcfg(name, fallback=True, raw=False, cfg=cfg):
+def getcfg(name, fallback=True, raw=False, cfg=CFG):
     """Get and return an option value from the configuration.
 
     If fallback evaluates to True and the option is not set,
@@ -1596,9 +1593,9 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
     if name == "profile.name.expanded" and is_ccxx_testchart():
         name = "measurement.name.expanded"
     value = None
-    hasdef = name in defaults
+    hasdef = name in DEFAULTS
     if hasdef:
-        defval = defaults[name]
+        defval = DEFAULTS[name]
         deftype = type(defval)
 
     if cfg.has_option(configparser.DEFAULTSECT, name):
@@ -1611,7 +1608,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             if raw:
                 pass
             elif (
-                (name != "trc" or value not in valid_values["trc"])
+                (name != "trc" or value not in VALID_VALUES["trc"])
                 and hasdef
                 and isinstance(defval, (Decimal, int, float))
             ):
@@ -1620,10 +1617,10 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                 except ValueError:
                     value = defval
                 else:
-                    valid_range = valid_ranges.get(name)
+                    valid_range = VALID_RANGES.get(name)
                     if valid_range:
                         value = min(max(valid_range[0], value), valid_range[1])
-                    elif name in valid_values and value not in valid_values[name]:
+                    elif name in VALID_VALUES and value not in VALID_VALUES[name]:
                         value = defval
             elif name.startswith("dimensions.measureframe"):
                 try:
@@ -1631,7 +1628,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
                     if len(value) != 3:
                         raise ValueError
                 except ValueError:
-                    value = defaults[name]
+                    value = DEFAULTS[name]
                 else:
                     value[0] = min(value[0], 1)
                     value[1] = min(value[1], 1)
@@ -1640,22 +1637,22 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             elif name == "profile.quality" and getcfg("profile.type") in ("g", "G"):
                 # default to high quality for gamma + matrix
                 value = "h"
-            elif name == "trc.type" and getcfg("trc") in valid_values["trc"]:
+            elif name == "trc.type" and getcfg("trc") in VALID_VALUES["trc"]:
                 value = "g"
-            elif name in valid_values and value not in valid_values[name]:
-                if debug:
+            elif name in VALID_VALUES and value not in VALID_VALUES[name]:
+                if DEBUG:
                     print(f"Invalid config value for {name}: {value}", end=" ")
                 value = None
             elif name == "copyright":
                 # Make sure DisplayCAL and Argyll version are up-to-date
                 pattern = re.compile(
-                    rf"({appname}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*", re.I
+                    rf"({APPNAME}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*", re.I
                 )
                 repl = create_replace_function("\\1%s", VERSION_STRING)
                 value = re.sub(pattern, repl, value)
-                if appbasename != appname:
+                if APPBASENAME != APPNAME:
                     pattern = re.compile(
-                        rf"({appbasename}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",
+                        rf"({APPBASENAME}(?:\s*v(?:ersion|\.)?)?\s*)\d+(?:\.\d+)*",
                         re.I,
                     )
                     repl = create_replace_function("\\1%s", VERSION_STRING)
@@ -1679,9 +1676,9 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
     if value is None:
         if hasdef and fallback:
             value = defval
-            if debug > 1:
+            if DEBUG > 1:
                 print(name, "- falling back to", value)
-        elif debug and not hasdef:
+        elif DEBUG and not hasdef:
             print("Warning - unknown option:", name)
     if raw:
         return value
@@ -1695,13 +1692,13 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
     ):
         # colorimeter_correction_matrix_file is special
         # because it's not (only) a path
-        if debug:
+        if DEBUG:
             print(f"{name} does not exist: {value}", end=" ")
         # Normalize path (important, this turns altsep into sep under Windows)
         value = os.path.normpath(value)
         # Check if this is a relative path covered by data_dirs
         if (
-            value.split(os.path.sep)[-3:-2] == [appname] or not os.path.isabs(value)
+            value.split(os.path.sep)[-3:-2] == [APPNAME] or not os.path.isabs(value)
         ) and (
             value.split(os.path.sep)[-2:-1] == ["presets"]
             or value.split(os.path.sep)[-2:-1] == ["ref"]
@@ -1713,7 +1710,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
             value = None
         if not value and hasdef:
             value = defval
-        if debug > 1:
+        if DEBUG > 1:
             print(name, "- falling back to", value)
     elif name in ("displays", "instruments"):
         if not value:
@@ -1731,7 +1728,7 @@ def getcfg(name, fallback=True, raw=False, cfg=cfg):
     return value
 
 
-def hascfg(name, fallback=True, cfg=cfg):
+def hascfg(name, fallback=True, cfg=CFG):
     """Check if an option name exists in the configuration.
 
     Returns a boolean value.
@@ -1740,14 +1737,14 @@ def hascfg(name, fallback=True, cfg=cfg):
     if cfg.has_option(configparser.DEFAULTSECT, name):
         return True
     if fallback:
-        return name in defaults
+        return name in DEFAULTS
     return False
 
 
 def get_ccxx_testchart():
     """Get the path to the default chart for CCMX/CCSS creation."""
     return get_data_path(
-        os.path.join("ti1", defaults["colorimeter_correction.testchart"])
+        os.path.join("ti1", DEFAULTS["colorimeter_correction.testchart"])
     )
 
 
@@ -1777,16 +1774,16 @@ def get_display_profile(display_no=None):
     try:
         return get_display_profile(display_no)
     except Exception:
-        from DisplayCAL.log import log
+        from DisplayCAL.log import LOG
 
-        print(f"DisplayCAL.icc_profile.get_display_profile({display_no}):", file=log)
+        print(f"DisplayCAL.icc_profile.get_display_profile({display_no}):", file=LOG)
 
 
-standard_profiles = []
+STANDARD_PROFILES = []
 
 
 def get_standard_profiles(paths_only=False):
-    if not standard_profiles:
+    if not STANDARD_PROFILES:
         from DisplayCAL.icc_profile import ICCProfile
 
         # Reference profiles (Argyll + DisplayCAL)
@@ -1794,7 +1791,7 @@ def get_standard_profiles(paths_only=False):
         # Other profiles installed on the system
         other_icc = []
         rex = re.compile(r"\.ic[cm]$", re.IGNORECASE)
-        for icc_dir in set(iccprofiles + iccprofiles_home):
+        for icc_dir in set(ICCPROFILES + ICCPROFILES_HOME):
             for dirpath, _dirnames, basenames in os.walk(icc_dir):
                 for basename in filter(rex.search, basenames):
                     filename, ext = os.path.splitext(basename.lower())
@@ -1850,10 +1847,10 @@ def get_standard_profiles(paths_only=False):
                     and profile.colorSpace != b"GRAY"
                     and profile.connectionColorSpace in (b"Lab", b"XYZ")
                 ):
-                    standard_profiles.append(profile)
+                    STANDARD_PROFILES.append(profile)
     if paths_only:
-        return [profile.fileName for profile in standard_profiles]
-    return standard_profiles
+        return [profile.fileName for profile in STANDARD_PROFILES]
+    return STANDARD_PROFILES
 
 
 def get_total_patches(
@@ -1953,10 +1950,10 @@ def get_verified_path(cfg_item_name, path=None):
                 os.path.dirname(defaultPath),
                 os.path.basename(defaultPath),
             )
-        elif defaults.get(cfg_item_name) and os.path.exists(defaults[cfg_item_name]):
+        elif DEFAULTS.get(cfg_item_name) and os.path.exists(DEFAULTS[cfg_item_name]):
             defaultDir, defaultFile = (
-                os.path.dirname(defaults[cfg_item_name]),
-                os.path.basename(defaults[cfg_item_name]),
+                os.path.dirname(DEFAULTS[cfg_item_name]),
+                os.path.basename(DEFAULTS[cfg_item_name]),
             )
         elif os.path.exists(os.path.dirname(defaultPath)):
             defaultDir = os.path.dirname(defaultPath)
@@ -1997,23 +1994,23 @@ def is_profile(filename=None, include_display_profile=False):
 
 def makecfgdir(which="user", worker=None):
     if which == "user":
-        if not os.path.exists(confighome):
+        if not os.path.exists(CONFIG_HOME):
             try:
-                os.makedirs(confighome)
+                os.makedirs(CONFIG_HOME)
             except Exception as exception:
                 print(
                     "Warning - could not create configuration directory "
-                    f"'{confighome}': {exception}"
+                    f"'{CONFIG_HOME}': {exception}"
                 )
                 return False
-    elif not os.path.exists(config_sys):
+    elif not os.path.exists(CONFIG_SYS):
         try:
             if sys.platform == "win32":
-                os.makedirs(config_sys)
+                os.makedirs(CONFIG_SYS)
             else:
                 result = worker.exec_cmd(
                     "mkdir",
-                    ["-p", config_sys],
+                    ["-p", CONFIG_SYS],
                     capture_output=True,
                     low_contrast=False,
                     skip_scripts=True,
@@ -2025,43 +2022,43 @@ def makecfgdir(which="user", worker=None):
         except Exception as exception:
             print(
                 "Warning - could not create configuration directory "
-                f"'{config_sys}': {exception}"
+                f"'{CONFIG_SYS}': {exception}"
             )
             return False
     return True
 
 
-cfginited = {}
+CFGINITED = {}
 
 
-def initcfg(module=None, cfg=cfg, force_load=False):
+def initcfg(module=None, cfg=CFG, force_load=False):
     """Initialize the configuration.
 
     Read in settings if the configuration file exists, else create the
     settings directory if nonexistent.
     """
-    cfgbasename = f"{appbasename}-{module}" if module else appbasename
+    cfgbasename = f"{APPBASENAME}-{module}" if module else APPBASENAME
     makecfgdir()
-    cfg_full_path = os.path.join(confighome, f"{cfgbasename}.ini")
-    if os.path.exists(confighome) and not os.path.exists(cfg_full_path):
+    cfg_full_path = os.path.join(CONFIG_HOME, f"{cfgbasename}.ini")
+    if os.path.exists(CONFIG_HOME) and not os.path.exists(cfg_full_path):
         if not cfg.has_section(configparser.DEFAULTSECT):
             # No Default section, add it...
             cfg.add_section(configparser.DEFAULTSECT)
         # Set default preset
-        setcfg("calibration.file", defaults["calibration.file"], cfg=cfg)
+        setcfg("calibration.file", DEFAULTS["calibration.file"], cfg=cfg)
 
     # Read cfg
-    cfgnames = [appbasename]
+    cfgnames = [APPBASENAME]
     if module:
         cfgnames.append(cfgbasename)
     else:
         cfgnames.extend(
-            f"{appbasename}-{othermod}" for othermod in ("testchart-editor",)
+            f"{APPBASENAME}-{othermod}" for othermod in ("testchart-editor",)
         )
 
-    cfgroots = [confighome]
+    cfgroots = [CONFIG_HOME]
     if module == "apply-profiles":
-        cfgroots.append(config_sys)
+        cfgroots.append(CONFIG_SYS)
 
     cfgfiles = []
     for cfgname in cfgnames:
@@ -2073,9 +2070,9 @@ def initcfg(module=None, cfg=cfg, force_load=False):
                 mtime = os.stat(cfgfile).st_mtime
             except OSError as exception:
                 print(f"Warning - os.stat('{cfgfile}') failed: {exception}")
-            last_checked = cfginited.get(cfgfile)
+            last_checked = CFGINITED.get(cfgfile)
             if force_load or mtime != last_checked:
-                cfginited[cfgfile] = mtime
+                CFGINITED[cfgfile] = mtime
                 cfgfiles.append(cfgfile)
                 if force_load:
                     msg = "Force loading"
@@ -2091,7 +2088,7 @@ def initcfg(module=None, cfg=cfg, force_load=False):
         return
     if not module:
         # Make most recent file take precedence
-        cfgfiles.sort(key=lambda cfgfile: cfginited.get(cfgfile))
+        cfgfiles.sort(key=lambda cfgfile: CFGINITED.get(cfgfile))
     try:
         cfg.read(cfgfiles)
     # This won't raise an exception if the file does not exist,
@@ -2116,18 +2113,18 @@ def initcfg(module=None, cfg=cfg, force_load=False):
             setcfg("calibration.ambient_viewcond_adjust.lux", None, cfg=cfg)
 
 
-dpiset = False
+DPISET = False
 
 
 def set_default_app_dpi():
     """Set application DPI."""
     # Only call this after creating the wx.App object!
-    global dpiset
-    if not dpiset and not getcfg("app.dpi", False):
+    global DPISET
+    if not DPISET and not getcfg("app.dpi", False):
         # HighDPI support
         from DisplayCAL.wxaddons import wx
 
-        dpiset = True
+        DPISET = True
         if sys.platform in ("darwin", "win32"):
             # Determine screen DPI
             dpi = wx.ScreenDC().GetPPI()[0]
@@ -2163,8 +2160,8 @@ def set_default_app_dpi():
             dpi = get_default_dpi()
             if txt_scale:
                 dpi = int(round(dpi * txt_scale))
-        defaults["app.dpi"] = dpi
-    dpiset = True
+        DEFAULTS["app.dpi"] = dpi
+    DPISET = True
 
 
 def get_hidpi_scaling_factor():
@@ -2176,9 +2173,7 @@ def get_hidpi_scaling_factor():
     if which("xrdb"):
         import subprocess as sp
 
-        p = sp.Popen(
-            ["xrdb", "-query"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
-        )
+        p = sp.Popen(["xrdb", "-query"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
         # Format: 'Xft.dpi:        192'
         stdout, stderr = p.communicate()
         for line in stdout.splitlines():
@@ -2282,7 +2277,7 @@ def get_hidpi_scaling_factor():
     return factor
 
 
-def setcfg(name, value, cfg=cfg):
+def setcfg(name, value, cfg=CFG):
     """Set an option value in the configuration."""
     if value is None:
         cfg.remove_option(configparser.DEFAULTSECT, name)
@@ -2329,7 +2324,7 @@ def setcfg_cond(condition, name, value, set_if_backup_exists=False, restore=True
 
 
 def writecfg(
-    which: str = "user", worker=None, module=None, options=(), cfg=cfg
+    which: str = "user", worker=None, module=None, options=(), cfg=CFG
 ) -> bool:
     """Write configuration file.
 
@@ -2343,15 +2338,15 @@ def writecfg(
     Returns:
         bool: True if successful, False otherwise.
     """
-    cfgbasename = f"{appbasename}-{module}" if module else appbasename
+    cfgbasename = f"{APPBASENAME}-{module}" if module else APPBASENAME
     # Remove unknown options
     for name, _val in cfg.items(configparser.DEFAULTSECT):
-        if name not in defaults:
+        if name not in DEFAULTS:
             print("Removing unknown option:", name)
             setcfg(name, None)
     if which == "user":
         # user config - stores everything and overrides system-wide config
-        cfgfilename = os.path.join(confighome, f"{cfgbasename}.ini")
+        cfgfilename = os.path.join(CONFIG_HOME, f"{cfgbasename}.ini")
         try:
             io = StringIO()
             cfg.write(io)
@@ -2377,8 +2372,8 @@ def writecfg(
             return False
     else:
         # system-wide config - only stores essentials ie. Argyll directory
-        cfgfilename1 = os.path.join(confighome, f"{cfgbasename}.local.ini")
-        cfgfilename2 = os.path.join(config_sys, f"{cfgbasename}.ini")
+        cfgfilename1 = os.path.join(CONFIG_HOME, f"{cfgbasename}.local.ini")
+        cfgfilename2 = os.path.join(CONFIG_SYS, f"{cfgbasename}.ini")
         if sys.platform == "win32":
             cfgfilename = cfgfilename2
         else:
@@ -2423,20 +2418,20 @@ def writecfg(
 
 
 _init_testcharts()
-runtype = runtimeconfig(pyfile)
+RUNTYPE = runtimeconfig(PYFILE)
 
 
 if sys.platform in ("darwin", "win32") and not os.getenv("SSL_CERT_FILE"):
     try:
         import certifi
     except ImportError:
-        cafile = None
+        CAFILE = None
     else:
-        cafile = certifi.where()
-        if cafile and not os.path.isfile(cafile):
-            cafile = None
-    if not cafile:
+        CAFILE = certifi.where()
+        if CAFILE and not os.path.isfile(CAFILE):
+            CAFILE = None
+    if not CAFILE:
         # Use our bundled CA file
-        cafile = get_data_path("cacert.pem")
-    if cafile and isinstance(cafile, str):
-        os.environ["SSL_CERT_FILE"] = cafile
+        CAFILE = get_data_path("cacert.pem")
+    if CAFILE and isinstance(CAFILE, str):
+        os.environ["SSL_CERT_FILE"] = CAFILE

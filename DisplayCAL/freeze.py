@@ -226,7 +226,8 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
                 os.path.join(tgt_dir, os.path.dirname(pth))
             )
             safe_path = [
-                os.path.relpath(p, src_dir) for p in safe_glob(os.path.join(resource_dir, pth))
+                os.path.relpath(p, src_dir)
+                for p in safe_glob(os.path.join(resource_dir, pth))
             ]
             data.append((normalized_path, safe_path))
     return data
@@ -298,7 +299,10 @@ def build_py2exe():
     data_files += get_data(doc, "doc", excludes=["LICENSE.txt"])
     if data_files:
         data_files.append(
-            (doc, [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+            (
+                doc,
+                [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)],
+            )
         )
     # metainfo / appdata.xml
     data_files.append(

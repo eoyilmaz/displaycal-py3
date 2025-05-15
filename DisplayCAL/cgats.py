@@ -14,7 +14,7 @@ from typing import Union
 from DisplayCAL import colormath
 from DisplayCAL.icc_profile import ICCProfileTag
 from DisplayCAL.log import safe_print
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_io import GzipFileProper
 
 
@@ -822,25 +822,25 @@ class CGATS(dict):
             prev_values = []
             added = {prev_i: True}  # Keep track of entries we have added
             for i, values in enumerate(valueslist):
-                if debug:
+                if DEBUG:
                     print(i + 1, "IN", values[:3])
                 is_gray = values[:3] == [values[:3][0]] * 3
                 prev = color
                 cur = color
                 if is_gray:
                     if not prev_values:
-                        if debug:
+                        if DEBUG:
                             print("WARNING - skipping gray because no prev")
                     elif values[:3] == prev_values[:3]:
                         # Same gray as prev value
                         prev = color
                         cur = gray
-                        if prev_i not in added and debug:
+                        if prev_i not in added and DEBUG:
                             print(
                                 f"INFO - appending prev {prev_values[:3]} to color "
                                 "because prev was same gray but got skipped"
                             )
-                        if debug:
+                        if DEBUG:
                             print(
                                 "INFO - appending cur to gray because prev "
                                 f"{prev_values[:3]} was same gray"
@@ -849,38 +849,38 @@ class CGATS(dict):
                         # Prev value was different gray
                         prev = gray
                         cur = gray
-                        if prev_i not in added and debug:
+                        if prev_i not in added and DEBUG:
                             print(
                                 f"INFO - appending prev {prev_values[:3]} to gray "
                                 "because prev was different gray but got skipped"
                             )
-                        if debug:
+                        if DEBUG:
                             print(
                                 "INFO - appending cur to gray because prev "
                                 f"{prev_values[:3]} was different gray"
                             )
                     elif i < numvalues - 1:
-                        if debug:
+                        if DEBUG:
                             print(
                                 "WARNING - skipping gray because prev "
                                 f"{prev_values[:3]} was not gray"
                             )
                     # Last
-                    elif debug:
+                    elif DEBUG:
                         print(
                             "INFO - appending cur to color because prev "
                             f"{prev_values[:3]} was not gray but cur is last"
                         )
                 if not is_gray or cur is gray or i == numvalues - 1:
                     if prev_i not in added:
-                        if debug and prev is cur is color:
+                        if DEBUG and prev is cur is color:
                             print(
                                 f"INFO - appending prev {prev_values[:3]} "
                                 "to color because prev got skipped"
                             )
                         prev.append(prev_values)
                         added[prev_i] = True
-                    if debug and not is_gray and cur is color:
+                    if DEBUG and not is_gray and cur is color:
                         print("INFO - appending cur to color")
                     cur.append(values)
                     added[i] = True
@@ -891,7 +891,7 @@ class CGATS(dict):
                 and color[0][:3] == [0, 0, 0]
                 and color[1][:3] == [100, 100, 100]
             ):
-                if debug:
+                if DEBUG:
                     print(
                         "INFO - appending color to gray because color is only black "
                         "and white"
@@ -902,7 +902,7 @@ class CGATS(dict):
                     gray = sorted(gray, key=functools.cmp_to_key(sort1))
                 if sort2:
                     gray = sorted(gray, key=functools.cmp_to_key(sort2))
-            if debug:
+            if DEBUG:
                 for i, values in enumerate(gray):
                     print(
                         f"{i + 1:4d}",
@@ -955,7 +955,7 @@ class CGATS(dict):
                         checkerboard.append(values)
         if shift and checkerboard[-1][:3] == [100, 100, 100]:
             # Move white patch to front
-            if debug:
+            if DEBUG:
                 print("INFO - moving white to front")
             checkerboard.insert(0, checkerboard.pop())
         if len(checkerboard) != numvalues:
@@ -2340,9 +2340,7 @@ Transform {
             if colorspace == "Lab":
                 if "LAB_L" in white:
                     return white["LAB_L"], white["LAB_A"], white["LAB_B"]
-                return colormath.XYZ2Lab(
-                    white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                )
+                return colormath.XYZ2Lab(white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"])
             return white
         return None
 

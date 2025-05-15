@@ -25,7 +25,7 @@ def get_network_addr():
         s.close()
 
 
-def get_valid_host(hostname : None | str = None) -> tuple[str, str]:
+def get_valid_host(hostname: None | str = None) -> tuple[str, str]:
     """Try to verify the hostname by resolving to an IPv4 address.
 
     Both hostname with and without .local suffix will be tried if necessary.
@@ -51,6 +51,7 @@ def get_valid_host(hostname : None | str = None) -> tuple[str, str]:
         else:
             return hostname, addr
     return None, None
+
 
 class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     """Like urllib2.HTTPRedirectHandler, but logs redirections"""

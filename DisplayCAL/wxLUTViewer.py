@@ -34,7 +34,7 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     WcsProfilesTagType,
 )
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
 from DisplayCAL.worker import (
@@ -768,7 +768,7 @@ class LUTFrame(BaseFrame):
         BaseFrame.__init__(self, *args, **kwargs)
 
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], f"{appname}-curve-viewer")
+            config.get_icon_bundle([256, 48, 32, 16], f"{APPNAME}-curve-viewer")
         )
 
         self.profile = None
@@ -1022,8 +1022,8 @@ class LUTFrame(BaseFrame):
 
         border, titlebar = get_platform_window_decoration_size()
         self.MinSize = (
-            config.defaults["size.lut_viewer.w"] + border * 2,
-            config.defaults["size.lut_viewer.h"] + titlebar + border,
+            config.DEFAULTS["size.lut_viewer.w"] + border * 2,
+            config.DEFAULTS["size.lut_viewer.h"] + titlebar + border,
         )
         self.SetSaneGeometry(
             getcfg("position.lut_viewer.x"),

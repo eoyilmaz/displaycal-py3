@@ -5,11 +5,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from DisplayCAL import ICCProfile as iccp
-from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
+from DisplayCAL.defaultpaths import ICCPROFILES, ICCPROFILES_HOME
 
 
 def main():
-    for p in set(iccprofiles_home + iccprofiles):
+    for p in set(ICCPROFILES_HOME + ICCPROFILES):
         if not os.path.isdir(p):
             continue
         for f in os.listdir(p):

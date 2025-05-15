@@ -1,5 +1,5 @@
 # Argyll CMS tools used by DisplayCAL
-names = [
+NAMES = [
     "applycal",
     "average",
     "cctiff",
@@ -28,7 +28,7 @@ names = [
 ]
 
 # Argyll CMS tools optionally used by DisplayCAL
-optional = [
+OPTIONAL = [
     "applycal",
     "average",
     "cctiff",
@@ -42,11 +42,11 @@ optional = [
     "timage",
 ]
 
-prefixes_suffixes = ["argyll"]
+PREFIXES_SUFFIXES = ["argyll"]
 
 # Alternative tool names (from older Argyll CMS versions or with filename
 # prefix/suffix like on some Linux distros)
-altnames = {
+ALTNAMES = {
     "txt2ti3": ["logo2cgats"],
     "icclu": ["xicclu"],
     "ccxxmake": ["ccmxmake"],
@@ -57,25 +57,25 @@ altnames = {
 
 
 def add_prefixes_suffixes(name, altname):
-    for prefix_suffix in prefixes_suffixes:
-        altnames[name].append(f"{altname}-{prefix_suffix}")
-        altnames[name].append(f"{prefix_suffix}-{altname}")
+    for prefix_suffix in PREFIXES_SUFFIXES:
+        ALTNAMES[name].append(f"{altname}-{prefix_suffix}")
+        ALTNAMES[name].append(f"{prefix_suffix}-{altname}")
 
 
 # Automatically populate the alternative tool names with prefixed/suffixed
 # versions
-for name in names:
-    if name not in altnames:
-        altnames[name] = []
-    _altnames = list(altnames[name])
+for name in NAMES:
+    if name not in ALTNAMES:
+        ALTNAMES[name] = []
+    _altnames = list(ALTNAMES[name])
     for altname in _altnames:
         add_prefixes_suffixes(name, altname)
-    altnames[name].append(name)
+    ALTNAMES[name].append(name)
     add_prefixes_suffixes(name, name)
-    altnames[name].reverse()
+    ALTNAMES[name].reverse()
 
 # Viewing conditions supported by colprof (only predefined choices)
-viewconds = [
+VIEWCONDS = [
     "pp",
     "pe",
     "pc",  # Argyll 1.1.1
@@ -93,10 +93,10 @@ viewconds = [
 # Intents supported by colprof
 # pa = Argyll >= 1.3.3
 # lp = Argyll >= 1.8.3
-intents = ["a", "aa", "aw", "la", "lp", "ms", "p", "pa", "r", "s"]
+INTENTS = ["a", "aa", "aw", "la", "lp", "ms", "p", "pa", "r", "s"]
 
 # Video input/output encodings supported by collink (Argyll >= 1.6)
-video_encodings = ["n", "t", "6", "7", "5", "2", "C", "x", "X"]
+VIDEO_ENCODINGS = ["n", "t", "6", "7", "5", "2", "C", "x", "X"]
 
 # Observers
-observers = ["1931_2", "1955_2", "1964_10", "1964_10c", "1978_2", "shaw"]
+OBSERVERS = ["1931_2", "1955_2", "1964_10", "1964_10c", "1978_2", "shaw"]

@@ -64,7 +64,7 @@ import distutils.filelist
 distutils.filelist.findall = findall  # Fix findall bug in distutils
 
 
-from DisplayCAL.defaultpaths import autostart, autostart_home
+from DisplayCAL.defaultpaths import AUTOSTART, AUTOSTART_HOME
 from DisplayCAL.meta import (
     APPSTREAM_ID,
     AUTHOR,
@@ -368,7 +368,8 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
                 os.path.join(tgt_dir, os.path.dirname(pth))
             )
             safe_path = [
-                os.path.relpath(p, src_dir) for p in safe_glob(os.path.join(src_dir, pth))
+                os.path.relpath(p, src_dir)
+                for p in safe_glob(os.path.join(src_dir, pth))
             ]
             if pkgname:
                 # try looking for the "{src_dir}/{pkgname}/{pth}" too
@@ -626,7 +627,10 @@ def setup():
             )
         )
         data_files.append(
-            (doc, [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+            (
+                doc,
+                [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)],
+            )
         )
 
     # metainfo / appdata.xml
@@ -705,9 +709,9 @@ def setup():
             data_files.append(
                 (
                     (
-                        autostart
+                        AUTOSTART
                         if os.geteuid() == 0 or prefix.startswith("/")
-                        else autostart_home
+                        else AUTOSTART_HOME
                     ),
                     [
                         os.path.join(
@@ -1475,7 +1479,9 @@ def setup():
             for datafile in datafiles:
                 manifest_in.append(
                     "include {}".format(
-                        os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
+                        os.path.relpath(
+                            os.path.sep.join(datafile.split("/")), source_dir
+                        )
                         or datafile
                     )
                 )

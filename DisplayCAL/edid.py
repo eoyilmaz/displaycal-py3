@@ -435,9 +435,9 @@ def get_pnp_id_paths():
     ]  # fallback gnome-desktop
     # if sys.platform in ("darwin", "win32"):
     # fallback
-    paths.append(os.path.join(config.pydir, "pnp.ids"))
+    paths.append(os.path.join(config.PYDIR, "pnp.ids"))
     # fallback for tests
-    paths.append(os.path.join(config.pydir, "DisplayCAL", "pnp.ids"))
+    paths.append(os.path.join(config.PYDIR, "DisplayCAL", "pnp.ids"))
     return paths
 
 

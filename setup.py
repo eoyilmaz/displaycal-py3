@@ -671,7 +671,7 @@ def setup():
         lang.init()
         languages = []
 
-        for code, tdict in sorted(lang.ldict.items()):
+        for code, tdict in sorted(lang.LDICT.items()):
             if code == "en":
                 continue
 

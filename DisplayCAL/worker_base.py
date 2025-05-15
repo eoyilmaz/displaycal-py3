@@ -34,7 +34,7 @@ from DisplayCAL.config import (
     # fs_enc,
     # get_data_path,
     # getcfg,
-    profile_ext,
+    PROFILE_EXT,
 )
 from DisplayCAL.debughelpers import (
     Error,
@@ -49,9 +49,9 @@ from DisplayCAL.icc_profile import (
     LUT16Type,
 )
 from DisplayCAL.log import LogFile
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.multiprocess import mp, pool_slice
-from DisplayCAL.options import debug, verbose
+from DisplayCAL.options import DEBUG, VERBOSE
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
 
@@ -80,7 +80,7 @@ def _mp_xicclu(
     convert_video_rgb_to_clut65=False,
     verbose=1,
 ):
-    if not config.cfg.items(config.configparser.DEFAULTSECT):
+    if not config.CFG.items(config.configparser.DEFAULTSECT):
         config.initcfg()
     profile = ICCProfile(profile_filename)
     xicclu = Xicclu(
@@ -154,12 +154,12 @@ def _mp_generate_B2A_clut(
     This should be spawned as a multiprocessing process
 
     """
-    if debug:
+    if DEBUG:
         print("comtypes?", "comtypes" in str(list(sys.modules.keys())))
         print("numpy?", "numpy" in str(list(sys.modules.keys())))
         print("wx?", "wx" in str(list(sys.modules.keys())))
         print("x3dom?", "x3dom" in str(list(sys.modules.keys())))
-    if not config.cfg.items(config.configparser.DEFAULTSECT):
+    if not config.CFG.items(config.configparser.DEFAULTSECT):
         config.initcfg()
     idata = []
     abmaxval = 255 + (255 / 256.0)
@@ -312,14 +312,14 @@ class WorkerBase:
         if not self.tempdir or not os.path.isdir(self.tempdir):
             # we create the tempdir once each calibrating/profiling run
             # (deleted by 'wrapup' after each run)
-            if verbose >= 2:
+            if VERBOSE >= 2:
                 if not self.tempdir:
                     msg = "there is none"
                 else:
                     msg = f"the previous ({self.tempdir}) no longer exists"
-                print(f"{appname}: Creating a new temporary directory because", msg)
+                print(f"{APPNAME}: Creating a new temporary directory because", msg)
             try:
-                self.tempdir = tempfile.mkdtemp(prefix=f"{appname}-")
+                self.tempdir = tempfile.mkdtemp(prefix=f"{APPNAME}-")
             except Exception as exception:
                 self.tempdir = None
                 return Error(
@@ -463,7 +463,7 @@ class Xicclu(WorkerBase):
             elif is_profile:
                 prefix = (
                     make_filename_safe(profile.getDescription(), concat=False)
-                    + profile_ext
+                    + PROFILE_EXT
                 )
             else:
                 # CGATS (.cal)
@@ -536,7 +536,7 @@ class Xicclu(WorkerBase):
                 if pcs:
                     args.append("-p" + pcs)
         args.append(self.profile_path)
-        if debug or verbose > 1:
+        if DEBUG or verbose > 1:
             self.sessionlogfile = LogFile(
                 profile_basename + ".xicclu", os.path.dirname(profile.fileName)
             )

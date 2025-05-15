@@ -451,7 +451,7 @@ def create_replace_function(template, values):
     return replace_function
 
 
-def ellipsis_(text : str | bytes, maxlen : int = 64, pos : str = "r") -> str | bytes:
+def ellipsis_(text: str | bytes, maxlen: int = 64, pos: str = "r") -> str | bytes:
     """Truncate text to maxlen characters and add ellipsis if it was longer.
 
     Ellipsis position can be 'm' (middle) or 'r' (right).
@@ -469,9 +469,7 @@ def ellipsis_(text : str | bytes, maxlen : int = 64, pos : str = "r") -> str | b
         return text
 
     if pos not in ("m", "r"):
-        raise ValueError(
-            f"pos must be 'm' or 'r', not {pos!r}"
-        )
+        raise ValueError(f"pos must be 'm' or 'r', not {pos!r}")
 
     ellipsis_char = "\u2026"
 
@@ -512,9 +510,7 @@ def indent(text, prefix, predicate=None):
 def universal_newlines(txt):
     """Return txt with all new line formats converted to POSIX newlines."""
     if not isinstance(txt, (str, bytes)):
-        raise TypeError(
-            f"txt should be a str or bytes, not {txt.__class__.__name__}"
-        )
+        raise TypeError(f"txt should be a str or bytes, not {txt.__class__.__name__}")
     if isinstance(txt, str):
         return txt.replace("\r\n", "\n").replace("\r", "\n")
     # elif isinstance(txt, bytes):

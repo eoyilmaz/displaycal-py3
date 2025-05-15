@@ -1,10 +1,10 @@
 import os
 import re
 
-from DisplayCAL.config import data_dirs, defaults, getcfg, storage
+from DisplayCAL.config import DATA_DIRS, DEFAULTS, getcfg, STORAGE
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.lazydict import LazyDict_YAML_UltraLite
-from DisplayCAL.options import debug_localization as debug
+from DisplayCAL.options import DEBUG_LOCALIZATION as DEBUG
 from DisplayCAL.util_os import expanduseru
 
 
@@ -15,7 +15,7 @@ def init(set_wx_locale=False):
 
     """
     langdirs = []
-    for dir_ in data_dirs:
+    for dir_ in DATA_DIRS:
         langdirs.append(os.path.join(dir_, "lang"))
     for langdir in langdirs:
         if os.path.exists(langdir) and os.path.isdir(langdir):
@@ -26,10 +26,10 @@ def init(set_wx_locale=False):
             else:
                 for filename in langfiles:
                     name, ext = os.path.splitext(filename)
-                    if ext.lower() == ".yaml" and name.lower() not in ldict:
+                    if ext.lower() == ".yaml" and name.lower() not in LDICT:
                         path = os.path.join(langdir, filename)
-                        ldict[name.lower()] = LazyDict_YAML_UltraLite(path)
-    if len(ldict) == 0:
+                        LDICT[name.lower()] = LazyDict_YAML_UltraLite(path)
+    if len(LDICT) == 0:
         handle_error(
             UserWarning(
                 "Warning: No language files found. The "
@@ -39,12 +39,12 @@ def init(set_wx_locale=False):
 
 
 def update_defaults():
-    defaults.update(
+    DEFAULTS.update(
         {
             "last_3dlut_path": os.path.join(expanduseru("~"), getstr("unnamed")),
             "last_archive_save_path": os.path.join(expanduseru("~"), getstr("unnamed")),
-            "last_cal_path": os.path.join(storage, getstr("unnamed")),
-            "last_cal_or_icc_path": os.path.join(storage, getstr("unnamed")),
+            "last_cal_path": os.path.join(STORAGE, getstr("unnamed")),
+            "last_cal_or_icc_path": os.path.join(STORAGE, getstr("unnamed")),
             "last_colorimeter_ti3_path": os.path.join(
                 expanduseru("~"), getstr("unnamed")
             ),
@@ -52,13 +52,13 @@ def update_defaults():
                 expanduseru("~"), getstr("unnamed")
             ),
             "last_filedialog_path": os.path.join(expanduseru("~"), getstr("unnamed")),
-            "last_icc_path": os.path.join(storage, getstr("unnamed")),
+            "last_icc_path": os.path.join(STORAGE, getstr("unnamed")),
             "last_reference_ti3_path": os.path.join(
                 expanduseru("~"), getstr("unnamed")
             ),
-            "last_ti1_path": os.path.join(storage, getstr("unnamed")),
-            "last_ti3_path": os.path.join(storage, getstr("unnamed")),
-            "last_vrml_path": os.path.join(storage, getstr("unnamed")),
+            "last_ti1_path": os.path.join(STORAGE, getstr("unnamed")),
+            "last_ti3_path": os.path.join(STORAGE, getstr("unnamed")),
+            "last_vrml_path": os.path.join(STORAGE, getstr("unnamed")),
         }
     )
 
@@ -66,10 +66,10 @@ def update_defaults():
 def getcode():
     """Get language code from config"""
     lcode = getcfg("lang")
-    if lcode not in ldict:
+    if lcode not in LDICT:
         # fall back to default
-        lcode = defaults["lang"]
-    if lcode not in ldict:
+        lcode = DEFAULTS["lang"]
+    if lcode not in LDICT:
         # fall back to english
         lcode = "en"
     return lcode
@@ -79,12 +79,12 @@ def getstr(id_str, strvars=None, lcode=None, default=None):
     """Get a translated string from the dictionary"""
     if not lcode:
         lcode = getcode()
-    if lcode not in ldict or id_str not in ldict[lcode]:
+    if lcode not in LDICT or id_str not in LDICT[lcode]:
         # fall back to english
         lcode = "en"
-    if lcode in ldict and id_str in ldict[lcode]:
-        lstr = ldict[lcode][id_str]
-        if debug:
+    if lcode in LDICT and id_str in LDICT[lcode]:
+        lstr = LDICT[lcode][id_str]
+        if DEBUG:
             if id_str not in usage or not isinstance(usage[id_str], int):
                 usage[id_str] = 1
             else:
@@ -107,35 +107,35 @@ def getstr(id_str, strvars=None, lcode=None, default=None):
                     strvars[i] = s
                 lstr %= tuple(strvars)
         return lstr
-    if debug and id_str and not isinstance(id_str, str) and " " not in id_str:
+    if DEBUG and id_str and not isinstance(id_str, str) and " " not in id_str:
         usage[id_str] = 0
     return default or id_str
 
 
 def gettext(text):
-    if not catalog and defaults["lang"] in ldict:
-        for id_str in ldict[defaults["lang"]]:
-            lstr = ldict[defaults["lang"]][id_str]
-            catalog[lstr] = {}
-            catalog[lstr].id_str = id_str
+    if not CATALOG and DEFAULTS["lang"] in LDICT:
+        for id_str in LDICT[DEFAULTS["lang"]]:
+            lstr = LDICT[DEFAULTS["lang"]][id_str]
+            CATALOG[lstr] = {}
+            CATALOG[lstr].id_str = id_str
     lcode = getcode()
-    if catalog and text in catalog and lcode not in catalog[text]:
-        catalog[text][lcode] = ldict[lcode].get(catalog[text].id_str, text)
-    return catalog.get(text, {}).get(lcode, text)
+    if CATALOG and text in CATALOG and lcode not in CATALOG[text]:
+        CATALOG[text][lcode] = LDICT[lcode].get(CATALOG[text].id_str, text)
+    return CATALOG.get(text, {}).get(lcode, text)
 
 
-ldict = {}
-catalog = {}
+LDICT = {}
+CATALOG = {}
 
 
-if debug:
+if DEBUG:
     import atexit
 
-    from DisplayCAL.config import confighome
+    from DisplayCAL.config import CONFIG_HOME
     from DisplayCAL.jsondict import JSONDict
 
     usage = JSONDict()
-    usage_path = os.path.join(confighome, "localization_usage.json")
+    usage_path = os.path.join(CONFIG_HOME, "localization_usage.json")
     if os.path.isfile(usage_path):
         usage.path = usage_path
 

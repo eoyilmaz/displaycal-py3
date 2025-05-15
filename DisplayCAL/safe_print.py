@@ -3,15 +3,15 @@ import sys
 
 from DisplayCAL.encoding import get_encodings
 
-original_codepage = None
-enc, fs_enc = get_encodings()
-_conwidth = None
+ORIGINAL_CODEPAGE = None
+ENC, FS_ENC = get_encodings()
+_CONWIDTH = None
 
 
 def _get_console_width():
-    global _conwidth
-    if _conwidth is None:
-        _conwidth = 80
+    global _CONWIDTH
+    if _CONWIDTH is None:
+        _CONWIDTH = 80
         try:
             if sys.platform == "win32":
                 import struct
@@ -24,12 +24,12 @@ def _get_console_width():
                     stderr_handle, buf
                 )
                 if consinfo:
-                    _conwidth = struct.unpack("hhhhHhhhhhh", buf.raw)[0]
+                    _CONWIDTH = struct.unpack("hhhhHhhhhhh", buf.raw)[0]
             else:
-                _conwidth = int(os.getenv("COLUMNS"))
+                _CONWIDTH = int(os.getenv("COLUMNS"))
         except Exception:
             pass
-    return _conwidth
+    return _CONWIDTH
 
 
 class SafePrinter:
@@ -119,7 +119,7 @@ class SafePrinter:
                 pass
 
 
-safe_print = SafePrinter()
+SAFE_PRINT = SafePrinter()
 
 
 if __name__ == "__main__":

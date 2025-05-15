@@ -4,7 +4,7 @@ from functools import partial
 
 from DisplayCAL import config, x3dom
 from DisplayCAL import localization as lang
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
 
 gui = "wx" in sys.modules
@@ -27,7 +27,7 @@ if gui:
             )
             self.SetIcons(
                 config.get_icon_bundle(
-                    [256, 48, 32, 16], f"{appname}-VRML-to-X3D-converter"
+                    [256, 48, 32, 16], f"{APPNAME}-VRML-to-X3D-converter"
                 )
             )
             self.Bind(wx.EVT_CLOSE, self.OnClose)

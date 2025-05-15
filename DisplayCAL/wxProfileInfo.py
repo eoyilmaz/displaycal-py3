@@ -8,7 +8,7 @@ from DisplayCAL import localization as lang
 from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
-    defaults,
+    DEFAULTS,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -17,7 +17,7 @@ from DisplayCAL.config import (
     getbitmap,
     getcfg,
     geticon,
-    profile_ext,
+    PROFILE_EXT,
     setcfg,
     writecfg,
 )
@@ -32,8 +32,8 @@ from DisplayCAL.icc_profile import (
     ParametricCurveType,
     VideoCardGammaType,
 )
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_dict import dict_slice, dict_sort
 from DisplayCAL.util_io import GzipFileProper
 from DisplayCAL.util_list import intlist
@@ -592,7 +592,7 @@ class GamutCanvas(LUTCanvas):
                 elif profile.colorSpace != b"GRAY":
                     device_values.append([0.0] * channels)
 
-                if debug:
+                if DEBUG:
                     print("In:")
                     for v in device_values:
                         print(" ".join(("%3.4f",) * len(v)) % tuple(v))
@@ -615,10 +615,10 @@ class GamutCanvas(LUTCanvas):
                     self.errors.append(Error(str(exception)))
                     continue
 
-                if debug:
+                if DEBUG:
                     print("Out:")
                 for pcs_triplet in odata:
-                    if debug:
+                    if DEBUG:
                         print(
                             " ".join(("%3.4f",) * len(pcs_triplet)) % tuple(pcs_triplet)
                         )
@@ -1091,7 +1091,7 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
             if self._expanded < 0:
                 self.Parent.SetMinSize(
                     (
-                        defaults["size.profile_info.split.w"] + winborder * 2,
+                        DEFAULTS["size.profile_info.split.w"] + winborder * 2,
                         self.Parent.GetMinSize()[1],
                     )
                 )
@@ -1106,7 +1106,7 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
             else:
                 self.Parent.SetMinSize(
                     (
-                        defaults["size.profile_info.w"] + winborder * 2,
+                        DEFAULTS["size.profile_info.w"] + winborder * 2,
                         self.Parent.GetMinSize()[1],
                     )
                 )
@@ -1132,7 +1132,7 @@ class ProfileInfoFrame(LUTFrame):
         BaseFrame.__init__(self, *args, **kwargs)
 
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], f"{appname}-profile-info")
+            config.get_icon_bundle([256, 48, 32, 16], f"{APPNAME}-profile-info")
         )
 
         self.profile = None
@@ -1369,7 +1369,7 @@ class ProfileInfoFrame(LUTFrame):
 
         min_w = max(
             self.options_panel.GetBestSize()[0] + 24,
-            defaults["size.profile_info.w"] - self.splitter._GetSashSize(),
+            DEFAULTS["size.profile_info.w"] - self.splitter._GetSashSize(),
         )
 
         self.splitter.SetMinimumPaneSize(min_w)
@@ -1379,14 +1379,14 @@ class ProfileInfoFrame(LUTFrame):
         self.SetSaneGeometry(
             getcfg("position.profile_info.x"),
             getcfg("position.profile_info.y"),
-            defaults["size.profile_info.split.w"],
+            DEFAULTS["size.profile_info.split.w"],
             getcfg("size.profile_info.h"),
         )
         self.SetMinSize(
-            (min_w + border * 2, defaults["size.profile_info.h"] + titlebar + border)
+            (min_w + border * 2, DEFAULTS["size.profile_info.h"] + titlebar + border)
         )
         self.splitter.SetSplitSize(
-            (defaults["size.profile_info.split.w"], self.ClientSize[1])
+            (DEFAULTS["size.profile_info.split.w"], self.ClientSize[1])
         )
         self.splitter.SetExpandedSize(self.ClientSize)
 
@@ -1838,9 +1838,9 @@ class ProfileInfoFrame(LUTFrame):
     ):
         name = ".split" if split else ""
         if not defaultwidth:
-            defaultwidth = defaults[f"size.profile_info{name}.w"]
+            defaultwidth = DEFAULTS[f"size.profile_info{name}.w"]
         if not defaultheight:
-            defaultheight = defaults["size.profile_info.h"]
+            defaultheight = DEFAULTS["size.profile_info.h"]
         border, titlebar = get_platform_window_decoration_size()
         # return (max(max(getcfg("size.profile_info{name}.w"),
         # defaultwidth), self.GetMinSize()[0] - border * 2),
@@ -2020,7 +2020,7 @@ class ProfileInfoFrame(LUTFrame):
                 desc = profile.getDescription()
                 profile_path = os.path.join(
                     self.worker.tempdir,
-                    f"{make_argyll_compatible_path(desc)}{profile_ext}",
+                    f"{make_argyll_compatible_path(desc)}{PROFILE_EXT}",
                 )
                 profile.write(profile_path)
             profile_mtime = os.stat(profile_path).st_mtime
@@ -2161,7 +2161,7 @@ class ProfileInfoFrame(LUTFrame):
 
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
-        for file_format in config.valid_values["3d.format"]:
+        for file_format in config.VALID_VALUES["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)

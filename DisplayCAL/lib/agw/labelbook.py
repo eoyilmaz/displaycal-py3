@@ -2664,7 +2664,11 @@ class FlatBookBase(wx.Panel):
 
         self._mainSizer.Detach(self._pages)
 
-        if isinstance(self, LabelBook) or agwStyle & ImageBookStyle.INB_LEFT or agwStyle & ImageBookStyle.INB_RIGHT:
+        if (
+            isinstance(self, LabelBook)
+            or agwStyle & ImageBookStyle.INB_LEFT
+            or agwStyle & ImageBookStyle.INB_RIGHT
+        ):
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
             self._mainSizer = wx.BoxSizer(wx.VERTICAL)

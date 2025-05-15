@@ -24,9 +24,9 @@ from DisplayCAL import audio, config, floatspin, util_str
 from DisplayCAL import demjson_compat as demjson
 from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    appbasename,
-    confighome,
-    defaults,
+    APPBASENAME,
+    CONFIG_HOME,
+    DEFAULTS,
     get_data_path,
     get_default_dpi,
     get_verified_path,
@@ -34,8 +34,8 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     hascfg,
-    logdir,
-    pyname,
+    LOGDIR,
+    PYNAME,
     set_default_app_dpi,
     setcfg,
 )
@@ -62,9 +62,9 @@ from DisplayCAL.lib.agw.fourwaysplitter import (
     FourWaySplitterEvent,
 )
 from DisplayCAL.lib.agw.gradientbutton import CLICK, HOVER, GradientButton
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.network import ScriptingClientSocket, get_network_addr
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
@@ -181,7 +181,7 @@ class AboutDialog(wx.Dialog):
 
         # Set an icon so text isn't crammed to the left of the titlebar under
         # Windows (other platforms?)
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel = wx.ScrolledWindow(self, style=wx.VSCROLL)
@@ -764,7 +764,7 @@ class BaseApp(wx.App):
             self.ProcessEvent(wx.CloseEvent(wx.EVT_QUERY_END_SESSION.evtType[0]))
 
     def OnInit(self):
-        self.AppName = pyname
+        self.AppName = PYNAME
         set_default_app_dpi()
         # We use a lock so we can make sure the exit handlers are executed
         # properly before we actually exit when receiving OS
@@ -1070,11 +1070,11 @@ class BaseFrame(wx.Frame):
                         response = None
                         # Non-UI commands
                         if data[0] == "getappname" and len(data) == 1:
-                            response = pyname
+                            response = PYNAME
                         elif data[0] == "getcfg" and len(data) < 3:
                             if len(data) == 2:
                                 # Return cfg value
-                                if data[1] in defaults:
+                                if data[1] in DEFAULTS:
                                     if responseformats[conn].startswith("xml"):
                                         response = {
                                             "name": data[1],
@@ -1090,7 +1090,7 @@ class BaseFrame(wx.Frame):
                                     response = []
                                 else:
                                     response = {}
-                                for name in sorted(defaults):
+                                for name in sorted(DEFAULTS):
                                     value = getcfg(name, False)
                                     if value is not None:
                                         if responseformats[conn] != "plain":
@@ -1102,31 +1102,31 @@ class BaseFrame(wx.Frame):
                         elif data[0] == "getcommands" and len(data) == 1:
                             response = sorted(self.get_commands())
                         elif data[0] == "getdefault" and len(data) == 2:
-                            if data[1] in defaults:
+                            if data[1] in DEFAULTS:
                                 if responseformats[conn] != "plain":
                                     response = {
                                         "name": data[1],
-                                        "value": defaults[data[1]],
+                                        "value": DEFAULTS[data[1]],
                                     }
                                 else:
-                                    response = {data[1]: defaults[data[1]]}
+                                    response = {data[1]: DEFAULTS[data[1]]}
                             else:
                                 response = "invalid"
                         elif data[0] == "getdefaults" and len(data) == 1:
                             response = [] if responseformats[conn] != "plain" else {}
-                            for name in sorted(defaults):
+                            for name in sorted(DEFAULTS):
                                 if responseformats[conn] != "plain":
                                     response.append(
-                                        {"name": name, "value": defaults[name]}
+                                        {"name": name, "value": DEFAULTS[name]}
                                     )
                                 else:
-                                    response[name] = defaults[name]
+                                    response[name] = DEFAULTS[name]
                         elif data[0] == "getvalid" and len(data) == 1:
                             if responseformats[conn] != "plain":
                                 response = {}
                                 for section, options in (
-                                    ("ranges", config.valid_ranges),
-                                    ("values", config.valid_values),
+                                    ("ranges", config.VALID_RANGES),
+                                    ("values", config.VALID_VALUES),
                                 ):
                                     valid = response[section] = []
                                     for name in options:
@@ -1134,8 +1134,8 @@ class BaseFrame(wx.Frame):
                                         valid.append({"name": name, "values": values})
                             else:
                                 response = {
-                                    "ranges": config.valid_ranges,
-                                    "values": config.valid_values,
+                                    "ranges": config.VALID_RANGES,
+                                    "values": config.VALID_VALUES,
                                 }
                             if responseformats[conn] == "plain":
                                 valid = []
@@ -1272,7 +1272,7 @@ class BaseFrame(wx.Frame):
 
     def get_scripting_hosts(self):
         scripting_hosts = []
-        lockfilebasenames = [appbasename]
+        lockfilebasenames = [APPBASENAME]
         for module in [
             "3DLUT-maker",
             "curve-viewer",
@@ -1283,9 +1283,9 @@ class BaseFrame(wx.Frame):
             "VRML-to-X3D-converter",
             "apply-profiles",
         ]:
-            lockfilebasenames.append(f"{appbasename}-{module}")
+            lockfilebasenames.append(f"{APPBASENAME}-{module}")
         for lockfilebasename in lockfilebasenames:
-            lockfilename = os.path.join(confighome, f"{lockfilebasename}.lock")
+            lockfilename = os.path.join(CONFIG_HOME, f"{lockfilebasename}.lock")
             if os.path.isfile(lockfilename):
                 ports = []
                 try:
@@ -1832,7 +1832,7 @@ class BaseFrame(wx.Frame):
         elif data[0] == "setcfg" and len(data) == 3:
             # Set configuration option
             value = None
-            if data[1] in defaults:
+            if data[1] in DEFAULTS:
                 value = data[2]
                 if value == "null":
                     value = None
@@ -1840,9 +1840,9 @@ class BaseFrame(wx.Frame):
                     value = 0
                 elif value == "true":
                     value = 1
-                elif defaults[data[1]] is not None:
+                elif DEFAULTS[data[1]] is not None:
                     with contextlib.suppress(ValueError):
-                        value = type(defaults[data[1]])(value)
+                        value = type(DEFAULTS[data[1]])(value)
                 setcfg(data[1], value)
                 if getcfg(data[1], False) != value:
                     response = "failed"
@@ -1872,7 +1872,7 @@ class BaseFrame(wx.Frame):
                         self.update_layout()
                         response = "ok"
                     elif data[0] == "restore-defaults":
-                        for name in defaults:
+                        for name in DEFAULTS:
                             if len(data) > 1:
                                 include = False
                                 for _ in data[1:]:
@@ -1963,8 +1963,8 @@ class BaseFrame(wx.Frame):
             print(exception)
 
     def send_command(self, scripting_host_name_suffix, command):
-        lock_name = appbasename
-        scripting_host = appname
+        lock_name = APPBASENAME
+        scripting_host = APPNAME
         if scripting_host_name_suffix:
             lock_name += "-" + scripting_host_name_suffix
             scripting_host += "-" + scripting_host_name_suffix
@@ -2009,7 +2009,7 @@ class BaseFrame(wx.Frame):
         # most methods that controls would have.
         if not event:
             event = CustomEvent(wx.EVT_SET_FOCUS.evtType[0], self)
-        if debug:
+        if DEBUG:
             if hasattr(event.GetEventObject(), "GetId"):
                 print(
                     f"[D] focus_handler called for ID {event.GetEventObject().GetId()} "
@@ -2052,7 +2052,7 @@ class BaseFrame(wx.Frame):
             catchup_event = wx.FocusEvent(
                 wx.EVT_KILL_FOCUS.evtType[0], self.last_focused_ctrl.GetId()
             )
-            if debug:
+            if DEBUG:
                 print(
                     "[D] Last focused control ID "
                     f"{self.last_focused_ctrl.GetId()} "
@@ -2062,7 +2062,7 @@ class BaseFrame(wx.Frame):
                     f"{catchup_event.GetEventType()} {getevttype(catchup_event)}"
                 )
             if self.last_focused_ctrl.ProcessEvent(catchup_event):
-                if debug:
+                if DEBUG:
                     print("[D] Last focused control processed catchup event")
                 self.last_focused_ctrl = None
         if (
@@ -2073,7 +2073,7 @@ class BaseFrame(wx.Frame):
             and hasattr(event.GetEventObject(), "IsShownOnScreen")
             and event.GetEventObject().IsShownOnScreen()
         ):
-            if debug:
+            if DEBUG:
                 print(
                     "[D] Setting last focused control to ID "
                     f"{event.GetEventObject().GetId()} "
@@ -2281,7 +2281,7 @@ class BaseFrame(wx.Frame):
             parent = self
         scale = getcfg("app.dpi") / get_default_dpi()
         for child in list(parent.GetAllChildren()):
-            if debug:
+            if DEBUG:
                 print(child.__class__, child.Name)
             if isinstance(
                 child,
@@ -2373,7 +2373,7 @@ class BaseFrame(wx.Frame):
                     # (doesn't receive EVT_KILL_FOCUS)
                     if isinstance(child, wx.ComboBox):
                         if child.IsEditable():
-                            if debug:
+                            if DEBUG:
                                 print(
                                     "[D]", child.Name, "binds EVT_TEXT to focus_handler"
                                 )
@@ -2410,13 +2410,13 @@ class BaseFrame(wx.Frame):
                     or event.Skip(),
                 )
 
-    def getcfg(self, name, fallback=True, raw=False, cfg=config.cfg):
+    def getcfg(self, name, fallback=True, raw=False, cfg=config.CFG):
         return getcfg(name, fallback, raw, cfg)
 
-    def hascfg(self, name, fallback=True, cfg=config.cfg):
+    def hascfg(self, name, fallback=True, cfg=config.CFG):
         return hascfg(name, fallback, cfg)
 
-    def setcfg(self, name, value, cfg=config.cfg):
+    def setcfg(self, name, value, cfg=config.CFG):
         setcfg(name, value, cfg)
 
 
@@ -2427,7 +2427,7 @@ class BaseInteractiveDialog(wx.Dialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok=None,
         bitmap=None,
@@ -2451,9 +2451,9 @@ class BaseInteractiveDialog(wx.Dialog):
                 if coord > -1:
                     pos[i] += parent.GetScreenPosition()[i]
             pos = tuple(pos)
-            if title == appname:
+            if title == APPNAME:
                 appid = get_appid_from_window_hierarchy(parent)
-                base_appid = appname.lower()
+                base_appid = APPNAME.lower()
                 appid2title = {
                     base_appid + "-3dlut-maker": "3dlut.frame.title",
                     base_appid + "-curve-viewer": "calibration.lut_viewer.title",
@@ -2710,7 +2710,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         html="",
         ok="OK",
@@ -3027,7 +3027,7 @@ class ConfirmDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok=None,
         cancel=None,
@@ -5580,7 +5580,7 @@ class InfoDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok="OK",
         bitmap=None,
@@ -5706,7 +5706,7 @@ class LogWindow(InvincibleFrame):
         self.log_txt.MinSize = (
             self.log_txt.GetTextExtent("=" * 95)[0]
             + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
-            defaults["size.info.h"] - 24 - max(0, self.Size[1] - self.ClientSize[1]),
+            DEFAULTS["size.info.h"] - 24 - max(0, self.Size[1] - self.ClientSize[1]),
         )
         separator = BitmapBackgroundPanel(self.panel, size=(-1, 1))
         separator.SetBackgroundColour(
@@ -5834,7 +5834,7 @@ class LogWindow(InvincibleFrame):
     def OnSaveAs(self, event):
         defaultDir, defaultFile = (
             get_verified_path("last_filedialog_path")[0],
-            appname,
+            APPNAME,
         )
         dlg = wx.FileDialog(
             self,
@@ -5897,7 +5897,7 @@ class LogWindow(InvincibleFrame):
         wildcard += "|" + lang.getstr("filetype.zip") + "|*.zip"
         defaultDir, defaultFile = (
             get_verified_path("last_filedialog_path")[0],
-            appname + "-logs",
+            APPNAME + "-logs",
         )
         dlg = wx.FileDialog(
             self,
@@ -5942,13 +5942,13 @@ class LogWindow(InvincibleFrame):
             if file_format == "tgz":
                 # Create gzipped tar archive
                 with tarfile.open(path, "w:gz", encoding="UTF-8") as tar:
-                    tar.add(logdir, arcname=os.path.basename(path))
+                    tar.add(LOGDIR, arcname=os.path.basename(path))
             else:
                 # Create ZIP archive
                 try:
                     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zip:
-                        for filename in os.listdir(logdir):
-                            zip.write(os.path.join(logdir, filename), filename)
+                        for filename in os.listdir(LOGDIR):
+                            zip.write(os.path.join(LOGDIR, filename), filename)
                 except Exception as exception:
                     InfoDialog(
                         self,
@@ -5965,7 +5965,7 @@ class ProgressDialog(wx.Dialog):
 
     def __init__(
         self,
-        title=appname,
+        title=APPNAME,
         msg="",
         maximum=100,
         parent=None,
@@ -6719,7 +6719,7 @@ class SimpleTerminal(InvincibleFrame):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         handler=None,
         keyhandler=None,
         start_timer=True,
@@ -7277,7 +7277,7 @@ class TooltipWindow(InvincibleFrame):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         cols=1,
         bitmap=None,
@@ -7909,7 +7909,7 @@ def get_appid_from_window_hierarchy(toplevelwindow):
         frame = toplevelwindow
     else:
         frame = get_parent_frame(toplevelwindow)
-    base_appid = appname.lower()
+    base_appid = APPNAME.lower()
     return {
         "lut3dframe": base_appid + "-3dlut-maker",
         "lut_viewer": base_appid + "-curve-viewer",

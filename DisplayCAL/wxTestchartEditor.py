@@ -32,7 +32,7 @@ from DisplayCAL.cgats import (
     stable_sort_by_L,
 )
 from DisplayCAL.config import (
-    defaults,
+    DEFAULTS,
     get_data_path,
     get_display_name,
     get_total_patches,
@@ -50,8 +50,8 @@ from DisplayCAL.icc_profile import (
     ICCProfileInvalidError,
     NamedColor2Type,
 )
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG, TC_USE_ALTERNATE_PREVIEW, TEST, VERBOSE
 from DisplayCAL.util_dict import swap_dict_keys_values
 from DisplayCAL.util_os import is_superuser, launch_file, waccess
 from DisplayCAL.worker import (
@@ -89,7 +89,7 @@ class TestchartEditor(BaseFrame):
             self, parent, id, lang.getstr("testchart.edit"), name="tcgen"
         )
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], appname + "-testchart-editor")
+            config.get_icon_bundle([256, 48, 32, 16], f"{APPNAME}-testchart-editor")
         )
         self.Bind(wx.EVT_CLOSE, self.tc_close_handler)
 
@@ -148,7 +148,7 @@ class TestchartEditor(BaseFrame):
         scale = getcfg("app.dpi") / config.get_default_dpi()
         scale = max(scale, 1)
 
-        if tc_use_alternate_preview:
+        if TC_USE_ALTERNATE_PREVIEW:
             # splitter
             splitter = self.splitter = wx.SplitterWindow(
                 self, -1, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
@@ -730,7 +730,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_cie_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=config.valid_values["tc_vrml_cie_colorspace"]
+            panel, -1, choices=config.VALID_VALUES["tc_vrml_cie_colorspace"]
         )
         self.tc_vrml_cie_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -752,7 +752,7 @@ class TestchartEditor(BaseFrame):
             border=border * 2,
         )
         self.tc_vrml_device_colorspace_ctrl = wx.Choice(
-            panel, -1, choices=config.valid_values["tc_vrml_device_colorspace"]
+            panel, -1, choices=config.VALID_VALUES["tc_vrml_device_colorspace"]
         )
         self.tc_vrml_device_colorspace_ctrl.SetToolTipString(lang.getstr("tc.3d"))
         self.Bind(
@@ -1046,14 +1046,14 @@ class TestchartEditor(BaseFrame):
         )
         self.grid.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.tc_grid_range_select_handler)
         self.grid.DisableDragRowSize()
-        if tc_use_alternate_preview:
+        if TC_USE_ALTERNATE_PREVIEW:
             separator_color = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW)
             separator = wx.Panel(panel, size=(-1, 1))
             separator.BackgroundColour = separator_color
             self.sizer.Add(separator, flag=wx.EXPAND)
 
         # preview area
-        if tc_use_alternate_preview:
+        if TC_USE_ALTERNATE_PREVIEW:
             self.sizer.SetSizeHints(self)
             self.sizer.Layout()
             self.sizer.SetMinSize((self.sizer.MinSize[0], self.sizer.MinSize[1] + 1))
@@ -1111,7 +1111,7 @@ class TestchartEditor(BaseFrame):
         self.SetStatusBar(status)
 
         # layout
-        if tc_use_alternate_preview:
+        if TC_USE_ALTERNATE_PREVIEW:
             self.SetMinSize(
                 (
                     self.GetMinSize()[0],
@@ -1122,7 +1122,7 @@ class TestchartEditor(BaseFrame):
             self.sizer.SetSizeHints(self)
             self.sizer.Layout()
 
-        defaults.update(
+        DEFAULTS.update(
             {
                 "position.tcgen.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.tcgen.y": self.GetDisplay().ClientArea[1] + 60,
@@ -1334,7 +1334,7 @@ END_DATA"""
             self.preview.ForceRefresh()
 
     def tc_grid_range_select_handler(self, event):
-        if debug:
+        if DEBUG:
             print("[D] tc_grid_range_select_handler")
         if not self.grid.GetBatchCount():
             wx.CallAfter(self.tc_set_default_status)
@@ -1390,7 +1390,7 @@ END_DATA"""
         # UnicodeKey
         # X
         # Y
-        if debug:
+        if DEBUG:
             print(
                 "[D] event.KeyCode",
                 event.GetKeyCode(),
@@ -2022,14 +2022,14 @@ END_DATA"""
                 return
             finally:
                 wx.Log.SetLogLevel(llevel)
-            if test:
+            if TEST:
                 dlg = ConfirmDialog(
                     self,
                     title=lang.getstr("testchart.add_ti3_patches"),
                     msg=lang.getstr("gamut"),
                     ok="L*a*b*",
                     alt="RGB",
-                    bitmap=geticon(32, appname + "-testchart-editor"),
+                    bitmap=geticon(32, APPNAME + "-testchart-editor"),
                 )
                 result = dlg.ShowModal()
                 if result == wx.ID_CANCEL:
@@ -2427,7 +2427,7 @@ END_DATA"""
     def tc_precond_handler(self, event=None):
         setcfg("tc_precond", int(self.tc_precond.GetValue()))
         self.tc_adaption_slider.SetValue(
-            int((1 if getcfg("tc_precond") else defaults["tc_adaption"]) * 100)
+            int((1 if getcfg("tc_precond") else DEFAULTS["tc_adaption"]) * 100)
         )
         self.tc_adaption_handler(self.tc_adaption_slider)
         self.tc_algo_handler()
@@ -2489,7 +2489,7 @@ END_DATA"""
     def tc_update_controls(self):
         self.tc_algo.SetStringSelection(
             self.tc_algos_ab.get(
-                getcfg("tc_algo"), self.tc_algos_ab.get(defaults["tc_algo"])
+                getcfg("tc_algo"), self.tc_algos_ab.get(DEFAULTS["tc_algo"])
             )
         )
         self.tc_white_patches.SetValue(getcfg("tc_white_patches"))
@@ -2533,12 +2533,12 @@ END_DATA"""
         self.tc_filter_rad.SetValue(getcfg("tc_filter_rad"))
         self.tc_vrml_cie.SetValue(bool(int(getcfg("tc_vrml_cie"))))
         self.tc_vrml_cie_colorspace_ctrl.SetSelection(
-            config.valid_values["tc_vrml_cie_colorspace"].index(
+            config.VALID_VALUES["tc_vrml_cie_colorspace"].index(
                 getcfg("tc_vrml_cie_colorspace")
             )
         )
         self.tc_vrml_device_colorspace_ctrl.SetSelection(
-            config.valid_values["tc_vrml_device_colorspace"].index(
+            config.VALID_VALUES["tc_vrml_device_colorspace"].index(
                 getcfg("tc_vrml_device_colorspace")
             )
         )
@@ -2633,7 +2633,7 @@ END_DATA"""
                 lang.getstr("testchart.separate_fixed_points"),
                 ok=lang.getstr("ok"),
                 cancel=lang.getstr("cancel"),
-                bitmap=geticon(32, appname + "-testchart-editor"),
+                bitmap=geticon(32, APPNAME + "-testchart-editor"),
             )
             dlg.sizer3.Add((1, 4))
             for name in ("single", "gray", "multidim"):
@@ -2741,7 +2741,7 @@ END_DATA"""
             get_verified_path("last_testchart_export_path")[0],
             os.path.basename(
                 os.path.splitext(
-                    self.ti1.filename or defaults["last_testchart_export_path"]
+                    self.ti1.filename or DEFAULTS["last_testchart_export_path"]
                 )[0]
             ),
         )
@@ -2792,7 +2792,7 @@ END_DATA"""
                 msg=lang.getstr("testchart.export.repeat_patch"),
                 ok=lang.getstr("ok"),
                 cancel=lang.getstr("cancel"),
-                bitmap=geticon(32, appname + "-testchart-editor"),
+                bitmap=geticon(32, APPNAME + "-testchart-editor"),
             )
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             dlg.sizer3.Add(sizer, 0, flag=wx.TOP | wx.ALIGN_LEFT, border=12)
@@ -2800,8 +2800,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=config.valid_ranges["tc_export_repeat_patch_max"][0],
-                max=config.valid_ranges["tc_export_repeat_patch_max"][1],
+                min=config.VALID_RANGES["tc_export_repeat_patch_max"][0],
+                max=config.VALID_RANGES["tc_export_repeat_patch_max"][1],
                 value=str(getcfg("tc_export_repeat_patch_max")),
             )
             sizer.Add(intctrl, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -2815,8 +2815,8 @@ END_DATA"""
                 dlg,
                 -1,
                 size=(95 * scale, -1),
-                min=config.valid_ranges["tc_export_repeat_patch_min"][0],
-                max=config.valid_ranges["tc_export_repeat_patch_min"][1],
+                min=config.VALID_RANGES["tc_export_repeat_patch_min"][0],
+                max=config.VALID_RANGES["tc_export_repeat_patch_min"][1],
                 value=str(getcfg("tc_export_repeat_patch_min")),
             )
             sizer.Add(intctrl2, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
@@ -2837,7 +2837,7 @@ END_DATA"""
             setcfg("tc_export_repeat_patch_max", repeatmax)
             setcfg("tc_export_repeat_patch_min", repeatmin)
             self.writecfg()
-            defaults["size.measureframe"] = get_default_size()
+            DEFAULTS["size.measureframe"] = get_default_size()
             self.display_size = wx.DisplaySize()
         if path:
             self.worker.start(
@@ -2882,7 +2882,7 @@ END_DATA"""
             x, y, size = [
                 float(v) for v in getcfg("dimensions.measureframe").split(",")
             ]
-            size *= defaults["size.measureframe"]
+            size *= DEFAULTS["size.measureframe"]
             displays = getcfg("displays")
             match = None
             display_no = getcfg("display.number") - 1
@@ -3020,7 +3020,7 @@ END_DATA"""
                     defaultDir = os.path.dirname(self.ti1.filename)
                 defaultFile = os.path.basename(self.ti1.filename)
             else:
-                defaultFile = os.path.basename(config.defaults["last_ti1_path"])
+                defaultFile = os.path.basename(config.DEFAULTS["last_ti1_path"])
             dlg = wx.FileDialog(
                 self,
                 lang.getstr("save_as"),
@@ -3140,7 +3140,7 @@ END_DATA"""
             defaultFile = self.ti1.filename
         else:
             defaultDir = get_verified_path("last_vrml_path")[0]
-            defaultFile = defaults["last_vrml_path"]
+            defaultFile = DEFAULTS["last_vrml_path"]
         view_3d_format = getcfg("3d.format")
         if view_3d_format == "HTML":
             formatext = ".html"
@@ -3473,7 +3473,7 @@ END_DATA"""
                             gray_channel.append(patch[0])
                     elif multi_steps == 0:
                         multi_steps = None
-                    if debug >= 9:
+                    if DEBUG >= 9:
                         print("[D]", strpatch)
                     if strpatch not in uniqueRGB:
                         uniqueRGB.append(strpatch)
@@ -3496,7 +3496,7 @@ END_DATA"""
                     R_inc = self.tc_get_increments(R, vmaxlen)
                     G_inc = self.tc_get_increments(G, vmaxlen)
                     B_inc = self.tc_get_increments(B, vmaxlen)
-                    if debug:
+                    if DEBUG:
                         print("[D] R_inc:")
                         for i in R_inc:
                             if self.worker.thread_abort:
@@ -3556,14 +3556,14 @@ END_DATA"""
                                 n = int(round(float(str(255.0 / finc))))
                                 finc = 255.0 / n
                                 n += 1
-                                if debug >= 9:
+                                if DEBUG >= 9:
                                     print("[D] inc:", inc)
                                     print("[D] n:", n)
                                 for i in range(n):
                                     if self.worker.thread_abort:
                                         return False
                                     v = str(int(round(float(str(i * finc)))))
-                                    if debug >= 9:
+                                    if DEBUG >= 9:
                                         print("[D] Searching for", v)
                                     if (
                                         [v, "0", "0"] in uniqueRGB
@@ -3574,11 +3574,11 @@ END_DATA"""
                                             single_inc[inc] = 0
                                         single_inc[inc] += 1
                                     else:
-                                        if debug >= 9:
+                                        if DEBUG >= 9:
                                             print("[D] Not found!")
                                         break
                         single_channel_patches = max(single_inc.values())
-                    if debug:
+                    if DEBUG:
                         print("[D] single_channel_patches:", single_channel_patches)
                     if 0 in R + G + B:
                         fullspread_patches += 3  # black in single channel patches
@@ -3588,7 +3588,7 @@ END_DATA"""
                 if gray_patches is None:
                     # NEVER (old code, needs work for demphasis/gamma, remove?)
                     RGB_inc = self.tc_get_increments(gray_channel, vmaxlen)
-                    if debug:
+                    if DEBUG:
                         print("[D] RGB_inc:")
                         for i in RGB_inc:
                             if self.worker.thread_abort:
@@ -3607,25 +3607,25 @@ END_DATA"""
                                 n = int(round(float(str(255.0 / finc))))
                                 finc = 255.0 / n
                                 n += 1
-                                if debug >= 9:
+                                if DEBUG >= 9:
                                     print("[D] inc:", inc)
                                     print("[D] n:", n)
                                 for i in range(n):
                                     if self.worker.thread_abort:
                                         return False
                                     v = str(int(round(float(str(i * finc)))))
-                                    if debug >= 9:
+                                    if DEBUG >= 9:
                                         print("[D] Searching for", v)
                                     if [v, v, v] in uniqueRGB:
                                         if inc not in gray_inc:
                                             gray_inc[inc] = 0
                                         gray_inc[inc] += 1
                                     else:
-                                        if debug >= 9:
+                                        if DEBUG >= 9:
                                             print("[D] Not found!")
                                         break
                         gray_patches = max(gray_inc.values())
-                    if debug:
+                    if DEBUG:
                         print("[D] gray_patches:", gray_patches)
                     if 0 in gray_channel:
                         fullspread_patches += 1  # black in gray patches
@@ -3667,7 +3667,7 @@ END_DATA"""
                             and R_inc[inc] == G_inc[inc] == B_inc[inc]
                         ):
                             RGB_inc[inc] = B_inc[inc]
-                    if debug:
+                    if DEBUG:
                         print("[D] RGB_inc:")
                         for i in RGB_inc:
                             if self.worker.thread_abort:
@@ -3682,7 +3682,7 @@ END_DATA"""
                             n = int(round(float(str(255.0 / finc))))
                             finc = 255.0 / n
                             n += 1
-                            if debug >= 9:
+                            if DEBUG >= 9:
                                 print("[D] inc:", inc)
                                 print("[D] n:", n)
                             for i in range(n):
@@ -3697,7 +3697,7 @@ END_DATA"""
                                         if self.worker.thread_abort:
                                             return False
                                         b = str(int(round(float(str(k * finc)))))
-                                        if debug >= 9:
+                                        if DEBUG >= 9:
                                             print(
                                                 "[D] Searching for", i, j, k, [r, g, b]
                                             )
@@ -3706,20 +3706,20 @@ END_DATA"""
                                                 multi_inc[inc] = 0
                                             multi_inc[inc] += 1
                                         else:
-                                            if debug >= 9:
+                                            if DEBUG >= 9:
                                                 print("[D] Not found! (b loop)")
                                             break
                                     if [r, g, b] not in uniqueRGB:
-                                        if debug >= 9:
+                                        if DEBUG >= 9:
                                             print("[D] Not found! (g loop)")
                                         break
                                 if [r, g, b] not in uniqueRGB:
-                                    if debug >= 9:
+                                    if DEBUG >= 9:
                                         print("[D] Not found! (r loop)")
                                     break
                     multi_patches = max(multi_inc.values())
                     multi_steps = int(float(str(math.pow(multi_patches, 1 / 3.0))))
-                    if debug:
+                    if DEBUG:
                         print("[D] multi_patches:", multi_patches)
                         print("[D] multi_steps:", multi_steps)
                 elif multi_steps >= 2:
@@ -4020,13 +4020,13 @@ END_DATA"""
                 self.separator = wx.Panel(self.panel, size=(-1, 1))
                 self.separator.BackgroundColour = separator_color
                 index = len(self.sizer.Children) - 1
-                if sys.platform not in ("darwin", "win32") or tc_use_alternate_preview:
+                if sys.platform not in ("darwin", "win32") or TC_USE_ALTERNATE_PREVIEW:
                     index -= 1
                 self.sizer.Insert(index, self.separator, flag=wx.EXPAND)
             else:
                 self.separator.Show()
             self.sizer.Layout()
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("tc.preview.create"))
             data = self.ti1.queryv1("DATA")
             vmaxlen = 6
@@ -4087,7 +4087,7 @@ END_DATA"""
                 self.preview.EndBatch()
 
             self.tc_set_default_status()
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("success"))
             self.resize_grid()
             grid.EndBatch()
@@ -4341,7 +4341,7 @@ END_DATA"""
         menu = wx.Menu()
 
         # item_selected = False
-        for file_format in config.valid_values["3d.format"]:
+        for file_format in config.VALID_VALUES["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))
             self.Bind(wx.EVT_MENU, self.view_3d_format_handler, id=item.Id)

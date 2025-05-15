@@ -13,7 +13,7 @@ from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.icc_profile import CRInterpolation
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
 from DisplayCAL.wxaddons import wx
@@ -329,7 +329,7 @@ class CCXXPlot(wx.Frame):
 
         if not self.is_ccss:
             observers_ab = {}
-            for observer in config.valid_values["observer"]:
+            for observer in config.VALID_VALUES["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
             x_label.extend(
@@ -382,7 +382,7 @@ class CCXXPlot(wx.Frame):
         style = wx.DEFAULT_FRAME_STYLE
 
         wx.Frame.__init__(self, None, -1, title, style=style)
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.Sizer = wx.GridSizer(1, 1, 0, 0)
         bg = wx.Panel(self)

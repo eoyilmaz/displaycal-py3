@@ -4,13 +4,13 @@ import http.server
 import time
 from urllib.parse import unquote
 
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.meta import VERSION_STRING as appversion
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.meta import VERSION_STRING as APPVERSION
 
 WEBDISP_HTML = rf"""<!DOCTYPE html>
 <html>
 <head>
-<title>{appname} Web Display</title>
+<title>{APPNAME} Web Display</title>
 <script src="webdisp.js"></script>
 <style>
 html, body {{
@@ -99,7 +99,7 @@ window.onload = function() {
 class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     """Simple HTTP request handler with GET and HEAD commands."""
 
-    server_version = appname + "-WebWinHTTP/" + appversion
+    server_version = f"{APPNAME}-WebWinHTTP/{APPVERSION}"
 
     def do_GET(self):
         """Serve a GET request."""

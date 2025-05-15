@@ -34,7 +34,7 @@ from DisplayCAL.icc_profile import (
     LUT16Type,
     XYZType,
 )
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
 from DisplayCAL.wxfixes import TempXmlResource
@@ -49,7 +49,7 @@ class ReportFrame(BaseFrame):
         BaseFrame.__init__(self, parent, -1, lang.getstr("measurement_report"))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.XYZbpin = None
         self.XYZbpout = None
@@ -190,7 +190,7 @@ class ReportFrame(BaseFrame):
 
         self.update_layout()
 
-        config.defaults.update(
+        config.DEFAULTS.update(
             {
                 "position.reportframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.reportframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -253,8 +253,8 @@ class ReportFrame(BaseFrame):
         try:
             v = float(self.mr_trc_gamma_ctrl.GetValue().replace(",", "."))
             if (
-                v < config.valid_ranges["measurement_report.trc_gamma"][0]
-                or v > config.valid_ranges["measurement_report.trc_gamma"][1]
+                v < config.VALID_RANGES["measurement_report.trc_gamma"][0]
+                or v > config.VALID_RANGES["measurement_report.trc_gamma"][1]
             ):
                 raise ValueError
         except ValueError:
@@ -527,8 +527,7 @@ class ReportFrame(BaseFrame):
                 or (
                     which == "output"
                     and (
-                        profile.profileClass != b"mntr"
-                        or profile.colorSpace != b"RGB"
+                        profile.profileClass != b"mntr" or profile.colorSpace != b"RGB"
                     )
                 )
                 or (which == "devlink" and profile.profileClass != b"link")
@@ -545,8 +544,7 @@ class ReportFrame(BaseFrame):
             else:
                 if (
                     not getattr(self, f"{which}_profile", None)
-                    or getattr(self, f"{which}_profile").fileName
-                    != profile.fileName
+                    or getattr(self, f"{which}_profile").fileName != profile.fileName
                 ):
                     # Profile selection has changed
                     if which == "simulation":
@@ -613,7 +611,6 @@ class ReportFrame(BaseFrame):
         if path:
             self.set_profile_ctrl_path(which)
         return None
-
 
     def set_profile_ctrl_path(self, which):
         getattr(self, f"{which}_profile_ctrl").SetPath(
@@ -718,7 +715,7 @@ class ReportFrame(BaseFrame):
             self.set_profile_ctrl_path(which)
         chart = getcfg("measurement_report.chart")
         if not chart or not os.path.isfile(chart):
-            chart = config.defaults["measurement_report.chart"]
+            chart = config.DEFAULTS["measurement_report.chart"]
             setcfg("measurement_report.chart", chart)
         self.mr_set_testchart(chart, load=False)
 

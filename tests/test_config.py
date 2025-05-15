@@ -9,30 +9,30 @@ def test_default_values_1():
     config.initcfg()
 
     assert config.configparser.DEFAULTSECT == "Default"
-    assert config.exe == sys.executable  # venv/bin/python
-    assert config.exedir == os.path.dirname(sys.executable)  # venv/bin
-    assert config.exename == os.path.basename(sys.executable)  # python
-    assert config.isexe is False
+    assert config.EXE == sys.executable  # venv/bin/python
+    assert config.EXEDIR == os.path.dirname(sys.executable)  # venv/bin
+    assert config.EXENAME == os.path.basename(sys.executable)  # python
+    assert config.ISEXE is False
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert config.pyfile != ""
+    assert config.PYFILE != ""
     # $HOME/.local/bin/pycharm-{PYCHARMVERSION}/plugins/python/helpers/pycharm/_jb_pytest_runner.py
-    assert config.pypath != ""
-    assert config.isapp is False  #
-    assert config.pyname != ""  # _jb_pytest_runner
+    assert config.PYPATH != ""
+    assert config.ISAPP is False  #
+    assert config.PYNAME != ""  # _jb_pytest_runner
     # assert config.pyext != ""  # .py  This is not valid when pytest runß directly
     # $HOME/Documents/development/displaycal/DisplayCAL
-    assert config.pydir != ""
+    assert config.PYDIR != ""
 
     if sys.platform == "linux":
-        assert config.xdg_config_dir_default == "/etc/xdg"
-        assert config.xdg_config_home == os.path.expanduser("~/.config")
-        assert config.xdg_data_home == os.path.expanduser("~/.local/share")
-        assert config.xdg_data_home_default == os.path.expanduser("~/.local/share")
+        assert config.XDG_CONFIG_DIR_DEFAULT == "/etc/xdg"
+        assert config.XDG_CONFIG_HOME == os.path.expanduser("~/.config")
+        assert config.XDG_DATA_HOME == os.path.expanduser("~/.local/share")
+        assert config.XDG_DATA_HOME_DEFAULT == os.path.expanduser("~/.local/share")
 
     # skip the rest of the test for now
     return
 
-    assert config.xdg_data_dirs == [
+    assert config.XDG_DATA_DIRS == [
         "/usr/share/pop",
         os.path.expanduser("~/.local/share/flatpak/exports/share"),
         "/var/lib/flatpak/exports/share",
@@ -60,7 +60,7 @@ def test_default_values_1():
         ),
         os.path.expanduser("~/.local/share/flatpak/exports/share/icons/hicolor"),
         os.path.expanduser("~/.local/share/icons/hicolor"),
-        config.pydir,
+        config.PYDIR,
         os.path.expanduser(
             "~/PycharmProjects/DisplayCAL/venv/lib/python3.9/site-packages/DisplayCAL-3.8.9.3-py3.9-linux-x86_64.egg/DisplayCAL"
         ),
@@ -95,4 +95,4 @@ def test_default_values_1():
         "/var/lib/flatpak/exports/share/icons/hicolor",
         "/var/lib/icons/hicolor",
     ]
-    assert sorted(config.data_dirs) == sorted(expected_data_dirs)
+    assert sorted(config.DATA_DIRS) == sorted(expected_data_dirs)

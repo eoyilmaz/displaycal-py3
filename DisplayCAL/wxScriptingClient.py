@@ -12,8 +12,8 @@ from DisplayCAL import (
 from DisplayCAL import (
     localization as lang,
 )
-from DisplayCAL.config import confighome, getcfg, setcfg, writecfg
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.config import CONFIG_HOME, getcfg, setcfg, writecfg
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import wx
@@ -43,7 +43,7 @@ class ScriptingClientFrame(SimpleTerminal):
             name="scriptingframe",
         )
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], appname + "-scripting-client")
+            config.get_icon_bundle([256, 48, 32, 16], f"{APPNAME}-scripting-client")
         )
         self.console.SetForegroundColour("#EEEEEE")
         self.console.SetDefaultStyle(wx.TextAttr("#EEEEEE"))
@@ -52,7 +52,7 @@ class ScriptingClientFrame(SimpleTerminal):
         self.commands = []
         self.history = []
         self.historyfilename = os.path.join(
-            confighome, f"{config.appbasename}-scripting-client.history"
+            CONFIG_HOME, f"{config.APPBASENAME}-scripting-client.history"
         )
         if os.path.isfile(self.historyfilename):
             try:

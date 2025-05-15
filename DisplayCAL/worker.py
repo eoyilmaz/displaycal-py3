@@ -93,9 +93,9 @@ from DisplayCAL.argyll_instruments import (
     instruments as all_instruments,
 )
 from DisplayCAL.argyll_names import (
-    intents,
-    observers,
-    viewconds,
+    INTENTS,
+    OBSERVERS,
+    VIEWCONDS,
 )
 from DisplayCAL.cgats import (
     CGATS,
@@ -113,24 +113,24 @@ from DisplayCAL.cgats import (
 )
 from DisplayCAL.colormath import VidRGB_to_eeColor, eeColor_to_VidRGB
 from DisplayCAL.config import (
-    appbasename,
-    autostart,
-    autostart_home,
-    defaults,
-    enc,
-    exe,
-    exe_ext,
-    exedir,
-    fs_enc,
+    APPBASENAME,
+    AUTOSTART,
+    AUTOSTART_HOME,
+    DEFAULTS,
+    ENC,
+    EXE,
+    EXE_EXT,
+    EXEDIR,
+    FS_ENC,
     get_data_path,
     get_total_patches,
     getcfg,
     geticon,
     is_ccxx_testchart,
-    isapp,
-    profile_ext,
-    pydir,
-    script_ext,
+    ISAPP,
+    PROFILE_EXT,
+    PYDIR,
+    SCRIPT_EXT,
     setcfg,
     setcfg_cond,
     split_display_name,
@@ -148,10 +148,10 @@ from DisplayCAL.debughelpers import (
     handle_error,
 )
 from DisplayCAL.defaultpaths import (
-    appdata,
-    cache,
-    iccprofiles_display_home,
-    iccprofiles_home,
+    APPDATA,
+    CACHE,
+    ICCPROFILES_DISPLAY_HOME,
+    ICCPROFILES_HOME,
 )
 from DisplayCAL.edid import WMIError, get_edid
 from DisplayCAL.icc_profile import (
@@ -181,20 +181,20 @@ from DisplayCAL.icc_profile import (
     s15Fixed16Number_tohex,
     set_display_profile,
 )
-from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, log
+from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, LOG
 from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, VERSION_STRING
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.multiprocess import cpu_count, pool_slice
 from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
 from DisplayCAL.options import (
-    always_fail_download,
-    debug,
-    eecolor65,
-    experimental,
-    test,
-    test_badssl,
-    test_require_sensor_cal,
-    verbose,
+    ALWAYS_FAIL_DOWNLOAD,
+    DEBUG,
+    EECOLOR65,
+    EXPERIMENTAL,
+    TEST,
+    TEST_BADSSL,
+    TEST_REQUIRE_SENSOR_CAL,
+    VERBOSE,
 )
 from DisplayCAL.patterngenerators import (
     PrismaPatternGeneratorClient,
@@ -235,7 +235,7 @@ elif sys.platform == "win32":
         wmi = None
 else:
     # Linux
-    from DisplayCAL.defaultpaths import xdg_data_home
+    from DisplayCAL.defaultpaths import XDG_DATA_HOME
 
     try:
         from DisplayCAL.util_dbus import (
@@ -921,7 +921,7 @@ def _create_optimized_shaper_curves(
                 calgamma = float(calgarg[1][1:])
         if calgamma:
             gamma_type = calgarg[1][0]
-            outoffset = defaults["calibration.black_output_offset"]
+            outoffset = DEFAULTS["calibration.black_output_offset"]
             calfarg = get_arg("f", options_dispcal)
             if calfarg:
                 with contextlib.suppress(ValueError):
@@ -1082,11 +1082,11 @@ def _applycal_bug_workaround(profile):
 
 
 def get_current_profile_path(
-    include_display_profile : bool = True,
-    save_profile_if_no_path : bool = False,
+    include_display_profile: bool = True,
+    save_profile_if_no_path: bool = False,
 ) -> str | None:
     """Get the current profile path from the configuration.
-    
+
     Args:
         include_display_profile (bool): Whether to include the display profile.
         save_profile_if_no_path (bool): Whether to save the profile if it has no path.
@@ -1108,11 +1108,11 @@ def get_current_profile_path(
         if profile and not profile.fileName and save_profile_if_no_path:
             if profile.ID == "\0" * 16:
                 profile.calculateID()
-            profile_cache_path = os.path.join(cache, "icc")
+            profile_cache_path = os.path.join(CACHE, "icc")
             if check_create_dir(profile_cache_path) is True:
                 profile.fileName = os.path.join(
                     profile_cache_path,
-                    "id=" + hexlify(profile.ID).decode() + profile_ext,
+                    "id=" + hexlify(profile.ID).decode() + PROFILE_EXT,
                 )
                 if not os.path.isfile(profile.fileName):
                     profile.write()
@@ -1134,7 +1134,7 @@ def parse_argument_string(args):
 
 def get_cfg_option_from_args(option_name, argmatch, args, whole=False):
     """Parse args and return option (if found), otherwise return default."""
-    option = defaults[option_name]
+    option = DEFAULTS[option_name]
     iarg = get_arg(argmatch, args, whole)
     if iarg:
         if len(iarg[1]) == len(argmatch):
@@ -1153,9 +1153,9 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> tuple[str, st
         r"[moupHVFE]",
         r"d(?:\d+(?:,\d+)?|madvr|web)",
         r"[cv]\d+",
-        r"q(?:{})".format("|".join(config.valid_values["calibration.quality"])),
+        r"q(?:{})".format("|".join(config.VALID_VALUES["calibration.quality"])),
         r"y(?:{})".format(
-            "|".join([_f for _f in config.valid_values["measurement_mode"] if _f])
+            "|".join([_f for _f in config.VALID_VALUES["measurement_mode"] if _f])
         ),
         r"[tT](?:\d+(?:\.\d+)?)?",
         r"w\d+(?:\.\d+)?,\d+(?:\.\d+)?",
@@ -1173,10 +1173,10 @@ def get_options_from_args(dispcal_args=None, colprof_args=None) -> tuple[str, st
     re_options_colprof = [
         r"q[lmh]",
         r"b[lmh]",  # B2A quality
-        r"a(?:{})".format("|".join(config.valid_values["profile.type"])),
+        r"a(?:{})".format("|".join(config.VALID_VALUES["profile.type"])),
         r'[sSMA]\s+["\'][^"\']+?["\']',
-        r"[cd](?:{})(?=\W|$)".format("|".join(viewconds)),
-        r"[tT](?:{})(?=\W|$)".format("|".join(intents)),
+        r"[cd](?:{})(?=\W|$)".format("|".join(VIEWCONDS)),
+        r"[tT](?:{})(?=\W|$)".format("|".join(INTENTS)),
     ]
     options_dispcal = []
     options_colprof = []
@@ -1202,7 +1202,7 @@ def get_options_from_cprt(cprt):
         if isinstance(cprt, (TextDescriptionType, MultiLocalizedUnicodeType)):
             cprt = str(cprt)
         else:
-            cprt = str(cprt, fs_enc, "replace")
+            cprt = str(cprt, FS_ENC, "replace")
     dispcal_args = cprt.split(" dispcal ")
     colprof_args = None
     if len(dispcal_args) > 1:
@@ -1271,7 +1271,7 @@ def get_pattern_geometry():
     if os.getenv("XDG_SESSION_TYPE") == "wayland":
         # No way to get coordinates under Wayland, default to center
         x = y = 0.5
-    size = size * defaults["size.measureframe"]
+    size = size * DEFAULTS["size.measureframe"]
     match = re.search(r"@ -?\d+, -?\d+, (\d+)x(\d+)", getcfg("displays", raw=True))
     display_size = [int(item) for item in match.groups()] if match else [1920, 1080]
     w, h = [min(size / v, 1.0) for v in display_size]
@@ -1301,14 +1301,14 @@ def get_python_and_pythonpath():
             # py2exe: Needs appropriate 'zipfile' option in setup script and
             # 'bundle_files' 3
             pythonpath.append(os.path.join(dirname, "library.zip"))
-            pythonpath.append(os.path.join(dirname, "library.zip", appname))
+            pythonpath.append(os.path.join(dirname, "library.zip", APPNAME))
             if os.path.isdir(os.path.join(dirname, "lib")):
                 dirname = os.path.join(dirname, "lib")
                 pythonpath.append(os.path.join(dirname, "library.zip"))
-                pythonpath.append(os.path.join(dirname, "library.zip", appname))
+                pythonpath.append(os.path.join(dirname, "library.zip", APPNAME))
         python = os.path.join(dirname, "python.exe")
     # Linux / Mac OS X
-    elif isapp:
+    elif ISAPP:
         python = os.path.join(dirname, "python")
     else:
         paths = os.defpath.split(os.pathsep)
@@ -1352,7 +1352,7 @@ def get_default_headers():
             platform.machine(),
         )
     return {
-        "User-Agent": f"{appname}/{VERSION_STRING} ({oscpu})",
+        "User-Agent": f"{APPNAME}/{VERSION_STRING} ({oscpu})",
         "Accept-Language": f"{lang.getcode()},*;q=0.5",
     }
 
@@ -1492,7 +1492,7 @@ def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
         # Insert preconditioned point datasets after first patch
         if logfn:
             logfn(
-                f"{appname}: Adding {len(cgats1_datasets):d} "
+                f"{APPNAME}: Adding {len(cgats1_datasets):d} "
                 f"fixed points to {cgats2_path}"
             )
         data.moveby1(1, len(cgats1_datasets))
@@ -1665,7 +1665,7 @@ class Producer:
         try:
             result = self.producer(*args, **kwargs)
         except Exception as exception:
-            if debug:
+            if DEBUG:
                 messages = traceback.format_exception(exception)
                 print(
                     "[D] Worker raised an unhandled exception: \n" + "\n".join(messages)
@@ -1718,7 +1718,7 @@ class Sudo:
                     "K": bool(re.search(rb"-K\W", stdout)),
                     "k": bool(re.search(rb"-k\W", stdout)),
                 }
-            if debug:
+            if DEBUG:
                 print(
                     "[D] Available sudo options:",
                     ", ".join(
@@ -1770,7 +1770,7 @@ class Sudo:
         else:
             subprocess_before = self.subprocess.before.strip()
             if isinstance(subprocess_before, bytes):
-                subprocess_before = subprocess_before.decode(enc, "replace")
+                subprocess_before = subprocess_before.decode(ENC, "replace")
             print(subprocess_before)
 
     def authenticate(self, args, title, parent=None):
@@ -1865,7 +1865,7 @@ class Sudo:
         if p.exitstatus != 0:
             return (
                 StringWithLengthOverride(
-                    p.before.strip().decode(enc, "replace")
+                    p.before.strip().decode(ENC, "replace")
                     or (f"sudo exited prematurely with status {p.exitstatus}"),
                     0,
                 ),
@@ -2020,7 +2020,7 @@ class Worker(WorkerBase):
         if sys.platform == "win32":
             self.pty_encoding = f"cp{windll.kernel32.GetACP():d}"
         else:
-            self.pty_encoding = enc
+            self.pty_encoding = ENC
         self.cmdrun = False
         self.dispcal_create_fast_matrix_shaper = False
         self.dispread_after_dispcal = False
@@ -2202,7 +2202,7 @@ class Worker(WorkerBase):
             args.append("-YR:60")
         non_argyll_prisma = (
             config.get_display_name() == "Prisma"
-            and not defaults["patterngenerator.prisma.argyll"]
+            and not DEFAULTS["patterngenerator.prisma.argyll"]
         )
         if display and not (get_arg("-dweb", args) or get_arg("-dmadvr", args)):
             if (self.argyll_version <= [1, 0, 4] and not get_arg("-p", args)) or (
@@ -2247,7 +2247,7 @@ class Worker(WorkerBase):
         if (
             allow_nondefault_observer
             and self.instrument_can_use_nondefault_observer()
-            and getcfg("observer") != defaults["observer"]
+            and getcfg("observer") != DEFAULTS["observer"]
             and not get_arg("-Q", args)
         ):
             args.append("-Q" + getcfg("observer"))
@@ -2367,7 +2367,7 @@ class Worker(WorkerBase):
             # For madVR and dummy display, -E is invalid
             args.append("-E")
 
-    def authenticate(self, cmd, title=appname, parent=None):
+    def authenticate(self, cmd, title=APPNAME, parent=None):
         """Athenticate (using sudo) for a given command
 
         The return value will either be True (authentication successful and
@@ -2574,7 +2574,7 @@ class Worker(WorkerBase):
                 if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
                     linebuffered_logfiles.append(print)
                 else:
-                    linebuffered_logfiles.append(log)
+                    linebuffered_logfiles.append(LOG)
                 if self.sessionlogfile:
                     linebuffered_logfiles.append(self.sessionlogfile)
                 logfiles = Files(
@@ -2582,7 +2582,7 @@ class Worker(WorkerBase):
                         LineBufferedStream(
                             FilteredStream(
                                 Files(linebuffered_logfiles),
-                                enc,
+                                ENC,
                                 discard="",
                                 linesep_in="\n",
                                 triggers=[],
@@ -2799,7 +2799,8 @@ class Worker(WorkerBase):
     @pwd.setter
     def pwd(self, pwd):
         encoded_user_name = codecs.encode(
-            md5(getpass.getuser().encode()).hexdigest().encode(), "base64"  # noqa: S324
+            md5(getpass.getuser().encode()).hexdigest().encode(),
+            "base64",  # noqa: S324
         )[:5].decode("utf-8")
         encoded_pwd = (
             codecs.encode(pwd.encode(), "base64").decode("utf-8").rstrip("=\n")
@@ -2824,9 +2825,7 @@ class Worker(WorkerBase):
         # - worker.Worker.instrument_can_use_ccxx
         cgats[0].add_keyword(
             "DISPLAY_TYPE_BASE_ID",
-            {"c": 2, "l": 1, "R": 2, "F": 1, "f": 1, "g": 3}.get(
-                getcfg(cfgname), 1
-            ),
+            {"c": 2, "l": 1, "R": 2, "F": 1, "f": 1, "g": 3}.get(getcfg(cfgname), 1),
         )
         print(f"Added DISPLAY_TYPE_BASE_ID {cgats[0].DISPLAY_TYPE_BASE_ID!r}")
         return True
@@ -2906,12 +2905,12 @@ class Worker(WorkerBase):
         at Argyll CMS command output"""
         if not self.instrument_calibration_complete:
             if "calibration complete" in txt.lower():
-                self.log(f"{appname}: Detected instrument calibration complete message")
+                self.log(f"{APPNAME}: Detected instrument calibration complete message")
                 self.instrument_calibration_complete = True
             else:
                 for calmsg in INST_CAL_MSGS:
                     if calmsg in txt or "calibration failed" in txt.lower():
-                        self.log(f"{appname}: Detected instrument calibration message")
+                        self.log(f"{APPNAME}: Detected instrument calibration message")
                         self.do_instrument_calibration(
                             "calibration failed" in txt.lower()
                         )
@@ -2923,9 +2922,9 @@ class Worker(WorkerBase):
         # otherwise...
         if self._detected_instrument and "SpyderX" in self._detected_instrument:
             if sys.platform == "win32":
-                cachepath = os.path.join(appdata, "Cache")
+                cachepath = os.path.join(APPDATA, "Cache")
             else:
-                cachepath = cache
+                cachepath = CACHE
             spydx_cal_fn = os.path.join(
                 cachepath,
                 "ArgyllCMS",
@@ -2958,7 +2957,7 @@ class Worker(WorkerBase):
                         break
                 if not time_t_size:
                     self.log(
-                        f"{appname}: Warning - could not determine SpyderX "
+                        f"{APPNAME}: Warning - could not determine SpyderX "
                         "sensor cal file format"
                     )
                     self.exec_cmd_returnvalue = Error(
@@ -2966,7 +2965,7 @@ class Worker(WorkerBase):
                     )
                     self.abort_subprocess()
                     return False
-                self.log(f"{appname}: SpyderX cal time_t size =", time_t_size)
+                self.log(f"{APPNAME}: SpyderX cal time_t size =", time_t_size)
                 try:
                     with open(spydx_cal_fn, "rb") as spydx_cal:
                         # Seek to cal entries offset
@@ -2977,7 +2976,7 @@ class Worker(WorkerBase):
                         spydx_bcal = spydx_cal.read(spydx_cal_int_bytes * 3)
                 except OSError as exception:
                     self.log(
-                        f"{appname}: Warning - could not read SpyderX sensor cal:",
+                        f"{APPNAME}: Warning - could not read SpyderX sensor cal:",
                         exception,
                     )
                     self.exec_cmd_returnvalue = Error(
@@ -2988,7 +2987,7 @@ class Worker(WorkerBase):
                 else:
                     if len(spydx_bcal) < spydx_cal_int_bytes * 3:
                         self.log(
-                            f"{appname}: Warning - SpyderX "
+                            f"{APPNAME}: Warning - SpyderX "
                             "sensor cal has unexpected length: "
                             f"{len(spydx_bcal)} != {spydx_cal_int_bytes * 3:d}"
                         )
@@ -3002,7 +3001,7 @@ class Worker(WorkerBase):
                     fmt = {2: "<HHH", 4: "<III", 8: "<QQQ"}[spydx_cal_int_bytes]
                     spydx_bcal = struct.unpack(fmt, spydx_bcal)
                     self.log(
-                        f"{appname}: SpyderX sensor cal "
+                        f"{APPNAME}: SpyderX sensor cal "
                         f"{spydx_bcal[0]:d} {spydx_bcal[1]:d} {spydx_bcal[2]:d}"
                     )
                     if max(spydx_bcal) > 15:
@@ -3016,7 +3015,7 @@ class Worker(WorkerBase):
                             os.remove(spydx_cal_fn)
                         except OSError:
                             self.log(
-                                f"{appname}: Warning - Could not remove "
+                                f"{APPNAME}: Warning - Could not remove "
                                 "SpyderX sensor cal file",
                                 spydx_cal_fn,
                             )
@@ -3044,7 +3043,7 @@ class Worker(WorkerBase):
             and self.instrument_place_on_spot_msg
             and self.progress_wnd is getattr(self, "terminal", None)
         ):
-            self.log(f"{appname}: Detected instrument placement (screen/spot) message")
+            self.log(f"{APPNAME}: Detected instrument placement (screen/spot) message")
             self.instrument_place_on_screen_msg = False
             if (
                 self.cmdname == get_argyll_utilname("dispcal")
@@ -3083,11 +3082,11 @@ class Worker(WorkerBase):
                 # reading (black)
                 wx.CallLater(1500, self.instrument_on_screen_continue)
         elif self.instrument_place_on_spot_msg:
-            self.log(f"{appname}: Assuming instrument on screen")
+            self.log(f"{APPNAME}: Assuming instrument on screen")
             self.instrument_on_screen = True
 
     def instrument_on_screen_continue(self):
-        self.log(f"{appname}: Skipping place instrument on screen message...")
+        self.log(f"{APPNAME}: Skipping place instrument on screen message...")
         self.safe_send(" ")
         self.pauseable_now = True
         self.instrument_on_screen = True
@@ -3098,7 +3097,7 @@ class Worker(WorkerBase):
         if "read failed due to the sensor being in the wrong position" in txt.lower():
             self.instrument_sensor_position_msg = True
         if self.instrument_sensor_position_msg and " or q to " in txt.lower():
-            self.log(f"{appname}: Detected read failed due to wrong sensor position")
+            self.log(f"{APPNAME}: Detected read failed due to wrong sensor position")
             self.instrument_sensor_position_msg = False
             self.instrument_reposition_sensor()
 
@@ -3114,8 +3113,8 @@ class Worker(WorkerBase):
             and not self.subprocess_abort
         ):
             self.retrycount += 1
-            self.log(f"{appname}: Retrying ({self.retrycount})...")
-            self.recent.write(f"\r\n{appname}: Retrying ({self.retrycount})...")
+            self.log(f"{APPNAME}: Retrying ({self.retrycount})...")
+            self.recent.write(f"\r\n{APPNAME}: Retrying ({self.retrycount})...")
             self.safe_send(" ")
 
     def check_spotread_result(self, txt):
@@ -3305,7 +3304,7 @@ END_DATA
             # If we are aborting, ignore request
             return None
         self.instrument_on_screen = False
-        self.log(f"{appname}: Prompting to calibrate instrument")
+        self.log(f"{APPNAME}: Prompting to calibrate instrument")
         self.progress_wnd.Pulse(" " * 4)
         if failed:
             msg = lang.getstr("failure")
@@ -3362,15 +3361,15 @@ END_DATA
         dlg.Destroy()
         if self.finished:
             self.log(
-                f"{appname}: Ignoring instrument calibration prompt (worker "
+                f"{APPNAME}: Ignoring instrument calibration prompt (worker "
                 "thread finished)"
             )
             return None
         if dlg_result != wx.ID_OK:
-            self.log(f"{appname}: Canceled instrument calibration prompt")
+            self.log(f"{APPNAME}: Canceled instrument calibration prompt")
             self.abort_subprocess()
             return False
-        self.log(f"{appname}: About to calibrate instrument")
+        self.log(f"{APPNAME}: About to calibrate instrument")
         self.progress_wnd.Pulse(lang.getstr("please_wait"))
         if self.safe_send(" "):
             self.progress_wnd.Pulse(lang.getstr("instrument.calibrating"))
@@ -3442,9 +3441,9 @@ END_DATA
             result = delayedResult.get()
         except Exception as exception:
             if hasattr(exception, "originalTraceback"):
-                self.log(exception.originalTraceback, fn=log)
+                self.log(exception.originalTraceback, fn=LOG)
             else:
-                self.log(traceback.format_exc(), fn=log)
+                self.log(traceback.format_exc(), fn=LOG)
             result = UnloggedError(safe_str(exception))
         if isinstance(result, Exception):
             show_result_dialog(result, getattr(self, "progress_wnd", None))
@@ -3468,7 +3467,7 @@ END_DATA
         ):
             # If we are aborting, ignore request
             return None
-        self.log(f"{appname}: Prompting to place instrument on screen")
+        self.log(f"{APPNAME}: Prompting to place instrument on screen")
         self.progress_wnd.Pulse(" " * 4)
         if self.use_madvr:
             fullscreen = self.madtpg.is_fullscreen()
@@ -3507,16 +3506,16 @@ END_DATA
         dlg.Destroy()
         if self.finished:
             self.log(
-                f"{appname}: Ignoring instrument placement prompt (worker thread "
+                f"{APPNAME}: Ignoring instrument placement prompt (worker thread "
                 "finished)"
             )
             return None
         if dlg_result != wx.ID_OK:
-            self.log(f"{appname}: Canceled instrument placement prompt")
+            self.log(f"{APPNAME}: Canceled instrument placement prompt")
             self.abort_subprocess()
             return False
         self.instrument_on_screen = True
-        self.log(f"{appname}: Instrument on screen")
+        self.log(f"{APPNAME}: Instrument on screen")
         if not isinstance(self.progress_wnd, (UntetheredFrame, DisplayUniformityFrame)):
             self.safe_send(" ")
             self.pauseable_now = True
@@ -3528,7 +3527,7 @@ END_DATA
 
     def instrument_reposition_sensor(self):
         """Show a dialog asking user to reposition the instrument sensor.
-        
+
         Returns:
             None: if the user canceled the dialog.
             bool: True if the user confirmed the dialog.
@@ -3538,7 +3537,7 @@ END_DATA
         ):
             # If we are aborting, ignore request
             return None
-        self.log(f"{appname}: Prompting to reposition instrument sensor")
+        self.log(f"{APPNAME}: Prompting to reposition instrument sensor")
         self.progress_wnd.Pulse(" " * 4)
         fullscreen = False
         if self.use_madvr:
@@ -3559,12 +3558,12 @@ END_DATA
         dlg.Destroy()
         if self.finished:
             self.log(
-                f"{appname}: Ignoring instrument sensor repositioning prompt (worker "
+                f"{APPNAME}: Ignoring instrument sensor repositioning prompt (worker "
                 "thread finished)"
             )
             return None
         if dlg_result != wx.ID_OK:
-            self.log(f"{appname}: Canceled instrument sensor repositioning prompt")
+            self.log(f"{APPNAME}: Canceled instrument sensor repositioning prompt")
             self.abort_subprocess()
             return False
         self.safe_send(" ")
@@ -3638,7 +3637,7 @@ END_DATA
     ):
         # 3D LUT filename with crcr32 hash before extension - up to DCG 2.9.0.7
         profile_save_path = os.path.splitext(
-            path or getcfg("calibration.file") or defaults["calibration.file"]
+            path or getcfg("calibration.file") or DEFAULTS["calibration.file"]
         )[0]
         lut3d = [
             (getcfg("3dlut.gamap.use_b2a") and "gg") or "G",
@@ -3665,7 +3664,7 @@ END_DATA
             elif lut3d_ext == "ReShade":
                 lut3d_ext = "png"
             elif lut3d_ext == "icc":
-                lut3d_ext = profile_ext[1:]
+                lut3d_ext = PROFILE_EXT[1:]
         else:
             lut3d_ext = ""
         if include_input_profile:
@@ -3905,7 +3904,7 @@ END_DATA
             _applycal_bug_workaround(profile_out)
 
             # Prepare building a device link
-            link_basename = name + profile_ext
+            link_basename = name + PROFILE_EXT
             link_filename = os.path.join(cwd, link_basename)
 
             profile_out_basename = make_argyll_compatible_path(
@@ -3957,7 +3956,7 @@ END_DATA
             # the gray axis (in some cases, i.e. HDR and cLUT res < 65,
             # significantly so)
             use_xicclu = (
-                (experimental or hdr)
+                (EXPERIMENTAL or hdr)
                 and not profile_abst
                 and intent in ("a", "aw", "r")
                 and input_encoding in ("n", "t", "T")
@@ -4056,7 +4055,7 @@ END_DATA
                     cat=cat,
                 )
                 fd, profile_src.fileName = tempfile.mkstemp(
-                    profile_ext, f"{rgb_space_name}-", dir=cwd
+                    PROFILE_EXT, f"{rgb_space_name}-", dir=cwd
                 )
                 stream = os.fdopen(fd, "wb")
                 profile_src.write(stream)
@@ -4074,7 +4073,7 @@ END_DATA
                     # Make sure the profile has the expected Rec. 709 TRC
                     # for BT.1886
                     self.log(
-                        f"{appname}: Applying Rec. 709 TRC to "
+                        f"{APPNAME}: Applying Rec. 709 TRC to "
                         f"{os.path.basename(profile_in.fileName)}"
                     )
                     for channel in ["r", "g", "b"]:
@@ -4171,7 +4170,7 @@ END_DATA
                 profile_src.write()
 
                 # Create link from source to destination profile
-                gam_link_filename = tempfile.mktemp(profile_ext, "gam-link-", dir=cwd)  # noqa: S306
+                gam_link_filename = tempfile.mktemp(PROFILE_EXT, "gam-link-", dir=cwd)  # noqa: S306
                 result = self.exec_cmd(
                     collink,
                     [
@@ -4270,9 +4269,9 @@ END_DATA
             if self.argyll_version >= [1, 6]:
                 if file_format == "madVR":
                     args.append("-3m")
-                elif file_format == "eeColor" and not test:
+                elif file_format == "eeColor" and not TEST:
                     args.append("-3e")
-                elif file_format == "cube" and collink_version >= [1, 7] and not test:
+                elif file_format == "cube" and collink_version >= [1, 7] and not TEST:
                     args.append("-3c")
                 args.append(f"-e{input_encoding}")
                 args.append(f"-E{output_encoding}")
@@ -4696,7 +4695,7 @@ END_DATA
                                 file_format == "eeColor"
                                 or (file_format == "cube" and collink_version >= [1, 7])
                             )
-                            and not test
+                            and not TEST
                         )
                         or file_format == "madVR"
                     )
@@ -4730,8 +4729,8 @@ END_DATA
                 profile_link.tags.meta = DictType()
                 profile_link.tags.meta.update(
                     [
-                        ("CMF_product", appname),
-                        ("CMF_binary", appname),
+                        ("CMF_product", APPNAME),
+                        ("CMF_binary", APPNAME),
                         ("CMF_version", VERSION_STRING),
                         (
                             "collink.args",
@@ -4750,7 +4749,7 @@ END_DATA
                     ]
                 )
                 profile_link.calculateID()
-                profile_link.write(f"{filename}{profile_ext}")
+                profile_link.write(f"{filename}{PROFILE_EXT}")
                 profile_link.tags.A2B0.clut_writepng(f"{filename}.A2B0.CLUT.png")
                 del profile_link
 
@@ -4764,16 +4763,16 @@ END_DATA
                     # logfile=logfiles,
                     # convert_video_rgb_to_clut65=True)
                     interp_args = []
-                    if os.path.basename(exe).lower().startswith("python"):
-                        if os.path.basename(exe).lower().startswith("pythonw"):
+                    if os.path.basename(EXE).lower().startswith("python"):
+                        if os.path.basename(EXE).lower().startswith("pythonw"):
                             cmd = os.path.join(
-                                exedir, "python" + os.path.basename(exe)[7:]
+                                EXEDIR, "python" + os.path.basename(EXE)[7:]
                             )
                         else:
-                            cmd = exe
+                            cmd = EXE
                         py = os.path.normpath(
                             os.path.join(
-                                pydir, "..", f"{appname}-eeColor-to-madVR-converter.py"
+                                PYDIR, "..", f"{APPNAME}-eeColor-to-madVR-converter.py"
                             )
                         )
                         if os.path.exists(py):
@@ -4795,7 +4794,7 @@ END_DATA
                                     get_data_path(
                                         os.path.join(
                                             "scripts",
-                                            f"{appname.lower()}-eecolor-to-madvr-converter",
+                                            f"{APPNAME.lower()}-eecolor-to-madvr-converter",
                                         )
                                     )
                                 )
@@ -4803,31 +4802,31 @@ END_DATA
                                 # Linux
                                 interp_args.append(
                                     which(
-                                        f"{appname.lower()}-eecolor-to-madvr-converter"
+                                        f"{APPNAME.lower()}-eecolor-to-madvr-converter"
                                     )
                                 )
-                    elif isapp:
-                        cmd = os.path.join(exedir, "python")
+                    elif ISAPP:
+                        cmd = os.path.join(EXEDIR, "python")
                         interp_args.extend(
                             [
                                 "-c",
                                 "import sys;sys.path.insert(0, {});execfile({})".format(
                                     os.path.join(
-                                        pydir.encode(fs_enc),
+                                        PYDIR.encode(FS_ENC),
                                         "lib",
                                         "python{}{}".format(*sys.version_info[:2]),
                                         "site-packages.zip",
                                     ),
                                     os.path.join(
-                                        pydir.encode(fs_enc),
-                                        f"{appname.lower()}-eecolor-to-madvr-converter",
+                                        PYDIR.encode(FS_ENC),
+                                        f"{APPNAME.lower()}-eecolor-to-madvr-converter",
                                     ),
                                 ),
                             ]
                         )
                     else:
                         cmd = os.path.join(
-                            pydir, f"{appname}-eeColor-to-madVR-converter{exe_ext}"
+                            PYDIR, f"{APPNAME}-eeColor-to-madVR-converter{EXE_EXT}"
                         )
                     if in_colors:
                         interp_args.append(
@@ -4847,9 +4846,9 @@ END_DATA
                         skip_scripts=True,
                         use_pty=True,
                     )
-                    if debug:
+                    if DEBUG:
                         h3d = madvr.H3DLUT(os.path.join(cwd, name + ".3dlut"))
-                        h3d.write_devicelink(filename + ".3dlut" + profile_ext)
+                        h3d.write_devicelink(filename + ".3dlut" + PROFILE_EXT)
 
             if result and not isinstance(result, Exception):
                 if file_format == "madVR" and is_argyll_lut_format:
@@ -5027,14 +5026,14 @@ END_DATA
             columns = (2, 1, 0)
         for i in range(size):
             # Red
-            if file_format == "eeColor" and not eecolor65 and i == size - 1:
+            if file_format == "eeColor" and not EECOLOR65 and i == size - 1:
                 # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                 continue
             RGB_triplet[columns[0]] = quantizer(step * i)
             RGB_index[columns[0]] = i
             for j in range(size):
                 # Green
-                if file_format == "eeColor" and not eecolor65 and j == size - 1:
+                if file_format == "eeColor" and not EECOLOR65 and j == size - 1:
                     # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                     continue
                 RGB_triplet[columns[1]] = quantizer(step * j)
@@ -5043,7 +5042,7 @@ END_DATA
                     # Blue
                     if self.thread_abort:
                         raise Info(lang.getstr("aborted"))
-                    if file_format == "eeColor" and not eecolor65 and k == size - 1:
+                    if file_format == "eeColor" and not EECOLOR65 and k == size - 1:
                         # Last cLUT entry is fixed to 1.0 for eeColor and unchangeable
                         continue
                     RGB_triplet[columns[2]] = quantizer(step * k)
@@ -5076,7 +5075,7 @@ END_DATA
 
         valsep = " "
         if file_format not in ("dcl", "png"):
-            lut = [[f"# Created with {appname} {VERSION_STRING}"]]
+            lut = [[f"# Created with {APPNAME} {VERSION_STRING}"]]
             linesep = "\n"
         if file_format in ("3dl", "dcl"):
             maxval = math.pow(2, output_bits) - 1
@@ -5234,7 +5233,7 @@ END_DATA
             displays = []
             xrandr_names = {}
             lut_access = []
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("enumerating_displays_and_comports"))
             instruments = []
             current_display_name = config.get_display_name()
@@ -5269,13 +5268,13 @@ END_DATA
             if isinstance(result, Exception):
                 print(result)
             arg = None
-            defaults["calibration.black_point_hack"] = 0
-            defaults["calibration.black_point_rate.enabled"] = 0
-            defaults["patterngenerator.prisma.argyll"] = 0
+            DEFAULTS["calibration.black_point_hack"] = 0
+            DEFAULTS["calibration.black_point_rate.enabled"] = 0
+            DEFAULTS["patterngenerator.prisma.argyll"] = 0
             n = -1
             self.display_rects = []
             non_standard_display_args = ("-dweb[:port]", "-dmadvr")
-            if test:
+            if TEST:
                 # Add dummy Chromecasts
                 self.output.append(" -dcc[:n]")
                 self.output.append("    100 = '\xd4\xc7\xf3 Test A'")
@@ -5292,14 +5291,14 @@ END_DATA
                     if argyll_version_string != self.argyll_version_string:
                         self.set_argyll_version_from_string(argyll_version_string)
                     print(f"ArgyllCMS {self.argyll_version_string}")
-                    defaults["copyright"] = (
-                        f"No copyright. Created with {appname} {VERSION_STRING} and "
+                    DEFAULTS["copyright"] = (
+                        f"No copyright. Created with {APPNAME} {VERSION_STRING} and "
                         f"Argyll CMS {argyll_version_string}"
                     )
 
                     if self.argyll_version > [1, 0, 4]:
                         # Rate of blending from neutral to black point.
-                        defaults["calibration.black_point_rate.enabled"] = 1
+                        DEFAULTS["calibration.black_point_rate.enabled"] = 1
 
                     if (
                         self.argyll_version >= [1, 7]
@@ -5307,20 +5306,20 @@ END_DATA
                     ):
                         # Forced black point hack available
                         # (Argyll CMS 1.7)
-                        defaults["calibration.black_point_hack"] = 1
+                        DEFAULTS["calibration.black_point_hack"] = 1
 
                     if self.argyll_version >= [1, 9, 4]:
                         # Add CIE 2012 observers
-                        valid_observers = natsort(observers + ["2012_2", "2012_10"])
+                        valid_observers = natsort(OBSERVERS + ["2012_2", "2012_10"])
                     else:
-                        valid_observers = observers
+                        valid_observers = OBSERVERS
                     for key in [
                         "{}",
                         "colorimeter_correction.{}",
                         "colorimeter_correction.{}.reference",
                     ]:
                         key = key.format("observer")
-                        config.valid_values[key] = valid_observers
+                        config.VALID_VALUES[key] = valid_observers
                     continue
                 line = line.split(None, 1)
                 if len(line) and line[0][0] == "-":
@@ -5333,15 +5332,15 @@ END_DATA
                         arg += value
                     if arg == "-A":
                         # Rate of blending from neutral to black point.
-                        defaults["calibration.black_point_rate.enabled"] = 1
+                        DEFAULTS["calibration.black_point_rate.enabled"] = 1
                     elif arg in non_standard_display_args:
                         displays.append(arg)
                     elif arg == "-b" and not line[-1].startswith("bright"):
                         # Forced black point hack available
                         # (Argyll CMS 1.7b 2014-12-22)
-                        defaults["calibration.black_point_hack"] = 1
+                        DEFAULTS["calibration.black_point_hack"] = 1
                     elif arg == "-dprisma[:host]":
-                        defaults["patterngenerator.prisma.argyll"] = 1
+                        DEFAULTS["patterngenerator.prisma.argyll"] = 1
                     elif arg in ("-dvirtual", "-ddummy"):
                         # Custom modified Argyll V2.0.2 (-dvirtual)
                         # or Argyll >= 2.0.2 (-d dummy)
@@ -5377,7 +5376,7 @@ END_DATA
                             # valid in both UTF-8 and stdout encoding
                             # by a re-encode/decode step
                             displays.append(
-                                f"Chromecast {line[0]}: {safe_str(value, enc)}"
+                                f"Chromecast {line[0]}: {safe_str(value, ENC)}"
                             )
                     elif arg == "-dprisma[:host]":
                         # Prisma (via Argyll CMS)
@@ -5386,7 +5385,7 @@ END_DATA
                         match = re.findall(r".+?: (.+) @ (.+)", value)
                         if len(match):
                             displays.append(
-                                f"Prisma {line[0]}: {safe_str(match[0][0], enc)} "
+                                f"Prisma {line[0]}: {safe_str(match[0][0], ENC)} "
                                 f"@ {match[0][1]}"
                             )
                     elif arg == "-c" and enumerate_ports:
@@ -5406,14 +5405,14 @@ END_DATA
                             value = value[0]
                         value = get_canonical_instrument_name(value)
                         instruments.append(value)
-            if test:
+            if TEST:
                 inames = list(all_instruments.keys())
                 inames.sort()
                 for iname in inames:
                     iname = get_canonical_instrument_name(iname)
                     if iname not in instruments:
                         instruments.append(iname)
-            if verbose >= 1:
+            if VERBOSE >= 1:
                 print(lang.getstr("success"))
             if instruments != self.instruments:
                 self.instruments = instruments
@@ -5600,7 +5599,7 @@ END_DATA
                             # access to all displays.
                             lut_access.append(True)
                             continue
-                        if verbose >= 1:
+                        if VERBOSE >= 1:
                             print(lang.getstr("checking_lut_access", (i + 1)))
                         # Save current calibration?
                         if tmp:
@@ -5658,7 +5657,7 @@ END_DATA
                             except OSError as exception:
                                 print(exception)
                         lut_access.append(retcode == 0)
-                        if verbose >= 1:
+                        if VERBOSE >= 1:
                             if retcode == 0:
                                 print(lang.getstr("success"))
                             else:
@@ -5693,7 +5692,7 @@ END_DATA
         parent=None,
         asroot=False,
         log_output=True,
-        title=appname,
+        title=APPNAME,
         shell=False,
         working_dir=None,
         dry_run=None,
@@ -5752,7 +5751,7 @@ END_DATA
 
         self.clear_cmd_output()
         if None in [cmd, args]:
-            if verbose >= 1 and not silent:
+            if VERBOSE >= 1 and not silent:
                 print(lang.getstr("aborted"))
             return False
         self.cmd = cmd
@@ -5861,22 +5860,22 @@ END_DATA
                         if not iface:
                             iface = DBusObject(BUSTYPE_SESSION, bus_name, object_path)
                         cookie = iface.inhibit(
-                            appname, *iface_dict.get("args", (inhibit_reason,))
+                            APPNAME, *iface_dict.get("args", (inhibit_reason,))
                         )
                     except DBusException as exception:
                         # The user might be running a minimal Wayland environment
                         # without a screensaver or power management daemon
                         self.log(
-                            f"{appname}: Warning - could not inhibit "
+                            f"{APPNAME}: Warning - could not inhibit "
                             f"{bus_name}: {exception}"
                         )
                         continue  # Skip to the next interface
                     iface_dict["iface"] = iface
                     iface_dict["cookie"] = cookie
-                    self.log(f"{appname}: Inhibited {bus_name}")
+                    self.log(f"{APPNAME}: Inhibited {bus_name}")
             else:
                 self.log(
-                    f"{appname}: Warning - no D-Bus session bus - "
+                    f"{APPNAME}: Warning - no D-Bus session bus - "
                     "cannot inhibit session, screensaver/powersaving may "
                     "still be active!"
                 )
@@ -5906,7 +5905,7 @@ END_DATA
                     self.log(exception)
             else:
                 self.log(
-                    f"{appname}: Warning - couldn't get display device ID - "
+                    f"{APPNAME}: Warning - couldn't get display device ID - "
                     "cannot inhibit display device!"
                 )
             if dbus_system and object_path:
@@ -5915,18 +5914,18 @@ END_DATA
                     cd_device = colord.Device(object_path)
                     cd_device.profiling_inhibit()
                 except (colord.CDError, DBusException) as exception:
-                    self.log(f"{appname}: Warning - Handled exception: {exception}")
+                    self.log(f"{APPNAME}: Warning - Handled exception: {exception}")
                 else:
                     profiling_inhibit = True
-                    self.log(f"{appname}: Inhibited display device", object_path)
+                    self.log(f"{APPNAME}: Inhibited display device", object_path)
             elif object_path:
                 self.log(
-                    f"{appname}: Warning - no D-Bus system bus - "
+                    f"{APPNAME}: Warning - no D-Bus system bus - "
                     "cannot inhibit display device!"
                 )
             if not profiling_inhibit:
                 # Fallback - install linear cal sRGB profile
-                self.log(f"{appname}: Temporarily installing sRGB profile...")
+                self.log(f"{APPNAME}: Temporarily installing sRGB profile...")
                 display_profile = config.get_display_profile()
                 self.srgb = srgb = ICCProfile.from_named_rgb_space("sRGB")
                 # Date should not change so the ID stays the same.
@@ -5944,11 +5943,11 @@ END_DATA
                         ],
                     }
                 )
-                srgb.setDescription(f"{appname} Linear Calibration sRGB Profile")
+                srgb.setDescription(f"{APPNAME} Linear Calibration sRGB Profile")
                 srgb.calculateID()
                 srgb.write(
                     os.path.join(
-                        self.tempdir, f"{appname} Linear Calibration sRGB Profile.icc"
+                        self.tempdir, f"{APPNAME} Linear Calibration sRGB Profile.icc"
                     )
                 )
                 cdinstall = self._attempt_install_profile_colord(srgb)
@@ -5956,7 +5955,7 @@ END_DATA
                     return Error(lang.getstr("calibration.reset_error"))
                 if isinstance(cdinstall, Exception):
                     return UnloggedError(safe_str(cdinstall))
-                self.log(f"{appname}: Successfully assigned sRGB profile")
+                self.log(f"{APPNAME}: Successfully assigned sRGB profile")
         self.use_patterngenerator = (
             self.measure_cmd
             and cmdname != get_argyll_utilname("spotread")
@@ -5964,7 +5963,7 @@ END_DATA
                 config.get_display_name() == "Resolve"
                 or (
                     config.get_display_name() == "Prisma"
-                    and not defaults["patterngenerator.prisma.argyll"]
+                    and not DEFAULTS["patterngenerator.prisma.argyll"]
                 )
                 or self._use_patternwindow
             )
@@ -6022,7 +6021,7 @@ END_DATA
             and not dry_run
         ):
             self.set_sessionlogfile(sessionlogfile, working_basename, working_dir)
-        if not silent or verbose >= 3:
+        if not silent or VERBOSE >= 3:
             self.log("-" * 80)
             if self.sessionlogfile:
                 print("Session log:", self.sessionlogfile.filename)
@@ -6406,12 +6405,12 @@ BEGIN_DATA
                     waitfile.write("echo Current RGB %*\n")
                     waitfile.write(
                         'set "PYTHONPATH={}"\n'.format(  # noqa: UP032
-                            safe_str(os.pathsep.join(pythonpath), enc)
+                            safe_str(os.pathsep.join(pythonpath), ENC)
                         )
                     )
                     waitfile.write(
-                        f'"{safe_str(python, enc)}" '
-                        f'-S "{safe_str(scriptfilename, enc)}" %*\n'
+                        f'"{safe_str(python, ENC)}" '
+                        f'-S "{safe_str(scriptfilename, ENC)}" %*\n'
                     )
                 args[index] += waitfilename
             else:
@@ -6423,7 +6422,7 @@ BEGIN_DATA
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
                 )
-        if (verbose >= 1 or not silent) and (not silent or verbose >= 3):
+        if (VERBOSE >= 1 or not silent) and (not silent or VERBOSE >= 3):
             if not silent and dry_run and not self.cmdrun:
                 print(lang.getstr("dry_run"))
                 print("")
@@ -6539,10 +6538,10 @@ BEGIN_DATA
         ):
             try:
                 cmdfilename = os.path.join(
-                    working_dir, f"{working_basename}.{cmdname}{script_ext}"
+                    working_dir, f"{working_basename}.{cmdname}{SCRIPT_EXT}"
                 )
                 allfilename = os.path.join(
-                    working_dir, f"{working_basename}.all{script_ext}"
+                    working_dir, f"{working_basename}.all{SCRIPT_EXT}"
                 )
                 first = not os.path.exists(allfilename)
                 last = cmdname == get_argyll_utilname("dispwin")
@@ -6554,10 +6553,10 @@ BEGIN_DATA
                     context.write("@echo off\n")
                     context.write(
                         f"PATH {os.path.dirname(cmd)};%PATH%\n".encode(
-                            enc, "safe_asciize"
+                            ENC, "safe_asciize"
                         )
                     )
-                    cmdfiles.write('pushd "%~dp0"\n'.encode(enc, "safe_asciize"))
+                    cmdfiles.write('pushd "%~dp0"\n'.encode(ENC, "safe_asciize"))
                     if cmdname in (
                         get_argyll_utilname("dispcal"),
                         get_argyll_utilname("dispread"),
@@ -6566,7 +6565,7 @@ BEGIN_DATA
                 else:
                     context.write(
                         f"PATH={os.path.dirname(cmd)}:$PATH\n".encode(
-                            enc, "safe_asciize"
+                            ENC, "safe_asciize"
                         )
                     )
                     if sys.platform == "darwin" and config.mac_create_app:
@@ -6587,7 +6586,7 @@ BEGIN_DATA
                 cmdfiles.write(
                     " ".join(quote_args(cmdline))
                     .replace(cmd, cmdname)
-                    .encode(enc, "safe_asciize")
+                    .encode(ENC, "safe_asciize")
                     + b"\n"
                 )
                 if sys.platform == "win32":
@@ -6655,7 +6654,8 @@ BEGIN_DATA
                             f"{appfilename}/Contents/Resources/main.command",
                         )
                         os.chmod(
-                            f"{appfilename}/Contents/Resources/main.command", 0o755  # noqa: S103
+                            f"{appfilename}/Contents/Resources/main.command",
+                            0o755,  # noqa: S103
                         )
                         # Part 2: "allfile"
                         appfilename = os.path.join(
@@ -6671,7 +6671,8 @@ BEGIN_DATA
                             f"{appfilename}/Contents/Resources/main.command",
                         )
                         os.chmod(
-                            f"{appfilename}/Contents/Resources/main.command", 0o755  # noqa: S103
+                            f"{appfilename}/Contents/Resources/main.command",
+                            0o755,  # noqa: S103
                         )
                         if last:
                             os.remove(allfilename)
@@ -6679,17 +6680,17 @@ BEGIN_DATA
                 self.log(
                     "Warning - error during shell script creation:", str(exception)
                 )
-        cmdline = [safe_str(arg, fs_enc) for arg in cmdline]
+        cmdline = [safe_str(arg, FS_ENC) for arg in cmdline]
         working_dir = working_dir if working_dir else None
         try:
             if not self.measure_cmd and self.argyll_version >= [1, 2]:
                 # Argyll tools will no longer respond to keys
-                if debug:
+                if DEBUG:
                     self.log("[D] Setting ARGYLL_NOT_INTERACTIVE 1")
                 os.environ["ARGYLL_NOT_INTERACTIVE"] = "1"
             elif "ARGYLL_NOT_INTERACTIVE" in os.environ:
                 del os.environ["ARGYLL_NOT_INTERACTIVE"]
-            if debug:
+            if DEBUG:
                 self.log("[D] argyll_version", self.argyll_version)
                 self.log(
                     "[D] ARGYLL_NOT_INTERACTIVE",
@@ -6715,20 +6716,20 @@ BEGIN_DATA
                         else:
                             current = backup
                         if current:
-                            self.log(f"{appname}: Overriding ARGYLL_{name} {current}")
+                            self.log(f"{APPNAME}: Overriding ARGYLL_{name} {current}")
                         # Override
                         value = str(getcfg(f"measure.{name.lower()}"))
-                        self.log(f"{appname}: Setting ARGYLL_{name} {value}")
+                        self.log(f"{APPNAME}: Setting ARGYLL_{name} {value}")
                     elif backup is not None:
                         value = backup
                         del os.environ[f"ARGYLL_{name}_BACKUP"]
                         if value:
-                            self.log(f"{appname}: Restoring ARGYLL_{name} {value}")
+                            self.log(f"{APPNAME}: Restoring ARGYLL_{name} {value}")
                         elif f"ARGYLL_{name}" in os.environ:
                             del os.environ[f"ARGYLL_{name}"]
                     elif f"ARGYLL_{name}" in os.environ:
                         self.log(
-                            f"{appname}: ARGYLL_{name}",
+                            f"{APPNAME}: ARGYLL_{name}",
                             os.getenv(f"ARGYLL_{name}"),
                         )
                     if value:
@@ -6750,7 +6751,7 @@ BEGIN_DATA
             else:
                 startupinfo = None
             if not use_pty:
-                data_encoding = enc
+                data_encoding = ENC
                 stderr = sp.STDOUT if silent else tempfile.SpooledTemporaryFile()  # noqa: SIM115
                 if capture_output:
                     stdout = tempfile.SpooledTemporaryFile()  # noqa: SIM115
@@ -6762,7 +6763,7 @@ BEGIN_DATA
                     stdout = sp.PIPE
                 if sudo:
                     stdin = tempfile.SpooledTemporaryFile()  # noqa: SIM115
-                    stdin.write(self.pwd.encode(enc, "replace") + os.linesep)
+                    stdin.write(self.pwd.encode(ENC, "replace") + os.linesep)
                     stdin.seek(0)
                 else:
                     stdin = sp.PIPE
@@ -6799,7 +6800,7 @@ BEGIN_DATA
                     ):
                         linebuffered_logfiles.append(print)
                     else:
-                        linebuffered_logfiles.append(log)
+                        linebuffered_logfiles.append(LOG)
                     if self.sessionlogfile:
                         linebuffered_logfiles.append(self.sessionlogfile)
                     logfiles.append(
@@ -6887,7 +6888,7 @@ BEGIN_DATA
                                     )
                                 except Exception as exception:
                                     self.log(
-                                        f"{appname}: caffeinate could not "
+                                        f"{APPNAME}: caffeinate could not "
                                         "be started - screensaver and "
                                         "display/system sleep may still "
                                         "occur!"
@@ -6895,7 +6896,7 @@ BEGIN_DATA
                                     self.log(exception)
                                 else:
                                     self.log(
-                                        f"{appname}: caffeinate started, "
+                                        f"{APPNAME}: caffeinate started, "
                                         "preventing screensaver and "
                                         "display/system sleep - waiting "
                                         "for {} (PID {}) to exit".format(
@@ -6906,7 +6907,7 @@ BEGIN_DATA
                                     def caffeinate_wait(proc):
                                         proc.wait()
                                         self.log(
-                                            f"{appname}: caffeinate exited "
+                                            f"{APPNAME}: caffeinate exited "
                                             f"with code {proc.returncode}"
                                         )
 
@@ -6919,20 +6920,20 @@ BEGIN_DATA
                                     wait_thread.start()
                             else:
                                 self.log(
-                                    f"{appname}: caffeinate not found - "
+                                    f"{APPNAME}: caffeinate not found - "
                                     "screensaver and display/system sleep "
                                     "may still occur!"
                                 )
-                        if debug >= 9 or (test and "-?" not in args):
+                        if DEBUG >= 9 or (TEST and "-?" not in args):
                             self.subprocess.interact()
                     self.subprocess.logfile_read = logfiles
                     if self.measure_cmd:
                         keyhit_strs = [" or Q to ", r"8\) Exit"]
                         patterns = keyhit_strs + ["Current", r" \d+ of \d+"]
-                        self.log(f"{appname}: Starting interaction with subprocess")
+                        self.log(f"{APPNAME}: Starting interaction with subprocess")
                     else:
                         patterns = []
-                        self.log(f"{appname}: Waiting for EOF")
+                        self.log(f"{APPNAME}: Waiting for EOF")
                     loop = 0
                     pwdsent = False
                     authfailed = False
@@ -6948,12 +6949,12 @@ BEGIN_DATA
                             curpatterns + [wexpect.EOF, wexpect.TIMEOUT], timeout=1
                         )
                         if self.subprocess.after is wexpect.EOF:
-                            self.log(f"{appname}: Reached EOF (OK)")
+                            self.log(f"{APPNAME}: Reached EOF (OK)")
                             break
                         if self.subprocess.after is wexpect.TIMEOUT:
                             if not self.subprocess.isalive():
                                 self.log(
-                                    f"{appname}: Subprocess no longer alive (timeout)"
+                                    f"{APPNAME}: Subprocess no longer alive (timeout)"
                                 )
                                 if eof:
                                     break
@@ -6980,17 +6981,17 @@ BEGIN_DATA
                                 if re.search(keyhit_str, self.subprocess.after)
                             ]:
                                 # Wait for the keypress
-                                self.log(f"{appname}: Waiting for send buffer")
+                                self.log(f"{APPNAME}: Waiting for send buffer")
                                 while not self.send_buffer:
                                     if not self.subprocess.isalive():
                                         self.log(
-                                            f"{appname}: Subprocess no longer alive "
+                                            f"{APPNAME}: Subprocess no longer alive "
                                             f"(unknown reason)"
                                         )
                                         break
                                     sleep(0.05)
                                 self.log(
-                                    f"{appname}: Send buffer received: "
+                                    f"{APPNAME}: Send buffer received: "
                                     f"{self.send_buffer}"
                                 )
                             if (
@@ -7005,7 +7006,7 @@ BEGIN_DATA
                                     # Restore madTPG OSD and fullscreen
                                     self.madtpg_restore_settings(False)
                                 self.log(
-                                    f"{appname}: Sending buffer: {self.send_buffer}"
+                                    f"{APPNAME}: Sending buffer: {self.send_buffer}"
                                 )
                                 self._safe_send(self.send_buffer)
                                 self.send_buffer = None
@@ -7016,10 +7017,10 @@ BEGIN_DATA
                     # We can't use wait() because it might block in the
                     # case of a timeout
                     if self.subprocess.isalive():
-                        self.log(f"{appname}: Checking subprocess status")
+                        self.log(f"{APPNAME}: Checking subprocess status")
                         while self.subprocess.isalive():
                             sleep(0.1)
-                        self.log(f"{appname}: Subprocess no longer alive (OK)")
+                        self.log(f"{APPNAME}: Subprocess no longer alive (OK)")
                     self.retcode = self.subprocess.exitstatus
                     if authfailed:
                         raise Error(lang.getstr("auth.failed"))
@@ -7115,7 +7116,7 @@ BEGIN_DATA
         except (OSError, Error, RuntimeError) as exception:
             return exception
         except Exception:
-            if debug:
+            if DEBUG:
                 self.log("[D] working_dir:", working_dir)
 
             # TODO: Fix this in the source of the problem, not here!!!
@@ -7145,7 +7146,7 @@ BEGIN_DATA
                 retcode = self.retcode
                 self.exec_cmd(
                     "chown",
-                    ["-R", getpass.getuser().decode(fs_enc), working_dir],
+                    ["-R", getpass.getuser().decode(FS_ENC), working_dir],
                     capture_output=capture_output,
                     skip_scripts=True,
                     asroot=True,
@@ -7191,20 +7192,20 @@ BEGIN_DATA
                         self.log(cd_exception)
                         profiling_inhibit = False
                     else:
-                        self.log(f"{appname}: Uninhibited display device")
+                        self.log(f"{APPNAME}: Uninhibited display device")
                 if not profiling_inhibit:
                     # Fallback - restore display profile
-                    self.log(f"{appname}: Re-assigning display profile...")
+                    self.log(f"{APPNAME}: Re-assigning display profile...")
                     cdinstall = self._attempt_install_profile_colord(display_profile)
                     if cdinstall is True:
-                        self.log(f"{appname}: Successfully re-assigned display profile")
+                        self.log(f"{APPNAME}: Successfully re-assigned display profile")
                     elif not cdinstall:
                         self.log(lang.getstr("calibration.load_error"))
                     # Remove temp sRGB profile
                     try:
                         os.remove(
                             os.path.join(
-                                xdg_data_home,
+                                XDG_DATA_HOME,
                                 "icc",
                                 os.path.basename(self.srgb.fileName),
                             )
@@ -7214,7 +7215,7 @@ BEGIN_DATA
         if not silent:
             self.log(cmdname, "exitcode:", self.retcode)
         if self.retcode != 0:
-            if use_pty and verbose >= 1 and not silent:
+            if use_pty and VERBOSE >= 1 and not silent:
                 self.log(lang.getstr("aborted"))
             if use_pty and len(self.output):
                 errmsg = None
@@ -8047,7 +8048,7 @@ BEGIN_DATA
                 if isinstance(result, Exception):
                     raise result
                 if result:
-                    mtx = ICCProfile(f"{basepath}{profile_ext}")
+                    mtx = ICCProfile(f"{basepath}{PROFILE_EXT}")
                     for column in "rgb":
                         tag = mtx.tags.get(column + "XYZ")
                         if isinstance(tag, XYZType):
@@ -8567,7 +8568,7 @@ BEGIN_DATA
             ):
                 return self.argyll_virtual_display
             return "1"
-        if display_name == "Prisma" and not defaults["patterngenerator.prisma.argyll"]:
+        if display_name == "Prisma" and not DEFAULTS["patterngenerator.prisma.argyll"]:
             if self.argyll_virtual_display:
                 return self.argyll_virtual_display
             return "1"
@@ -8588,7 +8589,7 @@ BEGIN_DATA
         display_no = min(len(self.displays), getcfg("display.number")) - 1
         display = str(display_no + 1)
         if (
-            (sys.platform not in ("darwin", "win32") or test)
+            (sys.platform not in ("darwin", "win32") or TEST)
             and (self.has_separate_lut_access() or getcfg("use_separate_lut_access"))
             and (
                 not getcfg("display_lut.link")
@@ -8699,7 +8700,7 @@ BEGIN_DATA
             else:
                 prefix = (
                     make_filename_safe(profile.getDescription(), concat=False)
-                    + profile_ext
+                    + PROFILE_EXT
                 )
             prefix += "-"
         if profile.version >= 4 and not profile.convert_iccv4_tags_to_iccv2():
@@ -8775,7 +8776,7 @@ BEGIN_DATA
         features = all_instruments.get(
             instrument_name or self.get_instrument_name(), {}
         )
-        if test_require_sensor_cal:
+        if TEST_REQUIRE_SENSOR_CAL:
             features["sensor_cal"] = True
             features["skip_sensor_cal"] = False
         return features
@@ -8803,7 +8804,7 @@ BEGIN_DATA
                 # Need to get and remember output of spotread because calling
                 # self.get_technology_strings() will overwrite self.output
                 output = self.output
-                if test:
+                if TEST:
                     output.extend(
                         """Measure spot values, Version 1.7.0_beta
 Author: Graeme W. Gill, licensed under the GPL Version 2 or later
@@ -9096,7 +9097,7 @@ usage: spotread [-options] [logfile]
                     # Check the preset we're going to use for the upload last
                     presetnames = [
                         name
-                        for name in config.valid_values[
+                        for name in config.VALID_VALUES[
                             "patterngenerator.prisma.preset"
                         ]
                         if name != presetname
@@ -9201,14 +9202,14 @@ usage: spotread [-options] [logfile]
                 displays = util_win.get_display_devices(moninfo["Device"])
                 active_display = util_win.get_active_display_device(None, displays)
                 if not active_display:
-                    self.log(f"{appname}: Warning - no active display device!")
+                    self.log(f"{APPNAME}: Warning - no active display device!")
                     if not displays:
                         self.log(
-                            f"{appname}: Warning - could not enumerate "
+                            f"{APPNAME}: Warning - could not enumerate "
                             "display devices for {}!".format(moninfo["Device"])
                         )
                 elif active_display.DeviceKey != displays[0].DeviceKey:
-                    self.log(f"{appname}: Setting profile for active display device...")
+                    self.log(f"{APPNAME}: Setting profile for active display device...")
                     try:
                         set_display_profile(
                             os.path.basename(profile_path),
@@ -9223,12 +9224,12 @@ usage: spotread [-options] [logfile]
                         ):
                             exception.filename = profile_path
                         self.log(
-                            f"{appname}: Warning - could not set profile for "
+                            f"{APPNAME}: Warning - could not set profile for "
                             "active display device:",
                             exception,
                         )
                     else:
-                        self.log(f"{appname}: ...ok")
+                        self.log(f"{APPNAME}: ...ok")
         loader_install = None
         profile = None
         try:
@@ -9257,7 +9258,7 @@ usage: spotread [-options] [logfile]
                     # gcm-import doesn't seem to return a useful exit code or
                     # stderr output, so check for our profile
                     profilename = os.path.basename(profile.fileName)
-                    for dirname in iccprofiles_home:
+                    for dirname in ICCPROFILES_HOME:
                         profile_install_path = os.path.join(dirname, profilename)
                         if os.path.isfile(profile_install_path):
                             colord_install = Warn(lang.getstr("profile.import.success"))
@@ -9340,7 +9341,7 @@ usage: spotread [-options] [logfile]
             )
         if uninstall:
             backupbase = os.path.join(
-                config.datahome, "backup", strftime("%Y%m%dT%H%M%S")
+                config.DATA_HOME, "backup", strftime("%Y%m%dT%H%M%S")
             )
         for filename in filenames:
             dst = udevrules if filename.endswith(".rules") else hotplug
@@ -9493,7 +9494,7 @@ usage: spotread [-options] [logfile]
                     argyll_version_string = resp.read().strip()
 
             installer_basename = "ArgyllCMS_install_USB.exe"
-            download_dir = os.path.join(config.datahome, "dl")
+            download_dir = os.path.join(config.DATA_HOME, "dl")
             installer = os.path.join(
                 download_dir,
                 f"Argyll_V{argyll_version_string}",
@@ -9825,7 +9826,7 @@ usage: spotread [-options] [logfile]
 
     def _install_profile_colord(self, profile, device_id):
         """Install profile using colord"""
-        self.log(f"{appname}: Trying device ID {device_id}")
+        self.log(f"{APPNAME}: Trying device ID {device_id}")
         try:
             colord.install_profile(device_id, profile, logfn=self.log)
         except Exception as exception:
@@ -9893,7 +9894,7 @@ usage: spotread [-options] [logfile]
         # (based on profile ID), but will fail to overwrite a profile with the
         # same name. We need to remove those profiles so gcm-import can work.
         profilename = os.path.basename(profile.fileName)
-        for dirname in iccprofiles_home:
+        for dirname in ICCPROFILES_HOME:
             profile_install_path = os.path.join(dirname, profilename)
             if (
                 os.path.isfile(profile_install_path)
@@ -9958,14 +9959,14 @@ usage: spotread [-options] [logfile]
         else:
             result = True
             dirname = None
-            for dirname in iccprofiles_display_home:
+            for dirname in ICCPROFILES_DISPLAY_HOME:
                 if os.path.isdir(dirname):
                     # Use the first one that exists
                     break
                 dirname = None
             if not dirname:
                 # Create the first one in the list
-                dirname = iccprofiles_display_home[0]
+                dirname = ICCPROFILES_DISPLAY_HOME[0]
                 try:
                     os.makedirs(dirname)
                 except Exception as exception:
@@ -10017,9 +10018,9 @@ usage: spotread [-options] [logfile]
         result = True
         # Remove outdated (pre-0.5.5.9) profile loaders
         display_no = self.get_display()
-        name = f"{appname} Calibration Loader (Display {display_no})"
-        if autostart_home:
-            loader_v01b = os.path.join(autostart_home, f"dispwin-d{display_no}-c-L.lnk")
+        name = f"{APPNAME} Calibration Loader (Display {display_no})"
+        if AUTOSTART_HOME:
+            loader_v01b = os.path.join(AUTOSTART_HOME, f"dispwin-d{display_no}-c-L.lnk")
             if os.path.exists(loader_v01b):
                 try:
                     # delete v0.1b loader
@@ -10029,7 +10030,7 @@ usage: spotread [-options] [logfile]
                         "Warning - could not remove old "
                         f"v0.1b calibration loader '{loader_v01b}': {exception}"
                     )
-            loader_v02b = os.path.join(autostart_home, f"{name}.lnk")
+            loader_v02b = os.path.join(AUTOSTART_HOME, f"{name}.lnk")
             if os.path.exists(loader_v02b):
                 try:
                     # delete v02.b/v0.2.1b loader
@@ -10039,7 +10040,7 @@ usage: spotread [-options] [logfile]
                         "Warning - could not remove old "
                         f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
-            loader_v0558 = os.path.join(autostart_home, name + ".lnk")
+            loader_v0558 = os.path.join(AUTOSTART_HOME, name + ".lnk")
             if os.path.exists(loader_v0558):
                 try:
                     # delete v0.5.5.8 user loader
@@ -10049,8 +10050,8 @@ usage: spotread [-options] [logfile]
                         "Warning - could not remove old "
                         f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
-        if autostart:
-            loader_v0558 = os.path.join(autostart, f"{name}.lnk")
+        if AUTOSTART:
+            loader_v0558 = os.path.join(AUTOSTART, f"{name}.lnk")
             if os.path.exists(loader_v0558):
                 try:
                     # delete v0.5.5.8 system loader
@@ -10061,16 +10062,16 @@ usage: spotread [-options] [logfile]
                         f"v0.2b calibration loader '{loader_v02b}': {exception}"
                     )
         # Create unified loader
-        name = f"{appname} Profile Loader"
-        if autostart:
-            autostart_lnkname = os.path.join(autostart, name + ".lnk")
-        if autostart_home:
-            autostart_home_lnkname = os.path.join(autostart_home, name + ".lnk")
+        name = f"{APPNAME} Profile Loader"
+        if AUTOSTART:
+            autostart_lnkname = os.path.join(AUTOSTART, name + ".lnk")
+        if AUTOSTART_HOME:
+            autostart_home_lnkname = os.path.join(AUTOSTART_HOME, name + ".lnk")
         loader_args = []
-        if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
-            cmd = os.path.join(exedir, "pythonw.exe")
+        if os.path.basename(EXE).lower() in ("python.exe", "pythonw.exe"):
+            cmd = os.path.join(EXEDIR, "pythonw.exe")
             pyw = os.path.normpath(
-                os.path.join(pydir, "..", f"{appname}-apply-profiles.pyw")
+                os.path.join(PYDIR, "..", f"{APPNAME}-apply-profiles.pyw")
             )
             if os.path.exists(pyw):
                 # Running from source or 0install
@@ -10078,7 +10079,7 @@ usage: spotread [-options] [logfile]
                 # case we want to call 0launch with the appropriate
                 # command
                 if re.match(
-                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir))
+                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(PYDIR))
                 ):
                     cmd = which("0install-win.exe") or "0install-win.exe"
                     loader_args.extend(
@@ -10088,7 +10089,7 @@ usage: spotread [-options] [logfile]
                             "--no-wait",
                             "--offline",
                             "--command=run-apply-profiles",
-                            f"http://{DOMAIN}/0install/{appname}.xml",
+                            f"http://{DOMAIN}/0install/{APPNAME}.xml",
                         ]
                     )
                 else:
@@ -10097,10 +10098,10 @@ usage: spotread [-options] [logfile]
             else:
                 # Regular install
                 loader_args.append(
-                    get_data_path(os.path.join("scripts", f"{appname}-apply-profiles"))
+                    get_data_path(os.path.join("scripts", f"{APPNAME}-apply-profiles"))
                 )
         else:
-            cmd = os.path.join(pydir, f"{appname}-apply-profiles.exe")
+            cmd = os.path.join(PYDIR, f"{APPNAME}-apply-profiles.exe")
 
         not_main_thread = current_thread() != main_thread()
         if not_main_thread:
@@ -10116,14 +10117,14 @@ usage: spotread [-options] [logfile]
             ts = None
             task = None
         else:
-            task = ts.query_task(f"{appname} Profile Loader Launcher")
+            task = ts.query_task(f"{APPNAME} Profile Loader Launcher")
 
         elevate = getcfg(
             "profile.install_scope"
         ) == "l" and sys.getwindowsversion() >= (6,)
 
         loader_lockfile = os.path.join(
-            config.confighome, appbasename + "-apply-profiles.lock"
+            config.CONFIG_HOME, APPBASENAME + "-apply-profiles.lock"
         )
         loader_running = os.path.isfile(loader_lockfile)
 
@@ -10149,7 +10150,7 @@ usage: spotread [-options] [logfile]
                     errmsg += " " + safe_str(exception)
                 print(errmsg)
 
-        if task or (ts and ts.query_task(f"{appname} Profile Loader Launcher")):
+        if task or (ts and ts.query_task(f"{APPNAME} Profile Loader Launcher")):
             if not_main_thread:
                 pythoncom.CoUninitialize()
             return True
@@ -10163,20 +10164,20 @@ usage: spotread [-options] [logfile]
             )
             scut.SetPath(cmd)
             if len(loader_args) == 1:
-                scut.SetWorkingDirectory(pydir)
-            if os.path.basename(cmd) == f"{appname}-apply-profiles.exe":
+                scut.SetWorkingDirectory(PYDIR)
+            if os.path.basename(cmd) == f"{APPNAME}-apply-profiles.exe":
                 scut.SetIconLocation(cmd, 0)
             else:
                 scut.SetIconLocation(
                     get_data_path(
-                        os.path.join("theme", "icons", f"{appname}-apply-profiles.ico")
+                        os.path.join("theme", "icons", f"{APPNAME}-apply-profiles.ico")
                     ),
                     0,
                 )
             scut.SetArguments(sp.list2cmdline(loader_args))
             scut.SetShowCmd(win32con.SW_SHOWDEFAULT)
             if is_superuser():
-                if autostart:
+                if AUTOSTART:
                     try:
                         scut.QueryInterface(pythoncom.IID_IPersistFile).Save(
                             autostart_lnkname, 0
@@ -10184,15 +10185,15 @@ usage: spotread [-options] [logfile]
                     except Exception as exception:
                         if not silent:
                             result = Warning(
-                                lang.getstr("error.autostart_creation", autostart)
+                                lang.getstr("error.autostart_creation", AUTOSTART)
                                 + "\n"
                                 + str(exception)
                             )
                     # Now try user scope
                 elif not silent:
                     result = Warning(lang.getstr("error.autostart_system"))
-            if autostart_home:
-                if autostart and os.path.isfile(autostart_lnkname):
+            if AUTOSTART_HOME:
+                if AUTOSTART and os.path.isfile(autostart_lnkname):
                     # Remove existing user loader
                     if os.path.isfile(autostart_home_lnkname):
                         os.remove(autostart_home_lnkname)
@@ -10205,7 +10206,7 @@ usage: spotread [-options] [logfile]
                     except Exception as exception:
                         if not silent:
                             result = Warning(
-                                lang.getstr("error.autostart_creation", autostart_home)
+                                lang.getstr("error.autostart_creation", AUTOSTART_HOME)
                                 + "\n"
                                 + str(exception)
                             )
@@ -10214,7 +10215,7 @@ usage: spotread [-options] [logfile]
         except Exception as exception:
             if not silent:
                 result = Warning(
-                    lang.getstr("error.autostart_creation", autostart_home)
+                    lang.getstr("error.autostart_creation", AUTOSTART_HOME)
                     + "\n"
                     + str(exception)
                 )
@@ -10226,16 +10227,16 @@ usage: spotread [-options] [logfile]
 
     def _uninstall_profile_loader_win32(self):
         """Uninstall profile loader"""
-        name = f"{appname} Profile Loader"
-        if autostart and is_superuser():
-            autostart_lnkname = os.path.join(autostart, name + ".lnk")
+        name = f"{APPNAME} Profile Loader"
+        if AUTOSTART and is_superuser():
+            autostart_lnkname = os.path.join(AUTOSTART, name + ".lnk")
             if os.path.exists(autostart_lnkname):
                 try:
                     os.remove(autostart_lnkname)
                 except Exception as exception:
                     self.log(autostart_lnkname, exception)
-        if autostart_home:
-            autostart_home_lnkname = os.path.join(autostart_home, name + ".lnk")
+        if AUTOSTART_HOME:
+            autostart_home_lnkname = os.path.join(AUTOSTART_HOME, name + ".lnk")
             if os.path.exists(autostart_home_lnkname):
                 try:
                     os.remove(autostart_home_lnkname)
@@ -10249,8 +10250,8 @@ usage: spotread [-options] [logfile]
         # Must return either True on success or an Exception object on error
         result = True
         # Remove wrong-cased entry potentially created by DisplayCAL < 3.1.6
-        name = f"z-{appname}-apply-profiles"
-        desktop_file_path = os.path.join(autostart_home, f"{name}.desktop")
+        name = f"z-{APPNAME}-apply-profiles"
+        desktop_file_path = os.path.join(AUTOSTART_HOME, f"{name}.desktop")
         if os.path.exists(desktop_file_path):
             try:
                 os.remove(desktop_file_path)
@@ -10261,23 +10262,23 @@ usage: spotread [-options] [logfile]
         # Create unified loader
         # Prepend 'z' so our loader hopefully loads after
         # possible nvidia-settings entry (which resets gamma table)
-        name = f"z-{appname.lower()}-apply-profiles"
-        desktop_file_path = os.path.join(autostart_home, f"{name}.desktop")
-        system_desktop_file_path = os.path.join(autostart, f"{name}.desktop")
+        name = f"z-{APPNAME.lower()}-apply-profiles"
+        desktop_file_path = os.path.join(AUTOSTART_HOME, f"{name}.desktop")
+        system_desktop_file_path = os.path.join(AUTOSTART, f"{name}.desktop")
         try:
             # Create user loader, even if we later try to
             # move it to the system-wide location so that at least
             # the user loader is present if the move to the system
             # dir fails
-            if not os.path.exists(autostart_home):
-                os.makedirs(autostart_home)
+            if not os.path.exists(AUTOSTART_HOME):
+                os.makedirs(AUTOSTART_HOME)
 
             desktop_file_buffer = []
             desktop_file_buffer.append("[Desktop Entry]")
             desktop_file_buffer.append("Version=1.0")
             desktop_file_buffer.append("Encoding=UTF-8")
             desktop_file_buffer.append("Type=Application")
-            desktop_file_buffer.append(f"Name={appname} ICC Profile Loader")
+            desktop_file_buffer.append(f"Name={APPNAME} ICC Profile Loader")
             desktop_file_buffer.append(
                 "Comment={}".format(
                     lang.getstr("calibrationloader.description", lcode="en")
@@ -10291,34 +10292,34 @@ usage: spotread [-options] [logfile]
                     )
                 )
             pyw = os.path.normpath(
-                os.path.join(pydir, "..", f"{appname}-apply-profiles.pyw")
+                os.path.join(PYDIR, "..", f"{APPNAME}-apply-profiles.pyw")
             )
-            icon = f"{appname.lower()}-apply-profiles"
+            icon = f"{APPNAME.lower()}-apply-profiles"
             if os.path.exists(pyw):
                 # Running from source, or 0install/installer install
                 # Check if this is a 0install implementation, in which
                 # case we want to call 0launch with the appropriate
                 # command
                 if re.match(
-                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(pydir))
+                    r"sha\d+(?:new)?", os.path.basename(os.path.dirname(PYDIR))
                 ):
                     executable = (
                         "0launch --console --offline "
                         "--command=run-apply-profiles "
-                        f"http://{DOMAIN}/0install/{appname}.xml"
+                        f"http://{DOMAIN}/0install/{APPNAME}.xml"
                     )
                 else:
                     icon = os.path.join(
-                        pydir,
+                        PYDIR,
                         "theme",
                         "icons",
                         "256x256",
-                        f"{appname.lower()}-apply-profiles.png",
+                        f"{APPNAME.lower()}-apply-profiles.png",
                     )
                     executable = pyw
             else:
                 # Regular install
-                executable = f"{appname.lower()}-apply-profiles"
+                executable = f"{APPNAME.lower()}-apply-profiles"
             desktop_file_buffer.append(f"Icon={icon}")
             desktop_file_buffer.append(f"Exec={executable}")
             desktop_file_buffer.append("Terminal=false")
@@ -10334,12 +10335,12 @@ usage: spotread [-options] [logfile]
         else:
             if (
                 getcfg("profile.install_scope") == "l"
-                and autostart
+                and AUTOSTART
                 and (
                     # Move system-wide loader
                     self.exec_cmd(
                         "mkdir",
-                        ["-p", autostart],
+                        ["-p", AUTOSTART],
                         capture_output=True,
                         low_contrast=False,
                         skip_scripts=True,
@@ -10429,7 +10430,7 @@ usage: spotread [-options] [logfile]
             dst_path = os.path.join(
                 getcfg("profile.save_path"),
                 getcfg("profile.name.expanded"),
-                getcfg("profile.name.expanded") + profile_ext,
+                getcfg("profile.name.expanded") + PROFILE_EXT,
             )
         cmd, args = self.prepare_colprof(
             os.path.basename(os.path.splitext(dst_path)[0]),
@@ -10442,7 +10443,7 @@ usage: spotread [-options] [logfile]
         else:
             result = True
             profile = None
-            profile_path = args[-1] + profile_ext
+            profile_path = args[-1] + PROFILE_EXT
             if "-aX" in args:
                 # If profile type is X (XYZ cLUT + matrix), only create the
                 # cLUT, then add the matrix tags later from a forward lookup of
@@ -10890,7 +10891,7 @@ usage: spotread [-options] [logfile]
                                         # devicelink
                                         collink_args.remove("-ni")
                                         break
-                        link_profile = tempfile.mktemp(profile_ext, dir=self.tempdir)  # noqa: S306
+                        link_profile = tempfile.mktemp(PROFILE_EXT, dir=self.tempdir)  # noqa: S306
                         result = self.exec_cmd(
                             collink,
                             collink_args
@@ -10974,7 +10975,7 @@ usage: spotread [-options] [logfile]
                     ):
                         linebuffered_logfiles.append(print)
                     else:
-                        linebuffered_logfiles.append(log)
+                        linebuffered_logfiles.append(LOG)
                     if self.sessionlogfile:
                         linebuffered_logfiles.append(self.sessionlogfile)
                     logfiles = Files(
@@ -10982,7 +10983,7 @@ usage: spotread [-options] [logfile]
                             LineBufferedStream(
                                 FilteredStream(
                                     Files(linebuffered_logfiles),
-                                    enc,
+                                    ENC,
                                     discard="",
                                     linesep_in="\n",
                                     triggers=[],
@@ -11164,7 +11165,7 @@ usage: spotread [-options] [logfile]
                                 )
                             )
 
-                            if debug:
+                            if DEBUG:
                                 for i in range(3):
                                     self.log(
                                         colormath.XYZ2xyY(*XYZrgb[i]),
@@ -11352,7 +11353,7 @@ usage: spotread [-options] [logfile]
                 # Always explicitly do profile self check
                 self.exec_cmd(
                     get_argyll_util("profcheck"),
-                    [args[-1] + ".ti3", args[-1] + profile_ext],
+                    [args[-1] + ".ti3", args[-1] + PROFILE_EXT],
                     capture_output=True,
                     skip_scripts=True,
                 )
@@ -11439,7 +11440,7 @@ usage: spotread [-options] [logfile]
                 L, a, b = colormath.XYZ2Lab(X, Y, Z)
                 dE = colormath.delta(L, 0, 0, L, a, b, "00")["E"]
                 dEs.append(dE)
-                if debug or verbose > 1:
+                if DEBUG or VERBOSE > 1:
                     self.log(f"L* {L:5.2f} a* {a:5.2f} b* {b:5.2f} dE*00 {dE:4.2f}")
         dE_avg = sum(dEs) / len(dEs)
         dE_max = max(dEs)
@@ -11884,10 +11885,10 @@ usage: spotread [-options] [logfile]
             if isinstance(result, Exception) or not result:
                 return result
             try:
-                matrix_profile = ICCProfile(fakeout + profile_ext)
+                matrix_profile = ICCProfile(fakeout + PROFILE_EXT)
             except (OSError, ICCProfileInvalidError):
                 return Error(
-                    lang.getstr("profile.invalid") + "\n" + fakeout + profile_ext
+                    lang.getstr("profile.invalid") + "\n" + fakeout + PROFILE_EXT
                 )
             if profile:
                 self.log("-" * 80)
@@ -11904,9 +11905,9 @@ usage: spotread [-options] [logfile]
                         self.log(lang.getstr("profile.required_tags_missing", tagname))
             else:
                 profile = matrix_profile
-                profile.fileName = outname + profile_ext
+                profile.fileName = outname + PROFILE_EXT
             try:
-                os.remove(fakeout + profile_ext)
+                os.remove(fakeout + PROFILE_EXT)
             except OSError as exception:
                 self.log(exception)
         return profile
@@ -12004,7 +12005,11 @@ usage: spotread [-options] [logfile]
                 profile.tags.meta = DictType()
         if tags is True or (tags and "meta" in tags):
             profile.tags.meta.update(
-                {"CMF_product": appname, "CMF_binary": appname, "CMF_version": VERSION_STRING}
+                {
+                    "CMF_product": APPNAME,
+                    "CMF_binary": APPNAME,
+                    "CMF_version": VERSION_STRING,
+                }
             )
             # Set license
             profile.tags.meta["License"] = getcfg("profile.license")
@@ -12132,13 +12137,13 @@ usage: spotread [-options] [logfile]
         if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
             linebuffered_logfiles.append(print)
         else:
-            linebuffered_logfiles.append(log)
+            linebuffered_logfiles.append(LOG)
         if self.sessionlogfile:
             linebuffered_logfiles.append(self.sessionlogfile)
         logfiles = LineBufferedStream(
             FilteredStream(
                 Files(linebuffered_logfiles),
-                enc,
+                ENC,
                 discard="",
                 linesep_in="\n",
                 triggers=[],
@@ -12175,7 +12180,7 @@ usage: spotread [-options] [logfile]
         # Add perceptual tables if not present
         if "A2B0" in profile.tags and "A2B1" not in profile.tags:
             if not isinstance(profile.tags.A2B0, LUT16Type):
-                self.log(f"{appname}: Can't process non-LUT16Type A2B0 table")
+                self.log(f"{APPNAME}: Can't process non-LUT16Type A2B0 table")
                 return []
             try:
                 # Copy A2B0
@@ -12218,7 +12223,7 @@ usage: spotread [-options] [logfile]
                     continue
                 if not isinstance(profile.tags[f"A2B{tableno:d}"], LUT16Type):
                     self.log(
-                        f"{appname}: Can't process non-LUT16Type A2B{tableno:d} table"
+                        f"{APPNAME}: Can't process non-LUT16Type A2B{tableno:d} table"
                     )
                     continue
                 # Check if we want to apply BPC
@@ -12248,7 +12253,7 @@ usage: spotread [-options] [logfile]
                     tempdir = self.create_tempdir()
                     if isinstance(tempdir, Exception):
                         return tempdir
-                    fd, profile.fileName = tempfile.mkstemp(profile_ext, dir=tempdir)
+                    fd, profile.fileName = tempfile.mkstemp(PROFILE_EXT, dir=tempdir)
                     stream = os.fdopen(fd, "wb")
                     profile.write(stream)
                     stream.close()
@@ -12333,7 +12338,7 @@ usage: spotread [-options] [logfile]
             else:
                 # Using madVR net-protocol pure python implementation
                 self.madtpg = madvr.MadTPG_Net()
-                self.madtpg.debug = verbose
+                self.madtpg.debug = VERBOSE
 
     def madtpg_connect(self):
         self.madtpg_init()
@@ -12376,12 +12381,12 @@ usage: spotread [-options] [logfile]
                     # Restore fullscreen
                     if self.madtpg.set_use_fullscreen_button(True):
                         self.log(
-                            f"{appname}: Restored madTPG 'use fullscreen' button state"
+                            f"{APPNAME}: Restored madTPG 'use fullscreen' button state"
                         )
                         self.madtpg_previous_fullscreen = None
                     else:
                         self.log(
-                            f"{appname}: Warning - couldn't restore madTPG "
+                            f"{APPNAME}: Warning - couldn't restore madTPG "
                             "'use fullscreen' button state"
                         )
                     if not reconnect:
@@ -12394,12 +12399,12 @@ usage: spotread [-options] [logfile]
                     # Restore disable OSD
                     if self.madtpg.set_disable_osd_button(True):
                         self.log(
-                            f"{appname}: Restored madTPG 'disable OSD' button state"
+                            f"{APPNAME}: Restored madTPG 'disable OSD' button state"
                         )
                         self.madtpg_osd = None
                     else:
                         self.log(
-                            f"{appname}: Warning - couldn't restore madTPG "
+                            f"{APPNAME}: Warning - couldn't restore madTPG "
                             "'disable OSD' button state"
                         )
             else:
@@ -12409,7 +12414,7 @@ usage: spotread [-options] [logfile]
                 if restore_osd:
                     buttons.append("'disable OSD'")
                 self.log(
-                    f"{appname}: Warning - couldn't re-connect to madTPG "
+                    f"{APPNAME}: Warning - couldn't re-connect to madTPG "
                     f"to restore {'/'.join(buttons)} button states"
                 )
 
@@ -12471,7 +12476,7 @@ usage: spotread [-options] [logfile]
                     result = self._create_matrix_profile(basename, profile, omit="XYZ")
                     if not isinstance(result, Exception) and result:
                         # Write matrix profile
-                        result.write(basename + profile_ext)
+                        result.write(basename + PROFILE_EXT)
                         # Create optimized testchart
                         if getcfg("use_fancy_progress"):
                             # Fade out animation/sound
@@ -12503,7 +12508,7 @@ usage: spotread [-options] [logfile]
                             args.extend(["-B4", "-b0"])
                         if self.argyll_version >= [1, 6, 2]:
                             args.append("-V1.6")
-                        args.extend(["-c", basename + profile_ext, basename])
+                        args.extend(["-c", basename + PROFILE_EXT, basename])
                         result = self.exec_cmd(cmd, args)
                         self.pauseable = True
             else:
@@ -12813,7 +12818,7 @@ usage: spotread [-options] [logfile]
                 f = needed_bgrgb_apl / bgrgb_apl
                 bgrgb = [v * f for v in bgrgb]
         self.log(
-            f"{appname}: Sending RGB {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f}, "
+            f"{APPNAME}: Sending RGB {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f}, "
             f"background RGB {bgrgb[0]:.3f} {bgrgb[1]:.3f} {bgrgb[2]:.3f}, "
             f"x {x:.4f}, y {y:.4f}, w {w:.4f}, h {h:.4f}"
         )
@@ -12838,7 +12843,7 @@ usage: spotread [-options] [logfile]
         if increase_sent_count:
             self.patterngenerator_sent_count += 1
             self.log(
-                f"{appname}: Patterngenerator sent count: "
+                f"{APPNAME}: Patterngenerator sent count: "
                 f"{self.patterngenerator_sent_count:d}"
             )
 
@@ -12858,7 +12863,7 @@ usage: spotread [-options] [logfile]
             self, "paused", False
         ):
             self.paused = True
-            self.log(f"{appname}: Pausing...")
+            self.log(f"{APPNAME}: Pausing...")
             self.safe_send("\x1b")
             if self.use_madnet_tpg:
                 self.madtpg.set_osd_text("\u23f8")  # "Pause" symbol
@@ -12866,7 +12871,7 @@ usage: spotread [-options] [logfile]
             self, "paused", False
         ):
             self.paused = False
-            self.log(f"{appname}: Continuing...")
+            self.log(f"{APPNAME}: Continuing...")
             self.safe_send(" ")
             if self.use_madnet_tpg:
                 self.madtpg.set_osd_text("\u25b6")  # "Play" symbol
@@ -13205,14 +13210,14 @@ usage: spotread [-options] [logfile]
                 if getcfg("profile.update"):
                     profile_path = (
                         os.path.splitext(getcfg("calibration.file", False))[0]
-                        + profile_ext
+                        + PROFILE_EXT
                     )
                     result = check_profile_isfile(profile_path)
                     if isinstance(result, Exception):
                         return result, None
                     if not result:
                         return None, None
-                    profilecopy = os.path.join(inoutfile + profile_ext)
+                    profilecopy = os.path.join(inoutfile + PROFILE_EXT)
                     if not os.path.exists(profilecopy):
                         try:
                             # Copy profile to profile dir
@@ -13249,7 +13254,7 @@ usage: spotread [-options] [logfile]
             else:
                 args.append(f"-w{whitepoint_x},{whitepoint_y}")
             luminance = getcfg("calibration.luminance", False)
-            self.log(f"{appname}: luminance: {luminance}")
+            self.log(f"{APPNAME}: luminance: {luminance}")
             if luminance is not None:
                 args.append(f"-b{luminance}")
             if getcfg("trc"):
@@ -13268,7 +13273,7 @@ usage: spotread [-options] [logfile]
                         "-k{}".format(getcfg("calibration.black_point_correction"))
                     )
                 if (
-                    defaults["calibration.black_point_rate.enabled"]
+                    DEFAULTS["calibration.black_point_rate.enabled"]
                     and float(getcfg("calibration.black_point_correction")) < 1
                 ):
                     black_point_rate = getcfg("calibration.black_point_rate")
@@ -13282,7 +13287,7 @@ usage: spotread [-options] [logfile]
                     getcfg("calibration.black_point_correction.auto")
                     or getcfg("calibration.black_point_correction")
                 )
-                and defaults["calibration.black_point_hack"]
+                and DEFAULTS["calibration.black_point_hack"]
             ):
                 # Forced black point hack
                 # (Argyll CMS 1.7b 2014-12-22)
@@ -13305,7 +13310,7 @@ usage: spotread [-options] [logfile]
             args += parse_argument_string(getcfg("extra_args.dispcal"))
         if config.get_display_name() == "Resolve" or (
             config.get_display_name() == "Prisma"
-            and not defaults["patterngenerator.prisma.argyll"]
+            and not DEFAULTS["patterngenerator.prisma.argyll"]
         ):
             # Substitute actual measurement frame dimensions
             self.options_dispcal = [
@@ -13621,7 +13626,7 @@ usage: spotread [-options] [logfile]
                     getcfg("profile.save_path"), getcfg("profile.name.expanded")
                 )
                 profile_path = os.path.join(
-                    profile_save_path, getcfg("profile.name.expanded") + profile_ext
+                    profile_save_path, getcfg("profile.name.expanded") + PROFILE_EXT
                 )
             result = check_profile_isfile(profile_path)
             if isinstance(result, Exception):
@@ -13672,7 +13677,7 @@ usage: spotread [-options] [logfile]
                     # Make sure user profile dir exists
                     # (e.g. on Mac OS X 10.9 Mavericks, it does not by
                     # default)
-                    for profile_dir in reversed(iccprofiles_home):
+                    for profile_dir in reversed(ICCPROFILES_HOME):
                         if os.path.isdir(profile_dir):
                             break
                     if not os.path.isdir(profile_dir):
@@ -13695,7 +13700,7 @@ usage: spotread [-options] [logfile]
                 profile_name = os.path.basename(profile_path)
                 if (
                     sys.platform in ("win32", "darwin")
-                    or fs_enc.upper() not in ("UTF8", "UTF-8")
+                    or FS_ENC.upper() not in ("UTF8", "UTF-8")
                 ) and re.search(r"[^\x20-\x7e]", profile_name):
                     # Copy to temp dir and give ASCII-only name to
                     # avoid profile install issues
@@ -14031,7 +14036,7 @@ usage: spotread [-options] [logfile]
                 or current_thread().name != self.thread.name
             )
         ):
-            logfn = log
+            logfn = LOG
         else:
             logfn = print
         subprocess = getattr(self, "subprocess", None)
@@ -14039,7 +14044,7 @@ usage: spotread [-options] [logfile]
             try:
                 if self.measure_cmd and hasattr(subprocess, "send"):
                     self.log(
-                        f"{appname}: Trying to end subprocess gracefully...", fn=logfn
+                        f"{APPNAME}: Trying to end subprocess gracefully...", fn=logfn
                     )
                     try:
                         if subprocess.after == "Current":
@@ -14057,18 +14062,18 @@ usage: spotread [-options] [logfile]
                     except Exception as exception:
                         self.log(traceback.format_exc(), fn=logfn)
                         self.log(
-                            f"{appname}: Exception in quit_terminate_command: "
+                            f"{APPNAME}: Exception in quit_terminate_command: "
                             f"{exception}",
                             fn=logfn,
                         )
                 elif hasattr(subprocess, "sendintr"):
-                    self.log(f"{appname}: Sending CTRL+C to subprocess...", fn=logfn)
+                    self.log(f"{APPNAME}: Sending CTRL+C to subprocess...", fn=logfn)
                     try:
                         subprocess.sendintr()
                     except Exception as exception:
                         self.log(traceback.format_exc(), fn=logfn)
                         self.log(
-                            f"{appname}: Exception in quit_terminate_command: "
+                            f"{APPNAME}: Exception in quit_terminate_command: "
                             f"{exception}",
                             fn=logfn,
                         )
@@ -14078,7 +14083,7 @@ usage: spotread [-options] [logfile]
                             break
                         sleep(0.25)
                 if self.isalive(subprocess):
-                    self.log(f"{appname}: Trying to terminate subprocess...", fn=logfn)
+                    self.log(f"{APPNAME}: Trying to terminate subprocess...", fn=logfn)
                     subprocess.terminate()
                     ts = time()
                     while self.isalive(subprocess):
@@ -14087,7 +14092,7 @@ usage: spotread [-options] [logfile]
                         sleep(0.25)
                     if sys.platform != "win32" and self.isalive(subprocess):
                         self.log(
-                            f"{appname}: Trying to terminate subprocess forcefully...",
+                            f"{APPNAME}: Trying to terminate subprocess forcefully...",
                             fn=logfn,
                         )
                         if isinstance(subprocess, sp.Popen):
@@ -14106,7 +14111,7 @@ usage: spotread [-options] [logfile]
             except Exception as exception:
                 self.log(traceback.format_exc(), fn=logfn)
                 self.log(
-                    f"{appname}: Exception in quit_terminate_command: {exception}",
+                    f"{APPNAME}: Exception in quit_terminate_command: {exception}",
                     fn=logfn,
                 )
         subprocess_isalive = self.isalive(subprocess)
@@ -14136,8 +14141,8 @@ usage: spotread [-options] [logfile]
                     show_result_dialog,
                     Warning(
                         f"Couldn't terminate {self.cmd}. Please try to end it manually "
-                        f"before continuing to use {appname}. If you can not terminate "
-                        f"{self.cmd}, restarting {appname} may also help. Apologies "
+                        f"before continuing to use {APPNAME}. If you can not terminate "
+                        f"{self.cmd}, restarting {APPNAME} may also help. Apologies "
                         "for the inconvenience."
                     ),
                     self.owner,
@@ -14308,14 +14313,14 @@ usage: spotread [-options] [logfile]
         paths = []
         if sys.platform != "darwin":
             if not scope or scope == "u":
-                paths.append(defaultpaths.appdata)
+                paths.append(defaultpaths.APPDATA)
             if not scope or scope == "l":
-                paths += defaultpaths.commonappdata
+                paths += defaultpaths.COMMONAPPDATA
         else:
             if not scope or scope == "u":
-                paths.append(defaultpaths.library_home)
+                paths.append(defaultpaths.LIBRARY_HOME)
             if not scope or scope == "l":
-                paths.append(defaultpaths.library)
+                paths.append(defaultpaths.LIBRARY)
         searchpaths = []
         if self.argyll_version >= [1, 5, 0]:
             if sys.platform != "darwin":
@@ -14325,15 +14330,15 @@ usage: spotread [-options] [logfile]
             else:
                 paths2 = []
                 if not scope or scope == "u":
-                    paths2.append(defaultpaths.appdata)
+                    paths2.append(defaultpaths.APPDATA)
                 if not scope or scope == "l":
-                    paths2.append(defaultpaths.library)
+                    paths2.append(defaultpaths.LIBRARY)
                 if [1, 9] <= self.argyll_version <= [1, 9, 1]:
                     # Argyll CMS 1.9 and 1.9.1 use *nix locations due to a
                     # configuration problem
                     paths2.extend(
                         [
-                            os.path.join(defaultpaths.home, ".local", "share"),
+                            os.path.join(defaultpaths.HOME, ".local", "share"),
                             "/usr/local/share",
                         ]
                     )
@@ -14375,7 +14380,7 @@ usage: spotread [-options] [logfile]
         ckwargs=None,
         wargs=(),
         wkwargs=None,
-        progress_title=appname,
+        progress_title=APPNAME,
         progress_msg="",
         parent=None,
         progress_start=100,
@@ -14401,7 +14406,7 @@ usage: spotread [-options] [logfile]
         ckwargs             consumer keyword arguments.
         wargs               producer arguments.
         wkwargs             producer keyword arguments.
-        progress_title      progress dialog title. Defaults to '{appname}'.
+        progress_title      progress dialog title. Defaults to '{APPNAME}'.
         progress_msg        progress dialog message. Defaults to ''.
         progress_start      show progress dialog after delay (ms).
         resume              resume previous progress dialog (elapsed time etc).
@@ -14470,7 +14475,7 @@ usage: spotread [-options] [logfile]
             ProgressDialog.get_bitmaps(1)
         if self.interactive:
             self.progress_start_timer = wx.Timer()
-            if progress_msg and progress_title == appname:
+            if progress_msg and progress_title == APPNAME:
                 progress_title = progress_msg
             if (
                 config.get_display_name() == "Untethered"
@@ -14632,7 +14637,7 @@ usage: spotread [-options] [logfile]
                         self.log(exception)
                     else:
                         iface_dict["cookie"] = None
-                        self.log(f"{appname}: Uninhibited {bus_name}")
+                        self.log(f"{APPNAME}: Uninhibited {bus_name}")
 
     def swap_progress_wnds(self):
         """Swap the current interactive window with a progress dialog"""
@@ -14945,7 +14950,7 @@ usage: spotread [-options] [logfile]
                 if cal_cgats:
                     cal_cgats.write()
                 if getcfg("profile.update") or self.dispcal_create_fast_matrix_shaper:
-                    profile_path = args[-1] + profile_ext
+                    profile_path = args[-1] + PROFILE_EXT
                     result = check_profile_isfile(
                         profile_path, lang.getstr("error.profile.file_not_created")
                     )
@@ -15023,9 +15028,9 @@ usage: spotread [-options] [logfile]
             setcfg("last_cal_path", dst_pathname + ".cal")
             setcfg("calibration.file.previous", getcfg("calibration.file", False))
             if getcfg("profile.update") or self.dispcal_create_fast_matrix_shaper:
-                setcfg("last_cal_or_icc_path", dst_pathname + profile_ext)
-                setcfg("last_icc_path", dst_pathname + profile_ext)
-                setcfg("calibration.file", dst_pathname + profile_ext)
+                setcfg("last_cal_or_icc_path", dst_pathname + PROFILE_EXT)
+                setcfg("last_icc_path", dst_pathname + PROFILE_EXT)
+                setcfg("calibration.file", dst_pathname + PROFILE_EXT)
             else:
                 setcfg("calibration.file", dst_pathname + ".cal")
                 setcfg("last_cal_or_icc_path", dst_pathname + ".cal")
@@ -15307,7 +15312,7 @@ BEGIN_DATA
                 profile.fileName = ofilename
                 self.wrapup(False)
                 return Error(lang.getstr("argyll.util.not_found", "fakeread"))
-            shutil.copyfile(defaults["testchart.file"], temppathname + ".ti1")
+            shutil.copyfile(DEFAULTS["testchart.file"], temppathname + ".ti1")
             result = self.exec_cmd(fakeread, [temporig, temppathname])
             if not result or isinstance(result, Exception):
                 profile.fileName = ofilename
@@ -15339,14 +15344,10 @@ BEGIN_DATA
                 float(v) * XYZwscaled[i]
                 for i, v in enumerate(cti3[0].LUMINANCE_XYZ_CDM2.split())
             ]
-            cti3[0].add_keyword(
-                "LUMINANCE_XYZ_CDM2", " ".join([str(v) for v in XYZa])
-            )
+            cti3[0].add_keyword("LUMINANCE_XYZ_CDM2", " ".join([str(v) for v in XYZa]))
         for i, sample in cti3[0].DATA.items():
             for j, component in enumerate("XYZ"):
-                sample["XYZ_" + component] = (
-                    RGBscaled2XYZ[i][j] / XYZwscaled[1] * 100
-                )
+                sample["XYZ_" + component] = RGBscaled2XYZ[i][j] / XYZwscaled[1] * 100
         cti3.write(temppathname + ".ti3")
         # Preserve custom tags
         display_name = profile.getDeviceModelDescription()
@@ -15598,7 +15599,7 @@ BEGIN_DATA
         for primaries in list(device_data.values()):
             idata.append(list(primaries.values()))
 
-        if debug:
+        if DEBUG:
             print(f"ti1_lookup_to_ti3 {profile.colorSpace} -> {color_rep} idata")
             for v in idata:
                 print(" ".join(("{:3.4f}",) * len(v)).format(*v))
@@ -15622,7 +15623,7 @@ BEGIN_DATA
             # Fall back to configured 3D LUT encoding
             if (
                 not input_encoding
-                or input_encoding not in config.valid_values["3dlut.encoding.input"]
+                or input_encoding not in config.VALID_VALUES["3dlut.encoding.input"]
             ):
                 input_encoding = getcfg("3dlut.encoding.input")
                 if input_encoding == "T":
@@ -15630,7 +15631,7 @@ BEGIN_DATA
                     input_encoding = "t"
             if (
                 not output_encoding
-                or output_encoding not in config.valid_values["3dlut.encoding.output"]
+                or output_encoding not in config.VALID_VALUES["3dlut.encoding.output"]
             ):
                 output_encoding = getcfg("3dlut.encoding.output")
             if self.argyll_version < [1, 6] and not (
@@ -15809,7 +15810,7 @@ BEGIN_DATA
                     white_added_count += 1
             print(f"Added {white_added_count:d} white patch(es)")
 
-        if debug:
+        if DEBUG:
             print(f"ti3: {ti3}")
         return ti1, ti3, list(map(list, gray))
 
@@ -15923,7 +15924,7 @@ BEGIN_DATA
                 cie = [n / 100.0 for n in cie]
             idata.append(cie)
 
-        if debug:
+        if DEBUG:
             print(f"ti3_lookup_to_ti1 {color_rep} -> {profile.colorSpace} idata")
             for v in idata:
                 print(" ".join(("{:3.4f}",) * len(v)).format(*v))
@@ -16034,7 +16035,7 @@ BEGIN_DATA
         ti1out.write(b"END_DATA\n")
         ti1out.seek(0)
         ti1 = CGATS(ti1out)
-        if debug:
+        if DEBUG:
             print(ti1)
         return ti1, ti3v
 
@@ -16048,13 +16049,13 @@ BEGIN_DATA
             socket.setdefaulttimeout(default_timeout)
 
     def _download(self, uri, force=False, download_dir=None):
-        if test_badssl:
-            uri = f"https://{test_badssl}.badssl.com/"
+        if TEST_BADSSL:
+            uri = f"https://{TEST_BADSSL}.badssl.com/"
         orig_uri = uri
         total_size = None
         filename = os.path.basename(uri)
         if not download_dir:
-            download_dir = os.path.join(config.datahome, "dl")
+            download_dir = os.path.join(config.DATA_HOME, "dl")
         download_path = os.path.join(download_dir, filename)
         response = None
         hashes = None
@@ -16096,7 +16097,7 @@ BEGIN_DATA
             opener.addheaders = list(get_default_headers().items())
             try:
                 response = opener.open(uri)
-                if always_fail_download or test_badssl:
+                if ALWAYS_FAIL_DOWNLOAD or TEST_BADSSL:
                     raise urllib.error.URLError("")
                 newurl = getattr(LoggingHTTPRedirectHandler, "newurl", uri)
                 if is_main_dl or not newurl.startswith(f"https://{DOMAIN}/"):
@@ -16120,7 +16121,7 @@ BEGIN_DATA
                     response.close()
                 if "CERTIFICATE_VERIFY_FAILED" in safe_str(exception):
                     ekey = "ssl.certificate_verify_failed"
-                    if not cafile and isapp:
+                    if not cafile and ISAPP:
                         ekey += ".root_ca_missing"
                     print(lang.getstr(ekey))
                 elif "SSLV3_ALERT_HANDSHAKE_FAILURE" in safe_str(exception):
@@ -16154,9 +16155,7 @@ BEGIN_DATA
                         return DownloadError(
                             lang.getstr("file.hash.malformed", filename), orig_uri
                         )
-                    hashesdict[Path(name_hash[1].decode().lstrip("*"))] = name_hash[
-                        0
-                    ]
+                    hashesdict[Path(name_hash[1].decode().lstrip("*"))] = name_hash[0]
                     expectedhash_hex = hashesdict[filename]
                 if not expectedhash_hex:
                     response.close()
@@ -16301,7 +16300,7 @@ BEGIN_DATA
                         if int(bps / fps) > chunk_size or min_chunk_size <= int(
                             bps / fps
                         ) < int(chunk_size * 0.75):
-                            if debug or test or verbose > 1:
+                            if DEBUG or TEST or VERBOSE > 1:
                                 print(
                                     "Download buffer size changed from "
                                     f"{chunk_size / 1024.0:0.0f} KB to "
@@ -16546,7 +16545,7 @@ BEGIN_DATA
 
     def wrapup(self, copy=True, remove=True, dst_path=None, ext_filter=None):
         """Wrap up - copy and/or clean temporary file(s)."""
-        if debug:
+        if DEBUG:
             print(f"[D] wrapup(copy={copy}, remove={remove})")
         if not self.tempdir or not os.path.isdir(self.tempdir):
             return None  # nothing to do
@@ -16626,7 +16625,7 @@ BEGIN_DATA
                     # the current directory on drive C: (c:foo), not c:\foo.
 
                     # Save incomplete runs to different directory
-                    parts = [config.datahome, "incomplete"] + parts[-2:]
+                    parts = [config.DATA_HOME, "incomplete"] + parts[-2:]
                     dst_path = os.sep.join(parts)
                 result = check_create_dir(os.path.dirname(dst_path))
                 if isinstance(result, Exception):
@@ -16646,9 +16645,9 @@ BEGIN_DATA
                                 dst = make_win32_compatible_long_path(dst)
                             if os.path.exists(dst):
                                 if os.path.isdir(dst):
-                                    if verbose >= 2:
+                                    if VERBOSE >= 2:
                                         print(
-                                            f"{appname}: Removing existing destination "
+                                            f"{APPNAME}: Removing existing destination "
                                             "directory tree",
                                             dst,
                                         )
@@ -16660,9 +16659,9 @@ BEGIN_DATA
                                             f"could not be removed: {exception}"
                                         )
                                 else:
-                                    if verbose >= 2:
+                                    if VERBOSE >= 2:
                                         print(
-                                            f"{appname}: Removing existing destination "
+                                            f"{APPNAME}: Removing existing destination "
                                             "file",
                                             dst,
                                         )
@@ -16674,9 +16673,9 @@ BEGIN_DATA
                                             f"could not be removed: {exception}"
                                         )
                             if remove:
-                                if verbose >= 2:
+                                if VERBOSE >= 2:
                                     print(
-                                        f"{appname}: Moving temporary object "
+                                        f"{APPNAME}: Moving temporary object "
                                         f"{src} to {dst}"
                                     )
                                 try:
@@ -16703,9 +16702,9 @@ BEGIN_DATA
                                             result = result2
                                         remove = False
                             elif os.path.isdir(src):
-                                if verbose >= 2:
+                                if VERBOSE >= 2:
                                     print(
-                                        f"{appname}: Copying temporary "
+                                        f"{APPNAME}: Copying temporary "
                                         f"directory tree {src} to {dst}"
                                     )
                                 try:
@@ -16717,9 +16716,9 @@ BEGIN_DATA
                                         f"'{dst}': {exception}"
                                     )
                             else:
-                                if verbose >= 2:
+                                if VERBOSE >= 2:
                                     print(
-                                        f"{appname}: Copying temporary "
+                                        f"{APPNAME}: Copying temporary "
                                         f"file {src} to {dst}"
                                     )
                                 try:
@@ -16741,9 +16740,9 @@ BEGIN_DATA
                         src = os.path.join(self.tempdir, basename)
                         isdir = os.path.isdir(src)
                         if isdir:
-                            if verbose >= 2:
+                            if VERBOSE >= 2:
                                 print(
-                                    f"{appname}: Removing temporary directory tree",
+                                    f"{APPNAME}: Removing temporary directory tree",
                                     src,
                                 )
                             try:
@@ -16754,8 +16753,8 @@ BEGIN_DATA
                                     f"be removed: {exception}"
                                 )
                         else:
-                            if verbose >= 2:
-                                print(f"{appname}: Removing temporary file", src)
+                            if VERBOSE >= 2:
+                                print(f"{APPNAME}: Removing temporary file", src)
                             try:
                                 os.remove(src)
                             except Exception as exception:
@@ -16769,9 +16768,9 @@ BEGIN_DATA
                 print(f"Error - directory '{self.tempdir}' listing failed: {exception}")
             else:
                 if not src_listdir:
-                    if verbose >= 2:
+                    if VERBOSE >= 2:
                         print(
-                            f"{appname}: Removing empty temporary directory",
+                            f"{APPNAME}: Removing empty temporary directory",
                             self.tempdir,
                         )
                     try:
@@ -16879,7 +16878,7 @@ BEGIN_DATA
                         dur = getcfg("patterngenerator.ffp_insertion.duration")
                         lvl = getcfg("patterngenerator.ffp_insertion.level")
                         self.log(
-                            f"{appname}: Frame insertion duration {dur:d}s, "
+                            f"{APPNAME}: Frame insertion duration {dur:d}s, "
                             f"level = {lvl * 100:d}%"
                         )
                         ts = time()
@@ -16910,7 +16909,7 @@ BEGIN_DATA
                     if self.madtpg.show_rgb(*rgb):
                         self.patterngenerator_sent_count += 1
                         self.log(
-                            f"{appname}: MadTPG_Net sent count: "
+                            f"{APPNAME}: MadTPG_Net sent count: "
                             f"{self.patterngenerator_sent_count}"
                         )
                     else:
@@ -16956,7 +16955,7 @@ BEGIN_DATA
         ):
             self.patch_count += 1
             if use_patterngenerator or self.use_madnet_tpg:
-                self.log(f"{appname}: Patch update count: {self.patch_count:d}")
+                self.log(f"{APPNAME}: Patch update count: {self.patch_count:d}")
         if self.use_madnet_tpg:
             progress = re.search(
                 r"(?:Patch (\d+) of|Number of patches =) (\d+)", txt, re.I

@@ -6,7 +6,7 @@ import shutil
 import sys
 import tempfile
 
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import WX_MINVERSION
 
 if os.getenv("GTK_CSD", "0") != "0":
@@ -1615,7 +1615,7 @@ class TempXmlResource:
         if scale > 1 or "gtk3" in wx.PlatformInfo:
             if not TempXmlResource._temp:
                 with contextlib.suppress(Exception):
-                    TempXmlResource._temp = tempfile.mkdtemp(prefix=f"{appname}-XRC-")
+                    TempXmlResource._temp = tempfile.mkdtemp(prefix=f"{APPNAME}-XRC-")
             if TempXmlResource._temp and os.path.isdir(TempXmlResource._temp):
                 # Read original XML
                 with open(xmlpath, "rb") as xmlfile:

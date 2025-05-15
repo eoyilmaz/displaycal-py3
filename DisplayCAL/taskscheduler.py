@@ -42,8 +42,8 @@ import tempfile
 import pywintypes
 import winerror
 
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.safe_print import enc
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.safe_print import ENC
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin
 
@@ -343,7 +343,7 @@ class TaskScheduler:
         if not replace_existing and name in self:
             raise KeyError(f"The task {name} already exists!")
 
-        tempdir = tempfile.mkdtemp(prefix=f"{appname}-")
+        tempdir = tempfile.mkdtemp(prefix=f"{APPNAME}-")
         task = Task(**kwargs)
         xmlfilename = os.path.join(tempdir, f"{name}.xml")
         task.write_xml(xmlfilename)
@@ -471,7 +471,7 @@ class TaskScheduler:
             )
             self.stdout, _ = p.communicate()
             if echo:
-                print(str(self.stdout, encoding=enc, errors="replace"))
+                print(str(self.stdout, encoding=ENC, errors="replace"))
             self.lastreturncode = p.returncode
         return self.lastreturncode == 0
 

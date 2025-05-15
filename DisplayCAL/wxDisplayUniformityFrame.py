@@ -18,8 +18,8 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import NAME as appname
-from DisplayCAL.meta import VERSION_STRING as appversion
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.meta import VERSION_STRING as APPVERSION
 from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxMeasureFrame import MeasureFrame
@@ -95,7 +95,7 @@ class DisplayUniformityFrame(BaseFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="displayuniformityframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.GridSizer(rows, cols, 0, 0)
         self.SetSizer(self.sizer)
@@ -307,7 +307,7 @@ class DisplayUniformityFrame(BaseFrame):
     def measure(self, event=None):
         if event:
             self.index = event.GetEventObject().index
-            print(f"{appname}: Uniformity grid index {self.index}")
+            print(f"{APPNAME}: Uniformity grid index {self.index}")
             self.is_measuring = True
             self.results[self.index] = []
             self.labels[self.index].SetLabel("")
@@ -320,7 +320,7 @@ class DisplayUniformityFrame(BaseFrame):
         self.panels[self.index].Refresh()
         self.panels[self.index].Update()
         print(
-            f"{appname}: About to measure uniformity grid index {self.index} "
+            f"{APPNAME}: About to measure uniformity grid index {self.index} "
             f"@{self.colors[len(self.results[self.index])].red / 2.55}%"
         )
         # Use a delay to allow for TFT lag
@@ -352,13 +352,13 @@ class DisplayUniformityFrame(BaseFrame):
                 )
                 self.results[self.index][-1][f"C{locus[0]}T"] = int(CT.groups()[0])
         if "key to take a reading" in txt and not self.last_error:
-            print(f"{appname}: Got 'key to take a reading'")
+            print(f"{APPNAME}: Got 'key to take a reading'")
             if not self.is_measuring:
                 self.enable_buttons()
                 return
             if len(self.results[self.index]) < len(self.colors):
                 # Take readings at 5 different brightness levels per swatch
-                print(f"{appname}: About to take next reading")
+                print(f"{APPNAME}: About to take next reading")
                 self.measure()
             else:
                 self.is_measuring = False
@@ -386,7 +386,7 @@ class DisplayUniformityFrame(BaseFrame):
                             break
                     display = display.replace(" [PRIMARY]", "")
                     defaultFile = "Uniformity Check {} — {} — {}".format(
-                        appversion,
+                        APPVERSION,
                         re.sub(r"[\\/:*?\"<>|]+", "_", display),
                         strftime("%Y-%m-%d %H-%M.html"),
                     )
@@ -423,7 +423,7 @@ class DisplayUniformityFrame(BaseFrame):
                         report.create(
                             save_path,
                             {
-                                "${REPORT_VERSION}": appversion,
+                                "${REPORT_VERSION}": APPVERSION,
                                 "${DISPLAY}": display,
                                 "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),
                                 "${ROWS}": str(self.rows),
@@ -469,7 +469,7 @@ class DisplayUniformityFrame(BaseFrame):
             if not self.worker.instrument_on_screen:
                 if not getattr(self, "wait_for_instrument_on_screen", False):
                     self.wait_for_instrument_on_screen = True
-                    print(f"{appname}: Waiting for instrument to be placed on screen")
+                    print(f"{APPNAME}: Waiting for instrument to be placed on screen")
                 wx.CallLater(200, self.safe_send, bytes)
             else:
                 self.wait_for_instrument_on_screen = False

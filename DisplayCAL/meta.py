@@ -17,9 +17,9 @@ except ImportError:
     VERSION = None
     VERSION_STRING = None
 
-from DisplayCAL.options import test_update
+from DisplayCAL.options import TEST_UPDATE
 
-if not VERSION or test_update:
+if not VERSION or TEST_UPDATE:
     VERSION = VERSION_BASE = (0, 0, 0)
     VERSION_STRING = ".".join(str(n) for n in VERSION)
 
@@ -80,7 +80,7 @@ def get_latest_changelog_entry(readme):
     return changelog
 
 
-def script2pywname(script : str) -> str:
+def script2pywname(script: str) -> str:
     """Convert all-lowercase script name to mixed-case pyw name."""
     a2b = {
         f"{NAME}-3dlut-maker": f"{NAME}-3DLUT-maker",

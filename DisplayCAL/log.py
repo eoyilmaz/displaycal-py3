@@ -11,23 +11,23 @@ from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
 
-from DisplayCAL.meta import NAME as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import SafePrinter
-from DisplayCAL.safe_print import safe_print as _safe_print
+from DisplayCAL.safe_print import SAFE_PRINT as _SAFE_PRINT
 from DisplayCAL.util_os import safe_glob
 
 logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
 
 
-loglevel = logging.DEBUG if debug else logging.INFO
+LOGLEVEL = logging.DEBUG if DEBUG else logging.INFO
 
 
-logger = None
-_logdir = None
+LOGGER = None
+_LOGDIR = None
 
 
 def showwarning(message, category, filename, lineno, file=None, line=""):
@@ -57,16 +57,16 @@ def showwarning(message, category, filename, lineno, file=None, line=""):
             else:
                 handler = logging.NullHandler()
             logger.addHandler(handler)
-        log(s.strip(), fn=logger.warning)
+        LOG(s.strip(), fn=logger.warning)
 
 
 warnings.showwarning = showwarning
 
-logbuffer = EncodedFile(BytesIO(), "UTF-8", errors="replace")
+LOGBUFFER = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
 def wx_log(logwindow, msg):
-    if logwindow.IsShownOnScreen() and logbuffer.tell():
+    if logwindow.IsShownOnScreen() and LOGBUFFER.tell():
         # Check if log buffer has been emptied or not.
         # If it has, our log message is already included.
         logwindow.Log(msg)
@@ -102,13 +102,13 @@ class Log:
         Optionally use function 'fn' instead of logging.info.
 
         """
-        global logger
+        global LOGGER
         if isinstance(msg, bytes):
             msg = msg.decode("utf-8", "replace")
 
         msg = msg.replace("\r\n", "\n").replace("\r", "")
-        if fn is None and logger and logger.handlers:
-            fn = logger.info
+        if fn is None and LOGGER and LOGGER.handlers:
+            fn = LOGGER.info
         if fn:
             for line in msg.split("\n"):
                 fn(line)
@@ -116,7 +116,7 @@ class Log:
         # imported at the point our showwarning() function calls log().
         # Check for presence of our wxfixes module and if it has an attribute
         # "wx", in which case wxPython has finished importing.
-        wxfixes = sys.modules.get(f"{appname}.wxfixes")
+        wxfixes = sys.modules.get(f"{APPNAME}.wxfixes")
         # wxfixes = sys.modules.get("wxfixes")
         if (
             wxfixes
@@ -138,7 +138,7 @@ class Log:
         self(msg.rstrip())
 
 
-log = Log()
+LOG = Log()
 
 
 class LogFile:
@@ -184,14 +184,10 @@ class SafeLogger(SafePrinter):
 
     def write(self, *args, **kwargs):
         if kwargs.get("print_", self.print_):
-            _safe_print(*args, **kwargs)
+            _SAFE_PRINT(*args, **kwargs)
         if kwargs.get("log", self.log):
-            kwargs.update(fn=log, encoding=None)
-            _safe_print(*args, **kwargs)
-
-
-safe_log = SafeLogger(print_=False)
-safe_print = SafeLogger()
+            kwargs.update(fn=LOG, encoding=None)
+            _SAFE_PRINT(*args, **kwargs)
 
 
 safe_log = SafeLogger(print_=False)
@@ -200,7 +196,7 @@ safe_print = SafeLogger()
 
 def get_file_logger(
     name,
-    level=loglevel,
+    level=LOGLEVEL,
     when="midnight",
     backupCount=5,
     logdir=None,
@@ -212,11 +208,11 @@ def get_file_logger(
     A TimedRotatingFileHandler or FileHandler (if when == "never") will be used.
 
     """
-    global _logdir
-    global logger
+    global _LOGDIR
+    global LOGGER
     if logdir is None:
-        logdir = _logdir
-    logger = logging.getLogger(name)
+        logdir = _LOGDIR
+    LOGGER = logging.getLogger(name)
     if not filename:
         filename = name
     mode = "a"
@@ -224,7 +220,7 @@ def get_file_logger(
         # Use different logfile name (append number) for each additional instance
         is_main_process = mp.current_process().name == "MainProcess"
         if os.path.basename(confighome).lower() == "dispcalgui":
-            lockbasename = filename.replace(appname, "dispcalGUI")
+            lockbasename = filename.replace(APPNAME, "dispcalGUI")
         else:
             lockbasename = filename
         lockfilepath = os.path.join(confighome, lockbasename + ".lock")
@@ -249,7 +245,7 @@ def get_file_logger(
                         # the one not currently in use.
                         mtimes = {}
                         for filename in filenames:
-                            logfile = os.path.join(logdir, filename + ".log")
+                            logfile = os.path.join(logdir, f"{filename}.log")
                             if not os.path.isfile(logfile):
                                 mtimes[0] = filename
                                 continue
@@ -290,13 +286,13 @@ def get_file_logger(
             filename = f"{filename}.mp-worker-{process_num}"
             mode = "w"
     logfile = os.path.join(logdir, filename + ".log")
-    for handler in logger.handlers:
+    for handler in LOGGER.handlers:
         if isinstance(
             handler, logging.FileHandler
         ) and handler.baseFilename == os.path.abspath(logfile):
-            return logger
-    logger.propagate = 0
-    logger.setLevel(level)
+            return LOGGER
+    LOGGER.propagate = 0
+    LOGGER.setLevel(level)
     if not os.path.exists(logdir):
         try:
             os.makedirs(logdir)
@@ -388,32 +384,32 @@ def get_file_logger(
                 filehandler = logging.FileHandler(logfile, mode)
             fileformatter = logging.Formatter("%(asctime)s %(message)s")
             filehandler.setFormatter(fileformatter)
-            logger.addHandler(filehandler)
+            LOGGER.addHandler(filehandler)
         except Exception as exception:
             print(f"Warning - logging to file '{logfile}' not possible: {exception}")
-    return logger
+    return LOGGER
 
 
-def setup_logging(logdir, name=appname, ext=".py", backupCount=5, confighome=None):
+def setup_logging(logdir, name=APPNAME, ext=".py", backupCount=5, confighome=None):
     """Setup the logging facility."""
-    global _logdir, logger
-    _logdir = logdir
+    global _LOGDIR, LOGGER
+    _LOGDIR = logdir
     name = script2pywname(name)
     if (
-        name.startswith(appname)
+        name.startswith(APPNAME)
         or name.startswith("dispcalGUI")
         or ext in (".app", ".exe", ".pyw")
     ):
-        logger = get_file_logger(
+        LOGGER = get_file_logger(
             None,
-            loglevel,
+            LOGLEVEL,
             "midnight",
             backupCount,
             filename=name,
             confighome=confighome,
         )
-        if name == appname or name == "dispcalGUI":
-            streamhandler = logging.StreamHandler(logbuffer)
+        if name == APPNAME or name == "dispcalGUI":
+            streamhandler = logging.StreamHandler(LOGBUFFER)
             streamformatter = logging.Formatter("%(asctime)s %(message)s")
             streamhandler.setFormatter(streamformatter)
-            logger.addHandler(streamhandler)
+            LOGGER.addHandler(streamhandler)

@@ -3,6 +3,7 @@
 This one won't stop showing updates to the icon like wx.TaskBarIcon
 
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -14,7 +15,7 @@ import win32api
 import win32con
 import win32gui
 
-from DisplayCAL.options import debug, verbose
+from DisplayCAL.options import DEBUG, VERBOSE
 from DisplayCAL.wxaddons import IdFactory, wx
 
 
@@ -102,10 +103,10 @@ class Menu(wx.EvtHandler):
         for menuitem in self.MenuItems:
             menuitem.Destroy()
         if not self.Parent:
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 print("DestroyMenu HMENU", self.hmenu)
             win32gui.DestroyMenu(self.hmenu)
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print("Destroy", self.__class__.__name__, self)
         self._destroyed = True
         wx.EvtHandler.Destroy(self)
@@ -147,7 +148,7 @@ class MenuItem:
     def Destroy(self):
         if self.subMenu:
             self.subMenu.Destroy()
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print(
                 "Destroy",
                 self.__class__.__name__,
@@ -280,7 +281,7 @@ class SysTrayIcon(wx.EvtHandler):
         if not item:
             print(f"Warning: Don't have menu item ID {wparam}")
             return 0
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print(
                 item.__class__.__name__,
                 item.Id,
@@ -388,7 +389,7 @@ def _get_kind_str(kind):
     }.get(kind, str(kind))
 
 
-def _get_selected_menu_item(id : int, menu : Menu) -> None | MenuItem:
+def _get_selected_menu_item(id: int, menu: Menu) -> None | MenuItem:
     """Recursively search for a menu item by ID in the menu and its submenus.
 
     Args:

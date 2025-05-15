@@ -558,7 +558,7 @@ def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_co
     # clear the cache
     get_argyll_latest_version.cache_clear()
     result = get_argyll_latest_version()
-    assert result == config.defaults.get("argyll.version")
+    assert result == config.DEFAULTS.get("argyll.version")
     # assert False
 
 

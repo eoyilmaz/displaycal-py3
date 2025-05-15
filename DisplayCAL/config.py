@@ -18,7 +18,7 @@ from DisplayCAL import colormath
 from DisplayCAL.argyll_names import INTENTS, OBSERVERS, VIDEO_ENCODINGS, VIEWCONDS
 
 if sys.platform == "win32":
-    from DisplayCAL.defaultpaths import commonprogramfiles
+    from DisplayCAL.defaultpaths import COMMON_PROGRAM_FILES
 elif sys.platform == "darwin":
     from DisplayCAL.defaultpaths import LIBRARY, LIBRARY_HOME, PREFS, PREFS_HOME
 else:

@@ -8,13 +8,13 @@ from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     DEFAULTS,
+    SCALE_ADJUSTMENT_FACTOR,
     get_argyll_display_number,
     get_default_dpi,
     get_display_number,
     get_display_rects,
     getcfg,
     geticon,
-    SCALE_ADJUSTMENT_FACTOR,
     setcfg,
     writecfg,
 )

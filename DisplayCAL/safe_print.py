@@ -119,7 +119,7 @@ class SafePrinter:
                 pass
 
 
-SAFE_PRINT = SafePrinter()
+safe_print = SafePrinter()
 
 
 if __name__ == "__main__":

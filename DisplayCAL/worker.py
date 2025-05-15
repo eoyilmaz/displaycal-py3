@@ -122,15 +122,15 @@ from DisplayCAL.config import (
     EXE_EXT,
     EXEDIR,
     FS_ENC,
+    ISAPP,
+    PROFILE_EXT,
+    PYDIR,
+    SCRIPT_EXT,
     get_data_path,
     get_total_patches,
     getcfg,
     geticon,
     is_ccxx_testchart,
-    ISAPP,
-    PROFILE_EXT,
-    PYDIR,
-    SCRIPT_EXT,
     setcfg,
     setcfg_cond,
     split_display_name,
@@ -175,7 +175,7 @@ from DisplayCAL.icc_profile import (
     s15Fixed16Number_tohex,
     set_display_profile,
 )
-from DisplayCAL.log import DummyLogger, LogFile, get_file_logger, LOG
+from DisplayCAL.log import LOG, DummyLogger, LogFile, get_file_logger
 from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, VERSION_STRING
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.multiprocess import cpu_count, pool_slice

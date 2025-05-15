@@ -21,11 +21,11 @@ from DisplayCAL.cgats import (
 )
 from DisplayCAL.config import (
     ENC,
+    PROFILE_EXT,
     get_data_path,
     get_verified_path,
     getcfg,
     hascfg,
-    PROFILE_EXT,
     setcfg,
 )
 from DisplayCAL.debughelpers import Error

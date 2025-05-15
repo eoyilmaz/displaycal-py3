@@ -1,7 +1,7 @@
 import os
 import re
 
-from DisplayCAL.config import DATA_DIRS, DEFAULTS, getcfg, STORAGE
+from DisplayCAL.config import DATA_DIRS, DEFAULTS, STORAGE, getcfg
 from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.lazydict import LazyDict_YAML_UltraLite
 from DisplayCAL.options import DEBUG_LOCALIZATION as DEBUG

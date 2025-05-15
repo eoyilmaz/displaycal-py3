@@ -16,7 +16,7 @@ from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
 from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import SafePrinter
-from DisplayCAL.safe_print import SAFE_PRINT as _SAFE_PRINT
+from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
 
 logging.raiseExceptions = 0
@@ -184,10 +184,10 @@ class SafeLogger(SafePrinter):
 
     def write(self, *args, **kwargs):
         if kwargs.get("print_", self.print_):
-            _SAFE_PRINT(*args, **kwargs)
+            _safe_print(*args, **kwargs)
         if kwargs.get("log", self.log):
             kwargs.update(fn=LOG, encoding=None)
-            _SAFE_PRINT(*args, **kwargs)
+            _safe_print(*args, **kwargs)
 
 
 safe_log = SafeLogger(print_=False)

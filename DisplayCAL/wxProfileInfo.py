@@ -9,6 +9,7 @@ from DisplayCAL import wxenhancedplot as plot
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     DEFAULTS,
+    PROFILE_EXT,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -17,7 +18,6 @@ from DisplayCAL.config import (
     getbitmap,
     getcfg,
     geticon,
-    PROFILE_EXT,
     setcfg,
     writecfg,
 )

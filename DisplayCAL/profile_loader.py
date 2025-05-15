@@ -25,13 +25,13 @@ from DisplayCAL.config import (
     ENC,
     EXE,
     EXEDIR,
+    ICCPROFILES,
+    PYDIR,
     get_data_path,
     get_default_dpi,
     get_icon_bundle,
     getcfg,
     geticon,
-    ICCPROFILES,
-    PYDIR,
     setcfg,
 )
 from DisplayCAL.debughelpers import Error, UnloggedError, handle_error

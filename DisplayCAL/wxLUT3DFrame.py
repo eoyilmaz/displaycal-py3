@@ -27,10 +27,10 @@ from DisplayCAL.argyll_cgats import cal_to_fake_profile
 from DisplayCAL.argyll_names import VIDEO_ENCODINGS
 from DisplayCAL.config import (
     DEFAULTS,
+    PROFILE_EXT,
     get_data_path,
     get_verified_path,
     geticon,
-    PROFILE_EXT,
 )
 from DisplayCAL.icc_profile import (
     CurveType,

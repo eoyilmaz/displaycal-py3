@@ -1,12 +1,8 @@
 import os
 import sys
 
-if sys.platform not in ("darwin", "win32"):
-    # Linux
-    import gettext
-
+if sys.platform not in ("darwin", "win32"):  # Linux
     LOCALEDIR = os.path.join(sys.prefix, "share", "locale")
-
 elif sys.platform == "win32":
     try:
         from win32comext.shell.shell import SHGetSpecialFolderPath

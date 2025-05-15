@@ -27,6 +27,8 @@ from DisplayCAL.config import (
     APPBASENAME,
     CONFIG_HOME,
     DEFAULTS,
+    LOGDIR,
+    PYNAME,
     get_data_path,
     get_default_dpi,
     get_verified_path,
@@ -34,8 +36,6 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     hascfg,
-    LOGDIR,
-    PYNAME,
     set_default_app_dpi,
     setcfg,
 )

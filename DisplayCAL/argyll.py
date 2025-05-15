@@ -15,19 +15,12 @@ import urllib.request
 from functools import cache
 from typing import Optional
 
+# Local Imports
 from DisplayCAL import config
 from DisplayCAL import localization as lang
-from DisplayCAL.argyll_names import (
-    ALTNAMES as argyll_altnames,
-)
-
-# Local Imports
-from DisplayCAL.argyll_names import (
-    NAMES as argyll_names,
-)
-from DisplayCAL.argyll_names import (
-    OPTIONAL as argyll_optional,
-)
+from DisplayCAL.argyll_names import ALTNAMES as ARGYLL_ALTNAMES
+from DisplayCAL.argyll_names import NAMES as ARGYLL_NAMES
+from DisplayCAL.argyll_names import OPTIONAL as ARGYLL_OPTIONAL
 from DisplayCAL.config import (
     EXE_EXT,
     FS_ENC,
@@ -56,10 +49,10 @@ def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
     """
     prev_dir = None
     cur_dir = os.curdir
-    for name in argyll_names:
+    for name in ARGYLL_NAMES:
         exe = get_argyll_util(name, paths)
         if not exe:
-            if name in argyll_optional:
+            if name in ARGYLL_OPTIONAL:
                 continue
             return False
         cur_dir = os.path.dirname(exe)
@@ -68,7 +61,7 @@ def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
             continue
         if cur_dir == prev_dir:
             continue
-        if name in argyll_optional:
+        if name in ARGYLL_OPTIONAL:
             if VERBOSE:
                 print(
                     f"Warning: Optional Argyll executable {exe} is not "
@@ -214,15 +207,15 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 writecfg()
                 break
             not_found = []
-            for name in argyll_names:
-                if not get_argyll_util(name, [path]) and name not in argyll_optional:
+            for name in ARGYLL_NAMES:
+                if not get_argyll_util(name, [path]) and name not in ARGYLL_OPTIONAL:
                     not_found.append(
                         f" {lang.getstr('or')} ".join(
                             [
                                 altname
                                 for altname in [
                                     altname + EXE_EXT
-                                    for altname in argyll_altnames[name]
+                                    for altname in ARGYLL_ALTNAMES[name]
                                 ]
                                 if "argyll" not in altname
                             ]
@@ -280,7 +273,7 @@ def get_argyll_util(name, paths=None):
     if VERBOSE >= 4:
         print("Info: Searching for", name, "in", os.pathsep.join(paths))
     for path in paths:
-        for altname in argyll_altnames.get(name, []):
+        for altname in ARGYLL_ALTNAMES.get(name, []):
             exe = which(f"{altname}{EXE_EXT}", [path])
             if exe:
                 break
@@ -292,7 +285,7 @@ def get_argyll_util(name, paths=None):
         else:
             print(
                 "Info:",
-                "|".join(argyll_altnames[name]),
+                "|".join(ARGYLL_ALTNAMES[name]),
                 "not found in",
                 os.pathsep.join(paths),
             )

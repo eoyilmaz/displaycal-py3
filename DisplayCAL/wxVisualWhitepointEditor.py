@@ -23,6 +23,7 @@ from DisplayCAL import (
 from DisplayCAL.config import (
     DEFAULTS,
     FS_ENC,
+    PROFILE_EXT,
     get_argyll_display_number,
     get_default_dpi,
     get_display_name,
@@ -31,7 +32,6 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     initcfg,
-    PROFILE_EXT,
     setcfg,
 )
 from DisplayCAL.icc_profile import (

@@ -8088,7 +8088,7 @@ class ICCProfile:
             stream_or_filename.write(self.data)
 
     def __getattribute__(self, name):
-        if name == "write" or name.startswith("set") or name.startswith("apply"):
+        if name == "write" or name.startswith(("set", "apply")):
             # No longer reflects original profile
             self._delfromcache()
         return object.__getattribute__(self, name)

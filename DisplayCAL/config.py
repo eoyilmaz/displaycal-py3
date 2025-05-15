@@ -1794,24 +1794,26 @@ def get_standard_profiles(paths_only=False):
                 for basename in filter(rex.search, basenames):
                     filename, ext = os.path.splitext(basename.lower())
                     if (
-                        filename.endswith("_bas")
-                        or filename.endswith("_eci")
-                        or filename.endswith("adobergb1998")
-                        or filename.startswith("eci-rgb")
-                        or filename.startswith("ecirgb")
-                        or filename.startswith("ekta space")
-                        or filename.startswith("ektaspace")
-                        or filename.startswith("fogra")
-                        or filename.startswith("gracol")
-                        or filename.startswith("iso")
-                        or filename.startswith("lstar-")
-                        or filename.startswith("pso")
-                        or filename.startswith("prophoto")
-                        or filename.startswith("psr_")
-                        or filename.startswith("psrgravure")
-                        or filename.startswith("snap")
-                        or filename.startswith("srgb")
-                        or filename.startswith("swop")
+                        filename.endswith(("_bas", "_eci", "adobergb1998"))
+                        or filename.startswith(
+                            (
+                                "eci-rgb",
+                                "ecirgb",
+                                "ekta space",
+                                "ektaspace",
+                                "fogra",
+                                "gracol",
+                                "iso",
+                                "lstar-",
+                                "pso",
+                                "prophoto",
+                                "psr_",
+                                "psrgravure",
+                                "snap",
+                                "srgb",
+                                "swop",
+                            )
+                        )
                         or filename
                         in (
                             "applergb",

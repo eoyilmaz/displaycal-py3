@@ -7519,7 +7519,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         options_dispcal, options_colprof = get_options_from_profile(profile)
         gamma = None
         for option in options_dispcal:
-            if option.startswith("g") or option.startswith("G"):
+            if option.startswith(("g", "G")):
                 option = option[1:]
                 gamma = {
                     "240": "SMPTE 240M",
@@ -13558,7 +13558,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     for _i in data:
                         sample = data[_i]
                         for column in data_format.values():
-                            if column.startswith("XYZ_") or column.startswith("SPEC_"):
+                            if column.startswith(("XYZ_", "SPEC_")):
                                 sample[column] /= scale
                     reference_ti3.write()
                     # The -o observer argument for ccxxmake isn't really needed

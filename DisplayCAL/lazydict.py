@@ -282,7 +282,7 @@ class LazyDict_YAML_UltraLite(LazyDict):
                                 format(safe_str(getattr(fileobj, "name", line))), i
                             )
                         )
-                elif token.startswith("|") or token.startswith(">"):
+                elif token.startswith(("|", ">")):
                     raise ValueError(
                         "Style not supported ({!r} line {})".format(
                             safe_str(getattr(fileobj, "name", line)), i
@@ -453,7 +453,7 @@ class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
                 key = unquote(tokens[0].strip())
                 if len(tokens) > 1:
                     token = tokens[1].lstrip(" ").rstrip(" \n")
-                    if token.startswith("|") or token.startswith(">"):
+                    if token.startswith(("|", ">")):
                         if token[1:2] in "+-":
                             style = token[:2]
                             token = token[2:].lstrip(" ")

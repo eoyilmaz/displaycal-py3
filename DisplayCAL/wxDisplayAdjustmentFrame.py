@@ -988,8 +988,9 @@ class DisplayAdjustmentFrame(windowcls):
             or msg == " " * 4
             or ": error -" in msg.lower()
             or "failed" in msg.lower()
-            or msg.startswith(lang.getstr("webserver.waiting"))
-            or msg.startswith(lang.getstr("connection.waiting"))
+            or msg.startswith(
+                (lang.getstr("webserver.waiting"), lang.getstr("connection.waiting"))
+            )
         ) and msg != self.lastmsg:
             self.lastmsg = msg
             self.Freeze()

@@ -395,11 +395,7 @@ def setup_logging(logdir, name=APPNAME, ext=".py", backupCount=5, confighome=Non
     global _LOGDIR, LOGGER
     _LOGDIR = logdir
     name = script2pywname(name)
-    if (
-        name.startswith(APPNAME)
-        or name.startswith("dispcalGUI")
-        or ext in (".app", ".exe", ".pyw")
-    ):
+    if name.startswith((APPNAME, "dispcalGUI")) or ext in (".app", ".exe", ".pyw"):
         LOGGER = get_file_logger(
             None,
             LOGLEVEL,

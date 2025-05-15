@@ -4788,10 +4788,12 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
                 if countryCode in self[b"en"]:
                     return self[b"en"][countryCode]
             if self[b"en"]:
-                return list(self[b"en"].values())[0]
+                # return first value
+                return next(iter(self[b"en"].values()))
             return ""
         if len(self):
-            return list(list(self.values())[0].values())[0]
+            # return first value of the first dictionary
+            return next(iter(next(iter(self.values())).values()))
         return ""
 
     def add_localized_string(self, languagecode, countrycode, localized_string):

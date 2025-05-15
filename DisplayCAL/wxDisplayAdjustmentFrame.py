@@ -974,32 +974,33 @@ class DisplayAdjustmentFrame(windowcls):
         event.Skip()
 
     def Pulse(self, msg=""):
-        if msg:
-            msg = str(msg)
-            if (
-                msg
-                in (
-                    lang.getstr("instrument.initializing"),
-                    lang.getstr("instrument.calibrating"),
-                    lang.getstr("please_wait"),
-                    lang.getstr("aborting"),
-                )
-                or msg == " " * 4
-                or ": error -" in msg.lower()
-                or "failed" in msg.lower()
-                or msg.startswith(lang.getstr("webserver.waiting"))
-                or msg.startswith(lang.getstr("connection.waiting"))
-            ) and msg != self.lastmsg:
-                self.lastmsg = msg
-                self.Freeze()
-                for txt in self.lb.GetCurrentPage().txt.values():
-                    txt.checkmark.GetContainingSizer().Hide(txt.checkmark)
-                    txt.SetLabel(" ")
-                txt = list(self.lb.GetCurrentPage().txt.values())[0]
-                if txt.GetLabel() != wrap(msg, 46):
-                    txt.SetLabel(wrap(msg, 46))
-                    txt.SetForegroundColour(FGCOLOUR)
-                self.Thaw()
+        if not msg:
+            return self.keepGoing, False
+        msg = str(msg)
+        if (
+            msg
+            in (
+                lang.getstr("instrument.initializing"),
+                lang.getstr("instrument.calibrating"),
+                lang.getstr("please_wait"),
+                lang.getstr("aborting"),
+            )
+            or msg == " " * 4
+            or ": error -" in msg.lower()
+            or "failed" in msg.lower()
+            or msg.startswith(lang.getstr("webserver.waiting"))
+            or msg.startswith(lang.getstr("connection.waiting"))
+        ) and msg != self.lastmsg:
+            self.lastmsg = msg
+            self.Freeze()
+            for txt in self.lb.GetCurrentPage().txt.values():
+                txt.checkmark.GetContainingSizer().Hide(txt.checkmark)
+                txt.SetLabel(" ")
+            txt = next(iter(self.lb.GetCurrentPage().txt.values()))  # first value
+            if txt.GetLabel() != wrap(msg, 46):
+                txt.SetLabel(wrap(msg, 46))
+                txt.SetForegroundColour(FGCOLOUR)
+            self.Thaw()
         return self.keepGoing, False
 
     def Resume(self):

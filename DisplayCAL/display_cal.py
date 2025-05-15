@@ -463,7 +463,7 @@ def check_donation(parent, snapshot):
     # Reset donation popup after a major update.
     if (
         not snapshot
-        and VERSION[0] > tuple(intlist(getcfg("last_launch").split(".")))[0]
+        and VERSION[0] > next(iter(intlist(getcfg("last_launch").split("."))))
     ):
         setcfg("show_donation_message", 1)
     setcfg("last_launch", VERSION_STRING)

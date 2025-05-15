@@ -389,7 +389,7 @@ class LUTCanvas(plot.PlotCanvas):
         color = "white"
 
         if len(points) > 1:
-            values0 = list(points.values())[0]
+            values0 = next(iter(points.values()))  # first value
             # identical = all(values == values0
             # for values in points.itervalues())
             identical = all(

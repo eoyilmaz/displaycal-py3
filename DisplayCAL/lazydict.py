@@ -212,14 +212,14 @@ class LazyDict(dict):
         return dict.values(self)
 
 
-class LazyDict_JSON(LazyDict):
+class LazyDictJSON(LazyDict):
     """JSON lazy dictionary"""
 
     def parse(self, fileobj):
         dict.update(self, json.load(fileobj))
 
 
-class LazyDict_YAML_UltraLite(LazyDict):
+class LazyDictYAMLUltraLite(LazyDict):
     """'YAML Ultra Lite' lazy dictionary
 
     YAML Ultra Lite is a restricted subset of YAML. It only supports the
@@ -354,7 +354,7 @@ class LazyDict_YAML_UltraLite(LazyDict):
         return token
 
 
-class LazyDict_YAML_Lite(LazyDict_YAML_UltraLite):
+class LazyDictYAMLLite(LazyDictYAMLUltraLite):
     """'YAML Lite' lazy dictionary
 
     YAML Lite is a restricted subset of YAML. It only supports the

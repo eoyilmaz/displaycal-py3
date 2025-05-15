@@ -222,7 +222,7 @@ wx._StaticText = wx.StaticText
 if "gtk3" in wx.PlatformInfo:
     # GTK3 fixes
 
-    class wx_Panel(wx.Panel):
+    class wx_Panel(wx.Panel):  # noqa: N801
         """Fix panel background color not working under wxGTK3."""
 
         def __init__(self, *args, **kwargs):
@@ -418,7 +418,7 @@ if "gtk3" in wx.PlatformInfo:
     wx.StaticText = StaticText
 else:
 
-    class wx_Panel(wx.Panel):
+    class wx_Panel(wx.Panel):  # noqa: N801
         """Compatibility class."""
 
         def __init__(self, *args, **kwargs):

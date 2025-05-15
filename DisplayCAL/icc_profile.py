@@ -564,7 +564,7 @@ def create_synthetic_clut_profile(
         profile.tags.wtpt.Z,
     ) = colormath.get_whitepoint(rgb_space[1])
 
-    profile.tags.arts = chromaticAdaptionTag()
+    profile.tags.arts = ChromaticAdaptionTag()
     profile.tags.arts.update(colormath.get_cat_matrix(cat))
 
     itable = profile.tags.A2B0 = LUT16Type(None, "A2B0", profile)
@@ -863,7 +863,7 @@ def create_synthetic_hdr_clut_profile(
         profile.tags.wtpt.Z,
     ) = colormath.get_whitepoint(rgb_space[1])
 
-    profile.tags.arts = chromaticAdaptionTag()
+    profile.tags.arts = ChromaticAdaptionTag()
     profile.tags.arts.update(colormath.get_cat_matrix(cat))
 
     itable = profile.tags.A2B0 = LUT16Type(None, "A2B0", profile)
@@ -4951,7 +4951,7 @@ class ProfileSequenceDescType(ICCProfileTag, list):
         pass
 
 
-class s15Fixed16ArrayType(ICCProfileTag, list):
+class S15Fixed16ArrayType(ICCProfileTag, list):
     def __init__(self, tagData=None, tagSignature=None):
         ICCProfileTag.__init__(self, tagData, tagSignature)
         if tagData:
@@ -5718,7 +5718,7 @@ class XYZType(ICCProfileTag, XYZNumber):
     def adapt(self, whitepoint_source=None, whitepoint_destination=None, cat=None):
         if cat is None:
             if self.profile and isinstance(
-                self.profile.tags.get("arts"), chromaticAdaptionTag
+                self.profile.tags.get("arts"), ChromaticAdaptionTag
             ):
                 cat = self.profile.tags.arts
             else:
@@ -5742,7 +5742,7 @@ class XYZType(ICCProfileTag, XYZNumber):
             else:
                 # Go from XYZ mediawhite-relative under PCS illuminant to XYZ
                 # under PCS illuminant
-                if isinstance(self.profile.tags.get("arts"), chromaticAdaptionTag):
+                if isinstance(self.profile.tags.get("arts"), ChromaticAdaptionTag):
                     cat = self.profile.tags.arts
                 else:
                     cat = "XYZ scaling"
@@ -5805,7 +5805,7 @@ class XYZType(ICCProfileTag, XYZNumber):
         )
 
 
-class chromaticAdaptionTag(colormath.Matrix3x3, s15Fixed16ArrayType):
+class ChromaticAdaptionTag(colormath.Matrix3x3, S15Fixed16ArrayType):
     def __init__(self, tagData=None, tagSignature=None):
         ICCProfileTag.__init__(self, tagData, tagSignature)
         if tagData:
@@ -6088,7 +6088,7 @@ class NamedColor2Type(ICCProfileTag, AODict):
         pass
 
 
-TAG_SIGNATURE_TO_TAG = {"arts": chromaticAdaptionTag, "chad": chromaticAdaptionTag}
+TAG_SIGNATURE_TO_TAG = {"arts": ChromaticAdaptionTag, "chad": ChromaticAdaptionTag}
 
 TYPE_SIGNATURE_TO_TYPE = {
     b"chrm": ChromaticityType,
@@ -6104,7 +6104,7 @@ TYPE_SIGNATURE_TO_TYPE = {
     b"ncl2": NamedColor2Type,
     b"para": ParametricCurveType,
     b"pseq": ProfileSequenceDescType,
-    b"sf32": s15Fixed16ArrayType,
+    b"sf32": S15Fixed16ArrayType,
     b"sig ": SignatureType,
     b"text": TextType,
     b"vcgt": videoCardGamma,
@@ -6759,7 +6759,7 @@ class ICCProfile:
         self.tags.wtpt = self.tags.wtpt.pcs
         if "chad" not in self.tags:
             # Set chromatic adaptation matrix
-            self.tags["chad"] = chromaticAdaptionTag()
+            self.tags["chad"] = ChromaticAdaptionTag()
             wpam = colormath.wp_adaption_matrix(
                 wtpt, cat=self.tags.get("arts", "Bradford")
             )
@@ -7016,13 +7016,13 @@ class ICCProfile:
             (self.tags.wtpt.X, self.tags.wtpt.Y, self.tags.wtpt.Z) = D50
             if not s15f16_is_equal(wXYZ, D50):
                 # Only create chad if actual white is not D50
-                self.tags.chad = chromaticAdaptionTag()
+                self.tags.chad = ChromaticAdaptionTag()
                 matrix = colormath.wp_adaption_matrix(wXYZ, D50, cat)
                 self.tags.chad.update(matrix)
         else:
             # Store actual white in wtpt
             (self.tags.wtpt.X, self.tags.wtpt.Y, self.tags.wtpt.Z) = wXYZ
-        self.tags.arts = chromaticAdaptionTag()
+        self.tags.arts = ChromaticAdaptionTag()
         self.tags.arts.update(colormath.get_cat_matrix(cat))
 
     def has_trc_tags(self):
@@ -7299,11 +7299,11 @@ class ICCProfile:
         instead of name if no match to known matrices.
         """
         illuminant = list(self.illuminant.values())
-        if isinstance(self.tags.get("chad"), chromaticAdaptionTag):
+        if isinstance(self.tags.get("chad"), ChromaticAdaptionTag):
             return colormath.guess_cat(
                 self.tags.chad, self.tags.chad.inverted() * illuminant, illuminant
             )
-        if isinstance(self.tags.get("arts"), chromaticAdaptionTag):
+        if isinstance(self.tags.get("arts"), ChromaticAdaptionTag):
             return self.tags.arts.get_cat() or (matrix and self.tags.arts)
         return None
 
@@ -7435,7 +7435,7 @@ class ICCProfile:
         for sig in self.tags:
             tag = self.tags[sig]
             name = TAGS.get(sig, f"'{sig}'")
-            if isinstance(tag, chromaticAdaptionTag):
+            if isinstance(tag, ChromaticAdaptionTag):
                 info[name] = self.guess_cat(False) or "Unknown"
                 name = "    Matrix"
                 for i, row in enumerate(tag):

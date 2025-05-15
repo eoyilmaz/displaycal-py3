@@ -366,7 +366,7 @@ def spawn(
         log(f"Working directory: {cwd}")
     log(f"Spawning {join_args([command] + args)}")
     if sys.platform == "win32":
-        return spawn_windows(
+        return SpawnWindows(
             command,
             args,
             timeout,
@@ -379,12 +379,12 @@ def spawn(
             columns,
             rows,
         )
-    return spawn_unix(
+    return SpawnUnix(
         command, args, timeout, maxread, searchwindowsize, logfile, cwd, env
     )
 
 
-class spawn_unix:
+class SpawnUnix:
     """The main class interface for Pexpect.
 
     Use this class to start and control child applications.
@@ -1449,7 +1449,7 @@ class spawn_unix:
         This is called by expect(). If timeout==-1 then the self.timeout value is used.
         If searchwindowsize==-1 then the self.searchwindowsize value is used.
         """
-        return self.expect_loop(searcher_re(pattern_list), timeout, searchwindowsize)
+        return self.expect_loop(SearcherRegex(pattern_list), timeout, searchwindowsize)
 
     def expect_exact(self, pattern_list, timeout=-1, searchwindowsize=-1):
         """This is similar to expect(), but uses plain string matching instead
@@ -1466,13 +1466,13 @@ class spawn_unix:
         if isinstance(pattern_list, str) or pattern_list in (TIMEOUT, EOF):
             pattern_list = [pattern_list]
         return self.expect_loop(
-            searcher_string(pattern_list), timeout, searchwindowsize
+            SearcherString(pattern_list), timeout, searchwindowsize
         )
 
     def expect_loop(self, searcher, timeout=-1, searchwindowsize=-1):
         """The common loop used inside expect.
 
-        The 'searcher' should be an instance of searcher_re or searcher_string, which
+        The 'searcher' should be an instance of SearcherRegex or SearcherString, which
         describes how and what to search for in the input.
 
         See expect() for other arguments, return value and exceptions.
@@ -1714,7 +1714,7 @@ class spawn_unix:
 ##############################################################################
 
 
-class spawn_windows(spawn_unix):
+class SpawnWindows(SpawnUnix):
     """This is the main class interface for Pexpect.
 
     Use this class to start and control child applications.
@@ -2783,7 +2783,7 @@ class ConsoleReader:
         ResumeThread(handle)
 
 
-class searcher_string:
+class SearcherString:
     """This is a plain string search helper for the spawn.expect_any() method.
 
     Attributes:
@@ -2797,12 +2797,12 @@ class searcher_string:
         start - index into the buffer, first byte of match
         end   - index into the buffer, first byte after match
         match - the matching string itself
+
+    Args:
+        strings: A list; a sequence of strings; or the EOF or TIMEOUT types.
     """
 
     def __init__(self, strings):
-        """This creates an instance of searcher_string. This argument 'strings'
-        may be a list; a sequence of strings; or the EOF or TIMEOUT types.
-        """
         self.eof_index = -1
         self.timeout_index = -1
         self._strings = []
@@ -2816,10 +2816,9 @@ class searcher_string:
             self._strings.append((n, s))
 
     def __str__(self):
-        """This returns a human-readable string that represents the state of
-        the object."""
+        """Return a human-readable string that represents the state of the object."""
         ss = [(ns[0], f'    {ns[0]}: "{ns[1]}"') for ns in self._strings]
-        ss.append((-1, "searcher_string:"))
+        ss.append((-1, "SearcherString:"))
         if self.eof_index >= 0:
             ss.append((self.eof_index, f"    {self.eof_index}: EOF"))
         if self.timeout_index >= 0:
@@ -2829,8 +2828,9 @@ class searcher_string:
         return "\n".join(ss)
 
     def search(self, buffer, freshlen, searchwindowsize=None):
-        """This searches 'buffer' for the first occurence of one of the search
-        strings.  'freshlen' must indicate the number of bytes at the end of
+        """Searche 'buffer' for the first occurence of one of the search strings.
+
+        'freshlen' must indicate the number of bytes at the end of
         'buffer' which have not been searched before. It helps to avoid
         searching the same, possibly big, buffer over and over again.
 
@@ -2875,7 +2875,7 @@ class searcher_string:
         return best_index
 
 
-class searcher_re:
+class SearcherRegex:
     """Regular expression string search helper for the spawn.expect_any() method.
 
     Attributes:
@@ -2890,13 +2890,13 @@ class searcher_re:
         end   - index into the buffer, first byte after match
         match - the re.match object returned by a succesful re.search
 
+    Args:
+        patterns: 'patterns' to search. Where 'patterns' may be a list or other
+            sequence of compiled regular expressions, or the EOF or TIMEOUT
+            types.
     """
 
     def __init__(self, patterns):
-        """This creates an instance that searches for 'patterns' Where
-        'patterns' may be a list or other sequence of compiled regular
-        expressions, or the EOF or TIMEOUT types.
-        """
         self.eof_index = -1
         self.timeout_index = -1
         self._searches = []
@@ -2912,7 +2912,7 @@ class searcher_re:
     def __str__(self):
         """Return a human-readable string that represents the state of the object."""
         ss = [(n, f'    {n}: re.compile(r"{s.pattern!s}")') for n, s in self._searches]
-        ss.append((-1, "searcher_re:"))
+        ss.append((-1, "SearcherRegex:"))
         if self.eof_index >= 0:
             ss.append((self.eof_index, f"    {self.eof_index}: EOF"))
         if self.timeout_index >= 0:

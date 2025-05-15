@@ -224,7 +224,7 @@ def icc_device_link_to_madvr(
         # Need a worker for abort event handling
         worker = worker_base.WorkerBase()
         # icclu verbose=0 gives a speed increase
-        xicclu = worker_base.MP_Xicclu(
+        xicclu = worker_base.XiccluMP(
             link,
             scale=clutmax,
             use_icclu=True,
@@ -760,7 +760,7 @@ class MadTPG(MadTPGBase):
         return self.dllpath
 
 
-class MadTPG_Net(MadTPGBase):
+class MadTPGNet(MadTPGBase):
     """Implementation of madVR network protocol in pure python."""
 
     # Wireshark filter to help ananlyze traffic:
@@ -1161,7 +1161,7 @@ class MadTPG_Net(MadTPGBase):
             )
 
         # Call the method and return the result
-        return MadTPG_Net_Sender(self, self._client_socket, methodname)
+        return MadTPGNetSender(self, self._client_socket, methodname)
 
     def announce(self):
         """Anounce ourselves"""
@@ -1380,7 +1380,7 @@ class MadTPG_Net(MadTPGBase):
         # XXX: madHcNetXX.dll exports madVR_GetBlackAndWhiteLevel,
         # but the equivalent madVR network protocol command is
         # GetBlackWhiteLevel (without the "And")!
-        return MadTPG_Net_Sender(self, self._client_socket, "GetBlackWhiteLevel")()
+        return MadTPGNetSender(self, self._client_socket, "GetBlackWhiteLevel")()
 
     def get_version(self):
         """Return madVR version"""
@@ -1741,7 +1741,7 @@ class MadTPG_Net(MadTPGBase):
         return "{}:{}".format(*addr) if addr else ("0.0.0.0", 0)  # noqa: S104
 
 
-class MadTPG_Net_Sender:
+class MadTPGNetSender:
     def __init__(self, madtpg, conn, command):
         self.madtpg = madtpg
         self._conn = conn
@@ -1820,7 +1820,7 @@ if __name__ == "__main__":
     if sys.platform == "win32":
         madtpg = MadTPG()
     else:
-        madtpg = MadTPG_Net()
+        madtpg = MadTPGNet()
     try:
         if madtpg.connect(method3=CM_StartLocalInstance, timeout3=10000):
             res = madtpg.set_osd_text("Hello there")

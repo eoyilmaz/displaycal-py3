@@ -141,6 +141,7 @@ from DisplayCAL.icc_profile import (
     GAMUT_VOLUME_ADOBERGB,
     GAMUT_VOLUME_SMPTE431_P3,
     GAMUT_VOLUME_SRGB,
+    ChromaticAdaptionTag,
     CurveType,
     DictType,
     ICCProfile,
@@ -151,7 +152,6 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaTableType,
     VideoCardGammaType,
     XYZType,
-    chromaticAdaptionTag,
 )
 from DisplayCAL.log import LOGBUFFER
 from DisplayCAL.meta import (
@@ -9311,13 +9311,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.worker.wrapup(False if not isinstance(result, Exception) else result)
 
         wtpt_profile_norm = tuple(n * 100 for n in list(profile.tags.wtpt.values()))
-        if isinstance(profile.tags.get("chad"), chromaticAdaptionTag):
+        if isinstance(profile.tags.get("chad"), ChromaticAdaptionTag):
             # undo chromatic adaption of profile whitepoint
             WX, WY, WZ = profile.tags.chad.inverted() * wtpt_profile_norm
             wtpt_profile_norm = tuple((n / WY) * 100.0 for n in (WX, WY, WZ))
             # guess chromatic adaption transform (Bradford, CAT02...)
             cat = profile.guess_cat() or cat
-        elif isinstance(profile.tags.get("arts"), chromaticAdaptionTag):
+        elif isinstance(profile.tags.get("arts"), ChromaticAdaptionTag):
             cat = profile.guess_cat() or cat
         if oprof and isinstance(oprof.tags.get("lumi"), XYZType):
             # calculate unscaled whitepoint
@@ -18859,7 +18859,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     print("Waiting for child thread to exit...")
                 self.thread.join()
             self.listening = False
-            if isinstance(getattr(self.worker, "madtpg", None), madvr.MadTPG_Net):
+            if isinstance(getattr(self.worker, "madtpg", None), madvr.MadTPGNet):
                 self.worker.madtpg.shutdown()
             for patterngenerator in list(self.worker.patterngenerators.values()):
                 patterngenerator.listening = False

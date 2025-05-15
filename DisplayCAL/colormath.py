@@ -3158,7 +3158,7 @@ def xicc_tech_gamma(egamma, off, outoffset=0.0):
 
     Adapted from ArgyllCMS xicc.c
     """
-    gf = gam_fits()
+    gf = GammaFits()
     op = {}
     sa = {}
 
@@ -3180,8 +3180,8 @@ def xicc_tech_gamma(egamma, off, outoffset=0.0):
     return op[0]
 
 
-class gam_fits:
-    # Adapted from ArgyllCMS xicc/xicc.c
+class GammaFits:
+    """Adapted from ArgyllCMS xicc/xicc.c."""
 
     def __init__(self, wp=1.0, thyr=0.2, bp=0.0):
         self.wp = wp  # 100% input target

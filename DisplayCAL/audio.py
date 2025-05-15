@@ -275,11 +275,11 @@ class DummySound:
     volume = 0
 
 
-class SDL_RWops(Structure):
+class SDL_RWops(Structure):  # noqa: N801
     pass
 
 
-class Mix_Chunk(Structure):
+class Mix_Chunk(Structure):  # noqa: N801
     _fields_: ClassVar[list[tuple]] = [
         ("allocated", c_int),
         ("abuf", POINTER(c_uint8)),

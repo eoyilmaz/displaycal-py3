@@ -151,6 +151,7 @@ from DisplayCAL.debughelpers import (
 from DisplayCAL.edid import WMIError, get_edid
 from DisplayCAL.icc_profile import (
     GAMUT_VOLUME_SRGB,
+    ChromaticAdaptionTag,
     ChromaticityType,
     CRInterpolation,
     CurveType,
@@ -168,7 +169,6 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     XYZType,
     _mp_apply,
-    chromaticAdaptionTag,
     create_RGB_A2B_XYZ,
     create_synthetic_hdr_clut_profile,
     get_display_profile,
@@ -270,11 +270,11 @@ from DisplayCAL.util_str import (
     universal_newlines,
 )
 from DisplayCAL.worker_base import (
-    MP_Xicclu,
     WorkerBase,
     Xicclu,
+    XiccluMP,
     _mp_generate_B2A_clut,
-    _mp_xicclu,
+    _xicclu_mp,
     printcmdline,
 )
 from DisplayCAL.wx_addons import BetterCallLater, BetterWindowDisabler, wx
@@ -2591,7 +2591,7 @@ class Worker(WorkerBase):
                     xf = Xicclu(
                         hdr_target_profile, "r", direction="f", pcs="x", worker=self
                     )
-                    xb = MP_Xicclu(
+                    xb = XiccluMP(
                         hdr_target_profile,
                         "r",
                         direction="if",
@@ -4499,7 +4499,7 @@ END_DATA
                 )
                 RGB_dst_out = []
                 for slices in pool_slice(
-                    _mp_xicclu,
+                    _xicclu_mp,
                     XYZ_src_out,
                     (profile_out.fileName, intent[0], "b" if use_b2a else "if"),
                     {
@@ -11454,7 +11454,7 @@ usage: spotread [-options] [logfile]
         profile.tags.bkpt = XYZType(profile=profile)
         black_XYZ = [v / 100.0 for v in RGB_XYZ[(0, 0, 0)]]
         (profile.tags.bkpt.X, profile.tags.bkpt.Y, profile.tags.bkpt.Z) = black_XYZ
-        profile.tags.arts = chromaticAdaptionTag()
+        profile.tags.arts = ChromaticAdaptionTag()
         profile.tags.arts.update(colormath.get_cat_matrix(cat))
 
         # Check if we have calibration, if so, add vcgt
@@ -12326,7 +12326,7 @@ usage: spotread [-options] [logfile]
                 self.madtpg = madvr.MadTPG()
             else:
                 # Using madVR net-protocol pure python implementation
-                self.madtpg = madvr.MadTPG_Net()
+                self.madtpg = madvr.MadTPGNet()
                 self.madtpg.debug = VERBOSE
 
     def madtpg_connect(self):

@@ -29,7 +29,7 @@ class NTSTATUS(ctypes.c_long):
         return f"NTSTATUS(0x{value:08x})"
 
 
-class UNICODE_STRING(ctypes.Structure):
+class UNICODE_STRING(ctypes.Structure):  # noqa: N801
     _fields_: ClassVar[list[tuple]] = [
         ("Length", wintypes.USHORT),
         ("MaximumLength", wintypes.USHORT),

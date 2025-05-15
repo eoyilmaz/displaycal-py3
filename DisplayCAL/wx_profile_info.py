@@ -1075,7 +1075,7 @@ class GamutViewOptions(wx_Panel):
         self.Thaw()
 
 
-class PIFrame_2WaySplitter(TwoWaySplitter):
+class PIFrame2WaySplitter(TwoWaySplitter):
     def OnLeftDClick(self, event):
         if not self.IsEnabled():
             return
@@ -1142,7 +1142,7 @@ class ProfileInfoFrame(LUTFrame):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
-        self.splitter = PIFrame_2WaySplitter(
+        self.splitter = PIFrame2WaySplitter(
             self, -1, agwStyle=wx.SP_LIVE_UPDATE | wx.SP_NOSASH
         )
         self.sizer.Add(self.splitter, 1, flag=wx.EXPAND)

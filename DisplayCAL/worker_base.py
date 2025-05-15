@@ -56,7 +56,7 @@ from DisplayCAL.util_os import quote_args
 from DisplayCAL.util_str import make_filename_safe, safe_basestring, safe_str
 
 
-def _mp_xicclu(
+def _xicclu_mp(
     chunk,
     thread_abort_event,
     progress_queue,
@@ -80,6 +80,7 @@ def _mp_xicclu(
     convert_video_rgb_to_clut65=False,
     verbose=1,
 ):
+    """Xicclu multiprocessing worker."""
     if not config.CFG.items(config.configparser.DEFAULTSECT):
         config.initcfg()
     profile = ICCProfile(profile_filename)
@@ -785,7 +786,7 @@ class Xicclu(WorkerBase):
         pass
 
 
-class MP_Xicclu(Xicclu):
+class XiccluMP(Xicclu):
     def __init__(
         self,
         profile,
@@ -864,7 +865,7 @@ class MP_Xicclu(Xicclu):
 
     def get(self, raw=False, get_clip=False, output_format=None, reverse=False):
         for slices in pool_slice(
-            _mp_xicclu,
+            _xicclu_mp,
             self._in,
             self._args,
             {},

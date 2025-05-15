@@ -1274,7 +1274,7 @@ class UnlockingError(Error):
 
 if sys.platform == "win32" and sys.getwindowsversion() >= (6,):
 
-    class win64_disable_file_system_redirection:
+    class win64_disable_file_system_redirection:  # noqa: N801
         r"""Disable Windows File System Redirection.
 
         When a 32 bit program runs on a 64 bit Windows the paths to C:\Windows\System32

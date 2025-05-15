@@ -3,7 +3,7 @@ import re
 
 from DisplayCAL.config import DATA_DIRS, DEFAULTS, STORAGE, getcfg
 from DisplayCAL.debughelpers import handle_error
-from DisplayCAL.lazydict import LazyDict_YAML_UltraLite
+from DisplayCAL.lazydict import LazyDictYAMLUltraLite
 from DisplayCAL.options import DEBUG_LOCALIZATION as DEBUG
 from DisplayCAL.util_os import expanduseru
 
@@ -28,7 +28,7 @@ def init(set_wx_locale=False):
                     name, ext = os.path.splitext(filename)
                     if ext.lower() == ".yaml" and name.lower() not in LDICT:
                         path = os.path.join(langdir, filename)
-                        LDICT[name.lower()] = LazyDict_YAML_UltraLite(path)
+                        LDICT[name.lower()] = LazyDictYAMLUltraLite(path)
     if len(LDICT) == 0:
         handle_error(
             UserWarning(

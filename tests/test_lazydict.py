@@ -5,7 +5,7 @@ import yaml
 
 import pytest
 
-from DisplayCAL.lazydict import LazyDict_YAML_Lite
+from DisplayCAL.lazydict import LazyDictYAMLLite
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ def test_yaml_lite_to_yaml_conformance(doc, do_assert):
     """Testing YAML Lite to YAML conformance."""
     # print("-" * 80)
     # print(repr(doc))
-    a = LazyDict_YAML_Lite(debug=True)
+    a = LazyDictYAMLLite(debug=True)
     a.parse(StringIO(doc))
     # print("LazyDict_YAML_Lite", a)
     b = yaml.safe_load(StringIO(doc))

@@ -320,7 +320,7 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                 self._inactive_minimize_bitmap = bmp
 
 
-class AuiManager_LRDocking(aui.AuiManager):
+class AuiManagerLRDocking(aui.AuiManager):
     """AuiManager with only left/right docking.
 
     Also, it is not necessary to hover the drop guide, a drop hint will show
@@ -1709,7 +1709,7 @@ class VisualWhitepointEditor(wx.Frame):
         )
 
         if not patterngenerator:
-            self._mgr = AuiManager_LRDocking(
+            self._mgr = AuiManagerLRDocking(
                 self,
                 aui.AUI_MGR_DEFAULT
                 | aui.AUI_MGR_LIVE_RESIZE

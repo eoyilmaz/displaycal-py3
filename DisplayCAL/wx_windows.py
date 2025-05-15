@@ -5514,7 +5514,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
 
 
 # Better under GTK (no text cutoff)
-class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
+class BetterStaticFancyTextSetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
     def __init__(self, parent, id, text, *args, **kwargs):
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.maxlen = 119
@@ -5567,7 +5567,7 @@ class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
 
 
 if wx.Platform == "__WXGTK__" and hasattr(wx.StaticText, "SetLabelMarkup"):
-    BetterStaticFancyText = BetterStaticFancyText_SetLabelMarkup
+    BetterStaticFancyText = BetterStaticFancyTextSetLabelMarkup
 
 
 class InfoDialog(BaseInteractiveDialog):

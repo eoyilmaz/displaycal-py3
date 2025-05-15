@@ -2,20 +2,20 @@ from ctypes import Structure, c_char_p, c_int, c_uint
 from typing import ClassVar
 
 
-class gchar_p(c_char_p):
+class gchar_p(c_char_p):  # noqa: N801
     # represents "[const] gchar*"
     pass
 
 
-class gint(c_int):
+class gint(c_int):  # noqa: N801
     pass
 
 
-class guint(c_uint):
+class guint(c_uint):  # noqa: N801
     pass
 
 
-class guint32(c_uint):
+class guint32(c_uint):  # noqa: N801
     pass
 
 

@@ -13,7 +13,7 @@ ACCESS_MASK = wintypes.DWORD
 STATUS_INFO_LENGTH_MISMATCH = NTSTATUS(0xC0000004)
 
 
-class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
+class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):  # noqa: N801
     def __repr__(self):
         return f"{self.__class__.__name__}({self.value})"
 
@@ -21,7 +21,7 @@ class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
 SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
-class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
+class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
     _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
@@ -34,14 +34,14 @@ class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
     ]
 
 
-class SYSTEM_INFORMATION(ctypes.Structure):
+class SYSTEM_INFORMATION(ctypes.Structure):  # noqa: N801
     pass
 
 
 PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
-class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
+class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
     _fields_: ClassVar[list[tuple]] = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),

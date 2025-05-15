@@ -1477,9 +1477,9 @@ class ArtManager(wx.EvtHandler):
         Returns:
             wx.Colour: An instance of :class:`wx.Colour`.
         """
-        r = random.randint(0, 255)  # Random value between 0-255
-        g = random.randint(0, 255)  # Random value between 0-255
-        b = random.randint(0, 255)  # Random value between 0-255
+        r = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
+        g = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
+        b = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
         return wx.Colour(r, g, b)
 
     def IsDark(self, colour: wx.Colour) -> bool:

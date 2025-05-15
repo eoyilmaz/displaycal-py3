@@ -1,6 +1,5 @@
 """Interactive display calibration UI."""
 
-import contextlib
 import os
 import re
 import sys
@@ -8,7 +7,6 @@ import time
 
 from DisplayCAL import audio, colormath, config
 from DisplayCAL import localization as lang
-from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import (
     get_data_path,
     get_icon_bundle,
@@ -22,7 +20,6 @@ from DisplayCAL.meta import NAME as appname
 from DisplayCAL.options import debug, test, verbose
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
-    BaseApp,
     BaseFrame,
     BitmapBackgroundPanel,
     CustomCheckBox,
@@ -745,112 +742,3 @@ class UntetheredFrame(BaseFrame):
 
     def write(self, txt):
         wx.CallAfter(self.parse_txt, txt)
-
-
-if __name__ == "__main__":
-    import random
-    from _thread import start_new_thread
-    from time import sleep
-
-    from DisplayCAL import worker
-    from DisplayCAL.icc_profile import ICCProfile
-    from DisplayCAL.util_io import Files
-
-    class Subprocess:
-        def send(self, bytes_):
-            start_new_thread(test, (bytes_,))
-
-    class Worker(worker.Worker):
-        def __init__(self):
-            worker.Worker.__init__(self)
-            self.finished = False
-            self.instrument_calibration_complete = False
-            self.instrument_place_on_screen_msg = False
-            self.instrument_sensor_position_msg = False
-            self.is_ambient_measuring = False
-            self.subprocess = Subprocess()
-            self.subprocess_abort = False
-
-        def abort_subprocess(self):
-            self.safe_send("Q")
-
-        def safe_send(self, bytes_):
-            print(f"*** Sending {bytes_!r}")
-            self.subprocess.send(bytes_)
-            return True
-
-    config.initcfg()
-    print("untethered.min_delta", getcfg("untethered.min_delta"))
-    print("untethered.min_delta.lightness", getcfg("untethered.min_delta.lightness"))
-    print("untethered.max_delta.chroma", getcfg("untethered.max_delta.chroma"))
-    lang.init()
-    lang.update_defaults()
-    app = BaseApp(0)
-    app.TopWindow = UntetheredFrame(start_timer=False)
-    testchart = getcfg("testchart.file")
-    if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
-        with contextlib.suppress(Exception):
-            testchart = ICCProfile(testchart).tags.targ
-    try:
-        app.TopWindow.cgats = CGATS(testchart)
-    except Exception:
-        app.TopWindow.cgats = CGATS(
-            """TI1
-BEGIN_DATA_FORMAT
-SAMPLE_ID RGB_R RGB_G RGB_B XYZ_X XYZ_Y XYZ_Z
-END_DATA_FORMAT
-BEGIN_DATA
-1 0 0 0 0 0 0
-END_DATA
-"""
-        )
-    app.TopWindow.worker = Worker()
-    app.TopWindow.worker.progress_wnd = app.TopWindow
-    app.TopWindow.Show()
-    files = Files([app.TopWindow.worker, app.TopWindow])
-
-    def test(bytes_=None):
-        print(f"*** Received {bytes_!r}")
-        menu = r"""Place instrument on spot to be measured,
-and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
-[a-z] to read and make FWA compensated reading from keyed reference
-'r' to set reference, 's' to save spectrum,
-'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:"""
-        if not bytes_:
-            txt = menu
-        elif bytes_ == " ":
-            i = app.TopWindow.index
-            row = app.TopWindow.cgats[0].DATA[i]
-            txt = [
-                f"""
- Result is XYZ: {row.XYZ_X:.6f} {row.XYZ_Y:.6f} {row.XYZ_Z:.6f}
-
-Place instrument on spot to be measured,
-and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
-[a-z] to read and make FWA compensated reading from keyed reference
-'r' to set reference, 's' to save spectrum,
-'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
-                f""""
-Result is XYZ: {row.XYZ_X:.6f} {row.XYZ_Y:.6f} {row.XYZ_Z:.6f}
-
-Spot read needs a calibration before continuing
-Place cap on the instrument, or place on a dark surface,
-or place on the white calibration reference,
-and then hit any key to continue,
-or hit Esc or Q to abort:""",
-            ][random.choice([0, 1])]
-        elif bytes_ in ("Q", "q"):
-            wx.CallAfter(app.TopWindow.Close)
-            return
-        else:
-            return
-        for line in txt.split("\n"):
-            sleep(0.03125)
-            if app.TopWindow:
-                wx.CallAfter(files.write, line)
-                print(line)
-
-    start_new_thread(test, ())
-    app.MainLoop()

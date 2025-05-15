@@ -66,7 +66,7 @@ def get_panel(parent, size=wx.DefaultSize):
         from random import randint
 
         panel.SetBackgroundColour(
-            wx.Colour(randint(0, 255), randint(0, 255), randint(0, 255))
+            wx.Colour(randint(0, 255), randint(0, 255), randint(0, 255))  # noqa: S311
         )
         get_panel.i += 1
         wx.StaticText(panel, wx.ID_ANY, str(get_panel.i) + " " + str(size))

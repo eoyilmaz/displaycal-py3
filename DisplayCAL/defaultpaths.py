@@ -131,141 +131,59 @@ elif sys.platform == "darwin":
     COMMON_PROGRAMS = []
 else:
     # Linux
-
-    class XDG:
-        # TODO: This class is a complete hack and it should be refactored,
-        #       and no hacks like relaying on `locals()` should be used.
-
-        CACHE_HOME = getenvu("XDG_CACHE_HOME", expandvarsu("$HOME/.cache"))
-        CONFIG_HOME = getenvu("XDG_CONFIG_HOME", expandvarsu("$HOME/.config"))
-        CONFIG_DIR_DEFAULT = "/etc/xdg"
-        CONFIG_DIRS = list(
-            map(
-                os.path.normpath,
-                getenvu("XDG_CONFIG_DIRS", CONFIG_DIR_DEFAULT).split(os.pathsep),
+    XDG_CACHE_HOME = getenvu("XDG_CACHE_HOME", expandvarsu("$HOME/.cache"))
+    XDG_CONFIG_HOME = getenvu("XDG_CONFIG_HOME", expandvarsu("$HOME/.config"))
+    XDG_CONFIG_DIR_DEFAULT = "/etc/xdg"
+    XDG_CONFIG_DIRS = list(
+        map(
+            os.path.normpath,
+            getenvu("XDG_CONFIG_DIRS", XDG_CONFIG_DIR_DEFAULT).split(os.pathsep),
+        )
+    )
+    if XDG_CONFIG_DIR_DEFAULT not in XDG_CONFIG_DIRS:
+        XDG_CONFIG_DIRS.append(XDG_CONFIG_DIR_DEFAULT)
+    XDG_DATA_HOME_DEFAULT = expandvarsu("$HOME/.local/share")
+    XDG_DATA_HOME = getenvu("XDG_DATA_HOME", XDG_DATA_HOME_DEFAULT)
+    XDG_DATA_DIRS_DEFAULT = "/usr/local/share:/usr/share:/var/lib"
+    XDG_DATA_DIRS = list(
+        map(
+            os.path.normpath,
+            getenvu("XDG_DATA_DIRS", XDG_DATA_DIRS_DEFAULT).split(os.pathsep),
+        )
+    )
+    XDG_DATA_DIRS.extend(
+        list(
+            filter(
+                lambda data_dir, data_dirs=XDG_DATA_DIRS: data_dir not in data_dirs,
+                XDG_DATA_DIRS_DEFAULT.split(os.pathsep),
             )
         )
-        if CONFIG_DIR_DEFAULT not in CONFIG_DIRS:
-            CONFIG_DIRS.append(CONFIG_DIR_DEFAULT)
-        DATA_HOME_DEFAULT = expandvarsu("$HOME/.local/share")
-        DATA_HOME = getenvu("XDG_DATA_HOME", DATA_HOME_DEFAULT)
-        DATA_DIRS_DEFAULT = "/usr/local/share:/usr/share:/var/lib"
-        DATA_DIRS = list(
-            map(
-                os.path.normpath,
-                getenvu("XDG_DATA_DIRS", DATA_DIRS_DEFAULT).split(os.pathsep),
-            )
-        )
-        DATA_DIRS.extend(
-            list(
-                filter(
-                    lambda data_dir, data_dirs=DATA_DIRS: data_dir not in data_dirs,
-                    DATA_DIRS_DEFAULT.split(os.pathsep),
-                )
-            )
-        )
+    )
 
-        @staticmethod
-        def set_translation(obj):
-            locale_dir = LOCALEDIR
-
-            if not os.path.isdir(locale_dir):
-                for path in XDG.DATA_DIRS:
-                    path = os.path.join(path, "locale")
-                    if os.path.isdir(path):
-                        locale_dir = path
-                        break
-
-            # codeset is deprecated with python 3.11
-            try:
-                obj.translation = gettext.translation(
-                    obj.GETTEXT_PACKAGE, locale_dir, codeset="UTF-8"
-                )
-            except TypeError:
-                try:
-                    obj.translation = gettext.translation(
-                        obj.GETTEXT_PACKAGE, locale_dir
-                    )
-                except FileNotFoundError as exc:
-                    print("XDG:", exc)
-                    obj.translation = gettext.NullTranslations()
-                    return False
-            except OSError as exception:
-                print("XDG:", exception)
-                obj.translation = gettext.NullTranslations()
-                return False
-            return True
-
-        @staticmethod
-        def is_true(s):
-            return s == "1" or s.startswith("True") or s.startswith("true")
-
-        @staticmethod
-        def get_config_files(filename):
-            paths = []
-
-            for config_dir in [XDG.CONFIG_HOME] + XDG.CONFIG_DIRS:
-                path = os.path.join(config_dir, filename)
-                if os.path.isfile(path):
-                    paths.append(path)
-
-            return paths
-
-        @staticmethod
-        def shell_unescape(s):
-            a = [c for i, c in enumerate(s) if c != "\\" or len(s) <= i + 1]
-            return "".join(a)
-
-        @staticmethod
-        def config_file_parser(f):
-            for line in f:
-                line = line.strip()
-                if line.startswith("#") or "=" not in line:
-                    continue
-                yield tuple(s.strip() for s in line.split("=", 1))
-
-        @staticmethod
-        def process_config_file(path, fn):
-            try:
-                with open(path) as f:
-                    for key, value in XDG.config_file_parser(f):
-                        fn(key, value)
-            except OSError as exception:
-                print(f"XDG: Couldn't read '{path}':", exception)
-                return False
-            return True
-
-    for name in dir(XDG):
-        attr = getattr(XDG, name)
-        if isinstance(attr, (str, list)):
-            # TODO: Using `locals()` is not a good practice.
-            locals()[f"XDG_{name}"] = attr
-    del name, attr
-
-    CACHE = XDG.CACHE_HOME
-    LIBRARY_HOME = APPDATA = XDG.DATA_HOME
-    COMMONAPPDATA = XDG.DATA_DIRS
+    CACHE = XDG_CACHE_HOME
+    LIBRARY_HOME = APPDATA = XDG_DATA_HOME
+    COMMONAPPDATA = XDG_DATA_DIRS
     LIBRARY = COMMONAPPDATA[0]
     AUTOSTART = None
-    for dir_ in XDG.CONFIG_DIRS:
+    for dir_ in XDG_CONFIG_DIRS:
         if os.path.isdir(dir_):
             AUTOSTART = os.path.join(dir_, "autostart")
             break
     if not AUTOSTART:
-        AUTOSTART = os.path.join(XDG.CONFIG_DIR_DEFAULT, "autostart")
-    AUTOSTART_HOME = os.path.join(XDG.CONFIG_HOME, "autostart")
+        AUTOSTART = os.path.join(XDG_CONFIG_DIR_DEFAULT, "autostart")
+    AUTOSTART_HOME = os.path.join(XDG_CONFIG_HOME, "autostart")
     ICCPROFILES = []
-    for dir_ in XDG.DATA_DIRS:
+    for dir_ in XDG_DATA_DIRS:
         if os.path.isdir(dir_):
             ICCPROFILES.append(os.path.join(dir_, "color", "icc"))
     ICCPROFILES.append("/var/lib/color")
     ICCPROFILES_HOME = [
-        os.path.join(XDG.DATA_HOME, "color", "icc"),
-        os.path.join(XDG.DATA_HOME, "icc"),
+        os.path.join(XDG_DATA_HOME, "color", "icc"),
+        os.path.join(XDG_DATA_HOME, "icc"),
         expandvarsu("$HOME/.color/icc"),
     ]
-    PROGRAMS = os.path.join(XDG.DATA_HOME, "applications")
-    COMMON_PROGRAMS = [os.path.join(dir_, "applications") for dir_ in XDG.DATA_DIRS]
+    PROGRAMS = os.path.join(XDG_DATA_HOME, "applications")
+    COMMON_PROGRAMS = [os.path.join(dir_, "applications") for dir_ in XDG_DATA_DIRS]
 
 if sys.platform in ("darwin", "win32"):
     ICCPROFILES_DISPLAY = ICCPROFILES

@@ -840,7 +840,7 @@ class BaseApp(wx.App):
         return 0
 
     @staticmethod
-    def _run_exitfuncs():
+    def _run_exitfuncs() -> int:
         """Run any registered exit functions.
 
         _exithandlers is traversed in reverse order so functions are executed
@@ -871,7 +871,7 @@ class BaseApp(wx.App):
         return 0
 
     @staticmethod
-    def register_exitfunc(func, *args, **kwargs):
+    def register_exitfunc(func, *args, **kwargs) -> None:
         BaseApp._exithandlers.append((func, args, kwargs))
 
     def query_end_session(self, event):
@@ -6424,88 +6424,88 @@ class ProgressDialog(wx.Dialog):
                     self.remaining_time.Label = strftime("%H:%M:%S", gmtime(remaining))
 
     @staticmethod
-    def get_bitmaps(progress_type=0):
+    def get_bitmaps(progress_type=0) -> list:
         if progress_type in ProgressDialog.bitmaps:
-            bitmaps = ProgressDialog.bitmaps[progress_type]
-        else:
-            bitmaps = ProgressDialog.bitmaps[progress_type] = []
-            if progress_type == 0:
-                # Animation for processing
-                for pth in get_data_path("theme/shutter_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if im.IsOk():
-                        bitmaps.append(im)
-                for pth in get_data_path("theme/jet_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if not im.IsOk():
-                        continue
-                    # Blend red
-                    im = im.AdjustChannels(1, 0.25, 0)
-                    # Adjust for background
-                    im.AdjustMinMax(1.0 / 255 * 0x14)
+            return ProgressDialog.bitmaps[progress_type]
+
+        bitmaps = ProgressDialog.bitmaps[progress_type] = []
+        if progress_type == 0:
+            # Animation for processing
+            for pth in get_data_path("theme/shutter_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if im.IsOk():
                     bitmaps.append(im)
-                # Needs to be exactly 17 images
-                if bitmaps and len(bitmaps) == 17:
-                    for _ in range(7):
-                        bitmaps.extend(bitmaps[9:17])
-                    bitmaps.extend(bitmaps[9:13])
-                    # Fade in
-                    for i, im in enumerate(bitmaps[9:19]):
-                        bg = bitmaps[8].ConvertToBitmap()
-                        im = im.AdjustChannels(1, 1, 1, i / 10.0)
-                        bg.Blend(im.ConvertToBitmap(), 0, 0)
-                        bitmaps[i + 9] = bg
-                    for i, im in enumerate(bitmaps[:9]):
-                        bitmaps[i] = im.ConvertToBitmap()
-                    # Normal
-                    for i in range(41):
-                        im = bitmaps[i + 19].Copy()
-                        im.RotateHue(0.05 * (i / 50.0))
-                        bitmaps[i + 19] = im.ConvertToBitmap()
-                    for i, im in enumerate(bitmaps[60:]):
-                        im = im.Copy()
-                        im.RotateHue(0.05)
-                        bitmaps[i + 60] = im.ConvertToBitmap()
-                    # Fade out
-                    bitmaps.extend(reversed(bitmaps[:60]))
-                else:
-                    bitmaps = ProgressDialog.bitmaps[progress_type] = []
-            elif progress_type == 1:
-                # Animation for measurements
-                for i, pth in enumerate(
-                    get_data_path("theme/shutter_anim", r"\.png$") or []
-                ):
-                    if i < 5:
-                        bmp = getbitmap(os.path.splitext(pth)[0])
-                        bitmaps.insert(0, bmp)
-                if bitmaps and len(bitmaps) == 5:
-                    bitmaps.extend(reversed(bitmaps[:5]))
-                    bitmaps.extend(bitmaps[:5])
+            for pth in get_data_path("theme/jet_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if not im.IsOk():
+                    continue
+                # Blend red
+                im = im.AdjustChannels(1, 0.25, 0)
+                # Adjust for background
+                im.AdjustMinMax(1.0 / 255 * 0x14)
+                bitmaps.append(im)
+            # Needs to be exactly 17 images
+            if bitmaps and len(bitmaps) == 17:
+                for _ in range(7):
+                    bitmaps.extend(bitmaps[9:17])
+                bitmaps.extend(bitmaps[9:13])
+                # Fade in
+                for i, im in enumerate(bitmaps[9:19]):
+                    bg = bitmaps[8].ConvertToBitmap()
+                    im = im.AdjustChannels(1, 1, 1, i / 10.0)
+                    bg.Blend(im.ConvertToBitmap(), 0, 0)
+                    bitmaps[i + 9] = bg
+                for i, im in enumerate(bitmaps[:9]):
+                    bitmaps[i] = im.ConvertToBitmap()
+                # Normal
+                for i in range(41):
+                    im = bitmaps[i + 19].Copy()
+                    im.RotateHue(0.05 * (i / 50.0))
+                    bitmaps[i + 19] = im.ConvertToBitmap()
+                for i, im in enumerate(bitmaps[60:]):
+                    im = im.Copy()
+                    im.RotateHue(0.05)
+                    bitmaps[i + 60] = im.ConvertToBitmap()
+                # Fade out
+                bitmaps.extend(reversed(bitmaps[:60]))
             else:
-                # Animation for generating test patches
-                for pth in get_data_path("theme/patch_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if im.IsOk():
-                        bitmaps.append(im)
-                # Needs to be exactly 9 images
-                if bitmaps and len(bitmaps) == 9:
-                    for _ in range(3):
-                        bitmaps.extend(bitmaps[:9])
-                    # Fade in
-                    for i, im in enumerate(bitmaps[:27]):
-                        im = im.AdjustChannels(1, 1, 1, i / 27.0)
-                        bitmaps[i] = im.ConvertToBitmap()
-                    # Normal
-                    for i, im in enumerate(bitmaps[27:]):
-                        bitmaps[i + 27] = im.ConvertToBitmap()
-                    # Fade out
-                    for _ in range(3):
-                        bitmaps.extend(bitmaps[27:36])
-                    for i, bmp in enumerate(bitmaps[36:]):
-                        im = bmp.ConvertToImage().AdjustChannels(1, 1, 1, 1 - i / 26.0)
-                        bitmaps[i + 36] = im.ConvertToBitmap()
-                else:
-                    bitmaps = ProgressDialog.bitmaps[progress_type] = []
+                bitmaps = ProgressDialog.bitmaps[progress_type] = []
+        elif progress_type == 1:
+            # Animation for measurements
+            for i, pth in enumerate(
+                get_data_path("theme/shutter_anim", r"\.png$") or []
+            ):
+                if i < 5:
+                    bmp = getbitmap(os.path.splitext(pth)[0])
+                    bitmaps.insert(0, bmp)
+            if bitmaps and len(bitmaps) == 5:
+                bitmaps.extend(reversed(bitmaps[:5]))
+                bitmaps.extend(bitmaps[:5])
+        else:
+            # Animation for generating test patches
+            for pth in get_data_path("theme/patch_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if im.IsOk():
+                    bitmaps.append(im)
+            # Needs to be exactly 9 images
+            if bitmaps and len(bitmaps) == 9:
+                for _ in range(3):
+                    bitmaps.extend(bitmaps[:9])
+                # Fade in
+                for i, im in enumerate(bitmaps[:27]):
+                    im = im.AdjustChannels(1, 1, 1, i / 27.0)
+                    bitmaps[i] = im.ConvertToBitmap()
+                # Normal
+                for i, im in enumerate(bitmaps[27:]):
+                    bitmaps[i + 27] = im.ConvertToBitmap()
+                # Fade out
+                for _ in range(3):
+                    bitmaps.extend(bitmaps[27:36])
+                for i, bmp in enumerate(bitmaps[36:]):
+                    im = bmp.ConvertToImage().AdjustChannels(1, 1, 1, 1 - i / 26.0)
+                    bitmaps[i + 36] = im.ConvertToBitmap()
+            else:
+                bitmaps = ProgressDialog.bitmaps[progress_type] = []
         return bitmaps
 
     def key_handler(self, event):

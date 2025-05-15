@@ -14875,7 +14875,9 @@ usage: spotread [-options] [logfile]
         return gamut_volume, gamut_coverage
 
     @staticmethod
-    def create_gamut_view_worker(worker, viewgam, args, key, src, gamut_coverage):
+    def create_gamut_view_worker(
+        worker, viewgam, args, key, src, gamut_coverage
+    ) -> None:
         """Gamut view creation producer"""
         try:
             result = worker.exec_cmd(

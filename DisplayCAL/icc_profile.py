@@ -2993,9 +2993,9 @@ class LazyLoadTagAODict(AODict):
         tagSignature = key
         typeSignature, tagDataOffset, tagDataSize, tagData = tag
         try:
-            if tagSignature in tagSignature2Tag:
-                tag = tagSignature2Tag[tagSignature](tagData, tagSignature)
-            elif typeSignature in typeSignature2Type:
+            if tagSignature in TAG_SIGNATURE_TO_TAG:
+                tag = TAG_SIGNATURE_TO_TAG[tagSignature](tagData, tagSignature)
+            elif typeSignature in TYPE_SIGNATURE_TO_TYPE:
                 args = tagData, tagSignature
                 if typeSignature in (b"clrt", b"ncl2"):
                     args += (self.profile.connectionColorSpace,)
@@ -3003,7 +3003,7 @@ class LazyLoadTagAODict(AODict):
                         args += (self.profile.colorSpace,)
                 elif typeSignature in (b"XYZ ", b"mft2", b"curv", b"MS10", b"pseq"):
                     args += (self.profile,)
-                tag = typeSignature2Type[typeSignature](*args)
+                tag = TYPE_SIGNATURE_TO_TYPE[typeSignature](*args)
             else:
                 tag = ICCProfileTag(tagData, tagSignature)
         except Exception as exception:
@@ -6085,9 +6085,9 @@ class NamedColor2Type(ICCProfileTag, AODict):
         pass
 
 
-tagSignature2Tag = {"arts": chromaticAdaptionTag, "chad": chromaticAdaptionTag}
+TAG_SIGNATURE_TO_TAG = {"arts": chromaticAdaptionTag, "chad": chromaticAdaptionTag}
 
-typeSignature2Type = {
+TYPE_SIGNATURE_TO_TYPE = {
     b"chrm": ChromaticityType,
     b"clrt": ColorantTableType,
     b"curv": CurveType,
@@ -6115,7 +6115,7 @@ class ICCProfileInvalidError(IOError):
     pass
 
 
-_iccprofilecache = WeakValueDictionary()
+_ICCPROFILE_CACHE = WeakValueDictionary()
 
 
 class ICCProfile:
@@ -6165,14 +6165,14 @@ class ICCProfile:
                 key = md5(profile).hexdigest()  # noqa: S324
 
         if use_cache:
-            chk = _iccprofilecache.get(key)
+            chk = _ICCPROFILE_CACHE.get(key)
             if chk:
                 return chk
 
         self = super().__new__(cls)
 
         if use_cache and key:
-            _iccprofilecache[key] = self
+            _ICCPROFILE_CACHE[key] = self
 
             # Make sure most recent three are not garbage collected
             if len(ICCProfile._recent) == 3:
@@ -8095,7 +8095,7 @@ class ICCProfile:
 
     def _delfromcache(self):
         # Make double sure to remove ourselves from the cache
-        if self._key and self._key in _iccprofilecache:
+        if self._key and self._key in _ICCPROFILE_CACHE:
             with contextlib.suppress(KeyError):
-                del _iccprofilecache[self._key]
+                del _ICCPROFILE_CACHE[self._key]
                 # GC was faster

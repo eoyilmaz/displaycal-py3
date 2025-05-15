@@ -70,7 +70,7 @@ from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
 from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import (
-    EVT_BETTERTIMER,
+    EVT_BETTER_TIMER,
     BetterTimer,
     BetterWindowDisabler,
     CustomEvent,
@@ -286,7 +286,7 @@ class AnimatedBitmap(wx.PyControl):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda event: None)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self._timer = BetterTimer(self)
-        self.Bind(EVT_BETTERTIMER, self.OnTimer, self._timer)
+        self.Bind(EVT_BETTER_TIMER, self.OnTimer, self._timer)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def OnDestroy(self, event):
@@ -5204,7 +5204,7 @@ class BetterPyGauge(pygauge.PyGauge):
         self._indeterminate_gradients = []
         self._timer = BetterTimer(self)
         self.Unbind(wx.EVT_TIMER)
-        self.Bind(EVT_BETTERTIMER, self.OnTimer, self._timer)
+        self.Bind(EVT_BETTER_TIMER, self.OnTimer, self._timer)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Start()
 
@@ -6002,7 +6002,7 @@ class ProgressDialog(wx.Dialog):
         if not pos:
             self.Bind(wx.EVT_MOVE, self.OnMove, self)
         self.timer = BetterTimer(self)
-        self.Bind(EVT_BETTERTIMER, handler or self.OnTimer, self.timer)
+        self.Bind(EVT_BETTER_TIMER, handler or self.OnTimer, self.timer)
 
         self.indeterminate = True
         self.keepGoing = True
@@ -6129,7 +6129,7 @@ class ProgressDialog(wx.Dialog):
             self.elapsed_time.SetMaxFontSize(11)
             self.sizer3.Add(self.elapsed_time)
             self.elapsed_timer = BetterTimer(self)
-            self.Bind(EVT_BETTERTIMER, self.elapsed_time_handler, self.elapsed_timer)
+            self.Bind(EVT_BETTER_TIMER, self.elapsed_time_handler, self.elapsed_timer)
 
         if style & wx.PD_REMAINING_TIME:
             self.remaining_time_label = wx.StaticText(
@@ -6739,7 +6739,7 @@ class SimpleTerminal(InvincibleFrame):
         self.Bind(wx.EVT_MOVE, self.OnMove, self)
         self.timer = BetterTimer(self)
         if handler:
-            self.Bind(EVT_BETTERTIMER, handler, self.timer)
+            self.Bind(EVT_BETTER_TIMER, handler, self.timer)
 
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)

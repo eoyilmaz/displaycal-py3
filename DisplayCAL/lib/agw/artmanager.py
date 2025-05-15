@@ -9,30 +9,30 @@ from typing import Callable, Optional, Union
 import wx
 
 from DisplayCAL.lib.agw.fmresources import (
+    ARROW_DOWN,
+    ARROW_UP,
+    BOTTOM_SHADOW,
+    BOTTOM_SHADOW_FULL,
     BU_EXT_LEFT_ALIGN_STYLE,
     BU_EXT_RIGHT_ALIGN_STYLE,
     BU_EXT_RIGHT_TO_LEFT_STYLE,
+    CONTROL_DISABLED,
+    CONTROL_FOCUS,
+    CONTROL_PRESSED,
     CS_DROPSHADOW,
-    BottomShadow,
-    BottomShadowFull,
-    ControlDisabled,
-    ControlFocus,
-    ControlPressed,
-    RightShadow,
-    Style2007,
-    StyleXP,
-    arrow_down,
-    arrow_up,
-    shadow_bottom_alpha,
-    shadow_bottom_left_alpha,
-    shadow_bottom_left_xpm,
-    shadow_bottom_xpm,
-    shadow_center_alpha,
-    shadow_center_xpm,
-    shadow_right_alpha,
-    shadow_right_top_alpha,
-    shadow_right_top_xpm,
-    shadow_right_xpm,
+    RIGHT_SHADOW,
+    SHADOW_BOTTOM_ALPHA,
+    SHADOW_BOTTOM_LEFT_ALPHA,
+    SHADOW_BOTTOM_LEFT_XPM,
+    SHADOW_BOTTOM_XPM,
+    SHADOW_CENTER_ALPHA,
+    SHADOW_CENTER_XPM,
+    SHADOW_RIGHT_ALPHA,
+    SHADOW_RIGHT_TOP_ALPHA,
+    SHADOW_RIGHT_TOP_XPM,
+    SHADOW_RIGHT_XPM,
+    STYLE_2007,
+    STYLE_XP,
 )
 
 # ------------------------------------------------------------------------------------ #
@@ -44,9 +44,9 @@ _: Callable[[str], str] = wx.GetTranslation
 _libimported = None
 
 if wx.Platform == "__WXMSW__":
-    osVersion = wx.GetOsVersion()
+    OS_VERSION = wx.GetOsVersion()
     # Shadows behind menus are supported only in XP
-    if osVersion[1] == 5 and osVersion[2] == 1:
+    if OS_VERSION[1] == 5 and OS_VERSION[2] == 1:
         try:
             import win32api
             import win32con
@@ -333,10 +333,10 @@ class RendererXP(RendererBase):
             useLightColours (bool): `True` to use light colours, `False` otherwise.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             penColour = ArtManager.Get().FrameColour()
             brushColour = ArtManager.Get().BackgroundColour()
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             penColour = ArtManager.Get().FrameColour()
             brushColour = ArtManager.Get().HighlightBackgroundColour()
         else:
@@ -358,10 +358,10 @@ class RendererXP(RendererBase):
             colour (wx.Colour): a valid :class:`wx.Colour` instance.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             penColour = colour
             brushColour = ArtManager.Get().LightColour(colour, 75)
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             penColour = colour
             brushColour = ArtManager.Get().LightColour(colour, 60)
         else:
@@ -466,7 +466,7 @@ class RendererMSOffice2007(RendererBase):
                 gradient percentages.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             upperBoxTopPercent = 95
             upperBoxBottomPercent = 50
             lowerBoxTopPercent = 40
@@ -474,7 +474,7 @@ class RendererMSOffice2007(RendererBase):
             concaveUpperBox = True
             concaveLowerBox = True
 
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             upperBoxTopPercent = 75
             upperBoxBottomPercent = 90
             lowerBoxTopPercent = 90
@@ -482,7 +482,7 @@ class RendererMSOffice2007(RendererBase):
             concaveUpperBox = True
             concaveLowerBox = True
 
-        elif state == ControlDisabled:
+        elif state == CONTROL_DISABLED:
             upperBoxTopPercent = 100
             upperBoxBottomPercent = 100
             lowerBoxTopPercent = 70
@@ -764,9 +764,9 @@ class ArtManager(wx.EvtHandler):
     """This class provides utilities for creating shadows and adjusting colors."""
 
     _alignment_buffer = 7
-    _menu_theme: int = StyleXP
+    _menu_theme: int = STYLE_XP
     _vertical_gradient = False
-    _renderers: dict[int, RendererBase] = {StyleXP: None, Style2007: None}
+    _renderers: dict[int, RendererBase] = {STYLE_XP: None, STYLE_2007: None}
     _bmp_shadow_enabled = False
     _ms2007sunken = False
     _draw_mb_border = True
@@ -850,16 +850,16 @@ class ArtManager(wx.EvtHandler):
         """Initialize the bitmaps and colours."""
         # create wxBitmaps from the xpm's
         self._rightBottomCorner = self.ConvertToBitmap(
-            shadow_center_xpm, shadow_center_alpha
+            SHADOW_CENTER_XPM, SHADOW_CENTER_ALPHA
         )
-        self._bottom = self.ConvertToBitmap(shadow_bottom_xpm, shadow_bottom_alpha)
+        self._bottom = self.ConvertToBitmap(SHADOW_BOTTOM_XPM, SHADOW_BOTTOM_ALPHA)
         self._bottomLeft = self.ConvertToBitmap(
-            shadow_bottom_left_xpm, shadow_bottom_left_alpha
+            SHADOW_BOTTOM_LEFT_XPM, SHADOW_BOTTOM_LEFT_ALPHA
         )
         self._rightTop = self.ConvertToBitmap(
-            shadow_right_top_xpm, shadow_right_top_alpha
+            SHADOW_RIGHT_TOP_XPM, SHADOW_RIGHT_TOP_ALPHA
         )
-        self._right = self.ConvertToBitmap(shadow_right_xpm, shadow_right_alpha)
+        self._right = self.ConvertToBitmap(SHADOW_RIGHT_XPM, SHADOW_RIGHT_ALPHA)
 
         # initialise the colour map
         self.InitColours()
@@ -870,11 +870,11 @@ class ArtManager(wx.EvtHandler):
 
     def FillStockBitmaps(self) -> None:
         """Initialize few standard bitmaps."""
-        bmp = self.ConvertToBitmap(arrow_down, alpha=None)
+        bmp = self.ConvertToBitmap(ARROW_DOWN, alpha=None)
         bmp.SetMask(wx.Mask(bmp, wx.Colour(0, 128, 128)))
         self._bitmaps.update({"arrow_down": bmp})
 
-        bmp = self.ConvertToBitmap(arrow_up, alpha=None)
+        bmp = self.ConvertToBitmap(ARROW_UP, alpha=None)
         bmp.SetMask(wx.Mask(bmp, wx.Colour(0, 128, 128)))
         self._bitmaps.update({"arrow_up": bmp})
 
@@ -902,8 +902,8 @@ class ArtManager(wx.EvtHandler):
             cls._instance.Initialize()
 
             # Initialize the renderers map
-            cls._renderers[StyleXP] = RendererXP()
-            cls._renderers[Style2007] = RendererMSOffice2007()
+            cls._renderers[STYLE_XP] = RendererXP()
+            cls._renderers[STYLE_2007] = RendererMSOffice2007()
 
         return cls._instance
 
@@ -1668,7 +1668,7 @@ class ArtManager(wx.EvtHandler):
                 return
             wnd.SetTransparent(amount)
 
-    def DrawBitmapShadow(self, dc, rect, where=BottomShadow | RightShadow):
+    def DrawBitmapShadow(self, dc, rect, where=BOTTOM_SHADOW | RIGHT_SHADOW):
         """Draw a shadow using background bitmap.
 
         Assumption: the background was already drawn on the dc
@@ -1694,7 +1694,7 @@ class ArtManager(wx.EvtHandler):
             return
 
         # Start by drawing the right bottom corner
-        if where & BottomShadow or where & BottomShadowFull:
+        if where & BOTTOM_SHADOW or where & BOTTOM_SHADOW_FULL:
             dc.DrawBitmap(
                 self._rightBottomCorner, rect.x + rect.width, rect.y + rect.height, True
             )
@@ -1703,14 +1703,14 @@ class ArtManager(wx.EvtHandler):
         xx = rect.x + rect.width
         yy = rect.y + rect.height - shadowSize
 
-        if where & RightShadow:
+        if where & RIGHT_SHADOW:
             while yy - rect.y > 2 * shadowSize:
                 dc.DrawBitmap(self._right, xx, yy, True)
                 yy -= shadowSize
 
             dc.DrawBitmap(self._rightTop, xx, yy - shadowSize, True)
 
-        if where & BottomShadow:
+        if where & BOTTOM_SHADOW:
             xx = rect.x + rect.width - shadowSize
             yy = rect.height + rect.y
             while xx - rect.x > 2 * shadowSize:
@@ -1719,7 +1719,7 @@ class ArtManager(wx.EvtHandler):
 
             dc.DrawBitmap(self._bottomLeft, xx - shadowSize, yy, True)
 
-        if where & BottomShadowFull:
+        if where & BOTTOM_SHADOW_FULL:
             xx = rect.x + rect.width - shadowSize
             yy = rect.height + rect.y
             while xx - rect.x >= 0:

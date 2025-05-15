@@ -197,7 +197,7 @@ FS_RIGHT = 8
 """ Horizontally align the underlying :class:`TextCtrl` on the right. """
 
 # Define The FloatSpin Event
-wxEVT_FLOATSPIN = wx.NewEventType()
+wxEVT_FLOATSPIN = wx.NewEventType()  # noqa: N816
 
 # -----------------------------------#
 #        FloatSpinEvent

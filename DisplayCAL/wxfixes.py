@@ -224,7 +224,8 @@ if "gtk3" in wx.PlatformInfo:
     # GTK3 fixes
 
     class wx_Panel(wx.Panel):
-        # Fix panel background color not working under wxGTK3
+        """Fix panel background color not working under wxGTK3."""
+
         def __init__(self, *args, **kwargs):
             if not args and hasattr(wx, "PreFrame"):
                 pre = wx.PrePanel()
@@ -417,7 +418,12 @@ if "gtk3" in wx.PlatformInfo:
 
     wx.StaticText = StaticText
 else:
-    wx_Panel = wx.Panel
+
+    class wx_Panel(wx.Panel):
+        """Compatibility class."""
+
+        def __init__(self, *args, **kwargs):
+            wx.Panel.__init__(self, *args, **kwargs)
 
 
 wx.AnyButton._SetBitmapLabel = wx.AnyButton.SetBitmapLabel

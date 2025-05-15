@@ -210,6 +210,8 @@ import wx
 
 from DisplayCAL.lib.agw.artmanager import ArtManager, DCSaver
 from DisplayCAL.lib.agw.fmresources import (
+    BOTTOM_SHADOW,
+    BOTTOM_SHADOW_FULL,
     IMG_NONE,
     IMG_OVER_EW_BORDER,
     IMG_OVER_IMG,
@@ -223,11 +225,9 @@ from DisplayCAL.lib.agw.fmresources import (
     INB_TAB_AREA_BACKGROUND_COLOUR,
     INB_TABS_BORDER_COLOUR,
     INB_TEXT_COLOUR,
-    BottomShadow,
-    BottomShadowFull,
-    RightShadow,
-    pin_down_xpm,
-    pin_left_xpm,
+    PIN_DOWN_XPM,
+    PIN_LEFT_XPM,
+    RIGHT_SHADOW,
 )
 
 
@@ -285,10 +285,10 @@ class ImageBookStyle(IntFlag):
     """Show the selected tab text using a bold font."""
 
 
-wxEVT_IMAGENOTEBOOK_PAGE_CHANGED: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED
-wxEVT_IMAGENOTEBOOK_PAGE_CHANGING: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
-wxEVT_IMAGENOTEBOOK_PAGE_CLOSING: int = wx.NewEventType()
-wxEVT_IMAGENOTEBOOK_PAGE_CLOSED: int = wx.NewEventType()
+wxEVT_IMAGENOTEBOOK_PAGE_CHANGED: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED  # noqa: N816
+wxEVT_IMAGENOTEBOOK_PAGE_CHANGING: int = wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING  # noqa: N816
+wxEVT_IMAGENOTEBOOK_PAGE_CLOSING: int = wx.NewEventType()  # noqa: N816
+wxEVT_IMAGENOTEBOOK_PAGE_CLOSED: int = wx.NewEventType()  # noqa: N816
 
 # ------------------------------------------------------------------------------------ #
 #        ImageNotebookEvent
@@ -1050,7 +1050,7 @@ class ImageContainerBase(wx.Panel):
                 ``False`` if it is facing leftwards.
         """
         # Set the bitmap according to the button status
-        pinBmp = wx.Bitmap(pin_down_xpm) if downPin else wx.Bitmap(pin_left_xpm)
+        pinBmp = wx.Bitmap(PIN_DOWN_XPM) if downPin else wx.Bitmap(PIN_LEFT_XPM)
         xx: int = rect.x + 2
         if self._nPinButtonStatus in [INB_PIN_HOVER, INB_PIN_NONE]:
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -2462,9 +2462,9 @@ class LabelContainer(ImageContainerBase):
             return
 
         sstyle: int = (
-            BottomShadow
+            BOTTOM_SHADOW
             if self.HasAGWFlag(ImageBookStyle.INB_LEFT)
-            else BottomShadowFull | RightShadow
+            else BOTTOM_SHADOW_FULL | RIGHT_SHADOW
         )
         if (
             self.HasAGWFlag(ImageBookStyle.INB_WEB_HILITE)

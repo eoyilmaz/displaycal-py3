@@ -6,15 +6,15 @@ It defines various styles, states, and images used in the FlatMenu and related c
 import wx
 
 # Overall menu styles
-StyleDefault = 0
-StyleXP = 1
-Style2007 = 2
-StyleVista = 3
+STYLE_DEFAULT = 0
+STYLE_XP = 1
+STYLE_2007 = 2
+STYLE_VISTA = 3
 
 # Menu shadows
-RightShadow = 1  # Right side shadow
-BottomShadow = 2  # Not full bottom shadow
-BottomShadowFull = 4  # Full bottom shadow
+RIGHT_SHADOW = 1  # Right side shadow
+BOTTOM_SHADOW = 2  # Not full bottom shadow
+BOTTOM_SHADOW_FULL = 4  # Full bottom shadow
 
 # Button styles
 BU_EXT_XP_STYLE = 1
@@ -25,10 +25,10 @@ BU_EXT_RIGHT_ALIGN_STYLE = 16
 BU_EXT_RIGHT_TO_LEFT_STYLE = 32
 
 # Control state
-ControlPressed = 0
-ControlFocus = 1
-ControlDisabled = 2
-ControlNormal = 3
+CONTROL_PRESSED = 0
+CONTROL_FOCUS = 1
+CONTROL_DISABLED = 2
+CONTROL_NORMAL = 3
 
 # FlatMenu styles
 FM_OPT_IS_LCD = 1
@@ -44,15 +44,15 @@ FM_OPT_SHOW_TOOLBAR = 8
 """Set this option is you are planning to use the toolbar."""
 
 # Control status
-ControlStatusNoFocus = 0
-ControlStatusFocus = 1
-ControlStatusPressed = 2
+CONTROL_STATUS_NO_FOCUS = 0
+CONTROL_STATUS_FOCUS = 1
+CONTROL_STATUS_PRESSED = 2
 
 # HitTest constants
-NoWhere = 0
-MenuItem = 1
-ToolbarItem = 2
-DropDownArrowButton = 3
+NOWHERE = 0
+MENU_ITEM = 1
+TOOLBAR_ITEM = 2
+DROP_DOWN_ARROW_BUTTON = 3
 
 FTB_ITEM_TOOL = 0
 FTB_ITEM_SEPARATOR = 1
@@ -62,8 +62,8 @@ FTB_ITEM_RADIO = 3
 FTB_ITEM_RADIO_MENU = 4
 FTB_ITEM_CUSTOM = 5
 
-LargeIcons = 32
-SmallIcons = 16
+LARGE_ICONS = 32
+SMALL_ICONS = 16
 
 MENU_HT_NONE = 0
 MENU_HT_ITEM = 1
@@ -124,12 +124,12 @@ INB_PIN_HOVER = 200
 INB_PIN_PRESSED = 201
 
 # Windows Vista Colours
-rgbSelectOuter = wx.Colour(170, 200, 245)
-rgbSelectInner = wx.Colour(230, 250, 250)
-rgbSelectTop = wx.Colour(210, 240, 250)
-rgbSelectBottom = wx.Colour(185, 215, 250)
+RGB_SELECT_OUTER = wx.Colour(170, 200, 245)
+RGB_SELECT_INNER = wx.Colour(230, 250, 250)
+RGB_SELECT_TOP = wx.Colour(210, 240, 250)
+RGB_SELECT_BOTTOM = wx.Colour(185, 215, 250)
 
-check_mark_xpm = [
+CHECK_MARK_XPM = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -165,7 +165,7 @@ check_mark_xpm = [
     "mmmmmmmmmmmmmmmm",
 ]
 
-radio_item_xpm = [
+RADIO_ITEM_XPM = [
     "    16    16       16            1",
     "` c #000000",
     ". c #800000",
@@ -202,7 +202,7 @@ radio_item_xpm = [
 ]
 
 
-menu_right_arrow_xpm = [
+MENU_RIGHT_ARROW_XPM = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -234,7 +234,7 @@ menu_right_arrow_xpm = [
 # Shadow images
 # ----------------------------------
 
-shadow_right_xpm = [
+SHADOW_RIGHT_XPM = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -245,7 +245,7 @@ shadow_right_xpm = [
 ]
 
 # shadow_right.xpm 5x5
-shadow_right_alpha = [
+SHADOW_RIGHT_ALPHA = [
     168,
     145,
     115,
@@ -273,7 +273,7 @@ shadow_right_alpha = [
     46,
 ]
 
-shadow_right_top_xpm = [
+SHADOW_RIGHT_TOP_XPM = [
     "5 10 1 1",
     "  c Black",
     "     ",
@@ -288,7 +288,7 @@ shadow_right_top_xpm = [
     "     ",
 ]
 
-shadow_right_top_alpha = [
+SHADOW_RIGHT_TOP_ALPHA = [
     40,
     35,
     28,
@@ -342,7 +342,7 @@ shadow_right_top_alpha = [
 ]
 
 # shadow_bottom.xpm 5x5
-shadow_bottom_alpha = [
+SHADOW_BOTTOM_ALPHA = [
     184,
     184,
     184,
@@ -370,7 +370,7 @@ shadow_bottom_alpha = [
     76,
 ]
 
-shadow_bottom_left_xpm = [
+SHADOW_BOTTOM_LEFT_XPM = [
     "10 5 1 1",
     "  c Black",
     "          ",
@@ -380,7 +380,7 @@ shadow_bottom_left_xpm = [
     "          ",
 ]
 
-shadow_bottom_left_alpha = [
+SHADOW_BOTTOM_LEFT_ALPHA = [
     22,
     44,
     73,
@@ -433,7 +433,7 @@ shadow_bottom_left_alpha = [
     76,
 ]
 
-shadow_center_xpm = [
+SHADOW_CENTER_XPM = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -443,7 +443,7 @@ shadow_center_xpm = [
     "     ",
 ]
 
-shadow_center_alpha = [
+SHADOW_CENTER_ALPHA = [
     161,
     139,
     110,
@@ -471,7 +471,7 @@ shadow_center_alpha = [
     18,
 ]
 
-shadow_bottom_xpm = [
+SHADOW_BOTTOM_XPM = [
     "5 5 1 1",
     "  c Black",
     "     ",
@@ -481,7 +481,7 @@ shadow_bottom_xpm = [
     "     ",
 ]
 
-arrow_down_xpm = [
+ARROW_DOWN_XPM = [
     "16 16 3 1",
     ". c Black",
     "X c #FFFFFF",
@@ -507,7 +507,7 @@ arrow_down_xpm = [
 # ---------------------------------------------
 # Pin images
 # ---------------------------------------------
-pin_left_xpm = [
+PIN_LEFT_XPM = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -535,7 +535,7 @@ pin_left_xpm = [
     "````````````````",
 ]
 
-pin_down_xpm = [
+PIN_DOWN_XPM = [
     "    16    16        8            1",
     "` c #ffffff",
     ". c #000000",
@@ -564,7 +564,7 @@ pin_down_xpm = [
 ]
 
 
-arrow_up = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
+ARROW_UP = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\
 \x00\x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x80\x00\x00\x00\x12\x0b\x00\x00\x12\
 \x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\
 \x00w\xfcM\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
@@ -574,7 +574,7 @@ arrow_up = b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x0
 """"""""""""""""""""""""""""""""""""'
 
 
-arrow_down = (
+ARROW_DOWN = (
     b'BM\xf6\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00\
 \x10\x00\x00\x00\x01\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x12\x0b\x00\x00\x12\x0b\
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x80\x80\x00\x00w\
@@ -585,7 +585,7 @@ arrow_down = (
 """"""""""""""""""""""""""""""""""'
 )
 
-menu_up_arrow_xpm = [
+MENU_UP_ARROW_XPM = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -608,7 +608,7 @@ menu_up_arrow_xpm = [
 ]
 
 
-menu_down_arrow_xpm = [
+MENU_DOWN_ARROW_XPM = [
     "16 16 2 1",
     ". c Black",
     "  c White",
@@ -637,7 +637,7 @@ def getMenuUpArrowBitmap() -> wx.Bitmap:
     Returns:
         wx.Bitmap: A wx.Bitmap object.
     """
-    bmp = wx.Bitmap(menu_up_arrow_xpm)
+    bmp = wx.Bitmap(MENU_UP_ARROW_XPM)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp
 
@@ -648,6 +648,6 @@ def getMenuDownArrowBitmap() -> wx.Bitmap:
     Returns:
         wx.Bitmap: A wx.Bitmap object.
     """
-    bmp = wx.Bitmap(menu_down_arrow_xpm)
+    bmp = wx.Bitmap(MENU_DOWN_ARROW_XPM)
     bmp.SetMask(wx.Mask(bmp, wx.WHITE))
     return bmp

@@ -384,16 +384,16 @@ class CustomEvent(wx.PyEvent):
         return self.Window
 
 
-_global_timer_lock = threading.Lock()
+_GLOBAL_TIMER_LOCK = threading.Lock()
 
 
-wxEVT_BETTERTIMER = wx.NewEventType()
-EVT_BETTERTIMER = wx.PyEventBinder(wxEVT_BETTERTIMER, 1)
+wxEVT_BETTER_TIMER = wx.NewEventType()  # noqa: N816
+EVT_BETTER_TIMER = wx.PyEventBinder(wxEVT_BETTER_TIMER, 1)
 
 
 class BetterTimerEvent(wx.PyCommandEvent):
     def __init__(self, id=wx.ID_ANY, ms=0):
-        wx.PyCommandEvent.__init__(self, wxEVT_BETTERTIMER, id)
+        wx.PyCommandEvent.__init__(self, wxEVT_BETTER_TIMER, id)
         self._ms = ms
 
     def GetInterval(self):
@@ -417,11 +417,11 @@ class BetterTimer(wx.Timer):
         self._owner = owner
 
     def Notify(self):
-        if self._owner and _global_timer_lock.acquire(False):
+        if self._owner and _GLOBAL_TIMER_LOCK.acquire(False):
             try:
                 wx.PostEvent(self._owner, BetterTimerEvent(self.Id, self.Interval))
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
 
 class BetterCallLater(wx.CallLater):
@@ -429,11 +429,11 @@ class BetterCallLater(wx.CallLater):
         wx.CallLater.__init__(self, millis, callableObj, *args, **kwargs)
 
     def Notify(self):
-        if _global_timer_lock.acquire(True):
+        if _GLOBAL_TIMER_LOCK.acquire(True):
             try:
                 wx.CallLater.Notify(self)
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
 
 class ThreadedTimer:
@@ -451,11 +451,11 @@ class ThreadedTimer:
         self._thread = None
 
     def _notify(self):
-        if _global_timer_lock.acquire(self._oneshot):
+        if _GLOBAL_TIMER_LOCK.acquire(self._oneshot):
             try:
                 self.Notify()
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
     def _timer(self):
         self._keep_running = True

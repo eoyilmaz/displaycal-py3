@@ -107,7 +107,7 @@ class GamutCanvas(LUTCanvas):
         polys = []
 
         # L*a*b*
-        optimalcolors = colormath.optimalcolors_Lab
+        optimalcolors = colormath.OPTIMAL_COLORS_LAB
 
         # CIE 1931 2-deg chromaticity coordinates
         # http://www.cvrl.org/offercsvccs.php

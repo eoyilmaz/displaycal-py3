@@ -701,7 +701,7 @@ class UnloadableWinDLL:
         self._windll = None
         self.load()
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401
         """Get an attribute from the loaded DLL.
 
         Args:

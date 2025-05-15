@@ -25,7 +25,7 @@ def _mp_call(
     monkeypatch: MonkeyPatch,
     mock_class: type[Any] | ModuleType,
     method: str,
-    return_value: Any,
+    return_value: Any,  # noqa: ANN401
     as_property: bool,
 ) -> CallList: ...
 
@@ -35,7 +35,7 @@ def _mp_call(
 def _mp_call(
     monkeypatch: MonkeyPatch,
     mock_class: str,
-    method: Any,  # return value in this case
+    method: Any,  # return value in this case  # noqa: ANN401
     return_value: bool,  # as_property in this case
 ) -> CallList: ...
 
@@ -54,7 +54,7 @@ def _mp_call(
     """
     calls: CallList = []
 
-    def func_call(*a: Any, **k: Any) -> Any:
+    def func_call(*a: Any, **k: Any) -> Any:  # noqa: ANN401
         """Mock the function call."""
         calls.append((a, k))
         if isinstance(return_value, Exception):
@@ -83,7 +83,7 @@ def _mp_call(
 def check_call(  # pylint: disable=too-many-arguments
     mock_class: type[Any] | ModuleType,
     method: str,
-    return_value: Any = None,
+    return_value: Any = None,  # noqa: ANN401
     call_args_list: list[tuple[Any, ...]] | None = None,
     call_kwargs_list: list[dict[str, Any]] | None = None,
     call_count: int = 1,
@@ -119,7 +119,7 @@ def check_call(  # pylint: disable=too-many-arguments
 @contextlib.contextmanager
 def check_call_str(  # pylint: disable=too-many-arguments
     mock_class: str,
-    return_value: Any = None,
+    return_value: Any = None,  # noqa: ANN401
     call_args_list: list[tuple[Any, ...]] | None = None,
     call_kwargs_list: list[dict[str, Any]] | None = None,
     call_count: int = 1,

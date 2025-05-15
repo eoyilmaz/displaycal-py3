@@ -1243,7 +1243,7 @@ class FileLock:
         self._call(fn, args, UnlockingError)
 
     @staticmethod
-    def _call(fn: Callable, args: Any, exception_cls: type) -> None:
+    def _call(fn: Callable, args: tuple[Any], exception_cls: type) -> None:
         """Call the function with the given arguments.
 
         Args:

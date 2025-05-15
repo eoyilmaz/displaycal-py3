@@ -1,6 +1,5 @@
 import contextlib
 import os
-import platform
 import re
 import shutil
 import sys
@@ -941,10 +940,8 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
     # Disabled
     if disabled:
         disabled_bitmap = get_bitmap_disabled(bitmap)
-        try:
+        with contextlib.suppress(wx._core.wxAssertionError):
             btn.SetBitmapDisabled(disabled_bitmap)
-        except wx._core.wxAssertionError:
-            pass
 
     # Focus/Hover
     if sys.platform != "darwin" and focus is not False:
@@ -955,16 +952,12 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
         else:
             # Use focus bitmap
             bmp = get_bitmap_focus(bitmap)
-        try:
+        with contextlib.suppress(wx._core.wxAssertionError):
             btn.SetBitmapFocus(bmp)
-        except wx._core.wxAssertionError:
-            pass
         if hasattr(btn, "SetBitmapCurrent"):
             # Phoenix
-            try:
+            with contextlib.suppress(wx._core.wxAssertionError):
                 btn.SetBitmapCurrent(bmp)
-            except wx._core.wxAssertionError:
-               pass
         else:
             # Classic
             btn.SetBitmapHover(bmp)
@@ -977,10 +970,8 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
             bmp = get_bitmap_pressed(bitmap)
         if hasattr(btn, "SetBitmapPressed"):
             # Phoenix
-            try:
+            with contextlib.suppress(wx._core.wxAssertionError):
                 btn.SetBitmapPressed(bmp)
-            except wx._core.wxAssertionError:
-                pass
         else:
             # Classic
             btn.SetBitmapSelected(bmp)

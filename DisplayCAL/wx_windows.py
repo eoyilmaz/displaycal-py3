@@ -6977,7 +6977,6 @@ class TabButton(PlateButton):
         """Post a button event.
 
         :param evt: :class:`MouseEvent`
-
         """
         self._SetState(platebtn.PLATE_PRESSED)
         PlateButton.OnLeftUp(self, evt)
@@ -6987,7 +6986,6 @@ class TabButton(PlateButton):
         and this control has the focus.
 
         :param evt: wx.EVT_KEY_UP
-
         """
         if evt.GetKeyCode() == wx.WXK_SPACE:
             self._SetState(platebtn.PLATE_PRESSED)
@@ -7908,15 +7906,18 @@ def get_appid_from_window_hierarchy(toplevelwindow):
 
 
 def set_icons(toplevelwindow):
-    """Set icon to that of parent frame"""
+    """Set icon to that of parent frame."""
     appid = get_appid_from_window_hierarchy(toplevelwindow)
     toplevelwindow.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appid))
 
 
 def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
-    """Show dialog depending on type of result. Result should be an
-    exception type. An appropriate visual representation will be chosen
-    whether result is of exception type 'Info', 'Warning' or other error."""
+    """Show dialog depending on type of result.
+
+    Result should be an exception type. An appropriate visual representation
+    will be chosen whether result is of exception type 'Info', 'Warning'
+    or other error.
+    """
     if result.__class__ is Exception and result.args and result.args[0] == "aborted":
         # Special case - aborted
         msg = lang.getstr("aborted")

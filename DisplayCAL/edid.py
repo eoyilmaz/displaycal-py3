@@ -37,7 +37,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     import binascii
 
-from DisplayCAL import real_display_size_mm, config
+from DisplayCAL import config, real_display_size_mm
 from DisplayCAL.util_os import which
 from DisplayCAL.util_str import safe_str
 

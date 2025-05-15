@@ -1459,9 +1459,7 @@ class FixedPoint:
 
             f, e = math.frexp(abs(value))
             if f != 0 and not (0.5 <= f < 1.0):
-                raise OverflowError(
-                    f"FixedPoint can't represent {value!r} exactly."
-                )
+                raise OverflowError(f"FixedPoint can't represent {value!r} exactly.")
             # |value| = f * 2**e exactly
 
             # Suck up CHUNK bits at a time; 28 is enough so that we suck

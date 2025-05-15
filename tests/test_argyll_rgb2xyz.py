@@ -1,6 +1,6 @@
 import pytest
 
-from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ, XYZ2RGB
+from DisplayCAL.argyll_rgb2xyz import RGB2XYZ, XYZ2RGB
 
 
 @pytest.mark.parametrize("colorspace", ("RGB", "XYZ"))

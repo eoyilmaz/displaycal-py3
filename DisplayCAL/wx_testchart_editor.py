@@ -19,8 +19,8 @@ from DisplayCAL import (
 )
 from DisplayCAL import localization as lang
 from DisplayCAL.argyll_cgats import ti3_to_ti1, verify_cgats
-from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ as ARGYLL_RGB2XYZ
-from DisplayCAL.argyll_RGB2XYZ import XYZ2RGB as ARGYLL_XYZ2RGB
+from DisplayCAL.argyll_rgb2xyz import RGB2XYZ as ARGYLL_RGB2XYZ
+from DisplayCAL.argyll_rgb2xyz import XYZ2RGB as ARGYLL_XYZ2RGB
 from DisplayCAL.cgats import (
     CGATS,
     CGATSError,

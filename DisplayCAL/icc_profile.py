@@ -2391,7 +2391,9 @@ def get_display_profile_linux(
                     print("Using XrandR")
                 for i, atom_id in enumerate(
                     [
-                        real_display_size_mm.get_x_icc_profile_output_atom_id(display_no),
+                        real_display_size_mm.get_x_icc_profile_output_atom_id(
+                            display_no
+                        ),
                         real_display_size_mm.get_x_icc_profile_atom_id(display_no),
                     ]
                 ):

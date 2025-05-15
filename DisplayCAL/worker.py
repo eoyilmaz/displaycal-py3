@@ -14665,7 +14665,7 @@ usage: spotread [-options] [logfile]
 
     def calculate_gamut(
         self,
-        profile_path,
+        profile_paths,
         intent="r",
         direction="f",
         order="n",
@@ -14676,10 +14676,8 @@ usage: spotread [-options] [logfile]
         Return gamut volume (int, scaled to sRGB = 1.0) and
         coverage (dict) as tuple.
         """
-        if isinstance(profile_path, list):
-            profile_paths = profile_path
-        else:
-            profile_paths = [profile_path]
+        if not isinstance(profile_paths, list):
+            profile_paths = [profile_paths]
         outname = os.path.splitext(profile_paths[0])[0]
         mods = []
         if intent != "r":

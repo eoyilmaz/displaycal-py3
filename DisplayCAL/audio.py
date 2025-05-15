@@ -67,9 +67,9 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
             libs = ("SDL", "pyglet", "pyo", "wx")
 
         audio_lib = None
-        for lib in libs:
+        for lib_ in libs:
             try:
-                audio_lib = init(lib, samplerate, channels, buffersize, reinit)
+                audio_lib = init(lib_, samplerate, channels, buffersize, reinit)
                 break
             except Exception:
                 pass

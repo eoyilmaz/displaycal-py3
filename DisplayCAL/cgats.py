@@ -290,29 +290,29 @@ class CGATS(dict):
         elif isinstance(cgats, str):
             if "\n" not in cgats or "\r" not in cgats:
                 # assume filename
-                with open(cgats, "rb") as cgats:
-                    self.filename = cgats.name
-                    cgats.seek(0)
-                    raw_lines = cgats.readlines()
+                with open(cgats, "rb") as cgats_:
+                    self.filename = cgats_.name
+                    cgats_.seek(0)
+                    raw_lines = cgats_.readlines()
             else:
                 # assume text
-                with io.StringIO(cgats) as cgats:
-                    cgats.seek(0)
-                    raw_lines = cgats.readlines()
+                with io.StringIO(cgats) as cgats_:
+                    cgats_.seek(0)
+                    raw_lines = cgats_.readlines()
         elif isinstance(cgats, bytes):
             # assume text
-            with io.BytesIO(cgats) as cgats:
-                cgats.seek(0)
-                raw_lines = cgats.readlines()
+            with io.BytesIO(cgats) as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
         elif isinstance(cgats, ICCProfileTag):
-            with io.BytesIO(cgats.tagData) as cgats:
-                cgats.seek(0)
-                raw_lines = cgats.readlines()
+            with io.BytesIO(cgats.tagData) as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
         elif isinstance(cgats, Path):
             self.filename = cgats.absolute()
-            with open(cgats, "rb") as cgats:
-                cgats.seek(0)
-                raw_lines = cgats.readlines()
+            with open(cgats, "rb") as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
         elif isinstance(cgats, io.IOBase):
             if hasattr(cgats, "readlines"):
                 cgats.seek(0)

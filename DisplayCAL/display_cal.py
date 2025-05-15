@@ -11502,23 +11502,23 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         elif result:
             # Check all profile install methods
             argyll_install, colord_install, oy_install, loader_install = result
-            allgood = (
+            all_good = (
                 argyll_install in (None, True)
                 and colord_install in (None, True)
                 and oy_install in (None, True)
                 and loader_install in (None, True)
             )
-            somegood = (
+            some_good = (
                 argyll_install is True
                 or colord_install is True
                 or oy_install is True
                 or loader_install is True
             )
             linux = sys.platform not in ("darwin", "win32")
-            if allgood:
+            if all_good:
                 msg = lang.getstr("profile.install.success")
                 icon = "dialog-information"
-            elif somegood and linux:
+            elif some_good and linux:
                 msg = lang.getstr("profile.install.warning")
                 icon = "dialog-warning"
             else:
@@ -11531,32 +11531,32 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 bitmap=geticon(32, icon),
                 show=False,
             )
-            if not allgood and linux:
+            if not all_good and linux:
                 sizer = wx.FlexGridSizer(0, 2, 8, 8)
                 dlg.sizer3.Add(sizer, 1, flag=wx.TOP, border=12)
-                for name, result in (
+                for name, result_ in (
                     ("ArgyllCMS", argyll_install),
                     ("colord", colord_install),
                     ("Oyranos", oy_install),
                     (lang.getstr("profile_loader"), loader_install),
                 ):
-                    if result is not None:
-                        if result is True:
+                    if result_ is not None:
+                        if result_ is True:
                             icon = "checkmark"
-                            result = lang.getstr("ok")
-                        elif isinstance(result, Warning):
+                            result_ = lang.getstr("ok")
+                        elif isinstance(result_, Warning):
                             icon = "dialog-warning"
                         else:
                             icon = "x"
-                            if not result:
-                                result = lang.getstr("failure")
-                        result = wrap(str(result))
+                            if not result_:
+                                result_ = lang.getstr("failure")
+                        result_ = wrap(str(result_))
                         sizer.Add(
                             wx.StaticBitmap(dlg, -1, geticon(16, icon)),
                             flag=wx.TOP,
                             border=2,
                         )
-                        sizer.Add(wx.StaticText(dlg, -1, ": ".join([name, result])))
+                        sizer.Add(wx.StaticText(dlg, -1, ": ".join([name, result_])))
                 dlg.sizer0.SetSizeHints(dlg)
                 dlg.sizer0.Layout()
             dlg.ok.SetDefault()
@@ -14700,37 +14700,36 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if isinstance(temp, Exception):
             return temp
         if ext.lower() == ".7z":
-            sevenzip = get_program_file("7z", "7-zip")
-            if sevenzip:
-                # Extract from 7z archive (flat hierarchy, not using dirnames)
-                result = self.worker.exec_cmd(
-                    sevenzip,
-                    ["e", "-y", path],
-                    capture_output=True,
-                    log_output=False,
-                    skip_scripts=True,
-                    working_dir=temp,
-                )
-                if not result or isinstance(result, Exception):
-                    return result
-                # Check if a session archive
-                is_session_archive = False
-                for ext in (".icc", ".icm", ".cal"):
-                    if os.path.isfile(os.path.join(temp, basename + ext)):
-                        is_session_archive = True
-                        break
-                if not is_session_archive:
-                    # Doesn't seem to be a session archive
-                    return Error(
-                        lang.getstr(
-                            "error.not_a_session_archive", os.path.basename(path)
-                        )
+            if not (sevenzip := get_program_file("7z", "7-zip")):
+                return Error(lang.getstr("file.missing", f"7z{exe_ext}"))
+            # Extract from 7z archive (flat hierarchy, not using dirnames)
+            result = self.worker.exec_cmd(
+                sevenzip,
+                ["e", "-y", path],
+                capture_output=True,
+                log_output=False,
+                skip_scripts=True,
+                working_dir=temp,
+            )
+            if not result or isinstance(result, Exception):
+                return result
+            # Check if a session archive
+            is_session_archive = False
+            for ext_ in (".icc", ".icm", ".cal"):
+                if os.path.isfile(os.path.join(temp, f"{basename}{ext_}")):
+                    is_session_archive = True
+                    break
+            if not is_session_archive:
+                # Doesn't seem to be a session archive
+                return Error(
+                    lang.getstr(
+                        "error.not_a_session_archive", os.path.basename(path)
                     )
-                if os.path.isdir(os.path.join(temp, basename)):
-                    # Remove empty directory
-                    shutil.rmtree(os.path.join(temp, basename))
-            else:
-                return Error(lang.getstr("file.missing", "7z" + exe_ext))
+                )
+            if os.path.isdir(os.path.join(temp, basename)):
+                # Remove empty directory
+                shutil.rmtree(os.path.join(temp, basename))
+            
         else:
             if path.lower().endswith(".tgz") or path.lower().endswith(".tar.gz"):
                 # Gzipped TAR archive
@@ -14746,8 +14745,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 with archive:
                     # Check if a session archive
                     info = None
-                    for ext in (".icc", ".icm", ".cal"):
-                        for name in (basename + "/" + basename + ext, basename + ext):
+                    for ext_ in (".icc", ".icm", ".cal"):
+                        for name in (f"{basename}/{basename}{ext_}", f"{basename}{ext_}"):
                             if isinstance(archive, zipfile.ZipFile):
                                 # If the ZIP file was created with Unicode
                                 # names stored in the file, 'name' will already
@@ -15881,11 +15880,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         elif path:
             selectedpaths = [path]
         collected_ti3s = []
-        for path in selectedpaths:
-            if not os.path.exists(path):
+        for path_ in selectedpaths:
+            if not os.path.exists(path_):
                 InfoDialog(
                     self,
-                    msg=lang.getstr("file.missing", path),
+                    msg=lang.getstr("file.missing", path_),
                     ok=lang.getstr("ok"),
                     bitmap=geticon(32, "dialog-error"),
                 )
@@ -15893,14 +15892,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             tags = {}
             ti3_lines = []
             # Get filename and extension of source file
-            source_filename, source_ext = os.path.splitext(path)
+            source_filename, source_ext = os.path.splitext(path_)
             if source_ext.lower() != ".ti3":
                 try:
-                    profile = ICCProfile(path)
+                    profile = ICCProfile(path_)
                 except (OSError, ICCProfileInvalidError):
                     InfoDialog(
                         self,
-                        msg=lang.getstr("profile.invalid") + "\n" + path,
+                        msg=f"{lang.getstr('profile.invalid')}\n{path_}",
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )
@@ -15910,7 +15909,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ] != "CTI3":
                     InfoDialog(
                         self,
-                        msg=lang.getstr("profile.no_embedded_ti3") + "\n" + path,
+                        msg=f"{lang.getstr('profile.no_embedded_ti3')}\n{path_}",
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )
@@ -15925,12 +15924,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         tags[tagname] = profile.tags[tagname]
             else:
                 try:
-                    with open(path, "rb") as ti3:
+                    with open(path_, "rb") as ti3:
                         ti3_lines = [line.strip() for line in ti3]
                 except Exception:
                     InfoDialog(
                         self,
-                        msg=lang.getstr("error.file.open", path),
+                        msg=lang.getstr("error.file.open", path_),
                         ok=lang.getstr("ok"),
                         bitmap=geticon(32, "dialog-error"),
                     )
@@ -15947,7 +15946,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 dlg.Destroy()
                 if result != wx.ID_OK:
                     return
-            collected_ti3s.append((path, ti3_lines))
+            collected_ti3s.append((path_, ti3_lines))
         if collected_ti3s:
             if len(collected_ti3s) > 1:
                 source_filename = os.path.splitext(defaults["last_ti3_path"])[0]

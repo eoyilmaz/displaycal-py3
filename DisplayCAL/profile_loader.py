@@ -52,8 +52,8 @@ from DisplayCAL.meta import (
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    VERSION_STRING,
     VERSION_SHORT,
+    VERSION_STRING,
 )
 from DisplayCAL.meta import (
     NAME as appname,

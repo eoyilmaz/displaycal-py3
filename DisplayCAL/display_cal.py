@@ -155,14 +155,14 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.log import logbuffer
 from DisplayCAL.meta import (
+    AUTHOR,
+    DEVELOPMENT_HOME_PAGE,
     DOMAIN,
     VERSION,
     VERSION_BASE,
-    AUTHOR,
-    DEVELOPMENT_HOME_PAGE,
-    get_latest_changelog_entry,
-    VERSION_STRING,
     VERSION_SHORT,
+    VERSION_STRING,
+    get_latest_changelog_entry,
 )
 from DisplayCAL.meta import (
     NAME as appname,

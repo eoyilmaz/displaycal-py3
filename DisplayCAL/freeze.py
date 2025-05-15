@@ -53,20 +53,20 @@ sys.path.append(source_dir)
 
 
 from DisplayCAL.meta import (
-    DOMAIN,
     APPSTREAM_ID,
     AUTHOR,
     AUTHOR_ASCII,
     AUTHOR_EMAIL,
     DESCRIPTION,
     DEVELOPMENT_HOME_PAGE,
+    DOMAIN,
     LONG_DESCRIPTION,
     NAME,
     PY_MAXVERSION,
     PY_MINVERSION,
-    script2pywname,
     VERSION_STRING,
     VERSION_TUPLE,
+    script2pywname,
 )
 from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str

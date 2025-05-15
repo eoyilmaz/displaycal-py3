@@ -88,6 +88,6 @@ def script2pywname(script : str) -> str:
         f"{NAME}-eecolor-to-madvr-converter": f"{NAME}-eeColor-to-madVR-converter",
     }
     if script.lower().startswith(NAME.lower()):
-        pyw = "{}{}".format(NAME, script[len(NAME) :])
+        pyw = f"{NAME}{script[len(NAME) :]}"
         return a2b.get(pyw, pyw)
     return script

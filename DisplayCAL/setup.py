@@ -66,21 +66,21 @@ distutils.filelist.findall = findall  # Fix findall bug in distutils
 
 from DisplayCAL.defaultpaths import autostart, autostart_home
 from DisplayCAL.meta import (
-    DOMAIN,
     APPSTREAM_ID,
     AUTHOR,
     AUTHOR_ASCII,
     AUTHOR_EMAIL,
     DESCRIPTION,
     DEVELOPMENT_HOME_PAGE,
+    DOMAIN,
     LONG_DESCRIPTION,
     NAME,
     PY_MAXVERSION,
     PY_MINVERSION,
-    script2pywname,
     VERSION_STRING,
     VERSION_TUPLE,
     WX_MINVERSION,
+    script2pywname,
 )
 from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str

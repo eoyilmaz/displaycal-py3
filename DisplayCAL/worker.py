@@ -6418,7 +6418,7 @@ BEGIN_DATA
                 # Write out .wait file
                 with open(waitfilename, "w") as waitfile:
                     waitfile.write(f"#!/usr/bin/env python3\n{pythonscript}")
-                os.chmod(waitfilename, 0o755)
+                os.chmod(waitfilename, 0o755)  # noqa: S103
                 args[index] += "{} ./{}".format(
                     strtr(safe_str(python), {'"': r"\"", "$": r"\$"}),
                     os.path.basename(waitfilename),
@@ -6539,10 +6539,10 @@ BEGIN_DATA
         ):
             try:
                 cmdfilename = os.path.join(
-                    working_dir, working_basename + "." + cmdname + script_ext
+                    working_dir, f"{working_basename}.{cmdname}{script_ext}"
                 )
                 allfilename = os.path.join(
-                    working_dir, working_basename + ".all" + script_ext
+                    working_dir, f"{working_basename}.all{script_ext}"
                 )
                 first = not os.path.exists(allfilename)
                 last = cmdname == get_argyll_utilname("dispwin")
@@ -6582,8 +6582,8 @@ BEGIN_DATA
                         and sys.platform != "darwin"
                     ):
                         cmdfiles.write('echo -e "\\033[40;2;37m" && clear\n')
-                    os.chmod(cmdfilename, 0o755)
-                    os.chmod(allfilename, 0o755)
+                    os.chmod(cmdfilename, 0o755)  # noqa: S103
+                    os.chmod(allfilename, 0o755)  # noqa: S103
                 cmdfiles.write(
                     " ".join(quote_args(cmdline))
                     .replace(cmd, cmdname)
@@ -6643,7 +6643,7 @@ BEGIN_DATA
                         )
                         # Part 1: "cmdfile"
                         appfilename = os.path.join(
-                            working_dir, working_basename + "." + cmdname + ".app"
+                            working_dir, f"{working_basename}.{cmdname}.app"
                         )
                         cmdargs = ["osacompile"] + script + [appfilename.decode()]
                         p = sp.Popen(
@@ -6652,10 +6652,10 @@ BEGIN_DATA
                         p.communicate()
                         shutil.move(
                             cmdfilename,
-                            appfilename + "/Contents/Resources/main.command",
+                            f"{appfilename}/Contents/Resources/main.command",
                         )
                         os.chmod(
-                            appfilename + "/Contents/Resources/main.command", 0o755
+                            f"{appfilename}/Contents/Resources/main.command", 0o755  # noqa: S103
                         )
                         # Part 2: "allfile"
                         appfilename = os.path.join(
@@ -6668,10 +6668,10 @@ BEGIN_DATA
                         p.communicate()
                         shutil.copyfile(
                             allfilename,
-                            appfilename + "/Contents/Resources/main.command",
+                            f"{appfilename}/Contents/Resources/main.command",
                         )
                         os.chmod(
-                            appfilename + "/Contents/Resources/main.command", 0o755
+                            f"{appfilename}/Contents/Resources/main.command", 0o755  # noqa: S103
                         )
                         if last:
                             os.remove(allfilename)

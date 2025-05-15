@@ -136,7 +136,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
             print(exception)
         else:
             print("Faulthandler", getattr(faulthandler, "__version__", ""))
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     if "phoenix" in wx.PlatformInfo:
         # py2exe helper so wx.xml gets picked up
@@ -462,7 +462,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
             lock.write(port)
         lock.flush()
         atexit.register(lambda: print("Ran application exit handlers"))
-        from DisplayCAL.wxwindows import BaseApp
+        from DisplayCAL.wx_windows import BaseApp
 
         BaseApp.register_exitfunc(_exit, app_lock_file_name, port)
         # Check for required resource files
@@ -512,19 +512,19 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                 )
     # Initialize & run
     if module == "3DLUT-maker":
-        from DisplayCAL.wxLUT3DFrame import main
+        from DisplayCAL.wx_lut_3d_frame import main
     elif module == "curve-viewer":
-        from DisplayCAL.wxLUTViewer import main
+        from DisplayCAL.wx_lut_viewer import main
     elif module == "profile-info":
-        from DisplayCAL.wxProfileInfo import main
+        from DisplayCAL.wx_profile_info import main
     elif module == "scripting-client":
-        from DisplayCAL.wxScriptingClient import main
+        from DisplayCAL.wx_scripting_client import main
     elif module == "synthprofile":
-        from DisplayCAL.wxSynthICCFrame import main
+        from DisplayCAL.wx_synth_icc_frame import main
     elif module == "testchart-editor":
-        from DisplayCAL.wxTestchartEditor import main
+        from DisplayCAL.wx_testchart_editor import main
     elif module == "VRML-to-X3D-converter":
-        from DisplayCAL.wxVRML2X3D import main
+        from DisplayCAL.wx_vrml_2_x3d import main
     elif module == "apply-profiles":
         from DisplayCAL.profile_loader import main
     else:

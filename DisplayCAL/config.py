@@ -1379,7 +1379,7 @@ DEFAULTS = {
     ),
     "profile.license": "Public Domain",
     "profile.load_on_login": 1,
-    "profile.name": "_".join(
+    "profile.name": "_".join(  # noqa: FLY002
         [
             "%dns",
             "%out",
@@ -1405,13 +1405,13 @@ DEFAULTS = {
     # profiles and matrix profiles with individual shaper curves
     "profile.type": "X" if sys.platform != "darwin" else "S",
     "profile.update": 0,
-    "profile_loader.buggy_video_drivers": ";".join(["*"]),
+    "profile_loader.buggy_video_drivers": "*",
     "profile_loader.check_gamma_ramps": 1,
     "profile_loader.error.show_msg": 1,
     "profile_loader.exceptions": "",
     "profile_loader.fix_profile_associations": 1,
     "profile_loader.ignore_unchanged_gamma_ramps": 1,
-    "profile_loader.known_apps": ";".join(
+    "profile_loader.known_apps": ";".join(  # noqa: FLY002
         [
             "basiccolor display.exe",
             "calclient.exe",
@@ -1444,7 +1444,7 @@ DEFAULTS = {
             "dccw.exe",
         ]
     ),
-    "profile_loader.known_window_classes": ";".join(["CalClient.exe"]),
+    "profile_loader.known_window_classes": "CalClient.exe",
     "profile_loader.quantize_bits": 16,
     "profile_loader.reset_gamma_ramps": 0,
     "profile_loader.show_notifications": 0,

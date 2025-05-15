@@ -23,8 +23,8 @@ if not VERSION or TEST_UPDATE:
     VERSION = VERSION_BASE = (0, 0, 0)
     VERSION_STRING = ".".join(str(n) for n in VERSION)
 
-AUTHOR = ", ".join(["Florian Höch", "Erkan Özgür Yılmaz", "Patrick Zwerschke"])  # noqa: RUF001
-AUTHOR_ASCII = ", ".join(["Florian Hoech", "Erkan Ozgur Yilmaz", "Patrick Zwerschke"])
+AUTHOR = "Florian Höch, Erkan Özgür Yılmaz, Patrick Zwerschke"  # noqa: RUF001
+AUTHOR_ASCII = "Florian Hoech, Erkan Ozgur Yilmaz, Patrick Zwerschke"
 DESCRIPTION = (
     "Display calibration and profiling with a focus on accuracy and versatility"
 )

@@ -1849,7 +1849,7 @@ class LUTFrame(BaseFrame):
                         f"≈ {transfer_function[0][0]} "
                         f"(Δ {1 - transfer_function[1]:.2%})"
                     )
-                legend.append(" ".join([label, value]))
+                legend.append(f"{label} {value}")
 
     def DrawLUT(self, event=None):
         self.SetStatusText("")

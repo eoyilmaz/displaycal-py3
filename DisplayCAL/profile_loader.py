@@ -2050,7 +2050,7 @@ class ProfileLoader:
                             errstr = lang.getstr("calibration.load_error")
                         else:
                             errstr = lang.getstr("profile.load_error")
-                        errors.append(": ".join([display, errstr]))
+                        errors.append(f"{display}: {errstr}")
                         continue
                     results.append(display)
                 if (
@@ -2960,7 +2960,7 @@ class ProfileLoader:
                 ):
                     if isinstance(result, Exception) or not result:
                         errstr = lang.getstr("calibration.load_error")
-                        errors.append(": ".join([display_desc, errstr]))
+                        errors.append(f"{display_desc}: {errstr}")
                     else:
                         text = display_desc + ": "
                         if self._reset_gamma_ramps:

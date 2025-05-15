@@ -1342,9 +1342,9 @@ def get_default_headers():
         )
     else:
         # Linux
-        oscpu = "{}; {}".format(
-            " ".join([distro.id(), distro.version(), distro.codename()]),
-            platform.machine(),
+        oscpu = (
+            f"{distro.id()} {distro.version()} {distro.codename()}; "
+            f"{platform.machine()}"
         )
     return {
         "User-Agent": f"{APPNAME}/{VERSION_STRING} ({oscpu})",
@@ -1845,7 +1845,7 @@ class Sudo:
                 errstr = p.before.strip()
                 if errstr:
                     print(errstr)
-                    msg = "\n\n".join([errstr, msg])
+                    msg = f"{errstr}\n\n{msg}"
                 dlg.message.SetLabel(msg)
                 dlg.message.Wrap(dlg.GetSize()[0] - 32 - 12 * 2)
                 dlg.pwd_txt_ctrl.SetValue("")
@@ -9339,7 +9339,7 @@ usage: spotread [-options] [logfile]
                 backupdir = "".join([backupbase, os.path.dirname(filename)])
                 if not os.path.isdir(backupdir):
                     os.makedirs(backupdir)
-                cmd, args = "mv", [filename, "".join([backupbase, filename])]
+                cmd, args = "mv", [filename, f"{backupbase}{filename}"]
             else:
                 cmd, args = "cp", ["--remove-destination", filename]
                 args.append(os.path.join(dst, os.path.basename(filename)))
@@ -13862,7 +13862,7 @@ usage: spotread [-options] [logfile]
                 max(min(percentage, 100), 0), msg + "\n" + lastmsg
             )
         elif re.match(r"\d+(?:\.\d+)? (?:[KM]iB)", lastmsg, re.I):
-            keepGoing, skip = self.progress_wnd.Pulse("\n".join([msg, lastmsg]))
+            keepGoing, skip = self.progress_wnd.Pulse(f"{msg}\n{lastmsg}")
         elif getattr(self.progress_wnd, "lastmsg", "") == msg or not msg:
             keepGoing, skip = self.progress_wnd.Pulse()
         else:

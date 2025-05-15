@@ -127,7 +127,7 @@ class DisplaySide:
     Used for fine-tuning the axis, ticks, and values of a graph.
 
     This class somewhat mimics a collections.namedtuple factory function in
-    that it is an iterable and can have indiviual elements accessible by name.
+    that it is an iterable and can have individual elements accessible by name.
     It differs from a namedtuple in a few ways:
 
     - it's mutable
@@ -348,8 +348,8 @@ def scale_and_shift_point(x, y, scale=1, shift=0):
     The shift value must be in the scaled units.
 
     :param float `x`:        The x value of the unscaled, unshifted point
-    :param float `y`:        The y valye of the unscaled, unshifted point
-    :param np.array `scale`: The scale factor to use ``[x_sacle, y_scale]``
+    :param float `y`:        The y value of the unscaled, unshifted point
+    :param np.array `scale`: The scale factor to use ``[x_scale, y_scale]``
     :param np.array `shift`: The offset to apply ``[x_shift, y_shift]``.
                              Must be in scaled units
 
@@ -2639,14 +2639,10 @@ class PlotPrintout(wx.Printout):
 
     def OnPrintPage(self, page):
         dc = self.GetDC()  # allows using floats for certain functions
-        # print "PPI Printer",self.GetPPIPrinter()
-        # print "PPI Screen", self.GetPPIScreen()
-        # print "DC GetSize", dc.GetSize()
-        # print "GetPageSizePixels", self.GetPageSizePixels()
         # Note PPIScreen does not give the correct number
         # Calulate everything for printer and then scale for preview
         PPIPrinter = self.GetPPIPrinter()  # printer dots/inch (w,h)
-        # PPIScreen= self.GetPPIScreen()          # screen dots/inch (w,h)
+        # PPIScreen = self.GetPPIScreen()          # screen dots/inch (w,h)
         dcSize = dc.GetSize()  # DC size
         if self.graph._antiAliasingEnabled and not isinstance(dc, wx.GCDC):
             try:

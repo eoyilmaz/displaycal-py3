@@ -11126,7 +11126,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     success_msg = lang.getstr("profiling.complete")
             if extra:
                 extra = ",".join(extra).replace(":,", ":").replace(",,", "\n")
-                success_msg = "\n\n".join([success_msg, extra]).strip()
+                success_msg = f"{success_msg}\n\n{extra}".strip()
             # Always load calibration curves
             self.load_cal(cal=profile_path, silent=True)
             # Check profile metadata
@@ -11561,7 +11561,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             flag=wx.TOP,
                             border=2,
                         )
-                        sizer.Add(wx.StaticText(dlg, -1, ": ".join([name, result_])))
+                        sizer.Add(wx.StaticText(dlg, -1, f"{name}: {result_}"))
                 dlg.sizer0.SetSizeHints(dlg)
                 dlg.sizer0.Layout()
             dlg.ok.SetDefault()
@@ -13284,7 +13284,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             and display
             and quirk_manufacturer.lower() not in display.lower()
         ):
-            manufacturer_display = " ".join([quirk_manufacturer, display])
+            manufacturer_display = f"{quirk_manufacturer} {display}"
         elif display:
             manufacturer_display = display
 
@@ -15777,7 +15777,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 result = Error(
                     lang.getstr(
                         "profile.required_tags_missing",
-                        " %s ".join(["A2B0", "A2B1"]) % lang.getstr("or"),
+                        f"A2B0 {lang.getstr('or')} A2B1",
                     )
                 )
             elif (

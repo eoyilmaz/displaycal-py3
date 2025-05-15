@@ -207,11 +207,11 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
     return edid
 
 
-def get_edid_windows_registry(id, device):
+def get_edid_windows_registry(id_, device):
     """Get EDID using the Windows registry for Win2k/XP/2003.
 
     Args:
-        id (str): The device ID.
+        id_ (str): The device ID.
         device (str): The device identifier.
 
     Returns:
@@ -226,7 +226,7 @@ def get_edid_windows_registry(id, device):
     # But do we care?
     # Probably not, as older Windows' API isn't likely gonna change.
     driver = "\\".join(device.DeviceID.split("\\")[-2:])
-    subkey = "\\".join(["SYSTEM", "CurrentControlSet", "Enum", "DISPLAY", id])
+    subkey = f"SYSTEM\\CurrentControlSet\\Enum\\DISPLAY\\{id_}"
 
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
@@ -234,7 +234,7 @@ def get_edid_windows_registry(id, device):
         # Registry error
         print(
             "Windows registry error: Key",
-            "\\".join(["HKEY_LOCAL_MACHINE", subkey]),
+            f"HKEY_LOCAL_MACHINE\\{subkey}",
             "does not exist.",
         )
         return None
@@ -243,7 +243,7 @@ def get_edid_windows_registry(id, device):
 
     for i in range(numsubkeys):
         hkname = winreg.EnumKey(key, i)
-        hk = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, "\\".join([subkey, hkname]))
+        hk = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, f"{subkey}\\{hkname}")
 
         try:
             test = winreg.QueryValueEx(hk, "Driver")[0]
@@ -258,13 +258,13 @@ def get_edid_windows_registry(id, device):
         try:
             devparms = winreg.OpenKey(
                 winreg.HKEY_LOCAL_MACHINE,
-                "\\".join([subkey, hkname, "Device Parameters"]),
+                f"{subkey}\\{hkname}\\Device Parameters",
             )
         except OSError:
             # No Device Parameters (registry error?)
             print(
                 "Windows registry error: Key",
-                "\\".join(["HKEY_LOCAL_MACHINE", subkey, hkname, "Device Parameters"]),
+                f"HKEY_LOCAL_MACHINE\\{subkey}\\{hkname}Device Parameters",
                 "does not exist.",
             )
             continue

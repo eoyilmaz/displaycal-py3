@@ -60,7 +60,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         # Print a traceback if in debug mode, for non environment errors, and
         # for environment errors not related to files
         errstr, tbstr = (str(v) for v in (error, tbstr))
-        msg = "\n\n".join((errstr, tbstr))
+        msg = f"{errstr}\n\n{tbstr}"
         if msg.startswith(errstr):
             print(box(tbstr))
         else:

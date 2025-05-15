@@ -100,7 +100,6 @@ class Log:
         """Log a message.
 
         Optionally use function 'fn' instead of logging.info.
-
         """
         global LOGGER
         if isinstance(msg, bytes):

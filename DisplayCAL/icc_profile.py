@@ -2378,9 +2378,8 @@ def get_display_profile_linux(
             if dlopen("libcolordcompat.so"):
                 # UCMM configuration might be stale, ignore
                 return None
-            profile = _ucmm_get_display_profile(display_no, x_display_name, path_only)
-            return profile
-            # Try XrandR
+            return _ucmm_get_display_profile(display_no, x_display_name, path_only)
+        # Try XrandR
         if (
             xrandr
             and real_display_size_mm
@@ -6472,7 +6471,7 @@ class ICCProfile:
             tagTable[tagSignature] += uInt32Number_tohex(tagDataSize)
         tagsData = b"".join(tagsData)
         header = self.header(tagTableSize, len(tagsData))
-        data = b"".join(
+        return b"".join(
             [
                 header,
                 uInt32Number_tohex(tagCount),
@@ -6480,7 +6479,6 @@ class ICCProfile:
                 tagsData,
             ]
         )
-        return data
 
     def header(self, tagTableSize, tagDataSize):
         """Profile Header"""
@@ -6899,7 +6897,7 @@ class ICCProfile:
             # Calculate XYZ for primaries
             XYZ[color] = mtx * rgb[color]
 
-        profile = ICCProfile.from_XYZ(
+        return ICCProfile.from_XYZ(
             XYZ["r"],
             XYZ["g"],
             XYZ["b"],
@@ -6915,7 +6913,6 @@ class ICCProfile:
             cat,
             profile_class,
         )
-        return profile
 
     @staticmethod
     def from_XYZ(

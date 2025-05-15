@@ -225,8 +225,7 @@ def find_library(pattern: str, arch: Optional[str] = None) -> str:
             continue
         filename = candidate[0]
         if fnmatch.fnmatch(filename, pattern):
-            path = parts[1].strip()
-            return path
+            return parts[1].strip()
     return None
 
 

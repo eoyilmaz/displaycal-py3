@@ -4665,8 +4665,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
             f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) "
             "was called. This should not happen, but is unlikely an issue."
         )
-        changed = None if wx.VERSION >= (2, 9) else False
-        return changed
+        return None if wx.VERSION >= (2, 9) else False
 
     def Reset(self):
         """Reset the value in the control back to its starting value."""

@@ -397,8 +397,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
     if concat:
         pattern += plus
 
-    uniout = re.sub(pattern, substitute, uniout)
-    return uniout
+    return re.sub(pattern, substitute, uniout)
 
 
 def normalencode(unistr, form="NFKD", encoding="ASCII", errors="ignore"):

@@ -2132,8 +2132,7 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
 
 
 def matmul(XYZ, m1, m2):
-    XYZ = m1 * (m2 * XYZ)
-    return XYZ
+    return m1 * (m2 * XYZ)
 
 
 def planckianCT2XYZ(T, scale=1.0):
@@ -2347,7 +2346,7 @@ def XYZ2CCT(X, Y, Z):
     dm = dm / math.sqrt(1.0 + uvt[i - 1][2] * uvt[i - 1][2])
     p = dm / (dm - di)  # p = interpolation parameter, 0.0 : i-1, 1.0 : i
     p = 1.0 / (LERP(rt[i - 1], rt[i], p))
-    return p
+    return p  # noqa: RET504
 
 
 def XYZ2DIN99(X, Y, Z, whitepoint=None):

@@ -160,15 +160,10 @@ class DisplaySide:
         self.right = right
 
     def __str__(self):
-        s = "{}(bottom={}, left={}, top={}, right={})"
-        s = s.format(
-            self.__class__.__name__,
-            self.bottom,
-            self.left,
-            self.top,
-            self.right,
+        return (
+            f"{self.__class__.__name__}(bottom={self.bottom}, "
+            f"left={self.left}, top={self.top}, right={self.right})"
         )
-        return s
 
     def __repr__(self):
         # for now, just return the str representation
@@ -360,8 +355,7 @@ def scale_and_shift_point(x, y, scale=1, shift=0):
 
        :math:`new = (scale * old) + shift`
     """
-    point = scale * np.array([x, y]) + shift
-    return point
+    return scale * np.array([x, y]) + shift
 
 
 def set_display_side(value):
@@ -1080,8 +1074,7 @@ class PlotCanvas(wx.Panel):
             dlg1.Destroy()
 
         # Save Bitmap
-        res = self._Buffer.SaveFile(fileName, extensions[fType])
-        return res
+        return self._Buffer.SaveFile(fileName, extensions[fType])
 
     @property
     def print_data(self):
@@ -1533,8 +1526,7 @@ class PlotCanvas(wx.Panel):
         """Returns (minX, maxX) x-axis range for displayed graph"""
         graphics = self.last_draw[0]
         p1, p2 = graphics.boundingBox()  # min, max points of graphics
-        xAxis = self._axisInterval(self._xSpec, p1[0], p2[0])  # in user units
-        return xAxis
+        return self._axisInterval(self._xSpec, p1[0], p2[0])  # in user units
 
     def GetYMaxRange(self):
         yAxis = self._getYMaxRange()
@@ -1546,8 +1538,7 @@ class PlotCanvas(wx.Panel):
         """Returns (minY, maxY) y-axis range for displayed graph"""
         graphics = self.last_draw[0]
         p1, p2 = graphics.boundingBox()  # min, max points of graphics
-        yAxis = self._axisInterval(self._ySpec, p1[1], p2[1])
-        return yAxis
+        return self._axisInterval(self._ySpec, p1[1], p2[1])
 
     def GetXCurrentRange(self):
         xAxis = self._getXCurrentRange()

@@ -1352,8 +1352,7 @@ class ProfileLoader:
                 def _active_icon(self):
                     if DEBUG > 1:
                         print(f"[DEBUG] _active_icon[{self._icon_index:d}]")
-                    icon = self._active_icons[self._icon_index]
-                    return icon
+                    return self._active_icons[self._icon_index]
 
                 @_active_icon.setter
                 def _active_icon(self, icon):

@@ -1014,8 +1014,7 @@ class FloatSpin(wx.PyControl):
         :return: A clamped copy of `var`.
         """
         if self._min is not None and float(var) < float(self._min):
-            var = self._min
-            return var
+            return self._min
 
         if self._max is not None and float(var) > float(self._max):
             var = self._max

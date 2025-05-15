@@ -1083,15 +1083,12 @@ class SpawnUnix:
             if not isinstance(s, str):
                 s = str(s)
             s = s.encode("utf-8")
-        c = os.write(self.child_fd, s)
-        return c
+        return os.write(self.child_fd, s)
 
     def sendline(self, s=""):
         """This is like send(), but it adds a line feed (os.linesep). This
         returns the number of bytes written."""
-        n = self.send(s)
-        n = n + self.send(os.linesep)
-        return n
+        return self.send(s) + self.send(os.linesep)
 
     def sendcontrol(self, char):
         """This sends a control character to the child such as Ctrl-C or
@@ -1965,8 +1962,7 @@ class SpawnWindows(SpawnUnix):
         if self.logfile_send is not None:
             self.logfile_send.write(s)
             self.logfile_send.flush()
-        c = self.wtty.write(s)
-        return c
+        return self.wtty.write(s)
 
     # UNIMPLEMENTED ###
     def sendcontrol(self, char):

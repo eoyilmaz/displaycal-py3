@@ -213,10 +213,12 @@ extend-ignore = [
     "D416",  # Missing section name colon
     "E741",  # Ambiguous variable name
     "E402",  # Module level import not at top of file
+    "PLR0911",  # Too many return statements
     "PERF203",  # Try..except in loop, TODO: Re-enable this later on...
-    "RUF100", # Unused noqa
+    "RUF100",  # Unused noqa
     "S105",  # Hardcoded password
     "S110",  # try..except..pass
+    "S603",  # Subprocess without shell=True
 ]
 
 [tool.ruff.lint.mccabe]

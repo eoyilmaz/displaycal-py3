@@ -202,8 +202,7 @@ def device_id_from_edid(
                 value = value[:12]
             parts.append(str(value))
     if len(parts) > 1:
-        device_id = "-".join(parts)
-        return device_id
+        return "-".join(parts)
     return None
 
 
@@ -471,9 +470,7 @@ def quirk_manufacturer(manufacturer):
         if manufacturer.endswith(suffix):
             manufacturer = manufacturer[0 : len(manufacturer) - len(suffix)]
 
-    manufacturer = manufacturer.rstrip()
-
-    return manufacturer
+    return manufacturer.rstrip()
 
 
 class Object(DBusObject):

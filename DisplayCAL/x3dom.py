@@ -209,14 +209,13 @@ class Tag:
         return self.html(*args, **kwargs)
 
     def x3d(self):
-        x3d = "\n".join(
+        return "\n".join(
             [
                 "<?xml version='1.0' encoding='UTF-8'?>",
                 '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">',
                 self.markup(allow_empty_element_tag=True),
             ]
         )
-        return x3d
 
 
 def _attrchk(attribute, token, tag, indent):

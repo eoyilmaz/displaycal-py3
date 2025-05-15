@@ -8667,8 +8667,7 @@ BEGIN_DATA
                     maxweight = weight
 
         # Shortname should not contain any spaces.
-        display_name = re.sub(r"[\s]+", "_", display_name)
-        return display_name
+        return re.sub(r"[\s]+", "_", display_name)
 
     def get_dispwin_display_profile_argument(self, display_no=0):
         """Return argument corresponding to the display profile for use with dispwin.
@@ -11668,7 +11667,7 @@ usage: spotread [-options] [logfile]
                 X, Y, Z = colormath.blend_blackpoint(X, Y, Z, XYZbp, (0, 0, 0), XYZwp)
             xy.append(colormath.XYZ2xyY(*(v / 100 for v in (X, Y, Z)))[:2])
         self.log("Using chromatic adaptation transform matrix:", cat)
-        mtx = ICCProfile.from_chromaticities(
+        return ICCProfile.from_chromaticities(
             xy[0][0],
             xy[0][1],
             xy[1][0],
@@ -11684,7 +11683,6 @@ usage: spotread [-options] [logfile]
             display_name,
             cat=cat,
         )
-        return mtx
 
     def _create_matrix_profile(
         self, outname, profile=None, ptype="s", omit=None, bpc=False, cat="Bradford"
@@ -14157,10 +14155,9 @@ usage: spotread [-options] [logfile]
 
     def reset_cal(self):
         cmd, args = self.prepare_dispwin(False)
-        result = self.exec_cmd(
+        return self.exec_cmd(
             cmd, args, capture_output=True, skip_scripts=True, silent=False
         )
-        return result
 
     def safe_send(self, bytes_):
         self.send_buffer = bytes_
@@ -14828,8 +14825,7 @@ usage: spotread [-options] [logfile]
                         vrml = re.sub(
                             rb'(string\s*\[")([+\-]?)(b\*)("\])', rb"\1\3 \2\0$\4", vrml
                         )
-                        vrml = vrml.replace(b"\0$", b"100")
-                        return vrml
+                        return vrml.replace(b"\0$", b"100")
 
                     gzfilename = f"{filename}.gz"
                     if sys.platform == "win32":

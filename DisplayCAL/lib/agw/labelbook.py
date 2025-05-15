@@ -2359,13 +2359,12 @@ class LabelContainer(ImageContainerBase):
             wx.Rect: the image bounding rectangle.
         """
         if bmp.IsOk() and not self.HasAGWFlag(ImageBookStyle.INB_SHOW_ONLY_TEXT):
-            imgRect = wx.Rect(
+            return wx.Rect(
                 rect.x + self.num_padding,
                 rect.y + (rect.height - bmp.GetHeight()) // 2,
                 bmp.GetWidth(),
                 bmp.GetHeight(),
             )
-            return imgRect
         return wx.Rect()
 
     def _draw_tab_background(
@@ -2931,8 +2930,7 @@ class FlatBookBase(wx.Panel):
         if not self.HasAGWFlag(ImageBookStyle.INB_SHOW_ONLY_TEXT):
             maxW += self._pages._nImgSize * 2
 
-        maxW = max(maxW, 100)
-        return maxW
+        return max(maxW, 100)
 
     def DeleteAllPages(self) -> None:
         """Delete all the pages in the book."""

@@ -1607,12 +1607,11 @@ class ArtManager(wx.EvtHandler):
         """
         if wx.Platform == "__WXMSW__":
             version = wx.GetOsDescription()
-            found = (
+            return (
                 version.find("XP") >= 0
                 or version.find("2000") >= 0
                 or version.find("NT") >= 0
             )
-            return found
         if wx.Platform == "__WXMAC__":  # noqa: SIM103
             return True
         # Linux

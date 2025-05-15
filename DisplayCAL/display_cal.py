@@ -2498,11 +2498,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             + button_panel_height
         )
 
-        height = min(
+        return min(
             display_area_free_height,
             per_element_heights,
         )
-        return height
 
     def set_size(self, set_height=False, fit_width=False):
         self.SetMinSize((0, 0))

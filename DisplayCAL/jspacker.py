@@ -58,8 +58,7 @@ class ParseMaster:
             s = "" if m is None else m
             r = r.replace("$" + str(i), s)
             i = i - 1
-        r = ParseMaster.TRIM.sub("$1", r)
-        return r
+        return ParseMaster.TRIM.sub("$1", r)
 
     # public
     def add(self, expression="^$", replacement=None):
@@ -97,7 +96,7 @@ class ParseMaster:
         string = r.sub(self._replacement, string)
         string = self._unescape(string, self.escapeChar)
         string = ParseMaster.DELETED.sub("", string)
-        return string
+        return string  # noqa: RET504
 
     # clear the patterns collections so that this object may be re-used
     def reset(self):
@@ -130,24 +129,21 @@ class ParseMaster:
             return string
 
         r = re.compile(r"\\" + escapeChar + r"(.)", re.M)
-        result = r.sub(repl, string)
-        return result
+        return r.sub(repl, string)
 
     # decode escaped characters
     def _unescape(self, string, escapeChar=None):
         def repl(match):
             try:
                 # result = eval("'"+escapeChar + self._escaped.pop(0)+"'")
-                result = escapeChar + self._escaped.pop(0)
-                return result
+                return escapeChar + self._escaped.pop(0)
             except IndexError:
                 return escapeChar
 
         if escapeChar is None:
             return string
         r = re.compile(r"\\" + escapeChar, re.M)
-        result = r.sub(repl, string)
-        return result
+        return r.sub(repl, string)
 
     def _internalEscape(self, string):
         return ParseMaster.ESCAPE.sub("", string)
@@ -266,11 +262,8 @@ class JavaScriptPacker:
         return encode95
 
     def escape(self, script):
-        script = script.replace("\\", "\\\\")
-        script = script.replace("'", "\\'")
-        script = script.replace("\n", "\\n")
+        return script.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
         # return re.sub(r"""([\\'](?!\n))""", "\\$1", script)
-        return script
 
     def escape95(self, script):
         result = []
@@ -300,8 +293,7 @@ class JavaScriptPacker:
         parser.add(regexp, repl)
         # if encoded, wrap the script in a decoding function
         script = parser.execute(script)
-        script = self.bootStrap(script, keywords, encoding, fastDecode)
-        return script
+        return self.bootStrap(script, keywords, encoding, fastDecode)
 
     def analyze(self, script, regexp, encode):
         # analyse

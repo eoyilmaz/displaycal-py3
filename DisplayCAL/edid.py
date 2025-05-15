@@ -348,9 +348,7 @@ def get_edid_from_xrandr(display_no):
         if (display["name"] + b" connected") in line:
             found_display = True
 
-    edid = b"".join(edid_data)
-
-    return edid
+    return b"".join(edid_data)
 
 
 def parse_manufacturer_id(block: bytes) -> str:
@@ -661,7 +659,7 @@ def parse_edid_chromaticity_coordinates(edid):
     Returns:
         dict: The parsed chromaticity coordinates.
     """
-    result = {
+    return {
         "red_x": edid_decode_fraction(
             edid[HI_R_X], edid_get_bits(edid[LO_RG_XY], 6, 7)
         ),
@@ -687,7 +685,6 @@ def parse_edid_chromaticity_coordinates(edid):
             edid[HI_W_Y], edid_get_bits(edid[LO_BW_XY], 0, 1)
         ),
     }
-    return result
 
 
 def parse_edid_descriptor_blocks(edid):

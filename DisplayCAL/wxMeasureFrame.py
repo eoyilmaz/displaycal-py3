@@ -35,9 +35,9 @@ from DisplayCAL.wxwindows import (
 )
 
 try:
-    from DisplayCAL import RealDisplaySizeMM as RDSMM
+    from DisplayCAL import RealDisplaySizeMM
 except ImportError as exception:
-    RDSMM = None
+    RealDisplaySizeMM = None
     warnings.warn(str(exception), Warning, stacklevel=2)
 
 
@@ -56,9 +56,9 @@ def get_default_size():
         display_no = get_display_number(display_no)
         display_size = wx.Display(display_no).Geometry[2:]
         display_size_mm = []
-        if RDSMM:
+        if RealDisplaySizeMM:
             try:
-                display_size_mm = RDSMM.RealDisplaySizeMM(display_no)
+                display_size_mm = RealDisplaySizeMM.RealDisplaySizeMM(display_no)
             except Exception as exception:
                 handle_error(
                     f"Error - RealDisplaySizeMM() failed: {exception}", silent=True

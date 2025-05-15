@@ -280,13 +280,11 @@ elif sys.platform == "darwin":
     from DisplayCAL import util_mac
 
 try:
-    from DisplayCAL.chromecast_patterngenerator import (
-        ChromeCastPatternGenerator as CCPG,
-    )
+    from DisplayCAL.chromecast_patterngenerator import ChromeCastPatternGenerator
 except ImportError:
     from types import NoneType
 
-    CCPG = NoneType
+    ChromeCastPatternGenerator = NoneType
 
 try:
     from DisplayCAL.wxCCXXPlot import CCXXPlot
@@ -6575,7 +6573,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             geometry=geometry,
             profile=profile,
         )
-        if patterngenerator and CCPG and isinstance(patterngenerator, CCPG):
+        if (
+            patterngenerator
+            and ChromeCastPatternGenerator
+            and isinstance(patterngenerator, ChromeCastPatternGenerator)
+        ):
             self.wpeditor.Bind(wx.EVT_CLOSE, self.patterngenerator_disconnect)
         self.wpeditor.RealCenterOnScreen()
         self.wpeditor.Show()
@@ -6631,8 +6633,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         frame.Sizer.Layout()
         if (
             self.worker.patterngenerator
-            and CCPG
-            and isinstance(self.worker.patterngenerator, CCPG)
+            and ChromeCastPatternGenerator
+            and isinstance(self.worker.patterngenerator, ChromeCastPatternGenerator)
         ):
             frame.Bind(wx.EVT_CLOSE, self.patterngenerator_disconnect)
         frame.Show()
@@ -9823,7 +9825,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if display_name == "Web @ localhost" or display_name.startswith("Chromecast "):
             for name, patterngenerator in list(self.worker.patterngenerators.items()):
                 if isinstance(
-                    patterngenerator, (WebWinHTTPPatternGeneratorServer, CCPG)
+                    patterngenerator,
+                    (WebWinHTTPPatternGeneratorServer, ChromeCastPatternGenerator),
                 ):
                     # Need to free connection for dispwin
                     patterngenerator.disconnect_client()
@@ -10185,7 +10188,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 x_hostname, x_display, x_screen = util_x.get_display()
                 x_screen = display_no
                 try:
-                    import RealDisplaySizeMM as RDSMM
+                    from DisplayCAL import RealDisplaySizeMM
                 except ImportError as exception:
                     InfoDialog(
                         self,
@@ -10194,7 +10197,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         bitmap=geticon(32, "dialog-warning"),
                     )
                 else:
-                    display = RDSMM.get_x_display(display_no)
+                    display = RealDisplaySizeMM.get_x_display(display_no)
                     if display:
                         x_hostname, x_display, x_screen = display
                 env["DISPLAY"] = f"{x_hostname}:{x_display}.{x_screen}"

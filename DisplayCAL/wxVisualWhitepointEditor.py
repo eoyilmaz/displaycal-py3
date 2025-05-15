@@ -69,9 +69,9 @@ from DisplayCAL.wxwindows import (
 )
 
 try:
-    from DisplayCAL import RealDisplaySizeMM as RDSMM
+    from DisplayCAL import RealDisplaySizeMM
 except ImportError:
-    RDSMM = None
+    RealDisplaySizeMM = None
 
 # Use non-native mini frames on all platforms
 aui.framemanager.AuiManager_UseNativeMiniframes = (
@@ -2465,11 +2465,11 @@ class VisualWhitepointEditor(wx.Frame):
     def set_area_size_slider_max(self):
         # Set max value according to display size
         maxv = 1000
-        if RDSMM:
+        if RealDisplaySizeMM:
             geometry = self.GetDisplay().Geometry.Get()
             display_no = get_argyll_display_number(geometry)
             if display_no is not None:
-                size_mm = RDSMM.RealDisplaySizeMM(display_no)
+                size_mm = RealDisplaySizeMM.RealDisplaySizeMM(display_no)
                 if 0 not in size_mm:
                     self.display_size_mm[geometry] = [float(v) for v in size_mm]
                     maxv = int(round(max(size_mm) / 100.0 * 100))

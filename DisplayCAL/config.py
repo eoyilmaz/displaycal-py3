@@ -174,9 +174,7 @@ else:  # Linux
     if DATA_HOME_DEFAULT not in DATA_DIRS:
         DATA_DIRS.append(DATA_HOME_DEFAULT)
     DATA_DIRS.extend(os.path.join(dir_, APPBASENAME) for dir_ in XDG_DATA_DIRS)
-    EXTRA_DATA_DIRS.extend(
-        os.path.join(dir_, "argyllcms") for dir_ in XDG_DATA_DIRS
-    )
+    EXTRA_DATA_DIRS.extend(os.path.join(dir_, "argyllcms") for dir_ in XDG_DATA_DIRS)
     EXTRA_DATA_DIRS.extend(
         os.path.join(dir_, "color", "argyll") for dir_ in XDG_DATA_DIRS
     )
@@ -2206,10 +2204,10 @@ def get_hidpi_scaling_factor():
             match = False
             app = wx.GetApp()
             if app:
-                from DisplayCAL import RealDisplaySizeMM as RDSMM
+                from DisplayCAL import RealDisplaySizeMM as RealDisplaySizeMM
 
-                if not RDSMM._displays:
-                    RDSMM.enumerate_displays()
+                if not RealDisplaySizeMM._displays:
+                    RealDisplaySizeMM.enumerate_displays()
                 top = app.TopWindow
                 if top:
                     tmp = False
@@ -2239,7 +2237,7 @@ def get_hidpi_scaling_factor():
                         name, factor = item.split("=", 1)
                     else:
                         name, factor = None, item
-                    for display in RDSMM._displays:
+                    for display in RealDisplaySizeMM._displays:
                         if display.get("pos") != pos or display.get("size") != size:
                             # No match
                             continue

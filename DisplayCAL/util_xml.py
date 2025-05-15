@@ -1,7 +1,7 @@
 import contextlib
 
 with contextlib.suppress(ImportError):
-    from defusedxml import ElementTree as ET
+    from defusedxml import ElementTree
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):
@@ -99,5 +99,5 @@ class ETreeDict(dict):
 
 class XMLDict(ETreeDict):
     def __init__(self, xml):
-        etree = ET.fromstring(xml)
+        etree = ElementTree.fromstring(xml)
         ETreeDict.__init__(self, etree)

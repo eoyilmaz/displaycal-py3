@@ -289,10 +289,10 @@ from DisplayCAL.wxwindows import (
     show_result_dialog,
 )
 
-RDSMM = None
+RealDisplaySizeMM = None
 if sys.platform not in ("darwin", "win32"):
     try:
-        from DisplayCAL import RealDisplaySizeMM as RDSMM
+        from DisplayCAL import RealDisplaySizeMM
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning, stacklevel=2)
 from wx.lib import delayedresult
@@ -5419,9 +5419,9 @@ END_DATA
             if displays != self._displays:
                 self._displays = list(displays)
                 setcfg("displays", displays)
-                if RDSMM:
+                if RealDisplaySizeMM:
                     # Sync with Argyll - needed under Linux to map EDID
-                    RDSMM.enumerate_displays()
+                    RealDisplaySizeMM.enumerate_displays()
                 displays = [
                     display
                     for display in displays
@@ -8522,8 +8522,8 @@ BEGIN_DATA
                 and not omit_manufacturer
             ):
                 return None
-            if RDSMM:
-                display = RDSMM.get_display(display_no)
+            if RealDisplaySizeMM:
+                display = RealDisplaySizeMM.get_display(display_no)
                 if display:
                     xrandr_name = display.get("xrandr_name")
                     if xrandr_name:

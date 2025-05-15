@@ -61,7 +61,7 @@ VERSION_SRC = VERSION_STRING
 VERSION_SHORT = re.sub(r"(?:\.0){1,2}$", "", VERSION_STRING)
 VERSION_TUPLE = VERSION  # only ints allowed and must be exactly 3 values
 
-WX_MINVERSION = (2, 8, 11)
+WX_MINVERSION = (4, 0, 0)
 WX_RECVERSION = (4, 2, 0)
 
 

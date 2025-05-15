@@ -763,16 +763,16 @@ class RendererMSOffice2007(RendererBase):
 class ArtManager(wx.EvtHandler):
     """This class provides utilities for creating shadows and adjusting colors."""
 
-    _alignmentBuffer = 7
-    _menuTheme: int = StyleXP
-    _verticalGradient = False
+    _alignment_buffer = 7
+    _menu_theme: int = StyleXP
+    _vertical_gradient = False
     _renderers: dict[int, RendererBase] = {StyleXP: None, Style2007: None}
-    _bmpShadowEnabled = False
+    _bmp_shadow_enabled = False
     _ms2007sunken = False
-    _drowMBBorder = True
-    _menuBgFactor = 5
-    _menuBarColourScheme: str = _("Default")
-    _raiseTB = True
+    _draw_mb_border = True
+    _menu_bg_factor = 5
+    _menu_bar_colour_scheme: str = _("Default")
+    _raise_trace_back = True
     _bitmaps: dict[str, wx.Bitmap] = {}
     _transparency = 255
 
@@ -863,7 +863,7 @@ class ArtManager(wx.EvtHandler):
 
         # initialise the colour map
         self.InitColours()
-        self.SetMenuBarColour(self._menuBarColourScheme)
+        self.SetMenuBarColour(self._menu_bar_colour_scheme)
 
         # Create common bitmaps
         self.FillStockBitmaps()
@@ -2151,7 +2151,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An integer representing the padding buffer.
         """
-        return self._alignmentBuffer
+        return self._alignment_buffer
 
     def SetMenuTheme(self, theme: int) -> None:
         """Set the menu theme, possible values (Style2007, StyleXP, StyleVista).
@@ -2160,7 +2160,7 @@ class ArtManager(wx.EvtHandler):
             theme (int): A rendering theme class, either `StyleXP`, `Style2007` or
                 `StyleVista`.
         """
-        self._menuTheme = theme
+        self._menu_theme = theme
 
     def GetMenuTheme(self) -> int:
         """Return the currently used menu theme.
@@ -2168,7 +2168,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An int containing the currently used theme for the menu.
         """
-        return self._menuTheme
+        return self._menu_theme
 
     def AddMenuTheme(self, render: RendererBase) -> int:
         """Add a new theme to the stock.
@@ -2210,7 +2210,7 @@ class ArtManager(wx.EvtHandler):
             bool: A boolean indicating whether the menu bar should be painted with
                 vertical gradient.
         """
-        return self._verticalGradient
+        return self._vertical_gradient
 
     def SetMBVerticalGradient(self, v: bool) -> None:
         """Set the menu bar gradient style.
@@ -2218,7 +2218,7 @@ class ArtManager(wx.EvtHandler):
         Args:
             v (bool): ``True`` for a vertical shaded gradient, ``False`` otherwise.
         """
-        self._verticalGradient = v
+        self._vertical_gradient = v
 
     def DrawMenuBarBorder(self, border: bool) -> None:
         """Enable menu border drawing (XP style only).
@@ -2226,7 +2226,7 @@ class ArtManager(wx.EvtHandler):
         Args:
             border (bool): ``True`` to draw the menubar border, ``False`` otherwise.
         """
-        self._drowMBBorder = border
+        self._draw_mb_border = border
 
     def GetMenuBarBorder(self) -> bool:
         """Return menu bar border drawing flag.
@@ -2234,7 +2234,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             bool: ``True`` if the menu bar border is to be drawn, ``False`` otherwise.
         """
-        return self._drowMBBorder
+        return self._draw_mb_border
 
     def GetMenuBgFactor(self) -> int:
         """Return the visibility depth of the menu in Metallic style.
@@ -2244,7 +2244,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An integer representing the visibility depth of the menu.
         """
-        return self._menuBgFactor
+        return self._menu_bg_factor
 
     def DrawDragSash(self, rect: wx.Rect) -> None:
         """Draw resize sash.
@@ -2330,7 +2330,7 @@ class ArtManager(wx.EvtHandler):
             scheme (str): A string representing a colour scheme (i.e., 'Default',
                 'Dark', 'Dark Olive Green', 'Generic').
         """
-        self._menuBarColourScheme = scheme
+        self._menu_bar_colour_scheme = scheme
         # set default colour
         if scheme in self._colourSchemeMap:
             self._menuBarBgColour = self._colourSchemeMap[scheme]
@@ -2341,7 +2341,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             str: A string representing the current colour scheme.
         """
-        return self._menuBarColourScheme
+        return self._menu_bar_colour_scheme
 
     def GetMenuBarFaceColour(self) -> wx.Colour:
         """Return the menu bar face colour.
@@ -2396,7 +2396,7 @@ class ArtManager(wx.EvtHandler):
             bool: A boolean indicating whether a shadow is dropped under a
                 toolbar.
         """
-        return self._raiseTB
+        return self._raise_trace_back
 
     def SetRaiseToolbar(self, rais: bool) -> None:
         """Enable/disable toobar shadow drop.
@@ -2405,4 +2405,4 @@ class ArtManager(wx.EvtHandler):
             rais (bool): ``True`` to drop a shadow below a toolbar, ``False``
                 otherwise.
         """
-        self._raiseTB = rais
+        self._raise_trace_back = rais

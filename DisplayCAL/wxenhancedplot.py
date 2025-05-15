@@ -512,11 +512,16 @@ class PolyLine(PolyPoints):
             Defaults:
                 'colour'= 'black',          - wx.Pen Colour any wx.NamedColour
                 'width'= 1,                 - Pen width
-                'style'= wx.SOLID,          - wx.Pen style
+                'style'= wx.PENSTYLE_SOLID, - wx.Pen style
                 'legend'= ''                - Line Legend to display
     """
 
-    _attributes = {"colour": "black", "width": 1, "style": wx.SOLID, "legend": ""}
+    _attributes = {
+        "colour": "black",
+        "width": 1,
+        "style": wx.PENSTYLE_SOLID,
+        "legend": "",
+    }
 
     def __init__(self, points, **attr):
         PolyPoints.__init__(self, points, attr)
@@ -553,7 +558,12 @@ class PolySpline(PolyLine):
     - All methods except __init__ are private.
     """
 
-    _attributes = {"colour": "black", "width": 1, "style": wx.SOLID, "legend": ""}
+    _attributes = {
+        "colour": "black",
+        "width": 1,
+        "style": wx.PENSTYLE_SOLID,
+        "legend": "",
+    }
 
     def __init__(self, points, **attr):
         """Creates PolyLine object
@@ -562,7 +572,7 @@ class PolySpline(PolyLine):
             Defaults:
                 'colour'= 'black',          - wx.Pen Colour any wx.NamedColour
                 'width'= 1,                 - Pen width
-                'style'= wx.SOLID,          - wx.Pen style
+                'style'= wx.PENSTYLE_SOLID, - wx.Pen style
                 'legend'= ''                - Line Legend to display
         """
         PolyLine.__init__(self, points, **attr)
@@ -598,7 +608,7 @@ class PolyMarker(PolyPoints):
         "width": 1,
         "size": 2,
         "fillcolour": None,
-        "fillstyle": wx.SOLID,
+        "fillstyle": wx.BRUSHSTYLE_SOLID,
         "marker": "circle",
         "legend": "",
     }
@@ -608,14 +618,15 @@ class PolyMarker(PolyPoints):
         points - sequence (array, tuple or list) of (x,y) points
         **attr - key word attributes
             Defaults:
-                'colour'= 'black',            - wx.Pen Colour any wx.NamedColour
-                'width'= 1,                   - Pen width
-                'size'= 2,                    - Marker size
-                'fillcolour'= same as colour, - wx.Brush Colour any wx.NamedColour
-                'fillstyle'= wx.SOLID,        - wx.Brush fill style (use wx.TRANSPARENT
-                                                for no fill)
-                'marker'= 'circle'            - Marker shape
-                'legend'= ''                  - Marker Legend to display
+                'colour'= 'black',                - wx.Pen Colour any wx.NamedColour
+                'width'= 1,                       - Pen width
+                'size'= 2,                        - Marker size
+                'fillcolour'= same as colour,     - wx.Brush Colour any wx.NamedColour
+                'fillstyle'= wx.BRUSHSTYLE_SOLID, - wx.Brush fill style (use
+                                                    wx.BRUSHSTYLE_TRANSPARENT for no
+                                                    fill)
+                'marker'= 'circle'                - Marker shape
+                'legend'= ''                      - Marker Legend to display
 
             Marker Shapes:
                 - 'circle'
@@ -1591,9 +1602,9 @@ class PlotCanvas(wx.Panel):
         if dc is None:
             # sets new dc and clears it
             dc = wx.BufferedDC(wx.ClientDC(self.canvas), self._Buffer)
-            bbr = wx.Brush(self.GetBackgroundColour(), wx.SOLID)
+            bbr = wx.Brush(self.GetBackgroundColour(), wx.BRUSHSTYLE_SOLID)
             dc.SetBackground(bbr)
-            dc.SetBackgroundMode(wx.SOLID)
+            dc.SetBackgroundMode(wx.BRUSHSTYLE_SOLID)
             dc.Clear()
         if self._antiAliasingEnabled:
             if not isinstance(dc, wx.GCDC):
@@ -1783,9 +1794,9 @@ class PlotCanvas(wx.Panel):
         """Erase the window."""
         self.last_PointLabel = None  # reset pointLabel
         dc = wx.BufferedDC(wx.ClientDC(self.canvas), self._Buffer)
-        bbr = wx.Brush(self.GetBackgroundColour(), wx.SOLID)
+        bbr = wx.Brush(self.GetBackgroundColour(), wx.BRUSHSTYLE_SOLID)
         dc.SetBackground(bbr)
-        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_SOLID)
         dc.Clear()
         if self._antiAliasingEnabled:
             with contextlib.suppress(Exception):
@@ -2164,7 +2175,7 @@ class PlotCanvas(wx.Panel):
         # draw rectangle
         dc = wx.ClientDC(self.canvas)
         dc.SetPen(wx.Pen(wx.BLACK))
-        dc.SetBrush(wx.Brush(wx.WHITE, wx.TRANSPARENT))
+        dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_TRANSPARENT))
         dc.SetLogicalFunction(wx.INVERT)
         dc.DrawRectangle(ptx, pty, rectWidth, rectHeight)
         dc.SetLogicalFunction(wx.COPY)
@@ -2772,7 +2783,7 @@ def _draw2Objects():
     data1.shape = (100, 2)
     data1[:, 1] = np.sin(data1[:, 0])
     line1 = PolySpline(
-        data1, legend="Green Line", colour="green", width=6, style=wx.DOT
+        data1, legend="Green Line", colour="green", width=6, style=wx.PENSTYLE_DOT
     )
 
     # 50 points cos function, plotted as red dot-dash
@@ -2780,7 +2791,7 @@ def _draw2Objects():
     data1.shape = (50, 2)
     data1[:, 1] = np.cos(data1[:, 0])
     line2 = PolySpline(
-        data1, legend="Red Line", colour="red", width=3, style=wx.DOT_DASH
+        data1, legend="Red Line", colour="red", width=3, style=wx.PENSTYLE_DOT_DASH
     )
 
     # A few more points...
@@ -2792,7 +2803,7 @@ def _draw2Objects():
         width=3,
         size=6,
         fillcolour="red",
-        fillstyle=wx.CROSSDIAG_HATCH,
+        fillstyle=wx.BRUSHSTYLE_CROSSDIAG_HATCH,
         marker="square",
     )
 
@@ -3004,7 +3015,7 @@ class TestFrame(wx.Frame):
         """
         # ----------
         dc.SetPen(wx.Pen(wx.BLACK))
-        dc.SetBrush(wx.Brush(wx.BLACK, wx.SOLID))
+        dc.SetBrush(wx.Brush(wx.BLACK, wx.BRUSHSTYLE_SOLID))
 
         sx, sy = mDataDict["scaledXY"]  # scaled x,y of closest point
         dc.DrawRectangle(sx - 5, sy - 5, 10, 10)  # 10by10 square centered on point
@@ -3071,7 +3082,11 @@ class TestFrame(wx.Frame):
 
     def OnPlotDraw3(self, event):
         self.resetDefaults()
-        self.client.SetFont(wx.Font(10, wx.SCRIPT, wx.NORMAL, wx.NORMAL))
+        self.client.SetFont(
+            wx.Font(
+                10, wx.FONTFAMILY_SCRIPT, wx.FONTWEIGHT_NORMAL, wx.FONTWEIGHT_NORMAL
+            )
+        )
         self.client.SetFontSizeAxis(20)
         self.client.SetFontSizeLegend(12)
         self.client.SetXSpec("min")
@@ -3186,7 +3201,9 @@ class TestFrame(wx.Frame):
 
     def resetDefaults(self):
         """Just to reset the fonts back to the PlotCanvas defaults"""
-        self.client.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        self.client.SetFont(
+            wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTWEIGHT_NORMAL, wx.FONTWEIGHT_NORMAL)
+        )
         self.client.SetFontSizeAxis(10)
         self.client.SetFontSizeLegend(7)
         self.client.setLogScale((False, False))

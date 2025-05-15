@@ -1255,7 +1255,7 @@ class ExtraArgsFrame(BaseFrame):
 
         child = self.environment_label
         font = child.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         child.Font = font
 
         # Bind event handlers
@@ -1351,7 +1351,7 @@ class GamapFrame(BaseFrame):
 
         child = self.gamut_mapping_ciecam02_label
         font = child.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         child.Font = font
 
         self.gamap_profile = xrc.XRCCTRL(self, "gamap_profile")
@@ -3054,13 +3054,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # there. Working fine on all other platforms.
                 pyimg = flagart.catalog[lcode2]
                 if pyimg.Image.IsOk():
-                    bmp = pyimg.getBitmap()
+                    bmp = pyimg.GetBitmap()
                     if bmp.IsOk():
                         menuitem.SetBitmap(bmp)
             if lang.getcode() == lcode:
                 menuitem.Check()
                 font = menuitem.Font
-                font.SetWeight(wx.BOLD)
+                font.SetWeight(wx.FONTWEIGHT_BOLD)
                 menuitem.SetFont(font)
             # Map numerical event id to language string
             lang.LDICT[lcode].menuitem_id = menuitem.GetId()
@@ -3241,7 +3241,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.mr_settings_label,
         ):
             font = child.Font
-            font.SetWeight(wx.BOLD)
+            font.SetWeight(wx.FONTWEIGHT_BOLD)
             child.Font = font
 
         # Settings file controls
@@ -3748,12 +3748,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     del self.tcframe
                 # Set the previously marked menu item's font weight to normal
                 font = menuitem.Font
-                font.SetWeight(wx.NORMAL)
+                font.SetWeight(wx.FONTWEIGHT_NORMAL)
                 menuitem.SetFont(font)
                 # Set the currently marked menu item's font weight to bold
                 menuitem = self.menubar.FindItemById(lang.LDICT[lcode].menuitem_id)
                 font = menuitem.Font
-                font.SetWeight(wx.BOLD)
+                font.SetWeight(wx.FONTWEIGHT_BOLD)
                 menuitem.SetFont(font)
                 setcfg("lang", lcode)
                 writecfg()
@@ -11149,13 +11149,13 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 if cinfo:
                     label = wx.StaticText(dlg, -1, lang.getstr("gamut.coverage"))
                     font = label.GetFont()
-                    font.SetWeight(wx.BOLD)
+                    font.SetWeight(wx.FONTWEIGHT_BOLD)
                     label.SetFont(font)
                     gamut_info_sizer.Add(label)
                 if vinfo:
                     label = wx.StaticText(dlg, -1, lang.getstr("gamut.volume"))
                     font = label.GetFont()
-                    font.SetWeight(wx.BOLD)
+                    font.SetWeight(wx.FONTWEIGHT_BOLD)
                     label.SetFont(font)
                 else:
                     label = (1, 1)
@@ -13751,7 +13751,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         style=wx.ALIGN_CENTER_HORIZONTAL,
                     )
                     font = txt.Font
-                    font.SetWeight(wx.BOLD)
+                    font.SetWeight(wx.FONTWEIGHT_BOLD)
                     txt.Font = font
                     sizer.Add(txt, flag=wx.LEFT, border=40)
                 if "gtk3" in wx.PlatformInfo:
@@ -19309,7 +19309,7 @@ class StartupFrame(start_cls):
 
     def Draw(self, dc):
         # Background
-        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         if isinstance(dc, wx.ScreenDC):
             dc.StartDrawingOnTop()
             x, y = self.splash_x, self.splash_y
@@ -19333,7 +19333,7 @@ class StartupFrame(start_cls):
             )
             dc = wx.MemoryDC()
             dc.SelectObject(bufferbitmap)
-            dc.SetBackgroundMode(wx.TRANSPARENT)
+            dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         dc.DrawBitmap(self.splash_bmp, x, y)
         # Text
         rect = wx.Rect(

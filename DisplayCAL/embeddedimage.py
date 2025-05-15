@@ -62,12 +62,6 @@ class PyEmbeddedImage:
         stream = io.BytesIO(self.GetData())
         return wx.ImageFromStream(stream)
 
-    # added for backwards compatibility
-    getBitmap = GetBitmap
-    getData = GetData
-    getIcon = GetIcon
-    getImage = GetImage
-
     # define properties, for convenience
     Bitmap = property(GetBitmap)
     Icon = property(GetIcon)

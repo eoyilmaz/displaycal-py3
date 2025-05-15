@@ -515,10 +515,10 @@ class CCXXPlot(wx.Frame):
         )
         # Add comparison gamuts
         for rgb_space, pen_style in [
-            ("Rec. 2020", wx.SOLID),
-            ("Adobe RGB (1998)", wx.SHORT_DASH),
-            ("DCI P3", wx.DOT_DASH),
-            ("Rec. 709", wx.DOT),
+            ("Rec. 2020", wx.PENSTYLE_SOLID),
+            ("Adobe RGB (1998)", wx.PENSTYLE_SHORT_DASH),
+            ("DCI P3", wx.PENSTYLE_DOT_DASH),
+            ("Rec. 709", wx.PENSTYLE_DOT),
         ]:
             values = []
             for R, G, B in [(1, 0, 0), (0, 1, 0), (0, 0, 1)]:

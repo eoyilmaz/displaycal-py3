@@ -555,8 +555,8 @@ class LUTCanvas(plot.PlotCanvas):
             int(ptx), int(pty), int(rectWidth + 2), int(rectHeight + 2)
         )
 
-        dc.SetPen(wx.Pen(wx.WHITE, 1, wx.DOT))
-        dc.SetBrush(wx.Brush(wx.WHITE, wx.SOLID))
+        dc.SetPen(wx.Pen(wx.WHITE, 1, wx.PENSTYLE_DOT))
+        dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID))
 
         sx, sy = mDataDict["scaledXY"]  # Scaled x, y of closest point
         dc.DrawLine(0, int(sy), int(ptx + rectWidth + 2), int(sy))

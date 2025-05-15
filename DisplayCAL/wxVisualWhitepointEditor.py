@@ -1098,7 +1098,7 @@ class BrightCtrl(BaseLineCtrl):
         for y_pos in range(brightRect.y, brightRect.height + brightRect.y):
             r, g, b = [round(c * 255.0) for c in colorsys.hsv_to_rgb(h, s, v)]
             colour = wx.Colour(int(r), int(g), int(b))
-            dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
+            dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
             dc.DrawRectangle(brightRect.x, y_pos, brightRect.width, 1)
             v = v - vstep
 
@@ -1984,7 +1984,7 @@ class VisualWhitepointEditor(wx.Frame):
         label = wx.StaticText(self.mainPanel, -1, lang.getstr("whitepoint"))
         label.SetMaxFontSize(11)
         font = label.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         label.Font = font
         mainSizer.Add(label, 0, wx.LEFT, margin)
 
@@ -2017,7 +2017,7 @@ class VisualWhitepointEditor(wx.Frame):
         )
         area_slider_label.SetMaxFontSize(11)
         font = area_slider_label.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         area_slider_label.Font = font
         mainSizer.Add(area_slider_label, 0, wx.LEFT | wx.BOTTOM, margin)
         vmargin = margin if "gtk3" in wx.PlatformInfo else s(6)

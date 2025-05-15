@@ -74,47 +74,8 @@ if not hasattr(platebtn, "PB_STYLE_DROPARROW"):
 
 if "phoenix" in wx.PlatformInfo:
     # Phoenix compatibility
-
     import wx.adv
-    from wx.lib import embeddedimage
     from wx.lib.agw import aui
-
-    # Deprecated items
-
-    wx.DEFAULT = wx.FONTFAMILY_DEFAULT
-    wx.DECORATIVE = wx.FONTFAMILY_DECORATIVE
-    wx.ROMAN = wx.FONTFAMILY_ROMAN
-    wx.SCRIPT = wx.FONTFAMILY_SCRIPT
-    wx.SWISS = wx.FONTFAMILY_SWISS
-    wx.MODERN = wx.FONTFAMILY_MODERN
-    wx.TELETYPE = wx.FONTFAMILY_TELETYPE
-
-    wx.NORMAL = int(float(wx.FONTWEIGHT_NORMAL | wx.FONTSTYLE_NORMAL) / 100) * 100
-    wx.LIGHT = wx.FONTWEIGHT_LIGHT
-    wx.BOLD = wx.FONTWEIGHT_BOLD
-
-    wx.ITALIC = wx.FONTSTYLE_ITALIC
-    wx.SLANT = wx.FONTSTYLE_SLANT
-
-    wx.SOLID = wx.PENSTYLE_SOLID | wx.BRUSHSTYLE_SOLID
-    wx.DOT = wx.PENSTYLE_DOT
-    wx.LONG_DASH = wx.PENSTYLE_LONG_DASH
-    wx.SHORT_DASH = wx.PENSTYLE_SHORT_DASH
-    wx.DOT_DASH = wx.PENSTYLE_DOT_DASH
-    wx.USER_DASH = wx.PENSTYLE_USER_DASH
-    wx.TRANSPARENT = wx.PENSTYLE_TRANSPARENT | wx.BRUSHSTYLE_TRANSPARENT
-
-    wx.STIPPLE_MASK_OPAQUE = wx.BRUSHSTYLE_STIPPLE_MASK_OPAQUE
-    wx.STIPPLE_MASK = wx.BRUSHSTYLE_STIPPLE_MASK
-    wx.STIPPLE = wx.BRUSHSTYLE_STIPPLE
-    wx.BDIAGONAL_HATCH = wx.BRUSHSTYLE_BDIAGONAL_HATCH
-    wx.CROSSDIAG_HATCH = wx.BRUSHSTYLE_CROSSDIAG_HATCH
-    wx.FDIAGONAL_HATCH = wx.BRUSHSTYLE_FDIAGONAL_HATCH
-    wx.CROSS_HATCH = wx.BRUSHSTYLE_CROSS_HATCH
-    wx.HORIZONTAL_HATCH = wx.BRUSHSTYLE_HORIZONTAL_HATCH
-    wx.VERTICAL_HATCH = wx.BRUSHSTYLE_VERTICAL_HATCH
-
-    embeddedimage.PyEmbeddedImage.getBitmap = embeddedimage.PyEmbeddedImage.GetBitmap
 
     def BitmapFromIcon(icon):
         bmp = wx.Bitmap()
@@ -282,8 +243,8 @@ if "gtk3" in wx.PlatformInfo:
             rect = self.GetClientRect()
             dc.SetClippingRegion(rect.x, rect.y, rect.width, rect.height)
             bgcolor = self.BackgroundColour
-            dc.SetBrush(wx.Brush(bgcolor, wx.SOLID))
-            dc.SetPen(wx.Pen(bgcolor, wx.SOLID))
+            dc.SetBrush(wx.Brush(bgcolor, wx.BRUSHSTYLE_SOLID))
+            dc.SetPen(wx.Pen(bgcolor, wx.PENSTYLE_SOLID))
             dc.DrawRectangle(*rect)
 
     from wx import dataview
@@ -1293,8 +1254,8 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
     """
 
-    _reallyenabled = True
-    labelDelta = 1
+    _really_enabled = True
+    label_delta = 1
 
     def __init__(self, *args, **kwargs):
         GenButton.__init__(self)
@@ -1345,7 +1306,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         label = self.Label
         tw, th = dc.GetTextExtent(label)
         if sys.platform != "win32" and not self.up:
-            dx = dy = self.labelDelta
+            dx = dy = self.label_delta
         dc.DrawText(label, int((width - tw) / 2) + dx, int((height - th) / 2) + dy)
 
     def Enable(self, enable=True):
@@ -1356,11 +1317,11 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
     @property
     def Enabled(self):
-        return self._reallyenabled
+        return self._really_enabled
 
     @Enabled.setter
     def Enabled(self, enabled):
-        self._reallyenabled = enabled
+        self._really_enabled = enabled
 
     def IsEnabled(self):
         return self.Enabled
@@ -1392,7 +1353,7 @@ class PlateButton(platebtn.PlateButton):
 
     """
 
-    _reallyenabled = True
+    _really_enabled = True
 
     def __init__(self, *args, **kwargs):
         from DisplayCAL.config import get_default_dpi, getcfg
@@ -1506,7 +1467,7 @@ class PlateButton(platebtn.PlateButton):
 
         # Setup
         gc.SetFont(adjust_font_size_for_gcdc(self.GetFont()))
-        gc.SetBackgroundMode(wx.TRANSPARENT)
+        gc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
 
         # Calc Object Positions
         width, height = self.GetSize()

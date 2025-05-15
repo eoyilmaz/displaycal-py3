@@ -1576,7 +1576,7 @@ class ImageContainer(ImageContainerBase):
 class LabelContainer(ImageContainerBase):
     """Base class for :class:`LabelBook`."""
 
-    nPadding = 6
+    num_padding = 6
 
     def __init__(
         self,
@@ -2360,7 +2360,7 @@ class LabelContainer(ImageContainerBase):
         """
         if bmp.IsOk() and not self.HasAGWFlag(ImageBookStyle.INB_SHOW_ONLY_TEXT):
             imgRect = wx.Rect(
-                rect.x + self.nPadding,
+                rect.x + self.num_padding,
                 rect.y + (rect.height - bmp.GetHeight()) // 2,
                 bmp.GetWidth(),
                 bmp.GetHeight(),

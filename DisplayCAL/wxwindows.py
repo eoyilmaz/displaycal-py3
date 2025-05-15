@@ -2854,9 +2854,9 @@ class BitmapBackgroundPanel(wx.PyPanel):
 
     def _draw(self, dc):
         bgcolor = self.BackgroundColour
-        bbr = wx.Brush(bgcolor, wx.SOLID)
+        bbr = wx.Brush(bgcolor, wx.BRUSHSTYLE_SOLID)
         dc.SetBackground(bbr)
-        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_SOLID)
         dc.Clear()
         dc.SetTextForeground(self.GetForegroundColour())
         bmp = self._bitmap
@@ -2910,12 +2910,12 @@ class BitmapBackgroundPanel(wx.PyPanel):
                 )
                 dc.DrawBitmap(sub_img.ConvertToBitmap(), bmp.GetSize()[0], 0)
         if self.drawbordertop:
-            pen = wx.Pen(self.bordertopcolor, 1, wx.SOLID)
+            pen = wx.Pen(self.bordertopcolor, 1, wx.PENSTYLE_SOLID)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
             dc.DrawLine(0, 0, self.GetSize()[0], 0)
         if self.drawborderbtm:
-            pen = wx.Pen(self.borderbtmcolor, 1, wx.SOLID)
+            pen = wx.Pen(self.borderbtmcolor, 1, wx.PENSTYLE_SOLID)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
             dc.DrawLine(
@@ -2963,7 +2963,7 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
 
     def _draw(self, dc):
         BitmapBackgroundPanel._draw(self, dc)
-        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         dc = self._set_font(dc)
         label = self.Label.splitlines()
         for i, line in enumerate(label):
@@ -4949,7 +4949,9 @@ class CustomColLabelRenderer:
             img.Rescale(rect[2], rect[3], quality=wx.IMAGE_QUALITY_NORMAL)
             dc.DrawBitmap(img.ConvertToBitmap(), rect[0], 0)
             pen = wx.Pen(
-                wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW), 1, wx.SOLID
+                wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW),
+                1,
+                wx.PENSTYLE_SOLID,
             )
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
@@ -5479,8 +5481,8 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
         else:
             cls = wx.BufferedPaintDC
         dc = cls(self)
-        dc.SetBackground(wx.Brush(self.Parent.BackgroundColour, wx.SOLID))
-        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetBackground(wx.Brush(self.Parent.BackgroundColour, wx.BRUSHSTYLE_SOLID))
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         dc.Clear()
         if sys.platform != "win32":
             fancytext.RenderToDC(self._label, dc, 0, 0)
@@ -5492,7 +5494,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
 
     def SetLabel(self, label):
         BetterStaticFancyTextBase.SetLabel(self, label)
-        background = wx.Brush(self.Parent.BackgroundColour, wx.SOLID)
+        background = wx.Brush(self.Parent.BackgroundColour, wx.BRUSHSTYLE_SOLID)
         try:
             bmp = fancytext.RenderToBitmap(self._label, background)
         except ValueError:
@@ -7069,7 +7071,7 @@ class TabButton(PlateButton):
 
         # Setup
         gc.SetFont(adjust_font_size_for_gcdc(self.GetFont()))
-        gc.SetBackgroundMode(wx.TRANSPARENT)
+        gc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
 
         # Calc Object Positions
         width, height = self.GetSize()
@@ -7169,7 +7171,7 @@ class TaskBarNotification(wx.Frame):
         title.Bind(wx.EVT_LEFT_DOWN, lambda event: self.fade("out"))
         title.ForegroundColour = wx.WHITE
         font = title.Font
-        font.Weight = wx.BOLD
+        font.Weight = wx.FONTWEIGHT_BOLD
         title.Font = font
         sizer.Add(title)
         msg = wx.StaticText(panel, -1, text)
@@ -7436,7 +7438,7 @@ class TwoWaySplitter(FourWaySplitter):
         :param dc: an instance of `wx.DC`.
         """
         backColour = wx.Colour(*[int(v * 0.85) for v in self.BackgroundColour[:3]])
-        dc.SetBrush(wx.Brush(backColour, wx.SOLID))
+        dc.SetBrush(wx.Brush(backColour, wx.BRUSHSTYLE_SOLID))
         dc.SetPen(wx.Pen(backColour))
         dc.Clear()
 
@@ -7699,7 +7701,7 @@ def get_gradient_panel(parent, label, x=16):
     gradientpanel.SetBitmap(bitmap)
     gradientpanel.SetMaxFontSize(11)
     font = gradientpanel.Font
-    font.SetWeight(wx.BOLD)
+    font.SetWeight(wx.FONTWEIGHT_BOLD)
     gradientpanel.Font = font
     gradientpanel.SetLabel(label)
     return gradientpanel

@@ -14,6 +14,14 @@ import warnings
 
 import numpy
 
+from DisplayCAL.debughelpers import DEBUG
+
+logger = logging.getLogger(__name__)
+if DEBUG:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
 
 def get_transfer_function_phi(alpha, gamma):
     return (math.pow(1 + alpha, gamma) * math.pow(gamma - 1, gamma - 1)) / (
@@ -1111,7 +1119,7 @@ def XYZ2Lab_delta(
         X2, Y2, Z2 = adapt(X2, Y2, Z2, whitepoint2, whitepoint_reference, cat)
     L1, a1, b1 = XYZ2Lab(X1, Y1, Z1, whitepoint_reference)
     L2, a2, b2 = XYZ2Lab(X2, Y2, Z2, whitepoint_reference)
-    logging.debug(
+    logger.debug(
         f"L*a*b*[1] {L1:.4f} {a1:.4f} {b1:.4f} L*a*b*[2] {L2:.4f} {a2:.4f} {b2:.4f}"
     )
     return delta(L1, a1, b1, L2, a2, b2, method)
@@ -2769,7 +2777,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
     # --------------------------
     # First bracket the solution
 
-    logging.debug("linmin: Bracketing solution")
+    logger.debug("linmin: Bracketing solution")
 
     # The line is measured as startpoint + offset * search vector.
     # (Search isn't symetric, but it seems to depend on cp being
@@ -2785,7 +2793,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xt[i] = cp[i] + xx * xi[i]
     xf = func(fdata, xt)
 
-    logging.debug(f"linmin: Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
+    logger.debug(f"linmin: Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     # Fix it so that we are decreasing from point a -> x
     if xf > af:
@@ -2796,21 +2804,21 @@ def linmin(cp, xi, di, ftol, func, fdata):
         af = xf
         xf = tt
 
-    logging.debug(f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
+    logger.debug(f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     bx = xx + POWELL_GOLD * (xx - ax)  # Guess b beyond a -> x
     for i in range(di):
         xt[i] = cp[i] + bx * xi[i]
     bf = func(fdata, xt)
 
-    logging.debug(
+    logger.debug(
         f"linmin: Initial bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
     )
 
     # While not bracketed
     while xf > bf:
-        logging.debug(f"linmin: Not bracketed because xf {xf:f} > bf {bf:f}")
-        logging.debug(f"        ax = {ax:f}, xx = {xx:f}, bx = {bx:f}")
+        logger.debug(f"linmin: Not bracketed because xf {xf:f} > bf {bf:f}")
+        logger.debug(f"        ax = {ax:f}, xx = {xx:f}, bx = {bx:f}")
 
         # Compute ux by parabolic interpolation from a, x & b
         q = (xx - bx) * (xf - af)
@@ -2875,7 +2883,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xf = bf
         bx = ux
         bf = uf
-    logging.debug(
+    logger.debug(
         f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
     )
     # Got bracketed minimum between a -> x -> b
@@ -2915,13 +2923,13 @@ def linmin(cp, xi, di, ftol, func, fdata):
             tol1 = ftol * abs(xx) + 1e-10
             tol2 = 2.0 * tol1
 
-            logging.debug(
+            logger.debug(
                 f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
             )
 
             # See if we're done
             if abs(xx - mx) <= (tol2 - 0.5 * (bx - ax)):
-                logging.debug(
+                logger.debug(
                     "linmin: We're done because "
                     f"{abs(xx - mx):f} <= {tol2 - 0.5 * (bx - ax):f}"
                 )
@@ -2939,7 +2947,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 te = e  # Save previous e value
                 e = de  # Previous steps distance moved
 
-                logging.debug("linmin: Trial parabolic fit")
+                logger.debug("linmin: Trial parabolic fit")
 
                 if (
                     abs(p) >= abs(0.5 * q * te)
@@ -2951,28 +2959,28 @@ def linmin(cp, xi, di, ftol, func, fdata):
                         ax - xx if xx >= mx else bx - xx
                     )  # Override previous distance moved */
                     de = POWELL_CGOLD * e
-                    logging.debug("linmin: Moving to golden section search")
+                    logger.debug("linmin: Moving to golden section search")
                 else:  # Use parabolic fit
                     de = p / q  # Change in xb
                     ux = xx + de  # Trial point according to parabolic fit
                     if (ux - ax) < tol2 or (bx - ux) < tol2:
                         # Don't use parabolic, use tol1 if (mx - xx) > 0.0: tol1 is +ve
                         de = tol1 if (mx - xx) > 0.0 else -tol1
-                    logging.debug("linmin: Using parabolic fit")
+                    logger.debug("linmin: Using parabolic fit")
             else:  # Keep using the golden section search
                 e = ax - xx if xx >= mx else bx - xx  # Override previous distance moved
                 de = POWELL_CGOLD * e
-                logging.debug("linmin: Continuing golden section search")
+                logger.debug("linmin: Continuing golden section search")
 
             if abs(de) >= tol1:  # If de moves as much as tol1 would
                 ux = xx + de  # use it
-                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + de {de:f}")
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} + de {de:f}")
             elif de > 0.0:
                 ux = xx + tol1
-                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
             else:
                 ux = xx - tol1
-                logging.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
 
             # Evaluate function
             for i in range(di):
@@ -2992,7 +3000,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 wf = xf  # New 2nd best solution from previous best
                 xx = ux
                 xf = uf  # New best solution from latest
-                logging.debug("linmin: found new best solution")
+                logger.debug("linmin: found new best solution")
             else:  # Found a worse solution
                 if ux < xx:
                     ax = ux
@@ -3008,7 +3016,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 elif uf <= vf or vx in [xx, wx]:  # New 3rd best, or equal 1st & 2nd
                     vx = ux
                     vf = uf  # New previous 2nd best from latest
-                logging.debug("linmin: found new worse solution")
+                logger.debug("linmin: found new worse solution")
         # !!! should do something if iter > POWELL_MAXIT !!!!
         # Solution is at xx, xf
 
@@ -3078,7 +3086,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
 
         # Loop over all directions in the set
         for i in range(di):
-            logging.debug(f"Looping over direction {i}")
+            logger.debug(f"Looping over direction {i}")
 
             for j in range(di):  # Extract this direction to make search vector
                 svec[j] = dmtx[j][i]
@@ -3117,12 +3125,12 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
         # If we have had at least one change of direction and
         # reached a suitable tollerance, then finish
         if iter_ > 1 and curdel <= stopth:
-            logging.debug(
+            logger.debug(
                 f"Reached stop tollerance because curdel {curdel:f} <= stopth "
                 f"{stopth:f}"
             )
             break
-        logging.debug(f"Not stopping because curdel {curdel:f} > stopth {stopth:f}")
+        logger.debug(f"Not stopping because curdel {curdel:f} > stopth {stopth:f}")
 
         for i in range(di):
             svec[i] = cp[i] - spt[i]  # Average direction moved after minimization round
@@ -3149,7 +3157,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
     if iter_ < maxit:
         return True
 
-    logging.debug("powell: returning False due to excessive iterations")
+    logger.debug("powell: returning False due to excessive iterations")
     return False  # Failed due to execessive iterations
 
 
@@ -3175,7 +3183,7 @@ def xicc_tech_gamma(egamma, off, outoffset=0.0):
     sa[0] = 0.1
 
     if not powell(1, op, sa, 1e-6, 500, gam_fit, gf):
-        logging.warning("Computing effective gamma and input offset is inaccurate")
+        logger.warning("Computing effective gamma and input offset is inaccurate")
 
     return op[0]
 
@@ -3271,11 +3279,11 @@ class BT1886:
         Rec709 curve and the output offset pure 2.4 gamma curve)
 
         """
-        logging.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
+        logger.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
         out = self.bwd_matrix * (X, Y, Z)
 
-        logging.debug(f"bt1886 RGB in {out[0]:f} {out[1]:f} {out[2]:f}")
+        logger.debug(f"bt1886 RGB in {out[0]:f} {out[1]:f} {out[2]:f}")
 
         for j in range(3):
             vv = out[j]
@@ -3301,11 +3309,11 @@ class BT1886:
 
         out = self.fwd_matrix * out
 
-        logging.debug(f"bt1886 RGB bt.1886 {out[0]:f} {out[1]:f} {out[2]:f}")
+        logger.debug(f"bt1886 RGB bt.1886 {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = list(XYZ2Lab(*[v * 100 for v in out]))
 
-        logging.debug(f"bt1886 Lab after Y adj. {out[0]:f} {out[1]:f} {out[2]:f}")
+        logger.debug(f"bt1886 Lab after Y adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         # Blend ab to required black point offset self.tab[] as L approaches black.
         vv = (out[0] - self.outL) / (100.0 - self.outL)  # 0 at bp, 1 at wp
@@ -3320,11 +3328,11 @@ class BT1886:
         out[1] += vv * self.tab[1]
         out[2] += vv * self.tab[2]
 
-        logging.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
+        logger.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = Lab2XYZ(*out)
 
-        logging.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
+        logger.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
 
         return out
 

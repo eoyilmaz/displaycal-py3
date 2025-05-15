@@ -838,7 +838,7 @@ class IdFactory:
     ReservedIds = set()
 
     @classmethod
-    def NewId(cls):
+    def NewId(cls) -> int:
         """Replacement for wx.NewId()"""
         start_id = cls.CurrentId
 
@@ -863,9 +863,9 @@ class IdFactory:
         return id
 
     @classmethod
-    def ReserveId(cls, id):
+    def ReserveId(cls, id) -> None:
         cls.ReservedIds.add(id)
 
     @classmethod
-    def UnreserveId(cls, id):
+    def UnreserveId(cls, id) -> None:
         cls.ReservedIds.remove(id)

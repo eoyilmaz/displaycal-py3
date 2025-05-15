@@ -130,7 +130,7 @@ class MSCMSLoader:
     _windll = None
 
     @classmethod
-    def get_mscms_windll(cls):
+    def get_mscms_windll(cls) -> "MSCMS":
         """Get the MSCMS windll instance.
 
         Returns:

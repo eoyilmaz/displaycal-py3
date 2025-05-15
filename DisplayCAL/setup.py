@@ -428,7 +428,7 @@ def setup():
     do_uninstall = "uninstall" in sys.argv[1:]
     doc_layout = "deb" if os.path.exists("/etc/debian_version") else ""
     dry_run = "-n" in sys.argv[1:] or "--dry-run" in sys.argv[1:]
-    help = False
+    print_help = False
     install_data = None  # data files install path (only if given)
     is_rpm_build = "bdist_rpm" in sys.argv[1:] or os.path.abspath(sys.argv[0]).endswith(
         os.path.join(
@@ -558,7 +558,7 @@ def setup():
                 elif arg[0] == "--record":
                     recordfile_name = arg[1]
             elif arg[0] == "-h" or arg[0].startswith("--help"):
-                help = True
+                print_help = True
 
     if not recordfile_name and (do_full_install or do_uninstall):
         recordfile_name = "INSTALLED_FILES"
@@ -1214,7 +1214,7 @@ def setup():
             attrs["setup_requires"] = ["py2exe"]
         attrs["zipfile"] = os.path.join("lib", "library.zip")
 
-    if (do_uninstall or do_install or bdist_win or bdist_dumb) and not help:
+    if (do_uninstall or do_install or bdist_win or bdist_dumb) and not print_help:
         distutils.core._setup_stop_after = "commandline"
         dist = setup(**attrs)
         distutils.core._setup_stop_after = None
@@ -1279,7 +1279,7 @@ def setup():
                 else:
                     attrs["data_files"][i] = (change_root(data_basedir, f[0]), f[1])
 
-    if do_uninstall and not help:
+    if do_uninstall and not print_help:
         # Quick and dirty uninstall
         if dry_run:
             print("dry run - nothing will be removed")
@@ -1560,7 +1560,7 @@ def setup():
 
         setup(**attrs)
 
-        if dry_run or help:
+        if dry_run or print_help:
             return
 
         if do_py2app:

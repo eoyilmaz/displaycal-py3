@@ -496,13 +496,13 @@ def get_pids() -> list[int]:
     while True:
         pids = (DWORD * pids_count)()
         pids_size = sizeof(pids)
-        bytes = DWORD()
-        if not psapi.EnumProcesses(byref(pids), pids_size, byref(bytes)):
+        byte_words = DWORD()
+        if not psapi.EnumProcesses(byref(pids), pids_size, byref(byte_words)):
             raise get_windows_error(ctypes.windll.kernel32.GetLastError())
-        if bytes.value >= pids_size:
+        if byte_words.value >= pids_size:
             pids_count *= 2
             continue
-        count = bytes.value / (pids_size / pids_count)
+        count = byte_words.value / (pids_size / pids_count)
         return [_f for _f in pids[:count] if _f]
 
 

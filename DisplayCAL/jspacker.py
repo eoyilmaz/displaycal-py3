@@ -305,20 +305,20 @@ class JavaScriptPacker:
 
     def analyze(self, script, regexp, encode):
         # analyse
-        # retreive all words in the script
+        # retrieve all words in the script
         regexp = re.compile(regexp, re.M)
-        all = regexp.findall(script)
+        all_words = regexp.findall(script)
         sorted_ = []  # list of words sorted by frequency
         encoded = {}  # dictionary of word->encoding
         protected = {}  # instances of "protected" words
-        if all:
+        if all_words:
             unsorted = []
             _protected = {}
             values = {}
             count = {}
-            all.reverse()
-            for word in all:
-                word = "$" + word
+            all_words.reverse()
+            for word in all_words:
+                word = f"${word}"
                 if word not in count:
                     count[word] = 0
                     j = len(unsorted)
@@ -394,7 +394,7 @@ class JavaScriptPacker:
         count = len(keywords["sorted"])
 
         # $ascii: base for encoding
-        ascii = min(count, encoding) or 1
+        ascii_value = min(count, encoding) or 1
 
         # $keywords: list of words contained in the script
         for i in keywords["protected"]:
@@ -421,7 +421,7 @@ class JavaScriptPacker:
         encode = encoding_functions[encoding]
         encode = encode.replace("_encoding", "$ascii")
         encode = encode.replace("arguments.callee", "$encode")
-        inline = "$count.toString($ascii)" if ascii > 10 else "$count"
+        inline = "$count.toString($ascii)" if ascii_value > 10 else "$count"
         # $decode: code snippet to speed up decoding
         if fastDecode:
             # create the decoder
@@ -442,10 +442,10 @@ if (!''.replace(/^/, String)) {
             if encoding > 62:
                 decode = decode.replace("\\\\w", "[\\xa1-\\xff]")
             # perform the encoding inline for lower ascii values
-            elif ascii < 36:
+            elif ascii_value < 36:
                 decode = ENCODE.sub(inline, decode)
             # special case: when $count==0 there ar no keywords. i want to keep
-            #  the basic shape of the unpacking funcion so i'll frig the code...
+            #  the basic shape of the unpacking function so i'll frig the code...
             if not count:
                 raise NotImplementedError
                 # ) $decode = $decode.replace(/(\$count)\s*=\s*1/, "$1=0");
@@ -469,7 +469,7 @@ if (!''.replace(/^/, String)) {
         if encoding > 62:  # high-ascii
             # get rid of the word-boundaries for regexp matches
             unpack = re.sub(r"""'\\\\b'\s*\+|\+\s*'\\\\b'""", "", unpack)
-        if ascii > 36 or encoding > 62 or fastDecode:
+        if ascii_value > 36 or encoding > 62 or fastDecode:
             # insert the encode function
             # unpack = re.sub(r"""\{""", "{$encode=" + encode + ";", unpack)
             unpack = unpack.replace("{", "{$encode=" + encode + ";", 1)
@@ -480,7 +480,7 @@ if (!''.replace(/^/, String)) {
         unpack = self.pack(unpack, 0, False, True)
 
         # arguments
-        params = [packed, str(ascii), str(count), keywords]
+        params = [packed, str(ascii_value), str(count), keywords]
         if fastDecode:
             # insert placeholders for the decoder
             params.extend(["0", "{}"])

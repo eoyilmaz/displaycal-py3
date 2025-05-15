@@ -246,11 +246,11 @@ class UntetheredFrame(BaseFrame):
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
 
-        for id in self.id_to_keycode:
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
 

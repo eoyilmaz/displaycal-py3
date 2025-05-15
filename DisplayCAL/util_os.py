@@ -444,7 +444,7 @@ def _getgroups_win32(
     groups = []
 
     try:
-        sid, domain, type = win32security.LookupAccountName("", username)
+        sid, domain, type_ = win32security.LookupAccountName("", username)
         groups_sids = win32security.GetTokenInformation(
             win32security.OpenProcessToken(
                 win32api.GetCurrentProcess(), win32security.TOKEN_QUERY
@@ -453,7 +453,7 @@ def _getgroups_win32(
         )
         for group_sid in groups_sids:
             try:
-                group_name, domain, type = win32security.LookupAccountSid(
+                group_name, domain, type_ = win32security.LookupAccountSid(
                     "", group_sid.Sid
                 )
                 groups.append(group_name)
@@ -596,7 +596,7 @@ def make_win32_compatible_long_path(path: str, maxpath: int = 259) -> str:
     return path
 
 
-def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
+def mkstemp_bypath(path: str, dirname: Optional[str] = None, text: bool = False):
     """Wrap mkstemp.
 
     Uses filename and extension from path as prefix and suffix for the temporary
@@ -604,8 +604,8 @@ def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
 
     Args:
         path (str): The path to use for generating the temporary file name.
-        dir (Optional[str]): The directory in which to create the temporary file.
-            Defaults to None.
+        dirname (Optional[str]): The directory in which to create the temporary
+            file. Defaults to None.
         text (bool): Whether to open the file in text mode. Defaults to False.
 
     Returns:
@@ -613,9 +613,9 @@ def mkstemp_bypath(path: str, dir: Optional[str] = None, text: bool = False):
             the temporary file.
     """
     fname, ext = fname_ext(path)
-    if not dir:
-        dir = os.path.dirname(path)
-    return tempfile.mkstemp(ext, fname + "-", dir, text)
+    if not dirname:
+        dirname = os.path.dirname(path)
+    return tempfile.mkstemp(ext, f"{fname}-", dirname, text)
 
 
 def _set_cloexec(fd):
@@ -1022,13 +1022,13 @@ def waccess(path: str, mode: int) -> bool:
         except OSError:
             return False
     if mode & os.W_OK:
-        dir = path if os.path.isdir(path) else os.path.dirname(path)
+        directory = path if os.path.isdir(path) else os.path.dirname(path)
         try:
             if os.path.isfile(path):
                 with open(path, "ab"):
                     pass
             else:
-                with tempfile.TemporaryFile(prefix=".", dir=dir):
+                with tempfile.TemporaryFile(prefix=".", dir=directory):
                     pass
         except OSError:
             return False

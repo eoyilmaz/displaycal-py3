@@ -3066,37 +3066,39 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             lang.LDICT[lcode].menuitem_id = menuitem.GetId()
             self.Bind(wx.EVT_MENU, self.set_language_handler, menuitem)
 
-        help = self.menubar.GetMenu(self.menubar.FindMenu("menu.help"))
-        self.menuitem_about = help.Append(
+        help_action = self.menubar.GetMenu(self.menubar.FindMenu("menu.help"))
+        self.menuitem_about = help_action.Append(
             -1 if wx.VERSION < (2, 9) else wx.ID_ABOUT, "&menu.about"
         )
         self.Bind(wx.EVT_MENU, self.aboutdialog_handler, self.menuitem_about)
-        self.menuitem_readme = help.FindItemById(help.FindItem("readme"))
+        self.menuitem_readme = help_action.FindItemById(help_action.FindItem("readme"))
         self.menuitem_readme.Enable(isinstance(get_data_path("README.html"), str))
         self.Bind(wx.EVT_MENU, self.readme_handler, self.menuitem_readme)
-        self.menuitem_license = help.FindItemById(help.FindItem("license"))
+        self.menuitem_license = help_action.FindItemById(
+            help_action.FindItem("license")
+        )
         self.menuitem_license.Enable(
             isinstance(get_data_path("LICENSE.txt"), str)
             or os.path.isfile("/usr/share/common-licenses/GPL-3")
         )
         self.Bind(wx.EVT_MENU, self.license_handler, self.menuitem_license)
-        menuitem = help.FindItemById(help.FindItem("go_to_website"))
+        menuitem = help_action.FindItemById(help_action.FindItem("go_to_website"))
         self.Bind(
             wx.EVT_MENU, lambda event: launch_file(f"https://{DOMAIN}/"), menuitem
         )
-        menuitem = help.FindItemById(help.FindItem("help_support"))
+        menuitem = help_action.FindItemById(help_action.FindItem("help_support"))
         self.Bind(wx.EVT_MENU, self.help_support_handler, menuitem)
-        menuitem = help.FindItemById(help.FindItem("bug_report"))
+        menuitem = help_action.FindItemById(help_action.FindItem("bug_report"))
         self.Bind(wx.EVT_MENU, self.bug_report_handler, menuitem)
-        self.menuitem_app_auto_update_check = help.FindItemById(
-            help.FindItem("update_check.onstartup")
+        self.menuitem_app_auto_update_check = help_action.FindItemById(
+            help_action.FindItem("update_check.onstartup")
         )
         self.Bind(
             wx.EVT_MENU,
             self.app_auto_update_check_handler,
             self.menuitem_app_auto_update_check,
         )
-        menuitem = help.FindItemById(help.FindItem("update_check"))
+        menuitem = help_action.FindItemById(help_action.FindItem("update_check"))
         self.Bind(wx.EVT_MENU, self.app_update_check_handler, menuitem)
 
         if sys.platform == "darwin":
@@ -11200,9 +11202,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             dlg.sizer3.Add(
                 self.show_profile_info, flag=wx.TOP | wx.ALIGN_LEFT, border=4
             )
-            id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
-            if id in self.profile_info:
-                self.show_profile_info.SetValue(self.profile_info[id].IsShownOnScreen())
+            id_ = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
+            if id_ in self.profile_info:
+                self.show_profile_info.SetValue(
+                    self.profile_info[id_].IsShownOnScreen()
+                )
             if installable:
                 if sys.platform == "win32":
                     # Get profile loader config
@@ -11611,33 +11615,33 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
         if not profile:
             return
-        id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
+        id_ = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
         show = (
             not getattr(self, "show_profile_info", None)
             or self.show_profile_info.GetValue()
         )
         if show:
-            if id not in self.profile_info:
+            if id_ not in self.profile_info:
                 # Create profile info window and store in hash table
-                self.profile_info[id] = ProfileInfoFrame(None, -1)
-                self.profile_info[id].Unbind(wx.EVT_CLOSE)
-                self.profile_info[id].Bind(
+                self.profile_info[id_] = ProfileInfoFrame(None, -1)
+                self.profile_info[id_].Unbind(wx.EVT_CLOSE)
+                self.profile_info[id_].Bind(
                     wx.EVT_CLOSE, self.profile_info_close_handler
                 )
             if (
-                not self.profile_info[id].profile
-                or self.profile_info[id].profile.calculateID(False) != id
+                not self.profile_info[id_].profile
+                or self.profile_info[id_].profile.calculateID(False) != id_
             ):
                 # Load profile if info window has no profile or ID is different
-                self.profile_info[id].profileID = id
-                self.profile_info[id].LoadProfile(profile)
-        if self.profile_info.get(id):
-            if self.profile_info[id].IsIconized() and show:
-                self.profile_info[id].Restore()
+                self.profile_info[id_].profileID = id_
+                self.profile_info[id_].LoadProfile(profile)
+        if self.profile_info.get(id_):
+            if self.profile_info[id_].IsIconized() and show:
+                self.profile_info[id_].Restore()
             else:
-                self.profile_info[id].Show(show)
+                self.profile_info[id_].Show(show)
             if show:
-                self.profile_info[id].Raise()
+                self.profile_info[id_].Raise()
 
     def get_commands(self):
         return self.get_common_commands() + [
@@ -18709,12 +18713,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             launch_file(readme)
 
     def license_handler(self, event):
-        license = get_data_path("LICENSE.txt")
-        if not license:
+        license_path = get_data_path("LICENSE.txt")
+        if not license_path:
             # Debian
-            license = "/usr/share/common-licenses/GPL-3"
-        if license and os.path.isfile(license):
-            launch_file(license)
+            license_path = "/usr/share/common-licenses/GPL-3"
+        if license_path and os.path.isfile(license_path):
+            launch_file(license_path)
 
     def help_support_handler(self, event):
         launch_file(f"{DEVELOPMENT_HOME_PAGE}/issues")

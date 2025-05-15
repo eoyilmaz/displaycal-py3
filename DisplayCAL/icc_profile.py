@@ -2404,13 +2404,15 @@ def get_display_profile_linux(
                         meth = display.get_window_property
                         what = display.root_window(0)
                     try:
-                        property = meth(what, atom_id)
+                        window_property = meth(what, atom_id)
                     except ValueError as exception:
                         warnings.warn(str(exception), Warning, stacklevel=2)
                     else:
-                        if property and (
+                        if window_property and (
                             profile := ICCProfile(
-                                b"".join(bytes(chr(n), "UTF-8") for n in property),
+                                b"".join(
+                                    bytes(chr(n), "utf-8") for n in window_property
+                                ),
                                 use_cache=True,
                             )
                         ):
@@ -2449,8 +2451,8 @@ def get_display_profile_linux(
         if stdout:
             raw = [item.strip() for item in stdout.split("=")]
             if raw[0] == atom and len(raw) == 2:
-                bin = "".join([chr(int(part)) for part in raw[1].split(", ")])
-                profile = ICCProfile(bin, use_cache=True)
+                binary_data = "".join([chr(int(part)) for part in raw[1].split(", ")])
+                profile = ICCProfile(binary_data, use_cache=True)
         elif stderr and tgt_proc.wait() != 0:
             raise OSError(stderr)
         if profile:
@@ -3359,9 +3361,11 @@ BEGIN_DATA
             i = 1
             if self.tagSignature and self.tagSignature.startswith("B2A"):
                 interp = []
-                for input in self.input:
+                for input_value in self.input:
                     interp.append(
-                        colormath.Interp(input, list(range(len(input))), use_numpy=True)
+                        colormath.Interp(
+                            input_value, list(range(len(input_value))), use_numpy=True
+                        )
                     )
             for a in range(clutres):
                 for b in range(clutres):
@@ -5418,9 +5422,9 @@ class VideoCardGammaTableType(VideoCardGammaType):
         )
         if amount <= self.entryCount:
             step = self.entryCount / float(amount - 1)
-            all = values
+            all_values = values
             values = []
-            for i, value in enumerate(all):
+            for i, value in enumerate(all_values):
                 if i == 0 or (i + 1) % step < 1 or i + 1 == self.entryCount:
                     values.append(value)
         return values
@@ -6527,9 +6531,9 @@ class ICCProfile:
             # Dont't include ID under Mac OS X unless v4 profile
             # to stop pedantic ColorSync utility from complaining
             # about header padding not being null
-            id = b""
+            id_ = b""
         else:
-            id = self.ID[:16]
+            id_ = self.ID[:16]
 
         if isinstance(self._data, str):
             self._data = self._data.encode()
@@ -6540,7 +6544,7 @@ class ICCProfile:
                 uInt32Number_tohex(self.intent),
                 self.illuminant.tohex(),
                 self.creator[:4].ljust(4, b" ") if self.creator else b"\0" * 4,
-                id.ljust(16, b"\0"),
+                id_.ljust(16, b"\0"),
                 self._data[100:128] if len(self._data[100:128]) == 28 else b"\0" * 28,
             ]
         )
@@ -6820,7 +6824,7 @@ class ICCProfile:
         manufacturer_id = edid["edid"][8:10]
         model_name = description
         model_id = edid["edid"][10:12]
-        copyright = "Created from EDID"
+        copyright_str = "Created from EDID"
         # Get chromaticities of primaries0
         xy = {}
         for color in ("red", "green", "blue", "white"):
@@ -6839,7 +6843,7 @@ class ICCProfile:
             xy["wy"],
             gamma,
             description,
-            copyright,
+            copyright_str,
             manufacturer,
             model_name,
             manufacturer_id,

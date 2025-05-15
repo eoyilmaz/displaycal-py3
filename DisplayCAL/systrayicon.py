@@ -125,12 +125,12 @@ class Menu(wx.EvtHandler):
 
 class MenuItem:
     def __init__(
-        self, menu, id=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
+        self, menu, id_=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
     ):
-        if id == -1:
-            id = IdFactory.NewId()
+        if id_ == -1:
+            id_ = IdFactory.NewId()
         self.Menu = menu
-        self.Id = id
+        self.Id = id_
         self.ItemLabel = text
         self.Help = help
         self.Kind = kind

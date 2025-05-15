@@ -1853,14 +1853,16 @@ def focus_next_keyboard_focusable_control(control):
         if isinstance(parent, (wx.Panel, wx.PyPanel)):
             focusparent = parent
         parent = parent.Parent
-    if focusparent:
-        children = get_all_keyboard_focusable_children(focusparent)
-        if wx.GetKeyState(wx.WXK_SHIFT):
-            children = list(reversed(children))
-        for i, child in enumerate(children):
-            if child is control:
-                for next in children[i + 1 :] + children[:i]:
-                    if next is not child.Parent:
-                        next.SetFocus()
-                        break
+    if not focusparent:
+        return
+    children = get_all_keyboard_focusable_children(focusparent)
+    if wx.GetKeyState(wx.WXK_SHIFT):
+        children = list(reversed(children))
+    for i, child in enumerate(children):
+        if child is not control:
+            continue
+        for next_child in children[i + 1 :] + children[:i]:
+            if next_child is not child.Parent:
+                next_child.SetFocus()
                 break
+        break

@@ -846,21 +846,21 @@ class IdFactory:
             # Skip the part of IDs space that contains hard-coded values
             if cls.CurrentId == wx.ID_LOWEST:
                 cls.CurrentId = wx.ID_HIGHEST + 1
-            id = cls.CurrentId
-            if id < 30095:
+            id_ = cls.CurrentId
+            if id_ < 30095:
                 cls.CurrentId += 1
             else:
                 cls.CurrentId = 100
-            if id not in cls.ReservedIds:
+            if id_ not in cls.ReservedIds:
                 break
             if cls.CurrentId == start_id:
                 raise RuntimeError(
                     "Error: Out of IDs. Recommend shutting down application."
                 )
 
-        cls.ReserveId(id)
+        cls.ReserveId(id_)
 
-        return id
+        return id_
 
     @classmethod
     def ReserveId(cls, id) -> None:

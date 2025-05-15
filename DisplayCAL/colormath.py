@@ -3068,7 +3068,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
     retv = func(fdata, cp)
 
     # Iterate untill we converge on a solution, or give up.
-    for iter in range(1, maxit):
+    for iter_ in range(1, maxit):
         # lretv  # Last function return value
         ibig = 0  # Index of biggest delta
         del_ = 0.0  # Biggest function value decrease
@@ -3116,7 +3116,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
 
         # If we have had at least one change of direction and
         # reached a suitable tollerance, then finish
-        if iter > 1 and curdel <= stopth:
+        if iter_ > 1 and curdel <= stopth:
             logging.debug(
                 f"Reached stop tollerance because curdel {curdel:f} <= stopth "
                 f"{stopth:f}"
@@ -3146,7 +3146,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
     if prog:  # Report final progress
         prog(pdata, 100)
 
-    if iter < maxit:
+    if iter_ < maxit:
         return True
 
     logging.debug("powell: returning False due to excessive iterations")

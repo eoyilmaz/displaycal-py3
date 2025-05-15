@@ -962,11 +962,11 @@ class BaseFrame(wx.Frame):
     def init_menubar(self):
         self.MenuBar = wx.MenuBar()
         filemenu = wx.Menu()
-        quit = filemenu.Append(
+        quit_action = filemenu.Append(
             -1 if wx.VERSION < (2, 9) else wx.ID_EXIT,
             "&{}\tCtrl+Q".format(lang.getstr("menuitem.quit")),
         )
-        self.Bind(wx.EVT_MENU, lambda event: self.Close(), quit)
+        self.Bind(wx.EVT_MENU, lambda event: self.Close(), quit_action)
         if sys.platform != "darwin":
             self.MenuBar.Append(filemenu, "&{}".format(lang.getstr("menu.file")))
 
@@ -2586,17 +2586,17 @@ class BaseInteractiveDialog(wx.Dialog):
                 self.RequestUserAttention()
 
     def OnClose(self, event):
-        id = wx.ID_CANCEL if event.GetEventObject() == self else event.GetId()
+        id_ = wx.ID_CANCEL if event.GetEventObject() == self else event.GetId()
         if self._log and isinstance(self, ConfirmDialog):
             if hasattr(self, "FindWindow"):
                 # wxPython 4
-                ctrl = self.FindWindow(id)
+                ctrl = self.FindWindow(id_)
             else:
                 # wxPython 3
-                ctrl = self.FindWindowById(id)
+                ctrl = self.FindWindowById(id_)
             if ctrl:
                 print("->", ctrl.Label)
-        self.EndModal(id)
+        self.EndModal(id_)
 
     def EndModal(self, id):
         # Re-enable other windows
@@ -5946,9 +5946,9 @@ class LogWindow(InvincibleFrame):
             else:
                 # Create ZIP archive
                 try:
-                    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zip:
+                    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zip_file:
                         for filename in os.listdir(LOGDIR):
-                            zip.write(os.path.join(LOGDIR, filename), filename)
+                            zip_file.write(os.path.join(LOGDIR, filename), filename)
                 except Exception as exception:
                     InfoDialog(
                         self,
@@ -6248,11 +6248,11 @@ class ProgressDialog(wx.Dialog):
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
-        for id in self.id_to_keycode:
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
 
@@ -6384,17 +6384,17 @@ class ProgressDialog(wx.Dialog):
         bitmaps = ProgressDialog.get_bitmaps(self.progress_type)
         if self.progress_type == 0:
             # Processing
-            range = (60, 68)
+            frame_range = (60, 68)
             loop = True
         elif self.progress_type == 1:
             # Measuring
-            range = (0, 9)
+            frame_range = (0, 9)
             loop = False
         else:
             # Generating test patches
-            range = (27, 36)
+            frame_range = (27, 36)
             loop = True
-        self.animbmp.SetBitmaps(bitmaps, range=range, loop=loop)
+        self.animbmp.SetBitmaps(bitmaps, range=frame_range, loop=loop)
         if self.progress_type == 1:
             self.animbmp.frame = 4
         wx.CallLater(50, lambda: self and self.IsShown() and self.animbmp.Play(24))

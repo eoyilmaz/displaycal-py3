@@ -126,7 +126,7 @@ class XDisplay:
             pointer(c_ubyte()),
         )
 
-        property = None
+        window_property = None
         if (
             libx11.XGetWindowProperty(
                 self.display,
@@ -150,9 +150,9 @@ class XDisplay:
                 print("ret_format:", ret_format.value)
                 print("ret_len:", ret_len.value)
                 print("ret_togo:", ret_togo.value)
-            property = [atomv[i] for i in range(ret_len.value)]
+            window_property = [atomv[i] for i in range(ret_len.value)]
 
-        return property
+        return window_property
 
     def get_output_property(self, output, atom_id, atom_type=XA_CARDINAL):
         if not output:
@@ -166,7 +166,7 @@ class XDisplay:
             pointer(c_ubyte()),
         )
 
-        property = None
+        output_property = None
         if (
             libxrandr.XRRGetOutputProperty(
                 self.display,
@@ -191,14 +191,14 @@ class XDisplay:
                 print("ret_format:", ret_format.value)
                 print("ret_len:", ret_len.value)
                 print("ret_togo:", ret_togo.value)
-            property = [atomv[i] for i in range(ret_len.value)]
+            output_property = [atomv[i] for i in range(ret_len.value)]
 
-        return property
+        return output_property
 
 
 if __name__ == "__main__":
     with XDisplay() as display:
-        property = display.get_output_property(
+        output_property = display.get_output_property(
             int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
         )
-        print(f"{sys.argv[2]} for display {sys.argv[1]}: {property!r}")
+        print(f"{sys.argv[2]} for display {sys.argv[1]}: {output_property!r}")

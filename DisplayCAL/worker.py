@@ -10710,7 +10710,7 @@ usage: spotread [-options] [logfile]
                             if gamap_profile.convert_iccv4_tags_to_iccv2():
                                 # Write to temp file
                                 fd, gamap_profile.fileName = mkstemp_bypath(
-                                    gamap_profile_filename, dir=self.tempdir
+                                    gamap_profile_filename, dirname=self.tempdir
                                 )
                                 stream = os.fdopen(fd, "wb")
                                 gamap_profile.write(stream)
@@ -10842,7 +10842,7 @@ usage: spotread [-options] [logfile]
                                 gamap_profile.apply_black_offset(XYZbp)
                                 # Write to temp file because file changed
                                 fd, gamap_profile.fileName = mkstemp_bypath(
-                                    gamap_profile.fileName, dir=self.tempdir
+                                    gamap_profile.fileName, dirname=self.tempdir
                                 )
                                 stream = os.fdopen(fd, "wb")
                                 gamap_profile.write(stream)

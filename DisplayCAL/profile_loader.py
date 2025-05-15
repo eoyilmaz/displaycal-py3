@@ -940,26 +940,26 @@ class ProfileAssociationsDialog(InfoDialog):
                 self,
             )
             return
-        id = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
-        if id not in self.profile_info:
+        id_ = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
+        if id_ not in self.profile_info:
             # Create profile info window and store in hash table
             from wxProfileInfo import ProfileInfoFrame
 
-            self.profile_info[id] = ProfileInfoFrame(None, -1)
-            self.profile_info[id].Unbind(wx.EVT_CLOSE)
-            self.profile_info[id].Bind(wx.EVT_CLOSE, self.close_profile_info)
+            self.profile_info[id_] = ProfileInfoFrame(None, -1)
+            self.profile_info[id_].Unbind(wx.EVT_CLOSE)
+            self.profile_info[id_].Bind(wx.EVT_CLOSE, self.close_profile_info)
         if (
-            not self.profile_info[id].profile
-            or self.profile_info[id].profile.calculateID(False) != id
+            not self.profile_info[id_].profile
+            or self.profile_info[id_].profile.calculateID(False) != id_
         ):
             # Load profile if info window has no profile or ID is different
-            self.profile_info[id].profileID = id
-            self.profile_info[id].LoadProfile(profile)
-        if self.profile_info[id].IsIconized():
-            self.profile_info[id].Restore()
+            self.profile_info[id_].profileID = id_
+            self.profile_info[id_].LoadProfile(profile)
+        if self.profile_info[id_].IsIconized():
+            self.profile_info[id_].Restore()
         else:
-            self.profile_info[id].Show()
-            self.profile_info[id].Raise()
+            self.profile_info[id_].Show()
+            self.profile_info[id_].Raise()
         argyll_dir = getcfg("argyll.dir")
         if getcfg("argyll.dir") != argyll_dir:
             if self.pl.frame:

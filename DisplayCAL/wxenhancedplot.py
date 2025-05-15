@@ -2213,10 +2213,10 @@ class PlotCanvas(wx.Panel):
                 return lower - 0.5, upper + 0.5
             return lower, upper
         if spec == "auto":
-            range = upper - lower
-            if range == 0.0:
+            axis_range = upper - lower
+            if axis_range == 0.0:
                 return lower - 0.5, upper + 0.5
-            log = np.log10(range)
+            log = np.log10(axis_range)
             power = np.floor(log)
             fraction = log - power
             if fraction <= 0.05:

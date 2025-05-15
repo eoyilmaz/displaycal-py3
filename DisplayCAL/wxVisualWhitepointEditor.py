@@ -79,8 +79,8 @@ aui.framemanager.AuiManager_UseNativeMiniframes = (
     == aui.AUI_MGR_USE_NATIVE_MINIFRAMES
 )
 
-colourAttributes = ["r", "g", "b", "h", "s", "v"]
-colourMaxValues = [255, 255, 255, 359, 255, 255]
+COLOUR_ATTRIBUTES = ["r", "g", "b", "h", "s", "v"]
+COLOUR_MAX_VALUES = [255, 255, 255, 359, 255, 255]
 
 
 def rad2deg(x):
@@ -324,7 +324,6 @@ class AuiManager_LRDocking(aui.AuiManager):
 
     Also, it is not necessary to hover the drop guide, a drop hint will show
     near the edges regardless.
-
     """
 
     def CreateGuideWindows(self):
@@ -2251,7 +2250,7 @@ class VisualWhitepointEditor(wx.Frame):
             wx.Bell()
             return
 
-        attribute, maxVal = colourAttributes[position], colourMaxValues[position]
+        attribute, maxVal = COLOUR_ATTRIBUTES[position], COLOUR_MAX_VALUES[position]
 
         self.AssignColourValue(attribute, colourVal, maxVal, position)
 

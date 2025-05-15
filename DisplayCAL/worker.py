@@ -5726,10 +5726,14 @@ END_DATA
             log_output (bool): If True, logs any output if capture_output is
                 also set.
             title (str): Title for auth dialog (if asroot is True).
+            shell (bool): If True, runs the command in a shell.
             working_dir (str): Working directory. If None, will be determined
                 from absulte path of last argument and last argument will be
                 set to only the basename. If False, no working dir will be used
                 and file arguments not changed.
+            dry_run (bool): If True, does not run the command, but returns.
+            sessionlogfile (str): If not None, the session log file to write.
+            use_pty (bool): If True, uses a pseudo terminal to run the command.
         """
         if args is None:
             args = []

@@ -34,9 +34,12 @@ def encode_multipart_formdata(fields, files, charset="UTF-8"):
     """Encode fields and files for multipart/form-data.
 
     Args:
-        fields: A sequence of (name, value) elements for regular form fields.
-        files: A sequence of (name, filename, value) elements for data to be
-            uploaded as files.
+        fields (tuple | list): A sequence of (name, value) elements for regular
+            form fields.
+        files (tuple | list): A sequence of (name, filename, value) elements
+            for data to be uploaded as files.
+        charset (str): The character set to use for encoding the fields and
+            files.
 
     Returns:
         tuple[content_type, body]: Ready for httplib.HTTP instance.

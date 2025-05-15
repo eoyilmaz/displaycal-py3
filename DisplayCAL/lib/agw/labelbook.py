@@ -3099,7 +3099,7 @@ class FlatBookBase(wx.Panel):
 
         Args:
             page (int): an integer specifying the page index;
-            image_id (int): an index into the image list.
+            imageId (int): an index into the image list.
         """
         if self._pages is None:
             raise ValueError("ImageContainer is not initialized")

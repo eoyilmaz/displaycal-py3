@@ -444,11 +444,10 @@ def get_pnp_id_paths():
 def parse_hwdb_data(lines: list[str]) -> None:
     """Parse a from the hwdb file data.
 
-    Args:
-        line (str): The line to parse.
+    Updates the `PNP_ID_CACHE` dictionary with the parsed data.
 
-    Returns:
-        tuple[str, str]: The parsed ID and name.
+    Args:
+        lines (list[str]): The line to parse.
     """
     id_, name = None, None
     for line in lines:

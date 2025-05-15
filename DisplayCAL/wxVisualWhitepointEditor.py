@@ -1668,7 +1668,18 @@ class ProfileManager:
 
 
 class VisualWhitepointEditor(wx.Frame):
-    """This is the VisualWhitepointEditor main class implementation."""
+    """This is the VisualWhitepointEditor main class implementation.
+    
+    Args:
+        parent (wx.Window): The parent window.
+        colourData (ColourData): A standard :class:`ColourData` (as used in
+            :class:`ColourFrame`) to hide the alpha channel control or not.
+        title (str): The title of the window.
+        pos (wx.Point): The position of the window.
+        patterngenerator (Patterngenerator): A patterngenerator object.
+        geometry (tuple): The geometry of the display the profile is assigned to.
+        profile (ICCProfile): The profile of the display with the given geometry.
+    """
 
     def __init__(
         self,
@@ -1680,15 +1691,6 @@ class VisualWhitepointEditor(wx.Frame):
         geometry=None,
         profile=None,
     ):
-        """Default class constructor.
-
-        Args:
-            colourData (ColourData): A standard :class:`ColourData` (as used in
-                :class:`ColourFrame`) to hide the alpha channel control or not.
-            patterngenerator: A patterngenerator object.
-            geometry: The geometry of the display the profile is assigned to.
-            profile: The profile of the display with the given geometry.
-        """
         self.patterngenerator = patterngenerator
         self.update_patterngenerator_event = threading.Event()
 

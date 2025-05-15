@@ -14,15 +14,15 @@ if os.getenv("GTK_CSD", "0") != "0":
     # https://hub.displaycal.net/issue/17331/
     os.environ["GTK_CSD"] = "0"
 
-# wxversion will be removed in Phoenix
+# wx_version will be removed in Phoenix
 try:
-    from DisplayCAL import wxversion
+    from DisplayCAL import wx_version
 except ImportError:
     pass
 else:
     if not getattr(sys, "frozen", False) and "wx" not in sys.modules:
-        with contextlib.suppress(wxversion.VersionError):
-            wxversion.select(["4.0", "3.0", "{}.{}.{}".format(*WX_MINVERSION[:3])])
+        with contextlib.suppress(wx_version.VersionError):
+            wx_version.select(["4.0", "3.0", "{}.{}.{}".format(*WX_MINVERSION[:3])])
 
 import wx
 
@@ -1369,7 +1369,7 @@ class PlateButton(platebtn.PlateButton):
         self._bmp["hilite"] = None
         if sys.platform == "darwin":
             # Use Sierra-like color scheme
-            from DisplayCAL.wxaddons import gamma_encode
+            from DisplayCAL.wx_addons import gamma_encode
 
             color = wx.Colour(*gamma_encode(0, 105, 217))
         else:
@@ -1614,14 +1614,14 @@ class TempXmlResource:
                 if "gtk3" in wx.PlatformInfo:
                     xml = xml.replace(
                         'class="wxPanel"',
-                        'class="wxPanel" subclass="DisplayCAL.wxfixes.wx_Panel"',
+                        'class="wxPanel" subclass="DisplayCAL.wx_fixes.wx_Panel"',
                     )
-                    # 'class="wxPanel" subclass="wxfixes.wx_Panel"')
+                    # 'class="wxPanel" subclass="wx_fixes.wx_Panel"')
                 # Write modified XML
                 xmlpath = os.path.join(TempXmlResource._temp, os.path.basename(xmlpath))
                 with open(xmlpath, "wb") as xmlfile:
                     xmlfile.write(xml.encode())
-                from DisplayCAL.wxwindows import BaseApp
+                from DisplayCAL.wx_windows import BaseApp
 
                 BaseApp.register_exitfunc(self._cleanup)
         self.xmlpath = xmlpath

@@ -77,7 +77,7 @@ pkgs = {
 if os.path.isdir(os.path.join(wx_pth, "wx")):
     # Not Phoenix
     sys.path.insert(0, wx_pth)
-    pkgs["wx"].append("wxversion")
+    pkgs["wx"].append("wx_version")
 if sys.platform == "win32":
     pkgs["wmi"] = ["wmi"]
 if sys.platform == "darwin":

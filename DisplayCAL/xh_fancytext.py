@@ -3,7 +3,7 @@ from wx import xrc
 from DisplayCAL.log import safe_print
 
 try:
-    from DisplayCAL.wxwindows import BetterStaticFancyText as StaticFancyText
+    from DisplayCAL.wx_windows import BetterStaticFancyText as StaticFancyText
 except ImportError:
     from wx.lib.fancytext import StaticFancyText
 

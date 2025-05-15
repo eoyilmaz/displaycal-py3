@@ -1,8 +1,8 @@
-from DisplayCAL.wxwindows import fancytext_RenderToRenderer
+from DisplayCAL.wx_windows import fancytext_RenderToRenderer
 
 
 def test_fancytext_render_to_renderer():
-    """Testing DisplayCAL.wxwindows.fancytext_RenderToRenderer()"""
+    """Testing DisplayCAL.wx_windows.fancytext_RenderToRenderer()"""
 
     class FakeRenderer:
         def __init__(self):

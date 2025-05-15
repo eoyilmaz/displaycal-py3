@@ -226,15 +226,15 @@ from DisplayCAL.worker import (
     parse_argument_string,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import (
+from DisplayCAL.wx_addons import (
     CustomEvent,
     CustomGridCellEvent,
     IdFactory,
     PopupMenu,
     wx,
 )
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxfixes import (
+from DisplayCAL.wx_display_uniformity_frame import DisplayUniformityFrame
+from DisplayCAL.wx_fixes import (
     BitmapWithThemedButton,
     PlateButton,
     TempXmlResource,
@@ -244,13 +244,13 @@ from DisplayCAL.wxfixes import (
     set_maxsize,
     wx_Panel,
 )
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
-from DisplayCAL.wxMeasureFrame import MeasureFrame, get_default_size
-from DisplayCAL.wxReportFrame import ReportFrame
-from DisplayCAL.wxSynthICCFrame import SynthICCFrame
-from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxVisualWhitepointEditor import VisualWhitepointEditor
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_lut_3d_frame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wx_measure_frame import MeasureFrame, get_default_size
+from DisplayCAL.wx_report_frame import ReportFrame
+from DisplayCAL.wx_synth_icc_frame import SynthICCFrame
+from DisplayCAL.wx_testchart_editor import TestchartEditor
+from DisplayCAL.wx_visual_whitepoint_editor import VisualWhitepointEditor
+from DisplayCAL.wx_windows import (
     AboutDialog,
     AuiBetterTabArt,
     BaseApp,
@@ -287,17 +287,17 @@ except ImportError:
     ChromeCastPatternGenerator = NoneType
 
 try:
-    from DisplayCAL.wxCCXXPlot import CCXXPlot
+    from DisplayCAL.wx_ccxx_plot import CCXXPlot
 except ImportError:
     CCXXPlot = None
 
 try:
-    from DisplayCAL.wxLUTViewer import LUTFrame
+    from DisplayCAL.wx_lut_viewer import LUTFrame
 except ImportError:
     LUTFrame = None
 
 try:
-    from DisplayCAL.wxProfileInfo import ProfileInfoFrame
+    from DisplayCAL.wx_profile_info import ProfileInfoFrame
 except ImportError:
     ProfileInfoFrame = None
 
@@ -10156,9 +10156,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         script = (
             "import sys;"
             f"sys.path.insert(0, {PYDIR!r});"
-            "from DisplayCAL import wxMeasureFrame;"
-            "wxMeasureFrame.main();"
-            "sys.exit(wxMeasureFrame.MeasureFrame.exitcode)"
+            "from DisplayCAL import wx_measure_frame;"
+            "wx_measure_frame.main();"
+            "sys.exit(wx_measure_frame.MeasureFrame.exitcode)"
         )
         args = [
             EXE,
@@ -10190,7 +10190,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 x_hostname, x_display, x_screen = util_x.get_display()
                 x_screen = display_no
                 try:
-                    from DisplayCAL import RealDisplaySizeMM
+                    from DisplayCAL import real_display_size_mm
                 except ImportError as exception:
                     InfoDialog(
                         self,
@@ -10199,7 +10199,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         bitmap=geticon(32, "dialog-warning"),
                     )
                 else:
-                    display = RealDisplaySizeMM.get_x_display(display_no)
+                    display = real_display_size_mm.get_x_display(display_no)
                     if display:
                         x_hostname, x_display, x_screen = display
                 env["DISPLAY"] = f"{x_hostname}:{x_display}.{x_screen}"

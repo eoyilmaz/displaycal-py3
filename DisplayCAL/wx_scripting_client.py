@@ -16,8 +16,8 @@ from DisplayCAL.config import CONFIG_HOME, getcfg, setcfg, writecfg
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import NUMPAD_KEYCODES, BaseApp, SimpleTerminal
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import NUMPAD_KEYCODES, BaseApp, SimpleTerminal
 
 ERRORCOLOR = "#FF3300"
 RESPONSECOLOR = "#CCCCCC"

@@ -37,7 +37,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     import binascii
 
-from DisplayCAL import RealDisplaySizeMM, config
+from DisplayCAL import real_display_size_mm, config
 from DisplayCAL.util_os import which
 from DisplayCAL.util_str import safe_str
 
@@ -321,7 +321,7 @@ def get_edid_from_xrandr(display_no):
     Returns:
         bytes: The EDID data.
     """
-    display = RealDisplaySizeMM.get_display(display_no)
+    display = real_display_size_mm.get_display(display_no)
     if not display:
         return None
 

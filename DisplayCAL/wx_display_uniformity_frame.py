@@ -21,9 +21,9 @@ from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import VERSION_STRING as APPVERSION
 from DisplayCAL.util_os import launch_file, waccess
-from DisplayCAL.wxaddons import CustomEvent, wx
-from DisplayCAL.wxMeasureFrame import MeasureFrame
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import CustomEvent, wx
+from DisplayCAL.wx_measure_frame import MeasureFrame
+from DisplayCAL.wx_windows import (
     NAV_KEYCODES,
     NUMPAD_KEYCODES,
     PROCESSING_KEYCODES,

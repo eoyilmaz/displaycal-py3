@@ -37,9 +37,9 @@ from DisplayCAL.icc_profile import (
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import natsort_key_factory
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, wx
+from DisplayCAL.wx_fixes import TempXmlResource
+from DisplayCAL.wx_testchart_editor import TestchartEditor
+from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop, wx
 
 
 class ReportFrame(BaseFrame):

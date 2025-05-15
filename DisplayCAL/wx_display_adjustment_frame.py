@@ -40,8 +40,8 @@ from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import DEBUG
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import (
     NAV_KEYCODES,
     NUMPAD_KEYCODES,
     PROCESSING_KEYCODES,

@@ -10,7 +10,7 @@ from DisplayCAL import (
     config,
 )
 from DisplayCAL import localization as lang
-from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import wx_enhanced_plot as plot
 from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
@@ -43,13 +43,11 @@ from DisplayCAL.worker import (
     Worker,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
-from DisplayCAL.wxfixes import (
-    GenBitmapButton as BitmapButton,
-)
-from DisplayCAL.wxfixes import wx_Panel
-from DisplayCAL.wxMeasureFrame import MeasureFrame
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import get_platform_window_decoration_size, wx
+from DisplayCAL.wx_fixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wx_fixes import wx_Panel
+from DisplayCAL.wx_measure_frame import MeasureFrame
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     BitmapBackgroundPanelText,

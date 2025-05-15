@@ -114,16 +114,16 @@ class Log:
                 fn(line)
         # If wxPython itself calls warnings.warn on import, it is not yet fully
         # imported at the point our showwarning() function calls log().
-        # Check for presence of our wxfixes module and if it has an attribute
+        # Check for presence of our wx_fixes module and if it has an attribute
         # "wx", in which case wxPython has finished importing.
-        wxfixes = sys.modules.get(f"{APPNAME}.wxfixes")
-        # wxfixes = sys.modules.get("wxfixes")
+        wx_fixes = sys.modules.get(f"{APPNAME}.wx_fixes")
+        # wx_fixes = sys.modules.get("wx_fixes")
         if (
-            wxfixes
-            and hasattr(wxfixes, "wx")
+            wx_fixes
+            and hasattr(wx_fixes, "wx")
             and mp.current_process().name == "MainProcess"
         ):
-            wx = wxfixes.wx
+            wx = wx_fixes.wx
             if (
                 wx.GetApp() is not None
                 and hasattr(wx.GetApp(), "frame")

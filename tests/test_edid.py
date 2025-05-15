@@ -5,7 +5,7 @@ import platform
 
 import pytest
 
-from DisplayCAL import RealDisplaySizeMM, config
+from DisplayCAL import real_display_size_mm, config
 from DisplayCAL.config import getcfg
 from DisplayCAL.dev.mocks import check_call
 from DisplayCAL.edid import get_edid, parse_edid, parse_manufacturer_id
@@ -34,7 +34,7 @@ def test_get_edid_1(clear_displays, monkeypatch, patch_subprocess, data_files):
         call_count=-1,
     ):
         with check_call(
-            RealDisplaySizeMM,
+            real_display_size_mm,
             "_enumerate_displays",
             DisplayData.enumerate_displays(),
             call_count=-1,
@@ -270,8 +270,8 @@ def test_get_edid_4(
 ):
     """DisplayCAL.edid.get_edid() gets the EDID data from xrandr --verbose command."""
     monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
-    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
-    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.sys.platform", "linux")
+    monkeypatch.setattr("DisplayCAL.real_display_size_mm.subprocess", patch_subprocess)
+    monkeypatch.setattr("DisplayCAL.real_display_size_mm.sys.platform", "linux")
     monkeypatch.setattr("DisplayCAL.edid.sys.platform", "linux")
     monkeypatch.setattr("DisplayCAL.edid.which", lambda x: "xrandr")
 
@@ -285,7 +285,7 @@ def test_get_edid_4(
         dispwin_data = dispwin_data_file.read()
     patch_subprocess.output["dispwin-v-d0"] = dispwin_data
 
-    # patch RealDisplaySizeMM.getcfg("displays")
+    # patch real_display_size_mm.getcfg("displays")
     orig_getcfg = getcfg
 
     def patched_getcfg(config_value):

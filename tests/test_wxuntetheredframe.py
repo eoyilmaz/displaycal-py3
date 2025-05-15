@@ -12,9 +12,9 @@ from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.util_io import Files
-from DisplayCAL.wxUntetheredFrame import UntetheredFrame
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import BaseApp
+from DisplayCAL.wx_untethered_frame import UntetheredFrame
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import BaseApp
 
 
 class Subprocess:

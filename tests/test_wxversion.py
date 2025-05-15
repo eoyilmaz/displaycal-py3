@@ -3,7 +3,7 @@ import pytest
 import sys
 import tempfile
 
-from DisplayCAL import wxversion
+from DisplayCAL import wx_version
 
 
 @pytest.fixture(scope="function")
@@ -16,20 +16,20 @@ def setup_sys_path():
 
 @pytest.fixture(scope="function")
 def setup_selected():
-    """Setup wxversion._SELECTED."""
-    orig_selected = wxversion._SELECTED
-    wxversion._SELECTED = None
+    """Setup wx_version._SELECTED."""
+    orig_selected = wx_version._SELECTED
+    wx_version._SELECTED = None
     yield
-    wxversion._SELECTED = orig_selected
+    wx_version._SELECTED = orig_selected
 
 
 @pytest.fixture(scope="function")
 def setup_ensure_debug(scope="function"):
-    """Setup wxversion._DEBUG."""
-    orig_debug = wxversion._EM_DEBUG
-    wxversion._EM_DEBUG = True
+    """Setup wx_version._DEBUG."""
+    orig_debug = wx_version._EM_DEBUG
+    wx_version._EM_DEBUG = True
     yield
-    wxversion._EM_DEBUG = orig_debug
+    wx_version._EM_DEBUG = orig_debug
 
 
 @pytest.fixture(scope="function")
@@ -64,7 +64,7 @@ def setup_tests(setup_sys_path, setup_selected):
 
 
 def test_get_installed(setup_tests):
-    result = wxversion.get_installed()
+    result = wx_version.get_installed()
     assert result[1:] == [
         # wx.__version__,
         "2.7.1-gtk2-ansi",
@@ -102,17 +102,17 @@ def test_get_installed(setup_tests):
 )
 def test_select(setup_tests, version, options_required, expected, raises_error):
     if not raises_error:
-        wxversion.select(version, options_required=options_required)
+        wx_version.select(version, options_required=options_required)
         if isinstance(version, str):
             parts = version.split("-")
         elif isinstance(version, list):
             parts = version[-1].split("-")
         expected_version = parts[0].split(".")
         expected_version = tuple(expected_version)
-        assert expected_version[:1] == wxversion._SELECTED.version[:1]
+        assert expected_version[:1] == wx_version._SELECTED.version[:1]
     else:
-        with pytest.raises(wxversion.VersionError):
-            wxversion.select(version, options_required=options_required)
+        with pytest.raises(wx_version.VersionError):
+            wx_version.select(version, options_required=options_required)
 
 
 @pytest.mark.parametrize(
@@ -143,19 +143,19 @@ def test_check_installed(
 ):
     if not raises_error:
         assert (
-            wxversion.check_installed(version, options_required=options_required)
+            wx_version.check_installed(version, options_required=options_required)
             is expected
         )
     else:
-        with pytest.raises(wxversion.VersionError):
-            wxversion.check_installed(version, options_required=options_required)
+        with pytest.raises(wx_version.VersionError):
+            wx_version.check_installed(version, options_required=options_required)
 
 
 def test_select_consecutive(setup_tests):
     """check for exception when incompatible versions are requested."""
-    wxversion.select("2.4")
-    with pytest.raises(wxversion.VersionError) as cm:
-        wxversion.select("2.5")
+    wx_version.select("2.4")
+    with pytest.raises(wx_version.VersionError) as cm:
+        wx_version.select("2.5")
 
     assert (
         str(cm.value)
@@ -176,14 +176,14 @@ def test_select_ensure_minimal(
     setup_tests, setup_ensure_debug, version, options_required, raises_error
 ):
     if not raises_error:
-        wxversion.ensure_minimal(version, options_required=options_required)
+        wx_version.ensure_minimal(version, options_required=options_required)
         if options_required:
-            assert wxversion._SELECTED.version[:1] == ("2",)
+            assert wx_version._SELECTED.version[:1] == ("2",)
         else:
-            assert wxversion._SELECTED.version[:1] == ("4",)
+            assert wx_version._SELECTED.version[:1] == ("4",)
     else:
-        with pytest.raises(wxversion.VersionError):
-            wxversion.ensure_minimal(version, options_required=options_required)
+        with pytest.raises(wx_version.VersionError):
+            wx_version.ensure_minimal(version, options_required=options_required)
 
 
 def test_select_ensure_minimal_min_version_is_not_string(
@@ -191,6 +191,6 @@ def test_select_ensure_minimal_min_version_is_not_string(
 ):
     """Test that ensure_minimal raises an error if the version is not a string."""
     with pytest.raises(TypeError) as cm:
-        wxversion.ensure_minimal(2.6, options_required=False)
+        wx_version.ensure_minimal(2.6, options_required=False)
 
     assert str(cm.value) == "min_version must be a string"

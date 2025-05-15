@@ -11,9 +11,9 @@ gui = "wx" in sys.modules
 
 if gui:
     from DisplayCAL.worker import Worker, show_result_dialog
-    from DisplayCAL.wxaddons import wx
-    from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
-    from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop
+    from DisplayCAL.wx_addons import wx
+    from DisplayCAL.wx_fixes import GenBitmapButton as BitmapButton
+    from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop
 
     class VRML2X3DFrame(BaseFrame):
         def __init__(self, html, embed, view, force, cache):

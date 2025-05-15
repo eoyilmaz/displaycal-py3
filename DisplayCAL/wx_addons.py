@@ -8,7 +8,7 @@ from time import sleep
 from DisplayCAL import floatspin
 from DisplayCAL.colormath import specialpow
 from DisplayCAL.lib.agw.gradientbutton import GradientButton
-from DisplayCAL.wxfixes import GenButton, PlateButton, get_dialogs, wx
+from DisplayCAL.wx_fixes import GenButton, PlateButton, get_dialogs, wx
 
 
 def AdjustMinMax(self, minvalue=0.0, maxvalue=1.0):

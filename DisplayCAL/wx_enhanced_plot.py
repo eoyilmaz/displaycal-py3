@@ -105,7 +105,7 @@ import string as _string
 import numpy as np
 import wx
 
-from DisplayCAL.wxfixes import get_dc_font_scale
+from DisplayCAL.wx_fixes import get_dc_font_scale
 
 
 def convert_to_list_of_tuples(iterable):

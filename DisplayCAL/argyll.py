@@ -108,8 +108,8 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     """Set the directory containing the Argyll CMS binary executables."""
     # TODO: This function contains UI stuff, please refactor it so that it is
     #       split into a separate function that can be called from the UI.
-    from DisplayCAL.wxaddons import wx
-    from DisplayCAL.wxwindows import ConfirmDialog, InfoDialog
+    from DisplayCAL.wx_addons import wx
+    from DisplayCAL.wx_windows import ConfirmDialog, InfoDialog
 
     if parent and not parent.IsShownOnScreen():
         parent = None  # do not center on parent if not visible

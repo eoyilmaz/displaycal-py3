@@ -53,9 +53,9 @@ from DisplayCAL.worker import (
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxLUT3DFrame import LUT3DMixin
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_fixes import TempXmlResource
+from DisplayCAL.wx_lut_3d_frame import LUT3DMixin
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,

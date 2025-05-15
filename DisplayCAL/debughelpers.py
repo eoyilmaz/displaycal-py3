@@ -22,7 +22,7 @@ def getevtobjname(event, window=None):
 def getevttype(event):
     """Get and return the event object's type."""
     if not WX_EVENT_TYPES:
-        from DisplayCAL.wxaddons import wx
+        from DisplayCAL.wx_addons import wx
 
         try:
             for name in dir(wx):
@@ -70,7 +70,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         print(box(msg))
     if not silent:
         try:
-            from DisplayCAL.wxaddons import wx
+            from DisplayCAL.wx_addons import wx
 
             if wx.VERSION < WX_RECVERSION:  # noqa: SIM300
                 msg += (

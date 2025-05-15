@@ -172,29 +172,6 @@ config = {
 }
 
 
-def add_lib_excludes(key, excludebits):
-    for exclude in excludebits:
-        config["excludes"][key].extend([f"{NAME}.lib{exclude}", f"lib{exclude}"])
-
-    for exclude in ("32", "64"):
-        for pycompat in ("38", "39", "310", "311", "312", "313"):
-            if key == "win32" and (
-                pycompat == str(sys.version_info[0]) + str(sys.version_info[1])
-                or exclude == excludebits[0]
-            ):
-                continue
-            config["excludes"][key].extend(
-                [
-                    f"{NAME}.lib{exclude}.python{pycompat}",
-                    f"{NAME}.lib{exclude}.python{pycompat}.RealDisplaySizeMM",
-                ]
-            )
-
-
-add_lib_excludes("darwin", ["64" if bits == "32" else "32"])
-add_lib_excludes("win32", ["64" if bits == "32" else "32"])
-
-
 msiversion = ".".join(
     (
         str(VERSION_TUPLE[0]),

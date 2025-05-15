@@ -5,7 +5,7 @@ import traceback
 
 from DisplayCAL import colormath, config, x3dom
 from DisplayCAL import localization as lang
-from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import wx_enhanced_plot as plot
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     DEFAULTS,
@@ -45,12 +45,12 @@ from DisplayCAL.worker import (
     get_argyll_util,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import get_platform_window_decoration_size, wx
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
-from DisplayCAL.wxfixes import set_maxsize, wx_Panel
-from DisplayCAL.wxLUTViewer import LUTCanvas, LUTFrame
-from DisplayCAL.wxVRML2X3D import vrmlfile2x3dfile
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import get_platform_window_decoration_size, wx
+from DisplayCAL.wx_fixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wx_fixes import set_maxsize, wx_Panel
+from DisplayCAL.wx_lut_viewer import LUTCanvas, LUTFrame
+from DisplayCAL.wx_vrml_2_x3d import vrmlfile2x3dfile
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     BitmapBackgroundPanelText,

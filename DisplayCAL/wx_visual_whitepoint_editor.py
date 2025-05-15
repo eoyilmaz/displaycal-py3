@@ -52,26 +52,26 @@ from DisplayCAL.worker import (
     get_argyll_util,
     show_result_dialog,
 )
-from DisplayCAL.wxfixes import (
+from DisplayCAL.wx_fixes import (
     GenBitmapButton as BitmapButton,
 )
-from DisplayCAL.wxfixes import (
+from DisplayCAL.wx_fixes import (
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
     wx,
     wx_Panel,
 )
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_windows import (
     FlatShadedButton,
     HStretchStaticBitmap,
     TaskBarNotification,
 )
 
 try:
-    from DisplayCAL import RealDisplaySizeMM
+    from DisplayCAL import real_display_size_mm
 except ImportError:
-    RealDisplaySizeMM = None
+    real_display_size_mm = None
 
 # Use non-native mini frames on all platforms
 aui.framemanager.AuiManager_UseNativeMiniframes = (
@@ -2464,11 +2464,11 @@ class VisualWhitepointEditor(wx.Frame):
     def set_area_size_slider_max(self):
         # Set max value according to display size
         maxv = 1000
-        if RealDisplaySizeMM:
+        if real_display_size_mm:
             geometry = self.GetDisplay().Geometry.Get()
             display_no = get_argyll_display_number(geometry)
             if display_no is not None:
-                size_mm = RealDisplaySizeMM.RealDisplaySizeMM(display_no)
+                size_mm = real_display_size_mm.RealDisplaySizeMM(display_no)
                 if 0 not in size_mm:
                     self.display_size_mm[geometry] = [float(v) for v in size_mm]
                     maxv = int(round(max(size_mm) / 100.0 * 100))
@@ -2512,7 +2512,7 @@ class VisualWhitepointEditor(wx.Frame):
 
 
 if __name__ == "__main__":
-    from DisplayCAL.wxwindows import BaseApp
+    from DisplayCAL.wx_windows import BaseApp
 
     initcfg()
     lang.init()

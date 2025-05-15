@@ -18,8 +18,8 @@ from DisplayCAL.config import (
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import DEBUG, TEST, VERBOSE
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import (
     NAV_KEYCODES,
     NUMPAD_KEYCODES,
     PROCESSING_KEYCODES,

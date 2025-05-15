@@ -7,7 +7,7 @@ from DisplayCAL import (
     config,
 )
 from DisplayCAL import localization as lang
-from DisplayCAL import wxenhancedplot as plot
+from DisplayCAL import wx_enhanced_plot as plot
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
@@ -16,9 +16,9 @@ from DisplayCAL.icc_profile import CRInterpolation
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxLUTViewer import LUTCanvas
-from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_lut_viewer import LUTCanvas
+from DisplayCAL.wx_windows import FlatShadedButton, show_result_dialog
 
 BGCOLOUR = "#101010"
 FGCOLOUR = "#999999"

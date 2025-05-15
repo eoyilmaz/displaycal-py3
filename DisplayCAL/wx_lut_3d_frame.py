@@ -53,9 +53,9 @@ from DisplayCAL.worker import (
     get_current_profile_path,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import CustomEvent
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import CustomEvent
+from DisplayCAL.wx_fixes import TempXmlResource
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------
-# Name:        wxversion
+# Name:        wx_version
 # Purpose:     Allows a wxPython program to search for alternate
 #              installations of the wxPython packages and modify sys.path
 #              so they will be found when "import wx" is done.
@@ -22,34 +22,34 @@ allows your application to choose which version of wxPython will be
 imported when it does 'import wx'.  The main function of this module
 is `select` and you use it like this::
 
-    import wxversion
-    wxversion.select('2.4')
+    import wx_version
+    wx_version.select('2.4')
     import wx
 
 Or additional build options can also be selected, although they will
 not be required if they are not installed, like this::
 
-    import wxversion
-    wxversion.select('2.5.3-unicode')
+    import wx_version
+    wx_version.select('2.5.3-unicode')
     import wx
 
 Or you can require an exact match on the build options like this::
 
-    import wxversion
-    wxversion.select('2.5.3-unicode', options_required=True)
+    import wx_version
+    wx_version.select('2.5.3-unicode', options_required=True)
     import wx
 
 Finally you can also specify a collection of versions that are allowed
 by your application, like this::
 
-    import wxversion
-    wxversion.select(['2.5.4', '2.5.5', '2.6'])
+    import wx_version
+    wx_version.select(['2.5.4', '2.5.5', '2.6'])
     import wx
 
 
 Of course the default wxPython version can also be controlled by
 setting PYTHONPATH or by editing the wx.pth path configuration file,
-but using wxversion will allow an application to manage the version
+but using wx_version will allow an application to manage the version
 selection itself rather than depend on the user to setup the
 environment correctly.
 
@@ -58,7 +58,7 @@ then comparing them to what was passed to the select function.  If a
 match is found then that path is inserted into sys.path.
 
 NOTE: If you are making a 'bundle' of your application with a tool
-like py2exe then you should *not* use the wxversion module since it
+like py2exe then you should *not* use the wx_version module since it
 looks at the filesystem for the directories on sys.path, it will fail
 in a bundled environment.  Instead you should simply ensure that the
 version of wxPython that you want is found by default on the sys.path
@@ -66,14 +66,14 @@ when making the bundled version by setting PYTHONPATH.  Then that
 version will be included in your bundle and your app will work as
 expected.  Py2exe and the others usually have a way to tell at runtime
 if they are running from a bundle or running raw, so you can check
-that and only use wxversion if needed.  For example, for py2exe::
+that and only use wx_version if needed.  For example, for py2exe::
 
     if not hasattr(sys, 'frozen'):
-        import wxversion
-        wxversion.select('2.5')
+        import wx_version
+        wx_version.select('2.5')
     import wx
 
-More documentation on wxversion and multi-version installs can be
+More documentation on wx_version and multi-version installs can be
 found at: http://wiki.wxpython.org/index.cgi/MultiVersionInstalls
 
 """
@@ -153,7 +153,7 @@ def select(versions: str | list[str], options_required: bool = False) -> None:
             "A previously selected wx version does not match the new request."
         )
 
-    # If we get here then this is the first time wxversion is used,
+    # If we get here then this is the first time wx_version is used,
     # ensure that wxPython hasn't been imported yet.
     check_already_imported()
 
@@ -261,7 +261,7 @@ def check_already_imported() -> None:
     # ensure that wxPython hasn't been imported yet.
     if "wx" in sys.modules or "wxPython" in sys.modules:
         raise AlreadyImportedError(
-            "wxversion.ensureMinimal() must be called before wxPython is imported"
+            "wx_version.ensureMinimal() must be called before wxPython is imported"
         )
 
 

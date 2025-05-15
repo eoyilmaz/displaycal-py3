@@ -276,11 +276,11 @@ from DisplayCAL.worker_base import (
     _mp_xicclu,
     printcmdline,
 )
-from DisplayCAL.wxaddons import BetterCallLater, BetterWindowDisabler, wx
-from DisplayCAL.wxDisplayAdjustmentFrame import DisplayAdjustmentFrame
-from DisplayCAL.wxDisplayUniformityFrame import DisplayUniformityFrame
-from DisplayCAL.wxUntetheredFrame import UntetheredFrame
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import BetterCallLater, BetterWindowDisabler, wx
+from DisplayCAL.wx_display_adjustment_frame import DisplayAdjustmentFrame
+from DisplayCAL.wx_display_uniformity_frame import DisplayUniformityFrame
+from DisplayCAL.wx_untethered_frame import UntetheredFrame
+from DisplayCAL.wx_windows import (
     ConfirmDialog,
     HtmlInfoDialog,
     InfoDialog,
@@ -289,10 +289,10 @@ from DisplayCAL.wxwindows import (
     show_result_dialog,
 )
 
-RealDisplaySizeMM = None
+real_display_size_mm = None
 if sys.platform not in ("darwin", "win32"):
     try:
-        from DisplayCAL import RealDisplaySizeMM
+        from DisplayCAL import real_display_size_mm
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning, stacklevel=2)
 from wx.lib import delayedresult
@@ -5419,9 +5419,9 @@ END_DATA
             if displays != self._displays:
                 self._displays = list(displays)
                 setcfg("displays", displays)
-                if RealDisplaySizeMM:
+                if real_display_size_mm:
                     # Sync with Argyll - needed under Linux to map EDID
-                    RealDisplaySizeMM.enumerate_displays()
+                    real_display_size_mm.enumerate_displays()
                 displays = [
                     display
                     for display in displays
@@ -8516,8 +8516,8 @@ BEGIN_DATA
                 and not omit_manufacturer
             ):
                 return None
-            if RealDisplaySizeMM:
-                display = RealDisplaySizeMM.get_display(display_no)
+            if real_display_size_mm:
+                display = real_display_size_mm.get_display(display_no)
                 if display:
                     xrandr_name = display.get("xrandr_name")
                     if xrandr_name:

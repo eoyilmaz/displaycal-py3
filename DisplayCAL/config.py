@@ -60,7 +60,7 @@ from DisplayCAL.util_os import (
 from DisplayCAL.util_str import create_replace_function, strtr
 
 if TYPE_CHECKING:
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
 configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
 
@@ -386,7 +386,7 @@ def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
     Returns:
         wx.Bitmap: The created empty bitmap.
     """
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     if wx.VERSION[0] < 3:
         use_mask = True
@@ -426,7 +426,7 @@ def load_bitmap(
     Returns:
         wx.Bitmap: The loaded bitmap.
     """
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     if parts[-1].startswith(APPNAME):
         parts[-1] = parts[-1].lower()
@@ -630,7 +630,7 @@ def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> "wx.Icon":
     Returns:
         wx.Icon: The (created) icon (instance).
     """
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     icon = wx.EmptyIcon()
     if sys.platform == "darwin" and wx.VERSION >= (2, 9) and size > 128:
@@ -731,7 +731,7 @@ def get_display_number(display_no: int) -> int:
     """
     if is_virtual_display(display_no):
         return 0
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     try:
         display = getcfg("displays")[display_no]
@@ -756,7 +756,7 @@ def get_display_rects() -> list[tuple[int, int, int, int]]:
         list[tuple[int, int, int, int]]: A list of wx.Rect objects representing
             the display coordinates and sizes.
     """
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     display_rects = []
     for _i, display in enumerate(getcfg("displays")):
@@ -776,7 +776,7 @@ def get_icon_bundle(sizes, name):
     Returns:
         wx.IconBundle: The icon bundle.
     """
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     iconbundle = wx.IconBundle()
     if not sizes:
@@ -2122,7 +2122,7 @@ def set_default_app_dpi():
     global DPISET
     if not DPISET and not getcfg("app.dpi", False):
         # HighDPI support
-        from DisplayCAL.wxaddons import wx
+        from DisplayCAL.wx_addons import wx
 
         DPISET = True
         if sys.platform in ("darwin", "win32"):
@@ -2201,15 +2201,15 @@ def get_hidpi_scaling_factor():
         # or just list of scale factors e.g. '1.5;2.0;'
         screen_scale_factors = os.getenv("QT_SCREEN_SCALE_FACTORS", "").split(";")
         if screen_scale_factors:
-            from DisplayCAL.wxaddons import wx
+            from DisplayCAL.wx_addons import wx
 
             match = False
             app = wx.GetApp()
             if app:
-                from DisplayCAL import RealDisplaySizeMM as RealDisplaySizeMM
+                from DisplayCAL import real_display_size_mm
 
-                if not RealDisplaySizeMM._displays:
-                    RealDisplaySizeMM.enumerate_displays()
+                if not real_display_size_mm._displays:
+                    real_display_size_mm.enumerate_displays()
                 top = app.TopWindow
                 if top:
                     tmp = False
@@ -2239,7 +2239,7 @@ def get_hidpi_scaling_factor():
                         name, factor = item.split("=", 1)
                     else:
                         name, factor = None, item
-                    for display in RealDisplaySizeMM._displays:
+                    for display in real_display_size_mm._displays:
                         if display.get("pos") != pos or display.get("size") != size:
                             # No match
                             continue

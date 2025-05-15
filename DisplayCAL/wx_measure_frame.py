@@ -22,11 +22,9 @@ from DisplayCAL.debughelpers import handle_error
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import DEBUG
 from DisplayCAL.util_list import floatlist, strlist
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxfixes import (
-    GenBitmapButton as BitmapButton,
-)
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_fixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wx_windows import (
     BaseApp,
     BitmapBackgroundPanel,
     ConfirmDialog,
@@ -35,9 +33,9 @@ from DisplayCAL.wxwindows import (
 )
 
 try:
-    from DisplayCAL import RealDisplaySizeMM
+    from DisplayCAL import real_display_size_mm
 except ImportError as exception:
-    RealDisplaySizeMM = None
+    real_display_size_mm = None
     warnings.warn(str(exception), Warning, stacklevel=2)
 
 
@@ -56,9 +54,9 @@ def get_default_size():
         display_no = get_display_number(display_no)
         display_size = wx.Display(display_no).Geometry[2:]
         display_size_mm = []
-        if RealDisplaySizeMM:
+        if real_display_size_mm:
             try:
-                display_size_mm = RealDisplaySizeMM.RealDisplaySizeMM(display_no)
+                display_size_mm = real_display_size_mm.RealDisplaySizeMM(display_no)
             except Exception as exception:
                 handle_error(
                     f"Error - RealDisplaySizeMM() failed: {exception}", silent=True

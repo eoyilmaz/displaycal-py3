@@ -5,7 +5,7 @@ from wx import xrc
 from DisplayCAL.log import safe_print
 
 try:
-    from DisplayCAL.wxwindows import (
+    from DisplayCAL.wx_windows import (
         FileBrowseBitmapButtonWithChoiceHistory as FileBrowseButtonWithHistory,
     )
 except ImportError:

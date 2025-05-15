@@ -4,7 +4,7 @@ from wx import xrc
 from DisplayCAL.log import safe_print
 
 try:
-    from DisplayCAL.wxwindows import HStretchStaticBitmap
+    from DisplayCAL.wx_windows import HStretchStaticBitmap
 except ImportError:
     HStretchStaticBitmap = wx.StaticBitmap
 

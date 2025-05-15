@@ -69,9 +69,9 @@ from DisplayCAL.util_os import (
     which,
 )
 from DisplayCAL.util_str import safe_asciize
-from DisplayCAL.wxaddons import CustomGridCellEvent
-from DisplayCAL.wxfixes import ThemedGenButton
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import CustomGridCellEvent
+from DisplayCAL.wx_fixes import ThemedGenButton
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
@@ -943,7 +943,7 @@ class ProfileAssociationsDialog(InfoDialog):
         id_ = profile.calculateID(False) if profile.ID == "\0" * 16 else profile.ID
         if id_ not in self.profile_info:
             # Create profile info window and store in hash table
-            from wxProfileInfo import ProfileInfoFrame
+            from DisplayCAL.wx_profile_info import ProfileInfoFrame
 
             self.profile_info[id_] = ProfileInfoFrame(None, -1)
             self.profile_info[id_].Unbind(wx.EVT_CLOSE)
@@ -1166,7 +1166,7 @@ class ProfileAssociationsDialog(InfoDialog):
 
 class ProfileLoader:
     def __init__(self):
-        from DisplayCAL.wxwindows import BaseApp, wx
+        from DisplayCAL.wx_windows import BaseApp, wx
 
         if not wx.GetApp():
             app = BaseApp(0, clearSigInt=sys.platform != "win32")
@@ -2114,7 +2114,7 @@ class ProfileLoader:
             )
             and "--silent" not in sys.argv[1:]
         ):
-            from DisplayCAL.wxwindows import InfoDialog, wx
+            from DisplayCAL.wx_windows import InfoDialog, wx
 
             dlg = InfoDialog(
                 None,

@@ -33,7 +33,7 @@ from DisplayCAL.display_cal import (
 from DisplayCAL.util_str import universal_newlines
 from DisplayCAL.util_list import intlist
 from DisplayCAL.worker import Worker, check_ti3
-from DisplayCAL.wxwindows import ConfirmDialog, BaseInteractiveDialog
+from DisplayCAL.wx_windows import ConfirmDialog, BaseInteractiveDialog
 
 
 @pytest.fixture(scope="class", name="app", autouse=True)

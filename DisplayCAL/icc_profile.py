@@ -1952,11 +1952,11 @@ def _colord_get_display_profile(display_no=0, path_only=False, use_cache=True):
     else:
         # Fall back to XrandR name
         try:
-            from DisplayCAL import RealDisplaySizeMM
+            from DisplayCAL import real_display_size_mm
         except ImportError as exception:
             warnings.warn(str(exception), Warning, stacklevel=2)
             return None
-        display = RealDisplaySizeMM.get_display(display_no)
+        display = real_display_size_mm.get_display(display_no)
         if display:
             xrandr_name = display.get("xrandr_name")
             if xrandr_name:
@@ -2350,12 +2350,12 @@ def get_display_profile_linux(
     """Return ICC Profile for the given display under Linux."""
     options = ["_ICC_PROFILE"]
     try:
-        from DisplayCAL import RealDisplaySizeMM
+        from DisplayCAL import real_display_size_mm
     except ImportError as exception:
         warnings.warn(str(exception), Warning, stacklevel=2)
         display = get_display()
     else:
-        display = RealDisplaySizeMM.get_x_display(display_no)
+        display = real_display_size_mm.get_x_display(display_no)
     if display:
         if x_hostname is None:
             x_hostname = display[0]
@@ -2382,7 +2382,7 @@ def get_display_profile_linux(
             # Try XrandR
         if (
             xrandr
-            and RealDisplaySizeMM
+            and real_display_size_mm
             and option == "_ICC_PROFILE"
             and None not in (x_hostname, x_display, x_screen)
         ):
@@ -2391,15 +2391,15 @@ def get_display_profile_linux(
                     print("Using XrandR")
                 for i, atom_id in enumerate(
                     [
-                        RealDisplaySizeMM.get_x_icc_profile_output_atom_id(display_no),
-                        RealDisplaySizeMM.get_x_icc_profile_atom_id(display_no),
+                        real_display_size_mm.get_x_icc_profile_output_atom_id(display_no),
+                        real_display_size_mm.get_x_icc_profile_atom_id(display_no),
                     ]
                 ):
                     if not atom_id:
                         continue
                     if i == 0:
                         meth = display.get_output_property
-                        what = RealDisplaySizeMM.GetXRandROutputXID(display_no)
+                        what = real_display_size_mm.GetXRandROutputXID(display_no)
                     else:
                         meth = display.get_window_property
                         what = display.root_window(0)

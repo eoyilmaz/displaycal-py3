@@ -62,9 +62,9 @@ from DisplayCAL.worker import (
     get_current_profile_path,
     show_result_dialog,
 )
-from DisplayCAL.wxaddons import CustomEvent, wx
-from DisplayCAL.wxMeasureFrame import get_default_size
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import CustomEvent, wx
+from DisplayCAL.wx_measure_frame import get_default_size
+from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,

@@ -69,7 +69,7 @@ from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
 from DisplayCAL.wexpect import split_command_line
-from DisplayCAL.wxaddons import (
+from DisplayCAL.wx_addons import (
     EVT_BETTER_TIMER,
     BetterTimer,
     BetterWindowDisabler,
@@ -79,10 +79,10 @@ from DisplayCAL.wxaddons import (
     get_platform_window_decoration_size,
     wx,
 )
-from DisplayCAL.wxaddons import FileDrop as _FileDrop
+from DisplayCAL.wx_addons import FileDrop as _FileDrop
 
 # from wexpect import split_command_line
-from DisplayCAL.wxfixes import (
+from DisplayCAL.wx_fixes import (
     GenBitmapButton,
     GenButton,
     GTKMenuItemGetFixedLabel,

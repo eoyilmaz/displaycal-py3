@@ -12,7 +12,7 @@ from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import worker
 from DisplayCAL.icc_profile import ICCProfile, get_display_profile
-from DisplayCAL.wxwindows import BaseApp, wx
+from DisplayCAL.wx_windows import BaseApp, wx
 
 # Environment sets defaults
 CAL_ONLY = int(os.getenv("CHANGE_DISPLAY_PROFILE_WTPT_CAL_ONLY", 0))

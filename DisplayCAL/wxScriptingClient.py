@@ -17,7 +17,7 @@ from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import BaseApp, SimpleTerminal, numpad_keycodes
+from DisplayCAL.wxwindows import NUMPAD_KEYCODES, BaseApp, SimpleTerminal
 
 ERRORCOLOR = "#FF3300"
 RESPONSECOLOR = "#CCCCCC"
@@ -430,7 +430,7 @@ class ScriptingClientFrame(SimpleTerminal):
                 self.console.SetInsertionPoint(
                     self.console.GetLastPosition() - len(lastline[endcol:])
                 )
-            elif event.UnicodeKey or event.KeyCode in numpad_keycodes:
+            elif event.UnicodeKey or event.KeyCode in NUMPAD_KEYCODES:
                 if startcol > 1:
                     event.Skip()
                     if self.overwrite and startcol == endcol:

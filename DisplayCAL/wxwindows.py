@@ -111,15 +111,15 @@ from wx.lib import fancytext
 from wx.lib.agw import hyperlink
 from wx.lib.statbmp import GenStaticBitmap
 
-taskbar = None
+TASKBAR = None
 if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
     try:
-        from DisplayCAL import taskbar
+        pass
     except Exception as exception:
         print(exception)
 
 
-numpad_keycodes = [
+NUMPAD_KEYCODES = [
     wx.WXK_NUMPAD0,
     wx.WXK_NUMPAD1,
     wx.WXK_NUMPAD2,
@@ -140,7 +140,7 @@ numpad_keycodes = [
     wx.WXK_NUMPAD_SUBTRACT,
 ]
 
-nav_keycodes = [
+NAV_KEYCODES = [
     wx.WXK_DOWN,
     wx.WXK_END,
     wx.WXK_HOME,
@@ -160,7 +160,7 @@ nav_keycodes = [
     wx.WXK_NUMPAD_UP,
 ]
 
-processing_keycodes = [
+PROCESSING_KEYCODES = [
     wx.WXK_ESCAPE,
     wx.WXK_RETURN,
     wx.WXK_INSERT,
@@ -168,7 +168,9 @@ processing_keycodes = [
     wx.WXK_BACK,
 ]
 
-modifier_keycodes = [wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_COMMAND]
+MODIFIER_KEYCODES = [wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_COMMAND]
+
+REMAINING_TIME_LABEL = "--:--:--"
 
 
 class AboutDialog(wx.Dialog):
@@ -2464,12 +2466,12 @@ class BaseInteractiveDialog(wx.Dialog):
         if sys.platform == "win32":
             bgcolor = self.BackgroundColour
             self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
-            if taskbar:
+            if TASKBAR:
                 taskbarframe = parent if parent and parent.IsShownOnScreen() else self
                 if hasattr(taskbarframe, "taskbar"):
                     self.taskbar = taskbarframe.taskbar
                 else:
-                    self.taskbar = taskbar.Taskbar(taskbarframe)
+                    self.taskbar = TASKBAR.Taskbar(taskbarframe)
         self.SetPosition(pos)  # yes, this is needed
 
         self.Bind(wx.EVT_SHOW, self.OnShow, self)
@@ -2511,12 +2513,12 @@ class BaseInteractiveDialog(wx.Dialog):
             if self.taskbar:
                 state = None
                 if bitmap is geticon(32, "dialog-error"):
-                    state = taskbar.TBPF_ERROR
+                    state = TASKBAR.TBPF_ERROR
                 elif bitmap is geticon(32, "dialog-warning"):
-                    state = taskbar.TBPF_PAUSED
+                    state = TASKBAR.TBPF_PAUSED
                 if state is not None:
                     if (
-                        state == taskbar.TBPF_ERROR
+                        state == TASKBAR.TBPF_ERROR
                         or not isinstance(self.Parent, ProgressDialog)
                         or self.Parent.paused
                     ):
@@ -2625,11 +2627,11 @@ class BaseInteractiveDialog(wx.Dialog):
                 and self.Parent.timer.IsRunning()
             ):
                 if self.Parent.indeterminate:
-                    state = taskbar.TBPF_INDETERMINATE
+                    state = TASKBAR.TBPF_INDETERMINATE
                 elif not self.Parent.paused:
-                    state = taskbar.TBPF_NORMAL
+                    state = TASKBAR.TBPF_NORMAL
             else:
-                state = taskbar.TBPF_NOPROGRESS
+                state = TASKBAR.TBPF_NOPROGRESS
             if state is not None:
                 self.taskbar.set_progress_state(state)
 
@@ -6177,7 +6179,7 @@ class ProgressDialog(wx.Dialog):
         self.buttonpanel.Layout()
 
         # Use an accelerator table for 0-9, a-z, numpad
-        keycodes = list(range(48, 58)) + list(range(97, 123)) + numpad_keycodes
+        keycodes = list(range(48, 58)) + list(range(97, 123)) + NUMPAD_KEYCODES
         self.id_to_keycode = {}
         for keycode in keycodes:
             self.id_to_keycode[wx.Window.NewControlId()] = keycode
@@ -6310,9 +6312,9 @@ class ProgressDialog(wx.Dialog):
         if not self.indeterminate:
             self.indeterminate = True
             if hasattr(self, "remaining_time"):
-                self.remaining_time.Label = "––:––:––"
+                self.remaining_time.Label = REMAINING_TIME_LABEL
             if self.taskbar and not self.paused:
-                self.taskbar.set_progress_state(taskbar.TBPF_INDETERMINATE)
+                self.taskbar.set_progress_state(TASKBAR.TBPF_INDETERMINATE)
         self.gauge.Pulse()
         return self.keepGoing, self.skip
 
@@ -6520,14 +6522,14 @@ class ProgressDialog(wx.Dialog):
         if self.paused:
             self.pause_continue.Label = lang.getstr("continue")
             if self.taskbar:
-                self.taskbar.set_progress_state(taskbar.TBPF_PAUSED)
+                self.taskbar.set_progress_state(TASKBAR.TBPF_PAUSED)
         else:
             self.pause_continue.Label = lang.getstr("pause")
             if self.taskbar:
                 if self.indeterminate:
-                    state = taskbar.TBPF_INDETERMINATE
+                    state = TASKBAR.TBPF_INDETERMINATE
                 else:
-                    state = taskbar.TBPF_NORMAL
+                    state = TASKBAR.TBPF_NORMAL
                 self.taskbar.set_progress_state(state)
         self.pause_continue.Enable(not event)
         self.Layout()
@@ -6588,7 +6590,7 @@ class ProgressDialog(wx.Dialog):
             self.time2 = 0
             self.time3 = self.time
             self.time4 = 0
-            self.remaining_time.Label = "––:––:––"
+            self.remaining_time.Label = REMAINING_TIME_LABEL
 
     def set_progress_type(self, progress_type):
         if progress_type != self.progress_type:
@@ -6638,17 +6640,17 @@ class ProgressDialog(wx.Dialog):
         if hasattr(self, "sound") and self.progress_type in (0, 2):
             self.set_sound(self.progress_type)
             self.sound_fadein()
-        if taskbar:
+        if TASKBAR:
             if self.Parent and self.Parent.IsShownOnScreen():
                 taskbarframe = self.Parent
             else:
                 taskbarframe = self
-            self.taskbar = taskbar.Taskbar(taskbarframe, self.gauge.GetRange())
-            self.taskbar.set_progress_state(taskbar.TBPF_INDETERMINATE)
+            self.taskbar = TASKBAR.Taskbar(taskbarframe, self.gauge.GetRange())
+            self.taskbar.set_progress_state(TASKBAR.TBPF_INDETERMINATE)
 
     def stop_timer(self, immediate=True):
         if self.taskbar:
-            self.taskbar.set_progress_state(taskbar.TBPF_NOPROGRESS)
+            self.taskbar.set_progress_state(TASKBAR.TBPF_NOPROGRESS)
         if not self.timer.IsRunning():
             return
         self.timer.Stop()

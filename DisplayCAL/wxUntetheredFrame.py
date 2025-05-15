@@ -20,14 +20,14 @@ from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import DEBUG, TEST, VERBOSE
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.wxwindows import (
+    NAV_KEYCODES,
+    NUMPAD_KEYCODES,
+    PROCESSING_KEYCODES,
     BaseFrame,
     BitmapBackgroundPanel,
     CustomCheckBox,
     CustomGrid,
     FlatShadedButton,
-    nav_keycodes,
-    numpad_keycodes,
-    processing_keycodes,
     wx_Panel,
 )
 
@@ -181,9 +181,9 @@ class UntetheredFrame(BaseFrame):
             keycodes = [wx.WXK_TAB, wx.WXK_SPACE]
             keycodes.extend(list(range(ord("0"), ord("9"))))
             keycodes.extend(list(range(ord("A"), ord("Z"))))
-            keycodes.extend(numpad_keycodes)
-            keycodes.extend(nav_keycodes)
-            keycodes.extend(processing_keycodes)
+            keycodes.extend(NUMPAD_KEYCODES)
+            keycodes.extend(NAV_KEYCODES)
+            keycodes.extend(PROCESSING_KEYCODES)
             for keycode in keycodes:
                 self.id_to_keycode[wx.Window.NewControlId()] = keycode
             accels = []

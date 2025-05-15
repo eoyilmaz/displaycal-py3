@@ -1606,7 +1606,7 @@ class ProfileManager:
                         "[PRIMARY]", lang.getstr("display.primary")
                     )
                     self._window.SetTitle(
-                        display_name + " ‒ " + lang.getstr("whitepoint.visual_editor")
+                        f"{display_name} - {lang.getstr('whitepoint.visual_editor')}"
                     )
         else:
             msg = lang.getstr("whitepoint.visual_editor.display_changed.warning")

@@ -2806,7 +2806,7 @@ END_DATA"""
             )
             sizer.Add(intctrl, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
             sizer.Add(
-                wx.StaticText(dlg, -1, "× " + lang.getstr("max")),
+                wx.StaticText(dlg, -1, "× " + lang.getstr("max")),  # noqa: RUF001
                 0,
                 flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                 border=12,
@@ -2821,7 +2821,7 @@ END_DATA"""
             )
             sizer.Add(intctrl2, 0, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=4)
             sizer.Add(
-                wx.StaticText(dlg, -1, "× " + lang.getstr("min")),
+                wx.StaticText(dlg, -1, "× " + lang.getstr("min")),  # noqa: RUF001
                 0,
                 flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                 border=12,

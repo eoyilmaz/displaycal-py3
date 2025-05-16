@@ -8,6 +8,7 @@ The module includes utilities for parsing, validating, and manipulating ICC
 profile data. It can be used to extract metadata, analyze profile contents, and
 apply ICC profiles to image processing workflows.
 """
+
 import binascii
 import contextlib
 import ctypes

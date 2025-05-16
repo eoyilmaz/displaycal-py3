@@ -3,6 +3,7 @@ servers, enabling communication with devices over HTTP and TCP protocols.
 It supports sending RGB patterns, managing connections, and handling events for
 various pattern generator devices.
 """
+
 import contextlib
 import errno
 import http.client

@@ -1462,9 +1462,7 @@ class SpawnUnix:
         escaping regular expression characters that you want to match."""
         if isinstance(pattern_list, str) or pattern_list in (TIMEOUT, EOF):
             pattern_list = [pattern_list]
-        return self.expect_loop(
-            SearcherString(pattern_list), timeout, searchwindowsize
-        )
+        return self.expect_loop(SearcherString(pattern_list), timeout, searchwindowsize)
 
     def expect_loop(self, searcher, timeout=-1, searchwindowsize=-1):
         """The common loop used inside expect.

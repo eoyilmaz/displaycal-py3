@@ -4,6 +4,7 @@ a connected application. It features a terminal-like interface built with
 wxPython, supporting command history, text highlighting, and basic scripting
 capabilities.
 """
+
 import errno
 import os
 import socket

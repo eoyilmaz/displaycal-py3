@@ -3,6 +3,7 @@ the DisplayCAL application. It provides a unified way to access system paths
 such as application data directories, cache directories, and ICC profile
 locations across different operating systems (Windows, macOS, and Linux).
 """
+
 import os
 import sys
 

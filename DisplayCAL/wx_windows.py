@@ -4,12 +4,10 @@ and enhancements to standard wxPython controls, offering extended functionality
 and improved aesthetics. The module also supports advanced features like
 custom rendering, event handling, and platform-specific adjustments.
 """
-import html
-from datetime import datetime
-from typing import ClassVar
 
 import contextlib
 import errno
+import html
 import math
 import os
 import re
@@ -23,7 +21,9 @@ import threading
 import warnings
 import xml.parsers.expat
 import zipfile
+from datetime import datetime
 from time import gmtime, sleep, strftime, time
+from typing import ClassVar
 
 from DisplayCAL import audio, config, floatspin, util_str
 from DisplayCAL import demjson_compat as demjson

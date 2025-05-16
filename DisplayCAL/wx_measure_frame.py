@@ -5,6 +5,7 @@ frame, as well as handling display geometry and configurations. The module
 integrates with wxPython for user interaction and supports various display
 environments.
 """
+
 import math
 import os
 import sys

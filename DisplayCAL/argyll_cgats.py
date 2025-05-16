@@ -4,6 +4,7 @@ includes functions for manipulating CGATS data, extracting calibration
 information, and creating or modifying ICC profiles with embedded calibration
 data.
 """
+
 # import decimal
 # Decimal = decimal.Decimal
 import contextlib

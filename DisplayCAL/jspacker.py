@@ -2,6 +2,7 @@
 JavaScript code. It includes classes and methods for parsing, encoding, and
 packing JavaScript scripts to reduce their size and improve performance.
 """
+
 #   ParseMaster, version 1.0 (pre-release) (2005/05/12) x6
 #   Copyright 2005, Dean Edwards
 #   Web: http://dean.edwards.name/

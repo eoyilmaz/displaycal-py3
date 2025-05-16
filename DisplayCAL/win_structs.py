@@ -3,6 +3,7 @@ library. It includes utility classes such as `NTSTATUS` for representing
 Windows NT status codes and `UNICODE_STRING` for handling Unicode strings
 in Windows API interactions.
 """
+
 import ctypes
 import functools
 from ctypes import wintypes

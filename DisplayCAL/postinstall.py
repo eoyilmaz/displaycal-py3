@@ -3,6 +3,7 @@ DisplayCAL across different platforms (Windows, macOS, and Linux). It includes
 functions to create shortcuts, manage installed files, and update system
 resources such as icons and desktop menu entries.
 """
+
 import contextlib
 import os
 import shutil

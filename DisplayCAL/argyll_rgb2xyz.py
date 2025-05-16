@@ -3,6 +3,7 @@ conversions between RGB and XYZ, including normalization and glare adjustments.
 It defines ink tables, normalization factors, and channel mappings used in the
 conversion process.
 """
+
 import math
 
 from DisplayCAL import colormath

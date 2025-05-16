@@ -2,6 +2,7 @@
 and manage StaticFancyText controls from XML resource files. It allows
 configuration of properties such as label text, position, size, and styles.
 """
+
 from wx import xrc
 
 from DisplayCAL.log import safe_print

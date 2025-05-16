@@ -2,6 +2,7 @@
 lazy-loading dictionary for JSON data. It allows efficient parsing and
 manipulation of JSON files by loading data only when accessed.
 """
+
 import demjson_compat
 
 from DisplayCAL.lazydict import LazyDict

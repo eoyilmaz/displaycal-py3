@@ -4,6 +4,7 @@ interface using wxPython for file selection and conversion, as well as a
 command-line mode for batch processing. The module supports features like
 caching, forced downloads, and embedding viewer components in the output.
 """
+
 import os
 import sys
 from functools import partial

@@ -4,6 +4,7 @@ properties, including retrieving window and output properties. The module is
 useful for working with X server configurations and display outputs
 programmatically.
 """
+
 import os
 import sys
 from ctypes import (

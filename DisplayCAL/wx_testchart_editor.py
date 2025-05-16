@@ -4,6 +4,7 @@ customization, color space adjustments, file import/export, and 3D
 visualization. The editor allows users to generate test charts for color
 calibration and profiling tasks with various configuration options.
 """
+
 import csv
 import math
 import os

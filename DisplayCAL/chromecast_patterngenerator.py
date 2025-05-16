@@ -3,6 +3,7 @@ pattern generation. It includes classes to send color patterns, manage
 connections, and interact with the Chromecast's pattern generator app for use
 in display calibration workflows.
 """
+
 # 0install: Make sure imported protobuf is from implementation to ensure
 # correct version
 import sys

@@ -3,6 +3,7 @@ properties for use with Argyll CMS. It provides utilities for managing
 instrument names, removing vendor prefixes, and mapping instrument names to
 canonical forms.
 """
+
 from __future__ import annotations
 
 import re

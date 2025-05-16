@@ -3,6 +3,7 @@ ASCII conversion, safe filename generation, text wrapping, and handling
 Unicode characters. It also includes error handling utilities and custom
 string-like classes.
 """
+
 from __future__ import annotations
 
 import codecs

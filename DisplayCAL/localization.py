@@ -2,6 +2,7 @@
 translations within the application. It handles loading language files,
 retrieving translated strings, and managing language-specific configurations.
 """
+
 import os
 import re
 

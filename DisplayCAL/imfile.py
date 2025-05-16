@@ -2,6 +2,7 @@
 formats, including TIFF, PNG, and DPX. It supports 8-bit and 16-bit image data
 and is optimized for scenarios such as single-color images or specific dimensions.
 """
+
 import math
 import os
 import struct

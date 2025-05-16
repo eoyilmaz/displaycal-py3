@@ -4,6 +4,7 @@ includes functionality for retrieving event object names and types, handling
 errors with optional logging and user notifications, and printing call stacks
 for debugging purposes.
 """
+
 import traceback
 
 from DisplayCAL.meta import WX_RECVERSION

@@ -3,6 +3,7 @@ and manage HStretchStaticBitmap controls from XML resource files. It handles
 the processing of XML parameters, creation of the control, and its
 configuration.
 """
+
 import wx
 from wx import xrc
 

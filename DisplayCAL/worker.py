@@ -5,6 +5,7 @@ executing Argyll CMS utilities. The module also supports various
 platform-specific features and integrates with external tools like madVR and
 colord.
 """
+
 # stdlib
 from __future__ import annotations
 

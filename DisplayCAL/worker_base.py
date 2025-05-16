@@ -4,6 +4,7 @@ multiprocessing support, and methods for interacting with Argyll CMS
 utilities like `xicclu`. The module also handles subprocess management,
 logging, and temporary directory creation.
 """
+
 import contextlib
 import math
 import os

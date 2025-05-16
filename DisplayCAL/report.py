@@ -4,6 +4,7 @@ CSS embedding, and ensures compatibility with existing report formats.
 The module also includes utilities for backing up and updating reports
 with the latest template files.
 """
+
 import codecs
 import os
 import re

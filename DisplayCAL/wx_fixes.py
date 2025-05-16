@@ -4,6 +4,7 @@ inconsistencies across different versions. It includes custom widget
 implementations, DPI scaling adjustments, and additional utility functions for
 improved UI behavior and appearance.
 """
+
 import contextlib
 import os
 import re

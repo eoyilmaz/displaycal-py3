@@ -4,6 +4,7 @@ applications. It includes functionality to register custom codec aliases,
 conditionally encode or decode text, and wrap standard input/output streams
 with automatic encoding/decoding support.
 """
+
 import codecs
 import os
 import sys

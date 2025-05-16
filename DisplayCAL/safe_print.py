@@ -4,6 +4,7 @@ with various encodings and allows customization of padding, separators, and
 output formatting. A global `safe_print` instance is also provided for
 convenience.
 """
+
 import os
 import sys
 

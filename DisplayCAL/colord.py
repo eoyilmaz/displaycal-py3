@@ -4,6 +4,7 @@ systems. It supports querying, managing, and installing color profiles for
 display devices, leveraging both the D-Bus API and the `colormgr` command-line
 utility.
 """
+
 import contextlib
 import os
 import subprocess as sp

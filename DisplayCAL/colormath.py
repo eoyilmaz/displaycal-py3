@@ -2882,9 +2882,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xf = bf
         bx = ux
         bf = uf
-    logger.debug(
-        f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
-    )
+    logger.debug(f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}")
     # Got bracketed minimum between a -> x -> b
 
     # ---------------------------------------

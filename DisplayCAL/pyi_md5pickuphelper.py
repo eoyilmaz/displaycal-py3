@@ -4,6 +4,7 @@ the `md5` hashing function. It ensures compatibility on systems where the
 fallback, except on macOS (darwin) and Windows (win32), where such fallback is
 not supported.
 """
+
 from sys import platform
 
 if platform not in ("darwin", "win32"):

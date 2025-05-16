@@ -4,6 +4,7 @@ various settings for generating measurement reports. The module integrates
 with wxPython for the graphical interface and supports handling ICC profiles,
 test charts, and rendering intents.
 """
+
 import math
 import os
 from time import gmtime, strftime

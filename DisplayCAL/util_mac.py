@@ -2,6 +2,7 @@
 interacting with applications via AppleScript, retrieving system information
 such as serial numbers and model IDs, and customizing Terminal settings.
 """
+
 import os
 import re
 import subprocess as sp

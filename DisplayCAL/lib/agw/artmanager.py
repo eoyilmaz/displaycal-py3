@@ -1,41 +1,39 @@
-# -*- coding: utf-8 -*-
 """Drawing routines and customizations for the AGW widgets
 :class:`~wx.lib.agw.labelbook.LabelBook` and :class:`~wx.lib.agw.flatmenu.FlatMenu`.
 """
 
 import random
 from io import BytesIO
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, ClassVar, Optional, Union
 
+import wx
 
 from DisplayCAL.lib.agw.fmresources import (
+    ARROW_DOWN,
+    ARROW_UP,
+    BOTTOM_SHADOW,
+    BOTTOM_SHADOW_FULL,
     BU_EXT_LEFT_ALIGN_STYLE,
     BU_EXT_RIGHT_ALIGN_STYLE,
     BU_EXT_RIGHT_TO_LEFT_STYLE,
-    BottomShadow,
-    BottomShadowFull,
+    CONTROL_DISABLED,
+    CONTROL_FOCUS,
+    CONTROL_PRESSED,
     CS_DROPSHADOW,
-    ControlDisabled,
-    ControlFocus,
-    ControlPressed,
-    RightShadow,
-    Style2007,
-    StyleXP,
-    arrow_down,
-    arrow_up,
-    shadow_bottom_alpha,
-    shadow_bottom_left_alpha,
-    shadow_bottom_left_xpm,
-    shadow_bottom_xpm,
-    shadow_center_alpha,
-    shadow_center_xpm,
-    shadow_right_alpha,
-    shadow_right_top_alpha,
-    shadow_right_top_xpm,
-    shadow_right_xpm,
+    RIGHT_SHADOW,
+    SHADOW_BOTTOM_ALPHA,
+    SHADOW_BOTTOM_LEFT_ALPHA,
+    SHADOW_BOTTOM_LEFT_XPM,
+    SHADOW_BOTTOM_XPM,
+    SHADOW_CENTER_ALPHA,
+    SHADOW_CENTER_XPM,
+    SHADOW_RIGHT_ALPHA,
+    SHADOW_RIGHT_TOP_ALPHA,
+    SHADOW_RIGHT_TOP_XPM,
+    SHADOW_RIGHT_XPM,
+    STYLE_2007,
+    STYLE_XP,
 )
-
-import wx
 
 # ------------------------------------------------------------------------------------ #
 # Class DCSaver
@@ -46,9 +44,9 @@ _: Callable[[str], str] = wx.GetTranslation
 _libimported = None
 
 if wx.Platform == "__WXMSW__":
-    osVersion = wx.GetOsVersion()
+    OS_VERSION = wx.GetOsVersion()
     # Shadows behind menus are supported only in XP
-    if osVersion[1] == 5 and osVersion[2] == 1:
+    if OS_VERSION[1] == 5 and OS_VERSION[2] == 1:
         try:
             import win32api
             import win32con
@@ -335,10 +333,10 @@ class RendererXP(RendererBase):
             useLightColours (bool): `True` to use light colours, `False` otherwise.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             penColour = ArtManager.Get().FrameColour()
             brushColour = ArtManager.Get().BackgroundColour()
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             penColour = ArtManager.Get().FrameColour()
             brushColour = ArtManager.Get().HighlightBackgroundColour()
         else:
@@ -360,10 +358,10 @@ class RendererXP(RendererBase):
             colour (wx.Colour): a valid :class:`wx.Colour` instance.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             penColour = colour
             brushColour = ArtManager.Get().LightColour(colour, 75)
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             penColour = colour
             brushColour = ArtManager.Get().LightColour(colour, 60)
         else:
@@ -448,7 +446,7 @@ class RendererMSOffice2007(RendererBase):
     def __init__(self) -> None:
         RendererBase.__init__(self)
 
-    def GetColoursAccordingToState(self, state: int) -> Tuple[int, int, int, int]:
+    def GetColoursAccordingToState(self, state: int) -> tuple[int, int, int, int]:
         """Return a tuple according to the menu item state.
 
         Args:
@@ -464,11 +462,11 @@ class RendererMSOffice2007(RendererBase):
          ==================== ======= ==========================
 
         Returns:
-            Tuple[int, int, int, int, bool, bool]: A tuple containing the
+            tuple[int, int, int, int, bool, bool]: A tuple containing the
                 gradient percentages.
         """
         # switch according to the status
-        if state == ControlFocus:
+        if state == CONTROL_FOCUS:
             upperBoxTopPercent = 95
             upperBoxBottomPercent = 50
             lowerBoxTopPercent = 40
@@ -476,7 +474,7 @@ class RendererMSOffice2007(RendererBase):
             concaveUpperBox = True
             concaveLowerBox = True
 
-        elif state == ControlPressed:
+        elif state == CONTROL_PRESSED:
             upperBoxTopPercent = 75
             upperBoxBottomPercent = 90
             lowerBoxTopPercent = 90
@@ -484,7 +482,7 @@ class RendererMSOffice2007(RendererBase):
             concaveUpperBox = True
             concaveLowerBox = True
 
-        elif state == ControlDisabled:
+        elif state == CONTROL_DISABLED:
             upperBoxTopPercent = 100
             upperBoxBottomPercent = 100
             lowerBoxTopPercent = 70
@@ -765,17 +763,17 @@ class RendererMSOffice2007(RendererBase):
 class ArtManager(wx.EvtHandler):
     """This class provides utilities for creating shadows and adjusting colors."""
 
-    _alignmentBuffer = 7
-    _menuTheme: int = StyleXP
-    _verticalGradient = False
-    _renderers: Dict[int, RendererBase] = {StyleXP: None, Style2007: None}
-    _bmpShadowEnabled = False
+    _alignment_buffer = 7
+    _menu_theme: int = STYLE_XP
+    _vertical_gradient = False
+    _renderers: ClassVar[dict[int, RendererBase]] = {STYLE_XP: None, STYLE_2007: None}
+    _bmp_shadow_enabled = False
     _ms2007sunken = False
-    _drowMBBorder = True
-    _menuBgFactor = 5
-    _menuBarColourScheme: str = _("Default")
-    _raiseTB = True
-    _bitmaps: Dict[str, wx.Bitmap] = {}
+    _draw_mb_border = True
+    _menu_bg_factor = 5
+    _menu_bar_colour_scheme: str = _("Default")
+    _raise_trace_back = True
+    _bitmaps: ClassVar[dict[str, wx.Bitmap]] = {}
     _transparency = 255
 
     def __init__(self) -> None:
@@ -816,13 +814,13 @@ class ArtManager(wx.EvtHandler):
 
     @classmethod
     def ConvertToBitmap(
-        cls, xpm: Union[List[str], bytes], alpha: Optional[List[int]] = None
+        cls, xpm: Union[list[str], bytes], alpha: Optional[list[int]] = None
     ) -> wx.Bitmap:
         """Convert the given image to a bitmap, optionally overlaying an alpha channel.
 
         Args:
-            xpm (Union[List[str], bytes]): A list of strings formatted as XPM.
-            alpha (Optional[List[int]]): A list of alpha values, the same size
+            xpm (Union[list[str], bytes]): A list of strings formatted as XPM.
+            alpha (Optional[list[int]]): A list of alpha values, the same size
                 as the xpm bitmap.
 
         Raises:
@@ -852,31 +850,31 @@ class ArtManager(wx.EvtHandler):
         """Initialize the bitmaps and colours."""
         # create wxBitmaps from the xpm's
         self._rightBottomCorner = self.ConvertToBitmap(
-            shadow_center_xpm, shadow_center_alpha
+            SHADOW_CENTER_XPM, SHADOW_CENTER_ALPHA
         )
-        self._bottom = self.ConvertToBitmap(shadow_bottom_xpm, shadow_bottom_alpha)
+        self._bottom = self.ConvertToBitmap(SHADOW_BOTTOM_XPM, SHADOW_BOTTOM_ALPHA)
         self._bottomLeft = self.ConvertToBitmap(
-            shadow_bottom_left_xpm, shadow_bottom_left_alpha
+            SHADOW_BOTTOM_LEFT_XPM, SHADOW_BOTTOM_LEFT_ALPHA
         )
         self._rightTop = self.ConvertToBitmap(
-            shadow_right_top_xpm, shadow_right_top_alpha
+            SHADOW_RIGHT_TOP_XPM, SHADOW_RIGHT_TOP_ALPHA
         )
-        self._right = self.ConvertToBitmap(shadow_right_xpm, shadow_right_alpha)
+        self._right = self.ConvertToBitmap(SHADOW_RIGHT_XPM, SHADOW_RIGHT_ALPHA)
 
         # initialise the colour map
         self.InitColours()
-        self.SetMenuBarColour(self._menuBarColourScheme)
+        self.SetMenuBarColour(self._menu_bar_colour_scheme)
 
         # Create common bitmaps
         self.FillStockBitmaps()
 
     def FillStockBitmaps(self) -> None:
         """Initialize few standard bitmaps."""
-        bmp = self.ConvertToBitmap(arrow_down, alpha=None)
+        bmp = self.ConvertToBitmap(ARROW_DOWN, alpha=None)
         bmp.SetMask(wx.Mask(bmp, wx.Colour(0, 128, 128)))
         self._bitmaps.update({"arrow_down": bmp})
 
-        bmp = self.ConvertToBitmap(arrow_up, alpha=None)
+        bmp = self.ConvertToBitmap(ARROW_UP, alpha=None)
         bmp.SetMask(wx.Mask(bmp, wx.Colour(0, 128, 128)))
         self._bitmaps.update({"arrow_up": bmp})
 
@@ -893,7 +891,7 @@ class ArtManager(wx.EvtHandler):
         return self._bitmaps.get(name, wx.NullBitmap)
 
     @classmethod
-    def Get(cls: Type["ArtManager"]) -> "ArtManager":
+    def Get(cls: type["ArtManager"]) -> "ArtManager":
         """Accessor to the unique art manager object.
 
         Returns:
@@ -904,8 +902,8 @@ class ArtManager(wx.EvtHandler):
             cls._instance.Initialize()
 
             # Initialize the renderers map
-            cls._renderers[StyleXP] = RendererXP()
-            cls._renderers[Style2007] = RendererMSOffice2007()
+            cls._renderers[STYLE_XP] = RendererXP()
+            cls._renderers[STYLE_2007] = RendererMSOffice2007()
 
         return cls._instance
 
@@ -1135,7 +1133,7 @@ class ArtManager(wx.EvtHandler):
 
     def _calculate_sizes(
         self, rect: wx.Rect, trimToSquare: bool
-    ) -> Tuple[int, int, int, float]:
+    ) -> tuple[int, int, int, float]:
         """Calculate the sizes for the gradient drawing.
 
         Args:
@@ -1144,7 +1142,7 @@ class ArtManager(wx.EvtHandler):
                 square.
 
         Returns:
-            Tuple[int, int, int, float]: A tuple containing the size, sizeX,
+            tuple[int, int, int, float]: A tuple containing the size, sizeX,
                 sizeY and proportion.
         """
         if rect.width > rect.height:
@@ -1157,21 +1155,20 @@ class ArtManager(wx.EvtHandler):
                 size = rect.width
                 sizeX = rect.width - 1
                 sizeY = rect.height - 1
+        elif trimToSquare:
+            size = rect.width
+            sizeX = sizeY = rect.width - 1
+            proportion = 1.0  # Square proportion is 1.0
         else:
-            if trimToSquare:
-                size = rect.width
-                sizeX = sizeY = rect.width - 1
-                proportion = 1.0  # Square proportion is 1.0
-            else:
-                sizeX = rect.width - 1
-                size = rect.height
-                sizeY = rect.height - 1
-                proportion = float(rect.width) / float(rect.height)
+            sizeX = rect.width - 1
+            size = rect.height
+            sizeY = rect.height - 1
+            proportion = float(rect.width) / float(rect.height)
         return size, sizeX, sizeY, proportion
 
     def _calculate_steps(
         self, startColour: wx.Colour, endColour: wx.Colour, size: int
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """Calculate the gradient steps for the diagonal gradient drawing.
 
         Args:
@@ -1329,43 +1326,39 @@ class ArtManager(wx.EvtHandler):
                         rect.x + i, rect.y, rect.x, int(rect.y + proportion * i)
                     )
                     dc.DrawPoint(rect.x, int(rect.y + proportion * i))
+            elif lower:
+                dc.DrawLine(
+                    int(rect.x + proportion * i),
+                    rect.y + sizeY,
+                    rect.x + sizeX,
+                    rect.y + i,
+                )
+                dc.DrawPoint(rect.x + sizeX, rect.y + i)
             else:
-                if lower:
-                    dc.DrawLine(
-                        int(rect.x + proportion * i),
-                        rect.y + sizeY,
-                        rect.x + sizeX,
-                        rect.y + i,
-                    )
-                    dc.DrawPoint(rect.x + sizeX, rect.y + i)
-                else:
-                    dc.DrawLine(
-                        int(rect.x + proportion * i), rect.y, rect.x, rect.y + i
-                    )
-                    dc.DrawPoint(rect.x, rect.y + i)
+                dc.DrawLine(int(rect.x + proportion * i), rect.y, rect.x, rect.y + i)
+                dc.DrawPoint(rect.x, rect.y + i)
+        elif rect.width > rect.height:
+            if lower:
+                dc.DrawLine(
+                    rect.x + i, rect.y + sizeY, rect.x + sizeX - i, rect.y + sizeY
+                )
+                dc.DrawPoint(rect.x + sizeX - i, rect.y + sizeY)
+            else:
+                dc.DrawLine(
+                    rect.x + sizeX - i,
+                    rect.y,
+                    rect.x + sizeX,
+                    int(rect.y + proportion * i),
+                )
+                dc.DrawPoint(rect.x + sizeX, int(rect.y + proportion * i))
         else:
-            if rect.width > rect.height:
-                if lower:
-                    dc.DrawLine(
-                        rect.x + i, rect.y + sizeY, rect.x + sizeX - i, rect.y + sizeY
-                    )
-                    dc.DrawPoint(rect.x + sizeX - i, rect.y + sizeY)
-                else:
-                    dc.DrawLine(
-                        rect.x + sizeX - i,
-                        rect.y,
-                        rect.x + sizeX,
-                        int(rect.y + proportion * i),
-                    )
-                    dc.DrawPoint(rect.x + sizeX, int(rect.y + proportion * i))
+            xTo = max(int(rect.x + sizeX - proportion * i), rect.x)
+            if lower:
+                dc.DrawLine(rect.x, rect.y + i, xTo, rect.y + sizeY)
+                dc.DrawPoint(xTo, rect.y + sizeY)
             else:
-                xTo = max(int(rect.x + sizeX - proportion * i), rect.x)
-                if lower:
-                    dc.DrawLine(rect.x, rect.y + i, xTo, rect.y + sizeY)
-                    dc.DrawPoint(xTo, rect.y + sizeY)
-                else:
-                    dc.DrawLine(xTo, rect.y, rect.x + sizeX, rect.y + i)
-                    dc.DrawPoint(rect.x + sizeX, rect.y + i)
+                dc.DrawLine(xTo, rect.y, rect.x + sizeX, rect.y + i)
+                dc.DrawPoint(rect.x + sizeX, rect.y + i)
 
     def PaintCrescentGradientBox(
         self,
@@ -1484,9 +1477,9 @@ class ArtManager(wx.EvtHandler):
         Returns:
             wx.Colour: An instance of :class:`wx.Colour`.
         """
-        r = random.randint(0, 255)  # Random value between 0-255
-        g = random.randint(0, 255)  # Random value between 0-255
-        b = random.randint(0, 255)  # Random value between 0-255
+        r = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
+        g = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
+        b = random.randint(0, 255)  # Random value between 0-255  # noqa: S311
         return wx.Colour(r, g, b)
 
     def IsDark(self, colour: wx.Colour) -> bool:
@@ -1543,6 +1536,8 @@ class ArtManager(wx.EvtHandler):
                 return fixedText
 
             tempText = tempText[:-1]
+
+        return None
 
     def DrawButton(
         self,
@@ -1612,16 +1607,15 @@ class ArtManager(wx.EvtHandler):
         """
         if wx.Platform == "__WXMSW__":
             version = wx.GetOsDescription()
-            found = (
+            return (
                 version.find("XP") >= 0
                 or version.find("2000") >= 0
                 or version.find("NT") >= 0
             )
-            return found
-        elif wx.Platform == "__WXMAC__":
+        if wx.Platform == "__WXMAC__":  # noqa: SIM103
             return True
-        else:
-            return False
+        # Linux
+        return False
 
     def MakeWindowTransparent(self, wnd, amount):
         """Make a toplevel window transparent if the system supports it.
@@ -1656,7 +1650,7 @@ class ArtManager(wx.EvtHandler):
                     return
 
                 exstyle = win32api.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
-                if 0 == (exstyle & 0x80000):
+                if (exstyle & 0x80000) == 0:
                     win32api.SetWindowLong(
                         hwnd, win32con.GWL_EXSTYLE, exstyle | 0x80000
                     )
@@ -1673,7 +1667,7 @@ class ArtManager(wx.EvtHandler):
                 return
             wnd.SetTransparent(amount)
 
-    def DrawBitmapShadow(self, dc, rect, where=BottomShadow | RightShadow):
+    def DrawBitmapShadow(self, dc, rect, where=BOTTOM_SHADOW | RIGHT_SHADOW):
         """Draw a shadow using background bitmap.
 
         Assumption: the background was already drawn on the dc
@@ -1699,7 +1693,7 @@ class ArtManager(wx.EvtHandler):
             return
 
         # Start by drawing the right bottom corner
-        if where & BottomShadow or where & BottomShadowFull:
+        if where & BOTTOM_SHADOW or where & BOTTOM_SHADOW_FULL:
             dc.DrawBitmap(
                 self._rightBottomCorner, rect.x + rect.width, rect.y + rect.height, True
             )
@@ -1708,14 +1702,14 @@ class ArtManager(wx.EvtHandler):
         xx = rect.x + rect.width
         yy = rect.y + rect.height - shadowSize
 
-        if where & RightShadow:
+        if where & RIGHT_SHADOW:
             while yy - rect.y > 2 * shadowSize:
                 dc.DrawBitmap(self._right, xx, yy, True)
                 yy -= shadowSize
 
             dc.DrawBitmap(self._rightTop, xx, yy - shadowSize, True)
 
-        if where & BottomShadow:
+        if where & BOTTOM_SHADOW:
             xx = rect.x + rect.width - shadowSize
             yy = rect.height + rect.y
             while xx - rect.x > 2 * shadowSize:
@@ -1724,7 +1718,7 @@ class ArtManager(wx.EvtHandler):
 
             dc.DrawBitmap(self._bottomLeft, xx - shadowSize, yy, True)
 
-        if where & BottomShadowFull:
+        if where & BOTTOM_SHADOW_FULL:
             xx = rect.x + rect.width - shadowSize
             yy = rect.height + rect.y
             while xx - rect.x >= 0:
@@ -1761,13 +1755,11 @@ class ArtManager(wx.EvtHandler):
             if drop:
                 if csstyle & CS_DROPSHADOW:
                     return
-                else:
-                    csstyle |= CS_DROPSHADOW  # Nothing to be done
+                csstyle |= CS_DROPSHADOW  # Nothing to be done
+            elif csstyle & CS_DROPSHADOW:
+                csstyle &= ~(CS_DROPSHADOW)
             else:
-                if csstyle & CS_DROPSHADOW:
-                    csstyle &= ~(CS_DROPSHADOW)
-                else:
-                    return  # Nothing to be done
+                return  # Nothing to be done
 
             win32api.SetWindowLong(hwnd, win32con.GCL_STYLE, csstyle)
 
@@ -1778,7 +1770,7 @@ class ArtManager(wx.EvtHandler):
         bitmap: wx.Bitmap,
         text: str = "",
         style: int = 0,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Return the top left `x` and `y` coordinates of the bitmap drawing.
 
         Args:
@@ -1803,7 +1795,7 @@ class ArtManager(wx.EvtHandler):
 
 
         Returns:
-            Tuple[float, float]: A tuple containing the top left `x` and `y`
+            tuple[float, float]: A tuple containing the top left `x` and `y`
                 coordinates of the bitmap drawing.
         """
         alignmentBuffer = self.GetAlignBuffer()
@@ -1821,56 +1813,54 @@ class ArtManager(wx.EvtHandler):
         # get the startLocationX
         if style & BU_EXT_RIGHT_TO_LEFT_STYLE:
             startLocationX = rect.x + rect.width - alignmentBuffer - bitmap.GetWidth()
-        else:
-            if style & BU_EXT_RIGHT_ALIGN_STYLE:
-                maxWidth = (
-                    rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
-                )  # the alignment is for both sides
+        elif style & BU_EXT_RIGHT_ALIGN_STYLE:
+            maxWidth = (
+                rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
+            )  # the alignment is for both sides
 
-                # get the truncated text. The text may stay as is, it is not a
-                # must that is will be truncated
-                fixedText = self.TruncateText(dc, text, maxWidth)
+            # get the truncated text. The text may stay as is, it is not a
+            # must that is will be truncated
+            fixedText = self.TruncateText(dc, text, maxWidth)
 
-                # get the fixed text dimensions
-                fixedTextWidth, _ = dc.GetTextExtent(fixedText)
+            # get the fixed text dimensions
+            fixedTextWidth, _ = dc.GetTextExtent(fixedText)
 
+            # calculate the start location
+            startLocationX = maxWidth - fixedTextWidth
+
+        elif style & BU_EXT_LEFT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = alignmentBuffer
+
+        else:  # meaning BU_EXT_CENTER_ALIGN_STYLE
+            maxWidth = (
+                rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
+            )  # the alignment is for both sides
+
+            # get the truncated text. The text may stay as is, it is not a
+            # must that is will be truncated
+            fixedText = self.TruncateText(dc, text, maxWidth)
+
+            # get the fixed text dimensions
+            fixedTextWidth, _ = dc.GetTextExtent(fixedText)
+
+            if maxWidth > fixedTextWidth:
+                # calculate the start location
+                startLocationX = (maxWidth - fixedTextWidth) / 2
+
+            else:
                 # calculate the start location
                 startLocationX = maxWidth - fixedTextWidth
 
-            elif style & BU_EXT_LEFT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = alignmentBuffer
-
-            else:  # meaning BU_EXT_CENTER_ALIGN_STYLE
-                maxWidth = (
-                    rect.x + rect.width - (2 * alignmentBuffer) - bitmap.GetWidth()
-                )  # the alignment is for both sides
-
-                # get the truncated text. The text may stay as is, it is not a
-                # must that is will be truncated
-                fixedText = self.TruncateText(dc, text, maxWidth)
-
-                # get the fixed text dimensions
-                fixedTextWidth, _ = dc.GetTextExtent(fixedText)
-
-                if maxWidth > fixedTextWidth:
-                    # calculate the start location
-                    startLocationX = (maxWidth - fixedTextWidth) / 2
-
-                else:
-                    # calculate the start location
-                    startLocationX = maxWidth - fixedTextWidth
-
         # it is very important to validate that the start location is not less
         # than the alignment buffer
-        if startLocationX < alignmentBuffer:
-            startLocationX = alignmentBuffer
+        startLocationX = max(startLocationX, alignmentBuffer)
 
         return startLocationX, startLocationY
 
     def GetTextStartLocation(
         self, dc: wx.DC, rect: wx.Rect, bitmap: wx.Bitmap, text: str, style: int = 0
-    ) -> Tuple[float, float, Union[str, None]]:
+    ) -> tuple[float, float, Union[str, None]]:
         """Return the top left `x` and `y` coordinates of the text drawing.
 
         In case the text is too long, the text is being fixed (the text is cut
@@ -1884,7 +1874,7 @@ class ArtManager(wx.EvtHandler):
             style (int): The button style.
 
         Returns:
-            Tuple[float, float, Union[str, None]]: A tuple containing the top
+            tuple[float, float, Union[str, None]]: A tuple containing the top
                 left `x` and `y` coordinates of the text drawing, plus the
                 truncated version of the input `text`.
 
@@ -1912,25 +1902,21 @@ class ArtManager(wx.EvtHandler):
         # get the startLocationX
         if style & BU_EXT_RIGHT_TO_LEFT_STYLE:
             startLocationX = maxWidth - fixedTextWidth + alignmentBuffer
-        else:
-            if style & BU_EXT_LEFT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = bitmapOffset + alignmentBuffer
-            elif style & BU_EXT_RIGHT_ALIGN_STYLE:
-                # calculate the start location
-                startLocationX = (
-                    maxWidth - fixedTextWidth + bitmapOffset + alignmentBuffer
-                )
-            else:  # meaning wxBU_EXT_CENTER_ALIGN_STYLE
-                # calculate the start location
-                startLocationX = (
-                    (maxWidth - fixedTextWidth) / 2 + bitmapOffset + alignmentBuffer
-                )
+        elif style & BU_EXT_LEFT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = bitmapOffset + alignmentBuffer
+        elif style & BU_EXT_RIGHT_ALIGN_STYLE:
+            # calculate the start location
+            startLocationX = maxWidth - fixedTextWidth + bitmapOffset + alignmentBuffer
+        else:  # meaning wxBU_EXT_CENTER_ALIGN_STYLE
+            # calculate the start location
+            startLocationX = (
+                (maxWidth - fixedTextWidth) / 2 + bitmapOffset + alignmentBuffer
+            )
 
         # it is very important to validate that the start location is not less
         # than the alignment buffer
-        if startLocationX < alignmentBuffer:
-            startLocationX = alignmentBuffer
+        startLocationX = max(startLocationX, alignmentBuffer)
 
         return startLocationX, startLocationY, fixedText
 
@@ -2053,10 +2039,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             wx.Size: Representing the best fit size for the supplied label & bitmap.
         """
-        if "__WXMSW__" in wx.Platform:
-            HEIGHT = 22
-        else:
-            HEIGHT = 26
+        HEIGHT = 22 if "__WXMSW__" in wx.Platform else 26
 
         dc = wx.MemoryDC()
         dc.SelectBitmap(wx.Bitmap(1, 1))
@@ -2069,13 +2052,11 @@ class ArtManager(wx.EvtHandler):
         if bmp.IsOk():
             # allocate extra space for the bitmap
             heightBmp = bmp.GetHeight() + 2
-            if height < heightBmp:
-                height = heightBmp
+            height = max(height, heightBmp)
 
             width += bmp.GetWidth() + 2
 
-        if height < HEIGHT:
-            height = HEIGHT
+        height = max(height, HEIGHT)
 
         dc.SelectBitmap(wx.NullBitmap)
 
@@ -2117,7 +2098,7 @@ class ArtManager(wx.EvtHandler):
         renderer = self._renderers[self.GetMenuTheme()]
         return renderer.GetFont()
 
-    def GetAccelIndex(self, label: str) -> Tuple[int, str]:
+    def GetAccelIndex(self, label: str) -> tuple[int, str]:
         """Return the mnemonic index and the label without the ampersand mnemonic.
 
         (e.g. 'lab&el' ==> will result in 3 and labelOnly = label).
@@ -2126,7 +2107,7 @@ class ArtManager(wx.EvtHandler):
             label (str): A string containing an ampersand.
 
         Returns:
-            Tuple[int, str]: A tuple containing the mnemonic index of the label
+            tuple[int, str]: A tuple containing the mnemonic index of the label
                 and the label stripped of the ampersand mnemonic.
         """
         indexAccel = 0
@@ -2161,8 +2142,7 @@ class ArtManager(wx.EvtHandler):
         """
         if not useLightColours and not self.IsDark(self.FrameColour()):
             return wx.Colour("GOLD")
-        else:
-            return self.LightColour(self.FrameColour(), 30)
+        return self.LightColour(self.FrameColour(), 30)
 
     def GetAlignBuffer(self) -> int:
         """Return the padding buffer for a text or bitmap.
@@ -2170,7 +2150,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An integer representing the padding buffer.
         """
-        return self._alignmentBuffer
+        return self._alignment_buffer
 
     def SetMenuTheme(self, theme: int) -> None:
         """Set the menu theme, possible values (Style2007, StyleXP, StyleVista).
@@ -2179,7 +2159,7 @@ class ArtManager(wx.EvtHandler):
             theme (int): A rendering theme class, either `StyleXP`, `Style2007` or
                 `StyleVista`.
         """
-        self._menuTheme = theme
+        self._menu_theme = theme
 
     def GetMenuTheme(self) -> int:
         """Return the currently used menu theme.
@@ -2187,7 +2167,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An int containing the currently used theme for the menu.
         """
-        return self._menuTheme
+        return self._menu_theme
 
     def AddMenuTheme(self, render: RendererBase) -> int:
         """Add a new theme to the stock.
@@ -2229,7 +2209,7 @@ class ArtManager(wx.EvtHandler):
             bool: A boolean indicating whether the menu bar should be painted with
                 vertical gradient.
         """
-        return self._verticalGradient
+        return self._vertical_gradient
 
     def SetMBVerticalGradient(self, v: bool) -> None:
         """Set the menu bar gradient style.
@@ -2237,7 +2217,7 @@ class ArtManager(wx.EvtHandler):
         Args:
             v (bool): ``True`` for a vertical shaded gradient, ``False`` otherwise.
         """
-        self._verticalGradient = v
+        self._vertical_gradient = v
 
     def DrawMenuBarBorder(self, border: bool) -> None:
         """Enable menu border drawing (XP style only).
@@ -2245,7 +2225,7 @@ class ArtManager(wx.EvtHandler):
         Args:
             border (bool): ``True`` to draw the menubar border, ``False`` otherwise.
         """
-        self._drowMBBorder = border
+        self._draw_mb_border = border
 
     def GetMenuBarBorder(self) -> bool:
         """Return menu bar border drawing flag.
@@ -2253,7 +2233,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             bool: ``True`` if the menu bar border is to be drawn, ``False`` otherwise.
         """
-        return self._drowMBBorder
+        return self._draw_mb_border
 
     def GetMenuBgFactor(self) -> int:
         """Return the visibility depth of the menu in Metallic style.
@@ -2263,7 +2243,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             int: An integer representing the visibility depth of the menu.
         """
-        return self._menuBgFactor
+        return self._menu_bg_factor
 
     def DrawDragSash(self, rect: wx.Rect) -> None:
         """Draw resize sash.
@@ -2349,7 +2329,7 @@ class ArtManager(wx.EvtHandler):
             scheme (str): A string representing a colour scheme (i.e., 'Default',
                 'Dark', 'Dark Olive Green', 'Generic').
         """
-        self._menuBarColourScheme = scheme
+        self._menu_bar_colour_scheme = scheme
         # set default colour
         if scheme in self._colourSchemeMap:
             self._menuBarBgColour = self._colourSchemeMap[scheme]
@@ -2360,7 +2340,7 @@ class ArtManager(wx.EvtHandler):
         Returns:
             str: A string representing the current colour scheme.
         """
-        return self._menuBarColourScheme
+        return self._menu_bar_colour_scheme
 
     def GetMenuBarFaceColour(self) -> wx.Colour:
         """Return the menu bar face colour.
@@ -2387,11 +2367,11 @@ class ArtManager(wx.EvtHandler):
             _("Generic"): wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVECAPTION),
         }
 
-    def GetColourSchemes(self) -> List[str]:
+    def GetColourSchemes(self) -> list[str]:
         """Return the available colour schemes.
 
         Returns:
-            List[str]: A list of strings representing the available colour
+            list[str]: A list of strings representing the available colour
                 schemes.
         """
         return list(self._colourSchemeMap)
@@ -2415,7 +2395,7 @@ class ArtManager(wx.EvtHandler):
             bool: A boolean indicating whether a shadow is dropped under a
                 toolbar.
         """
-        return self._raiseTB
+        return self._raise_trace_back
 
     def SetRaiseToolbar(self, rais: bool) -> None:
         """Enable/disable toobar shadow drop.
@@ -2424,4 +2404,4 @@ class ArtManager(wx.EvtHandler):
             rais (bool): ``True`` to drop a shadow below a toolbar, ``False``
                 otherwise.
         """
-        self._raiseTB = rais
+        self._raise_trace_back = rais

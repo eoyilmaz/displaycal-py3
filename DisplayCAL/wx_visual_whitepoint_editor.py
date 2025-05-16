@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
@@ -8,18 +7,24 @@ License: wxPython license
 
 import colorsys
 import os
+import platform
 import re
 import sys
 import threading
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
+from typing import ClassVar
+
+from wx.lib.agw import aui
+from wx.lib.intctrl import IntCtrl
 
 from DisplayCAL import (
     localization as lang,
 )
 from DisplayCAL.config import (
-    defaults,
-    fs_enc,
+    DEFAULTS,
+    FS_ENC,
+    PROFILE_EXT,
     get_argyll_display_number,
     get_default_dpi,
     get_display_name,
@@ -28,17 +33,16 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     initcfg,
-    profile_ext,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
-    get_display_profile,
     VideoCardGammaType,
     WcsProfilesTagType,
+    get_display_profile,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import safe_asciize, wrap
 from DisplayCAL.worker import (
@@ -49,30 +53,26 @@ from DisplayCAL.worker import (
     get_argyll_util,
     show_result_dialog,
 )
-from DisplayCAL.wxfixes import (
+from DisplayCAL.wx_fixes import (
     GenBitmapButton as BitmapButton,
+)
+from DisplayCAL.wx_fixes import (
     get_bitmap_disabled,
     get_bitmap_hover,
     get_bitmap_pressed,
     wx,
     wx_Panel,
 )
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_windows import (
     FlatShadedButton,
     HStretchStaticBitmap,
     TaskBarNotification,
 )
 
-from wx.lib.agw import aui
-from wx.lib.intctrl import IntCtrl
-
-if sys.platform == "darwin":
-    from platform import mac_ver
-
 try:
-    from DisplayCAL import RealDisplaySizeMM as RDSMM
+    from DisplayCAL import real_display_size_mm
 except ImportError:
-    RDSMM = None
+    real_display_size_mm = None
 
 # Use non-native mini frames on all platforms
 aui.framemanager.AuiManager_UseNativeMiniframes = (
@@ -80,8 +80,8 @@ aui.framemanager.AuiManager_UseNativeMiniframes = (
     == aui.AUI_MGR_USE_NATIVE_MINIFRAMES
 )
 
-colourAttributes = ["r", "g", "b", "h", "s", "v"]
-colourMaxValues = [255, 255, 255, 359, 255, 255]
+COLOUR_ATTRIBUTES = ["r", "g", "b", "h", "s", "v"]
+COLOUR_MAX_VALUES = [255, 255, 255, 359, 255, 255]
 
 
 def rad2deg(x):
@@ -89,7 +89,6 @@ def rad2deg(x):
 
     :param x: a float representing an angle in radians.
     """
-
     return 180.0 * x / pi
 
 
@@ -98,7 +97,6 @@ def deg2rad(x):
 
     :param x: a float representing an angle in degrees.
     """
-
     return x * pi / 180.0
 
 
@@ -152,7 +150,6 @@ def Distance(pt1, pt2):
     :param pt1: an instance of :class:`Point`;
     :param pt2: another instance of :class:`Point`.
     """
-
     distance = sqrt((pt1.x - pt2.x) ** 2.0 + (pt1.y - pt2.y) ** 2.0)
     return int(round(distance))
 
@@ -164,14 +161,12 @@ def AngleFromPoint(pt, center):
     :param pt: an instance of :class:`Point`;
     :param center: a float value representing the center.
     """
-
     y = -1 * (pt.y - center.y)
     x = pt.x - center.x
     if x == 0 and y == 0:
         return 0.0
 
-    else:
-        return atan2(y, x)
+    return atan2(y, x)
 
 
 class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
@@ -208,7 +203,6 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         :param integer `orient`: the gradient (if any) orientation;
         :param Rect `rect`: the background rectangle.
         """
-
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.Brush(wx.Colour(51, 51, 51)))
         dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height)
@@ -223,7 +217,6 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         :param Rect `_rect`: the pane caption rectangle;
         :param pane: the pane for which the button is drawn.
         """
-
         if not pane:
             return
 
@@ -245,11 +238,10 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                     bmp = self._active_restore_bitmap
                 else:
                     bmp = self._inactive_restore_bitmap
+            elif pane.state & aui.dockart.optionActive:
+                bmp = self._active_maximize_bitmap
             else:
-                if pane.state & aui.dockart.optionActive:
-                    bmp = self._active_maximize_bitmap
-                else:
-                    bmp = self._inactive_maximize_bitmap
+                bmp = self._inactive_maximize_bitmap
 
         elif button == aui.dockart.AUI_BUTTON_MINIMIZE:
             if pane.state & aui.dockart.optionActive:
@@ -286,14 +278,15 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
         dc.DrawBitmap(bmp, rect.x, rect.y, True)
 
     def SetCustomPaneBitmap(self, bmp, button, active, maximize=False):
-        """Sets a custom button bitmap for the pane button.
+        """Set a custom button bitmap for the pane button.
 
-        :param Bitmap `bmp`: the actual bitmap to set;
-        :param integer `button`: the button identifier;
-        :param bool `active`: whether it is the bitmap for the active button or not;
-        :param bool `maximize`: used to distinguish between the maximize and restore bitmaps.
+        Args:
+            bmp (Bitmap): The actual bitmap to set.
+            button (int): The button identifier.
+            active (bool): Whether it is the bitmap for the active button or not.
+            maximize (bool): Used to distinguish between the maximize and restore
+                bitmaps.
         """
-
         if button == aui.dockart.AUI_BUTTON_CLOSE:
             if active:
                 self._active_close_bitmap = bmp
@@ -315,11 +308,10 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                     self._active_maximize_bitmap = bmp
                 else:
                     self._inactive_maximize_bitmap = bmp
+            elif active:
+                self._active_restore_bitmap = bmp
             else:
-                if active:
-                    self._active_restore_bitmap = bmp
-                else:
-                    self._inactive_restore_bitmap = bmp
+                self._inactive_restore_bitmap = bmp
 
         elif button == aui.dockart.AUI_BUTTON_MINIMIZE:
             if active:
@@ -328,12 +320,11 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
                 self._inactive_minimize_bitmap = bmp
 
 
-class AuiManager_LRDocking(aui.AuiManager):
+class AuiManagerLRDocking(aui.AuiManager):
     """AuiManager with only left/right docking.
 
     Also, it is not necessary to hover the drop guide, a drop hint will show
     near the edges regardless.
-
     """
 
     def CreateGuideWindows(self):
@@ -356,12 +347,11 @@ class AuiManager_LRDocking(aui.AuiManager):
 
         if target.IsToolbar():
             return self.DoDropToolbar(docks, panes, target, pt, offset)
-        else:
-            if target.IsFloating():
-                allow, hint = self.DoDropFloatingPane(docks, panes, target, pt)
-                if allow:
-                    return allow, hint
-            return self.DoDropNonFloatingPane(docks, panes, target, pt)
+        if target.IsFloating():
+            allow, hint = self.DoDropFloatingPane(docks, panes, target, pt)
+            if allow:
+                return allow, hint
+        return self.DoDropNonFloatingPane(docks, panes, target, pt)
 
     def DoDropNonFloatingPane(self, docks, panes, target, pt):
         """Handles the situation in which the dropped pane is not floating.
@@ -443,11 +433,9 @@ class AuiManager_LRDocking(aui.AuiManager):
             new_row_pixels_x = s(20)
             new_row_pixels_y = 0
 
-            if new_row_pixels_x > (part.rect.width * 20) / 100:
-                new_row_pixels_x = (part.rect.width * 20) / 100
+            new_row_pixels_x = min(new_row_pixels_x, (part.rect.width * 20) / 100)
 
-            if new_row_pixels_y > (part.rect.height * 20) / 100:
-                new_row_pixels_y = (part.rect.height * 20) / 100
+            new_row_pixels_y = min(new_row_pixels_y, (part.rect.height * 20) / 100)
 
             # determine if the mouse pointer is in a location that
             # will cause a new row to be inserted.  The hot spot positions
@@ -533,7 +521,6 @@ class Colour:
 
         :param colour: a standard :class:`Colour`.
         """
-
         self.r = colour.Red()
         self.g = colour.Green()
         self.b = colour.Blue()
@@ -543,7 +530,6 @@ class Colour:
 
     def ToRGB(self):
         """Converts a HSV triplet into a RGB triplet."""
-
         maxVal = self.v
         delta = (maxVal * self.s) / 255.0
         minVal = maxVal - delta
@@ -591,7 +577,6 @@ class Colour:
 
     def ToHSV(self):
         """Converts a RGB triplet into a HSV triplet."""
-
         minVal = float(min(self.r, min(self.g, self.b)))
         maxVal = float(max(self.r, max(self.g, self.b)))
         delta = maxVal - minVal
@@ -625,7 +610,6 @@ class Colour:
 
     def GetPyColour(self):
         """Returns the wxPython :class:`Colour` associated with this instance."""
-
         return wx.Colour(int(self.r), int(self.g), int(self.b), int(self._alpha))
 
 
@@ -641,7 +625,6 @@ class BasePyControl(wx.PyControl):
         :param parent: the control parent;
         :param bitmap: the background bitmap for this custom control.
         """
-
         wx.PyControl.__init__(self, parent, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -661,7 +644,6 @@ class BasePyControl(wx.PyControl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.Draw(dc)
@@ -684,8 +666,6 @@ class BasePyControl(wx.PyControl):
         :note: This is intentionally empty to reduce flicker.
         """
 
-        pass
-
     def DrawMarkers(self, dc=None):
         """Draws the markers on top of the background bitmap.
 
@@ -694,8 +674,6 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def DrawLines(self, dc):
         """Draws the lines connecting the markers on top of the background bitmap.
 
@@ -703,8 +681,6 @@ class BasePyControl(wx.PyControl):
 
         :note: This method must be overridden in derived classes.
         """
-
-        pass
 
     def AcceptsFocusFromKeyboard(self):
         """Can this window be given focus by keyboard navigation? If not, the
@@ -716,7 +692,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def AcceptsFocus(self):
@@ -727,7 +702,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def OnLeftDown(self, event):
@@ -738,8 +712,6 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def OnLeftUp(self, event):
         """Handles the ``wx.EVT_LEFT_UP`` for :class:`BasePyControl`.
 
@@ -747,8 +719,6 @@ class BasePyControl(wx.PyControl):
 
         :note: This method must be overridden in derived classes.
         """
-
-        pass
 
     def OnMotion(self, event):
         """Handles the ``wx.EVT_MOTION`` for :class:`BasePyControl`.
@@ -758,14 +728,11 @@ class BasePyControl(wx.PyControl):
         :note: This method must be overridden in derived classes.
         """
 
-        pass
-
     def OnSize(self, event):
         """Handles the ``wx.EVT_SIZE`` for :class:`BasePyControl`.
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
-
         self.Refresh()
 
     def DoGetBestSize(self):
@@ -774,7 +741,6 @@ class BasePyControl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(self._bitmap.GetWidth(), self._bitmap.GetHeight())
 
 
@@ -836,7 +802,6 @@ class HSVWheel(BasePyControl):
 
         :param parent: the control parent window.
         """
-
         BasePyControl.__init__(self, parent, bitmap=getbitmap("theme/colorwheel"))
         self._bitmap = (
             self._bitmap.ConvertToImage()
@@ -855,7 +820,6 @@ class HSVWheel(BasePyControl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -894,7 +858,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
         self._mouseIn = False
 
@@ -910,7 +873,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         if self.GetCapture():
             self.ReleaseMouse()
             self._mouseIn = False
@@ -920,7 +882,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
 
         if self.GetCapture() and self._mouseIn:
@@ -931,7 +892,6 @@ class HSVWheel(BasePyControl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         if self._mainFrame._initOver:
@@ -944,7 +904,6 @@ class HSVWheel(BasePyControl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         return Distance(pt, self._mainFrame._centre) <= (self._bitmap.Size[0]) / 2
 
     def TrackPoint(self, pt):
@@ -952,7 +911,6 @@ class HSVWheel(BasePyControl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         if not self._mouseIn:
             return
 
@@ -971,8 +929,7 @@ class HSVWheel(BasePyControl):
                 * 0.2
             )
         )
-        if colour.s > 255:
-            colour.s = 255
+        colour.s = min(colour.s, 255)
 
         mainFrame.CalcRects()
         self.DrawMarkers()
@@ -993,7 +950,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param parent: the control parent window.
         """
-
         wx.PyControl.__init__(self, parent, size=size, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -1013,14 +969,11 @@ class BaseLineCtrl(wx.PyControl):
         :note: This is intentionally empty to reduce flicker.
         """
 
-        pass
-
     def OnLeftDown(self, event):
         """Handles the ``wx.EVT_LEFT_DOWN`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
         theRect = self.GetClientRect()
 
@@ -1036,7 +989,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         if self.GetCapture():
             self.ReleaseMouse()
         self.Refresh()  # Needed for proper redrawing after click under OS X
@@ -1046,7 +998,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
-
         point = wx.Point(event.GetX(), event.GetY())
 
         if self.GetCapture():
@@ -1057,12 +1008,10 @@ class BaseLineCtrl(wx.PyControl):
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
-
         self.Refresh()
 
     def BuildRect(self):
         """Internal method."""
-
         brightRect = wx.Rect(*self.GetClientRect())
         brightRect.x += s(2)
         brightRect.y += s(2)
@@ -1081,7 +1030,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
     def AcceptsFocus(self):
@@ -1092,7 +1040,6 @@ class BaseLineCtrl(wx.PyControl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return False
 
 
@@ -1107,7 +1054,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param parent: the control parent window.
         """
-
         BaseLineCtrl.__init__(self, parent, size=(s(20), s(102)))
         self._colour = colour or self._mainFrame._colour
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -1118,7 +1064,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.DrawMarkers(dc)
@@ -1128,7 +1073,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(s(20), s(102))
 
     def Draw(self, dc):
@@ -1155,7 +1099,7 @@ class BrightCtrl(BaseLineCtrl):
         for y_pos in range(brightRect.y, brightRect.height + brightRect.y):
             r, g, b = [round(c * 255.0) for c in colorsys.hsv_to_rgb(h, s, v)]
             colour = wx.Colour(int(r), int(g), int(b))
-            dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
+            dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
             dc.DrawRectangle(brightRect.x, y_pos, brightRect.width, 1)
             v = v - vstep
 
@@ -1168,15 +1112,12 @@ class BrightCtrl(BaseLineCtrl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         brightRect = self.BuildRect()
         d = brightRect.GetBottom() - pt.y
         d *= 255
         d /= brightRect.height
-        if d < 0:
-            d = 0
-        if d > 255:
-            d = 255
+        d = max(d, 0)
+        d = min(d, 255)
 
         mainFrame = self._mainFrame
         colour = self._colour
@@ -1192,7 +1133,6 @@ class BrightCtrl(BaseLineCtrl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -1226,9 +1166,8 @@ class BrightCtrl(BaseLineCtrl):
         if direction > 0:
             if self._colour.v < 255:
                 self._colour.v += 1
-        else:
-            if self._colour.v > 0:
-                self._colour.v -= 1
+        elif self._colour.v > 0:
+            self._colour.v -= 1
 
         self._mainFrame.DrawMarkers()
 
@@ -1247,7 +1186,6 @@ class HSlider(BaseLineCtrl):
 
         :param parent: the control parent window.
         """
-
         BaseLineCtrl.__init__(self, parent, size=(s(140), s(8)))
         self.value = value
         self.minval = minval
@@ -1266,7 +1204,6 @@ class HSlider(BaseLineCtrl):
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.AutoBufferedPaintDC(self)
 
         self.DrawMarkers(dc)
@@ -1276,7 +1213,6 @@ class HSlider(BaseLineCtrl):
 
         :note: Overridden from :class:`PyControl`.
         """
-
         return wx.Size(s(140), s(8))
 
     def BuildRect(self):
@@ -1305,15 +1241,12 @@ class HSlider(BaseLineCtrl):
 
         :param pt: an instance of :class:`Point`.
         """
-
         brightRect = self.BuildRect()
         d = pt.x
         d *= self.maxval
         d /= brightRect.width
-        if d < self.minval:
-            d = self.minval
-        if d > self.maxval:
-            d = self.maxval
+        d = max(d, self.minval)
+        d = min(d, self.maxval)
         self.value = d
 
         self.DrawMarkers()
@@ -1326,7 +1259,6 @@ class HSlider(BaseLineCtrl):
 
         :param dc: an instance of :class:`DC`.
         """
-
         if dc is None:
             dc = wx.ClientDC(self)
             if sys.platform != "darwin":
@@ -1400,9 +1332,8 @@ class HSlider(BaseLineCtrl):
         if direction > 0:
             if self.Value < self.maxval:
                 self.Value += inc
-        else:
-            if self.Value > self.minval:
-                self.Value -= inc
+        elif self.Value > self.minval:
+            self.Value -= inc
         self._mainFrame.area_handler()
 
 
@@ -1489,10 +1420,7 @@ class NumSpin(wx_Panel):
         current = self.numctrl.GetValue()
         if n is None:
             n = current + inc
-        if inc > 0:
-            btn = self.spinup
-        else:
-            btn = self.spindn
+        btn = self.spinup if inc > 0 else self.spindn
         if event or self.is_button_pressed(btn):
             if n == current or (inc > 0 and n < current) or (inc < 0 and n > current):
                 # print '!_spin', current, inc, n, delay, bell
@@ -1535,7 +1463,7 @@ class ProfileManager:
 
     """
 
-    managers = []
+    managers: ClassVar[list] = []
 
     def __init__(self, window, geometry=None, profile=None):
         self._display = window.GetDisplay()
@@ -1543,7 +1471,7 @@ class ProfileManager:
         self._profiles = {}
         self._srgb_profile = ICCProfile.from_named_rgb_space("sRGB")
         self._srgb_profile.setDescription(
-            f"{appname} Visual Whitepoint Editor Temporary Profile"
+            f"{APPNAME} Visual Whitepoint Editor Temporary Profile"
         )
         self._srgb_profile.calculateID()
         self._window = window
@@ -1562,10 +1490,10 @@ class ProfileManager:
         with self._lock:
             try:
                 display_profile = get_display_profile(display_no)
-            except (ICCProfileInvalidError, IOError, IndexError) as exception:
+            except (OSError, ICCProfileInvalidError, IndexError) as exception:
                 print(
-                    "Could not get display profile for display %i" % (display_no + 1),
-                    "@ %i, %i, %ix%i:" % geometry,
+                    f"Could not get display profile for display {display_no + 1}",
+                    f"@ {geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}:",
                     exception,
                 )
             else:
@@ -1616,7 +1544,7 @@ class ProfileManager:
             profile.write()
         result = self._worker.exec_cmd(
             dispwin,
-            ["-v", "-d%i" % (display_no + 1), "-I", profile.fileName],
+            ["-v", f"-d{display_no + 1}", "-I", profile.fileName],
             capture_output=True,
             dry_run=False,
         )
@@ -1637,14 +1565,14 @@ class ProfileManager:
         temp = self._worker.create_tempdir()
         if isinstance(temp, Exception):
             _show_result_after(temp)
-            return
+            return None
         if profile.fileName:
             profile_name = os.path.basename(profile.fileName)
         else:
-            profile_name = profile.getDescription() + profile_ext
+            profile_name = profile.getDescription() + PROFILE_EXT
         if (
             sys.platform in ("win32", "darwin")
-            or fs_enc.upper() not in ("UTF8", "UTF-8")
+            or FS_ENC.upper() not in ("UTF8", "UTF-8")
         ) and re.search(r"[^\x20-\x7e]", profile_name):
             profile_name = safe_asciize(profile_name)
         profile.fileName = os.path.join(temp, profile_name)
@@ -1666,8 +1594,10 @@ class ProfileManager:
             geometry = self._display.Geometry.Get()
             threading.Thread(
                 target=self._manage_display,
-                name="VisualWhitepointEditor.DisplayManager[Display %d @ %d, %d, %dx%d]"
-                % ((display_no,) + geometry),
+                name=(
+                    f"VisualWhitepointEditor.DisplayManager[Display {display_no} @ "
+                    f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}]"
+                ),
                 args=(display_no, geometry),
             ).start()
             if not self._window.patterngenerator:
@@ -1677,7 +1607,7 @@ class ProfileManager:
                         "[PRIMARY]", lang.getstr("display.primary")
                     )
                     self._window.SetTitle(
-                        display_name + " ‒ " + lang.getstr("whitepoint.visual_editor")
+                        f"{display_name} - {lang.getstr('whitepoint.visual_editor')}"
                     )
         else:
             msg = lang.getstr("whitepoint.visual_editor.display_changed.warning")
@@ -1691,8 +1621,9 @@ class ProfileManager:
             if display_no is not None:
                 thread = threading.Thread(
                     target=self._install_profile_locked,
-                    name="VisualWhitepointEditor.ProfileInstallation[Display %d @ %d, %d, %dx%d]"
-                    % ((display_no,) + geometry),
+                    name="VisualWhitepointEditor.ProfileInstallation[Display"
+                    f" {display_no} @ "
+                    f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}]",
                     args=(display_no, profile, wrapup),
                 )
                 thread.start()
@@ -1737,7 +1668,18 @@ class ProfileManager:
 
 
 class VisualWhitepointEditor(wx.Frame):
-    """This is the VisualWhitepointEditor main class implementation."""
+    """This is the VisualWhitepointEditor main class implementation.
+
+    Args:
+        parent (wx.Window): The parent window.
+        colourData (ColourData): A standard :class:`ColourData` (as used in
+            :class:`ColourFrame`) to hide the alpha channel control or not.
+        title (str): The title of the window.
+        pos (wx.Point): The position of the window.
+        patterngenerator (Patterngenerator): A patterngenerator object.
+        geometry (tuple): The geometry of the display the profile is assigned to.
+        profile (ICCProfile): The profile of the display with the given geometry.
+    """
 
     def __init__(
         self,
@@ -1749,15 +1691,6 @@ class VisualWhitepointEditor(wx.Frame):
         geometry=None,
         profile=None,
     ):
-        """Default class constructor.
-
-        :param colourData: a standard :class:`ColourData` (as used in :class:`ColourFrame`);
-         to hide the alpha channel control or not.
-        :param patterngenerator: a patterngenerator object
-        :param geometry: the geometry of the display the profile is assigned to
-        :param profile: the profile of the display with the given geometry
-        """
-
         self.patterngenerator = patterngenerator
         self.update_patterngenerator_event = threading.Event()
 
@@ -1776,7 +1709,7 @@ class VisualWhitepointEditor(wx.Frame):
         )
 
         if not patterngenerator:
-            self._mgr = AuiManager_LRDocking(
+            self._mgr = AuiManagerLRDocking(
                 self,
                 aui.AUI_MGR_DEFAULT
                 | aui.AUI_MGR_LIVE_RESIZE
@@ -1784,7 +1717,7 @@ class VisualWhitepointEditor(wx.Frame):
             )
             self._mgr.SetArtProvider(AuiDarkDockArt())
 
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         if colourData:
             self._colourData = colourData
@@ -1862,10 +1795,7 @@ class VisualWhitepointEditor(wx.Frame):
 
         self.area_size_slider.BackgroundColour = self.mainPanel.BackgroundColour
 
-        if "gtk3" in wx.PlatformInfo:
-            size = (16, 16)
-        else:
-            size = (-1, -1)
+        size = (16, 16) if "gtk3" in wx.PlatformInfo else (-1, -1)
         self.zoomnormalbutton = BitmapButton(
             self.mainPanel,
             -1,
@@ -2030,7 +1960,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.measure_btn.Bind(wx.EVT_BUTTON, self.measure)
 
     def SetProperties(self):
-        """Sets some initial properties for :class:`VisualWhitepointEditor` (sizes, values)."""
+        """Set some initial properties (sizes, values)."""
         min_w = self.redSpin.numctrl.GetTextExtent("255")[0] + s(30)
         self.redSpin.SetMinSize((min_w, -1))
         self.greenSpin.SetMinSize((min_w, -1))
@@ -2041,7 +1971,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def DoLayout(self):
         """Layouts all the controls in the :class:`VisualWhitepointEditor`."""
-
         margin = s(12)
 
         dialogSizer = wx.FlexGridSizer(1, 2, 0, 0)
@@ -2056,7 +1985,7 @@ class VisualWhitepointEditor(wx.Frame):
         label = wx.StaticText(self.mainPanel, -1, lang.getstr("whitepoint"))
         label.SetMaxFontSize(11)
         font = label.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         label.Font = font
         mainSizer.Add(label, 0, wx.LEFT, margin)
 
@@ -2089,13 +2018,10 @@ class VisualWhitepointEditor(wx.Frame):
         )
         area_slider_label.SetMaxFontSize(11)
         font = area_slider_label.Font
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         area_slider_label.Font = font
         mainSizer.Add(area_slider_label, 0, wx.LEFT | wx.BOTTOM, margin)
-        if "gtk3" in wx.PlatformInfo:
-            vmargin = margin
-        else:
-            vmargin = s(6)
+        vmargin = margin if "gtk3" in wx.PlatformInfo else s(6)
         slider_sizer = wx.FlexGridSizer(3, 3, vmargin, margin)
         slider_sizer.AddGrowableCol(1)
         mainSizer.Add(slider_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, margin)
@@ -2135,7 +2061,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def InitFrame(self):
         """Initialize the :class:`VisualWhitepointEditor`."""
-
         hsvRect = self.hsvBitmap.GetClientRect()
         self._centre = wx.Point(
             int(hsvRect.x + hsvRect.width / 2), int(hsvRect.y + hsvRect.height / 2)
@@ -2153,7 +2078,7 @@ class VisualWhitepointEditor(wx.Frame):
             not self.patterngenerator
             and getattr(event, "IsShown", getattr(event, "GetShow", bool))()
             and sys.platform == "darwin"
-            and intlist(mac_ver()[0].split(".")) >= [10, 10]
+            and intlist(platform.mac_ver()[0].split(".")) >= [10, 10]
         ):
             # Under Yosemite and up, if users use the default titlebar zoom
             # button to go fullscreen, they will be left with a black screen
@@ -2170,7 +2095,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def CalcRects(self):
         """Calculates the brightness control user-selected rect."""
-
         RECT_WIDTH = s(5)
 
         pt = self.PtFromAngle(self._colour.h, self._colour.s, self._centre)
@@ -2181,28 +2105,25 @@ class VisualWhitepointEditor(wx.Frame):
     def DrawMarkers(self, dc=None):
         """Draws the markers for all the controls.
 
-        :param dc: an instance of :class:`DC`. If `dc` is ``None``, a :class:`ClientDC` is
-         created on the fly.
+        Args:
+            dc (DC): If `dc` is ``None``, a :class:`ClientDC` is created on the
+                fly.
         """
-
         self.hsvBitmap.DrawMarkers(dc)
         self.brightCtrl.DrawMarkers(dc)
         self.bgBrightCtrl.DrawMarkers(dc)
 
     def DrawHSB(self):
         """Refreshes the HSB colour wheel."""
-
         self.hsvBitmap.Refresh()
 
     def DrawBright(self):
         """Refreshes the brightness control."""
-
         self.brightCtrl.Refresh()
         self.bgBrightCtrl.Refresh()
 
     def SetSpinVals(self):
         """Sets the values for all the spin controls."""
-
         self.redSpin.SetValue(self._colour.r)
         self.greenSpin.SetValue(self._colour.g)
         self.blueSpin.SetValue(self._colour.b)
@@ -2242,7 +2163,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def SetPanelColours(self):
         """Assigns colours to the colour panels."""
-
         self.newColourPanel.BackgroundColour = self._colour.GetPyColour()
         self._bgcolour.h = self._colour.h
         self._bgcolour.s = self._colour.s
@@ -2255,7 +2175,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`CloseEvent` event to be processed.
         """
-
         if self.IsFullScreen():
             self.ShowFullScreen(False)
         event.Skip()
@@ -2265,7 +2184,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`KeyEvent` event to be processed.
         """
-
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             if self.IsFullScreen():
                 self.ShowFullScreen(False)
@@ -2304,7 +2222,6 @@ class VisualWhitepointEditor(wx.Frame):
         :param sat: a float representing the colour saturation value;
         :param center: a float value representing the center.
         """
-
         angle = deg2rad(angle)
         sat = min(
             sat * ((self.hsvBitmap._bitmap.Size[0] - s(12)) / 2) / 51.0,
@@ -2325,7 +2242,6 @@ class VisualWhitepointEditor(wx.Frame):
 
         :param event: a :class:`SpinEvent` event to be processed.
         """
-
         obj = event.GetEventObject().Parent
         position = self.spinCtrls.index(obj)
         colourVal = event.GetString()
@@ -2335,19 +2251,16 @@ class VisualWhitepointEditor(wx.Frame):
             wx.Bell()
             return
 
-        attribute, maxVal = colourAttributes[position], colourMaxValues[position]
+        attribute, maxVal = COLOUR_ATTRIBUTES[position], COLOUR_MAX_VALUES[position]
 
         self.AssignColourValue(attribute, colourVal, maxVal, position)
 
     def AssignColourValue(self, attribute, colourVal, maxVal, position):
         """Common code to handle spin control changes."""
-
         originalVal = getattr(self._colour, attribute)
         if colourVal != originalVal and self._initOver:
-            if colourVal < 0:
-                colourVal = 0
-            if colourVal > maxVal:
-                colourVal = maxVal
+            colourVal = max(colourVal, 0)
+            colourVal = min(colourVal, maxVal)
 
             setattr(self._colour, attribute, colourVal)
             if position < 3:
@@ -2359,7 +2272,6 @@ class VisualWhitepointEditor(wx.Frame):
 
     def DrawAll(self):
         """Draws all the custom controls after a colour change."""
-
         if self._initOver and not self._inDrawAll:
             self._inDrawAll = True
 
@@ -2377,18 +2289,25 @@ class VisualWhitepointEditor(wx.Frame):
 
     def GetColourData(self):
         """Returns a wxPython compatible :class:`ColourData`."""
-
         self._colourData.SetColour(self._colour.GetPyColour())
         return self._colourData
 
-    def GetRGBAColour(self):
-        """Returns a 4-elements tuple of red, green, blue, alpha components."""
+    def GetRGBAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of red, green, blue, alpha components.
 
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the red, green,
+                blue, and alpha components of the colour.
+        """
         return (self._colour.r, self._colour.g, self._colour.b, self._colour._alpha)
 
-    def GetHSVAColour(self):
-        """Returns a 4-elements tuple of hue, saturation, brightness, alpha components."""
+    def GetHSVAColour(self) -> tuple[float, float, float, float]:
+        """Return a tuple of hue, saturation, brightness, alpha components.
 
+        Returns:
+            tuple[float, float, float, float]: A tuple containing the hue, saturation,
+                brightness, and alpha components of the colour.
+        """
         return (self._colour.h, self._colour.s, self._colour.v, self._colour._alpha)
 
     def EndModal(self, returncode=wx.ID_OK):
@@ -2418,7 +2337,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.newColourPanel.Size = w, h
         self.bgPanel.MinSize = w + s(24), h + s(24)
         bg_w, bg_h = (float(v) for v in self.bgPanel.Size)
-        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int(((bg_h - (h)) * y))
+        self.newColourPanel.Position = (int((bg_w - (w)) * x)), int((bg_h - (h)) * y)
         if event:
             event.Skip()
         if event and event.GetEventType() == wx.EVT_SIZE.evtType[0]:
@@ -2511,10 +2430,11 @@ class VisualWhitepointEditor(wx.Frame):
         self.notification.Center(wx.HORIZONTAL)
 
     def size_handler(self, event):
-        if getattr(self, "_isfullscreen", False):
-            if getattr(self, "notification", None):
-                # print 'Fading out notification'
-                self.notification.fade("out")
+        if getattr(self, "_isfullscreen", False) and getattr(
+            self, "notification", None
+        ):
+            # print 'Fading out notification'
+            self.notification.fade("out")
         wx.CallAfter(self._check_fullscreen)
         self.area_handler(event)
 
@@ -2533,23 +2453,23 @@ class VisualWhitepointEditor(wx.Frame):
     def reset_handler(self, event):
         RGB = []
         for attribute in "rgb":
-            RGB.append(defaults["whitepoint.visual_editor." + attribute])
+            RGB.append(DEFAULTS[f"whitepoint.visual_editor.{attribute}"])
         self._colourData.SetColour(wx.Colour(*RGB))
         self._colour.r, self._colour.g, self._colour.b = self._colourData.GetColour()[
             :3
         ]
         self._colour.ToHSV()
-        self._bgcolour.v = defaults["whitepoint.visual_editor.bg_v"]
+        self._bgcolour.v = DEFAULTS["whitepoint.visual_editor.bg_v"]
         self.DrawAll()
 
     def set_area_size_slider_max(self):
         # Set max value according to display size
         maxv = 1000
-        if RDSMM:
+        if real_display_size_mm:
             geometry = self.GetDisplay().Geometry.Get()
             display_no = get_argyll_display_number(geometry)
             if display_no is not None:
-                size_mm = RDSMM.RealDisplaySizeMM(display_no)
+                size_mm = real_display_size_mm.RealDisplaySizeMM(display_no)
                 if 0 not in size_mm:
                     self.display_size_mm[geometry] = [float(v) for v in size_mm]
                     maxv = int(round(max(size_mm) / 100.0 * 100))
@@ -2578,7 +2498,7 @@ class VisualWhitepointEditor(wx.Frame):
         scale = self.area_size_slider.Value / 100.0
         setcfg(
             "dimensions.measureframe.whitepoint.visual_editor",
-            "%f,%f,%f" % (x, y, scale),
+            f"{x:f},{y:f},{scale:f}",
         )
 
     def write(self, txt):
@@ -2586,14 +2506,14 @@ class VisualWhitepointEditor(wx.Frame):
 
     def zoomnormal_handler(self, event):
         scale = float(
-            defaults["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
+            DEFAULTS["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
         )
         self.area_size_slider.SetValue(int(round(scale * 100)))
         self.area_handler()
 
 
 if __name__ == "__main__":
-    from DisplayCAL.wxwindows import BaseApp
+    from DisplayCAL.wx_windows import BaseApp
 
     initcfg()
     lang.init()

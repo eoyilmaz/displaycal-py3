@@ -1,11 +1,16 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for network-related operations, including
+hostname resolution, network address retrieval, and custom socket handling.
+It also includes HTTP redirect handlers for logging or preventing redirections.
+"""
+
+from __future__ import annotations
 
 import errno
 import os
 import socket
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 
 from DisplayCAL import localization as lang
 from DisplayCAL.util_str import safe_str
@@ -25,13 +30,13 @@ def get_network_addr():
         s.close()
 
 
-def get_valid_host(hostname=None):
-    """Tries to verify the hostname by resolving to an IPv4 address.
+def get_valid_host(hostname: None | str = None) -> tuple[str, str]:
+    """Try to verify the hostname by resolving to an IPv4 address.
 
     Both hostname with and without .local suffix will be tried if necessary.
 
-    Returns a tuple hostname, addr
-
+    Returns:
+        tuple[str, str]: A tuple of hostname, addr
     """
     if hostname is None:
         hostname = socket.gethostname()
@@ -39,16 +44,18 @@ def get_valid_host(hostname=None):
     if hostname.endswith(".local"):
         hostnames.insert(0, os.path.splitext(hostname)[0])
     elif "." not in hostname:
-        hostnames.insert(0, hostname + ".local")
+        hostnames.insert(0, f"{hostname}.local")
+
     while hostnames:
         hostname = hostnames.pop()
         try:
             addr = socket.gethostbyname(hostname)
-        except socket.error:
+        except OSError as e:
             if not hostnames:
-                raise
+                raise e
         else:
             return hostname, addr
+    return None, None
 
 
 class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -69,7 +76,7 @@ class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         elif "uri" in headers:
             newurl = headers.get("uri")
         else:
-            return
+            return None
 
         # Keep reference to new URL
         LoggingHTTPRedirectHandler.newurl = newurl
@@ -104,7 +111,7 @@ class NoHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         raise urllib.error.HTTPError(
             newurl,
             code,
-            msg + " - Redirection to url '%s' is not allowed" % newurl,
+            msg + f" - Redirection to url '{newurl}' is not allowed",
             headers,
             fp,
         )
@@ -131,7 +138,7 @@ class ScriptingClientSocket(socket.socket):
             # Will fail if the socket isn't connected, i.e. if there was an
             # error during the call to connect()
             self.shutdown(socket.SHUT_RDWR)
-        except socket.error as exception:
+        except OSError as exception:
             if exception.errno != errno.ENOTCONN:
                 print(exception)
         self.close()
@@ -142,7 +149,7 @@ class ScriptingClientSocket(socket.socket):
         while b"\4" not in self.recv_buffer:
             incoming = self.recv(4096)
             if incoming == b"":
-                raise socket.error(lang.getstr("connection.broken"))
+                raise OSError(lang.getstr("connection.broken"))
             self.recv_buffer += incoming
         end = self.recv_buffer.find(b"\4")
         single_response = self.recv_buffer[:end]

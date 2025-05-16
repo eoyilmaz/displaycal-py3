@@ -1,5 +1,10 @@
-# -*- coding: utf-8 -*-
+"""This module provides utility classes and functions for handling file I/O
+operations. It includes tools for encoding/decoding data during file writes,
+managing multiple file objects, working with GZIP and TAR files, buffering
+line-based streams, and other file-related utilities.
+"""
 
+import contextlib
 import copy
 import gzip
 import operator
@@ -52,7 +57,7 @@ class Files:
         self.files = []
         for item in files:
             if isinstance(item, str):
-                self.files.append(open(item, mode))
+                self.files.append(open(item, mode))  # noqa: SIM115
             else:
                 self.files.append(item)
 
@@ -65,10 +70,9 @@ class Files:
 
     def flush(self):
         for item in self.files:
-            try:
+            with contextlib.suppress(AttributeError):
+                # TODO: Restore safe_log
                 item.flush()
-            except AttributeError:  # TODO: Restore safe_log
-                pass
 
     def seek(self, pos, mode=0):
         for item in self.files:
@@ -83,10 +87,8 @@ class Files:
             try:
                 item.write(data)
             except AttributeError:  # TODO: restore safe_log, safe_print etc...
-                try:
+                with contextlib.suppress(TypeError):
                     item(data)
-                except TypeError:
-                    pass
 
     def writelines(self, str_sequence):
         self.write("".join(str_sequence))
@@ -124,10 +126,7 @@ class GzipFileProper(gzip.GzipFile):
                 # force the name to lowercase
                 fname = fname.lower()
             self.fileobj.write(
-                fname.encode("ISO-8859-1", "replace").replace(
-                    "?".encode(), "_".encode()
-                )
-                + b"\000"
+                fname.encode("ISO-8859-1", "replace").replace(b"?", b"_") + b"\000"
             )
 
     def __enter__(self):
@@ -184,12 +183,11 @@ class LineBufferedStream:
             if char == "\r":
                 while self.buf and not self.buf.endswith("\n"):
                     self.buf = self.buf[:-1]
+            elif char == "\n":
+                self.buf += self.linesep_out
+                self.commit()
             else:
-                if char == "\n":
-                    self.buf += self.linesep_out
-                    self.commit()
-                else:
-                    self.buf += char
+                self.buf += char
 
 
 class LineCache:
@@ -269,11 +267,7 @@ class TarFileProper(tarfile.TarFile):
         object. You can specify a different directory using `path'.
         """
         self._check("r")
-
-        if isinstance(member, str):
-            tarinfo = self.getmember(member)
-        else:
-            tarinfo = member
+        tarinfo = self.getmember(member) if isinstance(member, str) else member
 
         # Prepare the link target for makelink().
         if tarinfo.islnk():
@@ -287,19 +281,17 @@ class TarFileProper(tarfile.TarFile):
             if not full:
                 name = os.path.basename(name)
             self._extract_member(tarinfo, os.path.join(path, name))
-        except EnvironmentError as e:
+        except OSError as e:
             if self.errorlevel > 0:
-                raise
+                raise e
+            if e.filename is None:
+                self._dbg(1, f"tarfile: {e.strerror}")
             else:
-                if e.filename is None:
-                    self._dbg(1, "tarfile: %s" % e.strerror)
-                else:
-                    self._dbg(1, "tarfile: %s %r" % (e.strerror, e.filename))
+                self._dbg(1, f"tarfile: {e.strerror} {e.filename!r}")
         except tarfile.ExtractError as e:
             if self.errorlevel > 1:
-                raise
-            else:
-                self._dbg(1, "tarfile: %s" % e)
+                raise e
+            self._dbg(1, f"tarfile: {e}")
 
     def extractall(self, path=".", members=None, full=True):
         """Extract all members from the archive to the current working
@@ -337,6 +329,5 @@ class TarFileProper(tarfile.TarFile):
                 self.chmod(tarinfo, dirpath)
             except tarfile.ExtractError as e:
                 if self.errorlevel > 1:
-                    raise
-                else:
-                    self._dbg(1, "tarfile: %s" % e)
+                    raise e
+                self._dbg(1, f"tarfile: {e}")

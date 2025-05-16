@@ -133,7 +133,6 @@ from typing import Optional, Union
 
 import wx
 
-
 HOVER = 1
 """Flag used to indicate that the mouse is hovering on a :class:`GradientButton`."""
 CLICK = 2
@@ -429,7 +428,7 @@ class GradientButton(wx.Control):
         x, y, width, height = clientRect
 
         gradientRect.SetHeight(
-            gradientRect.GetHeight() // 2 + ((capture == self and [1] or [0])[0])
+            gradientRect.GetHeight() // 2 + (((capture == self and [1]) or [0])[0])
         )
         if capture != self:
             if self._mouseAction == HOVER:
@@ -547,11 +546,10 @@ class GradientButton(wx.Control):
         return path
 
     def SetInitialSize(self, size: Optional[wx.Size] = None) -> None:
-        """
-        Given the current font and bezel width settings, calculate and set a good size.
+        """Calculate and set a suitable size based on font and bezel width.
 
         Args:
-            size (Optional[wx.Size]): an instance of :class:`wx.Size`.
+            size (Optional[wx.Size]): A :class:`wx.Size` instance.
         """
         if size is None:
             size = wx.DefaultSize
@@ -756,10 +754,9 @@ class GradientButton(wx.Control):
         tlw = wx.GetTopLevelParent(self)
         if isinstance(tlw, (wx.Dialog, wx.Frame)) and hasattr(tlw, "SetDefaultItem"):
             tlw.SetDefaultItem(self)
-        else:
+        elif hasattr(self, "SetDefault"):
             # Fallback: Set the button as the default in a different way if possible
-            if hasattr(self, "SetDefault"):
-                self.SetDefault()
+            self.SetDefault()
 
     def Notify(self) -> None:
         """Actually send a ``wx.EVT_BUTTON`` event to the listener (if any)."""

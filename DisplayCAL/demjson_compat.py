@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-c
 """demjson 1.3 compatibility module"""
 
-from io import StringIO
 import json
 import sys
-
+from io import StringIO
 
 DEBUG = False
 
@@ -37,7 +35,6 @@ def decode(txt, strict=False, encoding=None, **kw):
     Optional keywords arguments are ignored.
 
     """
-
     if not strict:
         # Remove comments
         io = StringIO()
@@ -140,7 +137,6 @@ def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=Non
     you should almost always pass in encoding='utf8'.
 
     """
-
     if compactly:
         indent = None
         separators = (",", ":")

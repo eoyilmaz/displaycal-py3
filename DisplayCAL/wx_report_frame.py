@@ -1,18 +1,25 @@
-# -*- coding: utf-8 -*-
+"""This module provides the implementation of the measurement report creation
+window in DisplayCAL. It allows users to configure test charts, profiles, and
+various settings for generating measurement reports. The module integrates
+with wxPython for the graphical interface and supports handling ICC profiles,
+test charts, and rendering intents.
+"""
 
 import math
 import os
 from time import gmtime, strftime
 
+from wx import xrc
+
 from DisplayCAL import (
     config,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_fancytext,
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
@@ -24,9 +31,7 @@ from DisplayCAL.cgats import (
 from DisplayCAL.config import (
     get_data_path,
     getcfg,
-    geticon,
     hascfg,
-    initcfg,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -36,15 +41,12 @@ from DisplayCAL.icc_profile import (
     LUT16Type,
     XYZType,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import natsort_key_factory
-from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
-
-from wx import xrc
+from DisplayCAL.wx_fixes import TempXmlResource
+from DisplayCAL.wx_testchart_editor import TestchartEditor
+from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop, wx
 
 
 class ReportFrame(BaseFrame):
@@ -54,7 +56,7 @@ class ReportFrame(BaseFrame):
         BaseFrame.__init__(self, parent, -1, lang.getstr("measurement_report"))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.XYZbpin = None
         self.XYZbpout = None
@@ -96,14 +98,11 @@ class ReportFrame(BaseFrame):
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl")
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
-                if which == "chart":
-                    wildcard = r"\.(cie|ti1|ti3)$"
-                else:
-                    wildcard = r"\.(icc|icm)$"
+                wildcard = r"\.(cie|ti1|ti3)$" if which == "chart" else r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
                     standard_profiles = config.get_standard_profiles(True)
@@ -117,18 +116,17 @@ class ReportFrame(BaseFrame):
                     paths = get_data_path("ref", wildcard) or []
                     for path in paths:
                         basepath, ext = os.path.splitext(path)
-                        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+                        if os.getenv("XDG_SESSION_TYPE") == "wayland" and (
+                            ext.lower() != ".ti1"
+                            or os.path.basename(path) == "ccxx.ti1"
+                        ):
                             # When the number of items in a dropdown popup menu
                             # exceeds the available display client area height,
                             # the popup menu gets shown at weird positions or
                             # not at all under Wayland. Work-around this wx bug
                             # by truncating the choices. Yuck. Also see:
                             # FileBrowseBitmapButtonWithChoiceHistory.SetHistory
-                            if (
-                                ext.lower() != ".ti1"
-                                or os.path.basename(path) == "ccxx.ti1"
-                            ):
-                                continue
+                            continue
                         if not (
                             path.lower().endswith(".ti2") and f"{basepath}.cie" in paths
                         ):
@@ -199,7 +197,7 @@ class ReportFrame(BaseFrame):
 
         self.update_layout()
 
-        config.defaults.update(
+        config.DEFAULTS.update(
             {
                 "position.reportframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.reportframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -262,10 +260,10 @@ class ReportFrame(BaseFrame):
         try:
             v = float(self.mr_trc_gamma_ctrl.GetValue().replace(",", "."))
             if (
-                v < config.valid_ranges["measurement_report.trc_gamma"][0]
-                or v > config.valid_ranges["measurement_report.trc_gamma"][1]
+                v < config.VALID_RANGES["measurement_report.trc_gamma"][0]
+                or v > config.VALID_RANGES["measurement_report.trc_gamma"][1]
             ):
-                raise ValueError()
+                raise ValueError
         except ValueError:
             wx.Bell()
             self.mr_trc_gamma_ctrl.SetValue(str(getcfg("measurement_report.trc_gamma")))
@@ -309,10 +307,7 @@ class ReportFrame(BaseFrame):
             self.mr_show_trc_controls()
 
     def chart_btn_handler(self, event):
-        if self.Parent:
-            parent = self.Parent
-        else:
-            parent = self
+        parent = self.Parent if self.Parent else self
         chart = getcfg("measurement_report.chart")
         if not hasattr(parent, "tcframe"):
             parent.tcframe = TestchartEditor(
@@ -335,7 +330,7 @@ class ReportFrame(BaseFrame):
         try:
             cgats = CGATS(chart)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -371,10 +366,10 @@ class ReportFrame(BaseFrame):
                     self.fields_ctrl.SetItems(values)
                     self.fields_ctrl.GetContainingSizer().Layout()
                     self.panel.Thaw()
-                    fields = getcfg("measurement_report.chart.fields")
+                    _fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
-                    elif "RGB" in values and not ext.lower() == ".cie":
+                    elif "RGB" in values and ext.lower() != ".cie":
                         index = values.index("RGB")
                     elif "CMYK" in values:
                         index = values.index("CMYK")
@@ -406,10 +401,7 @@ class ReportFrame(BaseFrame):
                 self.chart_ctrl.SetPath(getcfg("measurement_report.chart"))
             else:
                 self.chart_btn.Enable("RGB" in values)
-                if self.Parent:
-                    parent = self.Parent
-                else:
-                    parent = self
+                parent = self.Parent if self.Parent else self
                 if (
                     event
                     and self.chart_btn.Enabled
@@ -484,16 +476,15 @@ class ReportFrame(BaseFrame):
         path = getattr(self, f"{which}_profile_ctrl").GetPath()
         if which == "output":
             # if profile_path is None:
-            #   profile_path = get_current_profile_path(True, True)
-            #   self.output_profile_current_btn.Enable(self.output_profile_ctrl.IsShown() and
-            #   bool(profile_path) and
-            #   os.path.isfile(profile_path) and
-            #   profile_path != path)
+            #     profile_path = get_current_profile_path(True, True)
+            #     self.output_profile_current_btn.Enable(
+            #         self.output_profile_ctrl.IsShown() and
+            #         bool(profile_path) and
+            #         os.path.isfile(profile_path) and
+            #         profile_path != path
+            #     )
             profile = config.get_current_profile(True)
-            if profile:
-                path = profile.fileName
-            else:
-                path = None
+            path = profile.fileName if profile else None
             setcfg("measurement_report.output_profile", path)
             XYZbpout = self.XYZbpout
             # XYZbpout will be set to the blackpoint of the selected profile.
@@ -506,130 +497,127 @@ class ReportFrame(BaseFrame):
             if which == "input":
                 XYZbpin = self.XYZbpin
                 self.XYZbpin = [0, 0, 0]
-        if path or profile:
-            if path and not os.path.isfile(path):
-                if not silent:
-                    show_result_dialog(
-                        Error(lang.getstr("file.missing", path)), parent=self
-                    )
-                return
-            if not profile:
-                try:
-                    profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
-                    if not silent:
-                        show_result_dialog(
-                            Error(
-                                f"{lang.getstr('profile.invalid')}\n{path}"),
-                            parent=self,
-                        )
-                except IOError as exception:
-                    if not silent:
-                        show_result_dialog(exception, parent=self)
-            if profile:
-                profile_path = profile.fileName
-                if (
-                    (
-                        which == "simulation"
-                        and (
-                            profile.profileClass not in (b"mntr", b"prtr")
-                            or profile.colorSpace not in (b"CMYK", b"RGB")
-                        )
-                    )
-                    or (
-                        which == "output"
-                        and (
-                            profile.profileClass != b"mntr"
-                            or profile.colorSpace != b"RGB"
-                        )
-                    )
-                    or (which == "devlink" and profile.profileClass != b"link")
-                ):
-                    show_result_dialog(
-                        NotImplementedError(
-                            lang.getstr(
-                                "profile.unsupported",
-                                (profile.profileClass, profile.colorSpace),
-                            )
-                        ),
-                        parent=self,
-                    )
-                else:
-                    if (
-                        not getattr(self, f"{which}_profile", None)
-                        or getattr(self, f"{which}_profile").fileName
-                        != profile.fileName
-                    ):
-                        # Profile selection has changed
-                        if which == "simulation":
-                            # Get profile blackpoint so we can check if it makes
-                            # sense to show TRC type and output offset controls
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return
-                                self.XYZbpin = odata[0]
-                        elif which == "output":
-                            # Get profile blackpoint so we can check if input
-                            # values would be clipped
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return
-                                if odata[0][1]:
-                                    # Got above zero blackpoint from lookup
-                                    self.XYZbpout = odata[0]
-                                else:
-                                    # Got zero blackpoint from lookup.
-                                    # Try chardata instead.
-                                    XYZbp = profile.get_chardata_bkpt()
-                                    if XYZbp:
-                                        self.XYZbpout = XYZbp
-                                    else:
-                                        self.XYZbpout = [0, 0, 0]
-                    else:
-                        # Profile selection has not changed
-                        # Restore cached XYZbp values
-                        if which == "output":
-                            self.XYZbpout = XYZbpout
-                        elif which == "input":
-                            self.XYZbpin = XYZbpin
-                    setattr(self, f"{which}_profile", profile)
-                    if not silent:
-                        setcfg(
-                            f"measurement_report.{which}_profile",
-                            profile and profile_path,
-                        )
-                        if which == "simulation":
-                            self.use_simulation_profile_ctrl_handler(None)
-                        elif hasattr(self, "XYZbpin"):
-                            self.mr_update_main_controls()
-                    return profile
-            if path:
-                self.set_profile_ctrl_path(which)
-        else:
+        if not path and not profile:
             setattr(self, f"{which}_profile", None)
             if not silent:
                 setcfg(f"measurement_report.{which}_profile", None)
                 self.mr_update_main_controls()
+            return None
+        if path and not os.path.isfile(path):
+            if not silent:
+                show_result_dialog(
+                    Error(lang.getstr("file.missing", path)), parent=self
+                )
+            return None
+        if not profile:
+            try:
+                profile = ICCProfile(path)
+            except ICCProfileInvalidError:
+                if not silent:
+                    show_result_dialog(
+                        Error(f"{lang.getstr('profile.invalid')}\n{path}"),
+                        parent=self,
+                    )
+            except OSError as exception:
+                if not silent:
+                    show_result_dialog(exception, parent=self)
+        if profile:
+            profile_path = profile.fileName
+            if (
+                (
+                    which == "simulation"
+                    and (
+                        profile.profileClass not in (b"mntr", b"prtr")
+                        or profile.colorSpace not in (b"CMYK", b"RGB")
+                    )
+                )
+                or (
+                    which == "output"
+                    and (
+                        profile.profileClass != b"mntr" or profile.colorSpace != b"RGB"
+                    )
+                )
+                or (which == "devlink" and profile.profileClass != b"link")
+            ):
+                show_result_dialog(
+                    NotImplementedError(
+                        lang.getstr(
+                            "profile.unsupported",
+                            (profile.profileClass, profile.colorSpace),
+                        )
+                    ),
+                    parent=self,
+                )
+            else:
+                if (
+                    not getattr(self, f"{which}_profile", None)
+                    or getattr(self, f"{which}_profile").fileName != profile.fileName
+                ):
+                    # Profile selection has changed
+                    if which == "simulation":
+                        # Get profile blackpoint so we can check if it makes
+                        # sense to show TRC type and output offset controls
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            self.XYZbpin = odata[0]
+                    elif which == "output":
+                        # Get profile blackpoint so we can check if input
+                        # values would be clipped
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            if odata[0][1]:
+                                # Got above zero blackpoint from lookup
+                                self.XYZbpout = odata[0]
+                            else:
+                                # Got zero blackpoint from lookup.
+                                # Try chardata instead.
+                                XYZbp = profile.get_chardata_bkpt()
+                                if XYZbp:
+                                    self.XYZbpout = XYZbp
+                                else:
+                                    self.XYZbpout = [0, 0, 0]
+                # Profile selection has not changed
+                # Restore cached XYZbp values
+                elif which == "output":
+                    self.XYZbpout = XYZbpout
+                elif which == "input":
+                    self.XYZbpin = XYZbpin
+                setattr(self, f"{which}_profile", profile)
+                if not silent:
+                    setcfg(
+                        f"measurement_report.{which}_profile",
+                        profile and profile_path,
+                    )
+                    if which == "simulation":
+                        self.use_simulation_profile_ctrl_handler(None)
+                    elif hasattr(self, "XYZbpin"):
+                        self.mr_update_main_controls()
+                return profile
+        if path:
+            self.set_profile_ctrl_path(which)
+        return None
 
     def set_profile_ctrl_path(self, which):
         getattr(self, f"{which}_profile_ctrl").SetPath(
@@ -646,10 +634,10 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
+                wildcard = f"{lang.getstr('filetype.icc')}|*.icc;*.icm"
             else:
                 wildcard = (
-                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|"
                     "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {
@@ -657,11 +645,11 @@ class ReportFrame(BaseFrame):
                 "devlink_profile": "devicelink_profile",
                 "output_profile": "measurement_report_choose_profile",
             }.get(which, which)
-            kwargs = dict(
-                toolTip=lang.getstr(msg).rstrip(":"),
-                dialogTitle=lang.getstr(msg),
-                fileMask=wildcard,
-            )
+            kwargs = {
+                "toolTip": lang.getstr(msg).rstrip(":"),
+                "dialogTitle": lang.getstr(msg),
+                "fileMask": wildcard,
+            }
             ctrl = getattr(self, f"{which}_ctrl")
             for name in kwargs:
                 value = kwargs[name]
@@ -734,7 +722,7 @@ class ReportFrame(BaseFrame):
             self.set_profile_ctrl_path(which)
         chart = getcfg("measurement_report.chart")
         if not chart or not os.path.isfile(chart):
-            chart = config.defaults["measurement_report.chart"]
+            chart = config.DEFAULTS["measurement_report.chart"]
             setcfg("measurement_report.chart", chart)
         self.mr_set_testchart(chart, load=False)
 
@@ -903,8 +891,10 @@ class ReportFrame(BaseFrame):
             )
         )
         output_profile = (
-            hasattr(self, "presets")
-            and getcfg("measurement_report.output_profile") not in self.presets
+            (
+                hasattr(self, "presets")
+                and getcfg("measurement_report.output_profile") not in self.presets
+            )
             or not hasattr(self, "presets")
         ) and bool(getattr(self, "output_profile", None))
         self.measurement_report_btn.Enable(
@@ -965,7 +955,7 @@ class ReportFrame(BaseFrame):
                 min(prop[i] * v, 20) for i, v in enumerate(integration_time)
             ]
             # Get time per patch (tpp)
-            tpp = [v for v in integration_time]
+            tpp = list(integration_time)
             if (
                 "plasma" in tech
                 or "crt" in tech

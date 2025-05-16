@@ -1,8 +1,14 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for interacting with Windows system handles,
+including functions to query handle information, retrieve handle names and
+types, and list handles for specific processes. It uses the Windows API
+through the `ctypes` library.
+"""
 
-from ctypes import wintypes
 import ctypes
 import os
+import sys
+from ctypes import wintypes
+from typing import ClassVar
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -13,7 +19,7 @@ ACCESS_MASK = wintypes.DWORD
 STATUS_INFO_LENGTH_MISMATCH = NTSTATUS(0xC0000004)
 
 
-class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
+class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):  # noqa: N801
     def __repr__(self):
         return f"{self.__class__.__name__}({self.value})"
 
@@ -21,8 +27,8 @@ class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
 SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
-class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
-    _fields_ = [
+class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
+    _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
         ("HandleValue", wintypes.HANDLE),
@@ -34,15 +40,15 @@ class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
     ]
 
 
-class SYSTEM_INFORMATION(ctypes.Structure):
+class SYSTEM_INFORMATION(ctypes.Structure):  # noqa: N801
     pass
 
 
 PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
-class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
-    _fields_ = [
+class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
+    _fields_: ClassVar[list[tuple]] = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),
         ("_Handles", SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * 1),
@@ -63,7 +69,7 @@ try:
         wintypes.ULONG,  # SystemInformationLength
         PULONG,
     )  # ReturnLength
-except WindowsError:
+except OSError:
     # Just in case
     ntdll = None
 
@@ -127,22 +133,11 @@ def get_process_handles(pid=None):
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        pid = int(sys.argv[1])
-    else:
-        pid = None
+    pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
     for handle in get_process_handles(pid):
         print(
-            (
-                "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
-                % (
-                    handle.HandleValue,
-                    handle.ObjectTypeIndex,
-                    get_handle_type(handle),
-                    handle.GrantedAccess,
-                    get_handle_name(handle),
-                )
-            )
+            f"Handle = 0x{handle.HandleValue:04x}, "
+            f"Type = 0x{handle.ObjectTypeIndex:02x} {get_handle_type(handle)!r}, "
+            f"Access = 0x{handle.GrantedAccess:06x}, "
+            f"Name = {get_handle_name(handle)!r}"
         )

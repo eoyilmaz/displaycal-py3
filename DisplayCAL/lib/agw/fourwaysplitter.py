@@ -140,7 +140,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 Version 0.5
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import wx
 
@@ -362,7 +362,7 @@ class FourWaySplitter(wx.Panel):
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
-        self._windows: List[wx.Window] = []
+        self._windows: list[wx.Window] = []
 
         self._splitx = 0
         self._splity = 0
@@ -389,11 +389,11 @@ class FourWaySplitter(wx.Panel):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
         self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
 
-    def _IsVersionGreaterOrEqual(self, version: Tuple[int, int, int, int]) -> bool:
+    def _IsVersionGreaterOrEqual(self, version: tuple[int, int, int, int]) -> bool:
         """Compare the current wxPython version with the given version.
 
         Args:
-            version (Tuple[int, int, int, int]): a tuple of version numbers.
+            version (tuple[int, int, int, int]): a tuple of version numbers.
 
         Returns:
             bool: ``True`` if the current wxPython version is greater or equal to the
@@ -456,7 +456,8 @@ class FourWaySplitter(wx.Panel):
             idx (int): the index at which the window will be inserted;
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window not in self._windows, "A window can only be in the splitter once!"
+        if window in self._windows:
+            raise RuntimeError("A window can only be in the splitter once!")
 
         self._windows.insert(idx, window)
 
@@ -470,7 +471,8 @@ class FourWaySplitter(wx.Panel):
         Args:
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window in self._windows, "Unknown window!"
+        if window not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx = self._windows.index(window)
         del self._windows[idx]
@@ -487,7 +489,8 @@ class FourWaySplitter(wx.Panel):
             oldWindow (wx.Window): an instance of :class:`wx.Window`;
             newWindow (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert oldWindow in self._windows, "Unknown window!"
+        if oldWindow not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx = self._windows.index(oldWindow)
         self._windows[idx] = newWindow
@@ -501,8 +504,8 @@ class FourWaySplitter(wx.Panel):
             window1 (wx.Window): an instance of :class:`wx.Window`;
             window2 (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert window1 in self._windows, "Unknown window!"
-        assert window2 in self._windows, "Unknown window!"
+        if window1 not in self._windows or window2 not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx1 = self._windows.index(window1)
         idx2 = self._windows.index(window2)
@@ -524,8 +527,8 @@ class FourWaySplitter(wx.Panel):
             idx (int): the index at which the window is located.
 
         Returns:
-            Union[None, wx.Window]: The window at the specified index or ``None`` if the index
-                is out of range.
+            Union[None, wx.Window]: The window at the specified index or `None`
+                if the index is out of range.
         """
         if len(self._windows) > idx:
             return self._windows[idx]
@@ -649,14 +652,13 @@ class FourWaySplitter(wx.Panel):
                 )
                 win3.Show()
 
-        else:
-            if self._expanded < len(self._windows):
-                for ii, win in enumerate(self._windows):
-                    if ii == self._expanded:
-                        win.SetSize(0, 0, width - 2 * border, height - 2 * border)
-                        win.Show()
-                    else:
-                        win.Hide()
+        elif self._expanded < len(self._windows):
+            for ii, win in enumerate(self._windows):
+                if ii == self._expanded:
+                    win.SetSize(0, 0, width - 2 * border, height - 2 * border)
+                    win.Show()
+                else:
+                    win.Hide()
 
     # Determine split mode
     def GetMode(self, pt: wx.Point) -> int:
@@ -705,14 +707,10 @@ class FourWaySplitter(wx.Panel):
         width, height = self.GetSize()
         barSize = self._GetSashSize()
 
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0
-        if x > width - barSize:
-            x = width - barSize
-        if y > height - barSize:
-            y = height - barSize
+        x = max(x, 0)
+        y = max(y, 0)
+        x = min(x, width - barSize)
+        y = min(y, height - barSize)
 
         self._splitx = x
         self._splity = y
@@ -727,16 +725,24 @@ class FourWaySplitter(wx.Panel):
         bar_size = self._GetSashSize()
 
         self._fhor = (
-            width > bar_size
-            and [(10000 * self._splitx + (width - bar_size - 1)) // (width - bar_size)]
+            (
+                width > bar_size
+                and [
+                    (10000 * self._splitx + (width - bar_size - 1))
+                    // (width - bar_size)
+                ]
+            )
             or [0]
         )[0]
 
         self._fver = (
-            height > bar_size
-            and [
-                (10000 * self._splity + (height - bar_size - 1)) // (height - bar_size)
-            ]
+            (
+                height > bar_size
+                and [
+                    (10000 * self._splity + (height - bar_size - 1))
+                    // (height - bar_size)
+                ]
+            )
             or [0]
         )[0]
 
@@ -935,12 +941,9 @@ class FourWaySplitter(wx.Panel):
         event.SetSashIdx(self._mode)
         event.SetSashPosition(pt)
 
-        if self.GetEventHandler().ProcessEvent(event) and not event.IsAllowed():
-            # the event handler vetoed the change or missing event.Skip()
-            return False
-        else:
-            # or it might have changed the value
-            return True
+        # the event handler vetoed the change or missing event.Skip()
+        # or it might have changed the value
+        return not self.GetEventHandler().ProcessEvent(event) or event.IsAllowed()
 
     def _GetSashSize(self) -> int:
         """Use internally.
@@ -953,8 +956,7 @@ class FourWaySplitter(wx.Panel):
 
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).widthSash
-        else:
-            return 5
+        return 5
 
     def _GetBorderSize(self) -> int:
         """Use internally.
@@ -964,8 +966,7 @@ class FourWaySplitter(wx.Panel):
         """
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).border
-        else:
-            return 0
+        return 0
 
     # Draw the horizontal split
     def DrawSplitter(self, dc: wx.DC) -> None:
@@ -1105,10 +1106,8 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent, use::
                 fourSplitter.SetHSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fhor:
             self._fhor = s
             self._SizeWindows()
@@ -1124,10 +1123,8 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent,
                 use::fourSplitter.SetVSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fver:
             self._fver = s
             self._SizeWindows()
@@ -1155,7 +1152,7 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
-        """MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.
+        """A custom wx.Frame that demonstrates the usage of the FourWaySplitter.
 
         It initializes a frame with a FourWaySplitter containing four colored panels.
 

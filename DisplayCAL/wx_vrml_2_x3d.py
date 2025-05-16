@@ -1,21 +1,26 @@
-# -*- coding: utf-8 -*-
+"""This module provides functionality to convert VRML files to X3D format,
+with optional HTML embedding and viewing capabilities. It includes a graphical
+interface using wxPython for file selection and conversion, as well as a
+command-line mode for batch processing. The module supports features like
+caching, forced downloads, and embedding viewer components in the output.
+"""
 
 import os
 import sys
+from functools import partial
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
-from DisplayCAL import config
+from DisplayCAL import config, x3dom
 from DisplayCAL import localization as lang
-from DisplayCAL import x3dom
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.util_os import launch_file, make_win32_compatible_long_path, waccess
 
 gui = "wx" in sys.modules
 
 if gui:
     from DisplayCAL.worker import Worker, show_result_dialog
-    from DisplayCAL.wxaddons import wx
-    from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
-    from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop
+    from DisplayCAL.wx_addons import wx
+    from DisplayCAL.wx_fixes import GenBitmapButton as BitmapButton
+    from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop
 
     class VRML2X3DFrame(BaseFrame):
         def __init__(self, html, embed, view, force, cache):
@@ -29,7 +34,7 @@ if gui:
             )
             self.SetIcons(
                 config.get_icon_bundle(
-                    [256, 48, 32, 16], "%s-VRML-to-X3D-converter" % appname
+                    [256, 48, 32, 16], f"{APPNAME}-VRML-to-X3D-converter"
                 )
             )
             self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -64,8 +69,8 @@ if gui:
                 ),
             )
             self.droptarget = FileDrop(self)
-            vrml_drop_handler = lambda vrmlpath: vrmlfile2x3dfile(
-                vrmlpath,
+            vrml_drop_handler = partial(
+                vrmlfile2x3dfile,
                 html=html,
                 embed=embed,
                 view=view,
@@ -113,7 +118,7 @@ def main():
     if "--help" in sys.argv[1:] or (not sys.argv[1:] and not gui):
         print("Convert VRML file to X3D")
         print("Author: Florian Hoech, licensed under the GPL version 3")
-        print("Usage: %s [OPTION]... FILE..." % os.path.basename(sys.argv[0]))
+        print(f"Usage: {os.path.basename(sys.argv[0])} [OPTION]... FILE...")
         print("The output is written to FILENAME.x3d(.html)")
         print("")
         print(
@@ -121,7 +126,8 @@ def main():
         )
         print("  --force      Force fresh download of viewer components")
         print(
-            "  --no-cache   Don't use viewer components cache (only uses existing cache if"
+            "  --no-cache   Don't use viewer components cache "
+            "(only uses existing cache if"
         )
         print("               embedding components, can be overridden with --force)")
         if gui:
@@ -200,10 +206,10 @@ def vrmlfile2x3dfile(
             if not vrmlpath or vrmlpath.startswith("--"):
                 print("No filename given.")
             else:
-                print("%r is not a file." % vrmlpath)
+                print(f"{vrmlpath!r} is not a file.")
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         defaultDir, defaultFile = config.get_verified_path("last_vrml_path")
         dlg = wx.FileDialog(
             None,
@@ -219,7 +225,7 @@ def vrmlfile2x3dfile(
         vrmlpath = dlg.GetPath()
         dlg.Destroy()
         if result != wx.ID_OK:
-            return
+            return None
         config.setcfg("last_vrml_path", vrmlpath)
         config.writecfg(module="VRML-to-X3D-converter", options=("last_vrml_path",))
     filename, ext = os.path.splitext(vrmlpath)
@@ -232,10 +238,10 @@ def vrmlfile2x3dfile(
             if not x3dpath:
                 print("No HTML output filename given.")
             else:
-                print(f"{repr(dirname)} is not writable.")
+                print(f"{dirname!r} is not writable.")
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            _ = BaseApp(0)
         if x3dpath:
             defaultDir, defaultFile = os.path.split(x3dpath)
         else:
@@ -252,7 +258,7 @@ def vrmlfile2x3dfile(
         result = dlg.ShowModal()
         dlg.Destroy()
         if result != wx.ID_OK:
-            return
+            return None
         x3dpath = dlg.GetPath()
         dirname = os.path.dirname(x3dpath)
     vrmlpath, x3dpath = [str(path) for path in (vrmlpath, x3dpath)]

@@ -1,10 +1,13 @@
-# -*- coding: utf-8 -*-
-
-from time import sleep
+"""This module provides functionality to control a Chromecast device for
+pattern generation. It includes classes to send color patterns, manage
+connections, and interact with the Chromecast's pattern generator app for use
+in display calibration workflows.
+"""
 
 # 0install: Make sure imported protobuf is from implementation to ensure
 # correct version
 import sys
+from time import sleep
 
 if not getattr(sys, "frozen", False):
     import os
@@ -16,30 +19,11 @@ if not getattr(sys, "frozen", False):
         ):
             if "google" in sys.modules:
                 del sys.modules["google"]
-            try:
-                import pkg_resources
-            except ImportError:
-                import pkgutil
             syspath = sys.path[:]
             sys.path[:] = [pth]
-            import google.protobuf
 
             sys.path[:] = syspath
             break
-
-if sys.version_info[:2] < (3,):
-    # zeroconf 0.19.1 is the last version supporting Python 2.x
-    # but zeroconf 0.20 lacks a check for Python version
-    import zeroconf
-
-    if zeroconf.__version__ > "0.19.1":
-        raise ImportError(
-            """
-Python version > 3.3 required for python-zeroconf %s.
-If you need support for Python 2 or Python 3.3 please use version 0.19.1
-    """
-            % zeroconf.__version__
-        )
 
 from pychromecast import get_chromecasts
 from pychromecast.controllers import BaseController
@@ -49,9 +33,7 @@ from DisplayCAL import localization as lang
 
 class ChromeCastPatternGeneratorController(BaseController):
     def __init__(self):
-        super(ChromeCastPatternGeneratorController, self).__init__(
-            "urn:x-cast:net.hoech.cast.patterngenerator", "B5C2CBFC"
-        )
+        super().__init__("urn:x-cast:net.hoech.cast.patterngenerator", "B5C2CBFC")
         self.request_id = 0
 
     def receive_message(self, message, data):
@@ -66,8 +48,8 @@ class ChromeCastPatternGeneratorController(BaseController):
         h_scale=1,
         v_scale=1,
     ):
-        fg = "#%02X%02X%02X" % tuple(round(v * 255) for v in rgb)
-        bg = "#%02X%02X%02X" % tuple(round(v * 255) for v in bgrgb)
+        fg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in rgb))
+        bg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in bgrgb))
         self.request_id += 1
         self.send_message(
             {
@@ -89,9 +71,8 @@ class ChromeCastPatternGenerator:
 
     def disconnect_client(self):
         self.listening = False
-        if hasattr(self, "_cc"):
-            if self._cc.app_id:
-                self._cc.quit_app()
+        if hasattr(self, "_cc") and self._cc.app_id:
+            self._cc.quit_app()
         if hasattr(self, "conn"):
             del self.conn
 

@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+"""This module provides classes for working with 3D cubes of data, particularly
+useful for iterating over or indexing into a 3D grid structure. It includes
+functionality to define a cube, access its elements, and iterate through its
+contents.
+"""
 
 
 class Cube3D:
@@ -33,7 +37,7 @@ class Cube3D:
     def index(self, xxx_todo_changeme):
         (c0, c1, c2) = xxx_todo_changeme
         if (c0, c1, c2) not in self:
-            raise ValueError("%r not in %r" % ((c0, c1, c2), self))
+            raise ValueError(f"{(c0, c1, c2)!r} not in {self!r}")
         i = c0 * self._size**2 + c1 * self._size + c2
         return int(i) - self._start
 
@@ -41,10 +45,7 @@ class Cube3D:
         if not upper:
             upper = self._len
         if v < lower:
-            if v < -upper:
-                v = fallback or lower
-            else:
-                v = upper + v
+            v = fallback or lower if v < -upper else upper + v
         elif v > upper:
             v = fallback or upper
         return v
@@ -66,7 +67,7 @@ class Cube3D:
         if i < 0:
             i = self._len + i
         if i < 0 or i > self._len - 1:
-            raise IndexError("index %i out of range" % oi)
+            raise IndexError(f"index {oi} out of range")
         i += self._start
         return (
             i // self._size // self._size,
@@ -83,7 +84,7 @@ class Cube3D:
         return self._len
 
     def __repr__(self):
-        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(
+        return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(  # noqa: UP032
             self.__class__.__name__,
             self._size,
             self._start,
@@ -105,7 +106,6 @@ class Cube3DIterator(Cube3D):
     def __next__(self):
         if self._next == self._len:
             raise StopIteration
-        else:
-            result = self[self._next]
-            self._next += 1
-            return result
+        result = self[self._next]
+        self._next += 1
+        return result

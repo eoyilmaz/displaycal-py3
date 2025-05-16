@@ -1,19 +1,18 @@
-# -*- coding: utf-8 -*-
+"""This module provides various wxPython-based GUI components and utilities for
+building graphical interfaces. It includes custom widgets, dialogs, frames,
+and enhancements to standard wxPython controls, offering extended functionality
+and improved aesthetics. The module also supports advanced features like
+custom rendering, event handling, and platform-specific adjustments.
+"""
 
-
-from datetime import datetime
-import html
-from html.parser import HTMLParser
-
-htmlparser = HTMLParser()
-from time import gmtime, sleep, strftime, time
+import contextlib
 import errno
+import html
 import math
 import os
 import re
 import signal
 import socket
-import string
 import subprocess as sp
 import sys
 import tarfile
@@ -22,83 +21,43 @@ import threading
 import warnings
 import xml.parsers.expat
 import zipfile
+from datetime import datetime
+from time import gmtime, sleep, strftime, time
+from typing import ClassVar
 
+from DisplayCAL import audio, config, floatspin, util_str
 from DisplayCAL import demjson_compat as demjson
-
-from DisplayCAL import audio
-from DisplayCAL import config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    defaults,
-    getbitmap,
-    getcfg,
-    geticon,
+    APPBASENAME,
+    CONFIG_HOME,
+    DEFAULTS,
+    LOGDIR,
+    PYNAME,
     get_data_path,
     get_default_dpi,
     get_verified_path,
+    getbitmap,
+    getcfg,
+    geticon,
     hascfg,
-    pyname,
-    setcfg,
-    confighome,
-    appbasename,
-    logdir,
     set_default_app_dpi,
+    setcfg,
 )
 from DisplayCAL.debughelpers import (
-    Error,
     DownloadError,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
-    Warn,
     getevtobjname,
     getevttype,
-    handle_error,
 )
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
 )
-from DisplayCAL.log import log as log_
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
-from DisplayCAL.network import ScriptingClientSocket, get_network_addr
-from DisplayCAL.util_io import StringIOu as StringIO
-from DisplayCAL.util_os import get_program_file, launch_file, waccess
-from DisplayCAL.util_str import box, safe_str, wrap
-from DisplayCAL.util_xml import dict2xml
-from DisplayCAL.wxaddons import (
-    CustomEvent,
-    FileDrop as _FileDrop,
-    gamma_encode,
-    get_parent_frame,
-    get_platform_window_decoration_size,
-    wx,
-    BetterWindowDisabler,
-    BetterTimer,
-    EVT_BETTERTIMER,
-)
-from DisplayCAL.wexpect import split_command_line
-
-# from wexpect import split_command_line
-from DisplayCAL.wxfixes import (
-    GenBitmapButton,
-    GenButton,
-    GTKMenuItemGetFixedLabel,
-    PlateButton,
-    ThemedGenButton,
-    adjust_font_size_for_gcdc,
-    get_bitmap_disabled,
-    get_dc_font_size,
-    get_gcdc_font_size,
-    platebtn,
-    set_bitmap_labels,
-    wx_Panel,
-    get_dialogs,
-    set_maxsize,
-)
 from DisplayCAL.lib.agw import labelbook, pygauge
-from DisplayCAL.lib.agw.gradientbutton import GradientButton, CLICK, HOVER
 from DisplayCAL.lib.agw.fourwaysplitter import (
     _TOLERANCE,
     FLAG_CHANGED,
@@ -107,9 +66,42 @@ from DisplayCAL.lib.agw.fourwaysplitter import (
     FourWaySplitter,
     FourWaySplitterEvent,
 )
-from DisplayCAL import localization as lang
-from DisplayCAL import util_str
-from DisplayCAL import floatspin
+from DisplayCAL.lib.agw.gradientbutton import CLICK, HOVER, GradientButton
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.network import ScriptingClientSocket, get_network_addr
+from DisplayCAL.options import DEBUG
+from DisplayCAL.util_os import launch_file, waccess
+from DisplayCAL.util_str import box, safe_str
+from DisplayCAL.util_xml import dict2xml
+from DisplayCAL.wexpect import split_command_line
+from DisplayCAL.wx_addons import (
+    EVT_BETTER_TIMER,
+    BetterTimer,
+    BetterWindowDisabler,
+    CustomEvent,
+    gamma_encode,
+    get_parent_frame,
+    get_platform_window_decoration_size,
+    wx,
+)
+from DisplayCAL.wx_addons import FileDrop as _FileDrop
+
+# from wexpect import split_command_line
+from DisplayCAL.wx_fixes import (
+    GenBitmapButton,
+    GenButton,
+    GTKMenuItemGetFixedLabel,
+    PlateButton,
+    ThemedGenButton,
+    adjust_font_size_for_gcdc,
+    get_bitmap_disabled,
+    get_dc_font_size,
+    get_dialogs,
+    platebtn,
+    set_bitmap_labels,
+    set_maxsize,
+    wx_Panel,
+)
 
 try:
     from wx.lib.agw import aui
@@ -117,22 +109,21 @@ try:
 except ImportError:
     from wx import aui
     from wx.aui import PyAuiTabArt as AuiDefaultTabArt
-import wx.lib.filebrowsebutton as filebrowse
-from wx.lib.agw import hyperlink
-from wx.lib import fancytext
-from wx.lib.statbmp import GenStaticBitmap
 import wx.html
+import wx.lib.filebrowsebutton as filebrowse
 from wx._core import wxAssertionError
+from wx.lib import fancytext
+from wx.lib.agw import hyperlink
+from wx.lib.statbmp import GenStaticBitmap
 
-taskbar = None
+TASKBAR = None
 if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
     try:
-        from DisplayCAL import taskbar
+        pass
     except Exception as exception:
         print(exception)
 
-
-numpad_keycodes = [
+NUMPAD_KEYCODES = [
     wx.WXK_NUMPAD0,
     wx.WXK_NUMPAD1,
     wx.WXK_NUMPAD2,
@@ -153,7 +144,7 @@ numpad_keycodes = [
     wx.WXK_NUMPAD_SUBTRACT,
 ]
 
-nav_keycodes = [
+NAV_KEYCODES = [
     wx.WXK_DOWN,
     wx.WXK_END,
     wx.WXK_HOME,
@@ -173,7 +164,7 @@ nav_keycodes = [
     wx.WXK_NUMPAD_UP,
 ]
 
-processing_keycodes = [
+PROCESSING_KEYCODES = [
     wx.WXK_ESCAPE,
     wx.WXK_RETURN,
     wx.WXK_INSERT,
@@ -181,7 +172,9 @@ processing_keycodes = [
     wx.WXK_BACK,
 ]
 
-modifier_keycodes = [wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_COMMAND]
+MODIFIER_KEYCODES = [wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_COMMAND]
+
+REMAINING_TIME_LABEL = "--:--:--"
 
 
 class AboutDialog(wx.Dialog):
@@ -194,7 +187,7 @@ class AboutDialog(wx.Dialog):
 
         # Set an icon so text isn't crammed to the left of the titlebar under
         # Windows (other platforms?)
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel = wx.ScrolledWindow(self, style=wx.VSCROLL)
@@ -299,7 +292,7 @@ class AnimatedBitmap(wx.PyControl):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda event: None)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self._timer = BetterTimer(self)
-        self.Bind(EVT_BETTERTIMER, self.OnTimer, self._timer)
+        self.Bind(EVT_BETTER_TIMER, self.OnTimer, self._timer)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def OnDestroy(self, event):
@@ -315,8 +308,7 @@ class AnimatedBitmap(wx.PyControl):
         dc.SetBackground(wx.Brush(self.Parent.BackgroundColour))
         dc.Clear()
         if self._bitmaps:
-            if self.frame > len(self._bitmaps) - 1:
-                self.frame = len(self._bitmaps) - 1
+            self.frame = min(self.frame, len(self._bitmaps) - 1)
             if self.dpiscale > 1:
                 dc.SetUserScale(self.dpiscale, self.dpiscale)
             dc.DrawBitmap(self._bitmaps[self.frame], 0, 0, True)
@@ -356,16 +348,17 @@ class AnimatedBitmap(wx.PyControl):
 
 class AuiBetterTabArt(AuiDefaultTabArt):
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
-        """Draws a single tab.
+        """Draw a single tab.
 
-        :param dc: a :class:`DC` device context;
-        :param wnd: a :class:`Window` instance object;
-        :param page: the tab control page associated with the tab;
-        :param Rect `in_rect`: rectangle the tab should be confined to;
-        :param integer `close_button_state`: the state of the close button on the tab;
-        :param bool `paint_control`: whether to draw the control inside a tab (if any) on a :class:`MemoryDC`.
+        Args:
+            dc: a :class:`DC` device context.
+            wnd: a :class:`Window` instance object.
+            page: the tab control page associated with the tab.
+            in_rect (Rect): rectangle the tab should be confined to.
+            close_button_state (int): the state of the close button on the tab.
+            paint_control (bool): whether to draw the control inside a tab (if
+                any) on a :class:`MemoryDC`.
         """
-
         # if the caption is empty, measure some temporary text
         caption = page.caption
         if not caption:
@@ -562,9 +555,8 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             text_offset = bitmap_offset + pagebitmap.GetWidth()
             text_offset += 3  # bitmap padding
 
-        else:
-            if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT == 0 or not close_button_width:
-                text_offset = tab_x + 8
+        elif agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT == 0 or not close_button_width:
+            text_offset = tab_x + 8
 
         draw_text = aui.ChopText(
             dc, caption, tab_width - (text_offset - tab_x) - close_button_width
@@ -632,7 +624,7 @@ class AuiBetterTabArt(AuiDefaultTabArt):
             elif close_button_state == aui.AUI_BUTTON_STATE_PRESSED:
                 bmp = self._pressed_close_bmp
 
-            shift = (agwFlags & aui.AUI_NB_BOTTOM and [1] or [0])[0]
+            shift = ((agwFlags & aui.AUI_NB_BOTTOM and [1]) or [0])[0]
 
             if agwFlags & aui.AUI_NB_CLOSE_ON_TAB_LEFT:
                 rect = wx.Rect(
@@ -661,12 +653,12 @@ class AuiBetterTabArt(AuiDefaultTabArt):
         return out_tab_rect, out_button_rect, x_extent
 
     def SetDefaultColours(self, base_colour=None):
-        """Sets the default colours, which are calculated from the given base colour.
+        """Set the default colours, which are calculated from the given base colour.
 
-        :param base_colour: an instance of :class:`Colour`. If defaulted to ``None``, a colour
-         is generated accordingly to the platform and theme.
+        Args:
+            base_colour: an instance of :class:`Colour`. If defaulted to ``None``,
+                a colour is generated accordingly to the platform and theme.
         """
-
         if base_colour is None:
             base_colour = aui.GetBaseColour()
 
@@ -743,7 +735,7 @@ class AutocompleteComboBox(wx.ComboBox):
 class BaseApp(wx.App):
     """Application base class implementing common functionality."""
 
-    _exithandlers = []
+    _exithandlers: ClassVar[list] = []
     _query_end_session = None
 
     def __init__(self, *args, **kwargs):
@@ -759,7 +751,7 @@ class BaseApp(wx.App):
         # Restore prefix
         sys.prefix = prefix
 
-        if not kwargs.get("clearSigInt", True) or len(args) == 4 and not args[3]:
+        if not kwargs.get("clearSigInt", True) or (len(args) == 4 and not args[3]):
             # Install our own SIGINT handler, so we can do cleanup on receiving
             # SIGINT
             print("Installing SIGINT handler")
@@ -778,7 +770,7 @@ class BaseApp(wx.App):
             self.ProcessEvent(wx.CloseEvent(wx.EVT_QUERY_END_SESSION.evtType[0]))
 
     def OnInit(self):
-        self.AppName = pyname
+        self.AppName = PYNAME
         set_default_app_dpi()
         # We use a lock so we can make sure the exit handlers are executed
         # properly before we actually exit when receiving OS
@@ -840,6 +832,7 @@ class BaseApp(wx.App):
         if paths:
             self.MacOpenFiles(paths)
             return paths
+        return None
 
     def OnExit(self):
         print("Executing BaseApp.OnExit()")
@@ -850,11 +843,10 @@ class BaseApp(wx.App):
         if hasattr(wx.App, "OnExit"):
             result = wx.App.OnExit(self)
             return result if result is not None else 0
-        else:
-            return 0
+        return 0
 
     @staticmethod
-    def _run_exitfuncs():
+    def _run_exitfuncs() -> int:
         """Run any registered exit functions.
 
         _exithandlers is traversed in reverse order so functions are executed
@@ -885,7 +877,7 @@ class BaseApp(wx.App):
         return 0
 
     @staticmethod
-    def register_exitfunc(func, *args, **kwargs):
+    def register_exitfunc(func, *args, **kwargs) -> None:
         BaseApp._exithandlers.append((func, args, kwargs))
 
     def query_end_session(self, event):
@@ -903,8 +895,7 @@ class BaseApp(wx.App):
                     self._query_end_session = self.TopWindow
                     print("Main top-level application window processed close event")
                     return
-                else:
-                    print("Failed to close main top-level application window")
+                print("Failed to close main top-level application window")
             if event.CanVeto():
                 event.Veto()
                 print("Vetoed query to end session")
@@ -914,14 +905,12 @@ class BaseApp(wx.App):
         self.ExitMainLoop()
         # We may need to call OnExit() explicitly because there is not
         # guaranteed to be a next iteration of the main event loop
-        try:
-            self.OnExit()
-        except Exception:
+        with contextlib.suppress(Exception):
             # Yes, this can fail with a TypeError, amazingly enough :-(
             # Apparently sometimes, wx already shuts down the application
             # and OnExit will be None. We assume in this case that OnExit
             # already ran.
-            pass
+            self.OnExit()
         # Calling sys.exit makes sure that exit handlers registered by atexit
         # will run
         print("Calling sys.exit(0)")
@@ -940,12 +929,13 @@ class BaseFrame(wx.Frame):
         self.init()
 
     def FindWindowByName(self, name):
-        """wxPython Phoenix FindWindowByName descends into the parent windows,
+        """WxPython Phoenix FindWindowByName descends into the parent windows,
         we don't want that
         """
         for child in list(self.GetAllChildren()):
             if hasattr(child, "Name") and child.Name == name:
                 return child
+        return None
 
     def __OnDestroy(self, event):
         if event.GetEventObject() is self:
@@ -978,13 +968,13 @@ class BaseFrame(wx.Frame):
     def init_menubar(self):
         self.MenuBar = wx.MenuBar()
         filemenu = wx.Menu()
-        quit = filemenu.Append(
+        quit_action = filemenu.Append(
             -1 if wx.VERSION < (2, 9) else wx.ID_EXIT,
-            "&%s\tCtrl+Q" % lang.getstr("menuitem.quit"),
+            "&{}\tCtrl+Q".format(lang.getstr("menuitem.quit")),
         )
-        self.Bind(wx.EVT_MENU, lambda event: self.Close(), quit)
+        self.Bind(wx.EVT_MENU, lambda event: self.Close(), quit_action)
         if sys.platform != "darwin":
-            self.MenuBar.Append(filemenu, "&%s" % lang.getstr("menu.file"))
+            self.MenuBar.Append(filemenu, "&{}".format(lang.getstr("menu.file")))
 
     def activate_handler(self, event):
         global active_window
@@ -993,11 +983,9 @@ class BaseFrame(wx.Frame):
     def listen(self):
         if isinstance(getattr(sys, "_appsocket", None), socket.socket):
             addr, port = sys._appsocket.getsockname()
-            if addr == "0.0.0.0":
-                try:
+            if addr == "0.0.0.0":  # noqa: S104
+                with contextlib.suppress(OSError):
                     addr = get_network_addr()
-                except socket.error:
-                    pass
             print(lang.getstr("app.listening", (addr, port)))
             self.listening = True
             self.listener = threading.Thread(
@@ -1012,10 +1000,10 @@ class BaseFrame(wx.Frame):
         conn.settimeout(3)
         try:
             conn.connect((ip, port))
-        except socket.error as exception:
+        except OSError as exception:
             del conn
             return exception
-        return conn
+        return conn  # noqa: F821
 
     def connection_handler(self):
         """Handle socket connections"""
@@ -1026,7 +1014,7 @@ class BaseFrame(wx.Frame):
                 conn, addrport = sys._appsocket.accept()
             except socket.timeout:
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -1039,7 +1027,7 @@ class BaseFrame(wx.Frame):
                 continue
             try:
                 conn.settimeout(0.2)
-            except socket.error as exception:
+            except OSError as exception:
                 conn.close()
                 print(lang.getstr("app.client.ignored", exception))
                 sleep(0.2)
@@ -1048,7 +1036,7 @@ class BaseFrame(wx.Frame):
             self._msghandlercount += 1
             threading.Thread(
                 target=self.message_handler,
-                name="ScriptingHost.MessageHandler-%d" % self._msghandlercount,
+                name=f"ScriptingHost.MessageHandler-{self._msghandlercount}",
                 args=(conn, addrport),
             ).start()
         sys._appsocket.close()
@@ -1065,7 +1053,7 @@ class BaseFrame(wx.Frame):
                     incoming = incoming.decode("utf-8")
             except socket.timeout:
                 continue
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno == errno.EWOULDBLOCK:
                     sleep(0.05)
                     continue
@@ -1088,11 +1076,11 @@ class BaseFrame(wx.Frame):
                         response = None
                         # Non-UI commands
                         if data[0] == "getappname" and len(data) == 1:
-                            response = pyname
+                            response = PYNAME
                         elif data[0] == "getcfg" and len(data) < 3:
                             if len(data) == 2:
                                 # Return cfg value
-                                if data[1] in defaults:
+                                if data[1] in DEFAULTS:
                                     if responseformats[conn].startswith("xml"):
                                         response = {
                                             "name": data[1],
@@ -1107,8 +1095,8 @@ class BaseFrame(wx.Frame):
                                 if responseformats[conn] != "plain":
                                     response = []
                                 else:
-                                    response = dict()
-                                for name in sorted(defaults):
+                                    response = {}
+                                for name in sorted(DEFAULTS):
                                     value = getcfg(name, False)
                                     if value is not None:
                                         if responseformats[conn] != "plain":
@@ -1120,34 +1108,31 @@ class BaseFrame(wx.Frame):
                         elif data[0] == "getcommands" and len(data) == 1:
                             response = sorted(self.get_commands())
                         elif data[0] == "getdefault" and len(data) == 2:
-                            if data[1] in defaults:
+                            if data[1] in DEFAULTS:
                                 if responseformats[conn] != "plain":
                                     response = {
                                         "name": data[1],
-                                        "value": defaults[data[1]],
+                                        "value": DEFAULTS[data[1]],
                                     }
                                 else:
-                                    response = {data[1]: defaults[data[1]]}
+                                    response = {data[1]: DEFAULTS[data[1]]}
                             else:
                                 response = "invalid"
                         elif data[0] == "getdefaults" and len(data) == 1:
-                            if responseformats[conn] != "plain":
-                                response = []
-                            else:
-                                response = dict()
-                            for name in sorted(defaults):
+                            response = [] if responseformats[conn] != "plain" else {}
+                            for name in sorted(DEFAULTS):
                                 if responseformats[conn] != "plain":
                                     response.append(
-                                        {"name": name, "value": defaults[name]}
+                                        {"name": name, "value": DEFAULTS[name]}
                                     )
                                 else:
-                                    response[name] = defaults[name]
+                                    response[name] = DEFAULTS[name]
                         elif data[0] == "getvalid" and len(data) == 1:
                             if responseformats[conn] != "plain":
                                 response = {}
                                 for section, options in (
-                                    ("ranges", config.valid_ranges),
-                                    ("values", config.valid_values),
+                                    ("ranges", config.VALID_RANGES),
+                                    ("values", config.VALID_VALUES),
                                 ):
                                     valid = response[section] = []
                                     for name in options:
@@ -1155,19 +1140,18 @@ class BaseFrame(wx.Frame):
                                         valid.append({"name": name, "values": values})
                             else:
                                 response = {
-                                    "ranges": config.valid_ranges,
-                                    "values": config.valid_values,
+                                    "ranges": config.VALID_RANGES,
+                                    "values": config.VALID_VALUES,
                                 }
                             if responseformats[conn] == "plain":
                                 valid = []
                                 for section in response:
                                     options = response[section]
-                                    valid.append("[%s]" % section)
+                                    valid.append(f"[{section}]")
                                     for name in options:
                                         values = options[name]
                                         valid.append(
-                                            "%s = %s"
-                                            % (
+                                            "{} = {}".format(
                                                 name,
                                                 " ".join(
                                                     demjson.encode(value)
@@ -1193,19 +1177,19 @@ class BaseFrame(wx.Frame):
                         )
         try:
             conn.shutdown(socket.SHUT_RDWR)
-        except socket.error as exception:
+        except OSError as exception:
             if exception.errno != errno.ENOTCONN:
                 print("Warning - could not shutdown connection:", exception)
         print(lang.getstr("app.client.disconnect", addrport))
         conn.close()
         responseformats.pop(conn)
 
-    def get_app_state(self, format):
+    def get_app_state(self, file_format):
         win = self.get_top_window()
         if isinstance(win, wx.Dialog) and win.IsShown():
             if isinstance(win, (DirDialog, FileDialog)):
-                response = format_ui_element(win, format)
-                if format != "plain":
+                response = format_ui_element(win, file_format)
+                if file_format != "plain":
                     response.update({"message": win.Message, "path": win.Path})
                 else:
                     response = [
@@ -1215,11 +1199,11 @@ class BaseFrame(wx.Frame):
                         demjson.encode(win.Path),
                     ]
             elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)):
-                response = format_ui_element(win, format)
-                if format == "plain":
+                response = format_ui_element(win, file_format)
+                if file_format == "plain":
                     response = [response]
                 if hasattr(win, "message") and win.message:
-                    if format != "plain":
+                    if file_format != "plain":
                         response["message"] = win.message.Label
                     else:
                         response.append(demjson.encode(win.message.Label))
@@ -1232,7 +1216,7 @@ class BaseFrame(wx.Frame):
                         and child.IsShownOnScreen()
                         and child.IsEnabled()
                     ):
-                        if format != "plain":
+                        if file_format != "plain":
                             if "buttons" not in response:
                                 response["buttons"] = []
                             response["buttons"].append(child.Label)
@@ -1241,12 +1225,12 @@ class BaseFrame(wx.Frame):
                                 response.append("buttons")
                             response.append(demjson.encode(child.Label))
             elif win.__class__ is wx.Dialog:
-                response = format_ui_element(win, format)
-                if format == "plain":
+                response = format_ui_element(win, file_format)
+                if file_format == "plain":
                     response = [response]
             else:
                 return "blocked"
-            if format == "plain":
+            if file_format == "plain":
                 response = " ".join(response)
             return response
         if hasattr(self, "worker") and self.worker.is_working():
@@ -1294,7 +1278,7 @@ class BaseFrame(wx.Frame):
 
     def get_scripting_hosts(self):
         scripting_hosts = []
-        lockfilebasenames = [appbasename]
+        lockfilebasenames = [APPBASENAME]
         for module in [
             "3DLUT-maker",
             "curve-viewer",
@@ -1305,9 +1289,9 @@ class BaseFrame(wx.Frame):
             "VRML-to-X3D-converter",
             "apply-profiles",
         ]:
-            lockfilebasenames.append("%s-%s" % (appbasename, module))
+            lockfilebasenames.append(f"{APPBASENAME}-{module}")
         for lockfilebasename in lockfilebasenames:
-            lockfilename = os.path.join(confighome, "%s.lock" % lockfilebasename)
+            lockfilename = os.path.join(CONFIG_HOME, f"{lockfilebasename}.lock")
             if os.path.isfile(lockfilename):
                 ports = []
                 try:
@@ -1320,17 +1304,15 @@ class BaseFrame(wx.Frame):
                                     port = line
                                 if port:
                                     ports.append(port)
-                except EnvironmentError as exception:
+                except OSError as exception:
                     # This shouldn't happen
                     print(
-                        "Warning - could not read lockfile %s:" % lockfilename,
+                        f"Warning - could not read lockfile {lockfilename}:",
                         exception,
                     )
                 else:
                     for port in ports:
-                        scripting_hosts.append(
-                            "127.0.0.1:%s %s" % (port, lockfilebasename)
-                        )
+                        scripting_hosts.append(f"127.0.0.1:{port} {lockfilebasename}")
         scripting_hosts.sort()
         return scripting_hosts
 
@@ -1425,10 +1407,7 @@ class BaseFrame(wx.Frame):
                 response = "failed"
             elif data[0] in ("close", "exit"):
                 if len(data) == 2:
-                    if data[0] == "exit":
-                        win = None
-                    else:
-                        win = get_toplevel_window(data[1])
+                    win = None if data[0] == "exit" else get_toplevel_window(data[1])
                 else:
                     win = self.get_top_window()
                 if win:
@@ -1454,11 +1433,10 @@ class BaseFrame(wx.Frame):
                         wx.CallAfter(win.Close)
                     else:
                         response = "failed"
+                elif data[0] == "exit" and len(data) == 2:
+                    wx.CallAfter(self.close_all)
                 else:
-                    if data[0] == "exit" and len(data) == 2:
-                        wx.CallAfter(self.close_all)
-                    else:
-                        response = "invalid"
+                    response = "invalid"
             else:
                 response = "invalid"
         elif data[0] == "activate" and len(data) < 3:
@@ -1471,11 +1449,7 @@ class BaseFrame(wx.Frame):
                 except ValueError:
                     id_name_label = data[1]
                 for win in reversed(list(wx.GetTopLevelWindows())):
-                    if (
-                        win.Id == id_name_label
-                        or win.Name == id_name_label
-                        or win.Label == id_name_label
-                    ) and win.IsShown():
+                    if id_name_label in (win.Id, win.Name, win.Label) and win.IsShown():
                         break
                 else:
                     win = None
@@ -1503,19 +1477,20 @@ class BaseFrame(wx.Frame):
                     elif data[0] == "cancel":
                         wx.CallAfter(win.Close)
                     response = "ok"
-            elif isinstance(win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)):
-                if hasattr(win, data[0]):
-                    ctrl = getattr(win, data[0])
-                    if ctrl.IsEnabled():
-                        if win.IsModal():
-                            wx.CallAfter(win.EndModal, ctrl.Id)
-                        elif isinstance(ctrl, (FlatShadedButton, GenButton, wx.Button)):
-                            event = wx.CommandEvent(wx.EVT_BUTTON.typeId, ctrl.Id)
-                            event.SetEventObject(ctrl)
-                            wx.CallAfter(ctrl.ProcessEvent, event)
-                        response = "ok"
-                    else:
-                        response = "forbidden"
+            elif isinstance(
+                win, (AboutDialog, BaseInteractiveDialog, ProgressDialog)
+            ) and hasattr(win, data[0]):
+                ctrl = getattr(win, data[0])
+                if ctrl.IsEnabled():
+                    if win.IsModal():
+                        wx.CallAfter(win.EndModal, ctrl.Id)
+                    elif isinstance(ctrl, (FlatShadedButton, GenButton, wx.Button)):
+                        event = wx.CommandEvent(wx.EVT_BUTTON.typeId, ctrl.Id)
+                        event.SetEventObject(ctrl)
+                        wx.CallAfter(ctrl.ProcessEvent, event)
+                    response = "ok"
+                else:
+                    response = "forbidden"
         elif (
             data[0] == "echo"
             and "echo <string>" in self.get_common_commands()
@@ -1589,7 +1564,7 @@ class BaseFrame(wx.Frame):
             menus = []
             menubar = self.GetMenuBar()
             if menubar:
-                for i, (menu, label) in enumerate(menubar.GetMenus()):
+                for i, (_menu, label) in enumerate(menubar.GetMenus()):
                     label = label.lstrip("&_")
                     if responseformats[conn] != "plain":
                         menus.append(
@@ -1601,8 +1576,7 @@ class BaseFrame(wx.Frame):
                         )
                     else:
                         menus.append(
-                            "%s %s %s"
-                            % (
+                            "{} {} {}".format(
                                 i,
                                 demjson.encode(label),
                                 "enabled" if menubar.IsEnabledTop(i) else "disabled",
@@ -1622,11 +1596,7 @@ class BaseFrame(wx.Frame):
                         menu_pos_label = data[1]
                 for i, (menu, label) in enumerate(menubar.GetMenus()):
                     label = label.lstrip("&_")
-                    if (
-                        len(data) == 2
-                        and label != menu_pos_label
-                        and i != menu_pos_label
-                    ):
+                    if len(data) == 2 and menu_pos_label not in (label, i):
                         continue
                     if responseformats[conn] != "plain" and label not in menulabels:
                         menuitems = []
@@ -1655,8 +1625,7 @@ class BaseFrame(wx.Frame):
                             )
                         else:
                             menuitems.append(
-                                "%s %s %s %s %s%s%s"
-                                % (
+                                "{} {} {} {} {}{}{}".format(
                                     i,
                                     demjson.encode(label),
                                     menuitem.Id,
@@ -1671,10 +1640,7 @@ class BaseFrame(wx.Frame):
                                     " checked" if menuitem.IsChecked() else "",
                                 )
                             )
-            if responseformats[conn] != "plain":
-                response = menus
-            else:
-                response = menuitems
+            response = menus if responseformats[conn] != "plain" else menuitems
         elif data[0] == "getstate" and len(data) == 1:
             response = self.get_app_state(responseformats[conn])
         elif data[0] == "getuielement" and len(data) in (2, 3):
@@ -1842,10 +1808,7 @@ class BaseFrame(wx.Frame):
                     elif isinstance(child, (FlatShadedButton, GenButton, wx.Button)):
                         event = wx.EVT_BUTTON
                     if event:
-                        if isinstance(child, CustomCheckBox):
-                            ctrl = child._cb
-                        else:
-                            ctrl = child
+                        ctrl = child._cb if isinstance(child, CustomCheckBox) else child
                         events = [event]
                         if event is wx.EVT_SPINCTRL:
                             events.append(wx.EVT_TEXT)
@@ -1866,7 +1829,8 @@ class BaseFrame(wx.Frame):
                         response = "ok"
         elif data[0] == "setcfg" and len(data) == 3:
             # Set configuration option
-            if data[1] in defaults:
+            value = None
+            if data[1] in DEFAULTS:
                 value = data[2]
                 if value == "null":
                     value = None
@@ -1874,11 +1838,9 @@ class BaseFrame(wx.Frame):
                     value = 0
                 elif value == "true":
                     value = 1
-                elif defaults[data[1]] is not None:
-                    try:
-                        value = type(defaults[data[1]])(value)
-                    except ValueError:
-                        pass
+                elif DEFAULTS[data[1]] is not None:
+                    with contextlib.suppress(ValueError):
+                        value = type(DEFAULTS[data[1]])(value)
                 setcfg(data[1], value)
                 if getcfg(data[1], False) != value:
                     response = "failed"
@@ -1908,10 +1870,10 @@ class BaseFrame(wx.Frame):
                         self.update_layout()
                         response = "ok"
                     elif data[0] == "restore-defaults":
-                        for name in defaults:
+                        for name in DEFAULTS:
                             if len(data) > 1:
                                 include = False
-                                for category in data[1:]:
+                                for _ in data[1:]:
                                     if name.startswith(data[1]):
                                         include = True
                                         break
@@ -1938,16 +1900,20 @@ class BaseFrame(wx.Frame):
             or response != "ok"
         ):
             # No interaction with UI
-            relayfunc = lambda func, *args: func(*args)
+            def relayfunc(func, *args):
+                func(*args)
         else:
             # Interaction with UI
             # Prevent actual file dialogs blocking the UI - need to restore
             # original values after processing
             wx.DirDialog = DirDialog
             wx.FileDialog = FileDialog
+
             # Use CallLater so GUI methods have a chance to run before we send
             # our response
-            relayfunc = lambda func, *args: wx.CallLater(55, func, *args)
+            def relayfunc(func, *args):
+                wx.CallLater(55, func, *args)
+
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win
@@ -1979,26 +1945,24 @@ class BaseFrame(wx.Frame):
         elif responseformats[conn].startswith("xml"):
             response = (
                 '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-                + (responseformats[conn] == "xml.pretty" and "\n" or "")
+                + ((responseformats[conn] == "xml.pretty" and "\n") or "")
                 + dict2xml(
                     response, "response", pretty=responseformats[conn] == "xml.pretty"
                 )
             )
         else:
             if isinstance(response, dict):
-                response = [
-                    "%s = %s" % (name, value) for name, value in response.items()
-                ]
+                response = [f"{name} = {value}" for name, value in response.items()]
             if isinstance(response, list):
                 response = "\n".join(response)
         try:
-            conn.sendall(("%s\4" % safe_str(response, "UTF-8")).encode("utf-8"))
-        except socket.error as exception:
+            conn.sendall(("{}\4".format(safe_str(response, "utf-8"))).encode("utf-8"))
+        except OSError as exception:
             print(exception)
 
     def send_command(self, scripting_host_name_suffix, command):
-        lock_name = appbasename
-        scripting_host = appname
+        lock_name = APPBASENAME
+        scripting_host = APPNAME
         if scripting_host_name_suffix:
             lock_name += "-" + scripting_host_name_suffix
             scripting_host += "-" + scripting_host_name_suffix
@@ -2022,7 +1986,8 @@ class BaseFrame(wx.Frame):
                         print(f"{scripting_host} {command} returned", response)
                     else:
                         print(
-                            f"Warning - {scripting_host} not running under expected port",
+                            f"Warning - {scripting_host} not running under "
+                            "expected port",
                             port,
                         )
                     del conn
@@ -2042,29 +2007,19 @@ class BaseFrame(wx.Frame):
         # most methods that controls would have.
         if not event:
             event = CustomEvent(wx.EVT_SET_FOCUS.evtType[0], self)
-        if debug:
+        if DEBUG:
             if hasattr(event.GetEventObject(), "GetId"):
                 print(
-                    "[D] focus_handler called for ID %s %s %s, event type "
-                    "%s %s"
-                    % (
-                        event.GetEventObject().GetId(),
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                        event.GetEventType(),
-                        getevttype(event),
-                    )
+                    f"[D] focus_handler called for ID {event.GetEventObject().GetId()} "
+                    f"{getevtobjname(event, self)} "
+                    f"{event.GetEventObject().__class__}, event type "
+                    f"{event.GetEventType()} {getevttype(event)}"
                 )
             else:
                 print(
-                    "[D] focus_handler called for %s %s, event type "
-                    "%s %s"
-                    % (
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                        event.GetEventType(),
-                        getevttype(event),
-                    )
+                    f"[D] focus_handler called for {getevtobjname(event, self)} "
+                    f"{event.GetEventObject().__class__}, event type "
+                    f"{event.GetEventType()} {getevttype(event)}"
                 )
             if (
                 hasattr(event, "GetWindow")
@@ -2072,21 +2027,14 @@ class BaseFrame(wx.Frame):
                 and event.GetEventObject() != event.GetWindow()
             ):
                 print(
-                    "[D] Focus moving from control ID %s %s %s"
-                    % (
-                        event.GetWindow().GetId(),
-                        event.GetWindow().GetName(),
-                        event.GetWindow().__class__,
-                    )
+                    f"[D] Focus moving from control ID {event.GetWindow().GetId()} "
+                    f"{event.GetWindow().GetName()} {event.GetWindow().__class__}"
                 )
             if getattr(self, "last_focused_ctrl", None):
                 print(
-                    "[D] Last focused control: ID %s %s %s"
-                    % (
-                        self.last_focused_ctrl.GetId(),
-                        self.last_focused_ctrl.GetName(),
-                        self.last_focused_ctrl.__class__,
-                    )
+                    f"[D] Last focused control: ID {self.last_focused_ctrl.GetId()} "
+                    f"{self.last_focused_ctrl.GetName()} "
+                    f"{self.last_focused_ctrl.__class__}"
                 )
         if (
             getattr(self, "last_focused_ctrl", None)
@@ -2102,20 +2050,17 @@ class BaseFrame(wx.Frame):
             catchup_event = wx.FocusEvent(
                 wx.EVT_KILL_FOCUS.evtType[0], self.last_focused_ctrl.GetId()
             )
-            if debug:
+            if DEBUG:
                 print(
-                    "[D] Last focused control ID %s %s %s processing "
-                    "catchup event type %s %s"
-                    % (
-                        self.last_focused_ctrl.GetId(),
-                        self.last_focused_ctrl.GetName(),
-                        self.last_focused_ctrl.__class__,
-                        catchup_event.GetEventType(),
-                        getevttype(catchup_event),
-                    )
+                    "[D] Last focused control ID "
+                    f"{self.last_focused_ctrl.GetId()} "
+                    f"{self.last_focused_ctrl.GetName()} "
+                    f"{self.last_focused_ctrl.__class__} processing "
+                    "catchup event type "
+                    f"{catchup_event.GetEventType()} {getevttype(catchup_event)}"
                 )
             if self.last_focused_ctrl.ProcessEvent(catchup_event):
-                if debug:
+                if DEBUG:
                     print("[D] Last focused control processed catchup event")
                 self.last_focused_ctrl = None
         if (
@@ -2126,14 +2071,11 @@ class BaseFrame(wx.Frame):
             and hasattr(event.GetEventObject(), "IsShownOnScreen")
             and event.GetEventObject().IsShownOnScreen()
         ):
-            if debug:
+            if DEBUG:
                 print(
-                    "[D] Setting last focused control to ID %s %s %s"
-                    % (
-                        event.GetEventObject().GetId(),
-                        getevtobjname(event, self),
-                        event.GetEventObject().__class__,
-                    )
+                    "[D] Setting last focused control to ID "
+                    f"{event.GetEventObject().GetId()} "
+                    f"{getevtobjname(event, self)} {event.GetEventObject().__class__}"
                 )
             self.last_focused_ctrl = event.GetEventObject()
         if isinstance(event, wx.FocusEvent) or isinstance(
@@ -2255,8 +2197,8 @@ class BaseFrame(wx.Frame):
                 label = GTKMenuItemGetFixedLabel(label)
                 localized_label = lang.getstr(label)
                 if item.Accel:
-                    localized_label_text_with_accel = "{}\t{}".format(
-                        localized_label, item.Accel.ToString()
+                    localized_label_text_with_accel = (
+                        f"{localized_label}\t{item.Accel.ToString()}"
                     )
                     # item.Text = localized_label_text_with_accel
                     item.SetItemLabel(localized_label_text_with_accel)
@@ -2273,21 +2215,15 @@ class BaseFrame(wx.Frame):
         clientarea = self.GetDisplay().ClientArea
         sw = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         if sys.platform not in ("darwin", "win32"):  # Linux
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
-                # Client-side decorations
-                safety_margin = 0
-            else:
-                # Assume server-side decorations
-                safety_margin = 40
+            # Client-side decorations on wayland,
+            # otherwise assume server-side decorations
+            safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
         else:
             safety_margin = 20
         w, h = 0, 0
         for child in self.Children:
             if child.IsShown():
-                if child.Sizer:
-                    size = child.Sizer.CalcMin()
-                else:
-                    size = child.BestSize
+                size = child.Sizer.CalcMin() if child.Sizer else child.BestSize
                 w = max(size[0], w)
                 h += max(size[1], 0)
         minsize = (
@@ -2343,7 +2279,7 @@ class BaseFrame(wx.Frame):
             parent = self
         scale = getcfg("app.dpi") / get_default_dpi()
         for child in list(parent.GetAllChildren()):
-            if debug:
+            if DEBUG:
                 print(child.__class__, child.Name)
             if isinstance(
                 child,
@@ -2435,7 +2371,7 @@ class BaseFrame(wx.Frame):
                     # (doesn't receive EVT_KILL_FOCUS)
                     if isinstance(child, wx.ComboBox):
                         if child.IsEditable():
-                            if debug:
+                            if DEBUG:
                                 print(
                                     "[D]", child.Name, "binds EVT_TEXT to focus_handler"
                                 )
@@ -2463,20 +2399,22 @@ class BaseFrame(wx.Frame):
                 # Move focus to the next control.
                 child.Bind(
                     wx.EVT_SET_FOCUS,
-                    lambda event: event.EventObject.AcceptsFocus()
-                    and event.EventObject.Navigate(
-                        int(not wx.GetKeyState(wx.WXK_SHIFT))
+                    lambda event: (
+                        event.EventObject.AcceptsFocus()
+                        and event.EventObject.Navigate(
+                            int(not wx.GetKeyState(wx.WXK_SHIFT))
+                        )
                     )
                     or event.Skip(),
                 )
 
-    def getcfg(self, name, fallback=True, raw=False, cfg=config.cfg):
+    def getcfg(self, name, fallback=True, raw=False, cfg=config.CFG):
         return getcfg(name, fallback, raw, cfg)
 
-    def hascfg(self, name, fallback=True, cfg=config.cfg):
+    def hascfg(self, name, fallback=True, cfg=config.CFG):
         return hascfg(name, fallback, cfg)
 
-    def setcfg(self, name, value, cfg=config.cfg):
+    def setcfg(self, name, value, cfg=config.CFG):
         setcfg(name, value, cfg)
 
 
@@ -2487,7 +2425,7 @@ class BaseInteractiveDialog(wx.Dialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok=None,
         bitmap=None,
@@ -2507,15 +2445,13 @@ class BaseInteractiveDialog(wx.Dialog):
         self._msg = msg
         if parent:
             pos = list(pos)
-            i = 0
-            for coord in pos:
+            for i, coord in enumerate(pos):
                 if coord > -1:
                     pos[i] += parent.GetScreenPosition()[i]
-                i += 1
             pos = tuple(pos)
-            if title == appname:
+            if title == APPNAME:
                 appid = get_appid_from_window_hierarchy(parent)
-                base_appid = appname.lower()
+                base_appid = APPNAME.lower()
                 appid2title = {
                     base_appid + "-3dlut-maker": "3dlut.frame.title",
                     base_appid + "-curve-viewer": "calibration.lut_viewer.title",
@@ -2534,15 +2470,12 @@ class BaseInteractiveDialog(wx.Dialog):
         if sys.platform == "win32":
             bgcolor = self.BackgroundColour
             self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
-            if taskbar:
-                if parent and parent.IsShownOnScreen():
-                    taskbarframe = parent
-                else:
-                    taskbarframe = self
+            if TASKBAR:
+                taskbarframe = parent if parent and parent.IsShownOnScreen() else self
                 if hasattr(taskbarframe, "taskbar"):
                     self.taskbar = taskbarframe.taskbar
                 else:
-                    self.taskbar = taskbar.Taskbar(taskbarframe)
+                    self.taskbar = TASKBAR.Taskbar(taskbarframe)
         self.SetPosition(pos)  # yes, this is needed
 
         self.Bind(wx.EVT_SHOW, self.OnShow, self)
@@ -2577,22 +2510,19 @@ class BaseInteractiveDialog(wx.Dialog):
             self.buttonpanel.SetBackgroundColour(bgcolor)
         self.sizer0.Add(self.buttonpanel, flag=wx.EXPAND)
 
-        if bitmap_margin:
-            flags = wx.LEFT | wx.TOP
-        else:
-            flags = 0
+        flags = wx.LEFT | wx.TOP if bitmap_margin else 0
         if bitmap:
             self.bitmap = wx.StaticBitmap(self, -1, bitmap)
             self.sizer1.Add(self.bitmap, flag=flags, border=margin)
             if self.taskbar:
                 state = None
                 if bitmap is geticon(32, "dialog-error"):
-                    state = taskbar.TBPF_ERROR
+                    state = TASKBAR.TBPF_ERROR
                 elif bitmap is geticon(32, "dialog-warning"):
-                    state = taskbar.TBPF_PAUSED
+                    state = TASKBAR.TBPF_PAUSED
                 if state is not None:
                     if (
-                        state == taskbar.TBPF_ERROR
+                        state == TASKBAR.TBPF_ERROR
                         or not isinstance(self.Parent, ProgressDialog)
                         or self.Parent.paused
                     ):
@@ -2613,7 +2543,7 @@ class BaseInteractiveDialog(wx.Dialog):
             )
         self.sizer3.Add(self.message)
 
-        btnwidth = 80
+        # btnwidth = 80
 
         self.ok = wx.Button(self.buttonpanel, wx.ID_OK, ok)
         self.sizer2.Add((-1, 1), 1)
@@ -2643,10 +2573,7 @@ class BaseInteractiveDialog(wx.Dialog):
         # Make sure taskbar button flashes under Windows
         topwindow = app.GetTopWindow()
         topwindow_shown = topwindow and topwindow.IsShown()
-        if topwindow_shown:
-            window = topwindow
-        else:
-            window = self.Parent or self
+        window = topwindow if topwindow_shown else self.Parent or self
         # Only request user attention if toplevel window has a non-empty title
         if (
             not app.IsActive()
@@ -2657,20 +2584,17 @@ class BaseInteractiveDialog(wx.Dialog):
                 self.RequestUserAttention()
 
     def OnClose(self, event):
-        if event.GetEventObject() == self:
-            id = wx.ID_CANCEL
-        else:
-            id = event.GetId()
+        id_ = wx.ID_CANCEL if event.GetEventObject() == self else event.GetId()
         if self._log and isinstance(self, ConfirmDialog):
             if hasattr(self, "FindWindow"):
                 # wxPython 4
-                ctrl = self.FindWindow(id)
+                ctrl = self.FindWindow(id_)
             else:
                 # wxPython 3
-                ctrl = self.FindWindowById(id)
+                ctrl = self.FindWindowById(id_)
             if ctrl:
                 print("->", ctrl.Label)
-        self.EndModal(id)
+        self.EndModal(id_)
 
     def EndModal(self, id):
         # Re-enable other windows
@@ -2707,11 +2631,11 @@ class BaseInteractiveDialog(wx.Dialog):
                 and self.Parent.timer.IsRunning()
             ):
                 if self.Parent.indeterminate:
-                    state = taskbar.TBPF_INDETERMINATE
+                    state = TASKBAR.TBPF_INDETERMINATE
                 elif not self.Parent.paused:
-                    state = taskbar.TBPF_NORMAL
+                    state = TASKBAR.TBPF_NORMAL
             else:
-                state = taskbar.TBPF_NOPROGRESS
+                state = TASKBAR.TBPF_NOPROGRESS
             if state is not None:
                 self.taskbar.set_progress_state(state)
 
@@ -2784,7 +2708,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         html="",
         ok="OK",
@@ -2811,8 +2735,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
         )
 
         scale = getcfg("app.dpi") / config.get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         htmlwnd = HtmlWindow(
             self, -1, size=(332 * scale, 200 * scale), style=wx.BORDER_THEME
         )
@@ -2848,17 +2771,14 @@ class HtmlWindow(wx.html.HtmlWindow):
         html = str(source)
         bgcolor, text, linkcolor, vlinkcolor = get_html_colors()
         if "<body" not in html:
-            html = "<body>%s</body>" % html
+            html = f"<body>{html}</body>"
         html = re.sub(
             r"<body[^>]*",
-            '<body bgcolor="%s" text="%s" link="%s" alink="%s" vlink="%s"'
-            % (
-                bgcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                text.GetAsString(wx.C2S_HTML_SYNTAX),
-                linkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                linkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-                vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX),
-            ),
+            f'<body bgcolor="{bgcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'text="{text.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'link="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'alink="{linkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}" '
+            f'vlink="{vlinkcolor.GetAsString(wx.C2S_HTML_SYNTAX)}"',
             html,
         )
         wx.html.HtmlWindow.SetPage(self, html)
@@ -2877,10 +2797,8 @@ class BitmapBackgroundBitmapButton(wx.BitmapButton):
 
     def OnPaint(self, dc):
         dc = wx.PaintDC(self)
-        try:
+        with contextlib.suppress(Exception):
             dc = wx.GCDC(dc)
-        except Exception as exception:
-            pass
         dc.DrawBitmap(self.Parent.GetBitmap(), 0, -self.GetPosition()[1])
         dc.DrawBitmap(self.GetBitmapLabel(), 0, 0)
 
@@ -2942,9 +2860,9 @@ class BitmapBackgroundPanel(wx.PyPanel):
 
     def _draw(self, dc):
         bgcolor = self.BackgroundColour
-        bbr = wx.Brush(bgcolor, wx.SOLID)
+        bbr = wx.Brush(bgcolor, wx.BRUSHSTYLE_SOLID)
         dc.SetBackground(bbr)
-        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_SOLID)
         dc.Clear()
         dc.SetTextForeground(self.GetForegroundColour())
         bmp = self._bitmap
@@ -2998,12 +2916,12 @@ class BitmapBackgroundPanel(wx.PyPanel):
                 )
                 dc.DrawBitmap(sub_img.ConvertToBitmap(), bmp.GetSize()[0], 0)
         if self.drawbordertop:
-            pen = wx.Pen(self.bordertopcolor, 1, wx.SOLID)
+            pen = wx.Pen(self.bordertopcolor, 1, wx.PENSTYLE_SOLID)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
             dc.DrawLine(0, 0, self.GetSize()[0], 0)
         if self.drawborderbtm:
-            pen = wx.Pen(self.borderbtmcolor, 1, wx.SOLID)
+            pen = wx.Pen(self.borderbtmcolor, 1, wx.PENSTYLE_SOLID)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
             dc.DrawLine(
@@ -3029,10 +2947,8 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
         if self.use_gcdc:
             # NOTE: Drawing text to wx.GCDC has problems with unicode chars
             # being replaced with boxes under wxGTK
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception as exception:
-                pass
         font.SetPointSize(get_dc_font_size(font.GetPointSize(), dc))
         dc.SetFont(font)
         return dc
@@ -3053,7 +2969,7 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
 
     def _draw(self, dc):
         BitmapBackgroundPanel._draw(self, dc)
-        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         dc = self._set_font(dc)
         label = self.Label.splitlines()
         for i, line in enumerate(label):
@@ -3109,7 +3025,7 @@ class ConfirmDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok=None,
         cancel=None,
@@ -3171,16 +3087,14 @@ class ConfirmDialog(BaseInteractiveDialog):
 class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHistory):
     def __init__(self, *arguments, **namedarguments):
         self.history = namedarguments.get("history") or []
-        if "history" in namedarguments:
-            del namedarguments["history"]
+        namedarguments.pop("history", None)
 
         self.historyCallBack = None
         if callable(self.history):
             self.historyCallBack = self.history
             self.history = []
         name = namedarguments.get("name", "fileBrowseButtonWithHistory")
-        if "name" in namedarguments:
-            del namedarguments["name"]
+        namedarguments.pop("name", None)
         filebrowse.FileBrowseButton.__init__(self, *arguments, **namedarguments)
         self.SetName(name)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
@@ -3212,7 +3126,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         if os.path.splitext(path)[1].lower() in (".icc", ".icm"):
             try:
                 profile = ICCProfile(path)
-            except (IOError, ICCProfileInvalidError):
+            except (OSError, ICCProfileInvalidError):
                 pass
             else:
                 name = profile.getDescription()
@@ -3221,7 +3135,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         return lang.getstr(name)
 
     def GetValue(self):
-        """retrieve current value of text control"""
+        """Retrieve current value of text control."""
         if self.textControl.GetSelection() > -1:
             return self.history[self.textControl.GetSelection()]
         return ""
@@ -3272,10 +3186,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
                 value = value[:max_entries]
 
         index = control.GetSelection()
-        if self.history and index > -1:
-            tempValue = self.history[index]
-        else:
-            tempValue = ""
+        tempValue = self.history[index] if self.history and index > -1 else ""
         self.history = []
         control.Clear()
         for path in value + [tempValue]:
@@ -3288,12 +3199,11 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         self.textControl.SetMaxFontSize(pointsize)
 
     def SetValue(self, value, callBack=1, clear_on_empty_value=False):
-        if not value:
-            if clear_on_empty_value and self.history:
-                index = self.textControl.GetSelection()
-                if index > -1:
-                    self.history.pop(index)
-                    self.textControl.Delete(index)
+        if not value and clear_on_empty_value and self.history:
+            index = self.textControl.GetSelection()
+            if index > -1:
+                self.history.pop(index)
+                self.textControl.Delete(index)
         if value not in self.history:
             self.history.append(value)
             self.textControl.Append(self.GetName(value))
@@ -3497,16 +3407,13 @@ class FlatShadedButton(GradientButton):
         """Overridden base class virtual. Determines the best size of the
         button based on the label and bezel size.
         """
-
         if not getattr(self, "_lastBestSize", None):
             dummy = "FfGgJjPpYy"
             label = self.GetLabel() or dummy
 
             dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-            try:
+            with contextlib.suppress(Exception):
                 dc = wx.GCDC(dc)
-            except Exception:
-                pass
             dc.SetFont(self.GetFont())
             retWidth, retHeight = dc.GetTextExtent(label)
             if label == dummy:
@@ -3540,7 +3447,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.FocusEvent` event to be processed.
         """
-
         self._hasFocus = True
         self._mouseAction = HOVER
         self.Refresh()
@@ -3551,7 +3457,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         self._hasFocus = False
         pos = wx.GetMousePosition()
         if self.IsShownOnScreen() and not self.ClientRect.Contains(
@@ -3567,7 +3472,6 @@ class FlatShadedButton(GradientButton):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         if sys.platform != "win32":
             # AutoBufferedPaintDCFactory is the magic needed for crisp text
             # rendering in HiDPI mode under OS X and Linux
@@ -3766,7 +3670,6 @@ class BorderGradientButton(GradientButton):
         :param percent: determines how dark the colour will be. `percent` = 100
          returns black, `percent` = 0 returns `colour`.
         """
-
         rd = colour.Red()
         gd = colour.Green()
         bd = colour.Blue()
@@ -3787,16 +3690,13 @@ class BorderGradientButton(GradientButton):
         """Overridden base class virtual. Determines the best size of the
         button based on the label and bezel size.
         """
-
         label = self.GetLabel()
         if not label:
             return wx.Size(112, 48)
 
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
-        try:
+        with contextlib.suppress(Exception):
             dc = wx.GCDC(dc)
-        except Exception:
-            pass
         dc.SetFont(self.GetFont())
         retWidth, retHeight = dc.GetTextExtent(label)
 
@@ -3827,7 +3727,6 @@ class BorderGradientButton(GradientButton):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         if sys.platform != "win32":
             # AutoBufferedPaintDCFactory is the magic needed for crisp text
             # rendering in HiDPI mode under OS X and Linux
@@ -3846,7 +3745,7 @@ class BorderGradientButton(GradientButton):
         x, y, width, height = clientRect
 
         gradientRect.SetHeight(
-            int(gradientRect.GetHeight() / 2 + ((capture == self and [1] or [0])[0]))
+            int(gradientRect.GetHeight() / 2 + (((capture == self and [1]) or [0])[0]))
         )
 
         fgcolor = self.ForegroundColour
@@ -4200,7 +4099,7 @@ class CustomGrid(wx.grid.Grid):
             self.SetGridCursor(event.Row, event.Col)
 
     def OnCellSelect(self, event):
-        row, col = event.GetRow(), event.GetCol()
+        row, _ = event.GetRow(), event.GetCol()
         self._anchor_row = row
         self._overwrite_cell_values = True
         self.SelectBlock(event.Row, event.Col, event.Row, event.Col)
@@ -4215,7 +4114,7 @@ class CustomGrid(wx.grid.Grid):
                 # A
                 self.SelectAll()
                 return
-            elif keycode in (67, 88):
+            if keycode in (67, 88):
                 # C / X
                 clip = []
                 cells = self.GetSelection()
@@ -4232,8 +4131,7 @@ class CustomGrid(wx.grid.Grid):
                     if self.GetColLabelSize() and not self.GetColLabelValue(col):
                         offset += 1
                         continue
-                    if col - offset < start_col:
-                        start_col = col - offset
+                    start_col = min(start_col, col - offset)
                     while len(clip[-1]) - 1 < col - offset:
                         clip[-1].append("")
                     clip[-1][col - offset] = self.GetCellValue(row, col)
@@ -4245,7 +4143,7 @@ class CustomGrid(wx.grid.Grid):
                 wx.TheClipboard.SetData(clipdata)
                 wx.TheClipboard.Close()
                 return
-            elif keycode == 86 and self.IsEditable():
+            if keycode == 86 and self.IsEditable():
                 # V
                 do = wx.TextDataObject()
                 wx.TheClipboard.Open()
@@ -4274,8 +4172,7 @@ class CustomGrid(wx.grid.Grid):
                         ):
                             offset += 1
                             continue
-                        if col - offset < start_col:
-                            start_col = col - offset
+                        start_col = min(start_col, col - offset)
                         while len(grid[-1]) - 1 < col - offset:
                             grid[-1].append(None)
                         grid[-1][col - offset] = cell
@@ -4328,37 +4225,38 @@ class CustomGrid(wx.grid.Grid):
                 if ch is not None or keycode in (wx.WXK_BACK, wx.WXK_DELETE):
                     changed = 0
                     batch = False
-                    for i, (row, col) in enumerate(self.GetSelection()):
-                        if row > -1 and col > -1 and not self.IsReadOnly(row, col):
-                            if changed and not batch:
-                                self.BeginBatch()
-                                batch = True
-                            if self._overwrite_cell_values or keycode == wx.WXK_DELETE:
-                                value = ""
-                            else:
-                                value = self.GetCellValue(row, col)
-                            if keycode == wx.WXK_BACK:
-                                value = value[:-1]
-                            elif keycode != wx.WXK_DELETE:
-                                value += ch
-                            self.SetCellValue(row, col, value)
-                            self.ProcessEvent(
-                                wx.grid.GridEvent(
-                                    -1,
-                                    wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
-                                    self,
-                                    row,
-                                    col,
-                                )
+                    for row, col in self.GetSelection():
+                        if row <= -1 or col <= -1 or self.IsReadOnly(row, col):
+                            continue
+                        if changed and not batch:
+                            self.BeginBatch()
+                            batch = True
+                        if self._overwrite_cell_values or keycode == wx.WXK_DELETE:
+                            value = ""
+                        else:
+                            value = self.GetCellValue(row, col)
+                        if keycode == wx.WXK_BACK:
+                            value = value[:-1]
+                        elif keycode != wx.WXK_DELETE:
+                            value += ch
+                        self.SetCellValue(row, col, value)
+                        self.ProcessEvent(
+                            wx.grid.GridEvent(
+                                -1,
+                                wx.grid.EVT_GRID_CELL_CHANGE.evtType[0],
+                                self,
+                                row,
+                                col,
                             )
-                            changed += 1
+                        )
+                        changed += 1
                     if batch:
                         self.EndBatch()
                     self._overwrite_cell_values = False
                     if not changed:
                         wx.Bell()
                     return
-            elif event.KeyCode == wx.WXK_RETURN or event.KeyCode == wx.WXK_NUMPAD_ENTER:
+            elif event.KeyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
                 self.EnableCellEditControl()
                 return
         event.Skip()
@@ -4522,7 +4420,8 @@ class CustomGrid(wx.grid.Grid):
                     if i not in rows:
                         add.append(i)
                 if len(desel) >= len(add):
-                    # in this case deselecting rows will take as long or longer than selecting, so use SelectRow to speed up the operation
+                    # in this case deselecting rows will take as long or longer
+                    # than selecting, so use SelectRow to speed up the operation
                     self.SelectRow(row)
                 else:
                     for i in desel:
@@ -4531,12 +4430,11 @@ class CustomGrid(wx.grid.Grid):
                     self.SelectRow(i, True)
                 self.EndBatch()
                 return False
-            elif ctrl:
+            if ctrl:
                 if self.IsInSelection(row, 0):
                     self.DeselectRow(row)
                     return True
-                else:
-                    self.SelectRow(row, True)
+                self.SelectRow(row, True)
         return False
 
 
@@ -4630,7 +4528,6 @@ class CustomCheckBox(wx.Panel):
 
     def SendCheckBoxEvent(self):
         """Actually sends the event to the checkbox."""
-
         self.Value = not self.Value
         checkEvent = wx.CommandEvent(
             wx.wxEVT_COMMAND_CHECKBOX_CLICKED, self._cb.GetId()
@@ -4651,7 +4548,6 @@ class CustomCheckBox(wx.Panel):
         """Returns the state of CustomCheckBox, True if checked, False
         otherwise.
         """
-
         return self._cb.Value
 
     def IsChecked(self):
@@ -4659,14 +4555,12 @@ class CustomCheckBox(wx.Panel):
         latter, it returns True if the CustomCheckBox is checked and False
         otherwise.
         """
-
         return self._cb.Value
 
     def SetValue(self, state):
         """Sets the CustomCheckBox to the given state. This does not cause a
         wx.wxEVT_COMMAND_CHECKBOX_CLICKED event to get emitted.
         """
-
         self._cb.Value = state
 
     def GetLabel(self):
@@ -4713,8 +4607,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
     def Create(self, parent, id, evtHandler):
         """Called to create the control, which must derive from wx.Control."""
         print(
-            "CustomCellEditor.Create(%r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (parent, id, evtHandler)
+            f"CustomCellEditor.Create({parent!r}, {id!r}, {evtHandler!r}) was called. "
+            "This should not happen, but is unlikely an issue."
         )
         self.SetControl(wx.StaticText(parent, -1, ""))
 
@@ -4724,8 +4618,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         PaintBackground and do something meaningful there.
         """
         print(
-            "CustomCellEditor.SetSize(%r) was called. This should not "
-            "happen, but is unlikely an issue." % rect
+            f"CustomCellEditor.SetSize({rect!r}) was called. This should not "
+            "happen, but is unlikely an issue."
         )
         self.Control.SetDimensions(
             rect.x, rect.y, rect.width, rect.height, wx.SIZE_ALLOW_MINUS_ONE
@@ -4736,8 +4630,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         to set colours or fonts for the control.
         """
         print(
-            "CustomCellEditor.Show(%r, %r) was called. This should "
-            "not happen, but is unlikely an issue." % (show, attr)
+            f"CustomCellEditor.Show({show!r}, {attr!r}) was called. This should "
+            "not happen, but is unlikely an issue."
         )
         super(self.__class__, self).Show(show, attr)
 
@@ -4762,8 +4656,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         to begin editing.  Set the focus to the edit control.
         """
         print(
-            "CustomCellEditor.BeginEdit(%r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (row, col, grid)
+            f"CustomCellEditor.BeginEdit({row!r}, {col!r}, {grid!r}) was called. "
+            "This should not happen, but is unlikely an issue."
         )
 
     def EndEdit(self, row, col, grid, value=None):
@@ -4771,14 +4665,10 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         has changed.  If necessary, the control may be destroyed.
         """
         print(
-            "CustomCellEditor.EndEdit(%r, %r, %r, %r) was called. This "
-            "should not happen, but is unlikely an issue." % (row, col, grid, value)
+            f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) "
+            "was called. This should not happen, but is unlikely an issue."
         )
-        if wx.VERSION >= (2, 9):
-            changed = None
-        else:
-            changed = False
-        return changed
+        return None if wx.VERSION >= (2, 9) else False
 
     def Reset(self):
         """Reset the value in the control back to its starting value."""
@@ -4799,8 +4689,8 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         called to let the editor do something about that first key if desired.
         """
         print(
-            "CustomCellEditor.StartingKey(%r) was called. This should "
-            "not happen, but is unlikely an issue." % evt
+            f"CustomCellEditor.StartingKey({evt!r}) was called. This should "
+            "not happen, but is unlikely an issue."
         )
         evt.Skip()
 
@@ -4811,7 +4701,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         """
 
     def Destroy(self):
-        """final cleanup"""
+        """Do final cleanup."""
         super(self.__class__, self).Destroy()
 
     def Clone(self):
@@ -4909,108 +4799,107 @@ class CustomCellRenderer(wx.grid.PyGridCellRenderer):
             image = self.specialbitmap.ConvertToImage()
             image.Rescale(rect[2], rect[3])
             dc.DrawBitmap(image.ConvertToBitmap(), rect[0], rect[1])
-        else:
-            if (isSelected or isCursor) and col_label:
+        elif (isSelected or isCursor) and col_label:
+            dc.SetBrush(wx.Brush(bgcolor))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
+            rect = orect
+            if not rowselect:
+                w = 60 + rect[3] * 2
+                if rect.Width > w:
+                    rect.Left += int((rect.Width - w) / 2.0)
+                    rect.Width = int(w)
+            offset = 1  # Selection offset from cell boundary
+            cb = 2  # Cursor border
+            left = not rowselect or col == 0 or not grid.GetColLabelValue(col - 1)
+            right = (
+                not rowselect
+                or col == grid.GetNumberCols() - 1
+                or not grid.GetColLabelValue(col + 1)
+            )
+            # We could use wx.GCDC, but it is buggy under wxGTK
+            # (grid doesn't refresh properly when scrolling).
+            # Implement our own supersampling antialiasing method
+            # using wx.MemoryDC and cached bitmaps.
+            # This has the drawback that it may use a lot of memory if
+            # a grid has many cells with different dimensions or color
+            # properties, but we make sure that old bitmaps are garbage
+            # collected if the grid or rows/cols are resized by binding
+            # resize events in CustomGrid initialization.
+            key = (
+                rect[2:]
+                + bgcolor.Get()
+                + color.Get()
+                + (left, right, not isSelected and isCursor)
+            )
+            if not self._selectionbitmaps.get(key):
+                scale = 4.0  # Supersampling factor
+                offset *= scale
+                cb *= scale
+                x, y, w, h = 0, 0, rect[2] * scale, rect[3] * scale
+                self._selectionbitmaps[key] = wx.EmptyBitmap(int(w), int(h))
+                paintdc = dc
+                dc = mdc = wx.MemoryDC(self._selectionbitmaps[key])
                 dc.SetBrush(wx.Brush(bgcolor))
                 dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(rect)
-                rect = orect
-                if not rowselect:
-                    w = 60 + rect[3] * 2
-                    if rect.Width > w:
-                        rect.Left += int((rect.Width - w) / 2.0)
-                        rect.Width = int(w)
-                offset = 1  # Selection offset from cell boundary
-                cb = 2  # Cursor border
-                left = not rowselect or col == 0 or not grid.GetColLabelValue(col - 1)
-                right = (
-                    not rowselect
-                    or col == grid.GetNumberCols() - 1
-                    or not grid.GetColLabelValue(col + 1)
+                dc.DrawRectangle(int(x), int(y), int(w), int(h))
+                dc.SetBrush(wx.Brush(color))
+                dc.SetPen(wx.TRANSPARENT_PEN)
+                draw = dc.DrawRoundedRectangle
+                draw(
+                    int(x + offset),
+                    int(y + offset),
+                    int(w - offset * 2),
+                    int(h - offset * 2),
+                    int(h / 2.0 - offset),
                 )
-                # We could use wx.GCDC, but it is buggy under wxGTK
-                # (grid doesn't refresh properly when scrolling).
-                # Implement our own supersampling antialiasing method
-                # using wx.MemoryDC and cached bitmaps.
-                # This has the drawback that it may use a lot of memory if
-                # a grid has many cells with different dimensions or color
-                # properties, but we make sure that old bitmaps are garbage
-                # collected if the grid or rows/cols are resized by binding
-                # resize events in CustomGrid initialization.
-                key = (
-                    rect[2:]
-                    + bgcolor.Get()
-                    + color.Get()
-                    + (left, right, not isSelected and isCursor)
-                )
-                if not self._selectionbitmaps.get(key):
-                    scale = 4.0  # Supersampling factor
-                    offset *= scale
-                    cb *= scale
-                    x, y, w, h = 0, 0, rect[2] * scale, rect[3] * scale
-                    self._selectionbitmaps[key] = wx.EmptyBitmap(int(w), int(h))
-                    paintdc = dc
-                    dc = mdc = wx.MemoryDC(self._selectionbitmaps[key])
-                    dc.SetBrush(wx.Brush(bgcolor))
-                    dc.SetPen(wx.TRANSPARENT_PEN)
-                    dc.DrawRectangle(int(x), int(y), int(w), int(h))
-                    dc.SetBrush(wx.Brush(color))
-                    dc.SetPen(wx.TRANSPARENT_PEN)
-                    draw = dc.DrawRoundedRectangle
-                    draw(
-                        int(x + offset),
+                if not left:
+                    dc.DrawRectangle(
+                        int(x), int(y + offset), int(h / 2.0), int(h - offset * 2)
+                    )
+                if not right:
+                    dc.DrawRectangle(
+                        int(x + w - h / 2.0),
                         int(y + offset),
-                        int(w - offset * 2),
+                        int(h / 2.0),
                         int(h - offset * 2),
-                        int(h / 2.0 - offset),
+                    )
+                if not isSelected and isCursor:
+                    dc.SetBrush(wx.Brush(bgcolor))
+                    draw(
+                        int(x + offset + cb),
+                        int(y + offset + cb),
+                        int(w - (offset + cb) * 2),
+                        int(h - (offset + cb) * 2),
+                        int(h / 2.0 - (offset + cb)),
                     )
                     if not left:
                         dc.DrawRectangle(
-                            int(x), int(y + offset), int(h / 2.0), int(h - offset * 2)
+                            int(x),
+                            int(y + offset + cb),
+                            int(h / 2.0),
+                            int(h - (offset + cb) * 2),
                         )
                     if not right:
                         dc.DrawRectangle(
                             int(x + w - h / 2.0),
-                            int(y + offset),
-                            int(h / 2.0),
-                            int(h - offset * 2),
-                        )
-                    if not isSelected and isCursor:
-                        dc.SetBrush(wx.Brush(bgcolor))
-                        draw(
-                            int(x + offset + cb),
                             int(y + offset + cb),
-                            int(w - (offset + cb) * 2),
+                            int(h / 2.0),
                             int(h - (offset + cb) * 2),
-                            int(h / 2.0 - (offset + cb)),
                         )
-                        if not left:
-                            dc.DrawRectangle(
-                                int(x),
-                                int(y + offset + cb),
-                                int(h / 2.0),
-                                int(h - (offset + cb) * 2),
-                            )
-                        if not right:
-                            dc.DrawRectangle(
-                                int(x + w - h / 2.0),
-                                int(y + offset + cb),
-                                int(h / 2.0),
-                                int(h - (offset + cb) * 2),
-                            )
-                    mdc.SelectObject(wx.NullBitmap)
-                    dc = paintdc
-                    img = self._selectionbitmaps[key].ConvertToImage()
-                    # Scale down to original size ("antialiasing")
-                    img.Rescale(rect[2], rect[3])
-                    self._selectionbitmaps[key] = img.ConvertToBitmap()
-                bmp = self._selectionbitmaps.get(key)
-                if bmp:
-                    dc.DrawBitmap(bmp, rect[0], rect[1])
-            else:
-                dc.SetBrush(wx.Brush(color))
-                dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(rect)
+                mdc.SelectObject(wx.NullBitmap)
+                dc = paintdc
+                img = self._selectionbitmaps[key].ConvertToImage()
+                # Scale down to original size ("antialiasing")
+                img.Rescale(rect[2], rect[3])
+                self._selectionbitmaps[key] = img.ConvertToBitmap()
+            bmp = self._selectionbitmaps.get(key)
+            if bmp:
+                dc.DrawBitmap(bmp, rect[0], rect[1])
+        else:
+            dc.SetBrush(wx.Brush(color))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
         dc.SetFont(grid.GetCellFont(row, col))
         dc.SetTextForeground(textcolor)
         self.DrawLabel(grid, dc, orect, row, col)
@@ -5065,7 +4954,9 @@ class CustomColLabelRenderer:
             img.Rescale(rect[2], rect[3], quality=wx.IMAGE_QUALITY_NORMAL)
             dc.DrawBitmap(img.ConvertToBitmap(), rect[0], 0)
             pen = wx.Pen(
-                wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW), 1, wx.SOLID
+                wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW),
+                1,
+                wx.PENSTYLE_SOLID,
             )
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
@@ -5121,11 +5012,11 @@ class CustomColLabelRenderer:
             else:
                 color = grid.GetLabelTextColour()
             dc.SetTextForeground(color)
-            align = grid.GetColLabelAlignment()
+            # align = grid.GetColLabelAlignment()
             # if align[1] == wx.ALIGN_CENTER:
             #     align = align[0], wx.ALIGN_CENTER_VERTICAL
-            # dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect, align[0] | align[1])
-            dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect)
+            # dc.DrawLabel(f" grid.GetColLabelValue(col) ", orect, align[0] | align[1])
+            dc.DrawLabel(f" {grid.GetColLabelValue(col)} ", orect)
 
 
 class CustomRowLabelRenderer:
@@ -5169,7 +5060,7 @@ class CustomRowLabelRenderer:
             align = grid.GetRowLabelAlignment()
             if align[1] == wx.ALIGN_CENTER:
                 align = align[0], wx.ALIGN_CENTER_VERTICAL
-            dc.DrawLabel(" %s " % grid.GetRowLabelValue(row), rect, align[0] | align[1])
+            dc.DrawLabel(f" {grid.GetRowLabelValue(row)} ", rect, align[0] | align[1])
 
 
 class HStretchStaticBitmap(wx.StaticBitmap):
@@ -5271,8 +5162,7 @@ def fancytext_Renderer_getCurrentColor(self):
     font = self.fonts[-1]
     if "color" in font:
         return wx.TheColourDatabase.FindColour(font["color"])
-    else:
-        return wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+    return wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
 
 
 fancytext.Renderer._font = None
@@ -5319,7 +5209,7 @@ class BetterPyGauge(pygauge.PyGauge):
         self._indeterminate_gradients = []
         self._timer = BetterTimer(self)
         self.Unbind(wx.EVT_TIMER)
-        self.Bind(EVT_BETTERTIMER, self.OnTimer, self._timer)
+        self.Bind(EVT_BETTER_TIMER, self.OnTimer, self._timer)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Start()
 
@@ -5334,7 +5224,6 @@ class BetterPyGauge(pygauge.PyGauge):
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
         dc.SetBackground(wx.Brush(self.Parent.BackgroundColour))
@@ -5395,7 +5284,7 @@ class BetterPyGauge(pygauge.PyGauge):
             self._barGradient = [self._gradients[self.gradientindex]]
         if hasattr(self, "_update_step") and not self._indeterminate:
             stop = True
-            for i, v in enumerate(self._value):
+            for i in range(len(self._value)):
                 self._value[i] += self._update_step[i]
 
                 if self._update_step[i] > 0:
@@ -5403,11 +5292,10 @@ class BetterPyGauge(pygauge.PyGauge):
                         self._value[i] = self._update_value[i]
                     else:
                         stop = False
+                elif self._value[i] < self._update_value[i]:
+                    self._value[i] = self._update_value[i]
                 else:
-                    if self._value[i] < self._update_value[i]:
-                        self._value[i] = self._update_value[i]
-                    else:
-                        stop = False
+                    stop = False
             if self.pd and self.pd.taskbar:
                 self.pd.taskbar.set_progress_value(int(round(self.GetValue())))
             if stop:
@@ -5445,11 +5333,14 @@ class BetterPyGauge(pygauge.PyGauge):
         self._timer.Stop()
 
     def Update(self, value, time=0):
-        """Update the gauge by adding `value` to it over `time` milliseconds. The `time` parameter
-        **must** be a multiple of 50 milliseconds.
+        """Update the gauge by adding `value` to it over `time` milliseconds.
 
-        :param value: The value to be added to the gauge;
-        :param time: The length of time in milliseconds that it will take to move the gauge.
+        The `time` parameter **must** be a multiple of 50 milliseconds.
+
+        Args:
+            value: The value to be added to the gauge.
+            time: The length of time in milliseconds that it will take to move
+                the gauge.
         """
         self._indeterminate = False
 
@@ -5464,9 +5355,10 @@ class BetterPyGauge(pygauge.PyGauge):
         for i, v in enumerate(self._value):
             if value[i] < 0 or value[i] > self._range:
                 warnings.warn(
-                    "Gauge value %r is invalid - must be between 0 "
-                    "and %s" % (value[i], self._range),
+                    f"Gauge value {value[i]!r} is invalid - must be between 0 "
+                    f"and {self._range}",
                     Warning,
+                    stacklevel=2,
                 )
                 if value[i] < 0:
                     value[i] = 0
@@ -5500,10 +5392,7 @@ class BetterStaticFancyTextBase:
         for c in label:
             if c == "<":
                 intag = True
-            if c in hyphens:
-                hyphen = True
-            else:
-                hyphen = False
+            hyphen = c in hyphens
             if intag and c == ">":
                 intag = False
             elif not intag:
@@ -5597,8 +5486,8 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
         else:
             cls = wx.BufferedPaintDC
         dc = cls(self)
-        dc.SetBackground(wx.Brush(self.Parent.BackgroundColour, wx.SOLID))
-        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetBackground(wx.Brush(self.Parent.BackgroundColour, wx.BRUSHSTYLE_SOLID))
+        dc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
         dc.Clear()
         if sys.platform != "win32":
             fancytext.RenderToDC(self._label, dc, 0, 0)
@@ -5610,7 +5499,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
 
     def SetLabel(self, label):
         BetterStaticFancyTextBase.SetLabel(self, label)
-        background = wx.Brush(self.Parent.BackgroundColour, wx.SOLID)
+        background = wx.Brush(self.Parent.BackgroundColour, wx.BRUSHSTYLE_SOLID)
         try:
             bmp = fancytext.RenderToBitmap(self._label, background)
         except ValueError:
@@ -5627,7 +5516,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
 
 
 # Better under GTK (no text cutoff)
-class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
+class BetterStaticFancyTextSetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
     def __init__(self, parent, id, text, *args, **kwargs):
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.maxlen = 119
@@ -5648,7 +5537,7 @@ class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
         bold_font = self.Font
         bold_font.Weight = wx.FONTWEIGHT_BOLD
         xh = self.GetTextExtent("X")[1]
-        for i, line in enumerate(self._label.splitlines()):
+        for line in self._label.splitlines():
             if line:
                 # Account for bold text which is approximately 14% wider
                 parts = re.findall(r"(<font weight='bold'>([^<]+)</font>|[^<]+)", line)
@@ -5680,7 +5569,7 @@ class BetterStaticFancyText_SetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
 
 
 if wx.Platform == "__WXGTK__" and hasattr(wx.StaticText, "SetLabelMarkup"):
-    BetterStaticFancyText = BetterStaticFancyText_SetLabelMarkup
+    BetterStaticFancyText = BetterStaticFancyTextSetLabelMarkup
 
 
 class InfoDialog(BaseInteractiveDialog):
@@ -5690,7 +5579,7 @@ class InfoDialog(BaseInteractiveDialog):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         ok="OK",
         bitmap=None,
@@ -5774,10 +5663,7 @@ class LogWindow(InvincibleFrame):
         # Fix wrong background color when disabled
         self.log_txt.Enable = lambda enable=True: None
         self.log_txt.Disable = lambda: None
-        if "phoenix" in wx.PlatformInfo:
-            kwarg = "faceName"
-        else:
-            kwarg = "face"
+        kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
         if sys.platform == "win32":
             font = wx.Font(
                 9,
@@ -5819,7 +5705,7 @@ class LogWindow(InvincibleFrame):
         self.log_txt.MinSize = (
             self.log_txt.GetTextExtent("=" * 95)[0]
             + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
-            defaults["size.info.h"] - 24 - max(0, self.Size[1] - self.ClientSize[1]),
+            DEFAULTS["size.info.h"] - 24 - max(0, self.Size[1] - self.ClientSize[1]),
         )
         separator = BitmapBackgroundPanel(self.panel, size=(-1, 1))
         separator.SetBackgroundColour(
@@ -5880,15 +5766,12 @@ class LogWindow(InvincibleFrame):
             else:
                 s = time()
                 ms = s - int(s)
-                ts = strftime("%H:%M:%S,") + ("%.3f " % ms)[2:]
+                ts = strftime("%H:%M:%S,") + (f"{ms:.3f} ")[2:]
             if len(line) > 80:
                 wrapped = self._textwrapper.wrap(line)
                 i_last = len(wrapped) - 1
                 for i, line in enumerate(wrapped):
-                    if i:
-                        line = self._linecontinuation + line
-                    else:
-                        line = ts + line
+                    line = self._linecontinuation + line if i else ts + line
                     if i < i_last:
                         line = line.ljust(78 + 13) + " \u21b2"
                     lines.append(line)
@@ -5902,7 +5785,7 @@ class LogWindow(InvincibleFrame):
         textattr = None
         warning_lstr = self._warning_lstr
         error_lstr = self._error_lstr
-        for i, line in enumerate(lines[-1000:]):
+        for line in lines[-1000:]:
             line_lower = line.lower()
             if (
                 "brightness error" in line_lower
@@ -5950,7 +5833,7 @@ class LogWindow(InvincibleFrame):
     def OnSaveAs(self, event):
         defaultDir, defaultFile = (
             get_verified_path("last_filedialog_path")[0],
-            appname,
+            APPNAME,
         )
         dlg = wx.FileDialog(
             self,
@@ -5990,9 +5873,8 @@ class LogWindow(InvincibleFrame):
                         return
             setcfg("last_filedialog_path", path)
             try:
-                file_ = open(path, "w")
-                file_.write(self.log_txt.GetValue().encode("UTF-8", "replace"))
-                file_.close()
+                with open(path, "w") as file_:
+                    file_.write(self.log_txt.GetValue().encode("UTF-8", "replace"))
             except Exception as exception:
                 InfoDialog(
                     self,
@@ -6014,7 +5896,7 @@ class LogWindow(InvincibleFrame):
         wildcard += "|" + lang.getstr("filetype.zip") + "|*.zip"
         defaultDir, defaultFile = (
             get_verified_path("last_filedialog_path")[0],
-            appname + "-logs",
+            APPNAME + "-logs",
         )
         dlg = wx.FileDialog(
             self,
@@ -6038,14 +5920,11 @@ class LogWindow(InvincibleFrame):
                 )
                 return
             filename, ext = os.path.splitext(path)
-            if path.lower().endswith(".tar.gz"):
-                format = "tgz"
-            else:
-                format = ext[1:]
-            if ext.lower() != "." + format and (
-                format != "tgz" or not path.lower().endswith(".tar.gz")
+            file_format = "tgz" if path.lower().endswith(".tar.gz") else ext[1:]
+            if ext.lower() != "." + file_format and (
+                file_format != "tgz" or not path.lower().endswith(".tar.gz")
             ):
-                path += "." + format
+                path += "." + file_format
                 if os.path.exists(path):
                     dlg = ConfirmDialog(
                         self,
@@ -6059,16 +5938,16 @@ class LogWindow(InvincibleFrame):
                     if result != wx.ID_OK:
                         return
             setcfg("last_filedialog_path", path)
-            if format == "tgz":
+            if file_format == "tgz":
                 # Create gzipped tar archive
                 with tarfile.open(path, "w:gz", encoding="UTF-8") as tar:
-                    tar.add(logdir, arcname=os.path.basename(path))
+                    tar.add(LOGDIR, arcname=os.path.basename(path))
             else:
                 # Create ZIP archive
                 try:
-                    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zip:
-                        for filename in os.listdir(logdir):
-                            zip.write(os.path.join(logdir, filename), filename)
+                    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                        for filename in os.listdir(LOGDIR):
+                            zip_file.write(os.path.join(LOGDIR, filename), filename)
                 except Exception as exception:
                     InfoDialog(
                         self,
@@ -6081,11 +5960,11 @@ class LogWindow(InvincibleFrame):
 class ProgressDialog(wx.Dialog):
     """A progress dialog."""
 
-    bitmaps = {}
+    bitmaps: ClassVar[dict] = {}
 
     def __init__(
         self,
-        title=appname,
+        title=APPNAME,
         msg="",
         maximum=100,
         parent=None,
@@ -6128,7 +6007,7 @@ class ProgressDialog(wx.Dialog):
         if not pos:
             self.Bind(wx.EVT_MOVE, self.OnMove, self)
         self.timer = BetterTimer(self)
-        self.Bind(EVT_BETTERTIMER, handler or self.OnTimer, self.timer)
+        self.Bind(EVT_BETTER_TIMER, handler or self.OnTimer, self.timer)
 
         self.indeterminate = True
         self.keepGoing = True
@@ -6255,7 +6134,7 @@ class ProgressDialog(wx.Dialog):
             self.elapsed_time.SetMaxFontSize(11)
             self.sizer3.Add(self.elapsed_time)
             self.elapsed_timer = BetterTimer(self)
-            self.Bind(EVT_BETTERTIMER, self.elapsed_time_handler, self.elapsed_timer)
+            self.Bind(EVT_BETTER_TIMER, self.elapsed_time_handler, self.elapsed_timer)
 
         if style & wx.PD_REMAINING_TIME:
             self.remaining_time_label = wx.StaticText(
@@ -6303,7 +6182,7 @@ class ProgressDialog(wx.Dialog):
         self.buttonpanel.Layout()
 
         # Use an accelerator table for 0-9, a-z, numpad
-        keycodes = list(range(48, 58)) + list(range(97, 123)) + numpad_keycodes
+        keycodes = list(range(48, 58)) + list(range(97, 123)) + NUMPAD_KEYCODES
         self.id_to_keycode = {}
         for keycode in keycodes:
             self.id_to_keycode[wx.Window.NewControlId()] = keycode
@@ -6368,11 +6247,11 @@ class ProgressDialog(wx.Dialog):
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
-        for id in self.id_to_keycode.keys():
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
 
@@ -6436,9 +6315,9 @@ class ProgressDialog(wx.Dialog):
         if not self.indeterminate:
             self.indeterminate = True
             if hasattr(self, "remaining_time"):
-                self.remaining_time.Label = "––:––:––"
+                self.remaining_time.Label = REMAINING_TIME_LABEL
             if self.taskbar and not self.paused:
-                self.taskbar.set_progress_state(taskbar.TBPF_INDETERMINATE)
+                self.taskbar.set_progress_state(TASKBAR.TBPF_INDETERMINATE)
         self.gauge.Pulse()
         return self.keepGoing, self.skip
 
@@ -6504,17 +6383,17 @@ class ProgressDialog(wx.Dialog):
         bitmaps = ProgressDialog.get_bitmaps(self.progress_type)
         if self.progress_type == 0:
             # Processing
-            range = (60, 68)
+            frame_range = (60, 68)
             loop = True
         elif self.progress_type == 1:
             # Measuring
-            range = (0, 9)
+            frame_range = (0, 9)
             loop = False
         else:
             # Generating test patches
-            range = (27, 36)
+            frame_range = (27, 36)
             loop = True
-        self.animbmp.SetBitmaps(bitmaps, range=range, loop=loop)
+        self.animbmp.SetBitmaps(bitmaps, range=frame_range, loop=loop)
         if self.progress_type == 1:
             self.animbmp.frame = 4
         wx.CallLater(50, lambda: self and self.IsShown() and self.animbmp.Play(24))
@@ -6539,8 +6418,7 @@ class ProgressDialog(wx.Dialog):
     def sound_get_delay(self):
         if self.sound is self.processor_sound:
             return 3000
-        else:
-            return 1500
+        return 1500
 
     def elapsed_time_handler(self, event):
         self.elapsed_time.Label = strftime("%H:%M:%S", gmtime(time() - self.time))
@@ -6553,88 +6431,88 @@ class ProgressDialog(wx.Dialog):
                     self.remaining_time.Label = strftime("%H:%M:%S", gmtime(remaining))
 
     @staticmethod
-    def get_bitmaps(progress_type=0):
+    def get_bitmaps(progress_type=0) -> list:
         if progress_type in ProgressDialog.bitmaps:
-            bitmaps = ProgressDialog.bitmaps[progress_type]
-        else:
-            bitmaps = ProgressDialog.bitmaps[progress_type] = []
-            if progress_type == 0:
-                # Animation for processing
-                for pth in get_data_path("theme/shutter_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if im.IsOk():
-                        bitmaps.append(im)
-                for pth in get_data_path("theme/jet_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if not im.IsOk():
-                        continue
-                    # Blend red
-                    im = im.AdjustChannels(1, 0.25, 0)
-                    # Adjust for background
-                    im.AdjustMinMax(1.0 / 255 * 0x14)
+            return ProgressDialog.bitmaps[progress_type]
+
+        bitmaps = ProgressDialog.bitmaps[progress_type] = []
+        if progress_type == 0:
+            # Animation for processing
+            for pth in get_data_path("theme/shutter_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if im.IsOk():
                     bitmaps.append(im)
-                # Needs to be exactly 17 images
-                if bitmaps and len(bitmaps) == 17:
-                    for i in range(7):
-                        bitmaps.extend(bitmaps[9:17])
-                    bitmaps.extend(bitmaps[9:13])
-                    # Fade in
-                    for i, im in enumerate(bitmaps[9:19]):
-                        bg = bitmaps[8].ConvertToBitmap()
-                        im = im.AdjustChannels(1, 1, 1, i / 10.0)
-                        bg.Blend(im.ConvertToBitmap(), 0, 0)
-                        bitmaps[i + 9] = bg
-                    for i, im in enumerate(bitmaps[:9]):
-                        bitmaps[i] = im.ConvertToBitmap()
-                    # Normal
-                    for i in range(41):
-                        im = bitmaps[i + 19].Copy()
-                        im.RotateHue(0.05 * (i / 50.0))
-                        bitmaps[i + 19] = im.ConvertToBitmap()
-                    for i, im in enumerate(bitmaps[60:]):
-                        im = im.Copy()
-                        im.RotateHue(0.05)
-                        bitmaps[i + 60] = im.ConvertToBitmap()
-                    # Fade out
-                    bitmaps.extend(reversed(bitmaps[:60]))
-                else:
-                    bitmaps = ProgressDialog.bitmaps[progress_type] = []
-            elif progress_type == 1:
-                # Animation for measurements
-                for i, pth in enumerate(
-                    get_data_path("theme/shutter_anim", r"\.png$") or []
-                ):
-                    if i < 5:
-                        bmp = getbitmap(os.path.splitext(pth)[0])
-                        bitmaps.insert(0, bmp)
-                if bitmaps and len(bitmaps) == 5:
-                    bitmaps.extend(reversed(bitmaps[:5]))
-                    bitmaps.extend(bitmaps[:5])
+            for pth in get_data_path("theme/jet_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if not im.IsOk():
+                    continue
+                # Blend red
+                im = im.AdjustChannels(1, 0.25, 0)
+                # Adjust for background
+                im.AdjustMinMax(1.0 / 255 * 0x14)
+                bitmaps.append(im)
+            # Needs to be exactly 17 images
+            if bitmaps and len(bitmaps) == 17:
+                for _ in range(7):
+                    bitmaps.extend(bitmaps[9:17])
+                bitmaps.extend(bitmaps[9:13])
+                # Fade in
+                for i, im in enumerate(bitmaps[9:19]):
+                    bg = bitmaps[8].ConvertToBitmap()
+                    im = im.AdjustChannels(1, 1, 1, i / 10.0)
+                    bg.Blend(im.ConvertToBitmap(), 0, 0)
+                    bitmaps[i + 9] = bg
+                for i, im in enumerate(bitmaps[:9]):
+                    bitmaps[i] = im.ConvertToBitmap()
+                # Normal
+                for i in range(41):
+                    im = bitmaps[i + 19].Copy()
+                    im.RotateHue(0.05 * (i / 50.0))
+                    bitmaps[i + 19] = im.ConvertToBitmap()
+                for i, im in enumerate(bitmaps[60:]):
+                    im = im.Copy()
+                    im.RotateHue(0.05)
+                    bitmaps[i + 60] = im.ConvertToBitmap()
+                # Fade out
+                bitmaps.extend(reversed(bitmaps[:60]))
             else:
-                # Animation for generating test patches
-                for pth in get_data_path("theme/patch_anim", r"\.png$") or []:
-                    im = wx.Image(pth)
-                    if im.IsOk():
-                        bitmaps.append(im)
-                # Needs to be exactly 9 images
-                if bitmaps and len(bitmaps) == 9:
-                    for i in range(3):
-                        bitmaps.extend(bitmaps[:9])
-                    # Fade in
-                    for i, im in enumerate(bitmaps[:27]):
-                        im = im.AdjustChannels(1, 1, 1, i / 27.0)
-                        bitmaps[i] = im.ConvertToBitmap()
-                    # Normal
-                    for i, im in enumerate(bitmaps[27:]):
-                        bitmaps[i + 27] = im.ConvertToBitmap()
-                    # Fade out
-                    for i in range(3):
-                        bitmaps.extend(bitmaps[27:36])
-                    for i, bmp in enumerate(bitmaps[36:]):
-                        im = bmp.ConvertToImage().AdjustChannels(1, 1, 1, 1 - i / 26.0)
-                        bitmaps[i + 36] = im.ConvertToBitmap()
-                else:
-                    bitmaps = ProgressDialog.bitmaps[progress_type] = []
+                bitmaps = ProgressDialog.bitmaps[progress_type] = []
+        elif progress_type == 1:
+            # Animation for measurements
+            for i, pth in enumerate(
+                get_data_path("theme/shutter_anim", r"\.png$") or []
+            ):
+                if i < 5:
+                    bmp = getbitmap(os.path.splitext(pth)[0])
+                    bitmaps.insert(0, bmp)
+            if bitmaps and len(bitmaps) == 5:
+                bitmaps.extend(reversed(bitmaps[:5]))
+                bitmaps.extend(bitmaps[:5])
+        else:
+            # Animation for generating test patches
+            for pth in get_data_path("theme/patch_anim", r"\.png$") or []:
+                im = wx.Image(pth)
+                if im.IsOk():
+                    bitmaps.append(im)
+            # Needs to be exactly 9 images
+            if bitmaps and len(bitmaps) == 9:
+                for _ in range(3):
+                    bitmaps.extend(bitmaps[:9])
+                # Fade in
+                for i, im in enumerate(bitmaps[:27]):
+                    im = im.AdjustChannels(1, 1, 1, i / 27.0)
+                    bitmaps[i] = im.ConvertToBitmap()
+                # Normal
+                for i, im in enumerate(bitmaps[27:]):
+                    bitmaps[i + 27] = im.ConvertToBitmap()
+                # Fade out
+                for _ in range(3):
+                    bitmaps.extend(bitmaps[27:36])
+                for i, bmp in enumerate(bitmaps[36:]):
+                    im = bmp.ConvertToImage().AdjustChannels(1, 1, 1, 1 - i / 26.0)
+                    bitmaps[i + 36] = im.ConvertToBitmap()
+            else:
+                bitmaps = ProgressDialog.bitmaps[progress_type] = []
         return bitmaps
 
     def key_handler(self, event):
@@ -6647,14 +6525,14 @@ class ProgressDialog(wx.Dialog):
         if self.paused:
             self.pause_continue.Label = lang.getstr("continue")
             if self.taskbar:
-                self.taskbar.set_progress_state(taskbar.TBPF_PAUSED)
+                self.taskbar.set_progress_state(TASKBAR.TBPF_PAUSED)
         else:
             self.pause_continue.Label = lang.getstr("pause")
             if self.taskbar:
                 if self.indeterminate:
-                    state = taskbar.TBPF_INDETERMINATE
+                    state = TASKBAR.TBPF_INDETERMINATE
                 else:
-                    state = taskbar.TBPF_NORMAL
+                    state = TASKBAR.TBPF_NORMAL
                 self.taskbar.set_progress_state(state)
         self.pause_continue.Enable(not event)
         self.Layout()
@@ -6668,13 +6546,12 @@ class ProgressDialog(wx.Dialog):
         placed = False
         if pos:
             x, y = pos
+        elif self.Parent and self.Parent.IsShownOnScreen():
+            self.Center()
+            placed = True
         else:
-            if self.Parent and self.Parent.IsShownOnScreen():
-                self.Center()
-                placed = True
-            else:
-                x = getcfg("position.progress.x")
-                y = getcfg("position.progress.y")
+            x = getcfg("position.progress.x")
+            y = getcfg("position.progress.y")
         if not placed:
             self.SetSaneGeometry(x, y)
 
@@ -6689,9 +6566,8 @@ class ProgressDialog(wx.Dialog):
                 and self._fpprogress < self.gauge.GetRange()
             ):
                 self.sound.safe_play()
-        else:
-            if self.sound.is_playing:
-                self.sound.safe_stop()
+        elif self.sound.is_playing:
+            self.sound.safe_stop()
         self.set_sound_on_off_btn_bitmap()
 
     def get_sound_on_off_btn_bitmap(self):
@@ -6717,7 +6593,7 @@ class ProgressDialog(wx.Dialog):
             self.time2 = 0
             self.time3 = self.time
             self.time4 = 0
-            self.remaining_time.Label = "––:––:––"
+            self.remaining_time.Label = REMAINING_TIME_LABEL
 
     def set_progress_type(self, progress_type):
         if progress_type != self.progress_type:
@@ -6767,17 +6643,17 @@ class ProgressDialog(wx.Dialog):
         if hasattr(self, "sound") and self.progress_type in (0, 2):
             self.set_sound(self.progress_type)
             self.sound_fadein()
-        if taskbar:
+        if TASKBAR:
             if self.Parent and self.Parent.IsShownOnScreen():
                 taskbarframe = self.Parent
             else:
                 taskbarframe = self
-            self.taskbar = taskbar.Taskbar(taskbarframe, self.gauge.GetRange())
-            self.taskbar.set_progress_state(taskbar.TBPF_INDETERMINATE)
+            self.taskbar = TASKBAR.Taskbar(taskbarframe, self.gauge.GetRange())
+            self.taskbar.set_progress_state(TASKBAR.TBPF_INDETERMINATE)
 
     def stop_timer(self, immediate=True):
         if self.taskbar:
-            self.taskbar.set_progress_state(taskbar.TBPF_NOPROGRESS)
+            self.taskbar.set_progress_state(TASKBAR.TBPF_NOPROGRESS)
         if not self.timer.IsRunning():
             return
         self.timer.Stop()
@@ -6830,7 +6706,6 @@ class SimpleBook(labelbook.FlatBookBase):
 
     def CreateImageContainer(self):
         """Creates the image container (LabelContainer) class for L{FlatImageBook}."""
-
         return labelbook.ImageContainerBase(
             self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
         )
@@ -6843,7 +6718,7 @@ class SimpleTerminal(InvincibleFrame):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         handler=None,
         keyhandler=None,
         start_timer=True,
@@ -6869,7 +6744,7 @@ class SimpleTerminal(InvincibleFrame):
         self.Bind(wx.EVT_MOVE, self.OnMove, self)
         self.timer = BetterTimer(self)
         if handler:
-            self.Bind(EVT_BETTERTIMER, handler, self.timer)
+            self.Bind(EVT_BETTER_TIMER, handler, self.timer)
 
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -6877,10 +6752,7 @@ class SimpleTerminal(InvincibleFrame):
         self.console = wx.TextCtrl(self.panel, -1, "", style=consolestyle)
         self.console.SetBackgroundColour("#272727")
         self.console.SetForegroundColour("#808080")
-        if "phoenix" in wx.PlatformInfo:
-            kwarg = "faceName"
-        else:
-            kwarg = "face"
+        kwarg = "faceName" if "phoenix" in wx.PlatformInfo else "face"
         if sys.platform == "win32":
             font = wx.Font(
                 9,
@@ -7097,7 +6969,7 @@ class TabButton(PlateButton):
             if self._menu is not None:
                 self.ShowMenu()
             elif self._style & platebtn.PB_STYLE_DROPARROW:
-                event = PlateBtnDropArrowPressed()
+                event = platebtn.PlateBtnDropArrowPressed()
                 event.SetEventObject(self)
                 self.EventHandler.ProcessEvent(event)
 
@@ -7108,7 +6980,6 @@ class TabButton(PlateButton):
         """Post a button event.
 
         :param evt: :class:`MouseEvent`
-
         """
         self._SetState(platebtn.PLATE_PRESSED)
         PlateButton.OnLeftUp(self, evt)
@@ -7118,7 +6989,6 @@ class TabButton(PlateButton):
         and this control has the focus.
 
         :param evt: wx.EVT_KEY_UP
-
         """
         if evt.GetKeyCode() == wx.WXK_SPACE:
             self._SetState(platebtn.PLATE_PRESSED)
@@ -7136,11 +7006,7 @@ class TabButton(PlateButton):
         :return: x cordinate to draw text at
 
         """
-        if self.IsEnabled():
-            bmp = self._bmp["enable"]
-        else:
-            bmp = self._bmp["disable"]
-
+        bmp = self._bmp["enable"] if self.IsEnabled() else self._bmp["disable"]
         xpos = 0
         if bmp is not None and bmp.IsOk():
             bw, bh = bmp.GetSize()
@@ -7148,8 +7014,7 @@ class TabButton(PlateButton):
             ypos -= 8  # Tab hilite
             gc.DrawBitmap(bmp, xpos, ypos, bmp.GetMask() is not None)
             return bw + xpos
-        else:
-            return xpos
+        return xpos
 
     def __DrawHighlight(self, gc, width, height):
         """Draw the main highlight/pressed state
@@ -7174,11 +7039,6 @@ class TabButton(PlateButton):
         else:
             return False
 
-        if self._style & platebtn.PB_STYLE_SQUARE:
-            rad = 0
-        else:
-            rad = (height - 3) / 2
-
         gc.SetPen(wx.TRANSPARENT_PEN)
 
         if self._style & platebtn.PB_STYLE_GRADIENT:
@@ -7191,6 +7051,7 @@ class TabButton(PlateButton):
         else:
             gc.SetBrush(wx.Brush(color))
 
+        # rad = 0 if self._style & platebtn.PB_STYLE_SQUARE else (height - 3) / 2
         # gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, rad)
         gc.DrawRectangle(
             0, int(height + 10 * self.dpiscale), int(width), int(8 * self.dpiscale)
@@ -7213,7 +7074,7 @@ class TabButton(PlateButton):
 
         # Setup
         gc.SetFont(adjust_font_size_for_gcdc(self.GetFont()))
-        gc.SetBackgroundMode(wx.TRANSPARENT)
+        gc.SetBackgroundMode(wx.BRUSHSTYLE_TRANSPARENT)
 
         # Calc Object Positions
         width, height = self.GetSize()
@@ -7247,11 +7108,10 @@ class TabButton(PlateButton):
 
         if hl:
             txt_c = self._color["htxt"]
+        elif self.IsEnabled():
+            txt_c = self.GetForegroundColour()
         else:
-            if self.IsEnabled():
-                txt_c = self.GetForegroundColour()
-            else:
-                txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
+            txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
 
         gc.SetTextForeground(txt_c)
 
@@ -7314,7 +7174,7 @@ class TaskBarNotification(wx.Frame):
         title.Bind(wx.EVT_LEFT_DOWN, lambda event: self.fade("out"))
         title.ForegroundColour = wx.WHITE
         font = title.Font
-        font.Weight = wx.BOLD
+        font.Weight = wx.FONTWEIGHT_BOLD
         title.Font = font
         sizer.Add(title)
         msg = wx.StaticText(panel, -1, text)
@@ -7332,10 +7192,7 @@ class TaskBarNotification(wx.Frame):
         border.Sizer.Layout()
         opos = pos
         display = self.GetDisplay()
-        if parent:
-            client_area = parent.ClientRect
-        else:
-            client_area = display.ClientArea
+        client_area = parent.ClientRect if parent else display.ClientArea
         geometry = display.Geometry
         # Determine tray position so we can show our popup
         # next to it
@@ -7417,7 +7274,7 @@ class TooltipWindow(InvincibleFrame):
         self,
         parent=None,
         id=-1,
-        title=appname,
+        title=APPNAME,
         msg="",
         cols=1,
         bitmap=None,
@@ -7476,10 +7333,7 @@ class TooltipWindow(InvincibleFrame):
             msg = msg[rowspercol:]
         for msg in msgs:
             label = "\n".join(msg)
-            if "<" in label:
-                cls = BetterStaticFancyText
-            else:
-                cls = wx.StaticText
+            cls = BetterStaticFancyText if "<" in label else wx.StaticText
             # We need to initialize the label with something,
             # so initialize it with with "dummy text",
             # and it will be replaced later on...
@@ -7533,7 +7387,6 @@ class TwoWaySplitter(FourWaySplitter):
 
     def _GetSashSize(self):
         """Used internally."""
-
         if self.HasFlag(wx.SP_NOSASH):
             return 0
 
@@ -7568,19 +7421,18 @@ class TwoWaySplitter(FourWaySplitter):
                 win1.SetSize((rightw, self._splity))
                 win1.Show()
 
-        else:
-            if self._expanded < len(self._windows):
-                for ii, win in enumerate(self._windows):
-                    if ii == self._expanded:
-                        win.SetSize(
-                            (
-                                int(width - bar_size - 2 * border),
-                                int(height - 2 * border),
-                            )
+        elif self._expanded < len(self._windows):
+            for ii, win in enumerate(self._windows):
+                if ii == self._expanded:
+                    win.SetSize(
+                        (
+                            int(width - bar_size - 2 * border),
+                            int(height - 2 * border),
                         )
-                        win.Show()
-                    else:
-                        win.Hide()
+                    )
+                    win.Show()
+                else:
+                    win.Hide()
 
     # Draw the horizontal split
     def DrawSplitter(self, dc):
@@ -7588,9 +7440,8 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param dc: an instance of `wx.DC`.
         """
-
         backColour = wx.Colour(*[int(v * 0.85) for v in self.BackgroundColour[:3]])
-        dc.SetBrush(wx.Brush(backColour, wx.SOLID))
+        dc.SetBrush(wx.Brush(backColour, wx.BRUSHSTYLE_SOLID))
         dc.SetPen(wx.Pen(backColour))
         dc.Clear()
 
@@ -7636,7 +7487,6 @@ class TwoWaySplitter(FourWaySplitter):
          ================= ==============================
 
         """
-
         barSize = self._GetSashSize()
         flag = wx.BOTH
 
@@ -7668,7 +7518,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         self.SetCursor(wx.STANDARD_CURSOR)
 
     def OnLeftDClick(self, event):
@@ -7709,7 +7558,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         if not self.IsEnabled():
             return
 
@@ -7744,7 +7592,6 @@ class TwoWaySplitter(FourWaySplitter):
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
-
         if self.HasFlag(wx.SP_NOSASH):
             return
 
@@ -7857,7 +7704,7 @@ def get_gradient_panel(parent, label, x=16):
     gradientpanel.SetBitmap(bitmap)
     gradientpanel.SetMaxFontSize(11)
     font = gradientpanel.Font
-    font.SetWeight(wx.BOLD)
+    font.SetWeight(wx.FONTWEIGHT_BOLD)
     gradientpanel.Font = font
     gradientpanel.SetLabel(label)
     return gradientpanel
@@ -7899,35 +7746,23 @@ def get_widget(win, id_name_label):
             return child
     else:
         # ID or label
-        try:
+        with contextlib.suppress(ValueError):
             id_name_label = int(id_name_label)
-        except ValueError:
-            pass
         for child in list(win.GetAllChildren()):
             if is_scripting_allowed(win, child) and (
-                child.Id == id_name_label
-                or child.Name == id_name_label
-                or child.Label == id_name_label
+                id_name_label in (child.Id, child.Name, child.Label)
             ):
                 return child
+    return None
 
 
 def get_toplevel_window(id_name_label):
-    try:
+    with contextlib.suppress(ValueError):
         id_name_label = int(id_name_label)
-    except ValueError:
-        pass
     for win in reversed(list(wx.GetTopLevelWindows())):
-        if (
-            win
-            and (
-                win.Id == id_name_label
-                or win.Name == id_name_label
-                or win.Label == id_name_label
-            )
-            and win.IsShown()
-        ):
+        if win and (id_name_label in (win.Id, win.Name, win.Label)) and win.IsShown():
             return win
+    return None
 
 
 def is_scripting_allowed(win, child):
@@ -7953,7 +7788,7 @@ def is_scripting_allowed(win, child):
 _elementtable = {}
 
 
-def format_ui_element(child, format="plain"):
+def format_ui_element(child, file_format="plain"):
     if child.TopLevelParent:
         if not hasattr(child.TopLevelParent, "_win2name"):
             child.TopLevelParent._win2name = {}
@@ -7985,7 +7820,7 @@ def format_ui_element(child, format="plain"):
     if isinstance(child, wx.grid.Grid):
         for col in range(child.GetNumberCols()):
             cols.append(child.GetColLabelValue(col))
-    if format != "plain":
+    if file_format != "plain":
         uielement = {
             "class": child.__class__.__name__,
             "name": name,
@@ -8008,7 +7843,7 @@ def format_ui_element(child, format="plain"):
             uielement["cols"] = cols
             uielement["rows"] = child.GetNumberRows()
         return uielement
-    return "%s %s %s%s %s%s%s%s" % (
+    return "{} {} {}{} {}{}{}{}".format(
         child.__class__.__name__,
         child.Id,
         sp.list2cmdline([name]),
@@ -8030,18 +7865,21 @@ def format_ui_element(child, format="plain"):
             getattr(child, "GetStringSelection", "")
             and " value " + demjson.encode(child.GetStringSelection())
         )
-        or (value is not None and " value " + demjson.encode(value) or ""),
+        or ((value is not None and " value " + demjson.encode(value)) or ""),
         (
-            items
-            and " items " + demjson.encode(items).strip("[]").replace('","', '" "')
+            (
+                items
+                and " items " + demjson.encode(items).strip("[]").replace('","', '" "')
+            )
             or ""
         ),
         (
-            cols
-            and " rows %s cols %s"
-            % (
-                child.GetNumberRows(),
-                demjson.encode(cols).strip("[]").replace('","', '" "'),
+            (
+                cols
+                and " rows {} cols {}".format(
+                    child.GetNumberRows(),
+                    demjson.encode(cols).strip("[]").replace('","', '" "'),
+                )
             )
             or ""
         ),
@@ -8058,7 +7896,7 @@ def get_appid_from_window_hierarchy(toplevelwindow):
         frame = toplevelwindow
     else:
         frame = get_parent_frame(toplevelwindow)
-    base_appid = appname.lower()
+    base_appid = APPNAME.lower()
     return {
         "lut3dframe": base_appid + "-3dlut-maker",
         "lut_viewer": base_appid + "-curve-viewer",
@@ -8071,15 +7909,18 @@ def get_appid_from_window_hierarchy(toplevelwindow):
 
 
 def set_icons(toplevelwindow):
-    """Set icon to that of parent frame"""
+    """Set icon to that of parent frame."""
     appid = get_appid_from_window_hierarchy(toplevelwindow)
     toplevelwindow.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appid))
 
 
 def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
-    """Show dialog depending on type of result. Result should be an
-    exception type. An appropriate visual representation will be chosen
-    whether result is of exception type 'Info', 'Warning' or other error."""
+    """Show dialog depending on type of result.
+
+    Result should be an exception type. An appropriate visual representation
+    will be chosen whether result is of exception type 'Info', 'Warning'
+    or other error.
+    """
     if result.__class__ is Exception and result.args and result.args[0] == "aborted":
         # Special case - aborted
         msg = lang.getstr("aborted")
@@ -8119,6 +7960,8 @@ def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
             launch_file(result.url)
         return dlg_ok
 
+    return None
+
 
 def test():
     config.initcfg()
@@ -8150,8 +7993,8 @@ def test():
 
     app = BaseApp(0)
     style = wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_CAN_ABORT | wx.PD_SMOOTH
-    p = ProgressDialog(
-        msg="".join(("Test " * 5)),
+    _ = ProgressDialog(
+        msg="".join("Test " * 5),
         maximum=10000,
         style=style,
         pauseable=True,

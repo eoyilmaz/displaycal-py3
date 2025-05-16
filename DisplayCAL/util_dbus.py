@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for interacting with the D-Bus inter-process
+communication system, supporting both the `Gio` library (via GObject
+Introspection) and the `dbus` Python library. It abstracts D-Bus object
+interactions, enabling method calls, property access, and introspection.
+"""
 
 import sys
 
@@ -32,7 +36,6 @@ if sys.platform not in ("darwin", "win32"):
 
 
 from DisplayCAL.util_str import safe_str
-
 
 BUSTYPE_SESSION = 1
 BUSTYPE_SYSTEM = 2
@@ -78,10 +81,7 @@ class DBusObject:
         self._proxy = None
         self._iface = None
         if object_path:
-            if bus_type == BUSTYPE_SESSION:
-                bus = dbus_session
-            else:
-                bus = dbus_system
+            bus = dbus_session if bus_type == BUSTYPE_SESSION else dbus_system
             self._bus = bus
             interface = self._bus_name
             if self._iface_name:
@@ -102,7 +102,7 @@ class DBusObject:
                     self._proxy = bus.get_object(bus_name, object_path)
                     self._iface = dbus.Interface(self._proxy, dbus_interface=interface)
             except (TypeError, ValueError, DBusException) as exception:
-                raise DBusObjectError(exception, self._bus_name)
+                raise DBusObjectError(exception, self._bus_name) from exception
         self._introspectable = None
 
     def __getattr__(self, name):
@@ -110,7 +110,7 @@ class DBusObject:
         try:
             return DBusObjectInterfaceMethod(self._iface, name)
         except (AttributeError, TypeError, ValueError, DBusException) as exception:
-            raise DBusObjectError(exception, self._bus_name)
+            raise DBusObjectError(exception, self._bus_name) from exception
 
     @property
     def properties(self):
@@ -134,7 +134,7 @@ class DBusObject:
                 iface = dbus.Interface(self._proxy, "org.freedesktop.DBus.Properties")
             return DBusObjectInterfaceMethod(iface, "GetAll")(interface)
         except (TypeError, ValueError, DBusException) as exception:
-            raise DBusObjectError(exception, self._bus_name)
+            raise DBusObjectError(exception, self._bus_name) from exception
 
     def introspect(self):
         if not self._introspectable:
@@ -152,7 +152,7 @@ class DBusObjectError(DBusException):
     def __init__(self, exception, bus_name=None):
         self._dbus_error_name = getattr(exception, "get_dbus_name", lambda: None)()
         if self._dbus_error_name == "org.freedesktop.DBus.Error.ServiceUnknown":
-            exception = "%s: %s" % (exception, bus_name)
+            exception = f"{exception}: {bus_name}"
         DBusException.__init__(self, safe_str(exception))
 
     def get_dbus_name(self):

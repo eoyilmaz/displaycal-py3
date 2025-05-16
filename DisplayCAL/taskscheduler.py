@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Task Scheduler interface. Currently only implemented for Windows (Vista and up).
+"""Task Scheduler interface. Currently only implemented for Windows (Vista and up).
 The implementation is currently minimal and incomplete when it comes to
 creating tasks (all tasks are created for the 'INTERACTIVE' group and with
 only logon triggers and exec actions available).
@@ -39,18 +37,15 @@ Create a new task to be run under the current user account at logon:
 import codecs
 import os
 import subprocess as sp
-import sys
 import tempfile
 
 import pywintypes
 import winerror
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.safe_print import enc
-from DisplayCAL.util_os import getenvu
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.safe_print import ENC
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin
-
 
 RUNLEVEL_HIGHESTAVAILABLE = "HighestAvailable"
 RUNLEVEL_LEASTPRIVILEGE = "LeastPrivilege"
@@ -109,8 +104,7 @@ class _Trigger(_Dict2XML):
                 stop_at_duration_end=stop_at_duration_end,
                 cls_name="Repetition",
             )
-            or ""
-        )
+        ) or ""
         _Dict2XML.__init__(self, repetition=repetition, enabled=enabled)
 
 
@@ -130,8 +124,7 @@ class CalendarTrigger(_Trigger):
         self["schedule_by_day"] = (
             days_interval
             and _Dict2XML(days_interval=days_interval, cls_name="ScheduleByDay")
-            or ""
-        )
+        ) or ""
         self["schedule_by_week"] = (
             weeks_interval
             and _Dict2XML(
@@ -139,8 +132,7 @@ class CalendarTrigger(_Trigger):
                 weeks_interval=weeks_interval,
                 cls_name="ScheduleByWeek",
             )
-            or ""
-        )
+        ) or ""
         self["schedule_by_month"] = (
             months
             and _Dict2XML(
@@ -148,8 +140,7 @@ class CalendarTrigger(_Trigger):
                 months=_Dict2XML(items=months, cls_name="Months"),
                 cls_name="ScheduleByMonth",
             )
-            or ""
-        )
+        ) or ""
 
 
 class LogonTrigger(_Trigger):
@@ -160,7 +151,11 @@ class ResumeFromSleepTrigger(_Trigger):
     def __init__(self, *args, **kwargs):
         _Trigger.__init__(self, *args, **kwargs)
         self["subscription"] = (
-            """&lt;QueryList&gt;&lt;Query Id="0" Path="System"&gt;&lt;Select Path="System"&gt;*[System[Provider[@Name='Microsoft-Windows-Power-Troubleshooter'] and (Level=4 or Level=0) and (EventID=1)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;"""
+            """&lt;QueryList&gt;&lt;Query Id="0" Path="System"&gt;&lt;"""
+            """Select Path="System"&gt;*[System[Provider["""
+            """@Name='Microsoft-Windows-Power-Troubleshooter'] and """
+            """(Level=4 or Level=0) and """
+            """(EventID=1)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;"""
         )
         self["cls_name"] = "EventTrigger"
 
@@ -172,7 +167,7 @@ class ExecAction(_Dict2XML):
         _Dict2XML.__init__(
             self,
             command=cmd,
-            arguments=args and sp.list2cmdline(args) or None,
+            arguments=(args and sp.list2cmdline(args)) or None,
             cls_name="Exec",
         )
 
@@ -207,7 +202,7 @@ class Task(_Dict2XML):
     ):
         kwargs = locals()
         idle_keys = ("duration", "wait_timeout", "stop_on_idle_end", "restart_on_idle")
-        idle_settings = dict()
+        idle_settings = {}
         for key in idle_keys:
             idle_settings[key] = kwargs[key]
         for key in (
@@ -223,7 +218,7 @@ class Task(_Dict2XML):
             del kwargs[key]
         settings = _Dict2XML(kwargs, cls_name="Settings")
         settings["idle_settings"] = _Dict2XML(idle_settings, cls_name="IdleSettings")
-        kwargs = dict()
+        kwargs = {}
         kwargs["registration_info"] = _Dict2XML(
             author=author,
             description=description,
@@ -339,7 +334,6 @@ class TaskScheduler:
         same name first, otherwise raise KeyError.
 
         """
-
         kwargs = locals()
         del kwargs["self"]
         del kwargs["replace_existing"]
@@ -349,7 +343,7 @@ class TaskScheduler:
         if not replace_existing and name in self:
             raise KeyError(f"The task {name} already exists!")
 
-        tempdir = tempfile.mkdtemp(prefix=f"{appname}-")
+        tempdir = tempfile.mkdtemp(prefix=f"{APPNAME}-")
         task = Task(**kwargs)
         xmlfilename = os.path.join(tempdir, f"{name}.xml")
         task.write_xml(xmlfilename)
@@ -477,7 +471,7 @@ class TaskScheduler:
             )
             self.stdout, _ = p.communicate()
             if echo:
-                print(str(self.stdout, encoding=enc, errors="replace"))
+                print(str(self.stdout, encoding=ENC, errors="replace"))
             self.lastreturncode = p.returncode
         return self.lastreturncode == 0
 
@@ -493,7 +487,7 @@ if __name__ == "__main__":
             try:
                 print(attr(*args))
             except pywintypes.com_error as exception:
-                print(WindowsError(*exception.args))
+                print(OSError(*exception.args))
             except TypeError as exception:
                 print(exception)
         else:

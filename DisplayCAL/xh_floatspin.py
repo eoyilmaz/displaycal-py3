@@ -1,13 +1,20 @@
-# -*- coding: utf-8 -*-
+"""This module provides a custom XML resource handler for wxPython to create
+and manage FloatSpin controls from XML resource files. It processes XML
+parameters such as minimum/maximum values, increment, and initial value, and
+configures the FloatSpin control accordingly.
+"""
+
+import contextlib
 
 import wx
-import wx.xrc as xrc
+from wx import xrc
+
 from DisplayCAL.log import safe_print
 
 try:
     from DisplayCAL import floatspin
 except ImportError:
-    import wx.lib.agw.floatspin as floatspin
+    from wx.lib.agw import floatspin
 
 
 class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
@@ -36,10 +43,7 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
         is_spinctrldbl = hasattr(wx, "SpinCtrlDouble") and issubclass(
             floatspin.FloatSpin, wx.SpinCtrlDouble
         )
-        if is_spinctrldbl:
-            defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT
-        else:
-            defaultstyle = 0
+        defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT if is_spinctrldbl else 0
         w = floatspin.FloatSpin(
             parent=self.GetParentAsWindow(),
             id=self.GetID(),
@@ -52,15 +56,11 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
             name=self.GetName(),
         )
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetValue(float(self.GetText("value")))
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetDigits(int(self.GetText("digits")))
-        except Exception:
-            pass
 
         self.SetupWindow(w)
         if self.GetBool("hidden") and w.Shown:

@@ -1,7 +1,11 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for handling encoded input and output
+streams, allowing seamless encoding and decoding of text data in Python
+applications. It includes functionality to register custom codec aliases,
+conditionally encode or decode text, and wrap standard input/output streams
+with automatic encoding/decoding support.
+"""
 
 import codecs
-import locale
 import os
 import sys
 
@@ -70,11 +74,7 @@ def encodestdio(encodings=None, errors=None):
 def read(stream, size=-1):
     """Read from stream. Uses os.read() if stream is a tty,
     stream.read() otherwise."""
-    if stream.isatty():
-        data = os.read(stream.fileno(), size)
-    else:
-        data = stream.read(size)
-    return data
+    return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):
@@ -158,8 +158,8 @@ if __name__ == "__main__":
     test = "test \u00e4\u00f6\u00fc\ufffe test"
     try:
         print(test)
-    except (LookupError, IOError, UnicodeError) as exception:
-        print("could not print %r:" % test, exception)
+    except (OSError, LookupError, UnicodeError) as exception:
+        print(f"could not print {test!r}:", exception)
     print("wrapping stdout/stderr via encodestdio()")
     encodestdio()
     print(test)

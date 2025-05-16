@@ -1,42 +1,35 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-"""
+"""Interactive display calibration UI."""
 
 import os
 import re
 import sys
 import time
 
-from DisplayCAL.cgats import CGATS
+from DisplayCAL import audio, colormath, config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
+    get_data_path,
+    get_icon_bundle,
     getbitmap,
     getcfg,
     geticon,
-    get_data_path,
-    get_icon_bundle,
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug, test, verbose
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxwindows import (
-    BaseApp,
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG, TEST, VERBOSE
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import (
+    NAV_KEYCODES,
+    NUMPAD_KEYCODES,
+    PROCESSING_KEYCODES,
     BaseFrame,
     BitmapBackgroundPanel,
     CustomCheckBox,
     CustomGrid,
     FlatShadedButton,
-    numpad_keycodes,
-    nav_keycodes,
-    processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 FGCOLOUR = wx.Colour(0x99, 0x99, 0x99)
@@ -56,7 +49,7 @@ class UntetheredFrame(BaseFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="untetheredframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.sizer = wx.FlexGridSizer(2, 1, 0, 0)
         self.sizer.AddGrowableCol(0)
         self.sizer.AddGrowableRow(0)
@@ -188,9 +181,9 @@ class UntetheredFrame(BaseFrame):
             keycodes = [wx.WXK_TAB, wx.WXK_SPACE]
             keycodes.extend(list(range(ord("0"), ord("9"))))
             keycodes.extend(list(range(ord("A"), ord("Z"))))
-            keycodes.extend(numpad_keycodes)
-            keycodes.extend(nav_keycodes)
-            keycodes.extend(processing_keycodes)
+            keycodes.extend(NUMPAD_KEYCODES)
+            keycodes.extend(NAV_KEYCODES)
+            keycodes.extend(PROCESSING_KEYCODES)
             for keycode in keycodes:
                 self.id_to_keycode[wx.Window.NewControlId()] = keycode
             accels = []
@@ -253,16 +246,15 @@ class UntetheredFrame(BaseFrame):
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
 
-        for id in self.id_to_keycode.keys():
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
 
         return 0
-
 
     def OnMove(self, event):
         if (
@@ -490,19 +482,19 @@ class UntetheredFrame(BaseFrame):
     def parse_txt(self, txt):
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         data_len = len(self.cgats[0].DATA)
         if self.grid.GetNumberRows() < data_len:
             self.index = 0
             self.index_max = data_len - 1
             self.grid.AppendRows(data_len - self.grid.GetNumberRows())
             for i in self.cgats[0].DATA:
-                self.grid.SetRowLabelValue(i, "%i" % (i + 1))
+                self.grid.SetRowLabelValue(i, f"{i + 1}")
                 row = self.cgats[0].DATA[i]
                 RGB = []
                 for j, label in enumerate("RGB"):
-                    value = int(round(row["RGB_%s" % label] / 100.0 * 255))
-                    self.grid.SetCellValue(row.SAMPLE_ID - 1, j, "%i" % value)
+                    value = int(round(row[f"RGB_{label}"] / 100.0 * 255))
+                    self.grid.SetCellValue(row.SAMPLE_ID - 1, j, f"{value}")
                     RGB.append(value)
                 self.grid.SetCellBackgroundColour(row.SAMPLE_ID - 1, 3, wx.Colour(*RGB))
         if "Connecting to the instrument" in txt:
@@ -511,11 +503,12 @@ class UntetheredFrame(BaseFrame):
             self.is_measuring = False
         if "Spot read failed" in txt:
             self.last_error = txt
+
+        # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
         if "Result is XYZ:" in txt:
             self.last_error = None
             if getcfg("measurement.play_sound"):
                 self.measurement_sound.safe_play()
-            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
             XYZ = re.search(
                 r"XYZ:\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)", txt
             )
@@ -527,21 +520,20 @@ class UntetheredFrame(BaseFrame):
 
             XYZ = [float(v) for v in XYZ.groups()]
             row = self.cgats[0].DATA[self.index]
-            if is_white(row):
-                if XYZ[1] > 0:
-                    self.cgats[0].add_keyword(
-                        "LUMINANCE_XYZ_CDM2", "%.6f %.6f %.6f" % tuple(XYZ)
-                    )
-                    self.white_XYZ = XYZ
+            if is_white(row) and XYZ[1] > 0:
+                self.cgats[0].add_keyword(
+                    "LUMINANCE_XYZ_CDM2", "{:.6f} {:.6f} {:.6f}".format(*tuple(XYZ))
+                )
+                self.white_XYZ = XYZ
             Lab1 = colormath.XYZ2Lab(*self.last_XYZ)
             Lab2 = colormath.XYZ2Lab(*XYZ)
             delta = colormath.delta(*Lab1 + Lab2)
-            if debug or test or verbose > 1:
-                print("Last recorded Lab: %.4f %.4f %.4f" % Lab1)
-                print("Current Lab: %.4f %.4f %.4f" % Lab2)
-                print("Delta E to last recorded Lab: %.4f" % delta["E"])
-                print("Abs. delta L to last recorded Lab: %.4f" % abs(delta["L"]))
-                print("Abs. delta C to last recorded Lab: %.4f" % abs(delta["C"]))
+            if DEBUG or TEST or VERBOSE > 1:
+                print("Last recorded Lab: {:.4f} {:.4f} {:.4f}".format(*Lab1))
+                print("Current Lab: {:.4f} {:.4f} {:.4f}".format(*Lab2))
+                print(f"Delta E to last recorded Lab: {delta['E']:.4f}")
+                print(f"Abs. delta L to last recorded Lab: {abs(delta['L']):.4f}")
+                print(f"Abs. delta C to last recorded Lab: {abs(delta['C']):.4f}")
             consecutive_white_patch = (
                 self.index
                 and is_white(row)
@@ -558,7 +550,7 @@ class UntetheredFrame(BaseFrame):
                         self.commit_sound.safe_play()
                     self.measure_count = 0
                     # Reset row label
-                    self.grid.SetRowLabelValue(self.index, "%i" % (self.index + 1))
+                    self.grid.SetRowLabelValue(self.index, f"{self.index + 1}")
                     # Update CGATS
                     query = self.cgats[0].queryi1(
                         {
@@ -582,7 +574,7 @@ class UntetheredFrame(BaseFrame):
                     )
                     for j in range(3):
                         self.grid.SetCellValue(
-                            query.SAMPLE_ID - 1, 5 + j, "%.2f" % Lab[j]
+                            query.SAMPLE_ID - 1, 5 + j, f"{Lab[j]:.2f}"
                         )
                     self.grid.MakeCellVisible(self.index, 0)
                     self.grid.ForceRefresh()
@@ -607,7 +599,7 @@ class UntetheredFrame(BaseFrame):
                         if self.index != index:
                             # Mark the row containing the next/previous patch
                             self.grid.SetRowLabelValue(
-                                self.index, "\u25ba %i" % (self.index + 1)
+                                self.index, f"\u25ba {self.index + 1}"
                             )
                             self.grid.MakeCellVisible(self.index, 0)
         if "key to take a reading" in txt and not self.last_error:
@@ -694,8 +686,7 @@ class UntetheredFrame(BaseFrame):
     def show_RGB(self, clear_XYZ=True, mark_current_row=True):
         row = self.cgats[0].DATA[self.index]
         self.label_RGB.SetLabel(
-            "RGB %i %i %i"
-            % (
+            "RGB {} {} {}".format(
                 round(row["RGB_R"] / 100.0 * 255),
                 round(row["RGB_G"] / 100.0 * 255),
                 round(row["RGB_B"] / 100.0 * 255),
@@ -716,17 +707,17 @@ class UntetheredFrame(BaseFrame):
             self.panel_XYZ.Refresh()
             self.panel_XYZ.Update()
         if mark_current_row:
-            self.grid.SetRowLabelValue(self.index, "\u25ba %i" % (self.index + 1))
+            self.grid.SetRowLabelValue(self.index, f"\u25ba {self.index + 1}")
             self.grid.MakeCellVisible(self.index, 0)
         if self.index not in self.grid.GetSelectedRows():
             self.grid.SelectRow(self.index)
             self.grid.SetGridCursor(self.index, 0)
-        self.label_index.SetLabel("%i/%i" % (self.index + 1, len(self.cgats[0].DATA)))
+        self.label_index.SetLabel(f"{self.index + 1}/{len(self.cgats[0].DATA)}")
         self.label_index.GetContainingSizer().Layout()
 
     def show_XYZ(self):
         Lab, color = self.get_Lab_RGB()
-        self.label_XYZ.SetLabel("L*a*b* %.2f %.2f %.2f" % Lab)
+        self.label_XYZ.SetLabel("L*a*b* {:.2f} {:.2f} {:.2f}".format(*Lab))
         self.panel_XYZ.SetBackgroundColour(wx.Colour(*color))
         self.panel_XYZ.SetBitmap(None)
         self.panel_XYZ.Refresh()
@@ -740,7 +731,7 @@ class UntetheredFrame(BaseFrame):
 
     def update(self, index):
         # Reset row label
-        self.grid.SetRowLabelValue(self.index, "%i" % (self.index + 1))
+        self.grid.SetRowLabelValue(self.index, f"{self.index + 1}")
 
         self.index = index
         show_XYZ = self.index in self.measured
@@ -751,115 +742,3 @@ class UntetheredFrame(BaseFrame):
 
     def write(self, txt):
         wx.CallAfter(self.parse_txt, txt)
-
-
-if __name__ == "__main__":
-    from _thread import start_new_thread
-    from time import sleep
-    import random
-    from DisplayCAL.icc_profile import ICCProfile
-    from DisplayCAL.util_io import Files
-    from DisplayCAL import worker
-
-    class Subprocess:
-        def send(self, bytes_):
-            start_new_thread(test, (bytes_,))
-
-    class Worker(worker.Worker):
-        def __init__(self):
-            worker.Worker.__init__(self)
-            self.finished = False
-            self.instrument_calibration_complete = False
-            self.instrument_place_on_screen_msg = False
-            self.instrument_sensor_position_msg = False
-            self.is_ambient_measuring = False
-            self.subprocess = Subprocess()
-            self.subprocess_abort = False
-
-        def abort_subprocess(self):
-            self.safe_send("Q")
-
-        def safe_send(self, bytes_):
-            print("*** Sending %r" % bytes_)
-            self.subprocess.send(bytes_)
-            return True
-
-    config.initcfg()
-    print("untethered.min_delta", getcfg("untethered.min_delta"))
-    print("untethered.min_delta.lightness", getcfg("untethered.min_delta.lightness"))
-    print("untethered.max_delta.chroma", getcfg("untethered.max_delta.chroma"))
-    lang.init()
-    lang.update_defaults()
-    app = BaseApp(0)
-    app.TopWindow = UntetheredFrame(start_timer=False)
-    testchart = getcfg("testchart.file")
-    if os.path.splitext(testchart)[1].lower() in (".icc", ".icm"):
-        try:
-            testchart = ICCProfile(testchart).tags.targ
-        except Exception:
-            pass
-    try:
-        app.TopWindow.cgats = CGATS(testchart)
-    except Exception:
-        app.TopWindow.cgats = CGATS(
-            """TI1
-BEGIN_DATA_FORMAT
-SAMPLE_ID RGB_R RGB_G RGB_B XYZ_X XYZ_Y XYZ_Z
-END_DATA_FORMAT
-BEGIN_DATA
-1 0 0 0 0 0 0
-END_DATA
-"""
-        )
-    app.TopWindow.worker = Worker()
-    app.TopWindow.worker.progress_wnd = app.TopWindow
-    app.TopWindow.Show()
-    files = Files([app.TopWindow.worker, app.TopWindow])
-
-    def test(bytes_=None):
-        print("*** Received %r" % bytes_)
-        menu = r"""Place instrument on spot to be measured,
-and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
-[a-z] to read and make FWA compensated reading from keyed reference
-'r' to set reference, 's' to save spectrum,
-'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:"""
-        if not bytes_:
-            txt = menu
-        elif bytes_ == " ":
-            i = app.TopWindow.index
-            row = app.TopWindow.cgats[0].DATA[i]
-            txt = [
-                """
- Result is XYZ: %.6f %.6f %.6f
-
-Place instrument on spot to be measured,
-and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
-[a-z] to read and make FWA compensated reading from keyed reference
-'r' to set reference, 's' to save spectrum,
-'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:"""
-                % (row.XYZ_X, row.XYZ_Y, row.XYZ_Z),
-                """"
-Result is XYZ: %.6f %.6f %.6f
-
-Spot read needs a calibration before continuing
-Place cap on the instrument, or place on a dark surface,
-or place on the white calibration reference,
-and then hit any key to continue,
-or hit Esc or Q to abort:"""
-                % (row.XYZ_X, row.XYZ_Y, row.XYZ_Z),
-            ][random.choice([0, 1])]
-        elif bytes_ in ("Q", "q"):
-            wx.CallAfter(app.TopWindow.Close)
-            return
-        else:
-            return
-        for line in txt.split("\n"):
-            sleep(0.03125)
-            if app.TopWindow:
-                wx.CallAfter(files.write, line)
-                print(line)
-
-    start_new_thread(test, tuple())
-    app.MainLoop()

@@ -1,3 +1,8 @@
+"""This module provides functionality to convert iColorDisplay
+DeviceCorrections.txt files into individual Argyll CCMX files. It parses the
+input file, extracts relevant data, and generates CCMX files in the specified
+format for use with color calibration tools.
+"""
 import codecs
 import json
 import os
@@ -33,7 +38,7 @@ END_DATA
 
 
 def convert_devicecorrections_to_ccmx(path, target_dir):
-    """Convert iColorDisplay DeviceCorrections.txt to individual Argyll CCMX files"""
+    """Convert iColorDisplay DeviceCorrections.txt to individual Argyll CCMX files."""
     with codecs.open(path, "r", "utf8") as devcorrections_file:
         lines = devcorrections_file.read().strip().splitlines()
     # Convert to JSON

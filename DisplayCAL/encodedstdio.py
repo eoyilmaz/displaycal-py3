@@ -1,3 +1,9 @@
+"""This module provides utilities for handling encoded input and output
+streams, allowing seamless encoding and decoding of text data in Python
+applications. It includes functionality to register custom codec aliases,
+conditionally encode or decode text, and wrap standard input/output streams
+with automatic encoding/decoding support.
+"""
 import codecs
 import os
 import sys

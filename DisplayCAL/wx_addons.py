@@ -1,3 +1,8 @@
+"""This module extends wxPython functionality by adding custom methods,
+utilities, and classes for enhanced GUI behavior. It includes image
+manipulation methods, custom event handling, improved timer implementations,
+and additional window and display utilities.
+"""
 import contextlib
 import os
 import sys

@@ -1,3 +1,8 @@
+"""This module provides classes for working with 3D cubes of data, particularly
+useful for iterating over or indexing into a 3D grid structure. It includes
+functionality to define a cube, access its elements, and iterate through its
+contents.
+"""
 class Cube3D:
     def __init__(self, size=65, start=0, end=None):
         orange = start, end

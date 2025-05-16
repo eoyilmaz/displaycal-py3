@@ -1,3 +1,8 @@
+"""This module provides the `PyEmbeddedImage` class, which allows embedding PNG
+image data directly into Python code. It is primarily used with the
+`wx.tools.img2py` code generator to simplify the distribution of image assets
+by embedding them as base64-encoded data within Python modules.
+"""
 # ----------------------------------------------------------------------
 # Name:        wx.lib.embeddedimage
 # Purpose:     Defines a class used for embedding PNG images in Python

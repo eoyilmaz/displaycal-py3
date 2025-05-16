@@ -1,9 +1,14 @@
+"""This module provides functions and data structures for color space
+conversions between RGB and XYZ, including normalization and glare adjustments.
+It defines ink tables, normalization factors, and channel mappings used in the
+conversion process.
+"""
 import math
 
 from DisplayCAL import colormath
 
 # from xcolorants.c
-icx_ink_table = {
+ICX_INK_TABLE = {
     "C": [[0.12, 0.18, 0.48], [0.12, 0.18, 0.48]],
     "M": [[0.38, 0.19, 0.20], [0.38, 0.19, 0.20]],
     "Y": [[0.76, 0.81, 0.11], [0.76, 0.81, 0.11]],
@@ -25,25 +30,26 @@ icx_ink_table = {
     "MY": [[0.82, 0.93, 0.40], [0.82, 0.93, 0.40]],
     "MK": [[0.27, 0.29, 0.31], [0.27, 0.29, 0.31]],
     "LLK": [
-        [0.76, 0.72, 0.65],  # Very rough - should substiture real numbers
+        [0.76, 0.72, 0.65],  # Very rough - should substitute real numbers
         [0.76, 0.72, 0.65],
     ],
     "": [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
 }
 
-s = {"Ynorm": 0.0, "iix": {0: "R", 1: "G", 2: "B"}}
+NORMALISATION_FACTOR = {"Ynorm": 0.0}
+IIX_CHANNEL_MAPPING = {"iix": {0: "R", 1: "G", 2: "B"}}
 
 for e in range(3):
-    s["Ynorm"] += icx_ink_table[s["iix"][e]][0][1]
-s["Ynorm"] = 1.0 / s["Ynorm"]
+    NORMALISATION_FACTOR["Ynorm"] += ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][1]
+NORMALISATION_FACTOR["Ynorm"] = 1.0 / NORMALISATION_FACTOR["Ynorm"]
 
 
 def XYZ_denormalize_remove_glare(X, Y, Z):
     XYZ = [X, Y, Z]
     # De-Normalise Y from 1.0, & remove black glare
     for j in range(3):
-        XYZ[j] = (XYZ[j] - icx_ink_table["K"][0][j]) / (1.0 - icx_ink_table["K"][0][j])
-        XYZ[j] /= s["Ynorm"]
+        XYZ[j] = (XYZ[j] - ICX_INK_TABLE["K"][0][j]) / (1.0 - ICX_INK_TABLE["K"][0][j])
+        XYZ[j] /= NORMALISATION_FACTOR["Ynorm"]
     return tuple(XYZ)
 
 
@@ -51,8 +57,8 @@ def XYZ_normalize_add_glare(X, Y, Z):
     XYZ = [X, Y, Z]
     # Normalise Y to 1.0, & add black glare
     for j in range(3):
-        XYZ[j] *= s["Ynorm"]
-        XYZ[j] = XYZ[j] * (1.0 - icx_ink_table["K"][0][j]) + icx_ink_table["K"][0][j]
+        XYZ[j] *= NORMALISATION_FACTOR["Ynorm"]
+        XYZ[j] = XYZ[j] * (1.0 - ICX_INK_TABLE["K"][0][j]) + ICX_INK_TABLE["K"][0][j]
     return tuple(XYZ)
 
 
@@ -71,7 +77,7 @@ def RGB2XYZ(R, G, B):  # from xcolorants.c -> icxColorantLu_to_XYZ
         else:
             v = math.pow((0.055 + v) / 1.055, 2.4)  # Gamma
         for j in range(3):
-            XYZ[j] += v * icx_ink_table[s["iix"][e]][0][j]
+            XYZ[j] += v * ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][j]
     return XYZ_normalize_add_glare(*XYZ)
 
 

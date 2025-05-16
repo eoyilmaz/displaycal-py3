@@ -1,3 +1,10 @@
+"""This module provides the core functionality for managing display calibration
+and profiling workflows. It includes classes and methods for interacting with
+hardware instruments, handling pattern generators, managing profiles, and
+executing Argyll CMS utilities. The module also supports various
+platform-specific features and integrates with external tools like madVR and
+colord.
+"""
 # stdlib
 from __future__ import annotations
 

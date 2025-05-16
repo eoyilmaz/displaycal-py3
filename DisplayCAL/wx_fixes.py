@@ -1,3 +1,9 @@
+"""This module provides compatibility fixes, workarounds, and enhancements for
+wxPython to address platform-specific issues, deprecated features, and
+inconsistencies across different versions. It includes custom widget
+implementations, DPI scaling adjustments, and additional utility functions for
+improved UI behavior and appearance.
+"""
 import contextlib
 import os
 import re

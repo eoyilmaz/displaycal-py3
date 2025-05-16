@@ -1,3 +1,9 @@
+"""This module implements a graphical interface for viewing and analyzing
+Look-Up Tables (LUTs) and tone response curves (TRCs) in DisplayCAL. It
+provides functionality for loading, visualizing, and interacting with LUTs and
+ICC profiles, supporting various color spaces and rendering intents. The module
+integrates with wxPython for plotting and user interaction.
+"""
 import math
 import os
 import re

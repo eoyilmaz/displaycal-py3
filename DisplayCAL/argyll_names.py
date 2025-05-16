@@ -1,3 +1,8 @@
+"""This module defines the tools, alternative names, and related configurations
+used by Argyll CMS in DisplayCAL. It includes predefined tool names, optional
+tools, alternative naming conventions, viewing conditions, intents, video
+encodings, and observer types.
+"""
 # Argyll CMS tools used by DisplayCAL
 NAMES = [
     "applycal",

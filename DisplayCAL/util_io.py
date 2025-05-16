@@ -1,3 +1,8 @@
+"""This module provides utility classes and functions for handling file I/O
+operations. It includes tools for encoding/decoding data during file writes,
+managing multiple file objects, working with GZIP and TAR files, buffering
+line-based streams, and other file-related utilities.
+"""
 import contextlib
 import copy
 import gzip

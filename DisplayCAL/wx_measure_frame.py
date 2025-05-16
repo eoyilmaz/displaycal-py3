@@ -1,3 +1,10 @@
+"""This module provides a graphical interface for defining and managing the
+measurement area used by DisplayCAL for display calibration and profiling. It
+includes functionality for resizing, centering, and zooming the measurement
+frame, as well as handling display geometry and configurations. The module
+integrates with wxPython for user interaction and supports various display
+environments.
+"""
 import math
 import os
 import sys

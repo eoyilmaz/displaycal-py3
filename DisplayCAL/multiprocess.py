@@ -1,3 +1,7 @@
+"""This module provides utilities for parallel processing using Python's
+multiprocessing library. It includes functions and classes to manage
+worker pools, handle task distribution, and process data slices efficiently.
+"""
 import contextlib
 import errno
 import logging

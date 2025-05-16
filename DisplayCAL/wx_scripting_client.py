@@ -1,3 +1,9 @@
+"""This module implements a scripting client for DisplayCAL, providing a
+graphical interface for sending commands to and receiving responses from
+a connected application. It features a terminal-like interface built with
+wxPython, supporting command history, text highlighting, and basic scripting
+capabilities.
+"""
 import errno
 import os
 import socket

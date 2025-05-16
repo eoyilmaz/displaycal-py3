@@ -1,3 +1,9 @@
+"""This module provides an interface to interact with the X11 and Xrandr
+libraries using ctypes. It allows querying and manipulating X display
+properties, including retrieving window and output properties. The module is
+useful for working with X server configurations and display outputs
+programmatically.
+"""
 import os
 import sys
 from ctypes import (

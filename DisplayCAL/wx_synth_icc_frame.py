@@ -1,3 +1,9 @@
+"""This module provides a graphical interface for creating synthetic ICC
+profiles using wxPython. It supports customization of color spaces, luminance,
+transfer functions, and other ICC profile attributes. The interface allows
+users to manipulate color settings, drop files for processing, and save
+profiles in various configurations.
+"""
 import math
 import os
 import sys

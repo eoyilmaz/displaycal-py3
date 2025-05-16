@@ -1,3 +1,7 @@
+"""This module provides logging functionality for the application, including
+custom loggers, file-based logging with rotation, and safe logging mechanisms
+to handle Unicode and multiprocessing scenarios.
+"""
 import atexit
 import contextlib
 import logging

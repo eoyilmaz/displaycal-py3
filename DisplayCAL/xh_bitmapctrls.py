@@ -1,3 +1,8 @@
+"""This module provides custom XML resource handlers for wxPython to create and
+manage bitmap-based controls, such as wxBitmapButton and wxStaticBitmap,
+from XML resource files. It includes functionality to process XML parameters,
+load bitmaps, and configure the controls.
+"""
 import os
 
 import wx

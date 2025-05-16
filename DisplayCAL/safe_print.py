@@ -1,3 +1,9 @@
+"""This module provides a `SafePrinter` class for safely writing output to
+streams, avoiding Unicode encoding/decoding errors. It ensures compatibility
+with various encodings and allows customization of padding, separators, and
+output formatting. A global `safe_print` instance is also provided for
+convenience.
+"""
 import os
 import sys
 

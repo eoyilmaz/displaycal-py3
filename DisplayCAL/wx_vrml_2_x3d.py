@@ -1,3 +1,9 @@
+"""This module provides functionality to convert VRML files to X3D format,
+with optional HTML embedding and viewing capabilities. It includes a graphical
+interface using wxPython for file selection and conversion, as well as a
+command-line mode for batch processing. The module supports features like
+caching, forced downloads, and embedding viewer components in the output.
+"""
 import os
 import sys
 from functools import partial

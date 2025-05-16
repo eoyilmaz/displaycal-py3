@@ -1,3 +1,7 @@
+"""This module defines custom ctypes-based types and structures that map to
+common GLib types. These types are used for interoperability with C libraries
+that rely on GLib.
+"""
 from ctypes import Structure, c_char_p, c_int, c_uint
 from typing import ClassVar
 

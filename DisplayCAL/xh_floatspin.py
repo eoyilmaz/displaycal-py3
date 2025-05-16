@@ -1,3 +1,8 @@
+"""This module provides a custom XML resource handler for wxPython to create
+and manage FloatSpin controls from XML resource files. It processes XML
+parameters such as minimum/maximum values, increment, and initial value, and
+configures the FloatSpin control accordingly.
+"""
 import contextlib
 
 import wx

@@ -1,3 +1,9 @@
+"""This module provides foundational classes and utilities for managing
+calibration and profiling workflows. It includes base worker classes,
+multiprocessing support, and methods for interacting with Argyll CMS
+utilities like `xicclu`. The module also handles subprocess management,
+logging, and temporary directory creation.
+"""
 import contextlib
 import math
 import os

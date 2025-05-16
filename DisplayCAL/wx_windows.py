@@ -1,9 +1,13 @@
+"""This module provides various wxPython-based GUI components and utilities for
+building graphical interfaces. It includes custom widgets, dialogs, frames,
+and enhancements to standard wxPython controls, offering extended functionality
+and improved aesthetics. The module also supports advanced features like
+custom rendering, event handling, and platform-specific adjustments.
+"""
 import html
 from datetime import datetime
-from html.parser import HTMLParser
 from typing import ClassVar
 
-htmlparser = HTMLParser()
 import contextlib
 import errno
 import math
@@ -118,7 +122,6 @@ if sys.platform == "win32" and sys.getwindowsversion() >= (6, 1):
         pass
     except Exception as exception:
         print(exception)
-
 
 NUMPAD_KEYCODES = [
     wx.WXK_NUMPAD0,

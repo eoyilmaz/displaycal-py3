@@ -200,7 +200,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
     def __init__(
         self,
         evtType: int = wx.wxEVT_NULL,
-        splitter: None | "FourWaySplitter" = None,
+        splitter: None | FourWaySplitter = None,
     ) -> None:
         wx.CommandEvent.__init__(self, evtType)
 

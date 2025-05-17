@@ -152,7 +152,7 @@ class GradientButtonEvent(wx.PyCommandEvent):
         self.isDown = False
         self.theButton: None | GradientButton = None
 
-    def SetButtonObj(self, btn: "GradientButton") -> None:
+    def SetButtonObj(self, btn: GradientButton) -> None:
         """Set the event object for the event.
 
         Args:
@@ -160,7 +160,7 @@ class GradientButtonEvent(wx.PyCommandEvent):
         """
         self.theButton = btn
 
-    def GetButtonObj(self) -> None | "GradientButton":
+    def GetButtonObj(self) -> None | GradientButton:
         """Return the object associated with this event.
 
         Returns:
@@ -192,7 +192,7 @@ class GradientButton(wx.Control):
 
     def __init__(
         self,
-        parent: "GradientButton",
+        parent: GradientButton,
         id: int = wx.ID_ANY,
         bitmap: None | wx.Bitmap = None,
         label: str = "",

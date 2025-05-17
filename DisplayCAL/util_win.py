@@ -132,7 +132,7 @@ class MSCMSLoader:
     _windll = None
 
     @classmethod
-    def get_mscms_windll(cls) -> "MSCMS":
+    def get_mscms_windll(cls) -> MSCMS:
         """Get the MSCMS windll instance.
 
         Returns:
@@ -271,7 +271,7 @@ def enable_per_user_profiles(
     return True
 
 
-def get_display_devices(devicename: str) -> list["PyDISPLAY_DEVICE"]:
+def get_display_devices(devicename: str) -> list[PyDISPLAY_DEVICE]:
     r"""Get all display devices of an output (there can be several).
 
     Example usage:
@@ -297,7 +297,7 @@ def get_display_devices(devicename: str) -> list["PyDISPLAY_DEVICE"]:
 
 def get_first_display_device(
     devicename: str, exception_cls: Exception = pywintypes.error
-) -> "PyDISPLAY_DEVICE":
+) -> PyDISPLAY_DEVICE:
     """Get the first display of device <devicename>.
 
     Args:
@@ -314,8 +314,8 @@ def get_first_display_device(
 
 
 def get_active_display_device(
-    devicename: str, devices: None | list["PyDISPLAY_DEVICE"] = None
-) -> "PyDISPLAY_DEVICE":
+    devicename: str, devices: None | list[PyDISPLAY_DEVICE] = None
+) -> PyDISPLAY_DEVICE:
     r"""Get active display device of an output (there can only be one per output).
 
     Return value: display device object or None.
@@ -343,7 +343,7 @@ def get_active_display_device(
 
 def get_active_display_devices(
     attrname: None | str = None,
-) -> list["PyDISPLAY_DEVICE"]:
+) -> list[PyDISPLAY_DEVICE]:
     """Return active display devices.
 
     Args:
@@ -366,7 +366,7 @@ def get_display_device(
     display_no: int = 0,
     use_active_display_device: bool = False,
     exception_cls: Exception = pywintypes.error,
-) -> "PyDISPLAY_DEVICE":
+) -> PyDISPLAY_DEVICE:
     """Get the display device for a given display number.
 
     Args:

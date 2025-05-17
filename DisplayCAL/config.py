@@ -317,7 +317,7 @@ def getbitmap(
     display_missing_icon: bool = True,
     scale: bool = True,
     use_mask: bool = False,
-) -> "wx.Bitmap":
+) -> wx.Bitmap:
     """Create (if necessary) and return a named bitmap.
 
     Args:
@@ -341,7 +341,7 @@ def getbitmap(
 
 def create_bitmap(
     name: str, display_missing_icon: bool, scale: bool, use_mask: bool
-) -> "wx.Bitmap":
+) -> wx.Bitmap:
     """Create a bitmap with the specified name and dimensions.
 
     Args:
@@ -377,7 +377,7 @@ def create_bitmap(
     return load_bitmap(name, parts, ow, oh, w, h, scale, use_mask, display_missing_icon)
 
 
-def create_empty_bitmap(w: int, h: int, use_mask: bool) -> "wx.Bitmap":
+def create_empty_bitmap(w: int, h: int, use_mask: bool) -> wx.Bitmap:
     """Create an empty bitmap with the specified dimensions.
 
     Args:
@@ -410,7 +410,7 @@ def load_bitmap(
     scale: float,
     use_mask: bool,
     display_missing_icon: bool = True,
-) -> "wx.Bitmap":
+) -> wx.Bitmap:
     """Load a bitmap from the specified parts and dimensions.
 
     Args:
@@ -616,7 +616,7 @@ def load_bitmap(
     return bmp
 
 
-def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> "wx.Icon":
+def get_bitmap_as_icon(size: int, name: str, scale: bool = True) -> wx.Icon:
     """Return a wx.Icon instance.
 
     This is like geticon, but returns a wx.Icon instance instead of a wx.Bitmap

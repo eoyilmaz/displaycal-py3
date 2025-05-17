@@ -4,11 +4,12 @@ It supports various platforms and integrates with ArgyllCMS's `dispwin` tool to
 enumerate displays and extract detailed display data.
 """
 
+from __future__ import annotations
+
 import os
 import re
 import subprocess
 import sys
-from typing import Union
 
 from DisplayCAL import argyll
 from DisplayCAL import localization as lang
@@ -248,14 +249,14 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no: int = 0) -> Union[None, dict]:
+def get_display(display_no: int = 0) -> None | dict:
     """Return display data for a given display number.
 
     Args:
         display_no (int): Display number.
 
     Returns:
-        dict: The display data.
+        None | dict: The display data.
     """
     if _displays is None:
         enumerate_displays()

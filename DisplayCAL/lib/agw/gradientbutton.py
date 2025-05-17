@@ -129,7 +129,7 @@ Latest Revision: Andrea Gavana @ 27 Dec 2012, 21.00 GMT
 Version 0.3
 """
 
-from typing import Optional, Union
+from __future__ import annotations
 
 import wx
 
@@ -150,7 +150,7 @@ class GradientButtonEvent(wx.PyCommandEvent):
     def __init__(self, eventType: int, eventId: int) -> None:
         wx.PyCommandEvent.__init__(self, eventType, eventId)
         self.isDown = False
-        self.theButton: Union[None, GradientButton] = None
+        self.theButton: None | GradientButton = None
 
     def SetButtonObj(self, btn: "GradientButton") -> None:
         """Set the event object for the event.
@@ -160,11 +160,11 @@ class GradientButtonEvent(wx.PyCommandEvent):
         """
         self.theButton = btn
 
-    def GetButtonObj(self) -> Union[None, "GradientButton"]:
+    def GetButtonObj(self) -> None | "GradientButton":
         """Return the object associated with this event.
 
         Returns:
-            Union[None, GradientButton]: The button object associated with this event,
+            None | GradientButton: The button object associated with this event,
                 or None if no button is associated.
         """
         return self.theButton
@@ -176,7 +176,7 @@ class GradientButton(wx.Control):
     Args:
         parent (GradientButton): The :class:`GradientButton` parent.
         id (int): Window identifier. A value of -1 indicates a default value.
-        bitmap (Optional[wx.Bitmap]): The button bitmap (if any).
+        bitmap (None | wx.Bitmap): The button bitmap (if any).
         label (str): The button text label;
         pos (wx.Point): The control position.
             A value of (-1, -1) indicates a default position, chosen by either the
@@ -194,7 +194,7 @@ class GradientButton(wx.Control):
         self,
         parent: "GradientButton",
         id: int = wx.ID_ANY,
-        bitmap: Optional[wx.Bitmap] = None,
+        bitmap: None | wx.Bitmap = None,
         label: str = "",
         pos: wx.Point = wx.DefaultPosition,
         size: wx.Size = wx.DefaultSize,
@@ -229,19 +229,19 @@ class GradientButton(wx.Control):
 
         self.SetBaseColours()
 
-    def SetBitmapLabel(self, bitmap: Union[None, wx.Bitmap]) -> None:
+    def SetBitmapLabel(self, bitmap: None | wx.Bitmap) -> None:
         """Set the bitmap label for the button.
 
         Args:
-            bitmap (Union[Non, wx.Bitmap]): the bitmap label to set,.
+            bitmap (None | wx.Bitmap): the bitmap label to set,.
         """
         self._bitmap = bitmap
         self.Refresh()
 
     def SetBaseColours(
         self,
-        startcolour: Union[None, wx.Colour] = None,
-        foregroundcolour: Union[None, wx.Colour] = None,
+        startcolour: None | wx.Colour = None,
+        foregroundcolour: None | wx.Colour = None,
     ) -> None:
         """Set the bottom, top, pressed and foreground colour.
 
@@ -545,11 +545,11 @@ class GradientButton(wx.Control):
         path.CloseSubpath()
         return path
 
-    def SetInitialSize(self, size: Optional[wx.Size] = None) -> None:
+    def SetInitialSize(self, size: None | wx.Size = None) -> None:
         """Calculate and set a suitable size based on font and bezel width.
 
         Args:
-            size (Optional[wx.Size]): A :class:`wx.Size` instance.
+            size (None | wx.Size): A :class:`wx.Size` instance.
         """
         if size is None:
             size = wx.DefaultSize

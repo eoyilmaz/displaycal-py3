@@ -5,6 +5,8 @@ It includes methods for fetching EDID data from Windows, macOS,
 and other platforms, as well as parsing the EDID data into a structured format.
 """
 
+from __future__ import annotations
+
 import contextlib
 import math
 import os
@@ -14,7 +16,6 @@ import struct
 import subprocess
 import sys
 from hashlib import md5
-from typing import Optional, Union
 
 if sys.platform == "win32":
     import threading
@@ -94,8 +95,8 @@ def combine_hi_8lo(hi, lo):
 
 def get_edid(
     display_no: int = 0,
-    display_name: Optional[str] = None,
-    device: Optional[str] = None,
+    display_name: None | str = None,
+    device: None | str = None,
 ) -> dict:
     """Get and parse EDID. Return dict.
 
@@ -104,8 +105,8 @@ def get_edid(
 
     Args:
         display_no (int): The display number (zero-based).
-        display_name (Optional[str]): The display name (for Mac OS X).
-        device (Optional[str]): The device identifier.
+        display_name (None | str): The display name (for Mac OS X).
+        device (None | str): The device identifier.
 
     Returns:
         dict: Parsed EDID data.
@@ -280,14 +281,14 @@ def get_edid_windows_registry(id_, device):
     return edid
 
 
-def get_edid_darwin(display_name: str) -> Union[None, bytes]:
+def get_edid_darwin(display_name: str) -> None | bytes:
     """Get EDID via ioreg on macOS.
 
     Args:
         display_name (str): The display name.
 
     Returns:
-        Union[None, bytes]: Parsed EDID data or None.
+        None | bytes: Parsed EDID data or None.
     """
     # Get EDID via ioreg
     p = subprocess.Popen(

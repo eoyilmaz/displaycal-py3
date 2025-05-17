@@ -74,7 +74,7 @@ import wx.lib.agw.labelbook as LB
 
 class MyFrame(wx.Frame):
 
-    def __init__(self, parent: Union[None, wx.Window]) -> None:
+    def __init__(self, parent: None | wx.Window) -> None:
         wx.Frame.__init__(self, parent, -1, "LabelBook Demo")
 
         # Possible values for Tab placement are INB_TOP, INB_BOTTOM, INB_RIGHT, INB_LEFT
@@ -204,7 +204,6 @@ __version__ = "0.6"
 # ------------------------------------------------------------------------------------ #
 
 from enum import IntFlag
-from typing import Union
 
 import wx
 
@@ -652,12 +651,12 @@ class ImageContainerBase(wx.Panel):
         if imglist and imglist.GetImageCount() != 0:
             self._nImgSize: int = imglist.GetBitmap(0).GetHeight()
 
-        self._ImageList: Union[None, wx.ImageList] = imglist
+        self._ImageList: None | wx.ImageList = imglist
         parent: wx.Window = self.GetParent()
         agwStyle: int = parent.GetAGWWindowStyleFlag()
         parent.SetAGWWindowStyleFlag(agwStyle)
 
-    def GetImageList(self) -> Union[None, wx.ImageList]:
+    def GetImageList(self) -> None | wx.ImageList:
         """Return the image list for :class:`wx.ImageContainerBase`."""
         return self._ImageList
 
@@ -665,7 +664,7 @@ class ImageContainerBase(wx.Panel):
         """Return the image size in the :class:`wx.ImageContainerBase` image list."""
         return self._nImgSize
 
-    def FixTextSize(self, dc: wx.DC, text: str, maxWidth: int) -> Union[None, str]:
+    def FixTextSize(self, dc: wx.DC, text: str, maxWidth: int) -> None | str:
         """Fix the text, to fit `maxWidth` value.
 
         If the text length exceeds `maxWidth` value this function truncates it and
@@ -1519,7 +1518,7 @@ class ImageContainer(ImageContainerBase):
 
     def _get_fixed_text(
         self, dc: wx.DC, caption: str, style: ImageBookStyle, padding: int
-    ) -> Union[None, str]:
+    ) -> None | str:
         if not (
             style & ImageBookStyle.INB_FIT_BUTTON
             or style & (ImageBookStyle.INB_LEFT | ImageBookStyle.INB_RIGHT)
@@ -1662,7 +1661,7 @@ class LabelContainer(ImageContainerBase):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeaveWindow)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
-        self._ImageList: Union[None, wx.ImageList] = None
+        self._ImageList: None | wx.ImageList = None
         self._initialize_image_list()
 
     def _initialize_image_list(self) -> None:
@@ -2156,7 +2155,7 @@ class LabelContainer(ImageContainerBase):
     def DrawWebHover(
         self,
         dc: wx.DC,
-        caption: Union[None, str],
+        caption: None | str,
         xCoord: int,
         yCoord: int,
         selected: bool,
@@ -2793,7 +2792,7 @@ class FlatBookBase(wx.Panel):
         self.ResizeTabArea()
         self.Refresh()
 
-    def DeletePage(self, page: int) -> Union[None, bool]:
+    def DeletePage(self, page: int) -> None | bool:
         """Delete the specified page, and the associated window.
 
         Args:
@@ -3053,7 +3052,7 @@ class FlatBookBase(wx.Panel):
         self._mainSizer.Layout()
         self.Thaw()
 
-    def GetImageList(self) -> Union[None, wx.ImageList]:
+    def GetImageList(self) -> None | wx.ImageList:
         """Return the associated image list."""
         if self._pages is None:
             return None
@@ -3167,7 +3166,7 @@ class FlatBookBase(wx.Panel):
         self._windows[page].Enable(enabled)
         self._pages.EnableTab(page, enabled)
 
-    def GetPage(self, page: int) -> Union[None, wx.Window]:
+    def GetPage(self, page: int) -> None | wx.Window:
         """Return the window at the given page position.
 
         Args:
@@ -3178,7 +3177,7 @@ class FlatBookBase(wx.Panel):
 
         return self._windows[page]
 
-    def GetCurrentPage(self) -> Union[None, wx.Window]:
+    def GetCurrentPage(self) -> None | wx.Window:
         """Return the currently selected notebook page or ``None``."""
         selection: int = self.GetSelection()
         if selection < 0:
@@ -3226,7 +3225,7 @@ class FlatBookBase(wx.Panel):
 
         self.SetSelection(newSelection)
 
-    def ChangeSelection(self, page: int) -> Union[None, int]:
+    def ChangeSelection(self, page: int) -> None | int:
         """Change the selection for the given page, returning the previous selection.
 
         Args:
@@ -3276,12 +3275,12 @@ class FlatBookBase(wx.Panel):
         self.SetPageImage(self.GetSelection(), value)
 
     @property
-    def Page(self) -> Union[None, wx.Window]:
+    def Page(self) -> None | wx.Window:
         """Return the currently selected notebook page or ``None``."""
         return self.GetCurrentPage()
 
     @property
-    def CurrentPage(self) -> Union[None, wx.Window]:
+    def CurrentPage(self) -> None | wx.Window:
         """Return the currently selected notebook page or ``None``."""
         return self.GetCurrentPage()
 

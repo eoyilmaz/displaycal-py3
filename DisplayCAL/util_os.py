@@ -1,5 +1,7 @@
 """This module provides utility functions for operating system-related tasks."""
 
+from __future__ import annotations
+
 import builtins
 import ctypes
 import errno
@@ -14,8 +16,11 @@ import subprocess as sp
 import sys
 import tempfile
 import time
-from collections.abc import Iterator
-from typing import Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 
 from DisplayCAL.encoding import get_encodings
 
@@ -161,12 +166,12 @@ def quote_args(args: list[str]) -> list[str]:
     return args_out
 
 
-def dlopen(name: str, handle: Optional[int] = None):
+def dlopen(name: str, handle: None | int = None):
     """Load a shared library.
 
     Args:
         name (str): The name of the shared library.
-        handle (Optional[int]): The handle of the shared library. Defaults to None.
+        handle (None | int): The handle of the shared library. Defaults to None.
 
     Returns:
         ctypes.CDLL: The loaded shared library.
@@ -177,14 +182,14 @@ def dlopen(name: str, handle: Optional[int] = None):
         pass
 
 
-def find_library(pattern: str, arch: Optional[str] = None) -> str:
+def find_library(pattern: str, arch: None | str = None) -> str:
     """Use ldconfig cache to find installed library.
 
     Can use fnmatch-style pattern matching.
 
     Args:
         pattern (str): The pattern to match the library name.
-        arch (Optional[str]): The architecture of the library. Defaults to None.
+        arch (None | str): The architecture of the library. Defaults to None.
 
     Returns:
         str: The path to the library if found, otherwise None.
@@ -376,12 +381,12 @@ def get_program_file(name: str, foldername: str) -> str:
     return which(name + exe_ext, paths=paths)
 
 
-def getenvu(name: str, default: Optional[str] = None) -> str:
+def getenvu(name: str, default: None | str = None) -> str:
     """Unicode version of os.getenv.
 
     Args:
         name (str): The name of the environment variable.
-        default (Optional[str]): The default value if the environment variable
+        default (None | str): The default value if the environment variable
             is not found. Defaults to None.
 
     Returns:
@@ -400,13 +405,13 @@ def getenvu(name: str, default: Optional[str] = None) -> str:
     return var if isinstance(var, str) else var.encode(fs_enc)
 
 
-def getgroups(username: Optional[str] = None, names_only: bool = False) -> list[str]:
+def getgroups(username: None | str = None, names_only: bool = False) -> list[str]:
     """Return a list of groups that user is member of.
 
     Or groups of current process if username not given.
 
     Args:
-        username (Optional[str]): The username. Defaults to None.
+        username (None | str): The username. Defaults to None.
         names_only (bool, optional): Whether to return only the group names.
             Defaults to False.
 
@@ -419,14 +424,14 @@ def getgroups(username: Optional[str] = None, names_only: bool = False) -> list[
 
 
 def _getgroups_win32(
-    username: Optional[str] = None, names_only: bool = False
+    username: None | str = None, names_only: bool = False
 ) -> list[str]:
     """Return a list of groups that user is member of under Windows.
 
     Or groups of current process if username not given.
 
     Args:
-        username (Optional[str]): The username. Defaults to None.
+        username (None | str): The username. Defaults to None.
         names_only (bool, optional): Whether to return only the group names.
             Defaults to False.
 
@@ -464,13 +469,13 @@ def _getgroups_win32(
     return groups
 
 
-def _getgroups_unix(username: Optional[str] = None, names_only: bool = False):
+def _getgroups_unix(username: None | str = None, names_only: bool = False):
     """Return a list of groups that user is member of under Unix.
 
     Or groups of current process if username not given.
 
     Args:
-        username (Optional[str]): The username. Defaults to None.
+        username (None | str): The username. Defaults to None.
         names_only (bool, optional): Whether to return only the group names.
             Defaults to False.
 
@@ -526,7 +531,7 @@ def is_superuser() -> bool:
         return os.geteuid() == 0
 
 
-def launch_file(filepath: str) -> Union[None, int]:
+def launch_file(filepath: str) -> None | int:
     """Open a file with its assigned default app.
 
     Return tuple(returncode, stdout, stderr) or None if functionality not available.
@@ -535,7 +540,7 @@ def launch_file(filepath: str) -> Union[None, int]:
         filepath (str): The path to the file.
 
     Returns:
-        Union[None, int]: The return code of the launched application.
+        None | int: The return code of the launched application.
     """
     retcode = None
     kwargs = {"stdin": sp.PIPE, "stdout": sp.PIPE, "stderr": sp.PIPE}
@@ -558,12 +563,12 @@ def launch_file(filepath: str) -> Union[None, int]:
     return retcode
 
 
-def listdir_re(path, rex: Optional[str] = None) -> list[str]:
+def listdir_re(path, rex: None | str = None) -> list[str]:
     """Filter directory contents through a regular expression.
 
     Args:
         path (str): The path to the directory.
-        rex (Optional[str]): The regular expression pattern. Defaults to None.
+        rex (None | str): The regular expression pattern. Defaults to None.
 
     Returns:
         list[str]: A list of files matching the regular expression.
@@ -595,7 +600,7 @@ def make_win32_compatible_long_path(path: str, maxpath: int = 259) -> str:
     return path
 
 
-def mkstemp_bypath(path: str, dirname: Optional[str] = None, text: bool = False):
+def mkstemp_bypath(path: str, dirname: None | str = None, text: bool = False):
     """Wrap mkstemp.
 
     Uses filename and extension from path as prefix and suffix for the temporary
@@ -603,7 +608,7 @@ def mkstemp_bypath(path: str, dirname: Optional[str] = None, text: bool = False)
 
     Args:
         path (str): The path to use for generating the temporary file name.
-        dirname (Optional[str]): The directory in which to create the temporary
+        dirname (None | str): The directory in which to create the temporary
             file. Defaults to None.
         text (bool): Whether to open the file in text mode. Defaults to False.
 
@@ -1036,15 +1041,15 @@ def waccess(path: str, mode: int) -> bool:
     return True
 
 
-def which(executable: str, paths: Optional[list[str]] = None) -> Union[None, str]:
+def which(executable: str, paths: None | list[str] = None) -> None | str:
     """Return the full path of executable.
 
     Args:
         executable (str): The name of the executable.
-        paths (Optional[list[str]]): The list of paths to search. Defaults to None.
+        paths (None | list[str]): The list of paths to search. Defaults to None.
 
     Returns:
-        Union[None, str]: The full path of the executable if found, otherwise None.
+        None | str: The full path of the executable if found, otherwise None.
     """
     if not paths:
         paths = getenvu("PATH", os.defpath).split(os.pathsep)
@@ -1063,11 +1068,11 @@ def which(executable: str, paths: Optional[list[str]] = None) -> Union[None, str
 def whereis(
     names: list[str],
     bin: bool = True,
-    bin_paths: Optional[list[str]] = None,
+    bin_paths: None | list[str] = None,
     man: bool = True,
-    man_paths: Optional[list[str]] = None,
+    man_paths: None | list[str] = None,
     src: bool = True,
-    src_paths: Optional[list[str]] = None,
+    src_paths: None | list[str] = None,
     unusual: bool = False,
     list_paths: bool = False,
 ):
@@ -1076,11 +1081,11 @@ def whereis(
     Args:
         names (list[str]): The names to search for.
         bin (bool): Whether to search for binaries. Defaults to True.
-        bin_paths (Optional[list[str]]): The list of binary paths. Defaults to None.
+        bin_paths (None | list[str]): The list of binary paths. Defaults to None.
         man (bool): Whether to search for man pages. Defaults to True.
-        man_paths (Optional[list[str]]): The list of man paths. Defaults to None.
+        man_paths (None | list[str]): The list of man paths. Defaults to None.
         src (bool): Whether to search for source files. Defaults to True.
-        src_paths (Optional[list[str]]): The list of source paths. Defaults to None.
+        src_paths (None | list[str]): The list of source paths. Defaults to None.
         unusual (bool): Whether to search for unusual files. Defaults to False.
         list_paths (bool): Whether to list paths. Defaults to False.
 

@@ -4,6 +4,8 @@ The utilities that were previously spread around are gathered here.
 """
 
 # Standard Library Imports
+from __future__ import annotations
+
 import contextlib
 import os
 import re
@@ -13,7 +15,6 @@ import sys
 import urllib.error
 import urllib.request
 from functools import cache
-from typing import Optional
 
 # Local Imports
 from DisplayCAL import config
@@ -38,11 +39,11 @@ from DisplayCAL.util_str import make_filename_safe
 ARGYLL_UTILS = {}
 
 
-def check_argyll_bin(paths: Optional[list[str]] = None) -> bool:
+def check_argyll_bin(paths: None | list[str] = None) -> bool:
     """Check if the Argyll binaries can be found.
 
     Args:
-        paths (Optional[list[str]]): The paths to look for.
+        paths (None | list[str]): The paths to look for.
 
     Returns:
         bool: True if all required Argyll binaries are found, False otherwise.
@@ -237,11 +238,11 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     return result
 
 
-def check_set_argyll_bin(paths: Optional[list[str]] = None) -> bool:
+def check_set_argyll_bin(paths: None | list[str] = None) -> bool:
     """Check if Argyll binaries can be found, otherwise let the user choose.
 
     Args:
-        paths (Optional[list[str]]): The paths to look for.
+        paths (list[str]): The paths to look for.
     """
     if check_argyll_bin(paths):
         return True

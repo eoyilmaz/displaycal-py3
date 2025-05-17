@@ -1,5 +1,7 @@
 """Runtime configuration and user settings parser."""
 
+from __future__ import annotations
+
 import configparser
 import contextlib
 import locale
@@ -9,7 +11,7 @@ import re
 import string
 import sys
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 if sys.platform == "win32":
     pass
@@ -231,7 +233,7 @@ VIRTUAL_DISPLAYS = UNTETHERED_DISPLAYS + ("madVR$",)
 
 
 def is_special_display(
-    display: Optional[str] = None, tests: list[str] = VIRTUAL_DISPLAYS
+    display: None | str = None, tests: list[str] = VIRTUAL_DISPLAYS
 ) -> bool:
     """Check if the display is a special display.
 
@@ -247,11 +249,11 @@ def is_special_display(
     return any(re.match(test, display) for test in tests)
 
 
-def is_uncalibratable_display(display: Optional[str] = None) -> bool:
+def is_uncalibratable_display(display: None | str = None) -> bool:
     """Check if the display is uncalibratable.
 
     Args:
-        display (Optional[str]): The display name.
+        display (None | str): The display name.
 
     Returns:
         bool: True if the display is uncalibratable, False otherwise.
@@ -267,11 +269,11 @@ def is_non_argyll_display(display=None):
     return is_special_display(display, NON_ARGYLL_DISPLAYS)
 
 
-def is_untethered_display(display: Optional[str] = None) -> bool:
+def is_untethered_display(display: None | str = None) -> bool:
     """Check if the display is untethered.
 
     Args:
-        display (Optional[str]): The display name.
+        display (None | str): The display name.
 
     Returns:
         bool: True if the display is untethered, False otherwise.
@@ -279,11 +281,11 @@ def is_untethered_display(display: Optional[str] = None) -> bool:
     return is_special_display(display, UNTETHERED_DISPLAYS)
 
 
-def is_virtual_display(display: Optional[str] = None) -> bool:
+def is_virtual_display(display: None | str = None) -> bool:
     """Check if the display is virtual.
 
     Args:
-        display (Optional[str]): The display name.
+        display (None | str): The display name.
 
     Returns:
         bool: True if the display is virtual, False otherwise.
@@ -662,11 +664,11 @@ def get_argyll_data_dir() -> str:
     )
 
 
-def get_display_name(disp_index: Optional[int] = None, include_geometry: bool = False):
+def get_display_name(disp_index: None | int = None, include_geometry: bool = False):
     """Return name of currently configured display.
 
     Args:
-        disp_index (Optional[int]): The index of the display.
+        disp_index (None | int): The index of the display.
         include_geometry (bool): Whether to include geometry in the display name.
 
     Returns:
@@ -702,14 +704,14 @@ def split_display_name(display: str) -> str:
     return display.strip()
 
 
-def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> Union[None, int]:
+def get_argyll_display_number(geometry: tuple[int, int, int, int]) -> None | int:
     """Translate from wx display geometry to Argyll display index.
 
     Args:
         geometry (tuple[int, int, int, int]): The geometry of the display.
 
     Returns:
-        Union[None, int]: The Argyll display index.
+        None | int: The Argyll display index.
     """
     geometry = f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
     for i, display in enumerate(getcfg("displays")):
@@ -1960,11 +1962,11 @@ def get_verified_path(cfg_item_name, path=None):
     return defaultDir, defaultFile
 
 
-def is_ccxx_testchart(testchart: Optional[str] = None) -> bool:
+def is_ccxx_testchart(testchart: None | str = None) -> bool:
     """Check whether the testchart is the default chart for CCMX/CCSS creation.
 
     Args:
-        testchart (Optional[str]): The testchart to check.
+        testchart (None | str): The testchart to check.
             If not provided, the default testchart will be used.
 
     Returns:
@@ -2331,7 +2333,7 @@ def writecfg(
     Args:
         which (str): 'user' or 'system'
         worker (DisplayCAL.worker.Worker): worker instance if ``which == 'system'``
-        module (Optional[str]): module name.
+        module (None | str): module name.
         options (tuple[str]): options to write.
         cfg (configparser.ConfigParser): configuration instance.
 

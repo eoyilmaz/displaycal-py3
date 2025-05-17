@@ -4,7 +4,7 @@
 
 import random
 from io import BytesIO
-from typing import Callable, ClassVar, Optional, Union
+from typing import Callable, ClassVar
 
 import wx
 
@@ -237,7 +237,7 @@ class RendererBase:
         dc: wx.DC,
         rect: wx.Rect,
         state: int,
-        input_: Optional[Union[bool, wx.Colour]] = None,
+        input_: None | bool | wx.Colour = None,
     ) -> None:
         """Draw a button using the appropriate theme.
 
@@ -245,7 +245,7 @@ class RendererBase:
             dc (wx.DC): an instance of :class:`wx.DC`.
             rect (wx.Rect): the button's client rectangle.
             state (int): the button state.
-            input_ (Optional[Union[bool, wx.Colour]]): a flag used to call the
+            input_ (None | bool | wx.Colour): a flag used to call the
                 right method.
 
         Raises:
@@ -301,7 +301,7 @@ class RendererXP(RendererBase):
         dc: wx.DC,
         rect: wx.Rect,
         state: int,
-        input_: Optional[Union[bool, wx.Colour]] = None,
+        input_: None | bool | wx.Colour = None,
     ) -> None:
         """Draw a button using the XP theme.
 
@@ -309,7 +309,7 @@ class RendererXP(RendererBase):
             dc (wx.DC): An instance of :class:`wx.DC`.
             rect (wx.Rect): The button's client rectangle.
             state (int): The button state.
-            input_ (Optional[Union[bool, wx.Colour]]): a flag used to call the
+            input_ (None | bool | wx.Colour): a flag used to call the
                 right method.
         """
         if input_ is None or isinstance(input_, bool):
@@ -322,7 +322,7 @@ class RendererXP(RendererBase):
         dc: wx.DC,
         rect: wx.Rect,
         state: int,
-        useLightColours: Optional[bool] = None,
+        useLightColours: None | bool = None,
     ) -> None:
         """Draw a button using the XP theme.
 
@@ -330,7 +330,8 @@ class RendererXP(RendererBase):
             dc (wx.DC): A :class:`wx.DC` instance.
             rect (wx.Rect): The button's client rectangle.
             state (int): The button state.
-            useLightColours (bool): `True` to use light colours, `False` otherwise.
+            useLightColours (None | bool): `True` to use light colours, `False`
+                otherwise.
         """
         # switch according to the status
         if state == CONTROL_FOCUS:
@@ -512,7 +513,7 @@ class RendererMSOffice2007(RendererBase):
         dc: wx.DC,
         rect: wx.Rect,
         state: int,
-        input_: Optional[Union[bool, wx.Colour]] = None,
+        input_: None | bool | wx.Colour = None,
     ) -> None:
         """Draw a button using the MS Office 2007 theme.
 
@@ -520,7 +521,7 @@ class RendererMSOffice2007(RendererBase):
             dc (wx.DC): A :class:`wx.DC` instance.
             rect (wx.Rect): The button's client rectangle.
             state (int): The button state.
-            input_ (Optional[Union[bool, wx.Colour]]): A flag used to call the
+            input_ (None | bool | wx.Colour): A flag used to call the
                 right method.
         """
         if input_ is None or isinstance(input_, bool):
@@ -529,7 +530,7 @@ class RendererMSOffice2007(RendererBase):
             self.DrawButtonColour(dc, rect, state, input_)
 
     def DrawButtonTheme(
-        self, dc: wx.DC, rect: wx.Rect, state: int, useLightColours: Union[None, bool]
+        self, dc: wx.DC, rect: wx.Rect, state: int, useLightColours: None | bool
     ) -> None:
         """Draw a button using the MS Office 2007 theme.
 
@@ -537,7 +538,7 @@ class RendererMSOffice2007(RendererBase):
             dc (wx.DC): an instance of :class:`wx.DC`.
             rect (wx.Rect): the button's client rectangle.
             state (int): the button state.
-            useLightColours (Union[None, bool]): `True` to use light colours,
+            useLightColours (None | bool): `True` to use light colours,
                 ``False`` otherwise.
         """
         self.DrawButtonColour(
@@ -814,13 +815,13 @@ class ArtManager(wx.EvtHandler):
 
     @classmethod
     def ConvertToBitmap(
-        cls, xpm: Union[list[str], bytes], alpha: Optional[list[int]] = None
+        cls, xpm: list[str] | bytes, alpha: None | list[int] = None
     ) -> wx.Bitmap:
         """Convert the given image to a bitmap, optionally overlaying an alpha channel.
 
         Args:
-            xpm (Union[list[str], bytes]): A list of strings formatted as XPM.
-            alpha (Optional[list[int]]): A list of alpha values, the same size
+            xpm (list[str] | bytes): A list of strings formatted as XPM.
+            alpha (None | list[int]): A list of alpha values, the same size
                 as the xpm bitmap.
 
         Raises:
@@ -1496,7 +1497,7 @@ class ArtManager(wx.EvtHandler):
         return evg < 127
 
     @classmethod
-    def TruncateText(cls, dc: wx.DC, text: str, maxWidth: int) -> Union[str, None]:
+    def TruncateText(cls, dc: wx.DC, text: str, maxWidth: int) -> None | str:
         """Truncate a given string to fit given width size.
 
         If the text does not fit into the given width it is truncated to fit.
@@ -1508,7 +1509,7 @@ class ArtManager(wx.EvtHandler):
             maxWidth (int): The maximum width allowed for the text.
 
         Returns:
-            Union[str, None]: A string containing the (possibly) truncated
+            None | str: A string containing the (possibly) truncated
                 text.
         """
         textLen = len(text)
@@ -1545,7 +1546,7 @@ class ArtManager(wx.EvtHandler):
         rect: wx.Rect,
         theme: int,
         state: int,
-        input_: Optional[Union[bool, wx.Colour]] = None,
+        input_: None | bool | wx.Colour = None,
     ) -> None:
         """Colour rectangle according to the theme.
 
@@ -1554,7 +1555,7 @@ class ArtManager(wx.EvtHandler):
             rect (wx.Rect): The rectangle to be filled with gradient shading.
             theme (int): The theme to use to draw the button.
             state (int): The button state.
-            input_ (Optional[Union[bool, wx.Colour]]): A flag used to call the
+            input_ (None | bool | wx.Colour): A flag used to call the
                 right method.
         """
         if input_ is None or isinstance(input_, bool):
@@ -1860,7 +1861,7 @@ class ArtManager(wx.EvtHandler):
 
     def GetTextStartLocation(
         self, dc: wx.DC, rect: wx.Rect, bitmap: wx.Bitmap, text: str, style: int = 0
-    ) -> tuple[float, float, Union[str, None]]:
+    ) -> tuple[float, float, None | str]:
         """Return the top left `x` and `y` coordinates of the text drawing.
 
         In case the text is too long, the text is being fixed (the text is cut
@@ -1874,7 +1875,7 @@ class ArtManager(wx.EvtHandler):
             style (int): The button style.
 
         Returns:
-            tuple[float, float, Union[str, None]]: A tuple containing the top
+            tuple[float, float, None | str]: A tuple containing the top
                 left `x` and `y` coordinates of the text drawing, plus the
                 truncated version of the input `text`.
 
@@ -2125,15 +2126,13 @@ class ArtManager(wx.EvtHandler):
 
         return indexAccel, labelOnly
 
-    def GetThemeBaseColour(
-        self, useLightColours: Union[None, bool] = True
-    ) -> wx.Colour:
+    def GetThemeBaseColour(self, useLightColours: None | bool = True) -> wx.Colour:
         """Return the theme base colour.
 
         If no theme is active, return the active caption colour lightened by 30%.
 
         Args:
-            useLightColours (Union[None, bool]): ``True`` to use light colours,
+            useLightColours (None | bool): ``True`` to use light colours,
                 ``False`` otherwise.
 
         Returns:

@@ -56,7 +56,7 @@ Usage example::
 
     class MyFrame(wx.Frame):
 
-        def __init__(self, parent: Union[None, wx.Window]) -> None:
+        def __init__(self, parent: None | wx.Window) -> None:
 
             wx.Frame.__init__(self, parent, -1, "FourWaySplitter Demo")
 
@@ -140,7 +140,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 Version 0.5
 """
 
-from typing import Optional, Union
+from __future__ import annotations
 
 import wx
 
@@ -193,14 +193,14 @@ class FourWaySplitterEvent(wx.CommandEvent):
 
     Args:
         evtType (int): the event type;
-        splitter (Optional[FourWaySplitter]): The associated :class:`FourWaySplitter`
+        splitter (None | FourWaySplitter): The associated :class:`FourWaySplitter`
             window.
     """
 
     def __init__(
         self,
         evtType: int = wx.wxEVT_NULL,
-        splitter: Optional["FourWaySplitter"] = None,
+        splitter: None | "FourWaySplitter" = None,
     ) -> None:
         wx.CommandEvent.__init__(self, evtType)
 
@@ -209,7 +209,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
             self.SetId(splitter.GetId())
 
         self.sashIdx = -1
-        self.sashPos: Union[int, wx.Point] = -1
+        self.sashPos: int | wx.Point = -1
         self.isAllowed = True
 
     def SetSashIdx(self, idx: int) -> None:
@@ -221,7 +221,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         self.sashIdx = idx
 
-    def SetSashPosition(self, pos: Union[int, wx.Point]) -> None:
+    def SetSashPosition(self, pos: int | wx.Point) -> None:
         """For EVT_SPLITTER_SASH_POS_CHANGED events, set the new sash position.
 
         In the case of ``EVT_SPLITTER_SASH_POS_CHANGING`` events, sets the new
@@ -230,13 +230,13 @@ class FourWaySplitterEvent(wx.CommandEvent):
         handler code to prevent repositioning.
 
         Args:
-            pos (Union[int, wx.Point]): the new sash position.
+            pos (int | wx.Point): the new sash position.
 
         Note:
             May only be called while processing ``EVT_SPLITTER_SASH_POS_CHANGING``
                 and ``EVT_SPLITTER_SASH_POS_CHANGED`` events.
         """
-        self.sashPos: Union[int, wx.Point] = pos
+        self.sashPos: int | wx.Point = pos
 
     def GetSashIdx(self) -> int:
         """Return the index of the sash currently involved in the event.
@@ -246,11 +246,11 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         return self.sashIdx
 
-    def GetSashPosition(self) -> Union[int, wx.Point]:
+    def GetSashPosition(self) -> int | wx.Point:
         """Return the new sash position.
 
         Returns:
-            Union[int, wx.Point]: the new sash position.
+            int | wx.Point: the new sash position.
 
         Note:
             May only be called while processing ``EVT_SPLITTER_SASH_POS_CHANGING`` and
@@ -520,14 +520,14 @@ class FourWaySplitter(wx.Panel):
         if "__WXMSW__" in wx.Platform:
             self.Thaw()
 
-    def GetWindow(self, idx: int) -> Union[None, wx.Window]:
+    def GetWindow(self, idx: int) -> None | wx.Window:
         """Return the window at the index `idx`.
 
         Args:
             idx (int): the index at which the window is located.
 
         Returns:
-            Union[None, wx.Window]: The window at the specified index or `None`
+            None | wx.Window: The window at the specified index or `None`
                 if the index is out of range.
         """
         if len(self._windows) > idx:
@@ -536,41 +536,41 @@ class FourWaySplitter(wx.Panel):
         return None
 
     # Get top left child
-    def GetTopLeft(self) -> Union[None, wx.Window]:
+    def GetTopLeft(self) -> None | wx.Window:
         """Return the top left window (window index: 0).
 
         Returns:
-            Union[wx.Window]: The top left window or ``None`` if the index is
+            None | wx.Window: The top left window or ``None`` if the index is
                 out of range.
         """
         return self.GetWindow(0)
 
     # Get top right child
-    def GetTopRight(self) -> Union[None, wx.Window]:
+    def GetTopRight(self) -> None | wx.Window:
         """Return the top right window (window index: 1).
 
         Returns:
-            Union[None, wx.Window]: The top right window or ``None`` if the
+            None | wx.Window: The top right window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(1)
 
     # Get bottom left child
-    def GetBottomLeft(self) -> Union[None, wx.Window]:
+    def GetBottomLeft(self) -> None | wx.Window:
         """Return the bottom left window (window index: 2).
 
         Returns:
-            Union[None, wx.Window]: The bottom left window or ``None`` if the
+            None | wx.Window: The bottom left window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(2)
 
     # Get bottom right child
-    def GetBottomRight(self) -> Union[None, wx.Window]:
+    def GetBottomRight(self) -> None | wx.Window:
         """Return the bottom right window (window index: 3).
 
         Returns:
-            Union[None, wx.Window]: The bottom right window or ``None`` if the
+            None | wx.Window: The bottom right window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(3)
@@ -1157,10 +1157,10 @@ if __name__ == "__main__":
         It initializes a frame with a FourWaySplitter containing four colored panels.
 
         Args:
-            parent (Union[None, wx.Window]): The parent window for this frame.
+            parent (None | wx.Window): The parent window for this frame.
         """
 
-        def __init__(self, parent: Union[None, wx.Window]) -> None:
+        def __init__(self, parent: None | wx.Window) -> None:
             wx.Frame.__init__(self, parent, -1, "FourWaySplitter Demo")
 
             splitter = FourWaySplitter(self, -1, agwStyle=wx.SP_LIVE_UPDATE)

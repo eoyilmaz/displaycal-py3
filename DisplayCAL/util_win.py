@@ -2,6 +2,8 @@
 features, such as display devices, process management, and color management.
 """
 
+from __future__ import annotations
+
 import _ctypes
 import ctypes
 import platform
@@ -10,7 +12,7 @@ import sys
 import winreg
 from ctypes import POINTER, byref, sizeof, windll, wintypes
 from ctypes.wintypes import DWORD, HANDLE, LPWSTR
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import pywintypes
 import win32api
@@ -225,7 +227,7 @@ def enable_calibration_management(enable: bool = True) -> bool:
 
 
 def enable_per_user_profiles(
-    enable: bool = True, display_no: int = 0, devicekey: Optional[str] = None
+    enable: bool = True, display_no: int = 0, devicekey: None | str = None
 ) -> bool:
     """Enable per user profiles under Vista/Windows 7.
 
@@ -312,7 +314,7 @@ def get_first_display_device(
 
 
 def get_active_display_device(
-    devicename: str, devices: Optional[list["PyDISPLAY_DEVICE"]] = None
+    devicename: str, devices: None | list["PyDISPLAY_DEVICE"] = None
 ) -> "PyDISPLAY_DEVICE":
     r"""Get active display device of an output (there can only be one per output).
 
@@ -324,7 +326,7 @@ def get_active_display_device(
 
     Args:
         devicename (str): The device name.
-        devices (Optional[list[PyDISPLAY_DEVICE]]): List of devices.
+        devices (None | list[PyDISPLAY_DEVICE]): List of devices.
 
     Returns:
         PyDISPLAY_DEVICE: The active display device (display device object) or None.
@@ -340,12 +342,12 @@ def get_active_display_device(
 
 
 def get_active_display_devices(
-    attrname: Optional[str] = None,
+    attrname: None | str = None,
 ) -> list["PyDISPLAY_DEVICE"]:
     """Return active display devices.
 
     Args:
-        attrname (Optional[str]): The attribute name to get from the display device.
+        attrname (None | str): The attribute name to get from the display device.
 
     Returns:
         list[PyDISPLAY_DEVICE]: List of active display devices.
@@ -540,7 +542,7 @@ def get_windows_error(errorcode: int) -> ctypes.WinError:
 
 
 def per_user_profiles_isenabled(
-    display_no: int = 0, devicekey: Optional[str] = None
+    display_no: int = 0, devicekey: None | str = None
 ) -> bool:
     """Check if per user profiles is enabled under Vista/Windows 7.
 

@@ -2,6 +2,8 @@
 :class:`~wx.lib.agw.labelbook.LabelBook` and :class:`~wx.lib.agw.flatmenu.FlatMenu`.
 """
 
+from __future__ import annotations
+
 import random
 from io import BytesIO
 from typing import Callable, ClassVar
@@ -892,7 +894,7 @@ class ArtManager(wx.EvtHandler):
         return self._bitmaps.get(name, wx.NullBitmap)
 
     @classmethod
-    def Get(cls: type["ArtManager"]) -> "ArtManager":
+    def Get(cls: type[ArtManager]) -> ArtManager:
         """Accessor to the unique art manager object.
 
         Returns:

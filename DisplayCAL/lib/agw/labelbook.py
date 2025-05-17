@@ -196,6 +196,8 @@ Latest Revision: Andrea Gavana @ 22 Jan 2013, 21.00 GMT
 Version 0.6.
 """
 
+from __future__ import annotations
+
 __version__ = "0.6"
 
 

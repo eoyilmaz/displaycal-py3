@@ -587,9 +587,7 @@ class LUTCanvas(plot.PlotCanvas):
             if len(obj.points) == 0 or isinstance(obj, PolyBox):
                 continue  # go to next obj
             # [curveNumber, legend, index of closest point, pointXY, scaledXY, distance]
-            cn = (
-                [curveNum] + [obj.getLegend()] + obj.getClosestPoint(pntXY, pointScaled)
-            )
+            cn = [curveNum, obj.getLegend(), *obj.getClosestPoint(pntXY, pointScaled)]
             l.append(cn)
         return l
 
@@ -1584,7 +1582,8 @@ class LUTFrame(BaseFrame):
         self.DrawLUT()
 
     def get_commands(self):
-        return self.get_common_commands() + [
+        return [
+            *self.get_common_commands(),
             "curve-viewer [filename]",
             "load <filename>",
         ]
@@ -2436,7 +2435,7 @@ class LUTFrame(BaseFrame):
                         legend.append("Gamma {}".format(" ".join(gamma)))
                 if self.profile.connectionColorSpace != b"RGB":
                     self.add_tone_values(legend)
-                legend = [", ".join(legend[:-1])] + [legend[-1]]
+                legend = [", ".join(legend[:-1]), legend[-1]]
                 self.SetStatusText("\n".join(legend))
                 # Make up dictionary to pass to DrawPointLabel
                 mDataDict = {

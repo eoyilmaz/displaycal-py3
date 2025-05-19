@@ -2023,7 +2023,7 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
         search.append((b"EDID", b"0x" + binascii.hexlify(edid["edid"]).upper()))
     # Fallback to X11 name
     search.append((b"NAME", name))
-    for path in [XDG_CONFIG_HOME] + XDG_CONFIG_DIRS:
+    for path in [XDG_CONFIG_HOME, *XDG_CONFIG_DIRS]:
         color_jcnf = os.path.join(path, "color.jcnf")
         if not os.path.isfile(color_jcnf):
             continue
@@ -2179,13 +2179,13 @@ def _winreg_get_display_profiles(monkey, current_user=False):
                     "ICM",
                     "ProfileAssociations",
                     "Display",
+                    *monkey,
                 ]
-                + monkey
             )
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, subkey)
         else:
             subkey = "\\".join(
-                ["SYSTEM", "CurrentControlSet", "Control", "Class"] + monkey
+                ["SYSTEM", "CurrentControlSet", "Control", "Class", *monkey]
             )
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey)
         numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)

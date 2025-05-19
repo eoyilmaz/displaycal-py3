@@ -606,7 +606,7 @@ def vcgt_to_cal(profile):
     context[key].type = key.encode("utf-8")
     values = profile.tags.vcgt.getNormalizedValues()
     for i, triplet in enumerate(values):
-        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)),) + triplet)
+        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)), *triplet))
     return cgats
 
 

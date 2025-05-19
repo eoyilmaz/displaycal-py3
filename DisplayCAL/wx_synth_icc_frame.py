@@ -106,7 +106,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self._updating_ctrls = False
 
         # Presets
-        presets = [""] + sorted(colormath.rgb_spaces.keys())
+        presets = ["", *sorted(colormath.rgb_spaces.keys())]
         self.preset_ctrl.SetItems(presets)
 
         self.set_default_cat()
@@ -317,7 +317,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         for component in "xy":
             xy.append(getattr(self, f"black_{component}").GetValue() or 1.0 / 3)
             getattr(self, f"black_{component}").SetValue(xy[-1])
-        for i, v in enumerate(colormath.xyY2XYZ(*xy + [Y])):
+        for i, v in enumerate(colormath.xyY2XYZ(*[*xy, Y])):
             getattr(self, "black_{}".format("XYZ"[i])).SetValue(v * 100)
 
     def blue_XYZ_ctrl_handler(self, event):
@@ -712,7 +712,8 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self._updating_ctrls = False
 
     def get_commands(self):
-        return self.get_common_commands() + [
+        return [
+            *self.get_common_commands(),
             "synthprofile [filename]",
             "load <filename>",
         ]
@@ -1137,7 +1138,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.tech = dict(
             get_mapping(
-                [("", "unspecified")] + list(TECH.items()),
+                [("", "unspecified"), *list(TECH.items())],
                 [
                     "",
                     "fscn",
@@ -1160,7 +1161,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
         self.ciis = dict(
             get_mapping(
-                [("", "unspecified")] + list(CIIS.items()),
+                [("", "unspecified"), *list(CIIS.items())],
                 ["", "scoe", "sape", "fpce"],
             )
         )

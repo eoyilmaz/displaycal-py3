@@ -497,10 +497,11 @@ class ResolveLSPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
         rgb, bgrgb, bits = self._get_rgb(rgb, bgrgb, bits, use_video_levels)
         xml = (
             '<?xml version="1.0" encoding="UTF-8" ?><calibration><shapes>'
-            '<rectangle><color red="{:d}" green="{:d}" blue="{:d}" />'
-            '<geometry x="{:.4f}" y="{:.4f}" cx="{:.4f}" cy="{:.4f}" />'
+            "<rectangle>"
+            f'<color red="{rgb[0]:d}" green="{rgb[1]:d}" blue="{rgb[2]:d}" />'
+            f'<geometry x="{x:.4f}" y="{y:.4f}" cx="{w:.4f}" cy="{h:.4f}" />'
             "</rectangle>"
-            "</shapes></calibration>".format(*tuple(rgb + [x, y, w, h]))
+            "</shapes></calibration>"
         )
         self.conn.sendall(struct.pack(">I", len(xml)) + xml.encode("utf-8"))
 
@@ -526,10 +527,12 @@ class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
         rgb, bgrgb, bits = self._get_rgb(rgb, bgrgb, bits, use_video_levels)
         xml = (
             '<?xml version="1.0" encoding="utf-8"?><calibration>'
-            '<color red="{:d}" green="{:d}" blue="{:d}" bits="{:d}"/>'
-            '<background red="{:d}" green="{:d}" blue="{:d}" bits="{:d}"/>'
-            '<geometry x="{:.4f}" y="{:.4f}" cx="{:.4f}" cy="{:.4f}"/>'
-            "</calibration>".format(*tuple(rgb + [bits] + bgrgb + [bits, x, y, w, h]))
+            f'<color red="{rgb[0]:d}" green="{rgb[1]:d}" '
+            f'blue="{rgb[2]:d}" bits="{bits:d}"/>'
+            f'<background red="{bgrgb[0]:d}" green="{bgrgb[1]:d}" '
+            f'blue="{bgrgb[2]:d}" bits="{bits:d}"/>'
+            f'<geometry x="{x:.4f}" y="{y:.4f}" cx="{w:.4f}" cy="{h:.4f}"/>'
+            "</calibration>"
         )
         self.conn.sendall(struct.pack(">I", len(xml)) + xml.encode("utf-8"))
 

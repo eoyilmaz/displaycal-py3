@@ -156,7 +156,7 @@ def pool_slice(
             results.append(
                 pool.apply_async(
                     WorkerFunc(func, batch == num_batches - 1),
-                    (data_in[start:end], thread_abort_event, progress_queue) + args,
+                    (data_in[start:end], thread_abort_event, progress_queue, *args),
                     kwds,
                 )
             )

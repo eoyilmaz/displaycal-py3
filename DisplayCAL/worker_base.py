@@ -223,7 +223,7 @@ def _mp_generate_B2A_clut(
                     # raw_input()
                     if intent == "a":
                         v = colormath.adapt(
-                            *v + [XYZwp, list(profile.tags.wtpt.ir.values())]
+                            *[*v, XYZwp, list(profile.tags.wtpt.ir.values())]
                         )
                 else:
                     # Legacy CIELAB

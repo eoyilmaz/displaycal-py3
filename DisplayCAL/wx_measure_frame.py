@@ -796,7 +796,7 @@ class MeasureFrame(InvincibleFrame):
         if DEBUG:
             print("[D]  measureframe_pos:", measureframe_pos)
         measureframe_dimensions = ",".join(
-            str(max(0, n)) for n in measureframe_pos + [scale]
+            str(max(0, n)) for n in [*measureframe_pos, scale]
         )
         if DEBUG:
             print("[D]  measureframe_dimensions:", measureframe_dimensions)

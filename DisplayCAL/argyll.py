@@ -88,7 +88,7 @@ def check_argyll_bin(paths: None | list[str] = None) -> bool:
             if argyll_dir:
                 if argyll_dir in paths:
                     paths.remove(argyll_dir)
-                paths = [argyll_dir] + paths
+                paths = [argyll_dir, *paths]
         print("[D] Search path:\n  ", "\n  ".join(paths))
     # Fedora doesn't ship Rec709.icm
     config.DEFAULTS["3dlut.input.profile"] = (
@@ -264,7 +264,7 @@ def get_argyll_util(name, paths=None):
         if argyll_dir:
             if argyll_dir in paths:
                 paths.remove(argyll_dir)
-            paths = [argyll_dir] + paths
+            paths = [argyll_dir, *paths]
     cache_key = os.pathsep.join(paths)
     exe = ARGYLL_UTILS.get(cache_key, {}).get(name, None)
     if exe:

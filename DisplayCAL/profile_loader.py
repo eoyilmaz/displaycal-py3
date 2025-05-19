@@ -1264,7 +1264,8 @@ class ProfileLoader:
                     self.Bind(wx.EVT_DISPLAY_CHANGED, self.pl._display_changed)
 
                 def get_commands(self):
-                    return self.get_common_commands() + [
+                    return [
+                        *self.get_common_commands(),
                         "apply-profiles [force | display-changed]",
                         "notify <message> [silent] [sticky]",
                         "reset-vcgt [force]",

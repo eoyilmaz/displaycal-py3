@@ -1314,7 +1314,8 @@ class DisplayAdjustmentFrame(windowcls):
             self.lb.GetCurrentPage().initial_br = [
                 initial_br.groups()[0],
                 float(initial_br.groups()[1]),
-            ] + list(initial_br.groups()[2:])
+                *list(initial_br.groups()[2:]),
+            ]
         if self.lb.GetCurrentPage().ctrltype != "check_all":
             current_br = re.search(
                 r"Current(?: Br)? (\d+(?:\.\d+)?)".replace(" ", r"\s+"), txt, re.I

@@ -2237,7 +2237,7 @@ Transform {
                 else:
                     labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
                     index = 1  # Index of Y in labels
-                data = dataset.queryi(("RGB_R", "RGB_G", "RGB_B") + labels)
+                data = dataset.queryi(("RGB_R", "RGB_G", "RGB_B", *labels))
 
                 # Get blacks
                 blacks = data.queryi({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})

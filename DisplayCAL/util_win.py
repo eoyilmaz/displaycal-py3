@@ -120,8 +120,8 @@ def _get_icm_display_device_key(devicekey):
             "ICM",
             "ProfileAssociations",
             "Display",
+            *monkey,
         ]
-        + monkey
     )
     return winreg.CreateKey(winreg.HKEY_CURRENT_USER, subkey)
 

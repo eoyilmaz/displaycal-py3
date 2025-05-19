@@ -88,7 +88,7 @@ def osascript(applescript):
 
     """
     args = get_osascript_args(applescript)
-    p = sp.Popen(["osascript"] + args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    p = sp.Popen(["osascript", *args], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
     output, errors = p.communicate()
     retcode = p.wait()
     return retcode, output, errors

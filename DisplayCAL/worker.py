@@ -1551,7 +1551,7 @@ class FilteredStream:
     discard = ""
 
     # If one of the triggers is contained in a line, skip the whole line
-    triggers = [
+    triggers: ClassVar[list] = [
         "Place instrument on test window",
         "key to continue",
         "key to retry",
@@ -1566,7 +1566,8 @@ class FilteredStream:
         "read failed due to the sensor being in the wrong position",
         "Ambient filter should be removed",
         "The instrument can be removed from the screen",
-    ] + INST_CAL_MSGS
+        *INST_CAL_MSGS,
+    ]
 
     substitutions: ClassVar[dict] = {
         r"\^\[": "",  # ESC key on Linux/OSX
@@ -2079,7 +2080,7 @@ class Worker(WorkerBase):
             LineCache(maxlines=3),
             self.pty_encoding,
             discard=self.recent_discard,
-            triggers=self.triggers + ["stopped at user request"],
+            triggers=[*self.triggers, "stopped at user request"],
             prestrip=prestrip,
         )
         self.lastmsg = FilteredStream(
@@ -4702,7 +4703,7 @@ END_DATA
                 ) or file_format == "icc"
                 result = self.exec_cmd(
                     collink,
-                    args + [profile_in_basename, profile_out_basename, link_filename],
+                    [*args, profile_in_basename, profile_out_basename, link_filename],
                     capture_output=True,
                     skip_scripts=True,
                 )
@@ -4735,8 +4736,8 @@ END_DATA
                         (
                             "collink.args",
                             sp.list2cmdline(
-                                args
-                                + [
+                                [
+                                    *args,
                                     profile_in_basename,
                                     profile_out_basename,
                                     link_basename,
@@ -5308,9 +5309,10 @@ END_DATA
                         # (Argyll CMS 1.7)
                         DEFAULTS["calibration.black_point_hack"] = 1
 
+                    # TODO: OBSERVERS should include 2012_2 and 2012_10 already.
                     if self.argyll_version >= [1, 9, 4]:
                         # Add CIE 2012 observers
-                        valid_observers = natsort(OBSERVERS + ["2012_2", "2012_10"])
+                        valid_observers = natsort([*OBSERVERS, "2012_2", "2012_10"])
                     else:
                         valid_observers = OBSERVERS
                     for key in [
@@ -6448,7 +6450,7 @@ BEGIN_DATA
                 if use_madnet:
                     self.madtpg_disconnect()
                 return UnloggedInfo(lang.getstr("dry_run.info"))
-        cmdline = [cmd] + args
+        cmdline = [cmd, *args]
         for i, item in enumerate(cmdline):
             if i > 0 and item.find(os.path.sep) > -1:
                 if sys.platform == "win32":
@@ -6638,7 +6640,7 @@ BEGIN_DATA
                         appfilename = os.path.join(
                             working_dir, f"{working_basename}.{cmdname}.app"
                         )
-                        cmdargs = ["osacompile"] + script + [appfilename.decode()]
+                        cmdargs = ["osacompile", *script, appfilename.decode()]
                         p = sp.Popen(
                             cmdargs, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
                         )
@@ -6655,7 +6657,7 @@ BEGIN_DATA
                         appfilename = os.path.join(
                             working_dir, working_basename + ".all.app"
                         )
-                        cmdargs = ["osacompile"] + script + [appfilename]
+                        cmdargs = ["osacompile", *script, appfilename]
                         p = sp.Popen(
                             cmdargs, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
                         )
@@ -6923,7 +6925,7 @@ BEGIN_DATA
                     self.subprocess.logfile_read = logfiles
                     if self.measure_cmd:
                         keyhit_strs = [" or Q to ", r"8\) Exit"]
-                        patterns = keyhit_strs + ["Current", r" \d+ of \d+"]
+                        patterns = [*keyhit_strs, "Current", r" \d+ of \d+"]
                         self.log(f"{APPNAME}: Starting interaction with subprocess")
                     else:
                         patterns = []
@@ -6934,13 +6936,13 @@ BEGIN_DATA
                     eof = False
                     while 1:
                         if loop < 1 and sudo:
-                            curpatterns = ["Password:"] + patterns
+                            curpatterns = ["Password:", *patterns]
                         else:
                             curpatterns = patterns
                         # NOTE: Using a timeout of None can block indefinitely
                         # and prevent expect() from ever returning!
                         self.subprocess.expect(
-                            curpatterns + [wexpect.EOF, wexpect.TIMEOUT], timeout=1
+                            [*curpatterns, wexpect.EOF, wexpect.TIMEOUT], timeout=1
                         )
                         if self.subprocess.after is wexpect.EOF:
                             self.log(f"{APPNAME}: Reached EOF (OK)")
@@ -7472,7 +7474,7 @@ BEGIN_DATA
                 if v > XYZ[i]:
                     raise Error(
                         "xicclu: Invalid primary {} XYZ: {:.4f} {:.4f} {:.4f}".format(
-                            *(("RGB"[i],) + tuple(XYZ))
+                            *("RGB"[i], *XYZ)
                         )
                     )
 
@@ -7481,9 +7483,7 @@ BEGIN_DATA
             logfile.write("White XYZ: {:.4f} {:.4f} {:.4f}\n".format(*XYZwp))
             for i in range(3):
                 logfile.write(
-                    "{} XYZ: {:.4f} {:.4f} {:.4f}\n".format(
-                        *(("RGB"[i],) + tuple(XYZrgb[i]))
-                    )
+                    "{} XYZ: {:.4f} {:.4f} {:.4f}\n".format(*("RGB"[i], *XYZrgb[i]))
                 )
 
         # Prepare input PCS values
@@ -7563,7 +7563,7 @@ BEGIN_DATA
                 odata.insert(0, [0, 0, 0])
             oXYZ = idata
             D50 = colormath.get_whitepoint("D50")
-            fpL = [colormath.XYZ2Lab(*v + [D50])[0] for v in oXYZ]
+            fpL = [colormath.XYZ2Lab(*[*v, D50])[0] for v in oXYZ]
         else:
             oXYZ = [colormath.Lab2XYZ(*v) for v in idata]
             fpL = [v[0] for v in idata]
@@ -7598,18 +7598,14 @@ BEGIN_DATA
                         # Set to black
                         self.log(
                             "Setting curve entry #{:d} ({:.6f} {:.6f} {:.6f}) to "
-                            "black because it got clipped".format(
-                                *((i,) + tuple(values[:3]))
-                            )
+                            "black because it got clipped".format(*(i, *values[:3]))
                         )
                         values[:] = [0.0, 0.0, 0.0]
                     elif i == maxval and [round(v, 4) for v in values[:3]] == [1, 1, 1]:
                         # Set to white
                         self.log(
                             "Setting curve entry #{:d} ({:.6f} {:.6f} {:.6f}) to "
-                            "white because it got clipped".format(
-                                *((i,) + tuple(values[:3]))
-                            )
+                            "white because it got clipped".format(*(i, *values[:3]))
                         )
                         values[:] = [1.0, 1.0, 1.0]
                 else:
@@ -7921,7 +7917,7 @@ BEGIN_DATA
 
             if rgb_space:
                 rgb_space = list(rgb_space[:5])
-                rgb_spaces = [rgb_space + ["Custom"]]
+                rgb_spaces = [*rgb_space, "Custom"]
 
             # Find smallest candidate that encompasses space defined by actual
             # primaries
@@ -8078,7 +8074,7 @@ BEGIN_DATA
             for i in range(3):
                 logfile.write(
                     "Using {} XYZ: {:.4f} {:.4f} {:.4f}\n".format(
-                        *(("RGB"[i],) + tuple(XYZrgb[i]))
+                        *("RGB"[i], *XYZrgb[i])
                     )
                 )
 
@@ -8433,18 +8429,14 @@ BEGIN_DATA
                         # Set to black
                         self.log(
                             "Setting curve entry #{:d} ({:.6f} {:.6f} {:.6f}) to "
-                            "black because it got clipped".format(
-                                *((i,) + tuple(values[:3]))
-                            )
+                            "black because it got clipped".format(*(i, *values[:3]))
                         )
                         values[:] = [0.0, 0.0, 0.0]
                     elif i == maxval and [round(v, 4) for v in values[:3]] == [1, 1, 1]:
                         # Set to white
                         self.log(
                             "Setting curve entry #{:d} ({:.6f} {:.6f} {:.6f}) to "
-                            "white because it got clipped".format(
-                                *((i,) + tuple(values[:3]))
-                            )
+                            "white because it got clipped".format(*(i, *values[:3]))
                         )
                         values[:] = [1.0, 1.0, 1.0]
                 else:
@@ -8882,7 +8874,7 @@ usage: spotread [-options] [logfile]
                             # Found a mode for our instrument
                             if (
                                 re.sub(r"\s*\(.*?\)?$", "", desc)
-                                in list(technology_strings.values()) + [""]
+                                in [*technology_strings.values(), ""]
                                 and skip_ccxx_modes
                             ):
                                 # This mode is supplied via CCMX/CCSS, skip
@@ -9010,7 +9002,7 @@ usage: spotread [-options] [logfile]
             args.insert(0, "-Sl")
         return self.exec_cmd(
             cmd,
-            ["-v"] + args,
+            ["-v", *args],
             capture_output=True,
             skip_scripts=True,
             silent=False,
@@ -9048,7 +9040,7 @@ usage: spotread [-options] [logfile]
                 return Error(
                     lang.getstr(
                         "3dlut.madvr.colorspace.unsupported",
-                        [rgb_space_name or lang.getstr("unknown")] + list(xy[:6]),
+                        [rgb_space_name or lang.getstr("unknown"), *xy[:6]],
                     )
                 )
             args = [path, True, slot]
@@ -10132,7 +10124,7 @@ usage: spotread [-options] [logfile]
             try:
                 shell_exec(
                     cmd,
-                    loader_args + ["--skip"],
+                    [*loader_args, "--skip"],
                     operation="runas" if elevate else "open",
                     wait_for_idle=True,
                 )
@@ -10832,7 +10824,7 @@ usage: spotread [-options] [logfile]
                                 self.log(
                                     "Applying black offset L*a*b* "
                                     "{:.2f} {:.2f} {:.2f} to {}...".format(
-                                        *(Labbp + (gamap_profile.getDescription(),))
+                                        *(*Labbp, gamap_profile.getDescription())
                                     )
                                 )
                                 XYZbp = colormath.Lab2XYZ(*Labbp)
@@ -12340,7 +12332,7 @@ usage: spotread [-options] [logfile]
                 raise Error(lang.getstr("madvr.outdated", madvr.min_version))
             self.log(
                 "Connected to madVR version {:d}.{:d}.{:d}.{:d} ({})".format(
-                    *(madvr_version + (self.madtpg.uri,))
+                    *(*madvr_version, self.madtpg.uri)
                 )
             )
             self.madtpg.set_osd_text("\u25b6")  # "Play" symbol
@@ -13570,7 +13562,7 @@ usage: spotread [-options] [logfile]
             result = self.set_terminal_cgats(cgats)
             if isinstance(result, Exception):
                 return result, None
-        return cmd, self.options_dispread + [inoutfile]
+        return cmd, [*self.options_dispread, inoutfile]
 
     def prepare_dispwin(self, cal=None, profile_path=None, install=True):
         """Prepare a dispwin commandline.
@@ -14568,7 +14560,7 @@ usage: spotread [-options] [logfile]
         sender = delayedresult.SenderCallAfter(
             self._generic_consumer,
             jobID,
-            args=[consumer, continue_next] + list(cargs),
+            args=[consumer, continue_next, *list(cargs)],
             kwargs=ckwargs,
         )
         self.thread = delayedresult.Producer(
@@ -15103,7 +15095,7 @@ usage: spotread [-options] [logfile]
             XYZwscaled = self.xicclu(profile, RGBscaled[-1], "a", pcs="x")[0]
             logfiles.write(
                 "XYZ white {:6.4f} {:6.4f} {:6.4f}, CCT {:0.0f}\n".format(
-                    *(XYZwscaled + [colormath.XYZ2CCT(*XYZwscaled)])
+                    *[*XYZwscaled, colormath.XYZ2CCT(*XYZwscaled)]
                 )
             )
         else:

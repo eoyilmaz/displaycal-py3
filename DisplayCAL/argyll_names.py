@@ -105,4 +105,5 @@ INTENTS = ["a", "aa", "aw", "la", "lp", "ms", "p", "pa", "r", "s"]
 VIDEO_ENCODINGS = ["n", "t", "6", "7", "5", "2", "C", "x", "X"]
 
 # Observers
+# TODO: OBSERVERS should include 2012_2 and 2012_10.
 OBSERVERS = ["1931_2", "1955_2", "1964_10", "1964_10c", "1978_2", "shaw"]

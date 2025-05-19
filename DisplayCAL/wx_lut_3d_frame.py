@@ -589,7 +589,7 @@ class LUT3DMixin:
                                 break
                     else:
                         # Assume OS X
-                        volumes = ["/"] + safe_glob("/Volumes/*")
+                        volumes = ["/", *safe_glob("/Volumes/*")]
                         for volume in volumes:
                             lut_dir = os.path.join(
                                 volume,
@@ -1120,7 +1120,7 @@ class LUT3DMixin:
 
         self.lut3d_content_colorspace_names = ["Rec. 2020", "DCI P3 D65", "Rec. 709"]
         self.lut3d_content_colorspace_ctrl.SetItems(
-            self.lut3d_content_colorspace_names + [lang.getstr("custom")]
+            [*self.lut3d_content_colorspace_names, lang.getstr("custom")]
         )
 
         self.rendering_intents_ab = {}
@@ -1688,7 +1688,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
             self.set_profile("output", profile_path or False, silent=not event)
 
     def get_commands(self):
-        return self.get_common_commands() + ["3DLUT-maker [create <filename>]"]
+        return [*self.get_common_commands(), "3DLUT-maker [create <filename>]"]
 
     def process_data(self, data):
         if data[0] == "3DLUT-maker" and (

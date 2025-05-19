@@ -1071,7 +1071,7 @@ class BaseFrame(wx.Frame):
                             "%Y-%m-%dTH:%M:%S.%f"
                         )
                         line = str(line)
-                        print(lang.getstr("app.incoming_message", addrport + (line,)))
+                        print(lang.getstr("app.incoming_message", (*addrport, line)))
                         data = split_command_line(line)
                         response = None
                         # Non-UI commands
@@ -1319,7 +1319,7 @@ class BaseFrame(wx.Frame):
         return scripting_hosts
 
     def get_top_window(self):
-        windows = [active_window or self] + list(wx.GetTopLevelWindows())
+        windows = [active_window or self, *list(wx.GetTopLevelWindows())]
         while windows:
             win = windows.pop()
             if win and isinstance(win, wx.Dialog) and win.IsShown():
@@ -3193,7 +3193,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         tempValue = self.history[index] if self.history and index > -1 else ""
         self.history = []
         control.Clear()
-        for path in value + [tempValue]:
+        for path in [*value, tempValue]:
             if path:
                 self.history.append(path)
                 control.Append(self.GetName(path))

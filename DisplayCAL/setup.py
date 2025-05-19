@@ -700,10 +700,14 @@ def setup():
             data_files.append(
                 (
                     os.path.join(os.path.dirname(data), "applications"),
-                    [os.path.join(pydir, "..", "misc", f"{NAME.lower()}.desktop")]
-                    + safe_glob(
-                        os.path.join(pydir, "..", "misc", f"{NAME.lower()}-*.desktop")
-                    ),
+                    [
+                        os.path.join(pydir, "..", "misc", f"{NAME.lower()}.desktop"),
+                        *safe_glob(
+                            os.path.join(
+                                pydir, "..", "misc", f"{NAME.lower()}-*.desktop"
+                            )
+                        ),
+                    ],
                 )
             )
             data_files.append(
@@ -1061,7 +1065,7 @@ def setup():
             f"{appname.lower()}-apply-profiles-launcher",
             f"{appname} Profile Loader Launcher",
         )
-        for script, _desc in scripts + [apply_profiles_launcher]:
+        for script, _desc in [*scripts, apply_profiles_launcher]:
             shutil.copy(
                 os.path.join(source_dir, "scripts", script),
                 os.path.join(tmp_scripts_dir, script2pywname(script)),
@@ -1496,7 +1500,7 @@ def setup():
             # manifest_in.append("include " + os.path.join(pkgdir, "*.pyd"))
             # manifest_in.append("include " + os.path.join(pkgdir, "*.so"))
             manifest_in.extend(
-                f"include {os.path.sep.join([pkgdir] + obj.split('/'))}"
+                f"include {os.path.sep.join([pkgdir, *obj.split('/')])}"
                 for obj in attrs.get("package_data", {}).get(pkg, [])
             )
         manifest_in.extend(

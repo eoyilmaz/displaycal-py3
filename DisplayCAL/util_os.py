@@ -1156,7 +1156,7 @@ def execute_whereis(names: list[str], args: list[Any]) -> dict:
     """
     if isinstance(names, str):
         names = [names]
-    p = sp.Popen(["whereis"] + args + names, stdout=sp.PIPE)
+    p = sp.Popen(["whereis", *args, *names], stdout=sp.PIPE)
     stdout, stderr = p.communicate()
     return parse_whereis_output(stdout)
 

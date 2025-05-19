@@ -98,7 +98,8 @@ if gui:
             wx.CallAfter(self.Destroy)
 
         def get_commands(self):
-            return self.get_common_commands() + [
+            return [
+                *self.get_common_commands(),
                 "VRML-to-X3D-converter [filename...]",
                 "load <filename...>",
             ]

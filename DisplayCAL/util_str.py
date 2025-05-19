@@ -17,7 +17,7 @@ env_errors = (EnvironmentError,)
 if sys.platform == "win32":
     import pywintypes
 
-    env_errors = env_errors + (pywintypes.error, pywintypes.com_error)
+    env_errors = (*env_errors, pywintypes.error, pywintypes.com_error)
 
 from DisplayCAL.encoding import get_encodings
 

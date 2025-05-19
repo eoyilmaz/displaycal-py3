@@ -506,7 +506,7 @@ def build_py2exe():
         f"{appname.lower()}-apply-profiles-launcher",
         f"{appname} Profile Loader Launcher",
     )
-    for script, _desc in scripts + [apply_profiles_launcher]:
+    for script, _desc in [*scripts, apply_profiles_launcher]:
         shutil.copy(
             os.path.join(source_dir, "scripts", script),
             os.path.join(tmp_scripts_dir, script2pywname(script)),
@@ -696,7 +696,7 @@ def build_py2exe():
         # manifest_in.append("include " + os.path.join(pkgdir, "*.so"))
         for obj in attrs.get("package_data", {}).get(pkg, []):
             print(f"obj: {obj}")
-            manifest_in.append("include " + os.path.sep.join([pkgdir] + obj.split("/")))
+            manifest_in.append(f"include {os.path.sep.join([pkgdir, *obj.split('/')])}")
     manifest_in.extend(
         "include {}".format(os.path.join(*pymod.split(".")))
         for pymod in attrs.get("py_modules", [])

@@ -47,7 +47,7 @@ AUTHOR_EMAIL = ", ".join(
     ]
 )
 NAME = "DisplayCAL"
-APPSTREAM_ID = ".".join(reversed([NAME] + DOMAIN.split(".")))
+APPSTREAM_ID = ".".join(reversed([NAME, *DOMAIN.split(".")]))
 NAME_HTML = '<span class="appname">Display<span>CAL</span></span>'
 
 PY_MINVERSION = (3, 9)

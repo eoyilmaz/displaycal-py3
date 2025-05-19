@@ -258,7 +258,7 @@ class ScriptingClientFrame(SimpleTerminal):
                     wx.CallAfter(
                         self.add_text,
                         lang.getstr(
-                            "connected.to.at", ((response,) + self.conn.getpeername())
+                            "connected.to.at", ((response, *self.conn.getpeername()))
                         )
                         + "\n{}\n".format(lang.getstr("scripting-client.cmdhelptext")),
                     )
@@ -266,7 +266,8 @@ class ScriptingClientFrame(SimpleTerminal):
             return exception
 
     def get_commands(self):
-        return self.get_common_commands() + [
+        return [
+            *self.get_common_commands(),
             "clear",
             "connect <ip>:<port>",
             "disconnect",

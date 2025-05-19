@@ -215,13 +215,14 @@ UNCALIBRATABLE_DISPLAYS = ("Untethered$",)
 # Can the device generate patterns of its own?
 PATTERN_GENERATORS = ("madVR$", "Resolve$", "Chromecast ", "Prisma ", "Prisma$")
 
-NON_ARGYLL_DISPLAYS = UNCALIBRATABLE_DISPLAYS + ("Resolve$",)
+NON_ARGYLL_DISPLAYS = (*UNCALIBRATABLE_DISPLAYS, "Resolve$")
 
 # Is the device directly connected or e.g. driven via network?
 # (note that madVR can technically be both, but the endpoint is always directly
 # connected to a display so we have videoLUT access via madVR's API.
 # Only devices which don't support that are considered 'untethered' in this context)
-UNTETHERED_DISPLAYS = NON_ARGYLL_DISPLAYS + (
+UNTETHERED_DISPLAYS = (
+    *NON_ARGYLL_DISPLAYS,
     "Web$",
     "Chromecast ",
     "Prisma ",
@@ -229,7 +230,7 @@ UNTETHERED_DISPLAYS = NON_ARGYLL_DISPLAYS + (
 )
 
 # Is the device not an actual display device (i.e. is it not a TV or monitor)?
-VIRTUAL_DISPLAYS = UNTETHERED_DISPLAYS + ("madVR$",)
+VIRTUAL_DISPLAYS = (*UNTETHERED_DISPLAYS, "madVR$")
 
 
 def is_special_display(
@@ -947,31 +948,31 @@ def runtimeconfig(pyfile):
         DATA_DIRS.extend(
             [
                 os.path.join(dir_, "doc", f"{APPNAME}-{VERSION_STRING}")
-                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
+                for dir_ in [*XDG_DATA_DIRS, XDG_DATA_HOME]
             ]
         )
         DATA_DIRS.extend(
             [
                 os.path.join(dir_, "doc", "packages", APPNAME)
-                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
+                for dir_ in [*XDG_DATA_DIRS, XDG_DATA_HOME]
             ]
         )
         DATA_DIRS.extend(
             [
                 os.path.join(dir_, "doc", APPNAME)
-                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
+                for dir_ in [*XDG_DATA_DIRS, XDG_DATA_HOME]
             ]
         )
         DATA_DIRS.extend(
             [
                 os.path.join(dir_, "doc", APPNAME.lower())  # Debian
-                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
+                for dir_ in [*XDG_DATA_DIRS, XDG_DATA_HOME]
             ]
         )
         DATA_DIRS.extend(
             [
                 os.path.join(dir_, "icons", "hicolor")
-                for dir_ in XDG_DATA_DIRS + [XDG_DATA_HOME]
+                for dir_ in [*XDG_DATA_DIRS, XDG_DATA_HOME]
             ]
         )
     if DEBUG:
@@ -1083,7 +1084,7 @@ VALID_VALUES = {
     # worker.Worker.add_measurement_features if using Argyll >= 1.5
     # See http://www.argyllcms.com/doc/instruments.html for description of
     # per-instrument supported modes
-    "measurement_mode": [None, "auto"] + list(string.digits[1:] + string.ascii_letters),
+    "measurement_mode": [None, "auto", *list(string.digits[1:] + string.ascii_letters)],
     "gamap_default_intent": ["a", "r", "p", "s"],
     "gamap_perceptual_intent": INTENTS,
     "gamap_saturation_intent": INTENTS,

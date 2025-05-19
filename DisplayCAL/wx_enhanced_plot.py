@@ -667,7 +667,7 @@ class PolyMarker(PolyPoints):
     def _circle(self, dc, coords, size=1):
         fact = 2.5 * size
         wh = 5.0 * size
-        rect = np.zeros((len(coords), 4), float) + [0.0, 0.0, wh, wh]
+        rect = [*np.zeros((len(coords), 4), float), 0.0, 0.0, wh, wh]
         rect[:, 0:2] = coords - [fact, fact]
         dc.DrawEllipseList(rect.astype(np.int32))
 
@@ -677,7 +677,7 @@ class PolyMarker(PolyPoints):
     def _square(self, dc, coords, size=1):
         fact = 2.5 * size
         wh = 5.0 * size
-        rect = np.zeros((len(coords), 4), float) + [0.0, 0.0, wh, wh]
+        rect = [*np.zeros((len(coords), 4), float), 0.0, 0.0, wh, wh]
         rect[:, 0:2] = coords - [fact, fact]
         dc.DrawRectangleList(rect.astype(np.int32))
 
@@ -1834,9 +1834,7 @@ class PlotCanvas(wx.Panel):
             if len(obj.points) == 0:
                 continue  # go to next obj
             # [curveNumber, legend, index of closest point, pointXY, scaledXY, distance]
-            cn = (
-                [curveNum] + [obj.getLegend()] + obj.getClosestPoint(pntXY, pointScaled)
-            )
+            cn = [curveNum, obj.getLegend(), *obj.getClosestPoint(pntXY, pointScaled)]
             closest_points.append(cn)
         return closest_points
 

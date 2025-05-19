@@ -214,7 +214,8 @@ class Task(_Dict2XML):
             "run_level",
             "triggers",
             "actions",
-        ) + idle_keys:
+            *idle_keys,
+        ):
             del kwargs[key]
         settings = _Dict2XML(kwargs, cls_name="Settings")
         settings["idle_settings"] = _Dict2XML(idle_settings, cls_name="IdleSettings")

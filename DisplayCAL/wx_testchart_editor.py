@@ -1272,7 +1272,8 @@ END_DATA"""
         self.tc_precond_profile_handler()
 
     def get_commands(self):
-        return self.get_common_commands() + [
+        return [
+            *self.get_common_commands(),
             "testchart-editor [filename | create filename]",
             "load <filename>",
         ]
@@ -2244,7 +2245,7 @@ END_DATA"""
                     if not use_gamut:
                         args.append(outpath)
                     result = self.worker.exec_cmd(
-                        cmd, ["-v"] + args, capture_output=True, skip_scripts=True
+                        cmd, ["-v", *args], capture_output=True, skip_scripts=True
                     )
                     if not result:
                         errors = "".join(self.worker.errors)

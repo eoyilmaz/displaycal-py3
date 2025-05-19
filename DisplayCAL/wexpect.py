@@ -364,7 +364,7 @@ def spawn(
         if isinstance(cwd, bytes):
             cwd = cwd.decode("utf-8")
         log(f"Working directory: {cwd}")
-    log(f"Spawning {join_args([command] + args)}")
+    log(f"Spawning {join_args([command, *args])}")
     if sys.platform == "win32":
         return SpawnWindows(
             command,

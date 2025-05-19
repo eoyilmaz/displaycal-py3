@@ -410,9 +410,9 @@ class LUTCanvas(plot.PlotCanvas):
         if identical:
             channels_label = "".join(list(channels.values()))
             color = self.get_color(channels_label, color)
-        for channel_name in list(channels.values()):
-            if channel_name:
-                legend.append(channel_name)
+        legend.extend(
+            channel_name for channel_name in list(channels.values()) if channel_name
+        )
         linear_points = [(i, int(round(v / axis_y * maxv))) for i, v in linear_points]
         seen_values = []
         seen_labels = []
@@ -1389,8 +1389,7 @@ class LUTFrame(BaseFrame):
         if profile.colorSpace == "GRAY":
             use_icclu = True
             pcs = "x"
-            for Lab in Lab_triplets:
-                XYZ_triplets.append(colormath.Lab2XYZ(*Lab))
+            XYZ_triplets.extend(colormath.Lab2XYZ(*Lab) for Lab in Lab_triplets)
         elif profile.connectionColorSpace == b"RGB":
             use_icclu = False
             pcs = None

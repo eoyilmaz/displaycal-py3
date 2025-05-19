@@ -17,7 +17,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
 
     if isinstance(d, (dict, list)):
         start_tag = []
-        start_tag.append(indent + "<" + elementname)
+        start_tag.append(f"{indent}<{elementname}")
 
         if isinstance(d, dict):
             for key in d:
@@ -28,13 +28,13 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
                     )
                 else:
                     if pretty:
-                        attributes.append("\n" + indent)
+                        attributes.append(f"\n{indent}")
                     attributes.append(f' {key}="{escape(str(value))}"')
         else:
-            for value in d:
-                children.append(
-                    dict2xml(value, "item", pretty, allow_attributes, level + 1)
-                )
+            children.extend(
+                dict2xml(value, "item", pretty, allow_attributes, level + 1)
+                for value in d
+            )
 
         start_tag.extend(attributes)
         start_tag.append((children and ">") or "/>")

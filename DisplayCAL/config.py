@@ -1575,9 +1575,11 @@ TESTCHART_DEFAULTS = {
 
 
 def _init_testcharts():
-    for testcharts in list(TESTCHART_DEFAULTS.values()):
-        for chart in [value for value in list(testcharts.values()) if value != "auto"]:
-            RES_FILES.append(os.path.join("ti1", chart))
+    RES_FILES.extend(
+        os.path.join("ti1", chart)
+        for testcharts in list(TESTCHART_DEFAULTS.values())
+        for chart in [value for value in list(testcharts.values()) if value != "auto"]
+    )
     TESTCHART_DEFAULTS["G"] = TESTCHART_DEFAULTS["g"]
     TESTCHART_DEFAULTS["S"] = TESTCHART_DEFAULTS["s"]
     for key in ("X", "x"):
@@ -1894,13 +1896,12 @@ def get_total_patches(
         multi_bcc_values = []
         if multi_bcc_steps > 1:
             multi_bcc_step = multi_step
-            for i in range(multi_bcc_steps):
-                multi_values.append(str(multi_bcc_step * i))
-            for i in range(multi_bcc_steps * 2 - 1):
-                multi_bcc_values.append(str(multi_bcc_step / 2.0 * i))
+            multi_values.extend(str(multi_bcc_step * i) for i in range(multi_bcc_steps))
+            multi_bcc_values.extend(
+                str(multi_bcc_step / 2.0 * i) for i in range(multi_bcc_steps * 2 - 1)
+            )
         else:
-            for i in range(multi_steps):
-                multi_values.append(str(multi_step * i))
+            multi_values.extend(str(multi_step * i) for i in range(multi_steps))
         if single_channel_patches > 1:
             single_channel_step = 255.0 / (single_channel_patches - 1)
             for i in range(single_channel_patches):
@@ -2355,11 +2356,12 @@ def writecfg(
             io.seek(0)
             lines = io.read().strip("\n").split("\n")
             if options:
-                optionlines = []
-                for optionline in lines[1:]:
-                    for option in options:
-                        if optionline.startswith(option):
-                            optionlines.append(optionline)
+                optionlines = [
+                    optionline
+                    for optionline in lines[1:]
+                    for option in options
+                    if optionline.startswith(option)
+                ]
             else:
                 optionlines = lines[1:]
             # Sorting works as long as config has only one section

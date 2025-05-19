@@ -64,8 +64,12 @@ class Tag:
                 markup.append(">")
             markup.append("\n")
             for child in self.children:
-                for line in child.markup(allow_empty_element_tag, x3dom).splitlines():
-                    markup.append("\t" + line + "\n")
+                markup.extend(
+                    f"\t{line}\n"
+                    for line in child.markup(
+                        allow_empty_element_tag, x3dom
+                    ).splitlines()
+                )
         if not allow_empty_element_tag or self.children:
             # Not XML, or XML with children
             markup.append(f"</{self.tagname}>\n")

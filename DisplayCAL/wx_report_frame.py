@@ -655,9 +655,7 @@ class ReportFrame(BaseFrame):
                 value = kwargs[name]
                 setattr(ctrl, name, value)
 
-        items = []
-        for item in ("Gamma 2.2", "trc.rec1886", "custom"):
-            items.append(lang.getstr(item))
+        items = [lang.getstr(item) for item in ("Gamma 2.2", "trc.rec1886", "custom")]
         self.mr_trc_ctrl.SetItems(items)
 
         self.trc_gamma_types_ab = {0: "b", 1: "B"}

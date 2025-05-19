@@ -364,9 +364,9 @@ def parse_manufacturer_id(block: bytes) -> str:
         str: The decoded manufacturer ID.
     """
     h = combine_hi_8lo(block[0], block[1])
-    manufacturer_id = []
-    for shift in (10, 5, 0):
-        manufacturer_id.append(chr(((h >> shift) & 0x1F) + ord("A") - 1))
+    manufacturer_id = [
+        chr(((h >> shift) & 0x1F) + ord("A") - 1) for shift in (10, 5, 0)
+    ]
     return "".join(manufacturer_id).strip()
 
 

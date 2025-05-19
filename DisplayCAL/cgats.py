@@ -676,9 +676,11 @@ class CGATS(dict):
                 result.append(b"")
         if data and data.parent["DATA_FORMAT"]:
             if "KEYWORDS" in data.parent and self.emit_keywords:
-                for item in list(data.parent["DATA_FORMAT"].values()):
-                    if item in list(data.parent["KEYWORDS"].values()):
-                        result.append(b'KEYWORD "%s"' % item)
+                result.extend(
+                    b'KEYWORD "%s"' % item
+                    for item in list(data.parent["DATA_FORMAT"].values())
+                    if item in list(data.parent["KEYWORDS"].values())
+                )
             result.append(
                 b"NUMBER_OF_FIELDS %s"
                 % bytes(str(len(data.parent["DATA_FORMAT"])), "utf-8")
@@ -689,19 +691,19 @@ class CGATS(dict):
             result.append(b"")
             result.append(b"NUMBER_OF_SETS %s" % (bytes(str(len(data)), "utf-8")))
             result.append(b"BEGIN_DATA")
-            for key in data:
-                result.append(
-                    b" ".join(
-                        [
-                            rpad(
-                                data[key][item.decode("utf-8")],
-                                data.vmaxlen
-                                + (1 if data[key][item.decode("utf-8")] < 0 else 0),
-                            )
-                            for item in list(data.parent["DATA_FORMAT"].values())
-                        ]
-                    )
+            result.extend(
+                b" ".join(
+                    [
+                        rpad(
+                            data[key][item.decode("utf-8")],
+                            data.vmaxlen
+                            + (1 if data[key][item.decode("utf-8")] < 0 else 0),
+                        )
+                        for item in list(data.parent["DATA_FORMAT"].values())
+                    ]
                 )
+                for key in data
+            )
             result.append(b"END_DATA")
         if (
             ((self.parent and self.parent.type) or self.type) == b"ROOT"
@@ -782,13 +784,9 @@ class CGATS(dict):
         data = self.get_data(field_names)
         if not data:
             return False, False
-        valueslist = []
-        for _key in data:
-            item = data[_key]
-            values = []
-            for field_name in field_names:
-                values.append(item[field_name])
-            valueslist.append(values)
+        valueslist = [
+            [data[_key][field_name] for field_name in field_names] for _key in data
+        ]
         return data, valueslist
 
     def set_RGB_XYZ_values(self, valueslist):

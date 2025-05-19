@@ -971,13 +971,9 @@ def safe_shell_filter(names, pat):
     match = re_pat.match
     if os.path is posixpath:
         # normcase on posix is NOP. Optimize it away from the loop.
-        for name in names:
-            if match(name):
-                result.append(name)
+        result = [name for name in names if match(name)]
     else:
-        for name in names:
-            if match(os.path.normcase(name)):
-                result.append(name)
+        result = [name for name in names if match(os.path.normcase(name))]
     return result
 
 

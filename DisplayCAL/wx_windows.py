@@ -1278,8 +1278,7 @@ class BaseFrame(wx.Frame):
 
     def get_scripting_hosts(self):
         scripting_hosts = []
-        lockfilebasenames = [APPBASENAME]
-        for module in [
+        modules = [
             "3DLUT-maker",
             "curve-viewer",
             "profile-info",
@@ -1288,31 +1287,34 @@ class BaseFrame(wx.Frame):
             "testchart-editor",
             "VRML-to-X3D-converter",
             "apply-profiles",
-        ]:
-            lockfilebasenames.append(f"{APPBASENAME}-{module}")
-        for lockfilebasename in lockfilebasenames:
-            lockfilename = os.path.join(CONFIG_HOME, f"{lockfilebasename}.lock")
-            if os.path.isfile(lockfilename):
-                ports = []
-                try:
-                    with open(lockfilename) as lockfile:
-                        for line in lockfile.read().splitlines():
-                            if line:
-                                if ":" in line:
-                                    pid, port = line.split(":", 1)
-                                else:
-                                    port = line
-                                if port:
-                                    ports.append(port)
-                except OSError as exception:
-                    # This shouldn't happen
-                    print(
-                        f"Warning - could not read lockfile {lockfilename}:",
-                        exception,
-                    )
-                else:
-                    for port in ports:
-                        scripting_hosts.append(f"127.0.0.1:{port} {lockfilebasename}")
+        ]
+        lock_file_basenames = [APPBASENAME]
+        lock_file_basenames.extend(f"{APPBASENAME}-{module}" for module in modules)
+        for lock_file_basename in lock_file_basenames:
+            lockfilename = os.path.join(CONFIG_HOME, f"{lock_file_basename}.lock")
+            if not os.path.isfile(lockfilename):
+                continue
+            ports = []
+            try:
+                with open(lockfilename) as lockfile:
+                    for line in lockfile.read().splitlines():
+                        if line:
+                            if ":" in line:
+                                pid, port = line.split(":", 1)
+                            else:
+                                port = line
+                            if port:
+                                ports.append(port)
+            except OSError as exception:
+                # This shouldn't happen
+                print(
+                    f"Warning - could not read lockfile {lockfilename}:",
+                    exception,
+                )
+            else:
+                scripting_hosts.extend(
+                    f"127.0.0.1:{port} {lock_file_basename}" for port in ports
+                )
         scripting_hosts.sort()
         return scripting_hosts
 
@@ -1549,9 +1551,10 @@ class BaseFrame(wx.Frame):
                 ):
                     response = []
                     for row in range(child.GetNumberRows()):
-                        values = []
-                        for col in range(child.GetNumberCols()):
-                            values.append(child.GetCellValue(row, col))
+                        values = [
+                            child.GetCellValue(row, col)
+                            for col in range(child.GetNumberCols())
+                        ]
                         if responseformats[conn] == "plain":
                             values = (
                                 demjson.encode(values).strip("[]").replace('","', '" "')
@@ -1665,11 +1668,11 @@ class BaseFrame(wx.Frame):
                 win = self.get_top_window()
             if win:
                 # Ordering in tab order
-                for child in list(win.GetAllChildren()):
-                    if is_scripting_allowed(win, child):
-                        uielements.append(
-                            format_ui_element(child, responseformats[conn])
-                        )
+                uielements.extend(
+                    format_ui_element(child, responseformats[conn])
+                    for child in list(win.GetAllChildren())
+                    if is_scripting_allowed(win, child)
+                )
                 child = None
                 response = uielements
             else:
@@ -1765,9 +1768,10 @@ class BaseFrame(wx.Frame):
                                     response = "forbidden"
                         elif isinstance(child, wx.ListCtrl):
                             for row in range(child.GetItemCount()):
-                                item = []
-                                for col in range(child.GetColumnCount()):
-                                    item.append(child.GetItem(row, col).GetText())
+                                item = [
+                                    child.GetItem(row, col).GetText()
+                                    for col in range(child.GetColumnCount())
+                                ]
                                 if " ".join(item) == value:
                                     state = child.GetItemState(
                                         row, wx.LIST_STATE_SELECTED
@@ -4010,12 +4014,7 @@ class CustomGrid(wx.grid.Grid):
         def CalcCellsExposed(self, region):
             rows = self.CalcRowLabelsExposed(region)
             cols = self.CalcColLabelsExposed(region)
-            cells = []
-            for row in rows:
-                for col in cols:
-                    if row > -1 and col > -1:
-                        cells.append((row, col))
-            return cells
+            return [(row, col) for row in rows for col in cols if row > -1 and col > -1]
 
     if not hasattr(wx.grid.Grid, "CalcColLabelsExposed"):
         # wxPython < 2.8.10
@@ -4411,14 +4410,8 @@ class CustomGrid(wx.grid.Grid):
                 sel = list(
                     range(min(self._anchor_row, row), max(self._anchor_row, row) + 1)
                 )
-                desel = []
-                add = []
-                for i in rows:
-                    if i not in sel:
-                        desel.append(i)
-                for i in sel:
-                    if i not in rows:
-                        add.append(i)
+                desel = [i for i in rows if i not in sel]
+                add = [i for i in sel if i not in rows]
                 if len(desel) >= len(add):
                     # in this case deselecting rows will take as long or longer
                     # than selecting, so use SelectRow to speed up the operation
@@ -7803,9 +7796,10 @@ def format_ui_element(child, file_format="plain"):
     value = None
     if not items and isinstance(child, wx.ListCtrl):
         for row in range(child.GetItemCount()):
-            item = []
-            for col in range(child.GetColumnCount()):
-                item.append(child.GetItem(row, col).GetText())
+            item = [
+                child.GetItem(row, col).GetText()
+                for col in range(child.GetColumnCount())
+            ]
             items.append(" ".join(item))
         row = child.GetFirstSelected()
         if row != wx.NOT_FOUND:
@@ -7818,8 +7812,7 @@ def format_ui_element(child, file_format="plain"):
             value = child.GetPageText(page_idx)
     cols = []
     if isinstance(child, wx.grid.Grid):
-        for col in range(child.GetNumberCols()):
-            cols.append(child.GetColLabelValue(col))
+        cols.extend(child.GetColLabelValue(col) for col in range(child.GetNumberCols()))
     if file_format != "plain":
         uielement = {
             "class": child.__class__.__name__,

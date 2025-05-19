@@ -3090,9 +3090,9 @@ class Colorant:
         items = []
         for key, value in (("type", self.type), ("description", self.description)):
             items.append(f"{key!r}: {value!r}")
-        channels = []
-        for xy in self.channels:
-            channels.append("[{}]".format(", ".join([str(v) for v in xy])))
+        channels = [
+            "[{}]".format(", ".join([str(v) for v in xy])) for xy in self.channels
+        ]
         items.append("'channels': [{}]".format(", ".join(channels)))
         return "{{{}}}".format(", ".join(items))
 
@@ -3374,12 +3374,12 @@ BEGIN_DATA
             i = 1
             if self.tagSignature and self.tagSignature.startswith("B2A"):
                 interp = []
-                for input_value in self.input:
-                    interp.append(
-                        colormath.Interp(
-                            input_value, list(range(len(input_value))), use_numpy=True
-                        )
+                interp.extend(
+                    colormath.Interp(
+                        input_value, list(range(len(input_value))), use_numpy=True
                     )
+                    for input_value in self.input
+                )
             for a in range(clutres):
                 for b in range(clutres):
                     for c in range(clutres):
@@ -3875,9 +3875,9 @@ class ChromaticityType(ICCProfileTag, Colorant):
         """Return raw tag data."""
         tagData = [b"chrm", b"\0" * 4, uInt16Number_tohex(len(self.channels))]
         tagData.append(uInt16Number_tohex(self.type))
-        for channel in self.channels:
-            for xy in channel:
-                tagData.append(u16Fixed16Number_tohex(xy))
+        tagData.extend(
+            u16Fixed16Number_tohex(xy) for channel in self.channels for xy in channel
+        )
         return b"".join(tagData)
 
     @tagData.setter
@@ -4085,14 +4085,14 @@ class CurveType(ICCProfileTag, list):
             ),
         ]
         if outoffset_unspecified and black_Y:
-            for i in range(100):
-                tfs.append(
-                    (
-                        f"Gamma {gamma:.2f} {i:d}%",
-                        gamma,
-                        i / 100.0,
-                    )
+            tfs.extend(
+                (
+                    f"Gamma {gamma:.2f} {i:d}%",
+                    gamma,
+                    i / 100.0,
                 )
+                for i in range(100)
+            )
         for name, exp, outoffset in tfs:
             if name in ("DICOM", "Rec. 1886", "SMPTE 2084", "HLG"):
                 try:
@@ -4419,15 +4419,14 @@ class CurveType(ICCProfileTag, list):
     def tagData(self):
         """Return raw tag data."""
         # Identity
-        curveEntriesCount = 0 if len(self) == 1 and self[0] == 1.0 else len(self)
-        tagData = [b"curv", b"\0" * 4, uInt32Number_tohex(curveEntriesCount)]
-        if curveEntriesCount == 1:
+        curve_entries_count = 0 if len(self) == 1 and self[0] == 1.0 else len(self)
+        tagData = [b"curv", b"\0" * 4, uInt32Number_tohex(curve_entries_count)]
+        if curve_entries_count == 1:
             # Gamma
             tagData.append(u8Fixed8Number_tohex(self[0]))
-        elif curveEntriesCount:
+        elif curve_entries_count:
             # Curve
-            for curveEntry in self:
-                tagData.append(uInt16Number_tohex(curveEntry))
+            tagData.extend(uInt16Number_tohex(curveEntry) for curveEntry in self)
         return b"".join(tagData)
 
     @tagData.setter
@@ -4952,8 +4951,9 @@ class ProfileSequenceDescType(ICCProfileTag, list):
                     attributes |= bit
             tag_data.append(uInt32Number_tohex(attributes) + b"\0" * 4)
             tag_data.append(desc.get("tech", b"").ljust(4, b"\0")[:4])
-            for desc_type in ("dmnd", "dmdd"):
-                tag_data.append(desc.get(desc_type, b"").tagData)
+            tag_data.extend(
+                desc.get(desc_type, b"").tagData for desc_type in ("dmnd", "dmdd")
+            )
         return b"".join(tag_data)
 
     @tagData.setter
@@ -4974,8 +4974,7 @@ class S15Fixed16ArrayType(ICCProfileTag, list):
     def tagData(self):
         """Return raw tag data."""
         tag_data = [b"sf32", b"\0" * 4]
-        for value in self:
-            tag_data.append(s15Fixed16Number_tohex(value))
+        tag_data.extend(s15Fixed16Number_tohex(value) for value in self)
         return b"".join(tag_data)
 
     @tagData.setter
@@ -5318,8 +5317,7 @@ class VideoCardGammaType(ICCProfileTag, ADict):
         entryCount = len(values)
         channels = len(values[0])
         header = ["REF"]
-        for k in range(channels):
-            header.append("C" + str(k + 1))
+        header.extend("C" + str(k + 1) for k in range(channels))
         header = [title.ljust(digits + 2) for title in header]
         print("#".ljust(len(str(amount)) + 1) + " ".join(header))
         for i, value in enumerate(values):
@@ -5543,9 +5541,11 @@ class VideoCardGammaTableType(VideoCardGammaType):
             4: uInt32Number_tohex,
             8: uInt64Number_tohex,
         }
-        for channel in self.data:
-            for i in range(self.entryCount):
-                tagData.append(int2hex[self.entrySize](channel[i]))
+        tagData.extend(
+            int2hex[self.entrySize](channel[i])
+            for channel in self.data
+            for i in range(self.entryCount)
+        )
         return b"".join(tagData)
 
     @tagData.setter
@@ -5835,9 +5835,7 @@ class ChromaticAdaptionTag(colormath.Matrix3x3, S15Fixed16ArrayType):
     def tagData(self):
         """Return raw tag data."""
         tagData = [b"sf32", b"\0" * 4]
-        for row in self:
-            for column in row:
-                tagData.append(s15Fixed16Number_tohex(column))
+        tagData.extend(s15Fixed16Number_tohex(column) for row in self for column in row)
         return b"".join(tagData)
 
     @tagData.setter
@@ -5889,8 +5887,10 @@ class NamedColor2Value:
 
         deviceCoords = []
         if deviceCoordCount > 0:
-            for i in range(38, 38 + deviceCoordCount * 2, 2):
-                deviceCoords.append(uInt16Number(valueData[i : i + 2]))
+            deviceCoords.extend(
+                uInt16Number(valueData[i : i + 2])
+                for i in range(38, 38 + deviceCoordCount * 2, 2)
+            )
         self.devicevalues = deviceCoords
         if device == "Lab":
             # L* range 0..100 + (25500 / 65280.0)
@@ -5916,12 +5916,10 @@ class NamedColor2Value:
 
     def __repr__(self):
         pcs = []
-        dev = []
         for key in self.pcs:
             value = self.pcs[key]
             pcs.append(f"{key}={value}")
-        for value in self.device:
-            dev.append(f"{value}")
+        dev = [f"{value}" for value in self.device]
         return "{}({}, {{{}}}, [{}])".format(
             self.__class__.__name__,
             self.name,
@@ -7088,17 +7086,13 @@ class ICCProfile:
             else:
                 tag.extend(self.tags[channel + "TRC"])
             self.tags[channel + "TRC"] = tag
-        rgbbp_in = []
-        for channel in "rgb":
-            rgbbp_in.append(self.tags[f"{channel}TRC"][0] / 65535.0)
+        rgbbp_in = [self.tags[f"{channel}TRC"][0] / 65535.0 for channel in "rgb"]
         bp_in = mtx * rgbbp_in
         if tuple(bp_in) == tuple(XYZbp):
             return
         size = len(self.tags.rTRC)
         for i in range(size):
-            rgb = []
-            for channel in "rgb":
-                rgb.append(self.tags[f"{channel}TRC"][i] / 65535.0)
+            rgb = [self.tags[f"{channel}TRC"][i] / 65535.0 for channel in "rgb"]
             X, Y, Z = mtx * rgb
             XYZ = colormath.blend_blackpoint(X, Y, Z, bp_in, XYZbp, power=power)
             rgb = imtx * XYZ
@@ -7665,12 +7659,10 @@ class ICCProfile:
                 for k in tag:
                     v = tag[k]
                     pcsout = []
-                    devout = []
                     for _kk in v.pcs:
                         vv = v.pcs[_kk]
                         pcsout.append(f"{vv:03.2f}")
-                    for vv in v.device:
-                        devout.append(f"{vv:03.2f}")
+                    devout = [f"{vv:03.2f}" for vv in v.device]
                     formatstr = (
                         f"        {{:0{len(str(tag.colorCount)):d}}} {{}}{{}}{{}}"
                     )

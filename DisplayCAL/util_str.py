@@ -423,8 +423,7 @@ def box(text, width=80, collapse=False):
         width = content_width + 4
     horizontal_line = "\u2500" * (width - 2)
     box = [f"\u250c{horizontal_line}\u2510"]
-    for line in lines:
-        box.append(f"\u2502 {line.ljust(content_width)} \u2502")
+    box.extend(f"\u2502 {line.ljust(content_width)} \u2502" for line in lines)
     box.append(f"\u2514{horizontal_line}\u2518")
     return "\n".join(box)
 

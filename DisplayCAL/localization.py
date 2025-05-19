@@ -19,21 +19,20 @@ def init(set_wx_locale=False):
     If set_wx_locale is True, set locale also for wxPython.
 
     """
-    langdirs = []
-    for dir_ in DATA_DIRS:
-        langdirs.append(os.path.join(dir_, "lang"))
+    langdirs = [os.path.join(dir_, "lang") for dir_ in DATA_DIRS]
     for langdir in langdirs:
-        if os.path.exists(langdir) and os.path.isdir(langdir):
-            try:
-                langfiles = os.listdir(langdir)
-            except Exception as exception:
-                print(f"Warning - directory '{langdir}' listing failed: {exception}")
-            else:
-                for filename in langfiles:
-                    name, ext = os.path.splitext(filename)
-                    if ext.lower() == ".yaml" and name.lower() not in LDICT:
-                        path = os.path.join(langdir, filename)
-                        LDICT[name.lower()] = LazyDictYAMLUltraLite(path)
+        if not os.path.exists(langdir) or not os.path.isdir(langdir):
+            continue
+        try:
+            langfiles = os.listdir(langdir)
+        except Exception as exception:
+            print(f"Warning - directory '{langdir}' listing failed: {exception}")
+        else:
+            for filename in langfiles:
+                name, ext = os.path.splitext(filename)
+                if ext.lower() == ".yaml" and name.lower() not in LDICT:
+                    path = os.path.join(langdir, filename)
+                    LDICT[name.lower()] = LazyDictYAMLUltraLite(path)
     if len(LDICT) == 0:
         handle_error(
             UserWarning(

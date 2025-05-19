@@ -207,21 +207,19 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 # executables
                 writecfg()
                 break
-            not_found = []
-            for name in ARGYLL_NAMES:
-                if not get_argyll_util(name, [path]) and name not in ARGYLL_OPTIONAL:
-                    not_found.append(
-                        f" {lang.getstr('or')} ".join(
-                            [
-                                altname
-                                for altname in [
-                                    altname + EXE_EXT
-                                    for altname in ARGYLL_ALTNAMES[name]
-                                ]
-                                if "argyll" not in altname
-                            ]
-                        )
-                    )
+            not_found = [
+                f" {lang.getstr('or')} ".join(
+                    [
+                        altname
+                        for altname in [
+                            altname + EXE_EXT for altname in ARGYLL_ALTNAMES[name]
+                        ]
+                        if "argyll" not in altname
+                    ]
+                )
+                for name in ARGYLL_NAMES
+                if not get_argyll_util(name, [path]) and name not in ARGYLL_OPTIONAL
+            ]
             InfoDialog(
                 parent,
                 msg="{}\n\n{}".format(
@@ -477,16 +475,17 @@ def get_argyll_instrument_config(what=None):
     """Check for Argyll CMS udev rules/hotplug scripts."""
     filenames = []
     if what == "installed":
-        for filename in (
+        argyll_rule_filepaths = (
             "/etc/udev/rules.d/55-Argyll.rules",
             "/etc/udev/rules.d/45-Argyll.rules",
             "/etc/hotplug/Argyll",
             "/etc/hotplug/Argyll.usermap",
             "/lib/udev/rules.d/55-Argyll.rules",
             "/lib/udev/rules.d/69-cd-sensors.rules",
-        ):
-            if os.path.isfile(filename):
-                filenames.append(filename)
+        )
+        filenames = [
+            filename for filename in argyll_rule_filepaths if os.path.isfile(filename)
+        ]
     else:
         if what == "expected":
 

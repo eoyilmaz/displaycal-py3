@@ -5032,10 +5032,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             filename, ext = os.path.splitext(cal)
             if cal not in self.recent_cals:
                 self.recent_cals.append(cal)
-                recent_cals = []
-                for recent_cal in self.recent_cals:
-                    if recent_cal not in self.presets:
-                        recent_cals.append(recent_cal)
+                recent_cals = self.get_unpreseted_recent_calibrations()
                 setcfg("recent_cals", os.pathsep.join(recent_cals))
                 self.calibration_file_ctrl.Append(lang.getstr(os.path.basename(cal)))
             # The case-sensitive index could fail because of
@@ -5075,6 +5072,18 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             profile_exists = False
 
         return cal, filename, profile_path, profile_exists
+
+    def get_unpreseted_recent_calibrations(self) -> list:
+        """Return recent calibrations that are not presets.
+
+        Returns:
+            list: List of recent calibration file paths that are not presets.
+        """
+        return [
+            recent_cal
+            for recent_cal in self.recent_cals
+            if recent_cal not in self.presets
+        ]
 
     def update_controls(
         self, update_profile_name=True, update_ccmx_items=True, silent=False
@@ -6776,9 +6785,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
         if set_whitepoint:
             if evtobjname == "visual_whitepoint_editor_measure_btn" and XYZ:
-                RGB = []
-                for attribute in "rgb":
-                    RGB.append(getcfg("whitepoint.visual_editor." + attribute))
+                RGB = [
+                    getcfg("whitepoint.visual_editor.r"),
+                    getcfg("whitepoint.visual_editor.g"),
+                    getcfg("whitepoint.visual_editor.b"),
+                ]
                 if max(RGB) < 255:
                     # Set luminance
                     self.luminance_ctrl.SetSelection(1)
@@ -13918,10 +13929,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
             if DEBUG or TEST:
                 # Add original measurement data to CGATS as meta
-                ccmx_data_format = []
-                for colorspace in ("RGB", "XYZ"):
-                    for component in colorspace:
-                        ccmx_data_format.append(colorspace + "_" + component)
+                ccmx_data_format = [
+                    "RGB_R",
+                    "RGB_G",
+                    "RGB_B",
+                    "XYZ_X",
+                    "XYZ_Y",
+                    "XYZ_Z",
+                ]
                 for label, meas in (
                     ("REFERENCE", reference_ti3),
                     ("TARGET", colorimeter_ti3),
@@ -13942,9 +13957,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     data = meas.queryv1("DATA")
                     for i in data:
                         sample = data[i]
-                        RGB_XYZ = []
-                        for column in ccmx_data_format:
-                            RGB_XYZ.append(str(sample[column]))
+                        RGB_XYZ = [str(sample[column]) for column in ccmx_data_format]
                         metadata.append(
                             '{}_DATA_{:.0f} "{}"'.format(
                                 label, i + 1, " ".join(RGB_XYZ)
@@ -15619,8 +15632,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 os.remove(archive_path)
             args = ["a", "-y"]
             if exclude_ext:
-                for ext in exclude_ext:
-                    args.append("-xr!*" + ext)
+                args.extend(f"-xr!*{ext}" for ext in exclude_ext)
             return self.worker.exec_cmd(
                 sevenzip, args + [archive_path] + filenames, capture_output=True
             )
@@ -17445,10 +17457,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             sel = self.calibration_file_ctrl.GetSelection()
             if len(self.recent_cals) > sel and self.recent_cals[sel] == path:
                 self.recent_cals.remove(self.recent_cals[sel])
-                recent_cals = []
-                for recent_cal in self.recent_cals:
-                    if recent_cal not in self.presets:
-                        recent_cals.append(recent_cal)
+                recent_cals = self.get_unpreseted_recent_calibrations()
                 setcfg("recent_cals", os.pathsep.join(recent_cals))
                 self.calibration_file_ctrl.Delete(sel)
                 cal = getcfg("calibration.file", False) or ""
@@ -18455,11 +18464,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             if result == wx.ID_OK:
                 delete_related_files = []
                 if self.related_files:
-                    for related_file in self.related_files:
-                        if self.related_files[related_file]:
-                            delete_related_files.append(
-                                os.path.join(os.path.dirname(cal), related_file)
-                            )
+                    delete_related_files.extend(
+                        os.path.join(os.path.dirname(cal), related_file)
+                        for related_file in self.related_files
+                        if self.related_files[related_file]
+                    )
                 if sys.platform == "darwin":
                     trashcan = lang.getstr("trashcan.mac")
                 elif sys.platform == "win32":
@@ -18513,10 +18522,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 self.calibration_file_ctrl.Delete(idx)
                 setcfg("calibration.file", None)
                 setcfg("settings.changed", 1)
-                recent_cals = []
-                for recent_cal in self.recent_cals:
-                    if recent_cal not in self.presets:
-                        recent_cals.append(recent_cal)
+                recent_cals = self.get_unpreseted_recent_calibrations()
                 setcfg("recent_cals", os.pathsep.join(recent_cals))
                 update_colorimeter_correction_matrix_ctrl_items = False
                 update_testcharts = False
@@ -19644,12 +19650,8 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
                 grid.SetCellValue(
                     event.Row, event.Col, re.sub(r"^0+(?!\.)", "", strval) or "0"
                 )
-                RGB = []
-                for i in (1, 2, 3):
-                    RGB.append(float(grid.GetCellValue(event.Row, i)))
-                XYZ = []
-                for i in (6, 7, 8):
-                    XYZ.append(float(grid.GetCellValue(event.Row, i)))
+                RGB = [float(grid.GetCellValue(event.Row, i)) for i in (1, 2, 3)]
+                XYZ = [float(grid.GetCellValue(event.Row, i)) for i in (6, 7, 8)]
                 # Update row
                 (
                     sRGBLab,

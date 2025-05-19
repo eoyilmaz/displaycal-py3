@@ -110,10 +110,7 @@ from DisplayCAL.wx_fixes import get_dc_font_scale
 
 
 def convert_to_list_of_tuples(iterable):
-    points = []
-    for p in iterable:
-        points.append(tuple(map(int, p)))
-    return points
+    return [tuple(map(int, p)) for p in iterable]
 
 
 # ----------------------------------------------------------------------
@@ -2811,16 +2808,15 @@ def _draw3Objects():
         "plus",
         "circle",
     ]
-    m = []
-    for i in range(len(markerList)):
-        m.append(
-            PolyMarker(
-                [(2 * i + 0.5, i + 0.5)],
-                legend=markerList[i],
-                colour="blue",
-                marker=markerList[i],
-            )
+    m = [
+        PolyMarker(
+            [(2 * i + 0.5, i + 0.5)],
+            legend=markerList[i],
+            colour="blue",
+            marker=markerList[i],
         )
+        for i in range(len(markerList))
+    ]
     return PlotGraphics(m, "Selection of Markers", "Minimal Axis", "No Axis")
 
 

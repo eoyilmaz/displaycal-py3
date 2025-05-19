@@ -203,6 +203,8 @@ select = [
 
 ]
 extend-ignore = [
+    "ANN002",  # missing type annotations args
+    "ANN003",  # missing type annotations kwargs
     "COM812",  # flake8-commas
     "D104",  # Missing docstring in in publish package
     "D107",  # skip docstring for __init__

@@ -1476,15 +1476,13 @@ def setup():
             "include " + os.path.splitext(os.path.basename(sys.argv[0]))[0] + ".cfg"
         )
         for _datadir, datafiles in attrs.get("data_files", []):
-            for datafile in datafiles:
-                manifest_in.append(
-                    "include {}".format(
-                        os.path.relpath(
-                            os.path.sep.join(datafile.split("/")), source_dir
-                        )
-                        or datafile
-                    )
+            manifest_in.extend(
+                "include {}".format(
+                    os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
+                    or datafile
                 )
+                for datafile in datafiles
+            )
         for extmod in attrs.get("ext_modules", []):
             manifest_in.extend(
                 "include " + os.path.sep.join(src.split("/")) for src in extmod.sources
@@ -1497,12 +1495,14 @@ def setup():
             manifest_in.append("include " + os.path.join(pkgdir, "*.py"))
             # manifest_in.append("include " + os.path.join(pkgdir, "*.pyd"))
             # manifest_in.append("include " + os.path.join(pkgdir, "*.so"))
-            for obj in attrs.get("package_data", {}).get(pkg, []):
-                manifest_in.append(
-                    "include " + os.path.sep.join([pkgdir] + obj.split("/"))
-                )
-        for pymod in attrs.get("py_modules", []):
-            manifest_in.append("include {}".format(os.path.join(*pymod.split("."))))
+            manifest_in.extend(
+                f"include {os.path.sep.join([pkgdir] + obj.split('/'))}"
+                for obj in attrs.get("package_data", {}).get(pkg, [])
+            )
+        manifest_in.extend(
+            "include {}".format(os.path.join(*pymod.split(".")))
+            for pymod in attrs.get("py_modules", [])
+        )
         manifest_in.append(
             "include {}".format(os.path.join(NAME, "theme", "theme-info.txt"))
         )

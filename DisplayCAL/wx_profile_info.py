@@ -262,9 +262,10 @@ class GamutCanvas(LUTCanvas):
 
         # Add color temp graph
         if whitepoint == 1:
-            colortemps = []
-            for kelvin in range(4000, 25001, 40):
-                colortemps.append(convert2coords(*colormath.CIEDCCT2XYZ(kelvin)))
+            colortemps = [
+                convert2coords(*colormath.CIEDCCT2XYZ(kelvin))
+                for kelvin in range(4000, 25001, 40)
+            ]
             polys.append(
                 plot.PolyLine(
                     colortemps, colour=wx.Colour(255, 255, 255, 204), width=1.5
@@ -291,10 +292,7 @@ class GamutCanvas(LUTCanvas):
                 continue
 
             # Convert xicclu output to coordinates
-            coords = []
-            for pcs_triplet in pcs_triplets:
-                coords.append(convert2coords(*pcs_triplet))
-
+            coords = [convert2coords(*pcs_triplet) for pcs_triplet in pcs_triplets]
             profile = self.profiles.get(len(self.pcs_data) - 1 - i)
             if (
                 profile

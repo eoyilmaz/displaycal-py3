@@ -731,32 +731,30 @@ wx.FlexGridSizer = FlexGridSizer
 
 
 def GridGetSelection(self):
-    """Return selected rows, cols, block and cells"""
+    """Return selected rows, cols, block and cells."""
     sel = []
     numrows = self.GetNumberRows()
     numcols = self.GetNumberCols()
     # rows
     rows = self.GetSelectedRows()
-    for row in rows:
-        for i in range(numcols):
-            sel.append((row, i))
+    sel.extend((row, i) for row in rows for i in range(numcols))
     # cols
     cols = self.GetSelectedCols()
-    for col in cols:
-        for i in range(numrows):
-            sel.append((i, col))
+    sel.extend((i, col) for col in cols for i in range(numrows))
     # block
     tl = self.GetSelectionBlockTopLeft()
     br = self.GetSelectionBlockBottomRight()
     if tl and br:
-        for n in range(min(len(tl), len(br))):
-            for i in range(tl[n][0], br[n][0] + 1):  # rows
-                for j in range(tl[n][1], br[n][1] + 1):  # cols
-                    sel.append((i, j))
+        sel.extend(
+            (i, j)
+            for n in range(min(len(tl), len(br)))
+            for i in range(tl[n][0], br[n][0] + 1)  # rows
+            for j in range(tl[n][1], br[n][1] + 1)  # cols
+        )
     # single selected cells
     sel.extend(self.GetSelectedCells())
+    # TODO: I don't remember why I disabled the next line and added the for loop instead
     # sel = list(set(sel))
-
     new_sel = []
     for item in sel:
         if item not in new_sel:

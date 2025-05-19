@@ -828,9 +828,7 @@ def create_shaper_curves(
     ginterp = colormath.Interp(G_G, G_Y, use_numpy=True)
     binterp = colormath.Interp(B_B, B_Z, use_numpy=True)
 
-    curves = []
-    for _ in range(3):
-        curves.append([])
+    curves = [[], [], []]
 
     maxval = numentries - 1.0
     powinterp = {
@@ -4436,11 +4434,10 @@ END_DATA
                     # Lookup scaled down white XYZ
                     logfiles.write("Looking for solution...\n")
                     for n in range(9):
-                        XYZscaled = []
-                        for i in range(2001):
-                            XYZscaled.append(
-                                [v * (1 - (n * 2001 + i) / 20000.0) for v in XYZw]
-                            )
+                        XYZscaled = [
+                            [v * (1 - (n * 2001 + i) / 20000.0) for v in XYZw]
+                            for i in range(2001)
+                        ]
                         RGBscaled = self.xicclu(
                             profile_out,
                             XYZscaled,
@@ -7336,14 +7333,9 @@ BEGIN_DATA
         # Matrix (identity)
         A2B0.matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         # Input / output curves (linear)
-        A2B0.input = []
-        A2B0.output = []
-        channel = []
-        for j in range(256):
-            channel.append(j * 257)
-        for table in (A2B0.input, A2B0.output):
-            for _ in range(3):
-                table.append(channel)
+        channel = [j * 257 for j in range(256)]
+        A2B0.input = [channel for _ in range(3)]
+        A2B0.output = [channel for _ in range(3)]
         # cLUT
         if logfile:
             logfile.write("Generating A2B0 table lookup input values...\n")
@@ -7354,11 +7346,12 @@ BEGIN_DATA
             logfile.write(f"cLUT grid res: {clutres:d}\n")
         vrange = range(clutres)
         step = 1.0 / (clutres - 1.0)
-        idata = []
-        for R in vrange:
-            for G in vrange:
-                for B in vrange:
-                    idata.append([v * step for v in (R, G, B)])
+        idata = [
+            [v * step for v in (R, G, B)]
+            for R in vrange
+            for G in vrange
+            for B in vrange
+        ]
         if logfile:
             logfile.write("Looking up input values through A2B0 table...\n")
         odata = self.xicclu(profile, idata, pcs="x", logfile=logfile)
@@ -8907,13 +8900,17 @@ usage: spotread [-options] [logfile]
         except IndexError:
             return ""
 
-    def get_real_displays(self):
-        """Get real (nonvirtual) displays"""
-        real_displays = []
-        for display_no in range(len(self.displays)):
-            if not config.is_virtual_display(display_no):
-                real_displays.append(display_no)
-        return real_displays
+    def get_real_displays(self) -> list[int]:
+        """Return real (nonvirtual) displays.
+
+        Return:
+            list[int]: List of display numbers (0-indexed) of real displays.
+        """
+        return [
+            display_no
+            for display_no in range(len(self.displays))
+            if not config.is_virtual_display(display_no)
+        ]
 
     def get_technology_strings(self):
         """Return technology strings mapping (from ccxxmake -??)"""
@@ -10789,9 +10786,7 @@ usage: spotread [-options] [logfile]
                             # Figure out profile blackpoint by looking up
                             # neutral values from L* = 0 to L* = 50,
                             # in 0.1 increments
-                            idata = []
-                            for i in range(501):
-                                idata.append((i / 10.0, 0, 0))
+                            idata = [(i / 10.0, 0, 0) for i in range(501)]
                             odata = self.xicclu(
                                 profile,
                                 idata,
@@ -10923,9 +10918,9 @@ usage: spotread [-options] [logfile]
                                     interp = colormath.Interp(
                                         trc, curve, use_numpy=True
                                     )
-                                    profile.tags[table].input[i] = icurve = []
-                                    for j in range(4096):
-                                        icurve.append(interp(j / 4095.0 * 65535))
+                                    profile.tags[table].input[i] = [
+                                        interp(j / 4095.0 * 65535) for j in range(4096)
+                                    ]
                             # Remove temporary link profile
                             os.remove(link_profile.fileName)
                             # Update B2A matrix with source profile matrix
@@ -11580,12 +11575,13 @@ usage: spotread [-options] [logfile]
 
         if clutres > iclutres:
             # Lookup input RGB to interpolated XYZ
-            RGB_in = []
+            RGB_in = [
+                [a * step, b * step, c * step]
+                for a in range(clutres)
+                for b in range(clutres)
+                for c in range(clutres)
+            ]
             step = 100 / (clutres - 1.0)
-            for a in range(clutres):
-                for b in range(clutres):
-                    for c in range(clutres):
-                        RGB_in.append([a * step, b * step, c * step])
             XYZ_out = self.xicclu(profile, RGB_in, "a", pcs="X", scale=100)
             profile.fileName = None
 
@@ -11743,9 +11739,7 @@ usage: spotread [-options] [logfile]
                 # Create TRC from forward lookup through A2B
                 numentries = 256
                 maxval = numentries - 1.0
-                RGBin = []
-                for i in range(numentries):
-                    RGBin.append((i / maxval,) * 3)
+                RGBin = [(i / maxval,) * 3 for i in range(numentries)]
                 # Inverse backward if "B2A0" in tags, otherwise forward
                 direction = "ib" if "B2A0" in profile.tags else "f"
                 try:
@@ -15100,9 +15094,7 @@ usage: spotread [-options] [logfile]
                 self.wrapup(False)
                 return result
             link = ICCProfile(linkpath)
-            RGBscaled = []
-            for i in range(256):
-                RGBscaled.append([i / 255.0] * 3)
+            RGBscaled = [[i / 255.0] * 3 for i in range(256)]
             RGBscaled = self.xicclu(link, RGBscaled)
             logfiles.write("RGB white {:6.4f} {:6.4f} {:6.4f}\n".format(*RGBscaled[-1]))
             # Restore original white XYZ
@@ -15117,9 +15109,7 @@ usage: spotread [-options] [logfile]
         else:
             # Lookup scaled down white XYZ
             logfiles.write("Looking for solution...\n")
-            XYZscaled = []
-            for i in range(2000):
-                XYZscaled.append([v * (1 - i / 1999.0) for v in XYZw])
+            XYZscaled = [[v * (1 - i / 1999.0) for v in XYZw] for i in range(2000)]
             RGBscaled = self.xicclu(
                 profile, XYZscaled, "a", "if", pcs="x", get_clip=True
             )
@@ -15586,10 +15576,7 @@ BEGIN_DATA
                         white_added_count += 1
                 print(f"Added {white_added_count:d} white patch(es)")
 
-        idata = []
-        for primaries in list(device_data.values()):
-            idata.append(list(primaries.values()))
-
+        idata = [list(primaries.values()) for primaries in list(device_data.values())]
         if DEBUG:
             print(f"ti1_lookup_to_ti3 {profile.colorSpace} -> {color_rep} idata")
             for v in idata:

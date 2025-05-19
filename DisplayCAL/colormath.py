@@ -713,10 +713,7 @@ def interp_old(x, xp, fp, left=None, right=None):
 
     """
     if not isinstance(x, (int, float, complex)):
-        yi = []
-        for n in x:
-            yi.append(interp_old(n, xp, fp, left, right))
-        return yi
+        return [interp_old(n, xp, fp, left, right) for n in x]
     if x in xp:
         return fp[xp.index(x)]
     if x < xp[0]:
@@ -751,29 +748,41 @@ def interp(x, xp, fp, left=None, right=None, period=None):
 
 
 def interp_resize(iterable, new_size, use_numpy=False):
-    """Change size of iterable through linear interpolation"""
-    result = []
-    x_new = list(range(len(iterable)))
-    # interp = Interp(x_new, iterable, use_numpy=use_numpy)
-    for i in range(new_size):
-        result.append(
-            interp(
-                i / (new_size - 1.0) * (len(iterable) - 1.0),
-                x_new,
-                iterable,
-            )
+    """Change size of iterable through linear interpolation.
+
+    Args:
+        iterable (list): A list of float values.
+        new_size (int): New size of the list
+        use_numpy (bool): Use numpy for interpolation. Defaults to False.
+
+    Returns:
+        list: Interpolated values.
+    """
+    # interp = Interp(list(range(len(iterable))), iterable, use_numpy=use_numpy)
+    return [
+        interp(
+            i / (new_size - 1.0) * (len(iterable) - 1.0),
+            list(range(len(iterable))),
+            iterable,
         )
-    return result
+        for i in range(new_size)
+    ]
 
 
 def interp_fill(xp, fp, new_size, use_numpy=False):
-    """Fill missing points by interpolation"""
-    result = []
-    last = xp[-1]
+    """Fill missing points by interpolation.
+
+    Args:
+        xp (list): X values
+        fp (list): Y values
+        new_size (int): New size of the list
+        use_numpy (bool): Use numpy for interpolation. Defaults to False.
+
+    Returns:
+        list: Interpolated values.
+    """
     # interp = Interp(xp, fp, use_numpy=use_numpy)
-    for i in range(new_size):
-        result.append(interp(i / (new_size - 1.0) * last, xp, fp))
-    return result
+    return [interp(i / (new_size - 1.0) * xp[-1], xp, fp) for i in range(new_size)]
 
 
 def smooth_avg_old(values, passes=1, window=None, protect=None):

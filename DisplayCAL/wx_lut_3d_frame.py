@@ -1101,19 +1101,17 @@ class LUT3DMixin:
                 self.Parent.lut3d_update_shared_controls()
 
     def lut3d_setup_language(self):
+        """Set up language for 3D LUT controls."""
         # Shared with main window
-        items = []
-        for item in (
+        tone_curve_names = (
             "Gamma 2.2",
             "trc.rec1886",
             "trc.smpte2084.hardclip",
             "trc.smpte2084.rolloffclip",
             "trc.hlg",
             "custom",
-        ):
-            items.append(lang.getstr(item))
-        self.lut3d_trc_ctrl.SetItems(items)
-
+        )
+        self.lut3d_trc_ctrl.SetItems([lang.getstr(item) for item in tone_curve_names])
         self.trc_gamma_types_ab = {0: "b", 1: "B"}
         self.trc_gamma_types_ba = {"b": 0, "B": 1}
         self.lut3d_trc_gamma_type_ctrl.SetItems(

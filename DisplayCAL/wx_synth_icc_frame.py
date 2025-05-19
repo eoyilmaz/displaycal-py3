@@ -458,8 +458,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 )
                 return
             rgb = [(1, 1, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)]
-            for i in range(256):
-                rgb.append((1.0 / 255 * i, 1.0 / 255 * i, 1.0 / 255 * i))
+            rgb.extend(
+                (1.0 / 255 * i, 1.0 / 255 * i, 1.0 / 255 * i) for i in range(256)
+            )
             try:
                 colors = self.worker.xicclu(profile, rgb, intent="a", pcs="x")
             except Exception as exception:
@@ -626,9 +627,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         if "X" in XYZ and "Y" in XYZ and "Z" in XYZ:
             if XYZ["X"] + XYZ["Y"] + XYZ["Z"] == 0:
                 # Set black chromaticity to white chromaticity if XYZ is 0
-                xyY = []
-                for component in "xy":
-                    xyY.append(getattr(self, f"white_{component}").GetValue())
+                xyY = [
+                    getattr(self, f"white_{component}").GetValue() for component in "xy"
+                ]
             else:
                 xyY = colormath.XYZ2xyY(XYZ["X"], XYZ["Y"], XYZ["Z"])
             for i, component in enumerate("xy"):
@@ -1118,9 +1119,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
     def setup_language(self):
         BaseFrame.setup_language(self)
 
-        items = []
-        for item in self.trc_ctrl.Items:
-            items.append(lang.getstr(item))
+        items = [lang.getstr(item) for item in self.trc_ctrl.Items]
         self.trc_ctrl.SetItems(items)
         self.trc_ctrl.SetSelection(0)
 

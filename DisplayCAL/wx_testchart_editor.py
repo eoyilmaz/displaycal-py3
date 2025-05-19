@@ -977,8 +977,7 @@ class TestchartEditor(BaseFrame):
         )
         hsizer.Add((50, 1))
 
-        patch_order_choices = []
-        for lstr in (
+        lstrs = (
             "testchart.sort_RGB_gray_to_top",
             "testchart.sort_RGB_white_to_top",
             "testchart.sort_RGB_red_to_top",
@@ -1002,8 +1001,8 @@ class TestchartEditor(BaseFrame):
             "testchart.maximize_rec709_luma_difference",
             "testchart.maximize_RGB_difference",
             "testchart.vary_RGB_difference",
-        ):
-            patch_order_choices.append(lang.getstr(lstr))
+        )
+        patch_order_choices = [lang.getstr(lstr) for lstr in lstrs]
         self.change_patch_order_ctrl = wx.Choice(panel, -1, choices=patch_order_choices)
         self.change_patch_order_ctrl.SetSelection(0)
         self.change_patch_order_ctrl.SetToolTipString(

@@ -1512,14 +1512,11 @@ class ProfileManager:
                         profile.tags["vcgt"] = profile.tags["MS00"].get_vcgt()
                     if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
                         values = profile.tags.vcgt.getNormalizedValues()
-                        RGB = []
-                        for i in range(3):
-                            RGB.append(int(round(values[-1][i] * 255)))
                         (
                             self._window._colour.r,
                             self._window._colour.g,
                             self._window._colour.b,
-                        ) = RGB
+                        ) = (int(round(values[-1][i] * 255)) for i in range(3))
                         self._window._colour.ToHSV()
                         wx.CallAfter(self._window.DrawAll)
                     # Remember profile, but discard profile filename
@@ -1723,9 +1720,9 @@ class VisualWhitepointEditor(wx.Frame):
             self._colourData = colourData
         else:
             self._colourData = wx.ColourData()
-            RGB = []
-            for attribute in "rgb":
-                RGB.append(getcfg("whitepoint.visual_editor." + attribute))
+            RGB = [
+                getcfg(f"whitepoint.visual_editor.{attribute}") for attribute in "rgb"
+            ]
             self._colourData.SetColour(wx.Colour(*RGB))
 
         self._colour = Colour(self._colourData.GetColour())
@@ -2451,9 +2448,7 @@ class VisualWhitepointEditor(wx.Frame):
         pass
 
     def reset_handler(self, event):
-        RGB = []
-        for attribute in "rgb":
-            RGB.append(DEFAULTS[f"whitepoint.visual_editor.{attribute}"])
+        RGB = [DEFAULTS[f"whitepoint.visual_editor.{attribute}"] for attribute in "rgb"]
         self._colourData.SetColour(wx.Colour(*RGB))
         self._colour.r, self._colour.g, self._colour.b = self._colourData.GetColour()[
             :3

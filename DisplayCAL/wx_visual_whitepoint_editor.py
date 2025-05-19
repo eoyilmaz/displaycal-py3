@@ -1338,7 +1338,7 @@ class HSlider(BaseLineCtrl):
 
 
 class NumSpin(wx_Panel):
-    def __init__(self, parent, id=-1, *args, **kwargs):
+    def __init__(self, parent, id=-1, *args, **kwargs):  # noqa: A002
         wx_Panel.__init__(self, parent)
         self.BackgroundColour = "#404040"
         self.Sizer = wx.BoxSizer(wx.HORIZONTAL)

@@ -1528,7 +1528,7 @@ class DummyDialog:
     def Destroy(self):
         pass
 
-    def EndModal(self, id=-1):
+    def EndModal(self, id=-1):  # noqa: A002
         return id
 
     def Hide(self):
@@ -11391,7 +11391,7 @@ usage: spotread [-options] [logfile]
         self,
         ti3,
         description,
-        copyright,
+        copyright_,
         manufacturer,
         model,
         logfn=None,
@@ -11433,7 +11433,7 @@ usage: spotread [-options] [logfile]
         profile = ICCProfile()
         profile.version = 2.2  # Match ArgyllCMS
         profile.setDescription(description)
-        profile.setCopyright(copyright)
+        profile.setCopyright(copyright_)
         if manufacturer:
             profile.setDeviceManufacturerDescription(manufacturer)
         if model:
@@ -11644,7 +11644,7 @@ usage: spotread [-options] [logfile]
         ti3_RGB_XYZ,
         ti3_remaining,
         desc,
-        copyright="No copyright",
+        copyright_="No copyright",
         display_manufacturer=None,
         display_name=None,
         bpc=False,
@@ -11674,7 +11674,7 @@ usage: spotread [-options] [logfile]
             xy[3][1],
             2.2,  # Will be replaced
             desc,
-            copyright,
+            copyright_,
             display_manufacturer,
             display_name,
             cat=cat,
@@ -16352,7 +16352,7 @@ BEGIN_DATA
             print(f"Verified hash SHA-256= {actualhash_hex}")
         return download_path
 
-    def process_argyll_download(self, result, exit=False):
+    def process_argyll_download(self, result, exit_=False):
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result:
@@ -16444,11 +16444,11 @@ BEGIN_DATA
                 self.owner,
             )
 
-    def process_download(self, result, exit=False):
+    def process_download(self, result, exit_=False):
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result:
-            if exit:
+            if exit_:
                 if self.owner:
                     self.owner.Close()
                 else:

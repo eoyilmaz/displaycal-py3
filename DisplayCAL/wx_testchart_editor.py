@@ -86,7 +86,7 @@ class TestchartEditor(BaseFrame):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         path=None,
         cfg="testchart.file",
         parent_set_chart_methodname="set_testchart",

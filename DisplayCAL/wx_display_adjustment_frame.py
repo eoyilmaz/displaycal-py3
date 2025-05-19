@@ -100,7 +100,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
@@ -430,7 +430,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
@@ -522,7 +522,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
 
 class DisplayAdjustmentPanel(wx_Panel):
-    def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):
+    def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):  # noqa: A002
         # wx_Panel.__init__(self, parent, id)
         super().__init__(parent, id)
         self.ctrltype = ctrltype

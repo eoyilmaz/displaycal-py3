@@ -131,7 +131,7 @@ def SetMaxFontSize(self, pointsize=11):
 wx.Window.SetMaxFontSize = SetMaxFontSize
 
 
-def RealCenterOnScreen(self, dir=wx.BOTH):
+def RealCenterOnScreen(self, dir=wx.BOTH):  # noqa: A002
     """Center the window on the screen it is on, unlike CenterOnScreen which
     always centers on 1st screen.
 
@@ -382,7 +382,7 @@ def get_parent_frame(window):
 
 
 class CustomEvent(wx.PyEvent):
-    def __init__(self, typeId, object, window=None):
+    def __init__(self, typeId, object, window=None):  # noqa: A002
         wx.PyEvent.__init__(self, object.GetId(), typeId)
         self.EventObject = object
         self.Window = window
@@ -399,7 +399,7 @@ EVT_BETTER_TIMER = wx.PyEventBinder(wxEVT_BETTER_TIMER, 1)
 
 
 class BetterTimerEvent(wx.PyCommandEvent):
-    def __init__(self, id=wx.ID_ANY, ms=0):
+    def __init__(self, id=wx.ID_ANY, ms=0):  # noqa: A002
         wx.PyCommandEvent.__init__(self, wxEVT_BETTER_TIMER, id)
         self._ms = ms
 
@@ -666,7 +666,7 @@ class BetterWindowDisabler:
 
 
 class CustomGridCellEvent(CustomEvent):
-    def __init__(self, typeId, object, row=-1, col=-1, window=None):
+    def __init__(self, typeId, object, row=-1, col=-1, window=None):  # noqa: A002
         CustomEvent.__init__(self, typeId, object, window)
         self.Row = row
         self.Col = col
@@ -693,7 +693,7 @@ class PopupMenu:
     def EnableTop(self, pos, enable=True):
         self._enabledtop[pos] = enable
 
-    def FindItemById(self, id):
+    def FindItemById(self, id):  # noqa: A002
         for menu, _label in self._menus:
             item = menu.FindItemById(id)
             if item:
@@ -870,9 +870,9 @@ class IdFactory:
         return id_
 
     @classmethod
-    def ReserveId(cls, id) -> None:
-        cls.ReservedIds.add(id)
+    def ReserveId(cls, id_) -> None:
+        cls.ReservedIds.add(id_)
 
     @classmethod
-    def UnreserveId(cls, id) -> None:
-        cls.ReservedIds.remove(id)
+    def UnreserveId(cls, id_) -> None:
+        cls.ReservedIds.remove(id_)

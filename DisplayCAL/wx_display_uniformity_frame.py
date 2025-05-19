@@ -40,7 +40,7 @@ class FlatShadedNumberedButton(FlatShadedButton):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         bitmap=None,
         label="",
         pos=wx.DefaultPosition,
@@ -464,16 +464,16 @@ class DisplayUniformityFrame(BaseFrame):
         self.results = {}
         self.display_rects = get_display_rects()
 
-    def safe_send(self, bytes):
+    def safe_send(self, bytes_):
         if self.has_worker_subprocess() and not self.worker.subprocess_abort:
             if not self.worker.instrument_on_screen:
                 if not getattr(self, "wait_for_instrument_on_screen", False):
                     self.wait_for_instrument_on_screen = True
                     print(f"{APPNAME}: Waiting for instrument to be placed on screen")
-                wx.CallLater(200, self.safe_send, bytes)
+                wx.CallLater(200, self.safe_send, bytes_)
             else:
                 self.wait_for_instrument_on_screen = False
-                self.worker.safe_send(bytes)
+                self.worker.safe_send(bytes_)
 
     def show_cursor(self):
         cursor = wx.StockCursor(wx.CURSOR_ARROW)

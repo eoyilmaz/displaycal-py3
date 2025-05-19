@@ -136,8 +136,8 @@ class PyGauge(wx.Window):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
-        range=100,
+        id=wx.ID_ANY,  # noqa: A002
+        range_=100,
         pos=wx.DefaultPosition,
         size=(-1, 30),
         style=0,
@@ -151,7 +151,7 @@ class PyGauge(wx.Window):
         self._barGradient = self._barGradientSorted = None
 
         self._border_padding = 0
-        self._range = range
+        self._range = range_
         self._value = [0]
         self._valueSorted = [0]
 
@@ -258,7 +258,7 @@ class PyGauge(wx.Window):
         """
         return self._range
 
-    def SetRange(self, range: int) -> None:
+    def SetRange(self, range: int) -> None:  # noqa: A002
         """Set the range of the gauge.
 
         The gauge length is its value as a proportion of the range.

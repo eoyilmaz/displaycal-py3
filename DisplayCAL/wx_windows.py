@@ -267,9 +267,9 @@ class AnimatedBitmap(wx.PyControl):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         bitmaps=None,
-        range=(0, -1),
+        range_=(0, -1),
         loop=True,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
@@ -287,7 +287,7 @@ class AnimatedBitmap(wx.PyControl):
             size = tuple(int(round(v * self.dpiscale)) if v != -1 else v for v in size)
         wx.PyControl.__init__(self, parent, id, pos, size, style)
         self._minsize = size
-        self.SetBitmaps(bitmaps or [], range, loop)
+        self.SetBitmaps(bitmaps or [], range_, loop)
         # Avoid flickering under Windows
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda event: None)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -334,7 +334,7 @@ class AnimatedBitmap(wx.PyControl):
     def Stop(self):
         self._timer.Stop()
 
-    def SetBitmaps(self, bitmaps, range=(0, -1), loop=True):
+    def SetBitmaps(self, bitmaps, range_=(0, -1), loop=True):
         w, h = self._minsize
         for bitmap in bitmaps:
             w = max(bitmap.Size[0], w)
@@ -342,7 +342,7 @@ class AnimatedBitmap(wx.PyControl):
         self._minsize = w, h
         self._bitmaps = bitmaps
         self.loop = loop
-        self.range = range
+        self.range = range_
         self.frame = 0
 
 
@@ -2428,7 +2428,7 @@ class BaseInteractiveDialog(wx.Dialog):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         msg="",
         ok=None,
@@ -2600,7 +2600,7 @@ class BaseInteractiveDialog(wx.Dialog):
                 print("->", ctrl.Label)
         self.EndModal(id_)
 
-    def EndModal(self, id):
+    def EndModal(self, id):  # noqa: A002
         # Re-enable other windows
         if hasattr(self, "_disabler"):
             del self._disabler
@@ -2695,7 +2695,7 @@ if not hasattr(wx, "WindowModalDialogEvent") or sys.platform != "darwin":
     )
 
     class WindowModalDialogEvent(wx.PyCommandEvent):
-        def __init__(self, commandType=wx.wxEVT_NULL, id=0):
+        def __init__(self, commandType=wx.wxEVT_NULL, id=0):  # noqa: A002
             wx.PyCommandEvent.__init__(self, commandType, id)
 
         def GetDialog(self):
@@ -2711,7 +2711,7 @@ class HtmlInfoDialog(BaseInteractiveDialog):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         msg="",
         html="",
@@ -3028,7 +3028,7 @@ class ConfirmDialog(BaseInteractiveDialog):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         msg="",
         ok=None,
@@ -3229,7 +3229,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
         button.Bind(wx.EVT_BUTTON, self.OnBrowse)
         return button
 
-    def createDialog(self, parent, id, pos, size, style, name=None):
+    def createDialog(self, parent, id, pos, size, style, name=None):  # noqa: A002
         """Setup the graphic representation of the dialog"""
         wx.Panel.__init__(self, parent, id, pos, size, style)
         self.SetMinSize(size)  # play nice with sizers
@@ -3357,7 +3357,7 @@ class FlatShadedButton(GradientButton):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         bitmap=None,
         label="",
         pos=wx.DefaultPosition,
@@ -3623,7 +3623,7 @@ class BorderGradientButton(GradientButton):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         bitmap=None,
         label="",
         pos=wx.DefaultPosition,
@@ -4442,7 +4442,7 @@ class CustomCheckBox(wx.Panel):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         label="",
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
@@ -4597,7 +4597,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         self._grid = grid
         self._cell_renderer = CustomCellRenderer()
 
-    def Create(self, parent, id, evtHandler):
+    def Create(self, parent, id, evtHandler):  # noqa: A002
         """Called to create the control, which must derive from wx.Control."""
         print(
             f"CustomCellEditor.Create({parent!r}, {id!r}, {evtHandler!r}) was called. "
@@ -5184,8 +5184,8 @@ class BetterPyGauge(pygauge.PyGauge):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
-        range=100,
+        id=wx.ID_ANY,  # noqa: A002
+        range_=100,
         pos=wx.DefaultPosition,
         size=(-1, 30),
         style=0,
@@ -5195,7 +5195,7 @@ class BetterPyGauge(pygauge.PyGauge):
         self.dpiscale = getcfg("app.dpi") / get_default_dpi()
         if self.dpiscale > 1:
             size = tuple(int(round(v * self.dpiscale)) if v != -1 else v for v in size)
-        pygauge.PyGauge.__init__(self, parent, id, range, pos, size, style)
+        pygauge.PyGauge.__init__(self, parent, id, range_, pos, size, style)
         self._indeterminate = False
         self.gradientindex = 0
         self._gradients = []
@@ -5431,7 +5431,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
     _rawlabel = ""
     maxlen = 119
 
-    def __init__(self, window, id, text, *args, **kargs):
+    def __init__(self, window, id, text, *args, **kargs):  # noqa: A002
         args = list(args)
         kargs.setdefault("name", "staticFancyText")
         # Ignore background, always use parent background
@@ -5510,7 +5510,7 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
 
 # Better under GTK (no text cutoff)
 class BetterStaticFancyTextSetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
-    def __init__(self, parent, id, text, *args, **kwargs):
+    def __init__(self, parent, id, text, *args, **kwargs):  # noqa: A002
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.maxlen = 119
         self._st = wx.StaticText(self, -1, "")
@@ -5571,7 +5571,7 @@ class InfoDialog(BaseInteractiveDialog):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         msg="",
         ok="OK",
@@ -5608,7 +5608,7 @@ class InvincibleFrame(BaseFrame):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title="",
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
@@ -5628,7 +5628,7 @@ class LogWindow(InvincibleFrame):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=None,
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
@@ -6066,7 +6066,7 @@ class ProgressDialog(wx.Dialog):
         self._fpprogress = 0.0
         if fancy:
             self.gauge = BetterPyGauge(
-                self, wx.ID_ANY, range=maximum, size=(-1, 4), pd=self
+                self, wx.ID_ANY, range_=maximum, size=(-1, 4), pd=self
             )
             self.gauge.BackgroundColour = "#003366"
             self.gauge.SetBarGradients(
@@ -6143,7 +6143,7 @@ class ProgressDialog(wx.Dialog):
 
         if fancy:
 
-            def buttoncls(parent, id, label):
+            def buttoncls(parent, id, label):  # noqa: A002
                 return FlatShadedButton(parent, id, None, label, fgcolour="#FFFFFF")
 
         else:
@@ -6673,7 +6673,7 @@ class SimpleBook(labelbook.FlatBookBase):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
@@ -6710,7 +6710,7 @@ class SimpleTerminal(InvincibleFrame):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         handler=None,
         keyhandler=None,
@@ -7266,7 +7266,7 @@ class TooltipWindow(InvincibleFrame):
     def __init__(
         self,
         parent=None,
-        id=-1,
+        id=-1,  # noqa: A002
         title=APPNAME,
         msg="",
         cols=1,

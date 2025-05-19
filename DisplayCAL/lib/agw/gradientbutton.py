@@ -193,7 +193,7 @@ class GradientButton(wx.Control):
     def __init__(
         self,
         parent: GradientButton,
-        id: int = wx.ID_ANY,
+        id: int = wx.ID_ANY,  # noqa: A002
         bitmap: None | wx.Bitmap = None,
         label: str = "",
         pos: wx.Point = wx.DefaultPosition,

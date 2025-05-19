@@ -149,7 +149,7 @@ def get_edid_windows(display_no, device):
     if not device:
         return None
 
-    id_ = device.DeviceID.split("\\")[1]
+    device_id = device.DeviceID.split("\\")[1]
     wmi_connection = None
     not_main_thread = threading.current_thread() is not threading.main_thread()
 
@@ -159,19 +159,19 @@ def get_edid_windows(display_no, device):
         wmi_connection = wmi.WMI(namespace="WMI")
 
     if wmi_connection:
-        return get_edid_windows_wmi(id_, wmi_connection, not_main_thread)
+        return get_edid_windows_wmi(device_id, wmi_connection, not_main_thread)
     if sys.getwindowsversion() < (6,):
-        return get_edid_windows_registry(id_, device)
+        return get_edid_windows_registry(device_id, device)
     raise WMIError("No WMI connection")
 
     return edid
 
 
-def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
+def get_edid_windows_wmi(device_id, wmi_connection, not_main_thread):
     """Get EDID using WMI for Windows Vista/Win7.
 
     Args:
-        id (str): The device ID.
+        device_id (str): The device ID.
         wmi_connection (wmi.WMI): The WMI connection.
         not_main_thread (bool): Whether the current thread is not the main thread.
 
@@ -192,7 +192,7 @@ def get_edid_windows_wmi(id, wmi_connection, not_main_thread):
         raise WMIError(safe_str(exception)) from exception
 
     for msmonitor in msmonitors:
-        if msmonitor.InstanceName.split("\\")[1] == id:
+        if msmonitor.InstanceName.split("\\")[1] == device_id:
             try:
                 edid = msmonitor.WmiGetMonitorRawEEdidV1Block(0)
             except Exception:

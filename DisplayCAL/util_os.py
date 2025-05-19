@@ -1063,7 +1063,7 @@ def which(executable: str, paths: None | list[str] = None) -> None | str:
 
 def whereis(
     names: list[str],
-    bin: bool = True,
+    search_for_binaries: bool = True,
     bin_paths: None | list[str] = None,
     man: bool = True,
     man_paths: None | list[str] = None,
@@ -1076,7 +1076,7 @@ def whereis(
 
     Args:
         names (list[str]): The names to search for.
-        bin (bool): Whether to search for binaries. Defaults to True.
+        search_for_binaries (bool): Whether to search for binaries. Defaults to True.
         bin_paths (None | list[str]): The list of binary paths. Defaults to None.
         man (bool): Whether to search for man pages. Defaults to True.
         man_paths (None | list[str]): The list of man paths. Defaults to None.
@@ -1089,13 +1089,20 @@ def whereis(
         dict: The results of the whereis command.
     """
     args = build_whereis_args(
-        bin, bin_paths, man, man_paths, src, src_paths, unusual, list_paths
+        search_for_binaries,
+        bin_paths,
+        man,
+        man_paths,
+        src,
+        src_paths,
+        unusual,
+        list_paths,
     )
     return execute_whereis(names, args)
 
 
 def build_whereis_args(
-    bin: bool,
+    search_for_binaries: bool,
     bin_paths: list[str],
     man: bool,
     man_paths: list[str],
@@ -1107,7 +1114,7 @@ def build_whereis_args(
     """Build arguments for the whereis command.
 
     Args:
-        bin (bool): Whether to search for binaries.
+        search_for_binaries (bool): Whether to search for binaries.
         bin_paths (list[str]): The list of binary paths.
         man (bool): Whether to search for man pages.
         man_paths (list[str]): The list of man paths.
@@ -1120,7 +1127,7 @@ def build_whereis_args(
         list[str]: The list of arguments for the whereis command.
     """
     args = []
-    if bin:
+    if search_for_binaries:
         args.append("-b")
     if bin_paths:
         args.append("-B")

@@ -25,14 +25,14 @@ def _find_all_simple(path):
     return filter(os.path.isfile, results)
 
 
-def findall(dir=os.curdir):
+def findall(directory=os.curdir):
     """Find all files under 'dir' and return the list of full filenames.
 
     Unless dir is '.', return full filenames with dir prepended.
     """
-    files = _find_all_simple(dir)
-    if dir == os.curdir:
-        make_rel = functools.partial(os.path.relpath, start=dir)
+    files = _find_all_simple(directory)
+    if directory == os.curdir:
+        make_rel = functools.partial(os.path.relpath, start=directory)
         files = map(make_rel, files)
     return list(files)
 

@@ -90,12 +90,16 @@ class CoordinateType(list):
         self._transfer_function = {}
 
     def get_gamma(
-        self, use_vmin_vmax=False, average=True, least_squares=False, slice=(0.01, 0.99)
+        self,
+        use_vmin_vmax=False,
+        average=True,
+        least_squares=False,
+        slice_=(0.01, 0.99),
     ):
         """Return average or least squares gamma or a list of gamma values"""
         if len(self):
-            start = slice[0] * 100
-            end = slice[1] * 100
+            start = slice_[0] * 100
+            end = slice_[1] * 100
             values = []
             for y, x in self:
                 n = colormath.XYZ2Lab(0, y, 0)[0]
@@ -113,9 +117,9 @@ class CoordinateType(list):
             vmax = self[-1][0]
         return colormath.get_gamma(values, 100.0, vmin, vmax, average, least_squares)
 
-    def get_transfer_function(self, best=True, slice=(0.05, 0.95), outoffset=None):
+    def get_transfer_function(self, best=True, slice_=(0.05, 0.95), outoffset=None):
         """Return transfer function name, exponent and match percentage"""
-        transfer_function = self._transfer_function.get((best, slice))
+        transfer_function = self._transfer_function.get((best, slice_))
         if transfer_function:
             return transfer_function
         xp = []
@@ -127,8 +131,8 @@ class CoordinateType(list):
         otrc = CurveType(profile=self.profile)
         for i in range(len(self)):
             otrc.append(interp(i / (len(self) - 1.0) * 255) / 100 * 65535)
-        match = otrc.get_transfer_function(best, slice, outoffset=outoffset)
-        self._transfer_function[(best, slice)] = match
+        match = otrc.get_transfer_function(best, slice_, outoffset=outoffset)
+        self._transfer_function[(best, slice_)] = match
         return match
 
     def set_trc(self, power=2.2, values=(), vmin=0, vmax=100):
@@ -1821,7 +1825,7 @@ class LUTFrame(BaseFrame):
                         )
             if getattr(self, "trc", None):
                 transfer_function = self.trc.get_transfer_function(
-                    slice=(0.00, 1.00), outoffset=1.0
+                    slice_=(0.00, 1.00), outoffset=1.0
                 )
             # if "R" in colorants and "G" in colorants and "B" in colorants:
             #     if (self.profile.tags.rTRC == self.profile.tags.gTRC ==

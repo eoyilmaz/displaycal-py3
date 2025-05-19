@@ -201,7 +201,7 @@ class JavaScriptPacker:
         parser.add(r"""\s+""", "")
         return parser.execute(script)
 
-    def getEncoder(self, ascii):
+    def getEncoder(self, ascii_):
         mapping = {}
         base = ord("0")
         mapping.update({i: chr(i + base) for i in range(10)})
@@ -258,11 +258,11 @@ class JavaScriptPacker:
             l.reverse()
             return "".join(l)
 
-        if ascii <= 10:
+        if ascii_ <= 10:
             return encode10
-        if ascii <= 36:
+        if ascii_ <= 36:
             return encode36
-        if ascii <= 62:
+        if ascii_ <= 62:
             return encode62
         return encode95
 

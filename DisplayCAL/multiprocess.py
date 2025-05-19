@@ -191,9 +191,9 @@ def pool_slice(
 
 
 class WorkerFunc:
-    def __init__(self, func, exit=False):
+    def __init__(self, func, exit_=False):
         self.func = func
-        self.exit = exit
+        self.exit = exit_
 
     def __call__(self, data, thread_abort_event, progress_queue, *args, **kwds):
         try:

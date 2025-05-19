@@ -111,7 +111,7 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         """Serve a HEAD request."""
         self.send_head()
 
-    def log_message(self, format, *args):
+    def log_message(self, format, *args):  # noqa: A002
         pass
 
     def send_head(self):

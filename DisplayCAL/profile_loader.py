@@ -1025,7 +1025,7 @@ class ProfileAssociationsDialog(InfoDialog):
                 and self.pl._can_fix_profile_associations()
             ):
                 self._update_device(fn, arg0, device0.DeviceKey)
-            self.update_profiles(True, monitor=self.monitors[dindex], next=True)
+            self.update_profiles(True, monitor=self.monitors[dindex], next_=True)
         else:
             wx.Bell()
 
@@ -1086,7 +1086,7 @@ class ProfileAssociationsDialog(InfoDialog):
         if event and not self.IsActive():
             self.RequestUserAttention()
 
-    def update_profiles(self, event=None, monitor=None, next=False):
+    def update_profiles(self, event=None, monitor=None, next_=False):
         if not monitor:
             dindex = self.display_ctrl.GetSelection()
             if -1 < dindex < len(self.monitors):
@@ -1145,7 +1145,7 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.profiles_ctrl.SetStringItem(pindex, 1, profile)
             self.profiles_ctrl.Thaw()
         if scope_changed or (
-            profiles_changed and (next or isinstance(event, wx.TimerEvent))
+            profiles_changed and (next_ or isinstance(event, wx.TimerEvent))
         ):
             wx.CallAfter(self._next)
 

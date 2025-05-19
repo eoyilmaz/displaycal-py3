@@ -264,7 +264,7 @@ class FloatTextCtrl(wx.TextCtrl):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         value="",
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
@@ -355,7 +355,7 @@ class FloatSpin(wx.PyControl):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=(130, -1),
         style=0,
@@ -1264,7 +1264,7 @@ if wx.VERSION >= (3,):
         def __init__(
             self,
             parent,
-            id=wx.ID_ANY,
+            id=wx.ID_ANY,  # noqa: A002
             pos=wx.DefaultPosition,
             size=(95, -1),
             style=wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT,
@@ -1719,10 +1719,12 @@ def _tento(n, cache=None):
 # Note that this is called a lot, so default-arg tricks are helpful.
 
 
-def _norm(x, y, isinstance=isinstance, FixedPoint=FixedPoint, _tento=_tento):
-    if not isinstance(x, FixedPoint):
+def _norm(x, y, isinstance_func=None, FixedPoint=FixedPoint, _tento=_tento):
+    if isinstance_func is None:
+        isinstance_func = isinstance
+    if not isinstance_func(x, FixedPoint):
         raise TypeError(f"first arg must be a FixedPoint: {x!r}")
-    if not isinstance(y, FixedPoint):
+    if not isinstance_func(y, FixedPoint):
         y = FixedPoint(y, x.p)
     xn, yn = x.n, y.n
     xp, yp = x.p, y.p

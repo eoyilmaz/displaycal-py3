@@ -126,7 +126,7 @@ def test_iccprofile_from_chromaticies():
         (0.3133857119826585, 0.3283378912104931),
     ]
     desc = "Monitor 1 #1 2022-02-13 20-53 D6500 2.2 VF-S XYZLUT+MTX"
-    copyright = "No copyright. Created with DisplayCAL 3.8.9.3 and ArgyllCMS 2.3.0"
+    copyright_str = "No copyright. Created with DisplayCAL 3.8.9.3 and ArgyllCMS 2.3.0"
     display_manufacturer = None
     display_name = "Monitor 1, Output DP-2"
     cat = "Bradford"
@@ -142,7 +142,7 @@ def test_iccprofile_from_chromaticies():
         xy[3][1],
         2.2,
         desc,
-        copyright,
+        copyright_str,
         display_manufacturer,
         display_name,
         cat=cat,
@@ -160,7 +160,7 @@ def test_iccprofile_get_info():
         (0.3133857119826585, 0.3283378912104931),
     ]
     desc = "Monitor 1 #1 2022-02-13 20-53 D6500 2.2 VF-S XYZLUT+MTX"
-    copyright = "No copyright. Created with DisplayCAL 3.8.9.3 and ArgyllCMS 2.3.0"
+    copyright_str = "No copyright. Created with DisplayCAL 3.8.9.3 and ArgyllCMS 2.3.0"
     display_manufacturer = None
     display_name = "Monitor 1, Output DP-2"
     cat = "Bradford"
@@ -176,7 +176,7 @@ def test_iccprofile_get_info():
         xy[3][1],
         2.2,
         desc,
-        copyright,
+        copyright_str,
         display_manufacturer,
         display_name,
         cat=cat,

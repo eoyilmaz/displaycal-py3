@@ -679,9 +679,9 @@ class UntetheredFrame(BaseFrame):
         y = getcfg("position.progress.y")
         self.SetSaneGeometry(x, y)
 
-    def safe_send(self, bytes):
+    def safe_send(self, bytes_):
         if self.has_worker_subprocess() and not self.worker.subprocess_abort:
-            self.worker.safe_send(bytes)
+            self.worker.safe_send(bytes_)
 
     def show_RGB(self, clear_XYZ=True, mark_current_row=True):
         row = self.cgats[0].DATA[self.index]

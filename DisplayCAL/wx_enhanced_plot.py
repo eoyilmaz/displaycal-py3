@@ -830,7 +830,7 @@ class PlotCanvas(wx.Panel):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
@@ -1403,7 +1403,7 @@ class PlotCanvas(wx.Panel):
         x, y = (screenPos - self._pointShift) / self._pointScale
         return x, y
 
-    def SetXSpec(self, type="auto"):
+    def SetXSpec(self, type_="auto"):
         """xSpec- defines x axis type. Can be 'none', 'min' or 'auto'
         where:
             'none' - shows no axis or tick mark values
@@ -1411,9 +1411,9 @@ class PlotCanvas(wx.Panel):
             'auto' - rounds axis range to sensible values
             <number> - like 'min', but with <number> tick marks
         """
-        self._xSpec = type
+        self._xSpec = type_
 
-    def SetYSpec(self, type="auto"):
+    def SetYSpec(self, type_="auto"):
         """ySpec- defines x axis type. Can be 'none', 'min' or 'auto'
         where:
             'none' - shows no axis or tick mark values
@@ -1421,7 +1421,7 @@ class PlotCanvas(wx.Panel):
             'auto' - rounds axis range to sensible values
             <number> - like 'min', but with <number> tick marks
         """
-        self._ySpec = type
+        self._ySpec = type_
 
     def GetXSpec(self):
         """Returns current XSpec for axis"""
@@ -2873,7 +2873,7 @@ def _draw7Objects():
 
 
 class TestFrame(wx.Frame):
-    def __init__(self, parent, id, title):
+    def __init__(self, parent, id, title):  # noqa: A002
         wx.Frame.__init__(self, parent, id, title, wx.DefaultPosition, (600, 400))
 
         # Now Create the menu bar and items

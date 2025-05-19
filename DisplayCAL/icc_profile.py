@@ -3972,8 +3972,8 @@ class CurveType(ICCProfileTag, list):
         self._transfer_function = {}
         self._bt1886 = {}
 
-    def append(self, object):
-        list.append(self, object)
+    def append(self, object_):
+        list.append(self, object_)
         self._reset()
 
     def apply_bpc(self, black_Y_out=0, weight=False):
@@ -3998,7 +3998,7 @@ class CurveType(ICCProfileTag, list):
         use_vmin_vmax=False,
         average=True,
         least_squares=False,
-        slice=(0.01, 0.99),
+        slice_=(0.01, 0.99),
         lstar_slice=True,
     ):
         """Return average or least squares gamma or a list of gamma values"""
@@ -4008,8 +4008,8 @@ class CurveType(ICCProfileTag, list):
                 return values[0]
             return [values[0]]
         if lstar_slice:
-            start = slice[0] * 100
-            end = slice[1] * 100
+            start = slice_[0] * 100
+            end = slice_[1] * 100
             values = []
             for i, y in enumerate(self):
                 n = colormath.XYZ2Lab(0, y / 65535.0 * 100, 0)[0]
@@ -4018,8 +4018,8 @@ class CurveType(ICCProfileTag, list):
         else:
             maxv = len(self) - 1.0
             maxi = int(maxv)
-            starti = int(round(slice[0] * maxi))
-            endi = int(round(slice[1] * maxi)) + 1
+            starti = int(round(slice_[0] * maxi))
+            endi = int(round(slice_[1] * maxi)) + 1
             values = list(
                 zip(
                     [(v / maxv) * 65535 for v in range(starti, endi)], self[starti:endi]
@@ -4033,7 +4033,7 @@ class CurveType(ICCProfileTag, list):
         return colormath.get_gamma(values, 65535.0, vmin, vmax, average, least_squares)
 
     def get_transfer_function(
-        self, best=True, slice=(0.05, 0.95), black_Y=None, outoffset=None
+        self, best=True, slice_=(0.05, 0.95), black_Y=None, outoffset=None
     ):
         """Return transfer function name, exponent and match percentage."""
         if len(self) == 1:
@@ -4042,7 +4042,7 @@ class CurveType(ICCProfileTag, list):
         if not len(self):
             # Identity
             return ("Gamma 1.0", 1.0, 1.0), 1.0
-        transfer_function = self._transfer_function.get((best, slice))
+        transfer_function = self._transfer_function.get((best, slice_))
         if transfer_function:
             return transfer_function
         trc = CurveType()
@@ -4064,7 +4064,7 @@ class CurveType(ICCProfileTag, list):
         maxi = int(maxv)
         _starti = int(round(0.4 * maxi))
         _endi = int(round(0.6 * maxi))
-        gamma = otrc.get_gamma(True, slice=(0.4, 0.6), lstar_slice=False)
+        gamma = otrc.get_gamma(True, slice_=(0.4, 0.6), lstar_slice=False)
         egamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
         outoffset_unspecified = outoffset is None
         if outoffset_unspecified:
@@ -4117,8 +4117,8 @@ class CurveType(ICCProfileTag, list):
             else:
                 match[(name, exp, outoffset)] = 0.0
                 count = 0
-                start = slice[0] * len(self)
-                end = slice[1] * len(self)
+                start = slice_[0] * len(self)
+                end = slice_[1] * len(self)
                 for i, n in enumerate(otrc):
                     # n = colormath.XYZ2Lab(0, n / 65535.0 * 100, 0)[0]
                     if start <= i <= end:
@@ -4148,16 +4148,16 @@ class CurveType(ICCProfileTag, list):
                 if count:
                     match[(name, exp, outoffset)] /= count
         if not best:
-            self._transfer_function[(best, slice)] = match
+            self._transfer_function[(best, slice_)] = match
             return match
         match, (name, exp, outoffset) = sorted(
             zip(list(match.values()), list(match.keys()))
         )[-1]
-        self._transfer_function[(best, slice)] = (name, exp, outoffset), match
+        self._transfer_function[(best, slice_)] = (name, exp, outoffset), match
         return (name, exp, outoffset), match
 
-    def insert(self, object):
-        list.insert(self, object)
+    def insert(self, object_):
+        list.insert(self, object_)
         self._reset()
 
     def pop(self, index):
@@ -6887,7 +6887,7 @@ class ICCProfile:
         wy,
         gamma,
         description,
-        copyright,
+        copyright_,
         manufacturer=None,
         model_name=None,
         manufacturer_id=b"\0\0",
@@ -6913,7 +6913,7 @@ class ICCProfile:
             wXYZ,
             gamma,
             description,
-            copyright,
+            copyright_,
             manufacturer,
             model_name,
             manufacturer_id,
@@ -6931,7 +6931,7 @@ class ICCProfile:
         wXYZ,
         gamma,
         description,
-        copyright,
+        copyright_,
         manufacturer=None,
         model_name=None,
         manufacturer_id=b"\0\0",
@@ -6954,7 +6954,7 @@ class ICCProfile:
         ):
             profile.version = 2.2  # Match ArgyllCMS
         profile.setDescription(description)
-        profile.setCopyright(copyright)
+        profile.setCopyright(copyright_)
         if manufacturer:
             profile.setDeviceManufacturerDescription(manufacturer)
         if model_name:
@@ -7080,8 +7080,8 @@ class ICCProfile:
         imtx = mtx.inverted()
         for channel in "rgb":
             tag = CurveType(profile=self)
-            if len(self.tags[channel + "TRC"]) == 1:
-                gamma = self.tags[channel + "TRC"].get_gamma()
+            if len(self.tags[f"{channel}TRC"]) == 1:
+                gamma = self.tags[f"{channel}TRC"].get_gamma()
                 tag.set_trc(gamma, 1024)
             else:
                 tag.extend(self.tags[channel + "TRC"])
@@ -7258,8 +7258,8 @@ class ICCProfile:
             self.tags[tagname] = MultiLocalizedUnicodeType()
             self.tags[tagname].add_localized_string(languagecode, countrycode, text)
 
-    def setCopyright(self, copyright, languagecode="en", countrycode="US"):
-        self.set_localizable_text("cprt", copyright, languagecode, countrycode)
+    def setCopyright(self, copyright_, languagecode="en", countrycode="US"):
+        self.set_localizable_text("cprt", copyright_, languagecode, countrycode)
 
     def setDescription(self, description, languagecode="en", countrycode="US"):
         self.set_localizable_desc("desc", description, languagecode, countrycode)
@@ -7525,7 +7525,7 @@ class ICCProfile:
                     tag = tag.get_trc()
                     # info["    Average gamma"] = f"{tag.get_gamma():3.2f}"
                     transfer_function = tag.get_transfer_function(
-                        slice=(0, 1.0), outoffset=1.0
+                        slice_=(0, 1.0), outoffset=1.0
                     )
                     if round(transfer_function[1], 2) == 1.0:
                         value = f"{transfer_function[0][0]}"
@@ -7548,7 +7548,7 @@ class ICCProfile:
                     info["    Number of entries"] = f"{len(tag):d}"
                     # info["    Average gamma"] = f"{tag.get_gamma():3.2f}"
                     transfer_function = tag.get_transfer_function(
-                        slice=(0, 1.0), outoffset=1.0
+                        slice_=(0, 1.0), outoffset=1.0
                     )
                     if round(transfer_function[1], 2) == 1.0:
                         value = f"{transfer_function[0][0]}"

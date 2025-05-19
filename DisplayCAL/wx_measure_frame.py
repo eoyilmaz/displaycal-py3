@@ -142,7 +142,7 @@ class MeasureFrame(InvincibleFrame):
 
     exitcode = 1
 
-    def __init__(self, parent=None, id=-1):
+    def __init__(self, parent=None, id=-1):  # noqa: A002
         style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         if os.getenv("XDG_SESSION_TYPE") != "wayland" and getcfg(
             "patterngenerator.use_pattern_window"

@@ -8716,7 +8716,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 outoffset = 1.0
                 gamma = 0.0
                 for channel in "rgb":
-                    gamma += mprof.tags[channel + "TRC"].get_gamma()
+                    gamma += mprof.tags[f"{channel}TRC"].get_gamma()
                 gamma /= 3.0
             rXYZ = list(mprof.tags.rXYZ.values())
             gXYZ = list(mprof.tags.gXYZ.values())

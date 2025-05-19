@@ -265,7 +265,7 @@ if "gtk3" in wx.PlatformInfo:
         def __init__(
             self,
             parent,
-            id=wx.ID_ANY,
+            id=wx.ID_ANY,  # noqa: A002
             pos=wx.DefaultPosition,
             size=wx.DefaultSize,
             style=wx.LC_ICON,
@@ -366,13 +366,13 @@ if "gtk3" in wx.PlatformInfo:
         def __init__(
             self,
             parent,
-            id=wx.ID_ANY,
+            id=wx.ID_ANY,  # noqa: A002
             value="",
             pos=wx.DefaultPosition,
             size=wx.DefaultSize,
             style=wx.SP_ARROW_KEYS,
-            min=0,
-            max=100,
+            min=0,  # noqa: A002
+            max=100,  # noqa: A002
             initial=0,
             name="wxSpinCtrl",
         ):
@@ -1645,7 +1645,7 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
     def __init__(
         self,
         parent,
-        id=-1,
+        id=-1,  # noqa: A002
         bitmap=wx.NullBitmap,
         label="",
         pos=wx.DefaultPosition,
@@ -1708,7 +1708,7 @@ class BitmapWithThemedButton(wx.BoxSizer):
     def __init__(
         self,
         parent,
-        id=-1,
+        id=-1,  # noqa: A002
         bitmap=wx.NullBitmap,
         label="",
         pos=wx.DefaultPosition,

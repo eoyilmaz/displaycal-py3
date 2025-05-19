@@ -31,10 +31,10 @@ class Menu(wx.EvtHandler):
         # functionality
         self._destroyed = False
 
-    def Append(self, id, text, help="", kind=wx.ITEM_NORMAL):
+    def Append(self, id, text, help="", kind=wx.ITEM_NORMAL):  # noqa: A002
         return self.AppendItem(MenuItem(self, id, text, help, kind))
 
-    def AppendCheckItem(self, id, text, help=""):
+    def AppendCheckItem(self, id, text, help=""):  # noqa: A002
         return self.Append(id, text, help, wx.ITEM_CHECK)
 
     def AppendItem(self, item):
@@ -54,17 +54,17 @@ class Menu(wx.EvtHandler):
             self.Check(item.Id)
         return item
 
-    def AppendSubMenu(self, submenu, text, help=""):
+    def AppendSubMenu(self, submenu, text, help=""):  # noqa: A002
         item = MenuItem(self, submenu.hmenu, text, help, wx.ITEM_NORMAL, submenu)
         return self.AppendItem(item)
 
-    def AppendRadioItem(self, id, text, help=""):
+    def AppendRadioItem(self, id, text, help=""):  # noqa: A002
         return self.Append(id, text, help, wx.ITEM_RADIO)
 
     def AppendSeparator(self):
         return self.Append(-1, "", kind=wx.ITEM_SEPARATOR)
 
-    def Check(self, id, check=True):
+    def Check(self, id, check=True):  # noqa: A002
         flags = win32con.MF_BYCOMMAND
         item_check = self._menuitems[id]
         if item_check.Kind == wx.ITEM_RADIO:
@@ -114,7 +114,7 @@ class Menu(wx.EvtHandler):
     def __bool__(self):
         return not self._destroyed
 
-    def Enable(self, id, enable=True):
+    def Enable(self, id, enable=True):  # noqa: A002
         flags = win32con.MF_BYCOMMAND
         if not enable:
             flags |= win32con.MF_DISABLED
@@ -125,7 +125,13 @@ class Menu(wx.EvtHandler):
 
 class MenuItem:
     def __init__(
-        self, menu, id_=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
+        self,
+        menu,
+        id_=-1,
+        text="",
+        help="",  # noqa: A002
+        kind=wx.ITEM_NORMAL,
+        subMenu=None,
     ):
         if id_ == -1:
             id_ = IdFactory.NewId()
@@ -389,7 +395,7 @@ def _get_kind_str(kind):
     }.get(kind, str(kind))
 
 
-def _get_selected_menu_item(id: int, menu: Menu) -> None | MenuItem:
+def _get_selected_menu_item(id: int, menu: Menu) -> None | MenuItem:  # noqa: A002
     """Recursively search for a menu item by ID in the menu and its submenus.
 
     Args:

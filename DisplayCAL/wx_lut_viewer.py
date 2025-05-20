@@ -572,7 +572,7 @@ class LUTCanvas(plot.PlotCanvas):
         dc.DrawLine(int(sx), 0, int(sx), int(pty + rectHeight + 2))
 
     def GetClosestPoints(self, pntXY, pointScaled=True):
-        """Returns list with
+        """Return list with
         [curveNumber, legend, index of closest point, pointXY, scaledXY, distance]
         list for each curve.
         Returns [] if no curves are being plotted.
@@ -2214,9 +2214,10 @@ class LUTFrame(BaseFrame):
             self.client.zoom(direction)
 
     def SaveFile(self, event=None):
-        """Saves the file to the type specified in the extension. If no file
-        name is specified a dialog box is provided.  Returns True if sucessful,
-        otherwise False.
+        """Save the file to the type specified in the extension.
+
+        If no file name is specified a dialog box is provided.  Returns True if
+        sucessful, otherwise False.
 
         .bmp  Save a Windows bitmap file.
         .xbm  Save an X bitmap file.

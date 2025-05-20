@@ -60,14 +60,14 @@ class Display:
         self.xrandr_name = None  # Generated from self.description
 
         self.pos = (0, 0)  # USED
-        """Displays offset in pixel."""
+        """Display offset in pixel."""
         # self.sx = None
-        # """Displays offset in pixels (X)."""
+        # """Display offset in pixels (X)."""
         # self.sy = None
-        # """Displays offset in pixels (Y)."""
+        # """Display offset in pixels (Y)."""
 
         self.size = (0, 0)  # USED
-        """Displays width and height in pixels."""
+        """Display width and height in pixels."""
 
         # WINDOWS / NT
         self.monid = None

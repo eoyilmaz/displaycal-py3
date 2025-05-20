@@ -124,7 +124,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         self.stateimgs = imagelist
 
     def HitTest(self, pt):
-        """Returns the index of the tab at the specified position or ``wx.NOT_FOUND``
+        """Return the index of the tab at the specified position or ``wx.NOT_FOUND``
         if ``None``, plus the flag style of L{HitTest}.
 
         :param pt: an instance of `wx.Point`, to test for hits.
@@ -176,7 +176,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         return -1, IMG_NONE
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{ImageContainer}.
+        """Handle the ``wx.EVT_PAINT`` event for L{ImageContainer}.
 
         :param event: a `wx.PaintEvent` event to be processed.
         """

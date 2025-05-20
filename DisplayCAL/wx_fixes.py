@@ -11,6 +11,7 @@ import re
 import shutil
 import sys
 import tempfile
+from typing import Any
 
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import WX_MINVERSION
@@ -1010,7 +1011,15 @@ class PathDialogBase(wx.Dialog):
         self._isshown = False
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
+        """Get the attribute from the file dialog.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         return getattr(self.filedialog, name)
 
     def IsModal(self):
@@ -1074,7 +1083,7 @@ class ScrolledWindow(wx._ScrolledWindow):
         self.ScrollChildIntoView(child)
 
     def ScrollChildIntoView(self, child):
-        """Scrolls the panel such that the specified child window is in view."""
+        """Scroll the panel such that the specified child window is in view."""
         sppu_x, sppu_y = self.GetScrollPixelsPerUnit()
         vs_x, vs_y = self.GetViewStart()
         cr = child.GetRect()
@@ -1353,8 +1362,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
 class PlateButton(platebtn.PlateButton):
     """Fixes wx.lib.platebtn.PlateButton sometimes not reflecting enabled state
-    correctly aswelll as other quirks
-
+    correctly aswelll as other quirks.
     """
 
     _really_enabled = True
@@ -1635,7 +1643,15 @@ class TempXmlResource:
             if not os.listdir(TempXmlResource._temp):
                 shutil.rmtree(TempXmlResource._temp)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
+        """Get attribute from the resource.
+
+        Args:
+            name (str): Name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         return getattr(self.res, name)
 
 
@@ -1726,7 +1742,15 @@ class BitmapWithThemedButton(wx.BoxSizer):
         # self.Add(self._btn, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8)
         self.Add(self._btn, flag=wx.LEFT, border=8)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
+        """Get attribute from button or bitmap.
+
+        Args:
+            name (str): Name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         return getattr(self._btn, name)
 
     def Bind(self, event, handler):

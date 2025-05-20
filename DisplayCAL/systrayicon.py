@@ -111,7 +111,12 @@ class Menu(wx.EvtHandler):
         self._destroyed = True
         wx.EvtHandler.Destroy(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return the Menu instance's destroyed state as a bool.
+
+        Returns:
+            bool: True if the Menu instance is not destroyed,
+        """
         return not self._destroyed
 
     def Enable(self, id, enable=True):  # noqa: A002
@@ -316,7 +321,12 @@ class SysTrayIcon(wx.EvtHandler):
         self._destroyed = True
         wx.EvtHandler.Destroy(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return the SysTrayIcon instance's destroyed state as a bool.
+
+        Returns:
+            bool: True if the SysTrayIcon instance is not destroyed,
+        """
         return not self._destroyed
 
     def OnRightUp(self, event):

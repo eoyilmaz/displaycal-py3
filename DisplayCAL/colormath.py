@@ -6,11 +6,14 @@ In most cases, unless otherwise stated RGB is R'G'B' (gamma-compressed)
 
 """
 
+from __future__ import annotations
+
 import colorsys
 import logging
 import math
 import sys
 import warnings
+from typing import Self, overload
 
 import numpy
 
@@ -3527,7 +3530,15 @@ class Matrix3x3(list):
         self._rounded = {}
         self._applied = {}
 
-    def __add__(self, matrix):
+    def __add__(self, matrix: list | tuple | Matrix3x3) -> Matrix3x3:
+        """Matrix addition.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to add.
+
+        Returns:
+            Matrix3x3: The result of the addition.
+        """
         instance = self.__class__()
         instance.update(
             [
@@ -3550,28 +3561,65 @@ class Matrix3x3(list):
         )
         return instance
 
-    def __iadd__(self, matrix):
+    def __iadd__(self, matrix: list | tuple | Matrix3x3) -> Self:
+        """Matrix addition in place."""
         # inplace
         self.update(self.__add__(matrix))
         return self
 
+    @overload
+    def __imul__(
+        self, matrix: list[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __imul__(
+        self, matrix: tuple[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __imul__(self, matrix: Matrix3x3) -> Self: ...
+
     def __imul__(self, matrix):
+        """Matrix multiplication.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to multiply with.
+        """
         # inplace
         self.update(self.__mul__(matrix))
         return self
 
+    @overload
+    def __mul__(
+        self, matrix: list[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __mul__(
+        self, matrix: tuple[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __mul__(self, matrix: Matrix3x3) -> Matrix3x3: ...
+
     def __mul__(self, matrix):
+        """Matrix multiplication.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to multiply with.
+        """
         if not isinstance(matrix[0], (list, tuple)):
             return [
-                matrix[0] * self[0][0]
-                + matrix[1] * self[0][1]
-                + matrix[2] * self[0][2],
-                matrix[0] * self[1][0]
-                + matrix[1] * self[1][1]
-                + matrix[2] * self[1][2],
-                matrix[0] * self[2][0]
-                + matrix[1] * self[2][1]
-                + matrix[2] * self[2][2],
+                self[0][0] * matrix[0]
+                + self[0][1] * matrix[1]
+                + self[0][2] * matrix[2],
+                self[1][0] * matrix[0]
+                + self[1][1] * matrix[1]
+                + self[1][2] * matrix[2],
+                self[2][0] * matrix[0]
+                + self[2][1] * matrix[1]
+                + self[2][2] * matrix[2],
             ]
         instance = self.__class__()
         instance.update(
@@ -3728,7 +3776,12 @@ class NumberTuple(tuple):
 
     __slots__ = ()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the tuple.
+
+        Returns:
+            str: String representation of the tuple.
+        """
         return "({})".format(", ".join(str(value) for value in self))
 
     def round(self, digits=4):

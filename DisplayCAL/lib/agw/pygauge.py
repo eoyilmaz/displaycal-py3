@@ -211,7 +211,7 @@ class PyGauge(wx.Window):
     GetBarColor = GetBarColour
 
     def GetBarGradient(self):
-        """Returns a tuple containing the gradient start and end colours."""
+        """Return a tuple containing the gradient start and end colours."""
         if self._barGradient is None:
             return None
 

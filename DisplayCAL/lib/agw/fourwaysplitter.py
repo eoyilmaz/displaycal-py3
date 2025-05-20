@@ -163,7 +163,7 @@ SP_NOSASH = wx.SP_NOSASH
 SP_LIVE_UPDATE = wx.SP_LIVE_UPDATE
 """Don't draw XOR line but resize the child windows immediately."""
 SP_3DBORDER = wx.SP_3DBORDER
-"""Draws a 3D effect border."""
+"""Draw a 3D effect border."""
 
 # FourWaySplitter events
 EVT_SPLITTER_SASH_POS_CHANGING: wx.PyEventBinder = wx.EVT_SPLITTER_SASH_POS_CHANGING
@@ -1019,7 +1019,7 @@ class FourWaySplitter(wx.Panel):
                 dc.DrawRectangle(0, self._splity, width, barSize)
 
     def DrawTrackSplitter(self, x: int, y: int) -> None:
-        """Draws a fake sash in case we don't have ``wx.SP_LIVE_UPDATE`` style.
+        """Draw a fake sash in case we don't have ``wx.SP_LIVE_UPDATE`` style.
 
         Args:
             x (int): the `x` position of the sash;

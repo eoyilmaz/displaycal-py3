@@ -96,11 +96,19 @@ class XDisplay:
     def __init__(self, name=None):
         self.name = name or os.getenv("DISPLAY")
 
-    def __enter__(self):
+    def __enter__(self) -> "XDisplay":
+        """Enter the runtime context related to this object."""
         self.open()
         return self
 
-    def __exit__(self, etype, value, tb):
+    def __exit__(self, exc_type, exc_value, tb) -> None:
+        """Exit the runtime context related to this object.
+
+        Args:
+            exc_type: The exception type.
+            exc_value: The exception value.
+            tb: The traceback object.
+        """
         self.close()
 
     def open(self):

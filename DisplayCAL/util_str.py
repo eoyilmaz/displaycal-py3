@@ -12,6 +12,7 @@ import string
 import sys
 import unicodedata
 from functools import reduce
+from typing import Self
 
 env_errors = (EnvironmentError,)
 if sys.platform == "win32":
@@ -232,19 +233,40 @@ class StrList(list):
     """It's a list. It's a string. It's a list of strings that behaves like a
     string! And like a list."""
 
-    def __init__(self, seq=None):
+    def __init__(self, seq=None) -> None:
         if seq is None:
             seq = ()
         list.__init__(self, seq)
 
-    def __iadd__(self, text):
+    def __iadd__(self, text) -> Self:
+        """Append text to the list.
+
+        Args:
+            text (str): The text to append.
+
+        Returns:
+            StrList: The updated StrList object.
+        """
         self.append(text)
         return self
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> str:
+        """Get the attribute of the string representation of the list.
+
+        Args:
+            attr (str): The attribute to get.
+
+        Returns:
+            str: The value of the attribute.
+        """
         return getattr(str(self), attr)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the string representation of the list.
+
+        Returns:
+            str: The string representation of the list.
+        """
         return "".join(self)
 
 
@@ -492,7 +514,7 @@ def hexunescape(match):
 
 def indent(text, prefix, predicate=None):
     # From Python 3.7 textwrap module
-    """Adds 'prefix' to the beginning of selected lines in 'text'.
+    """Add 'prefix' to the beginning of selected lines in 'text'.
 
     If 'predicate' is provided, 'prefix' will only be added to the lines
     where 'predicate(line)' is True. If 'predicate' is not provided,

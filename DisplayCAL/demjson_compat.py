@@ -8,7 +8,7 @@ DEBUG = False
 
 
 def decode(txt, strict=False, encoding=None, **kw):
-    """Decodes a JSON-encoded string into a Python object.
+    """Decode a JSON-encoded string into a Python object.
 
     If 'strict' is set to True, then only strictly-conforming JSON
     output will be produced.  Note that this means that some types
@@ -114,7 +114,7 @@ def decode(txt, strict=False, encoding=None, **kw):
 
 
 def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=None):
-    """Encodes a Python object into a JSON-encoded string.
+    """Encode a Python object into a JSON-encoded string.
 
     'strict' is ignored.
 

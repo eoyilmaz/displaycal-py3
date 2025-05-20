@@ -1221,7 +1221,12 @@ class IncrementingInt:
         self.stop = stop
         self.step = step
 
-    def __int__(self):
+    def __int__(self) -> int:
+        """Return the current value and increment it by `step`.
+
+        Returns:
+            int: The current value before incrementing.
+        """
         i = self.i
         if self.stop is None or self.i < self.stop:
             self.i += self.step
@@ -8468,7 +8473,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         ignore_current_profile=False,
         prefer_current_profile=False,
     ):
-        """Selects the currently configured profile or display profile. Falls
+        """Select the currently configured profile or display profile. Falls
         back to user choice via FileDialog if both not set.
 
         """

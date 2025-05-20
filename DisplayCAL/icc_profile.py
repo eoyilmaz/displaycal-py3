@@ -9,6 +9,8 @@ profile data. It can be used to extract metadata, analyze profile contents, and
 apply ICC profiles to image processing workflows.
 """
 
+from __future__ import annotations
+
 import binascii
 import contextlib
 import ctypes
@@ -28,7 +30,7 @@ import warnings
 from collections import UserString
 from copy import copy
 from hashlib import md5
-from typing import ClassVar
+from typing import Any, ClassVar, Self, SupportsIndex
 from weakref import WeakValueDictionary
 
 from DisplayCAL.util_dict import dict_sort
@@ -759,13 +761,13 @@ def create_synthetic_hdr_clut_profile(
     hdr_format,
     rgb_space,
     description,
-    black_cdm2=0,
+    black_cdm2: int = 0,
     white_cdm2=400,
-    master_black_cdm2=0,  # Not used for HLG
-    master_white_cdm2=10000,  # Not used for HLG
-    use_alternate_master_white_clip=True,  # Not used for HLG
-    system_gamma=1.2,  # Not used for PQ
-    ambient_cdm2=5,  # Not used for PQ
+    master_black_cdm2: int = 0,  # Not used for HLG
+    master_white_cdm2: int = 10000,  # Not used for HLG
+    use_alternate_master_white_clip: bool = True,  # Not used for HLG
+    system_gamma: float = 1.2,  # Not used for PQ
+    ambient_cdm2: float = 5,  # Not used for PQ
     maxsignal=1.0,  # Not used for PQ
     content_rgb_space="DCI P3",
     clutres=33,
@@ -2805,7 +2807,7 @@ def _mp_hdr_tonemap(
 
 
 def hexrepr(bytestring, mapping=None):
-    """Generates hex representation of a bytes instance
+    """Generate hex representation of a bytes instance
 
     :param bytestring:
     :param mapping:
@@ -2970,12 +2972,23 @@ class ADict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get the attribute with the given name.
+
+        Args:
+            name (str): The name of the attribute to get.
+        """
         if name in self:
             return self[name]
         return self.__getattribute__(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set the attribute with the given name to the given value.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         self[name] = value
 
 
@@ -2983,7 +2996,13 @@ class AODict(ADict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set the attribute with the given name to the given value.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name == "_keys":
             object.__setattr__(self, name, value)
         else:
@@ -2997,7 +3016,15 @@ class LazyLoadTagAODict(AODict):
         self.profile = profile
         AODict.__init__(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
+        """Get the item with the given key.
+
+        Args:
+            key (str): The key to get the item for.
+
+        Returns:
+            Any: The item with the given key.
+        """
         tag = AODict.__getitem__(self, key)
         if isinstance(tag, ICCProfileTag):
             # Return already parsed tag
@@ -3029,7 +3056,13 @@ class LazyLoadTagAODict(AODict):
         self[key] = tag
         return tag
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set the attribute with the given name to the given value.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name == "profile":
             object.__setattr__(self, name, value)
         else:
@@ -3046,7 +3079,13 @@ class ICCProfileTag:
         self.tagData = tagData
         self.tagSignature = tagSignature
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set attribute with the given name to the given value.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if not isinstance(self, dict) or name in ("_keys", "tagData", "tagSignature"):
             object.__setattr__(self, name, value)
         else:
@@ -3071,7 +3110,12 @@ class Text(ICCProfileTag, bytes):
         super().__init__(tagData=seq, tagSignature=b"")
         self.data = seq
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the string representation of the object.
+
+        Returns:
+            str: The string representation of the object.
+        """
         return self.data.decode(FS_ENC, errors="replace")
 
 
@@ -3080,13 +3124,31 @@ class Colorant:
         self._type = uInt32Number(binaryString)
         self._channels = []
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
+        """Get attribute via dictionary key.
+
+        Args:
+            key (str): The attribute name.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         return self.__getattribute__(key)
 
     def __iter__(self):
+        """Return an iterator over the keys of the object.
+
+        Returns:
+            iter: An iterator over the keys of the object.
+        """
         return iter(list(self.keys()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Returns:
+            str: The string representation of the object.
+        """
         items = []
         for key, value in (("type", self.type), ("description", self.description)):
             items.append(f"{key!r}: {value!r}")
@@ -3096,7 +3158,13 @@ class Colorant:
         items.append("'channels': [{}]".format(", ".join(channels)))
         return "{{{}}}".format(", ".join(items))
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set attribute via dictionary key.
+
+        Args:
+            key (str): The attribute name.
+            value (Any): The value to set.
+        """
         object.__setattr__(self, key, value)
 
     @property
@@ -3924,6 +3992,8 @@ class ColorantTableType(ICCProfileTag, AODict):
 
 
 class CurveType(ICCProfileTag, list):
+    """ICC CurveType tag."""
+
     def __init__(self, tagData=None, tagSignature=None, profile=None):
         ICCProfileTag.__init__(self, tagData, tagSignature)
         self.profile = profile
@@ -3944,28 +4014,49 @@ class CurveType(ICCProfileTag, list):
             # Identity
             self.append(1.0)
 
-    def __delitem__(self, y):
-        list.__delitem__(self, y)
+    def __delitem__(self, value):
+        """Delete an item from the list.
+
+        Args:
+            value (int): Index of the item to delete.
+        """
+        list.__delitem__(self, value)
         self._reset()
 
-    def __delslice__(self, i, j):
-        list.__delslice__(self, i, j)
-        self._reset()
+    def __iadd__(self, value) -> Self:
+        """Add a value to the list.
 
-    def __iadd__(self, y):
-        list.__iadd__(self, y)
-        self._reset()
+        Args:
+            value (Any): The value to add to the list.
 
-    def __imul__(self, y):
-        list.__imul__(self, y)
+        Returns:
+            Self: The updated list.
+        """
+        list.__iadd__(self, value)
         self._reset()
+        return self
 
-    def __setitem__(self, i, y):
-        list.__setitem__(self, i, y)
+    def __imul__(self, value: int) -> Self:
+        """Multiply the list by a scalar.
+
+        Args:
+            value (int): The scalar to multiply the list by.
+
+        Returns:
+            Self: The updated list.
+        """
+        list.__imul__(self, value)
         self._reset()
+        return self
 
-    def __setslice__(self, i, j, y):
-        list.__setslice__(self, i, j, y)
+    def __setitem__(self, key: int, value: Any) -> None:
+        """Set an item in the list.
+
+        Args:
+            key (int): Index of the item to set.
+            value (Any): The new value to set at the index.
+        """
+        list.__setitem__(self, key, value)
         self._reset()
 
     def _reset(self):
@@ -4494,19 +4585,41 @@ class DateTimeType(ICCProfileTag, datetime.datetime):
 
 
 class DictList(list):
-    def __getitem__(self, key):
+    def __getitem__(self, key: slice | SupportsIndex) -> Any:
+        """Get item from list.
+
+        Args:
+            key (slice | SupportsIndex): Key of the item.
+
+        Returns:
+            Any: Value of the item.
+        """
         for item in self:
             if item[0] == key:
                 return item
         raise KeyError(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: slice | SupportsIndex, value: Any) -> None:
+        """Set item in list.
+
+        Args:
+            key (slice | SupportsIndex): Key of the item.
+            value (Any): Value of the item.
+        """
         if not isinstance(value, DictListItem):
             self.append(DictListItem((key, value)))
 
 
 class DictListItem(list):
-    def __iadd__(self, value):
+    def __iadd__(self, value) -> Self:
+        """Add value to the last item in the list.
+
+        Args:
+            value (Any): Value to add.
+
+        Returns:
+            DictListItem: The updated list item.
+        """
         self[-1] += value
         return self
 
@@ -4596,10 +4709,24 @@ class DictType(ICCProfileTag, AODict):
                         else:
                             self.get(name)[key] = data
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
+        """Get item from dict.
+
+        Args:
+            name (str): Name of the item.
+
+        Returns:
+            Any: Value of the item.
+        """
         return self.get(name).value
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: str, value: Any) -> None:
+        """Set item in dict.
+
+        Args:
+            name (str): Name of the item.
+            value (Any): Value of the item.
+        """
         AODict.__setitem__(self, name, ADict(value=value))
 
     @property
@@ -5189,7 +5316,13 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
     def tagData(self, tagData):
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return tag as string.
+
+        Returns:
+            str: The localized string if available, otherwise the ASCII
+                representation of the tag.
+        """
         if "Unicode" not in self and len(str(self.ASCII)) < 67:
             # Do not use Macintosh description if ASCII length >= 67
             localizedTypes = ("Macintosh", "ASCII")
@@ -5297,7 +5430,7 @@ class VideoCardGammaType(ICCProfileTag, ADict):
         return r_points, g_points, b_points, linear_points
 
     def printNormalizedValues(self, amount=None, digits=12):
-        """Normalizes and prints all values in the vcgt (range of 0.0...1.0).
+        """Normalize and prints all values in the vcgt (range of 0.0...1.0).
 
         For a 256-entry table with linear values from 0 to 65535:
         #   REF            C1             C2             C3
@@ -5571,10 +5704,23 @@ class TagData:
         self.offset = offset
         self.size = size
 
-    def __contains__(self, item):
+    def __contains__(self, item: bytes) -> bool:
+        """Check if the item is in the tag data.
+
+        Args:
+            item (bytes): The item to check for.
+
+        Returns:
+            bool: True if the item is in the tag data, False otherwise.
+        """
         return item in bytes(self)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
+        """Return the bytes representation of the object.
+
+        Returns:
+            bytes: Bytes representation of the object.
+        """
         return self.tagData[self.offset : self.offset + self.size]
 
 
@@ -5658,17 +5804,25 @@ class XYZNumber(AODict):
     4..7   CIE Y   s15Fixed16Number
     8..11  CIE Z   s15Fixed16Number
 
-    :param bytes binaryString:
+    Args:
+        binaryString (bytes): Binary string containing XYZ values.
     """
 
-    def __init__(self, binaryString=b"\0" * 12):
+    def __init__(self, binaryString=None):
+        if binaryString is None:
+            binaryString = b"\0" * 12
         AODict.__init__(self)
         self.X, self.Y, self.Z = [
             s15Fixed16Number(chunk)
             for chunk in (binaryString[:4], binaryString[4:8], binaryString[8:12])
         ]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Returns:
+            str: String representation of the object.
+        """
         XYZ = []
         for key in self:
             value = self[key]
@@ -5719,7 +5873,13 @@ class XYZType(ICCProfileTag, XYZNumber):
 
     __repr__ = XYZNumber.__repr__
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, value) -> None:
+        """Set attribute value.
+
+        Args:
+            name (str): Name of the attribute to set.
+            value (Any): Value to set the attribute to.
+        """
         if name in ("_keys", "profile", "tagData", "tagSignature"):
             object.__setattr__(self, name, value)
         else:
@@ -5914,7 +6074,12 @@ class NamedColor2Value:
     def name(self):
         return str(Text(self.rootName.strip(b"\0")), "latin-1")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Returns:
+            str: The string representation of the object.
+        """
         pcs = []
         for key in self.pcs:
             value = self.pcs[key]
@@ -5947,7 +6112,14 @@ class NamedColor2ValueTuple(tuple):
     __slots__ = ()
     REPR_OUTPUT_SIZE = 10
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Truncates the output if it exceeds the specified size.
+
+        Returns:
+            str: The string representation of the object.
+        """
         data = list(self[: self.REPR_OUTPUT_SIZE + 1])
         if len(data) > self.REPR_OUTPUT_SIZE:
             data[-1] = "...(remaining elements truncated)..."
@@ -5995,7 +6167,13 @@ class NamedColor2Type(ICCProfileTag, AODict):
                 values.append(nc2)
         self.update(dict(list(zip(keys, values))))
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set an attribute of the object.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         object.__setattr__(self, name, value)
 
     @property
@@ -6070,7 +6248,14 @@ class NamedColor2Type(ICCProfileTag, AODict):
 
         self[nc2value.name] = nc2value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Truncates the output if it exceeds the specified size.
+
+        Returns:
+            str: The string representation of the object.
+        """
         data = list(self.items())[: self.REPR_OUTPUT_SIZE + 1]
         if len(data) > self.REPR_OUTPUT_SIZE:
             data[-1] = ("...", "(remaining elements truncated)")
@@ -6130,7 +6315,7 @@ _ICCPROFILE_CACHE = WeakValueDictionary()
 
 
 class ICCProfile:
-    """Returns a new ICCProfile object.
+    """Return a new ICCProfile object.
 
     Optionally initialized with a string containing binary profile data or
     a filename, or a file-like object. Also, if the 'load' keyword argument
@@ -6678,7 +6863,7 @@ class ICCProfile:
         return ID
 
     def close(self):
-        """Closes the associated file object (if any)."""
+        """Close the associated file object (if any)."""
         if self._file and not self._file.closed:
             self._file.close()
 
@@ -6788,7 +6973,7 @@ class ICCProfile:
     @staticmethod
     def from_named_rgb_space(
         rgb_space_name, iccv4=False, cat="Bradford", profile_class=b"mntr"
-    ) -> "ICCProfile":
+    ) -> ICCProfile:
         rgb_space = colormath.get_rgb_space(rgb_space_name)
         return ICCProfile.from_rgb_space(
             rgb_space, rgb_space_name, iccv4, cat, profile_class
@@ -6797,7 +6982,7 @@ class ICCProfile:
     @staticmethod
     def from_rgb_space(
         rgb_space, description, iccv4=False, cat="Bradford", profile_class=b"mntr"
-    ) -> "ICCProfile":
+    ) -> ICCProfile:
         rx, ry = rgb_space[2:][0][:2]
         gx, gy = rgb_space[2:][1][:2]
         bx, by = rgb_space[2:][2][:2]
@@ -6820,7 +7005,7 @@ class ICCProfile:
         )
 
     @staticmethod
-    def from_edid(edid, iccv4=False, cat="Bradford") -> "ICCProfile":
+    def from_edid(edid, iccv4=False, cat="Bradford") -> ICCProfile:
         """Create an ICC Profile from EDID data and return it
 
         You may override the gamma from EDID by setting it to a list of curve
@@ -6895,7 +7080,7 @@ class ICCProfile:
         iccv4=False,
         cat="Bradford",
         profile_class=b"mntr",
-    ) -> "ICCProfile":
+    ) -> ICCProfile:
         """Create an ICC Profile from chromaticities and return it"""
         wXYZ = colormath.xyY2XYZ(wx, wy, 1.0)
         # Calculate RGB to XYZ matrix from chromaticities and white
@@ -6939,7 +7124,7 @@ class ICCProfile:
         iccv4=False,
         cat="Bradford",
         profile_class=b"mntr",
-    ) -> "ICCProfile":
+    ) -> ICCProfile:
         """Create an ICC Profile from XYZ values and return it"""
         profile = ICCProfile()
         profile.profileClass = profile_class
@@ -7990,7 +8175,7 @@ class ICCProfile:
         self.__init__(profile)
 
     def set_edid_metadata(self, edid):
-        """Sets metadata from EDID
+        """Set metadata from EDID
 
         Key names follow the ICC meta Tag for Monitor Profiles specification
         http://www.oyranos.org/wiki/index.php?title=ICC_meta_Tag_for_Monitor_Profiles_0.1
@@ -8090,7 +8275,15 @@ class ICCProfile:
         else:
             stream_or_filename.write(self.data)
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
+        """Get attribute, but also update the cache if necessary.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         if name == "write" or name.startswith(("set", "apply")):
             # No longer reflects original profile
             self._delfromcache()

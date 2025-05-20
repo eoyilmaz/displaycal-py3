@@ -25,12 +25,22 @@ class Pattern:
         self.replacement = replacement
         self.length = length
 
-    def __str__(self):
-        return "(" + self.expression + ")"
+    def __str__(self) -> str:
+        """Return the string representation of the pattern.
+
+        Returns:
+            str: The string representation of the pattern.
+        """
+        return f"({self.expression})"
 
 
 class Patterns(list):
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the string representation of the patterns.
+
+        Returns:
+            str: The string representation of the patterns.
+        """
         return "|".join([str(e) for e in self])
 
 

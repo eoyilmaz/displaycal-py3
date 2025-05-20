@@ -591,7 +591,7 @@ class FloatSpin(wx.PyControl):
         return 0
 
     def DoGetBestSize(self):
-        """Gets the size which best suits the window: for a control, it would be the
+        """Get the size which best suits the window: for a control, it would be the
         minimal size which doesn't truncate the control, for a panel - the same
         size as it would have after a call to `Fit()`.
 
@@ -651,7 +651,7 @@ class FloatSpin(wx.PyControl):
         return self._enabled
 
     def OnSpinMouseDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_LEFT_DOWN`` event for :class:`FloatSpin`.
 
         :param event: a :class:`MouseEvent` event to be processed.
 
@@ -671,7 +671,7 @@ class FloatSpin(wx.PyControl):
         event.Skip()
 
     def OnSpinMouseUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_LEFT_UP`` event for :class:`FloatSpin`.
 
         :param event: a :class:`MouseEvent` event to be processed.
 
@@ -689,7 +689,7 @@ class FloatSpin(wx.PyControl):
         event.Skip()
 
     def OnSpinUp(self, event):
-        """Handles the ``wx.EVT_SPIN_UP`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_SPIN_UP`` event for :class:`FloatSpin`.
 
         :param event: a :class:`SpinEvent` event to be processed.
         """
@@ -710,7 +710,7 @@ class FloatSpin(wx.PyControl):
         self.DoSendEvent()
 
     def OnSpinDown(self, event):
-        """Handles the ``wx.EVT_SPIN_DOWN`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_SPIN_DOWN`` event for :class:`FloatSpin`.
 
         :param event: a :class:`SpinEvent` event to be processed.
         """
@@ -731,7 +731,7 @@ class FloatSpin(wx.PyControl):
         self.DoSendEvent()
 
     def OnTextEnter(self, event):
-        """Handles the ``wx.EVT_TEXT_ENTER`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_TEXT_ENTER`` event for :class:`FloatSpin`.
 
         :param event: a :class:`KeyEvent` event to be processed.
 
@@ -741,7 +741,7 @@ class FloatSpin(wx.PyControl):
         event.Skip()
 
     def OnKeyDown(self, event):
-        """Handles the ``wx.EVT_KEYDOWN`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_KEYDOWN`` event for :class:`FloatSpin`.
 
         :param event: a :class:`KeyEvent` event to be processed.
 
@@ -824,7 +824,7 @@ class FloatSpin(wx.PyControl):
             event.Skip()
 
     def OnMouseWheel(self, event):
-        """Handles the ``wx.EVT_MOUSEWHEEL`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_MOUSEWHEEL`` event for :class:`FloatSpin`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -855,7 +855,7 @@ class FloatSpin(wx.PyControl):
         self.DoSendEvent()
 
     def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_SIZE`` event for :class:`FloatSpin`.
 
         :param event: a :class:`SizeEvent` event to be processed.
 
@@ -883,7 +883,7 @@ class FloatSpin(wx.PyControl):
         # end Philip Semanchuk addition
 
     def ReplaceDoubleZero(self, strs):
-        """Replaces the (somewhat) python ugly `+e000` with `+e00`.
+        """Replace the (somewhat) python ugly `+e000` with `+e00`.
 
         :param strs: a string (possibly) containing a `+e00` substring.
         """
@@ -902,7 +902,7 @@ class FloatSpin(wx.PyControl):
         return strs
 
     def SetValue(self, value):
-        """Sets the :class:`FloatSpin` value.
+        """Set the :class:`FloatSpin` value.
 
         :param value: the new value.
         """
@@ -952,7 +952,7 @@ class FloatSpin(wx.PyControl):
             self._value = value
 
     def GetValue(self):
-        """Returns the :class:`FloatSpin` value."""
+        """Return the :class:`FloatSpin` value."""
         return float(self._value)
 
     def SetRangeDontClampValue(self, min_val, max_val):
@@ -1006,7 +1006,7 @@ class FloatSpin(wx.PyControl):
             self.SetValue(value)
 
     def ClampValue(self, var):
-        """Clamps `var` between `_min` and `_max` depending on the range has
+        """Clamp `var` between `_min` and `_max` depending on the range has
         been specified.
 
         :param var: the value to be clamped.
@@ -1022,7 +1022,7 @@ class FloatSpin(wx.PyControl):
         return var
 
     def SetIncrement(self, increment):
-        """Sets the increment for every ``EVT_FLOATSPIN`` event.
+        """Set the increment for every ``EVT_FLOATSPIN`` event.
 
         Args:
             increment: A floating point number specifying the :class:`FloatSpin`
@@ -1037,11 +1037,11 @@ class FloatSpin(wx.PyControl):
         self.SetValue(self._value)
 
     def GetIncrement(self):
-        """Returns the increment for every ``EVT_FLOATSPIN`` event."""
+        """Return the increment for every ``EVT_FLOATSPIN`` event."""
         return self._increment
 
     def SetDigits(self, digits=-1):
-        """Sets the number of digits to show.
+        """Set the number of digits to show.
 
         Args:
             digits: the number of digits to show. If `digits` < 0, :class:`FloatSpin`
@@ -1056,7 +1056,7 @@ class FloatSpin(wx.PyControl):
         self.SetValue(self._value)
 
     def GetDigits(self):
-        """Returns the number of digits shown."""
+        """Return the number of digits shown."""
         return self._digits
 
     def SetFormat(self, fmt="%f"):
@@ -1090,7 +1090,7 @@ class FloatSpin(wx.PyControl):
             self.SetValue(self._value)
 
     def GetFormat(self):
-        """Returns the string format in use.
+        """Return the string format in use.
 
         :see: :meth:`~FloatSpin.SetFormat` for a list of valid string formats.
         """
@@ -1140,7 +1140,7 @@ class FloatSpin(wx.PyControl):
         return self._snapticks
 
     def OnFocus(self, event):
-        """Handles the ``wx.EVT_SET_FOCUS`` event for :class:`FloatSpin`.
+        """Handle the ``wx.EVT_SET_FOCUS`` event for :class:`FloatSpin`.
 
         :param event: a :class:`FocusEvent` event to be processed.
         """
@@ -1189,7 +1189,7 @@ class FloatSpin(wx.PyControl):
             self.SetValue(self.GetValue())
 
     def SetFont(self, font=None):
-        """Sets the underlying :class:`TextCtrl` font.
+        """Set the underlying :class:`TextCtrl` font.
 
         :param font: a valid instance of :class:`Font`.
         """
@@ -1202,30 +1202,30 @@ class FloatSpin(wx.PyControl):
         return self._textctrl.SetFont(font)
 
     def GetFont(self):
-        """Returns the underlying :class:`TextCtrl` font."""
+        """Return the underlying :class:`TextCtrl` font."""
         if not self._textctrl:
             return self.GetFont()
 
         return self._textctrl.GetFont()
 
     def GetMin(self):
-        """Returns the minimum value for :class:`FloatSpin`. It can be a
+        """Return the minimum value for :class:`FloatSpin`. It can be a
         number or ``None`` if no minimum is present.
         """
         return self._min
 
     def GetMax(self):
-        """Returns the maximum value for :class:`FloatSpin`. It can be a
+        """Return the maximum value for :class:`FloatSpin`. It can be a
         number or ``None`` if no minimum is present.
         """
         return self._max
 
     def HasRange(self):
-        """Returns whether :class:`FloatSpin` range has been set or not."""
+        """Return whether :class:`FloatSpin` range has been set or not."""
         return (self._min is not None) or (self._max is not None)
 
     def InRange(self, value):
-        """Returns whether a value is inside :class:`FloatSpin` range.
+        """Return whether a value is inside :class:`FloatSpin` range.
 
         :param value: the value to test.
         """
@@ -1236,11 +1236,11 @@ class FloatSpin(wx.PyControl):
         return self._max is None or float(value) <= float(self._max)
 
     def GetTextCtrl(self):
-        """Returns the underlying :class:`TextCtrl`."""
+        """Return the underlying :class:`TextCtrl`."""
         return self._textctrl
 
     def IsFinite(self, value):
-        """Tries to determine if a value is finite or infinite/NaN.
+        """Try to determine if a value is finite or infinite/NaN.
 
         :param value: the value to test.
         """
@@ -1548,6 +1548,11 @@ class FixedPoint:
         self.p = p
 
     def __str__(self):
+        """Return the string representation of this :class:`FixedPoint`.
+
+        Returns:
+            str: The string representation of this :class:`FixedPoint`.
+        """
         n, p = self.n, self.p
         i, f = divmod(abs(n), _tento(p))
         if p:
@@ -1557,22 +1562,45 @@ class FixedPoint:
             frac = ""
         return "-"[: n < 0] + repr(i)[:-1] + "." + frac
 
-    def __repr__(self):
-        return "FixedPoint" + repr((str(self), self.p))
+    def __repr__(self) -> str:
+        """Return the string representation of this :class:`FixedPoint`.
+
+        Returns:
+            str: The string representation of this :class:`FixedPoint`.
+        """
+        return f"FixedPoint{(str(self), self.p)!r}"
 
     def copy(self):
-        """Create a copy of the current :class:`FixedPoint`."""
-        return _mkFP(self.n, self.p)
+        """Create a copy of the current :class:`FixedPoint`.
+
+        Returns:
+            FixedPoint: A copy of the current :class:`FixedPoint`.
+        """
+        return _make_fixed_point(self.n, self.p)
 
     __copy__ = __deepcopy__ = copy
 
-    def __cmp__(self, other):
+    def __cmp__(self, other) -> int:
+        """Compare this :class:`FixedPoint` with `other`.
+
+        Args:
+            other: The other number to compare with.
+
+        Returns:
+            int: -1 if this :class:`FixedPoint` is less than `other`, 0 if they are
+                equal, 1 if this :class:`FixedPoint` is greater than `other`.
+        """
         if other is None:
             return 1
         xn, yn, p = _norm(self, other)
         return cmp(xn, yn)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """Return the hash of this :class:`FixedPoint`.
+
+        Returns:
+            int: The hash of this :class:`FixedPoint`.
+        """
         # caution!  == values must have equal hashes, and a FixedPoint
         # is essentially a rational in unnormalized form.  There's
         # really no choice here but to normalize it, so hash is
@@ -1587,74 +1615,175 @@ class FixedPoint:
         # a float, their hashes may differ.  This is a teensy bit Bad.
         return hash(n) ^ hash(p)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return whether this :class:`FixedPoint` is non-zero.
+
+        Returns:
+            bool: ``True`` if this :class:`FixedPoint` is non-zero, ``False`` otherwise.
+        """
         return self.n != 0
 
-    def __neg__(self):
-        return _mkFP(-self.n, self.p)
+    def __neg__(self) -> "FixedPoint":
+        """Return the negation of this :class:`FixedPoint`.
+
+        Returns:
+            FixedPoint: The negation of this :class:`FixedPoint`.
+        """
+        return _make_fixed_point(-self.n, self.p)
 
     def __abs__(self):
+        """Return the absolute value of this :class:`FixedPoint`.
+
+        Returns:
+            FixedPoint: The absolute value of this :class:`FixedPoint`.
+        """
         if self.n >= 0:
             return self.copy()
         return -self
 
-    def __add__(self, other):
+    def __add__(self, other) -> "FixedPoint":
+        """Return the addition of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to add with.
+
+        Returns:
+            FixedPoint: The addition of this :class:`FixedPoint`.
+        """
         n1, n2, p = _norm(self, other)
         # n1/10**p + n2/10**p = (n1+n2)/10**p
-        return _mkFP(n1 + n2, p)
+        return _make_fixed_point(n1 + n2, p)
 
     __radd__ = __add__
+    """Return the addition of this :class:`FixedPoint` and `other`."""
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "FixedPoint":
+        """Return the subtraction of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to subtract with.
+
+        Returns:
+            FixedPoint: The subtraction of this :class:`FixedPoint`.
+        """
         if not isinstance(other, FixedPoint):
             other = FixedPoint(other, self.p)
         return self.__add__(-other)
 
     def __rsub__(self, other):
+        """Return the subtraction of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to subtract with.
+
+        Returns:
+            FixedPoint: The subtraction of this :class:`FixedPoint`.
+        """
         return (-self) + other
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> "FixedPoint":
+        """Return the multiplication of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to multiply with.
+
+        Returns:
+            FixedPoint: The multiplication of this :class:`FixedPoint`.
+        """
         n1, n2, p = _norm(self, other)
         # n1/10**p * n2/10**p = (n1*n2/10**p)/10**p
-        return _mkFP(_roundquotient(n1 * n2, _tento(p)), p)
+        return _make_fixed_point(_roundquotient(n1 * n2, _tento(p)), p)
 
     __rmul__ = __mul__
 
-    def __div__(self, other):
+    def __div__(self, other) -> "FixedPoint":
+        """Return the division of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to divide with.
+
+        Returns:
+            FixedPoint: The division of this :class:`FixedPoint`.
+        """
         n1, n2, p = _norm(self, other)
         if n2 == 0:
             raise ZeroDivisionError("FixedPoint division")
         if n2 < 0:
             n1, n2 = -n1, -n2
         # n1/10**p / (n2/10**p) = n1/n2 = (n1*10**p/n2)/10**p
-        return _mkFP(_roundquotient(n1 * _tento(p), n2), p)
+        return _make_fixed_point(_roundquotient(n1 * _tento(p), n2), p)
 
     def __rdiv__(self, other):
-        n1, n2, p = _norm(self, other)
-        return _mkFP(n2, p) / self
+        """Return the division of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to divide with.
+
+        Returns:
+            FixedPoint: The division of this :class:`FixedPoint`.
+        """
+        _, n2, p = _norm(self, other)
+        return _make_fixed_point(n2, p) / self
 
     def __divmod__(self, other):
+        """Return the quotient and remainder of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to divide with.
+
+        Returns:
+            tuple: The quotient and remainder of this :class:`FixedPoint`.
+        """
         n1, n2, p = _norm(self, other)
         if n2 == 0:
             raise ZeroDivisionError("FixedPoint modulo")
         # floor((n1/10**p)/(n2*10**p)) = floor(n1/n2)
         q = n1 / n2
         # n1/10**p - q * n2/10**p = (n1 - q * n2)/10**p
-        return q, _mkFP(n1 - q * n2, p)
+        return q, _make_fixed_point(n1 - q * n2, p)
 
     def __rdivmod__(self, other):
-        n1, n2, p = _norm(self, other)
-        return divmod(_mkFP(n2, p), self)
+        """Return the quotient and remainder of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to divide with.
+
+        Returns:
+            tuple: The quotient and remainder of this :class:`FixedPoint`.
+        """
+        _, n2, p = _norm(self, other)
+        return divmod(_make_fixed_point(n2, p), self)
 
     def __mod__(self, other):
+        """Return the modulo of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to modulo with.
+
+        Returns:
+            FixedPoint: The modulo of this :class:`FixedPoint`.
+        """
         return self.__divmod__(other)[1]
 
-    def __rmod__(self, other):
-        n1, n2, p = _norm(self, other)
-        return _mkFP(n2, p).__mod__(self)
+    def __rmod__(self, other) -> "FixedPoint":
+        """Return the modulo of this :class:`FixedPoint` and `other`.
+
+        Args:
+            other: The other number to modulo with.
+
+        Returns:
+            FixedPoint: The modulo of this :class:`FixedPoint`.
+        """
+        _, n2, p = _norm(self, other)
+        return _make_fixed_point(n2, p).__mod__(self)
 
     # caution! float can lose precision
-    def __float__(self):
+    def __float__(self) -> float:
+        """Return the float portion of this :class:`FixedPoint`.
+
+        Returns:
+            float: The float portion of this :class:`FixedPoint`.
+        """
         n, p = self.__reduce()
         return float(n) / float(_tento(p))
 
@@ -1662,25 +1791,35 @@ class FixedPoint:
     # XXX note e.g. long(-1.9) == -1L and long(1.9) == 1L in Python
     # XXX note that __int__ inherits whatever __long__ does,
     # XXX and .frac() is affected too
-    def __long__(self):
+    def __long__(self) -> int:
+        """Return the long portion of this :class:`FixedPoint`.
+
+        Returns:
+            int: The long portion of this :class:`FixedPoint.
+        """
         answer = abs(self.n) / _tento(self.p)
         if self.n < 0:
             answer = -answer
         return answer
 
-    def __int__(self):
+    def __int__(self) -> int:
+        """Return the integer portion of this :class:`FixedPoint`.
+
+        Returns:
+            int: The integer portion of this :class:`FixedPoint`.
+        """
         return int(self.__long__())
 
     def frac(self):
-        """Returns fractional portion as a :class:`FixedPoint`.
+        """Return fractional portion as a :class:`FixedPoint`.
 
-        :note: In :class:`FixedPoint`,
-
-         this equality holds true::
+        Note:
+            In :class:`FixedPoint`, this equality holds true::
 
                 x = x.frac() + long(x)
 
-
+        Returns:
+            FixedPoint: The fractional portion of this :class:`FixedPoint`.
         """
         return self - int(self)
 
@@ -1739,7 +1878,16 @@ def _norm(x, y, isinstance_func=None, FixedPoint=FixedPoint, _tento=_tento):
     return xn, yn, p
 
 
-def _mkFP(n, p, FixedPoint=FixedPoint):
+def _make_fixed_point(n, p):
+    """Return a new :class:`FixedPoint` with the same value as `n` and `p`.
+
+    Args:
+        n: The numerator.
+        p: The precision.
+
+    Returns:
+        FixedPoint: A new :class:`FixedPoint` with the same value as `n` and `p`.
+    """
     f = FixedPoint()
     f.n = n
     f.p = p

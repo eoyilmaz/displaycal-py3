@@ -38,6 +38,7 @@ import codecs
 import os
 import subprocess as sp
 import tempfile
+from collections.abc import Iterator
 
 import pywintypes
 import winerror
@@ -257,7 +258,12 @@ class Task(_Dict2XML):
         with open(xmlfilename, "wb") as xmlfile:
             xmlfile.write(codecs.BOM_UTF16_LE + str(self).encode())
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Convert the task to a string representation in XML format.
+
+        Returns:
+            str: The string representation of the task in XML format.
+        """
         return (
             universal_newlines(
                 f'<?xml version="1.0" encoding="UTF-16"?>\n{super().__str__()}'
@@ -290,13 +296,34 @@ class TaskScheduler:
             )
         return self.__ts
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
+        """Check if task with given name exists.
+
+        Args:
+            name (str): The name of the task to check.
+
+        Returns:
+            bool: True if the task exists, False otherwise.
+        """
         return f"{name}.job" in self._ts.Enum()
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> "Task":
+        """Get existing task by name.
+
+        Args:
+            name (str): The name of the task to retrieve.
+
+        Returns:
+            Task: The task object.
+        """
         return self._ts.Activate(name)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
+        """Iterate over task names.
+
+        Returns:
+            Iterator: An iterator over task names.
+        """
         return iter(job[:-4] for job in self._ts.Enum())
 
     def create_task(

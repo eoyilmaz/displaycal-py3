@@ -166,13 +166,20 @@ class ExceptionPexpect(Exception):  # noqa: N818
     def __init__(self, value):
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the exception.
+
+        Returns:
+            str: A string representation of the exception.
+        """
         return str(self.value)
 
     def get_trace(self):
-        """This returns an abbreviated stack trace with lines that only concern
-        the caller. In other words, the stack trace inside the Pexpect module
-        is not included."""
+        """Return an abbreviated stack trace with lines that only concern the caller.
+
+        In other words, the stack trace inside the Pexpect module is not
+        included.
+        """
         tblist = traceback.extract_tb(sys.exc_info()[2])
         # tblist = filter(self.__filter_not_pexpect, tblist)
         tblist = [item for item in tblist if self.__filter_not_pexpect(item)]
@@ -180,7 +187,7 @@ class ExceptionPexpect(Exception):  # noqa: N818
         return "".join(tblist)
 
     def __filter_not_pexpect(self, trace_list_item):
-        """This returns True if list item 0 the string 'pexpect.py' in it."""
+        """Return True if list item 0 the string 'pexpect.py' in it."""
         return trace_list_item[0].find("pexpect.py") == -1
 
 
@@ -212,9 +219,10 @@ def run(
     cwd=None,
     env=None,
 ):
-    r"""This function runs the given command; waits for it to finish; then
-    returns all output as a string. STDERR is included in output. If the full
-    path to the command is not given then the path is searched.
+    r"""Run the given command, wait for it to finish, return all output as a string.
+
+    STDERR is included in output. If the full path to the command is not given
+    then the path is searched.
 
     Note that lines are terminated by CR/LF (\r\n) combination even on
     UNIX-like systems because this is the standard for pseudo ttys. If you set
@@ -571,11 +579,13 @@ class SpawnUnix:
             self._spawn(command, args)
 
     def __del__(self):
-        """This makes sure that no system resources are left open. Python only
-        garbage collects Python objects. OS file descriptors are not Python
-        objects, so they must be handled explicitly. If the child file
-        descriptor was opened outside this class (passed to the constructor)
-        then this does not close it."""
+        """Make sure that no system resources are left open.
+
+        Python only garbage collects Python objects. OS file descriptors are
+        not Python objects, so they must be handled explicitly. If the child
+        file descriptor was opened outside this class (passed to the
+        constructor) then this does not close it.
+        """
         if not self.closed:
             # It is possible for __del__ methods to execute during the
             # teardown of the Python VM itself. Thus, self.close() may
@@ -585,8 +595,7 @@ class SpawnUnix:
                 self.close()
 
     def __str__(self):
-        """This returns a human-readable string that represents the state of
-        the object."""
+        """Return a human-readable string that represents the state of the object."""
         s = []
         s.append(repr(self))
         s.append("version: " + __version__ + " (" + __revision__ + ")")
@@ -617,10 +626,12 @@ class SpawnUnix:
         return "\n".join(s)
 
     def _spawn(self, command, args=None):
-        """This starts the given command in a child process. This does all the
-        fork/exec type of stuff for a pty. This is called by __init__. If args
-        is empty then command will be parsed (split on spaces) and args will be
-        set to parsed arguments."""
+        """Start the given command in a child process.
+
+        This does all the fork/exec type of stuff for a pty. This is called by
+        __init__. If args is empty then command will be parsed (split on
+        spaces) and args will be set to parsed arguments.
+        """
         if args is None:
             args = []
 
@@ -720,14 +731,16 @@ class SpawnUnix:
         self.closed = False
 
     def __fork_pty(self):
-        """This implements a substitute for the forkpty system call. This
-        should be more portable than the pty.fork() function. Specifically,
-        this should work on Solaris.
+        """Implement a substitute for the forkpty system call.
+
+        This should be more portable than the pty.fork() function.
+        Specifically, this should work on Solaris.
 
         Modified 10.06.05 by Geoff Marshall: Implemented __fork_pty() method to
         resolve the issue with Python's pty.fork() not supporting Solaris,
         particularly ssh. Based on patch to posixmodule.c authored by Noah
-        Spurrier::
+
+        Spurrier:
 
             http://mail.python.org/pipermail/python-dev/2003-May/035281.html
 
@@ -757,9 +770,11 @@ class SpawnUnix:
         return pid, parent_fd
 
     def __pty_make_controlling_tty(self, tty_fd):
-        """This makes the pseudo-terminal the controlling tty. This should be
-        more portable than the pty.fork() function. Specifically, this should
-        work on Solaris."""
+        """Make the pseudo-terminal the controlling tty.
+
+        This should be more portable than the pty.fork() function.
+        Specifically, this should work on Solaris.
+        """
         child_name = os.ttyname(tty_fd)
 
         # Disconnect from controlling tty if still connected.
@@ -794,15 +809,17 @@ class SpawnUnix:
         os.close(fd)
 
     def fileno(self):  # File-like object.
-        """This returns the file descriptor of the pty for the child."""
+        """Return the file descriptor of the pty for the child."""
         return self.child_fd
 
     def close(self, force=True):  # File-like object.
-        """This closes the connection with the child application. Note that
-        calling close() more than once is valid. This emulates standard Python
-        behavior with files. Set force to True if you want to make sure that
-        the child is terminated (SIGKILL is sent if the child ignores SIGHUP
-        and SIGINT)."""
+        """Close the connection with the child application.
+
+        Note that calling close() more than once is valid. This emulates
+        standard Python behavior with files. Set force to True if you want to
+        make sure that the child is terminated (SIGKILL is sent if the child
+        ignores SIGHUP and SIGINT).
+        """
         if not self.closed:
             self.flush()
             os.close(self.child_fd)
@@ -818,22 +835,24 @@ class SpawnUnix:
             # self.pid = None
 
     def flush(self):  # File-like object.
-        """This does nothing. It is here to support the interface for a
-        File-like object."""
+        """Do nothing.
+
+        It is here to support the interface for a File-like object.
+        """
 
     def isatty(self):  # File-like object.
-        """This returns True if the file descriptor is open and connected to a
-        tty(-like) device, else False."""
+        """Return True if fd is open and is a tty."""
         return os.isatty(self.child_fd)
 
     def waitnoecho(self, timeout=-1):
-        """This waits until the terminal ECHO flag is set False. This returns
-        True if the echo mode is off. This returns False if the ECHO flag was
-        not set False before the timeout. This can be used to detect when the
-        child is waiting for a password. Usually a child application will turn
-        off echo mode when it is waiting for the user to enter a password. For
-        example, instead of expecting the "password:" prompt you can wait for
-        the child to set ECHO off::
+        """Wait until the terminal ECHO flag is set False.
+
+        This returns True if the echo mode is off. This returns False if the
+        ECHO flag was not set False before the timeout. This can be used to
+        detect when the child is waiting for a password. Usually a child
+        application will turn off echo mode when it is waiting for the user to
+        enter a password. For example, instead of expecting the "password:"
+        prompt you can wait for the child to set ECHO off:
 
             p = pexpect.spawn ('ssh user@example.com')
             p.waitnoecho()
@@ -858,17 +877,21 @@ class SpawnUnix:
             time.sleep(0.1)
 
     def getecho(self):
-        """This returns the terminal echo mode. This returns True if echo is
-        on or False if echo is off. Child applications that are expecting you
-        to enter a password often set ECHO False. See waitnoecho()."""
+        """Return the terminal echo mode.
+
+        This returns True if echo is on or False if echo is off. Child
+        applications that are expecting you to enter a password often set ECHO
+        False. See waitnoecho().
+        """
         attr = termios.tcgetattr(self.child_fd)
         return bool(attr[3] & termios.ECHO)
 
     def setecho(self, state):
-        """This sets the terminal echo mode on or off. Note that anything the
-        child sent before the echo will be lost, so you should be sure that
-        your input buffer is empty before you call setecho(). For example, the
-        following will work as expected::
+        """Set the terminal echo mode on or off.
+
+        Note that anything the child sent before the echo will be lost, so you
+        should be sure that your input buffer is empty before you call
+        setecho(). For example, the following will work as expected:
 
             p = pexpect.spawn('cat')
             # We will see this twice (once from tty echo and again from cat).
@@ -905,16 +928,17 @@ class SpawnUnix:
         termios.tcsetattr(self.child_fd, termios.TCSANOW, attr)
 
     def read_nonblocking(self, size=1, timeout=-1):
-        """This reads at most size characters from the child application. It
-        includes a timeout. If the read does not complete within the timeout
+        """Read at most size characters from the child application.
+
+        It includes a timeout. If the read does not complete within the timeout
         period then a TIMEOUT exception is raised. If the end of file is read
         then an EOF exception will be raised. If a log file was set using
         setlog() then all data will also be written to the log file.
 
-        If timeout is None then the read may block indefinitely. If timeout is -1
-        then the self.timeout value is used. If timeout is 0 then the child is
-        polled and if there was no data immediately ready then this will raise
-        a TIMEOUT exception.
+        If timeout is None then the read may block indefinitely. If timeout is
+        -1 then the self.timeout value is used. If timeout is 0 then the child
+        is polled and if there was no data immediately ready then this will
+        raise a TIMEOUT exception.
 
         The timeout refers only to the amount of time to read at least one
         character. This is not effected by the 'size' parameter, so if you call
@@ -923,7 +947,8 @@ class SpawnUnix:
         It will not wait for 30 seconds for another 99 characters to come in.
 
         This is a wrapper around os.read(). It uses select.select() to
-        implement the timeout."""
+        implement the timeout.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file in read_nonblocking().")
 
@@ -994,8 +1019,11 @@ class SpawnUnix:
         raise ExceptionPexpect("Reached an unexpected state in read_nonblocking().")
 
     def read(self, size=-1):  # File-like object.
-        """This reads at most "size" bytes from the file (less if the read hits
-        EOF before obtaining size bytes). If the size argument is negative or
+        """Read at most "size" bytes from the file.
+
+        Read less if the read hits EOF before obtaining size bytes).
+
+        If the size argument is negative or
         omitted, read all data until EOF is reached. The bytes are returned as
         a string object. An empty string is returned when EOF is encountered
         immediately."""
@@ -1019,14 +1047,17 @@ class SpawnUnix:
         return self.before
 
     def readline(self, size=-1):  # File-like object.
-        r"""This reads and returns one entire line. A trailing newline is kept
-        in the string, but may be absent when a file ends with an incomplete
-        line. Note: This readline() looks for a \r\n pair even on UNIX
-        because this is what the pseudo tty device returns. So contrary to what
-        you may expect you will receive the newline as \r\n. An empty string
-        is returned when EOF is hit immediately. Currently, the size argument is
-        mostly ignored, so this behavior is not standard for a file-like
-        object. If size is 0 then an empty string is returned."""
+        r"""Read and returns one entire line.
+
+        A trailing newline is kept in the string, but may be absent when a file
+        ends with an incomplete line. Note: This readline() looks for a \r\n
+        pair even on UNIX because this is what the pseudo tty device returns.
+        So contrary to what you may expect you will receive the newline as
+        \r\n. An empty string is returned when EOF is hit immediately.
+        Currently, the size argument is mostly ignored, so this behavior is not
+        standard for a file-like object. If size is 0 then an empty string is
+        returned.
+        """
         if size == 0:
             return ""
         index = self.expect(["\r\n", self.delimiter])  # delimiter default is EOF
@@ -1035,19 +1066,22 @@ class SpawnUnix:
         return self.before
 
     def __iter__(self):  # File-like object.
-        """This is to support iterators over a file-like object."""
+        """Support iterators over a file-like object."""
         return self
 
     def __next__(self):  # File-like object.
-        """This is to support iterators over a file-like object."""
+        """Support iterators over a file-like object."""
         result = self.readline()
         if result == "":
             raise StopIteration
         return result
 
     def readlines(self, sizehint=-1):  # File-like object.
-        """This reads until EOF using readline() and returns a list containing
-        the lines thus read. The optional "sizehint" argument is ignored."""
+        """Read until EOF using readline().
+
+        Return a list containing the lines thus read. The optional "sizehint" argument
+        is ignored.
+        """
         lines = []
         while True:
             line = self.readline()
@@ -1057,21 +1091,25 @@ class SpawnUnix:
         return lines
 
     def write(self, s):  # File-like object.
-        """This is similar to send() except that there is no return value."""
+        """Similar to send() except that there is no return value."""
         self.send(s)
 
     def writelines(self, sequence):  # File-like object.
-        """This call write() for each element in the sequence. The sequence
-        can be any iterable object producing strings, typically a list of
-        strings. This does not add line separators There is no return value.
+        """Call write() for each element in the sequence.
+
+        The sequence can be any iterable object producing strings, typically a
+        list of strings. This does not add line separators There is no return
+        value.
         """
         for s in sequence:
             self.write(s)
 
     def send(self, s):
-        """This sends a string to the child process. This returns the number of
-        bytes written. If a log file was set then the data is also written to
-        the log."""
+        """Send a string to the child process.
+
+        This returns the number of bytes written. If a log file was set then
+        the data is also written to the log.
+        """
         time.sleep(self.delaybeforesend)
         if self.logfile is not None:
             self.logfile.write(s)
@@ -1086,13 +1124,15 @@ class SpawnUnix:
         return os.write(self.child_fd, s)
 
     def sendline(self, s=""):
-        """This is like send(), but it adds a line feed (os.linesep). This
-        returns the number of bytes written."""
+        """Like send(), but it add a line feed (os.linesep).
+
+        This returns the number of bytes written."""
         return self.send(s) + self.send(os.linesep)
 
     def sendcontrol(self, char):
-        """This sends a control character to the child such as Ctrl-C or
-        Ctrl-D. For example, to send a Ctrl-G (ASCII 7)::
+        """Send a control character to the child such as Ctrl-C or Ctrl-D.
+
+        For example, to send a Ctrl-G (ASCII 7):
 
             child.sendcontrol('g')
 
@@ -1122,14 +1162,16 @@ class SpawnUnix:
         return self.send(chr(d[char]))
 
     def sendeof(self):
-        """This sends an EOF to the child. This sends a character which causes
-        the pending parent output buffer to be sent to the waiting child
-        program without waiting for end-of-line. If it is the first character
-        of the line, the read() in the user program returns 0, which signifies
-        end-of-file. This means to work as expected a sendeof() has to be
-        called at the beginning of a line. This method does not send a newline.
-        It is the responsibility of the caller to ensure the eof is sent at the
-        beginning of a line."""
+        """Send an EOF to the child.
+
+        This sends a character which causes the pending parent output buffer to
+        be sent to the waiting child program without waiting for end-of-line.
+        If it is the first character of the line, the read() in the user
+        program returns 0, which signifies end-of-file. This means to work as
+        expected a sendeof() has to be called at the beginning of a line. This
+        method does not send a newline. It is the responsibility of the caller
+        to ensure the eof is sent at the beginning of a line.
+        """
         # # Hmmm... how do I send an EOF?
         # #C  if ((m = write(pty, *buf, p - *buf)) < 0)
         # #C      return (errno == EWOULDBLOCK) ? n : -1;
@@ -1154,8 +1196,10 @@ class SpawnUnix:
         self.send(char)
 
     def sendintr(self):
-        """This sends a SIGINT to the child. It does not require
-        the SIGINT to be the first character on a line."""
+        """Send a SIGINT to the child.
+
+        It does not require the SIGINT to be the first character on a line.
+        """
         if hasattr(termios, "VINTR"):
             char = termios.tcgetattr(self.child_fd)[6][termios.VINTR]
         else:
@@ -1164,14 +1208,16 @@ class SpawnUnix:
         self.send(char)
 
     def eof(self):
-        """This returns True if the EOF exception was ever raised."""
+        """Return True if the EOF exception was ever raised."""
         return self.flag_eof
 
     def terminate(self, force=False):
-        """This forces a child process to terminate. It starts nicely with
-        SIGHUP and SIGINT. If "force" is True then moves onto SIGKILL. This
-        returns True if the child was terminated. This returns False if the
-        child could not be terminated."""
+        """Force a child process to terminate.
+
+        It starts nicely with SIGHUP and SIGINT. If "force" is True then moves
+        onto SIGKILL. This returns True if the child was terminated. This
+        returns False if the child could not be terminated.
+        """
         if not self.isalive():
             return True
         try:
@@ -1201,11 +1247,14 @@ class SpawnUnix:
             return not self.isalive()
 
     def wait(self):
-        """This waits until the child exits. This is a blocking call. This will
-        not read any data from the child, so this will block forever if the
-        child has unread output and has terminated. In other words, the child
-        may have printed output then called exit(); but, technically, the child
-        is still alive until its output is read."""
+        """Wait until the child exits.
+
+        This is a blocking call. This will not read any data from the child, so
+        this will block forever if the child has unread output and has
+        terminated. In other words, the child may have printed output then
+        called exit(); but, technically, the child is still alive until its
+        output is read.
+        """
         if self.isalive():
             pid, status = os.waitpid(self.pid, 0)
         else:
@@ -1230,11 +1279,13 @@ class SpawnUnix:
         return self.exitstatus
 
     def isalive(self):
-        """This tests if the child process is running or not. This is
-        non-blocking. If the child was terminated then this will read the
-        exitstatus or signalstatus of the child. This returns True if the child
-        process appears to be running or False if not. It can take literally
-        SECONDS for Solaris to return the right status."""
+        """Test if the child process is running or not.
+
+        This is non-blocking. If the child was terminated then this will read
+        the exitstatus or signalstatus of the child. This returns True if the
+        child process appears to be running or False if not. It can take
+        literally SECONDS for Solaris to return the right status.
+        """
         if self.terminated:
             return False
 
@@ -1302,15 +1353,18 @@ class SpawnUnix:
         return False
 
     def kill(self, sig):
-        """This sends the given signal to the child application. In keeping
-        with UNIX tradition it has a misleading name. It does not necessarily
-        kill the child unless you send the right signal."""
+        """Send the given signal to the child application.
+
+        In keeping with UNIX tradition it has a misleading name. It does not
+        necessarily kill the child unless you send the right signal.
+        """
         # Same as os.kill, but the pid is given for you.
         if self.isalive():
             os.kill(self.pid, sig)
 
     def compile_pattern_list(self, patterns):
-        """This compiles a pattern-string or a list of pattern-strings.
+        """Compile a pattern-string or a list of pattern-strings.
+
         Patterns must be a StringType, EOF, TIMEOUT, SRE_Pattern, or a list of
         those. Patterns may also be None which results in an empty list (you
         might do this if waiting for an EOF or TIMEOUT condition without
@@ -1449,10 +1503,11 @@ class SpawnUnix:
         return self.expect_loop(SearcherRegex(pattern_list), timeout, searchwindowsize)
 
     def expect_exact(self, pattern_list, timeout=-1, searchwindowsize=-1):
-        """This is similar to expect(), but uses plain string matching instead
-        of compiled regular expressions in 'pattern_list'. The 'pattern_list'
-        may be a string; a list or other sequence of strings; or TIMEOUT and
-        EOF.
+        """Similar to expect().
+
+        But use plain string matching instead of compiled regular expressions
+        in 'pattern_list'. The 'pattern_list' may be a string; a list or other
+        sequence of strings; or TIMEOUT and EOF.
 
         This call might be faster than expect() for two reasons: string
         searching is faster than RE matching, and it is possible to limit the
@@ -1540,19 +1595,23 @@ class SpawnUnix:
             raise
 
     def getwinsize(self):
-        """This returns the terminal window size of the child tty. The return
-        value is a tuple of (rows, cols)."""
+        """Return the terminal window size of the child tty.
+
+        The return value is a tuple of (rows, cols).
+        """
         TIOCGWINSZ = getattr(termios, "TIOCGWINSZ", 1074295912)
         s = struct.pack("HHHH", 0, 0, 0, 0)
         x = fcntl.ioctl(self.fileno(), TIOCGWINSZ, s)
         return struct.unpack("HHHH", x)[0:2]
 
     def setwinsize(self, r, c):
-        """This sets the terminal window size of the child tty. This will cause
-        a SIGWINCH signal to be sent to the child. This does not change the
-        physical window size. It changes the size reported to TTY-aware
-        applications like vi or curses -- applications that respond to the
-        SIGWINCH signal."""
+        """Set the terminal window size of the child tty.
+
+        This will cause a SIGWINCH signal to be sent to the child. This does
+        not change the physical window size. It changes the size reported to
+        TTY-aware applications like vi or curses -- applications that respond
+        to the SIGWINCH signal.
+        """
         # Check for buggy platforms. Some Python versions on some platforms
         # (notably OSF1 Alpha and RedHat 7.1) truncate the value for
         # termios.TIOCSWINSZ. It is not clear why this happens.
@@ -1569,16 +1628,19 @@ class SpawnUnix:
         fcntl.ioctl(self.fileno(), TIOCSWINSZ, s)
 
     def interact(self, escape_character=None, input_filter=None, output_filter=None):
-        """This gives control of the child process to the interactive user (the
-        human at the keyboard). Keystrokes are sent to the child process, and
-        the stdout and stderr output of the child process is printed. This
-        simply echos the child stdout and child stderr to the real stdout and
-        it echos the real stdin to the child stdin. When the user types the
-        escape_character this method will stop. The default for
-        escape_character is ^]. This should not be confused with ASCII 27 --
-        the ESC character. ASCII 29 was chosen for historical merit because
-        this is the character used by 'telnet' as the escape character. The
-        escape_character will not be sent to the child process.
+        """Give control of the child process to the interactive user.
+
+        The interactive user is the human at the keyboard.
+
+        Keystrokes are sent to the child process, and the stdout and stderr
+        output of the child process is printed. This simply echos the child
+        stdout and child stderr to the real stdout and it echos the real stdin
+        to the child stdin. When the user types the escape_character this
+        method will stop. The default for escape_character is ^]. This should
+        not be confused with ASCII 27 -- the ESC character. ASCII 29 was chosen
+        for historical merit because this is the character used by 'telnet' as
+        the escape character. The escape_character will not be sent to the
+        child process.
 
         You may pass in optional input and output filter functions. These
         functions should take a string and return a string. The output_filter
@@ -1620,7 +1682,7 @@ class SpawnUnix:
             tty.tcsetattr(self.STDIN_FILENO, tty.TCSAFLUSH, mode)
 
     def __interact_writen(self, fd, data):
-        """This is used by the ``interact()`` method."""
+        """Write data to the file descriptor."""
         if not isinstance(data, bytes):
             data = data.encode("utf-8")
         while data != b"" and self.isalive():
@@ -1628,13 +1690,13 @@ class SpawnUnix:
             data = data[n:]
 
     def __interact_read(self, fd):
-        """This is used by the ``interact()`` method."""
+        """Read 1000 bytes from the file descriptor."""
         return os.read(fd, 1000)
 
     def __interact_copy(
         self, escape_character=None, input_filter=None, output_filter=None
     ):
-        """This is used by the ``interact()`` method."""
+        """Copy data between the child and the user."""
         while self.isalive():
             r, w, e = self.__select([self.child_fd, self.STDIN_FILENO], [], [])
             if self.child_fd in r:
@@ -1660,10 +1722,12 @@ class SpawnUnix:
                 self.__interact_writen(self.child_fd, data)
 
     def __select(self, iwtd, owtd, ewtd, timeout=None):
-        """This is a wrapper around select.select() that ignores signals. If
-        select.select raises a select.error exception and errno is an EINTR
+        """Wrap around select.select() to ignores signals.
+
+        If select.select raises a select.error exception and errno is an EINTR
         error then it is ignored. Mainly this is used to ignore sigwinch
-        (terminal resize)."""
+        (terminal resize).
+        """
         # if select() is interrupted by a signal (errno==EINTR) then
         # we loop back and enter the select() again.
         end_time = -1
@@ -1710,7 +1774,7 @@ class SpawnUnix:
 
 
 class SpawnWindows(SpawnUnix):
-    """This is the main class interface for Pexpect.
+    """The main class interface for Pexpect.
 
     Use this class to start and control child applications.
     """
@@ -1878,7 +1942,7 @@ class SpawnWindows(SpawnUnix):
         return 0
 
     def close(self, force=True):  # File-like object.
-        """Closes the child console."""
+        """Close the child console."""
         self.closed = self.terminate(force)
         if not self.closed:
             raise ExceptionPexpect(
@@ -1891,26 +1955,30 @@ class SpawnWindows(SpawnUnix):
         return True
 
     def getecho(self):
-        """This returns the terminal echo mode. This returns True if echo is
-        on or False if echo is off. Child applications that are expecting you
-        to enter a password often set ECHO False. See waitnoecho()."""
+        """Return the terminal echo mode.
+
+        This returns True if echo is on or False if echo is off. Child
+        applications that are expecting you to enter a password often set ECHO
+        False. See waitnoecho().
+        """
         return self.wtty.getecho()
 
     def setecho(self, state):
-        """This sets the terminal echo mode on or off."""
+        """Set the terminal echo mode on or off."""
         self.wtty.setecho(state)
 
     def read_nonblocking(self, size=1, timeout=-1):
-        """This reads at most size characters from the child application. It
-        includes a timeout. If the read does not complete within the timeout
+        """Read at most size characters from the child application.
+
+        It includes a timeout. If the read does not complete within the timeout
         period then a TIMEOUT exception is raised. If the end of file is read
         then an EOF exception will be raised. If a log file was set using
         setlog() then all data will also be written to the log file.
 
-        If timeout is None then the read may block indefinitely. If timeout is -1
-        then the self.timeout value is used. If timeout is 0 then the child is
-        polled and if there was no data immediately ready then this will raise
-        a TIMEOUT exception.
+        If timeout is None then the read may block indefinitely. If timeout is
+        -1 then the self.timeout value is used. If timeout is 0 then the child
+        is polled and if there was no data immediately ready then this will
+        raise a TIMEOUT exception.
 
         The timeout refers only to the amount of time to read at least one
         character. This is not effected by the 'size' parameter, so if you call
@@ -1972,8 +2040,10 @@ class SpawnWindows(SpawnUnix):
         raise ExceptionPexpect("sendeof() is not supported on windows")
 
     def sendintr(self):
-        """This sends a SIGINT to the child. It does not require
-        the SIGINT to be the first character on a line."""
+        """Send a SIGINT to the child.
+
+        It does not require the SIGINT to be the first character on a line.
+        """
         self.wtty.sendintr()
 
     def terminate(self, force=False):
@@ -1993,11 +2063,13 @@ class SpawnWindows(SpawnUnix):
             self.wtty.terminate_child()
 
     def wait(self):
-        """This waits until the child exits. This is a blocking call. This will
-        not read any data from the child, so this will block forever if the
-        child has unread output and has terminated. In other words, the child
-        may have printed output then called exit(); but, technically, the child
-        is still alive until its output is read.
+        """Wait until the child exits.
+
+        This is a blocking call. This will not read any data from the child, so
+        this will block forever if the child has unread output and has
+        terminated. In other words, the child may have printed output then
+        called exit(); but, technically, the child is still alive until its
+        output is read.
         """
         if not self.isalive():
             raise ExceptionPexpect("Cannot wait for dead child process.")
@@ -2011,7 +2083,7 @@ class SpawnWindows(SpawnUnix):
         return self.exitstatus
 
     def isalive(self):
-        """Determines if the child is still alive."""
+        """Determine if the child is still alive."""
         if self.terminated:
             return False
 
@@ -2024,8 +2096,9 @@ class SpawnWindows(SpawnUnix):
         return False
 
     def getwinsize(self):
-        """This returns the terminal window size of the child tty. The return
-        value is a tuple of (rows, cols).
+        """Return the terminal window size of the child tty.
+
+        The return value is a tuple of (rows, cols).
         """
         return self.wtty.getwinsize()
 
@@ -2042,14 +2115,15 @@ class SpawnWindows(SpawnUnix):
 
     # Prototype changed
     def stop_interact(self):
-        """Hides the child console from the user."""
+        """Hide the child console from the user."""
         self.wtty.stop_interact()
 
 
 class Wtty:
-    """This class is used to spawn a child process and connect to its
-    console. It is used by the spawn_windows class. This class is not
-    intended to be used directly.
+    """This class is used to spawn a child process and connect to its console.
+
+    It is used by the spawn_windows class. This class is not intended to be
+    used directly.
     """
 
     def __init__(self, timeout=30, codepage=None, columns=None, rows=None, cwd=None):
@@ -2225,8 +2299,7 @@ class Wtty:
         self.__consout = self.getConsoleOut()
 
     def switchBack(self):
-        """Releases from the current console and attaches
-        to the parents."""
+        """Release from the current console and attaches to the parents."""
         if not self.__switch or not self.__oproc_isalive():
             return
 
@@ -2258,7 +2331,7 @@ class Wtty:
         return PyConsoleScreenBufferType(consout)
 
     def getchild(self):
-        """Returns a handle to the child process."""
+        """Return a handle to the child process."""
         return self.__childProcess
 
     def terminate(self):
@@ -2270,8 +2343,7 @@ class Wtty:
         win32api.TerminateProcess(self.__childProcess, 1)
 
     def createKeyEvent(self, char):
-        """Creates a single key record corresponding to
-        the ascii character char."""
+        """Create a single key record corresponding to the ascii character char."""
         evt = PyINPUT_RECORDType(KEY_EVENT)
         evt.KeyDown = True
         evt.Char = char
@@ -2281,7 +2353,7 @@ class Wtty:
         return evt
 
     def write(self, s):
-        """Writes input into the child consoles input buffer."""
+        """Write input into the child consoles input buffer."""
         if len(s) == 0:
             return 0
         records = [self.createKeyEvent(c) for c in str(s)]
@@ -2296,19 +2368,19 @@ class Wtty:
         return wrote
 
     def getPoint(self, offset):
-        """Converts an offset to a point represented as a tuple."""
+        """Convert an offset to a point represented as a tuple."""
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         x = offset % consinfo["Size"].X
         y = offset / consinfo["Size"].X
         return x, y
 
     def getOffset(self, x, y):
-        """Converts a tuple-point to an offset."""
+        """Convert a tuple-point to an offset."""
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         return x + y * consinfo["Size"].X
 
     def readConsole(self, startCo, endCo):
-        """Reads the console area from startCo to endCo and returns it as a string."""
+        """Read the console area from startCo to endCo and return it as a string."""
         buff = []
         self.lastRead = 0
 
@@ -2340,9 +2412,10 @@ class Wtty:
         return "".join(buff)
 
     def parseData(self, s):
-        """Ensures that special characters are interpreted as
-        newlines or blanks, depending on if there written over
-        characters or screen-buffer-fill characters."""
+        """Ensure that special characters are interpreted as newlines or blanks.
+
+        Depending on if there written over characters or screen-buffer-fill characters.
+        """
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         strlist = []
         for i, c in enumerate(s):
@@ -2360,9 +2433,7 @@ class Wtty:
             # )
 
     def readConsoleToCursor(self):
-        """Reads from the current read position to the current cursor
-        position and inserts the string into self.__buffer.
-        """
+        """Read from current position to cursor and update self.__buffer."""
         if not self.__consout:
             return ""
 
@@ -2450,10 +2521,7 @@ class Wtty:
         return s
 
     def read_nonblocking(self, timeout, size):
-        """Reads data from the console if available, otherwise
-        waits timeout seconds, and writes the string 'None'
-        to the pipe if no data is available after that time.
-        """
+        """Read data from the console if available, else wait up to timeout seconds."""
         self.switchTo()
 
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
@@ -2506,9 +2574,10 @@ class Wtty:
             raise EOF("End Of File (EOF) in Wtty.read_nonblocking().") from e
 
     def refreshConsole(self):
-        """Clears the console after pausing the child and
-        reading all the data currently on the console.
-        The last line before clearing becomes the first line after clearing."""
+        """Pause the child, read all current console data and clear the console.
+
+        The last line before clearing becomes the first after clearing.
+        """
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         cursorPos = consinfo["CursorPosition"]
         startCo = PyCOORDType(0, cursorPos.Y)
@@ -2528,7 +2597,7 @@ class Wtty:
         self.__buffer.write(raw)
 
     def setecho(self, state):
-        """Sets the echo mode of the child console."""
+        """Set the echo mode of the child console."""
         self.switchTo()
         try:
             mode = self.__consin.GetConsoleMode()
@@ -2543,7 +2612,7 @@ class Wtty:
         self.switchBack()
 
     def getecho(self):
-        """Returns the echo mode of the child console."""
+        """Return the echo mode of the child console."""
         self.switchTo()
         try:
             mode = self.__consin.GetConsoleMode()
@@ -2555,7 +2624,7 @@ class Wtty:
         return ret
 
     def getwinsize(self):
-        """Returns the size of the child console as a tuple of
+        """Return the size of the child console as a tuple of
         (rows, columns)."""
         self.switchTo()
         try:
@@ -2567,7 +2636,7 @@ class Wtty:
         return (size.Y, size.X)
 
     def setwinsize(self, r, c):
-        """Sets the child console screen buffer size to (r, c)."""
+        """Set the child console screen buffer size to (r, c)."""
         self.switchTo()
         try:
             self.__consout.SetConsoleScreenBufferSize(PyCOORDType(c, r))
@@ -2577,7 +2646,7 @@ class Wtty:
         self.switchBack()
 
     def interact(self):
-        """Displays the child console for interaction."""
+        """Display the child console for interaction."""
         if not self.isalive():
             return
 
@@ -2590,7 +2659,7 @@ class Wtty:
         self.switchBack()
 
     def stop_interact(self):
-        """Hides the child console."""
+        """Hide the child console."""
         self.switchTo()
         try:
             ShowWindow(GetConsoleWindow(), SW_HIDE)
@@ -2607,7 +2676,7 @@ class Wtty:
         return GetExitCodeProcess(self.__oproc) == STILL_ACTIVE
 
     def sendintr(self):
-        """Sends the sigint signal to the child."""
+        """Send the sigint signal to the child."""
         self.switchTo()
         try:
             time.sleep(0.15)
@@ -2767,7 +2836,7 @@ class ConsoleReader:
         consout.FillConsoleOutputCharacter(" ", size.X * size.Y, pos)
 
     def suspendThread(self):
-        """Pauses the main thread of the child process."""
+        """Pause the main thread of the child process."""
         handle = windll.kernel32.OpenThread(THREAD_SUSPEND_RESUME, 0, self.__tid)
         SuspendThread(handle)
 
@@ -3028,9 +3097,10 @@ def excepthook(etype, value, tb):
 
 
 def which(filename):
-    """This takes a given filename; tries to find it in the environment path;
-    then checks if it is executable. This returns the full path to the filename
-    if found and executable. Otherwise this returns None.
+    """Try to find the given filename in the environment path.
+
+    Then check if it is executable. Return the full path to the filename
+    if found and executable. Otherwise return None.
     """
     # Special case where filename already contains a path.
     if os.path.dirname(filename) != "" and os.access(filename, os.X_OK):
@@ -3071,10 +3141,11 @@ def join_args(args):
 
 
 def split_command_line(command_line):
-    """This splits a command line into a list of arguments. It splits arguments
-    on spaces, but handles embedded quotes, doublequotes, and escaped
-    characters. It's impossible to do this with a regular expression, so I
-    wrote a little state machine to parse the command line.
+    """Split a command line into a list of arguments.
+
+    It splits arguments on spaces, but handles embedded quotes, doublequotes,
+    and escaped characters. It's impossible to do this with a regular
+    expression, so I wrote a little state machine to parse the command line.
     """
     arg_list = []
     arg = ""

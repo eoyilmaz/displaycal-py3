@@ -50,8 +50,16 @@ class Cube3D:
             v = fallback or upper
         return v
 
-    def __contains__(self, xxx_todo_changeme1):
-        (c0, c1, c2) = xxx_todo_changeme1
+    def __contains__(self, other: tuple[int, int, int]) -> bool:
+        """Check if the cube contains the specified item.
+
+        Args:
+            other (tuple): The item to check.
+
+        Returns:
+            bool: True if the cube contains the item, False otherwise.
+        """
+        (c0, c1, c2) = other
         return (
             c0 == int(c0)
             and c1 == int(c1)
@@ -62,7 +70,18 @@ class Cube3D:
             < self._len + self._start
         )
 
-    def __getitem__(self, i):
+    def __getitem__(self, i) -> tuple[int, int, int]:
+        """Return the item at the specified index.
+
+        Args:
+            i (int): The index of the item to return.
+
+        Raises:
+            IndexError: If the index is out of range.
+
+        Returns:
+            tuple[int, int, int]: The item at the specified index.
+        """
         oi = i
         if i < 0:
             i = self._len + i
@@ -75,15 +94,20 @@ class Cube3D:
             i % self._size,
         )
 
-    def __getslice__(self, i, j):
-        i = self._clamp(i)
-        j = self._clamp(j)
-        return self.__class__(self._size, self._start + i, self._start + j)
+    def __len__(self) -> int:
+        """Return the length of the cube.
 
-    def __len__(self):
+        Returns:
+            int: The length of the cube.
+        """
         return self._len
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the object.
+
+        Returns:
+            str: The string representation of the object.
+        """
         return "{}(size={:.0f}, start={:.0f}, end={:.0f})".format(  # noqa: UP032
             self.__class__.__name__,
             self._size,
@@ -100,10 +124,19 @@ class Cube3DIterator(Cube3D):
         Cube3D.__init__(self, *args, **kwargs)
         self._next = 0
 
-    def __iter__(self):
+    def __iter__(self) -> "Cube3DIterator":
+        """Return the object itself as an iterator."""
         return self
 
     def __next__(self):
+        """Return the next item in the iteration.
+
+        Raises:
+            StopIteration: If there are no more items to iterate over.
+
+        Returns:
+            tuple: The next item in the iteration.
+        """
         if self._next == self._len:
             raise StopIteration
         result = self[self._next]

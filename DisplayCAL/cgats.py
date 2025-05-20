@@ -11,6 +11,7 @@ import math
 import os
 import re
 from pathlib import Path
+from typing import Any
 
 from DisplayCAL import colormath
 from DisplayCAL.icc_profile import ICCProfileTag
@@ -225,6 +226,8 @@ class CGATS(dict):
     """CGATS structure.
 
     CGATS files are treated mostly as 'soup', so only basic checking is in place.
+
+    TODO: Don't derive this from dict, but use a dict as a member variable.
     """
 
     datetime = None
@@ -463,20 +466,52 @@ class CGATS(dict):
                 print("Warning: Could not normalize to Y = 100:", reprstr)
         self.setmodified(False)
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
+        """Delete attributes from CGATS dictionary.
+
+        Args:
+            name (str): The name of the attribute to delete.
+        """
         del self[name]
         self.setmodified()
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
+        """Delete item from CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to delete.
+        """
         dict.__delitem__(self, name)
         self.setmodified()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attributes from CGATS dictionary.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Raises:
+            AttributeError: If the attribute is not found.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         if name in self:
             return self[name]
         raise AttributeError(name)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
+        """Get item from CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to get.
+
+        Raises:
+            CGATSKeyError: If the item is not found.
+
+        Returns:
+            Any: The value of the item.
+        """
         if name == -1:
             return self.get(len(self) - 1)
         if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
@@ -573,6 +608,12 @@ class CGATS(dict):
         return desc
 
     def __setattr__(self, name, value):
+        """Set attributes on the CGATS object.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name in ("_keys", "_lvl"):
             object.__setattr__(self, name, value)
         elif name == "modified":
@@ -596,7 +637,13 @@ class CGATS(dict):
         else:
             self[name] = value
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: str, value: Any) -> None:
+        """Set item in CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to set.
+            value (Any): The value to set for the item.
+        """
         dict.__setitem__(self, name, value)
         self.setmodified()
 
@@ -605,7 +652,12 @@ class CGATS(dict):
         if self.root and self.root._modified != modified:
             object.__setattr__(self.root, "_modified", modified)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
+        """Return CGATS data as bytes.
+
+        Returns:
+            bytes: CGATS data as bytes.
+        """
         result = []
         lvl = self.root._lvl
         self.root._lvl += 1
@@ -2155,7 +2207,7 @@ Transform {
                         )
 
     def scale_device_values(self, factor=100.0 / 255, color_rep=None):
-        """Scales device values by multiplying with factor."""
+        """Scale device values by multiplying with factor."""
         for labels in get_device_value_labels(color_rep):
             for data in self.queryv("DATA").values():
                 for item in data.queryi(labels).values():

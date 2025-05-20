@@ -105,7 +105,18 @@ class DBusObject:
                 raise DBusObjectError(exception, self._bus_name) from exception
         self._introspectable = None
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> "DBusObjectInterfaceMethod":
+        """Get an attribute of the D-Bus object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Raises:
+            DBusObjectError: If the attribute cannot be accessed.
+
+        Returns:
+            DBusObjectInterfaceMethod: The method corresponding to the attribute name.
+        """
         name = "".join(part.capitalize() for part in name.split("_"))
         try:
             return DBusObjectInterfaceMethod(self._iface, name)

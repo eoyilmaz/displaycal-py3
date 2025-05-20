@@ -572,7 +572,8 @@ class BetterWindowDisabler:
         self.include_menus = include_menus
         self.disable()
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Destruct the instance."""
         self.enable()
 
     def disable(self):

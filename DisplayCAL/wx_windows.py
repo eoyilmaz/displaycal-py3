@@ -3297,6 +3297,7 @@ class PathDialog(ConfirmDialog):
         return 0
 
     def __getattr__(self, name):
+        """Redirect all calls to the file dialog."""
         return getattr(self.filedialog, name)
 
     def filedialog_handler(self, event):
@@ -3447,7 +3448,7 @@ class FlatShadedButton(GradientButton):
         return self._lastBestSize
 
     def OnGainFocus(self, event):
-        """Handles the ``wx.EVT_SET_FOCUS`` event for L{GradientButton}.
+        """Handle the ``wx.EVT_SET_FOCUS`` event for L{GradientButton}.
 
         :param event: a `wx.FocusEvent` event to be processed.
         """
@@ -3457,7 +3458,7 @@ class FlatShadedButton(GradientButton):
         self.Update()
 
     def OnLoseFocus(self, event):
-        """Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{GradientButton}.
+        """Handle the ``wx.EVT_LEAVE_WINDOW`` event for L{GradientButton}.
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
@@ -3472,7 +3473,7 @@ class FlatShadedButton(GradientButton):
         event.Skip()
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{GradientButton}.
+        """Handle the ``wx.EVT_PAINT`` event for L{GradientButton}.
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
@@ -3727,7 +3728,7 @@ class BorderGradientButton(GradientButton):
     Enabled = property(IsEnabled, Enable)
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{GradientButton}.
+        """Handle the ``wx.EVT_PAINT`` event for L{GradientButton}.
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
@@ -4538,7 +4539,7 @@ class CustomCheckBox(wx.Panel):
         self._label.SetMaxFontSize(pointsize)
 
     def GetValue(self):
-        """Returns the state of CustomCheckBox, True if checked, False
+        """Return the state of CustomCheckBox, True if checked, False
         otherwise.
         """
         return self._cb.Value
@@ -4551,7 +4552,7 @@ class CustomCheckBox(wx.Panel):
         return self._cb.Value
 
     def SetValue(self, state):
-        """Sets the CustomCheckBox to the given state. This does not cause a
+        """Set the CustomCheckBox to the given state. This does not cause a
         wx.wxEVT_COMMAND_CHECKBOX_CLICKED event to get emitted.
         """
         self._cb.Value = state
@@ -4629,8 +4630,9 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         super(self.__class__, self).Show(show, attr)
 
     def PaintBackground(self, dc, rect, attr=None):
-        """Draws the part of the cell not occupied by the edit control.  The
-        base  class version just fills it with background colour from the
+        """Draw the part of the cell not occupied by the edit control.
+
+        The base  class version just fills it with background colour from the
         attribute.  In this class the edit control fills the whole cell so
         don't do anything at all in order to reduce flicker.
         """
@@ -5112,7 +5114,7 @@ class HyperLinkCtrl(hyperlink.HyperLinkCtrl):
         self.Bind(hyperlink.EVT_HYPERLINK_RIGHT, self.OnPopup)
 
     def OnPopup(self, event):
-        """Pops up a menu with 'Copy link address'"""
+        """Pop up a menu with 'Copy link address'."""
         menuPopUp = wx.Menu("", wx.MENU_TEAROFF)
         menuPopUp.Append(
             hyperlink.wxHYPERLINKS_POPUP_COPY, lang.getstr("link.address.copy")
@@ -5213,7 +5215,7 @@ class BetterPyGauge(pygauge.PyGauge):
         return 0
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{PyGauge}.
+        """Handle the ``wx.EVT_PAINT`` event for L{PyGauge}.
 
         :param event: a `wx.PaintEvent` event to be processed.
         """
@@ -6698,7 +6700,7 @@ class SimpleBook(labelbook.FlatBookBase):
         OnEraseBackground = wx_Panel.__dict__["OnEraseBackground"]
 
     def CreateImageContainer(self):
-        """Creates the image container (LabelContainer) class for L{FlatImageBook}."""
+        """Create the image container (LabelContainer) class for L{FlatImageBook}."""
         return labelbook.ImageContainerBase(
             self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
         )
@@ -7464,7 +7466,7 @@ class TwoWaySplitter(FourWaySplitter):
 
     # Determine split mode
     def GetMode(self, pt):
-        """Determines the split mode for L{FourWaySplitter}.
+        """Determine the split mode for L{FourWaySplitter}.
 
         :param pt: the point at which the mouse has been clicked, an instance of
          `wx.Point`.
@@ -7507,7 +7509,7 @@ class TwoWaySplitter(FourWaySplitter):
         return self._splitsize
 
     def OnLeaveWindow(self, event):
-        """Handles the ``wx.EVT_LEAVE_WINDOW`` event for L{FourWaySplitter}.
+        """Handle the ``wx.EVT_LEAVE_WINDOW`` event for L{FourWaySplitter}.
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
@@ -7547,7 +7549,7 @@ class TwoWaySplitter(FourWaySplitter):
 
     # Button being released
     def OnLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` event for L{FourWaySplitter}.
+        """Handle the ``wx.EVT_LEFT_UP`` event for L{FourWaySplitter}.
 
         :param event: a `wx.MouseEvent` event to be processed.
         """
@@ -7581,7 +7583,7 @@ class TwoWaySplitter(FourWaySplitter):
         self._mode = NOWHERE
 
     def OnMotion(self, event):
-        """Handles the ``wx.EVT_MOTION`` event for L{FourWaySplitter}.
+        """Handle the ``wx.EVT_MOTION`` event for L{FourWaySplitter}.
 
         :param event: a `wx.MouseEvent` event to be processed.
         """

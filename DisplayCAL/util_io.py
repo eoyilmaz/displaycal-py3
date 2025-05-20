@@ -4,6 +4,8 @@ managing multiple file objects, working with GZIP and TAR files, buffering
 line-based streams, and other file-related utilities.
 """
 
+from __future__ import annotations
+
 import contextlib
 import copy
 import gzip
@@ -13,9 +15,13 @@ import sys
 import tarfile
 from io import StringIO
 from time import time
+from typing import TYPE_CHECKING, Any, Self
 
 # from safe_print import safe_print
 from DisplayCAL.util_str import universal_newlines
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class EncodedWriter:
@@ -33,7 +39,15 @@ class EncodedWriter:
         self.file_encoding = file_encoding
         self.errors = errors
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute from the file object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the file object.
+        """
         return getattr(self.file, name)
 
     def write(self, data):
@@ -61,7 +75,12 @@ class Files:
             else:
                 self.files.append(item)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the files in the Files object.
+
+        Returns:
+            iterator: An iterator over the files in the Files object.
+        """
         return iter(self.files)
 
     def close(self):
@@ -129,10 +148,25 @@ class GzipFileProper(gzip.GzipFile):
                 fname.encode("ISO-8859-1", "replace").replace(b"?", b"_") + b"\000"
             )
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
+        """Enter the runtime context related to this object.
+
+        Returns:
+            GzipFileProper: The GzipFileProper object itself.
+        """
         return self
 
-    def __exit__(self, exc_type, exc_value, tb):
+    def __exit__(self, exc_type, exc_value, tb) -> None:
+        """Exit the runtime context related to this object.
+
+        Args:
+            exc_type: The exception type.
+            exc_value: The exception value.
+            tb: The traceback object.
+
+        Returns:
+            None: No return value.
+        """
         self.close()
 
 
@@ -156,10 +190,19 @@ class LineBufferedStream:
         self.linesep_out = linesep_out
         self.stream = stream
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Destructor to ensure the stream is closed properly."""
         self.commit()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute from the stream.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the stream.
+        """
         return getattr(self.stream, name)
 
     def close(self):
@@ -167,17 +210,30 @@ class LineBufferedStream:
         self.stream.close()
 
     def commit(self):
-        if self.buf:
-            if self.data_encoding and isinstance(self.buf, bytes):
-                self.buf = self.buf.decode(self.data_encoding, self.errors)
-            if self.file_encoding:
-                self.buf = self.buf.encode(self.file_encoding, self.errors)
-            self.stream.write(self.buf)
-            self.buf = ""
+        if not self.buf:
+            return
+        if self.data_encoding and isinstance(self.buf, bytes):
+            self.buf = self.buf.decode(self.data_encoding, self.errors)
+        if self.file_encoding:
+            self.buf = self.buf.encode(self.file_encoding, self.errors)
+        self.stream.write(self.buf)
+        self.buf = ""
 
-    def write(self, data):
-        if not isinstance(data, str):
+    def write(self, data: str | bytes | bytearray) -> None:
+        """Write data to the stream, buffering it until a line separator is detected.
+
+        Args:
+            data (str | bytes): The data to write to the stream.
+
+        Raises:
+            TypeError: If the data is not of type str, bytes, or bytearray.
+        """
+        if isinstance(data, bytes):
             data = data.decode()
+        if not isinstance(data, str):
+            raise TypeError(
+                f"Expected str, bytes or bytearray, got {type(data).__name__}"
+            )
         data = data.replace(self.linesep_in, "\n")
         for char in data:
             if char == "\r":
@@ -245,6 +301,14 @@ class Tee(Files):
         Files.__init__((sys.stdout, file_obj))
 
     def __getattr__(self, name):
+        """Get attribute from the second file object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the second file object.
+        """
         return getattr(self.files[1], name)
 
     def close(self):

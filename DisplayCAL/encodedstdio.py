@@ -8,6 +8,8 @@ with automatic encoding/decoding support.
 import codecs
 import os
 import sys
+from collections.abc import Iterator
+from typing import Any
 
 from DisplayCAL.encoding import get_encoding
 
@@ -99,19 +101,32 @@ class EncodedStream:
         self.encoding = encoding
         self.errors = errors
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attributes from the stream or the EncodedStream itself.
+
+        Args:
+            name (str): The name of the attribute to get.
+        """
         return getattr(self.stream, name)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
+        """Return an iterator over the lines in the stream."""
         return iter(self.readlines())
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set attributes on the stream or the EncodedStream itself.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name == "softspace":
             setattr(self.stream, name, value)
         else:
             object.__setattr__(self, name, value)
 
     def __next__(self):
+        """Read the next line from the stream."""
         return self.readline()
 
     def read(self, size=-1):

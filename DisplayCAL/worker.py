@@ -47,7 +47,7 @@ from io import BytesIO
 from pathlib import Path
 from threading import current_thread, main_thread
 from time import sleep, strftime, time
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import distro
 from send2trash import send2trash
@@ -1124,7 +1124,7 @@ def get_current_profile_path(
 
 
 def parse_argument_string(args):
-    """Parses an argument string and returns a list of arguments."""
+    """Parse an argument string and return a list of arguments."""
     return [
         re.sub(r'^["\']|["\']$', "", arg)
         for arg in re.findall(
@@ -1511,10 +1511,19 @@ class EvalFalse:
     def __init__(self, wrapped_object):
         self._wrapped_object = wrapped_object
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
+        """Get attribute from the wrapped object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The attribute of the wrapped object.
+        """
         return getattr(object.__getattribute__(self, "_wrapped_object"), name)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return False for boolean comparisons."""
         return False
 
 
@@ -1608,7 +1617,15 @@ class FilteredStream:
             self.prestrip = prestrip
         self._buffer = ""
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute from the wrapped stream.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The attribute of the wrapped stream.
+        """
         return getattr(self.stream, name)
 
     def write(self, data):
@@ -1697,7 +1714,12 @@ class StringWithLengthOverride(UserString):
             length = len(seq)
         self.length = length
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return the length of the string.
+
+        Returns:
+            int: The length of the string.
+        """
         return self.length
 
 
@@ -1732,10 +1754,20 @@ class Sudo:
                     ),
                 )
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return 1 if sudo is available, otherwise 0.
+
+        Returns:
+            int: 1 if sudo is available, otherwise 0.
+        """
         return int(bool(self.sudo))
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the sudo command with options.
+
+        Returns:
+            str: The sudo command with options.
+        """
         return str(self.sudo or "")
 
     def _expect_timeout(self, patterns, timeout=-1, child_timeout=1):

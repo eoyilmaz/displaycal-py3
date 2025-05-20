@@ -652,11 +652,35 @@ class MadTPG(MadTPGBase):
                 )
             ) from e
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Destructor to clean up madTPG instance."""
         if hasattr(self, "mad"):
             self.disconnect()
 
     def __getattr__(self, name):
+        """Handle madVR method calls.
+
+        This is a generic method to handle madVR method calls. It allows
+        dynamic access to madVR methods based on their names. The method
+        names are expected to be in a pythonic format (e.g., 'disable_3dlut'
+        instead of 'Disable3dlut'). The method converts the pythonic name
+        to the appropriate CamelCase format used by madVR and checks if
+        the method exists. If it does, it returns the method for further
+        invocation. If the method does not exist, it raises an AttributeError.
+        This approach avoids the need to write individual method wrappers
+        for each madVR method, making the code cleaner and more maintainable.
+
+        Args:
+            name (str): The name of the madVR method to be called, in a
+                pythonic format (e.g., 'disable_3dlut').
+
+        Raises:
+            AttributeError: If the method name does not correspond to a
+                valid madVR method.
+
+        Returns:
+            callable: The madVR method corresponding to the provided name.
+        """
         # Instead of writing individual method wrappers, we use Python's magic
         # to handle this for us. Note that we're sticking to pythonic method
         # names, so 'disable_3dlut' instead of 'Disable3dlut' etc.
@@ -675,7 +699,7 @@ class MadTPG(MadTPGBase):
         return getattr(self.mad, f"{prefix}_{methodname}")
 
     def add_connection_callback(self, callback, param, component):
-        """Handles callbacks for added/closed connections to playback components
+        """Handle callbacks for added/closed connections to playback components
 
         Leave "component" empty to get notification about all components.
 
@@ -721,7 +745,7 @@ class MadTPG(MadTPGBase):
         return result and (blacklvl.value, whitelvl.value)
 
     def get_device_gamma_ramp(self):
-        """Calls the win32 API 'GetDeviceGammaRamp'"""
+        """Call the win32 API 'GetDeviceGammaRamp'"""
         ramp = ((ctypes.c_ushort * 256) * 3)()
         result = self.mad.madVR_GetDeviceGammaRamp(ramp)
         return result and ramp
@@ -756,7 +780,7 @@ class MadTPG(MadTPGBase):
         return result and version
 
     def show_rgb(self, r, g, b, bgr=None, bgg=None, bgb=None):
-        """Shows a specific RGB color test pattern"""
+        """Show a specific RGB color test pattern"""
         if None not in (bgr, bgg, bgb):
             return self.mad.madVR_ShowRGBEx(r, g, b, bgr, bgg, bgb)
         return self.mad.madVR_ShowRGB(r, g, b)
@@ -1125,7 +1149,8 @@ class MadTPGNet(MadTPGBase):
         if self.debug:
             safe_print(f"MadTPG_Net: Exiting {cast} receiver thread for port {port}")
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Clean up resources on deletion."""
         self.shutdown()
 
     def _shutdown(self, sock, addr):
@@ -1149,7 +1174,19 @@ class MadTPGNet(MadTPGBase):
             if thread.is_alive():
                 thread.join()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> "MadTPGNetSender":
+        """Get attribute from madVR DLL.
+
+        Args:
+            name (str): Name of the method to call.
+
+        Raises:
+            AttributeError: If the method name is not found in the madVR DLL.
+
+        Returns:
+            MadTPGNetSender: An instance of MadTPGNetSender with the method
+                name set to the specified method.
+        """
         # Instead of writing individual method wrappers, we use Python's magic
         # to handle this for us. Note that we're sticking to pythonic method
         # names, so 'disable_3dlut' instead of 'Disable3dlut' etc.

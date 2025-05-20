@@ -13,7 +13,7 @@ import sys
 import threading
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from wx.lib.agw import aui
 from wx.lib.intctrl import IntCtrl
@@ -84,18 +84,26 @@ COLOUR_ATTRIBUTES = ["r", "g", "b", "h", "s", "v"]
 COLOUR_MAX_VALUES = [255, 255, 255, 359, 255, 255]
 
 
-def rad2deg(x):
-    """Transforms radians into degrees.
+def rad2deg(x: float) -> float:
+    """Transform radians into degrees.
 
-    :param x: a float representing an angle in radians.
+    Args:
+        x (float): a float representing an angle in radians.
+
+    Returns:
+        float: The angle in degrees.
     """
     return 180.0 * x / pi
 
 
-def deg2rad(x):
-    """Transforms degrees into radians.
+def deg2rad(x: float) -> float:
+    """Transform degrees into radians.
 
-    :param x: a float representing an angle in degrees.
+    Args:
+        x (float): A float representing an angle in degrees.
+
+    Returns:
+        float: The angle in radians.
     """
     return x * pi / 180.0
 
@@ -145,7 +153,7 @@ def _wait_thread(fn, *args, **kwargs):
 
 
 def Distance(pt1, pt2):
-    """Returns the distance between 2 points.
+    """Return the distance between 2 points.
 
     :param pt1: an instance of :class:`Point`;
     :param pt2: another instance of :class:`Point`.
@@ -155,7 +163,7 @@ def Distance(pt1, pt2):
 
 
 def AngleFromPoint(pt, center):
-    """Returns the angle between the x-axis and the line connecting the center and
+    """Return the angle between the x-axis and the line connecting the center and
     the point `pt`.
 
     :param pt: an instance of :class:`Point`;
@@ -195,27 +203,39 @@ class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
             geticon(16, "button-pin"), aui.dockart.AUI_BUTTON_PIN, False
         )
 
-    def DrawBackground(self, dc, window, orient, rect):
-        """Draws a background.
+    def DrawBackground(
+        self, dc: wx.DC, window: wx.Window, orient: int, rect: wx.Rect
+    ) -> None:
+        """Draw a background.
 
-        :param dc: a :class:`DC` device context;
-        :param window: an instance of :class:`Window`;
-        :param integer `orient`: the gradient (if any) orientation;
-        :param Rect `rect`: the background rectangle.
+        Args:
+            dc (wx.DC): A :class:`DC` device context.
+            window (wx.Window): An instance of :class:`Window`.
+            orient (int): The gradient (if any) orientation.
+            rect (wx.Rect): The background rectangle.
         """
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.Brush(wx.Colour(51, 51, 51)))
         dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height)
 
-    def DrawPaneButton(self, dc, window, button, button_state, _rect, pane):
-        """Draws a pane button in the pane caption area.
+    def DrawPaneButton(
+        self,
+        dc: wx.DC,
+        window: wx.Window,
+        button: int,
+        button_state: int,
+        _rect: wx.Rect,
+        pane,
+    ):
+        """Draw a pane button in the pane caption area.
 
-        :param dc: a :class:`DC` device context;
-        :param window: an instance of :class:`Window`;
-        :param integer `button`: the button to be drawn;
-        :param integer `button_state`: the pane button state;
-        :param Rect `_rect`: the pane caption rectangle;
-        :param pane: the pane for which the button is drawn.
+        Args:
+            dc (wx.DC): A :class:`DC` device context.
+            window (wx.Window): An instance of :class:`Window`.
+            button (int): The button to be drawn.
+            button_state (int): The pane button state.
+            _rect (wx.Rect): The pane caption rectangle.
+            pane : The pane for which the button is drawn.
         """
         if not pane:
             return
@@ -331,16 +351,19 @@ class AuiManagerLRDocking(aui.AuiManager):
         self.DestroyGuideWindows()
 
     def DoDrop(self, docks, panes, target, pt, offset=None):
-        """This is an important function. It basically takes a mouse position,
-        and determines where the panes new position would be. If the pane is to be
-        dropped, it performs the drop operation using the specified dock and pane
-        arrays. By specifying copy dock and pane arrays when calling, a "what-if"
-        scenario can be performed, giving precise coordinates for drop hints.
+        """Take a mouse position and determine where the panes new position would be.
 
-        :param docks: a list of :class:`AuiDockInfo` classes;
-        :param panes: a list of :class:`AuiPaneInfo` instances;
-        :param Point `pt`: a mouse position to check for a drop operation;
-        :param Point `offset`: a possible offset from the input point `pt`.
+        This is an important function. If the pane is to be dropped, it performs
+        the drop operation using the specified dock and pane arrays. By
+        specifying copy dock and pane arrays when calling, a "what-if" scenario
+        can be performed, giving precise coordinates for drop hints.
+
+        Args:
+            docks (AuiDocInfo): A list of :class:`AuiDockInfo` classes.
+            panes (AuiPaneInfo): A list of :class:`AuiPaneInfo` instances.
+            target (AuiPaneInfo): The target pane containing the toolbar.
+            pt (Point): A mouse position to check for a drop operation.
+            offset (Point): A possible offset from the input point `pt`.
         """
         if offset is None:
             offset = wx.Point(0, 0)
@@ -354,12 +377,13 @@ class AuiManagerLRDocking(aui.AuiManager):
         return self.DoDropNonFloatingPane(docks, panes, target, pt)
 
     def DoDropNonFloatingPane(self, docks, panes, target, pt):
-        """Handles the situation in which the dropped pane is not floating.
+        """Handle the situation in which the dropped pane is not floating.
 
-        :param docks: a list of :class:`AuiDockInfo` classes;
-        :param panes: a list of :class:`AuiPaneInfo` instances;
-        :param AuiPaneInfo `target`: the target pane containing the toolbar;
-        :param Point `pt`: a mouse position to check for a drop operation.
+        Args:
+            docks (list[AuiDockInfo]): A list of :class:`AuiDockInfo` classes.
+            panes (list[AuiPaneInfo]): A list of :class:`AuiPaneInfo` instances.
+            target (AuiPaneInfo): The target pane containing the toolbar.
+            pt (Point): A mouse position to check for a drop operation.
         """
         # The ONLY change from
         # wx.lib.framemanager.FrameManager.DoDropNonFloatingPane
@@ -528,8 +552,8 @@ class Colour:
 
         self.ToHSV()
 
-    def ToRGB(self):
-        """Converts a HSV triplet into a RGB triplet."""
+    def ToRGB(self) -> None:
+        """Convert a HSV triplet into a RGB triplet."""
         maxVal = self.v
         delta = (maxVal * self.s) / 255.0
         minVal = maxVal - delta
@@ -575,8 +599,8 @@ class Colour:
                 hue = (hue / 60.0 - 4.0) * delta
                 self.r = int(round(minVal + hue))
 
-    def ToHSV(self):
-        """Converts a RGB triplet into a HSV triplet."""
+    def ToHSV(self) -> None:
+        """Convert a RGB triplet into a HSV triplet."""
         minVal = float(min(self.r, min(self.g, self.b)))
         maxVal = float(max(self.r, max(self.g, self.b)))
         delta = maxVal - minVal
@@ -585,31 +609,31 @@ class Colour:
 
         if abs(delta) < 1e-6:
             self.h = self.s = 0
+            return
+
+        temp = delta / maxVal
+        self.s = int(round(temp * 255.0))
+
+        if self.r == int(round(maxVal)):
+            temp = float(self.g - self.b) / delta
+
+        elif self.g == int(round(maxVal)):
+            temp = 2.0 + (float(self.b - self.r) / delta)
 
         else:
-            temp = delta / maxVal
-            self.s = int(round(temp * 255.0))
+            temp = 4.0 + (float(self.r - self.g) / delta)
 
-            if self.r == int(round(maxVal)):
-                temp = float(self.g - self.b) / delta
+        temp *= 60
+        if temp < 0:
+            temp += 360
 
-            elif self.g == int(round(maxVal)):
-                temp = 2.0 + (float(self.b - self.r) / delta)
+        elif temp >= 360.0:
+            temp = 0
 
-            else:
-                temp = 4.0 + (float(self.r - self.g) / delta)
-
-            temp *= 60
-            if temp < 0:
-                temp += 360
-
-            elif temp >= 360.0:
-                temp = 0
-
-            self.h = int(round(temp))
+        self.h = int(round(temp))
 
     def GetPyColour(self):
-        """Returns the wxPython :class:`Colour` associated with this instance."""
+        """Return the wxPython :class:`Colour` associated with this instance."""
         return wx.Colour(int(self.r), int(self.g), int(self.b), int(self._alpha))
 
 
@@ -639,13 +663,13 @@ class BasePyControl(wx.PyControl):
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_MOTION, self.OnMotion)
 
-    def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` for :class:`BasePyControl`.
+    def OnPaint(self, event: wx.PaintEvent) -> None:
+        """Handle the ``wx.EVT_PAINT`` for :class:`BasePyControl`.
 
-        :param event: a :class:`PaintEvent` event to be processed.
+        Args:
+            event (wx.PainEvent): A :class:`PaintEvent` event to be processed.
         """
         dc = wx.AutoBufferedPaintDC(self)
-
         self.Draw(dc)
 
     def Draw(self, dc):
@@ -658,28 +682,31 @@ class BasePyControl(wx.PyControl):
         dc.Clear()
         dc.DrawBitmap(self._bitmap, 0, 0, True)
 
-    def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` for :class:`BasePyControl`.
-
-        :param event: a :class:`EraseEvent` event to be processed.
+    def OnEraseBackground(self, event: wx.EraseEvent) -> None:
+        """Handle the ``wx.EVT_ERASE_BACKGROUND`` for :class:`BasePyControl`.
 
         :note: This is intentionally empty to reduce flicker.
+
+        Args:
+            event (wx.EraseEvent): a :class:`EraseEvent` event to be processed.
         """
 
     def DrawMarkers(self, dc=None):
-        """Draws the markers on top of the background bitmap.
-
-        :param dc: an instance of :class:`DC`.
+        """Draw the markers on top of the background bitmap.
 
         :note: This method must be overridden in derived classes.
+
+        Args:
+            dc (wx.DC): an instance of :class:`DC`.
         """
 
     def DrawLines(self, dc):
-        """Draws the lines connecting the markers on top of the background bitmap.
-
-        :param dc: an instance of :class:`DC`.
+        """Draw the lines connecting the markers on top of the background bitmap.
 
         :note: This method must be overridden in derived classes.
+
+        Args:
+            dc (wx.DC): an instance of :class:`DC`.
         """
 
     def AcceptsFocusFromKeyboard(self):
@@ -705,7 +732,7 @@ class BasePyControl(wx.PyControl):
         return False
 
     def OnLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` for :class:`BasePyControl`.
+        """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`BasePyControl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
 
@@ -713,7 +740,7 @@ class BasePyControl(wx.PyControl):
         """
 
     def OnLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` for :class:`BasePyControl`.
+        """Handle the ``wx.EVT_LEFT_UP`` for :class:`BasePyControl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
 
@@ -721,7 +748,7 @@ class BasePyControl(wx.PyControl):
         """
 
     def OnMotion(self, event):
-        """Handles the ``wx.EVT_MOTION`` for :class:`BasePyControl`.
+        """Handle the ``wx.EVT_MOTION`` for :class:`BasePyControl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
 
@@ -729,7 +756,7 @@ class BasePyControl(wx.PyControl):
         """
 
     def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` for :class:`BasePyControl`.
+        """Handle the ``wx.EVT_SIZE`` for :class:`BasePyControl`.
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
@@ -792,7 +819,7 @@ class BasePyButton(BasePyControl):
 
 
 class HSVWheel(BasePyControl):
-    """Implements the drawing, mouse handling and sizing routines for the HSV
+    """Implement the drawing, mouse handling and sizing routines for the HSV
     colour wheel.
     """
 
@@ -816,7 +843,7 @@ class HSVWheel(BasePyControl):
         self.Draw(self._bgdc)
 
     def DrawMarkers(self, dc=None):
-        """Draws the markers on top of the background bitmap.
+        """Draw the markers on top of the background bitmap.
 
         :param dc: an instance of :class:`DC`.
         """
@@ -854,7 +881,7 @@ class HSVWheel(BasePyControl):
             dc.DrawRectangle(rect)
 
     def OnLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` for :class:`HSVWheel`.
+        """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`HSVWheel`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -869,7 +896,7 @@ class HSVWheel(BasePyControl):
             self.TrackPoint(point)
 
     def OnLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` for :class:`HSVWheel`.
+        """Handle the ``wx.EVT_LEFT_UP`` for :class:`HSVWheel`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -878,7 +905,7 @@ class HSVWheel(BasePyControl):
             self._mouseIn = False
 
     def OnMotion(self, event):
-        """Handles the ``wx.EVT_MOTION`` for :class:`HSVWheel`.
+        """Handle the ``wx.EVT_MOTION`` for :class:`HSVWheel`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -888,7 +915,7 @@ class HSVWheel(BasePyControl):
             self.TrackPoint(point)
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` for :class:`BasePyControl`.
+        """Handle the ``wx.EVT_PAINT`` for :class:`BasePyControl`.
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
@@ -900,7 +927,7 @@ class HSVWheel(BasePyControl):
             self.Draw(dc)
 
     def InCircle(self, pt):
-        """Returns whether a point is inside the HSV wheel or not.
+        """Return whether a point is inside the HSV wheel or not.
 
         :param pt: an instance of :class:`Point`.
         """
@@ -962,7 +989,7 @@ class BaseLineCtrl(wx.PyControl):
         self.Bind(wx.EVT_MOTION, self.OnMotion)
 
     def OnEraseBackground(self, event):
-        """Handles the ``wx.EVT_ERASE_BACKGROUND`` for :class:`BaseLineCtrl`.
+        """Handle the ``wx.EVT_ERASE_BACKGROUND`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`EraseEvent` event to be processed.
 
@@ -970,7 +997,7 @@ class BaseLineCtrl(wx.PyControl):
         """
 
     def OnLeftDown(self, event):
-        """Handles the ``wx.EVT_LEFT_DOWN`` for :class:`BaseLineCtrl`.
+        """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -985,7 +1012,7 @@ class BaseLineCtrl(wx.PyControl):
         self.TrackPoint(point)
 
     def OnLeftUp(self, event):
-        """Handles the ``wx.EVT_LEFT_UP`` for :class:`BaseLineCtrl`.
+        """Handle the ``wx.EVT_LEFT_UP`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -994,7 +1021,7 @@ class BaseLineCtrl(wx.PyControl):
         self.Refresh()  # Needed for proper redrawing after click under OS X
 
     def OnMotion(self, event):
-        """Handles the ``wx.EVT_MOTION`` for :class:`BaseLineCtrl`.
+        """Handle the ``wx.EVT_MOTION`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`MouseEvent` event to be processed.
         """
@@ -1004,7 +1031,7 @@ class BaseLineCtrl(wx.PyControl):
             self.TrackPoint(point)
 
     def OnSize(self, event):
-        """Handles the ``wx.EVT_SIZE`` for :class:`BaseLineCtrl`.
+        """Handle the ``wx.EVT_SIZE`` for :class:`BaseLineCtrl`.
 
         :param event: a :class:`SizeEvent` event to be processed.
         """
@@ -1044,7 +1071,7 @@ class BaseLineCtrl(wx.PyControl):
 
 
 class BrightCtrl(BaseLineCtrl):
-    """Implements the drawing, mouse handling and sizing routines for the brightness
+    """Implement the drawing, mouse handling and sizing routines for the brightness
     palette control.
     """
 
@@ -1060,7 +1087,7 @@ class BrightCtrl(BaseLineCtrl):
         self.Bind(wx.EVT_MOUSEWHEEL, self.mousewheel_handler)
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
+        """Handle the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
@@ -1108,7 +1135,7 @@ class BrightCtrl(BaseLineCtrl):
         dc.DrawRectangle(brightRect)
 
     def TrackPoint(self, pt):
-        """Tracks a mouse action inside the palette control.
+        """Track a mouse action inside the palette control.
 
         :param pt: an instance of :class:`Point`.
         """
@@ -1129,7 +1156,7 @@ class BrightCtrl(BaseLineCtrl):
         mainFrame.SetSpinVals()
 
     def DrawMarkers(self, dc=None):
-        """Draws square markers used with mouse gestures.
+        """Draw square markers used with mouse gestures.
 
         :param dc: an instance of :class:`DC`.
         """
@@ -1176,7 +1203,7 @@ class BrightCtrl(BaseLineCtrl):
 
 
 class HSlider(BaseLineCtrl):
-    """Implements the drawing, mouse handling and sizing routines for the
+    """Implement the drawing, mouse handling and sizing routines for the
     slider control.
     """
 
@@ -1200,7 +1227,7 @@ class HSlider(BaseLineCtrl):
         self.Bind(wx.EVT_MOUSEWHEEL, self.mousewheel_handler)
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
+        """Handle the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
 
         :param event: a :class:`PaintEvent` event to be processed.
         """
@@ -1237,7 +1264,7 @@ class HSlider(BaseLineCtrl):
         dc.DrawRectangle(brightRect)
 
     def TrackPoint(self, pt):
-        """Tracks a mouse action inside the palette control.
+        """Track a mouse action inside the palette control.
 
         :param pt: an instance of :class:`Point`.
         """
@@ -1255,7 +1282,7 @@ class HSlider(BaseLineCtrl):
             self.onchange()
 
     def DrawMarkers(self, dc=None):
-        """Draws square markers used with mouse gestures.
+        """Draw square markers used with mouse gestures.
 
         :param dc: an instance of :class:`DC`.
         """
@@ -1363,7 +1390,15 @@ class NumSpin(wx_Panel):
         self._left_down_count = 0
         self._left_up_count = 0
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
+        """Get the attribute from the IntCtrl.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the IntCtrl.
+        """
         return getattr(self.numctrl, name)
 
     def is_button_pressed(self, btn):
@@ -1456,7 +1491,7 @@ class NumSpin(wx_Panel):
 
 
 class ProfileManager:
-    """Manages profiles associated with the display that a window is on.
+    """Manage profiles associated with the display that a window is on.
 
     Clears calibration on the display we're on, and restores it when moved
     to another display or the window is closed.
@@ -1641,7 +1676,7 @@ class ProfileManager:
         wx.CallLater(1000, warn_update)
 
     def window_close_handler(self, event):
-        """Restores profile(s) when the managed window is closed."""
+        """Restore profile(s) when the managed window is closed."""
         self._stop_timer()
         self.restore_display_profiles(True, True)
         event.Skip()
@@ -1665,7 +1700,7 @@ class ProfileManager:
 
 
 class VisualWhitepointEditor(wx.Frame):
-    """This is the VisualWhitepointEditor main class implementation.
+    """VisualWhitepointEditor main class implementation.
 
     Args:
         parent (wx.Window): The parent window.
@@ -1967,7 +2002,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.brightnessSpin.SetMinSize((min_w, -1))
 
     def DoLayout(self):
-        """Layouts all the controls in the :class:`VisualWhitepointEditor`."""
+        """Layout all the controls in the :class:`VisualWhitepointEditor`."""
         margin = s(12)
 
         dialogSizer = wx.FlexGridSizer(1, 2, 0, 0)
@@ -2091,7 +2126,7 @@ class VisualWhitepointEditor(wx.Frame):
         event.Skip()
 
     def CalcRects(self):
-        """Calculates the brightness control user-selected rect."""
+        """Calculate the brightness control user-selected rect."""
         RECT_WIDTH = s(5)
 
         pt = self.PtFromAngle(self._colour.h, self._colour.s, self._centre)
@@ -2100,7 +2135,7 @@ class VisualWhitepointEditor(wx.Frame):
         )
 
     def DrawMarkers(self, dc=None):
-        """Draws the markers for all the controls.
+        """Draw the markers for all the controls.
 
         Args:
             dc (DC): If `dc` is ``None``, a :class:`ClientDC` is created on the
@@ -2111,16 +2146,16 @@ class VisualWhitepointEditor(wx.Frame):
         self.bgBrightCtrl.DrawMarkers(dc)
 
     def DrawHSB(self):
-        """Refreshes the HSB colour wheel."""
+        """Refreshe the HSB colour wheel."""
         self.hsvBitmap.Refresh()
 
     def DrawBright(self):
-        """Refreshes the brightness control."""
+        """Refreshe the brightness control."""
         self.brightCtrl.Refresh()
         self.bgBrightCtrl.Refresh()
 
     def SetSpinVals(self):
-        """Sets the values for all the spin controls."""
+        """Set the values for all the spin controls."""
         self.redSpin.SetValue(self._colour.r)
         self.greenSpin.SetValue(self._colour.g)
         self.blueSpin.SetValue(self._colour.b)
@@ -2159,7 +2194,7 @@ class VisualWhitepointEditor(wx.Frame):
             self.update_patterngenerator_event.set()
 
     def SetPanelColours(self):
-        """Assigns colours to the colour panels."""
+        """Assign colours to the colour panels."""
         self.newColourPanel.BackgroundColour = self._colour.GetPyColour()
         self._bgcolour.h = self._colour.h
         self._bgcolour.s = self._colour.s
@@ -2168,7 +2203,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.bgPanel.Refresh()
 
     def OnCloseWindow(self, event):
-        """Handles the ``wx.EVT_CLOSE`` event for :class:`VisualWhitepointEditor`.
+        """Handle the ``wx.EVT_CLOSE`` event for :class:`VisualWhitepointEditor`.
 
         :param event: a :class:`CloseEvent` event to be processed.
         """
@@ -2177,7 +2212,7 @@ class VisualWhitepointEditor(wx.Frame):
         event.Skip()
 
     def OnKeyDown(self, event):
-        """Handles the ``wx.EVT_CHAR_HOOK`` event for :class:`VisualWhitepointEditor`.
+        """Handle the ``wx.EVT_CHAR_HOOK`` event for :class:`VisualWhitepointEditor`.
 
         :param event: a :class:`KeyEvent` event to be processed.
         """
@@ -2235,7 +2270,7 @@ class VisualWhitepointEditor(wx.Frame):
         return pt
 
     def OnSpinCtrl(self, event):
-        """Handles the ``wx.EVT_SPINCTRL`` event for RGB and HSB colours.
+        """Handle the ``wx.EVT_SPINCTRL`` event for RGB and HSB colours.
 
         :param event: a :class:`SpinEvent` event to be processed.
         """
@@ -2268,7 +2303,7 @@ class VisualWhitepointEditor(wx.Frame):
             self.DrawAll()
 
     def DrawAll(self):
-        """Draws all the custom controls after a colour change."""
+        """Draw all the custom controls after a colour change."""
         if self._initOver and not self._inDrawAll:
             self._inDrawAll = True
 
@@ -2285,7 +2320,7 @@ class VisualWhitepointEditor(wx.Frame):
             self._inDrawAll = False
 
     def GetColourData(self):
-        """Returns a wxPython compatible :class:`ColourData`."""
+        """Return a wxPython compatible :class:`ColourData`."""
         self._colourData.SetColour(self._colour.GetPyColour())
         return self._colourData
 
@@ -2380,7 +2415,7 @@ class VisualWhitepointEditor(wx.Frame):
         pass
 
     def maximize_handler(self, event):
-        """Handles maximize and fullscreen events"""
+        """Handle maximize and fullscreen events"""
         # print '_isfullscreen?', getattr(self, "_isfullscreen", False)
         if not getattr(self, "_isfullscreen", False):
             self._isfullscreen = True

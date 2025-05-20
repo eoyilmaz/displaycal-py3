@@ -1,6 +1,6 @@
 """Contains Windows Taskbar related functionality.
 
-Unfortunatelly the newly implemented `ctypes` interface is not working. From what I
+Unfortunately the newly implemented `ctypes` interface is not working. From what I
 learned during my research is that the `comtypes` interface is able to support the
 `IUnkwown*` (or "early-binding") interfaces. That may not be the main reason. But, if
 it was working before let's not break it and keep the old code.

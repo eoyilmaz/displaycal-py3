@@ -293,13 +293,29 @@ def printcmdline(cmd, args=None, fn=None, cwd=None):
 
 
 class ThreadAbort:
+    """Thread abort event class."""
+
     def __init__(self):
         self.event = mp.Event()
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Check if the event is set.
+
+        Returns:
+            bool: True if the event is set, False otherwise.
+        """
         return self.event.is_set()
 
     def __cmp__(self, other):
+        """Compare the event state with another value.
+
+        Args:
+            other: The value to compare with.
+
+        Returns:
+            int: -1 if the event is set and other is not, 1 if the event is not
+                 set and other is, 0 if both are in the same state.
+        """
         if self.event.is_set() < other:
             return -1
         if self.event.is_set() > other:
@@ -661,9 +677,24 @@ class Xicclu(WorkerBase):
             i += 1
 
     def __enter__(self):
+        """Enter the runtime context related to this object.
+
+        Returns:
+            Xicclu: The current instance of the Xicclu class.
+        """
         return self
 
     def __exit__(self, exc_type, exec_value, traceback_):
+        """Exit the runtime context related to this object.
+
+        Args:
+            exc_type: The exception type.
+            exec_value: The exception value.
+            traceback_: The traceback object.
+
+        Returns:
+            bool: True if the exception should be suppressed, False otherwise.
+        """
         self.exit()
         return not traceback_
 

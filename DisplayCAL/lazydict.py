@@ -7,6 +7,8 @@ usage for large datasets.
 import codecs
 import json
 import os
+from collections.abc import Iterator
+from typing import Any
 
 from DisplayCAL.config import get_data_path
 from DisplayCAL.debughelpers import handle_error
@@ -53,118 +55,220 @@ class LazyDict(dict):
     """
 
     def __init__(self, path=None, encoding="UTF-8", errors="strict"):
-        dict.__init__(self)
-        self._isloaded = False
+        super().__init__()
+        self._is_loaded = False
         self.path = path
         self.encoding = encoding
         self.errors = errors
 
-    def __cmp__(self, other):
-        self.load()
-        return dict.__cmp__(self, other)
+    def __cmp__(self, other: Any) -> bool:
+        """Compare the dictionary with another object.
 
-    def __contains__(self, key):
-        self.load()
-        return dict.__contains__(self, key)
+        Args:
+            other (Any): The object to compare with.
 
-    def __delitem__(self, key):
+        Returns:
+            bool: True if the dictionary is equal to the other object,
+                False otherwise.
+        """
         self.load()
-        dict.__delitem__(self, key)
+        return super().__cmp__(other)
 
-    def __delslice__(self, i, j):
-        self.load()
-        dict.__delslice__(self, i, j)
+    def __contains__(self, key: Any) -> bool:
+        """Check if the dictionary contains a key.
 
-    def __eq__(self, other):
-        self.load()
-        return dict.__eq__(self, other)
+        Args:
+            key (Any): The key to check. Any hashable object.
 
-    def __ge__(self, other):
+        Returns:
+            bool: True if the key is in the dictionary, False otherwise.
+        """
         self.load()
-        return dict.__ge__(self, other)
+        return super().__contains__(key)
 
-    def __getitem__(self, name):
-        self.load()
-        return dict.__getitem__(self, name)
+    def __delitem__(self, key: Any) -> None:
+        """Delete a key from the dictionary.
 
-    def __getslice__(self, i, j):
+        Args:
+            key (Any): The key to delete. Any hashable object.
+        """
         self.load()
-        return dict.__getslice__(self, i, j)
+        super().__delitem__(key)
 
-    def __gt__(self, other):
-        self.load()
-        return dict.__gt__(self, other)
+    def __eq__(self, other: object) -> bool:
+        """Compare the dictionary with another object.
 
-    def __iter__(self):
-        self.load()
-        return dict.__iter__(self)
+        Args:
+            other (Any): The object to compare with.
 
-    def __le__(self, other):
+        Returns:
+            bool: True if the dictionary is equal to the other object,
+                False otherwise.
+        """
         self.load()
-        return dict.__le__(self, other)
+        return super().__eq__(other)
 
-    def __len__(self):
-        self.load()
-        return dict.__len__(self)
+    def __ge__(self, other: Any) -> bool:
+        """Compare the dictionary with another object.
 
-    def __lt__(self, other):
-        self.load()
-        return dict.__lt__(self, other)
+        Args:
+            other (Any): The object to compare with.
 
-    def __ne__(self, other):
+        Returns:
+            bool: True if the dictionary is greater than or equal to the
+                other object, False otherwise.
+        """
         self.load()
-        return dict.__ne__(self, other)
+        return super().__ge__(other)
 
-    def __repr__(self):
-        self.load()
-        return dict.__repr__(self)
+    def __getitem__(self, name: str) -> Any:
+        """Get the value for a given key in the dictionary.
 
-    def __setitem__(self, name, value):
-        self.load()
-        dict.__setitem__(self, name, value)
+        Args:
+            name (str): The key to get the value for.
 
-    def __sizeof__(self):
+        Returns:
+            Any: The value associated with the key.
+        """
         self.load()
-        return dict.__sizeof__(self)
+        return super().__getitem__(name)
+
+    def __gt__(self, other: Any) -> bool:
+        """Compare the dictionary with another object.
+
+        Args:
+            other (Any): The object to compare with.
+
+        Returns:
+            bool: True if the dictionary is greater than the other object,
+                False otherwise.
+        """
+        self.load()
+        return super().__gt__(other)
+
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the dictionary keys.
+
+        Returns:
+            Iterator: An iterator over the dictionary keys.
+        """
+        self.load()
+        return super().__iter__()
+
+    def __le__(self, other) -> bool:
+        """Compare the dictionary with another object.
+
+        Args:
+            other (Any): The object to compare with.
+
+        Returns:
+            bool: True if the dictionary is less than or equal to the other
+                object, False otherwise.
+        """
+        self.load()
+        return super().__le__(other)
+
+    def __len__(self) -> int:
+        """Return the number of items in the dictionary.
+
+        Returns:
+            int: The number of items in the dictionary.
+        """
+        self.load()
+        return super().__len__()
+
+    def __lt__(self, other: Any) -> bool:
+        """Compare the dictionary with another object.
+
+        Args:
+            other (Any): The object to compare with.
+
+        Returns:
+            bool: True if the dictionary is less than the other object,
+                False otherwise.
+        """
+        self.load()
+        return super().__lt__(other)
+
+    def __ne__(self, other: object) -> bool:
+        """Compare the dictionary with another object.
+
+        Args:
+            other (Any): The object to compare with.
+
+        Returns:
+            bool: True if the dictionary is not equal to the other object,
+                False otherwise.
+        """
+        self.load()
+        return super().__ne__(other)
+
+    def __repr__(self) -> str:
+        """Return a string representation of the dictionary.
+
+        Returns:
+            str: A string representation of the dictionary.
+        """
+        self.load()
+        return super().__repr__()
+
+    def __setitem__(self, name: str, value: Any) -> None:
+        """Set the value for a given key in the dictionary.
+
+        Args:
+            name (str): The key to set.
+            value (Any): The value to set for the key.
+        """
+        self.load()
+        super().__setitem__(name, value)
+
+    def __sizeof__(self) -> int:
+        """Return the size of the dictionary in bytes.
+
+        Returns:
+            int: The size of the dictionary in bytes.
+        """
+        self.load()
+        return super().__sizeof__()
 
     def clear(self):
-        if not self._isloaded:
-            self._isloaded = True
-        dict.clear(self)
+        if not self._is_loaded:
+            self._is_loaded = True
+        super().clear()
 
     def copy(self):
         self.load()
-        return dict.copy(self)
+        return super().copy()
 
     def get(self, name, fallback=None):
         self.load()
-        return dict.get(self, name, fallback)
+        return super().get(name, fallback)
 
     def items(self):
         self.load()
-        return dict.items(self)
+        return super().items()
 
     def iteritems(self):
         self.load()
-        return dict.items(self)
+        return super().items()
 
     def iterkeys(self):
         self.load()
-        return dict.keys(self)
+        return super().keys()
 
     def itervalues(self):
         self.load()
-        return dict.values(self)
+        return super().values()
 
     def keys(self):
         self.load()
-        return dict.keys(self)
+        return super().keys()
 
     def load(self, path=None, encoding=None, errors=None, raise_exceptions=False):
-        if self._isloaded or (not path and not self.path):
+        if self._is_loaded or (not path and not self.path):
             return
 
-        self._isloaded = True
+        self._is_loaded = True
         if not path:
             path = self.path
         if path and not os.path.isabs(path):
@@ -199,30 +303,30 @@ class LazyDict(dict):
 
     def pop(self, key, *args):
         self.load()
-        return dict.pop(self, key, *args)
+        return super().pop(key, *args)
 
     def popitem(self, name, value):
         self.load()
-        return dict.popitem(self, name, value)
+        return super().popitem(name, value)
 
     def setdefault(self, name, value=None):
         self.load()
-        return dict.setdefault(self, name, value)
+        return super().setdefault(name, value)
 
     def update(self, other):
         self.load()
-        dict.update(self, other)
+        super().update(other)
 
     def values(self):
         self.load()
-        return dict.values(self)
+        return super().values()
 
 
 class LazyDictJSON(LazyDict):
-    """JSON lazy dictionary"""
+    """JSON lazy dictionary."""
 
     def parse(self, fileobj):
-        dict.update(self, json.load(fileobj))
+        super().update(json.load(fileobj))
 
 
 class LazyDictYAMLUltraLite(LazyDict):
@@ -247,7 +351,7 @@ class LazyDictYAMLUltraLite(LazyDict):
     """
 
     def __init__(self, path=None, encoding="UTF-8", errors="strict", debug=False):
-        LazyDict.__init__(self, path, encoding, errors)
+        super().__init__(path, encoding, errors)
         self.debug = debug
 
     def parse(self, fileobj):

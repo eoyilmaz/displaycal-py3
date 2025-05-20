@@ -73,7 +73,8 @@ class GenHTTPPatternGeneratorClient:
     def wait(self):
         self.connect()
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Clean up the connection and socket."""
         self.disconnect_client()
 
     def _request(self, method, url, params=None, headers=None, validate=None):
@@ -163,7 +164,8 @@ class GenTCPSockPatternGeneratorServer:
         if self.listening:
             print(lang.getstr("connection.established"))
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Clean up the connection and socket."""
         self.disconnect_client()
         self.socket.close()
 
@@ -615,7 +617,7 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
             self._listening.clear()
 
     def shutdown(self):
-        """Stops the serve_forever loop.
+        """Stop the serve_forever loop.
 
         Blocks until the loop has finished. This must be called while
         serve_forever() is running in another thread.

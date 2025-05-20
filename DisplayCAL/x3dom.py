@@ -37,7 +37,8 @@ class Tag:
         self.children = []
         self.attributes = attributes
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the tag."""
         return self.markup()
 
     def markup(self, allow_empty_element_tag=False, x3dom=False):

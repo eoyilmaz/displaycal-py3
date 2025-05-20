@@ -20,7 +20,15 @@ STATUS_INFO_LENGTH_MISMATCH = NTSTATUS(0xC0000004)
 
 
 class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):  # noqa: N801
-    def __repr__(self):
+    """Class representing SYSTEM_INFORMATION_CLASS values."""
+
+    def __repr__(self) -> str:
+        """Return a string representation of the SYSTEM_INFORMATION_CLASS.
+
+        Returns:
+            str: A string representation of the SYSTEM_INFORMATION_CLASS in
+                hexadecimal format.
+        """
         return f"{self.__class__.__name__}({self.value})"
 
 

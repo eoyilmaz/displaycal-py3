@@ -11,13 +11,14 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Self
 
 from DisplayCAL import localization as lang
 from DisplayCAL.util_str import safe_str
 
 
 def get_network_addr():
-    """Tries to get the local machine's network address."""
+    """Try to get the local machine's network address."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Opening a connection on a UDP socket does nothing except give the socket
     # the network address of the (local) machine. We use Google's DNS server
@@ -120,13 +121,31 @@ class NoHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 class ScriptingClientSocket(socket.socket):
-    def __del__(self):
+    """A socket class for handling scripting client connections."""
+
+    def __del__(self) -> None:
+        """Destructor for the ScriptingClientSocket class."""
         self.disconnect()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
+        """Enter method for context manager.
+
+        Returns:
+            ScriptingClientSocket: The instance of the socket.
+        """
         return self
 
-    def __exit__(self, etype, value, tb):
+    def __exit__(self, exc_type, exc_value, tb) -> None:
+        """Exit method for context manager.
+
+        Args:
+            exc_type (type): The type of the exception raised, if any.
+            exc_value (Exception): The exception instance, if any.
+            tb (traceback): The traceback object, if any.
+
+        Returns:
+            None
+        """
         self.disconnect()
 
     def __init__(self):

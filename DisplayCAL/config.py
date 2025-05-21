@@ -2148,7 +2148,7 @@ def set_default_app_dpi():
                 import subprocess as sp
 
                 p = sp.Popen(
-                    [
+                    [  # noqa: S607
                         "gsettings",
                         "get",
                         "org.gnome.desktop.interface",
@@ -2177,7 +2177,12 @@ def get_hidpi_scaling_factor():
     if which("xrdb"):
         import subprocess as sp
 
-        p = sp.Popen(["xrdb", "-query"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+        p = sp.Popen(
+            ["xrdb", "-query"],  # noqa: S607
+            stdin=sp.PIPE,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
+        )
         # Format: 'Xft.dpi:        192'
         stdout, stderr = p.communicate()
         for line in stdout.splitlines():
@@ -2263,7 +2268,7 @@ def get_hidpi_scaling_factor():
         import subprocess as sp
 
         p = sp.Popen(
-            ["gsettings", "get", "org.gnome.desktop.interface", "scaling-factor"],
+            ["gsettings", "get", "org.gnome.desktop.interface", "scaling-factor"],  # noqa: S607
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.PIPE,

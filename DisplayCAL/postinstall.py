@@ -320,7 +320,7 @@ def postinstall_linux(prefix=None):
     if prefix is None:
         prefix = sys.prefix
     if which("touch"):
-        call(["touch", "--no-create", f"{prefix}/share/icons/hicolor"])
+        call(["touch", "--no-create", f"{prefix}/share/icons/hicolor"])  # noqa: S607
     if which("xdg-icon-resource"):
         # print("installing icon resources...")
         # for size in [16, 22, 24, 32, 48, 256]:
@@ -333,7 +333,7 @@ def postinstall_linux(prefix=None):
         #     str(size),
         #     f"{prefix}/share/{name}/theme/icons/{size}x{size}/{name}.png"
         # ])
-        call(["xdg-icon-resource", "forceupdate"])
+        call(["xdg-icon-resource", "forceupdate"])  # noqa: S607
     if which("xdg-desktop-menu"):
         # print("installing desktop menu entry...")
         # call([
@@ -342,7 +342,7 @@ def postinstall_linux(prefix=None):
         #     "--novendor",
         #     f"{prefix}/share/{name}/{name}.desktop"
         # ])
-        call(["xdg-desktop-menu", "forceupdate"])
+        call(["xdg-desktop-menu", "forceupdate"])  # noqa: S607
 
 
 def postinstall(prefix=None):
@@ -369,13 +369,13 @@ def postuninstall(prefix=None):
             # print("uninstalling desktop menu entry...")
             # call(["xdg-desktop-menu", "uninstall", prefix +
             # (f"/share/applications/{name}.desktop")])
-            call(["xdg-desktop-menu", "forceupdate"])
+            call(["xdg-desktop-menu", "forceupdate"])  # noqa: S607
         if which("xdg-icon-resource"):
             # print("uninstalling icon resources...")
             # for size in [16, 22, 24, 32, 48, 256]:
             # call(["xdg-icon-resource", "uninstall", "--noupdate", "--size",
             # str(size), name])
-            call(["xdg-icon-resource", "forceupdate"])
+            call(["xdg-icon-resource", "forceupdate"])  # noqa: S607
 
 
 def main():

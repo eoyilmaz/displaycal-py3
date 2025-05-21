@@ -292,7 +292,8 @@ def get_edid_darwin(display_name: str) -> None | bytes:
     """
     # Get EDID via ioreg
     p = subprocess.Popen(
-        ["ioreg", "-c", "IODisplay", "-S", "-w0"], stdout=subprocess.PIPE
+        ["ioreg", "-c", "IODisplay", "-S", "-w0"],  # noqa: S607
+        stdout=subprocess.PIPE,  # noqa: S607
     )
     stdout, stderr = p.communicate()
     if not stdout:

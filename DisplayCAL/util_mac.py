@@ -88,7 +88,12 @@ def osascript(applescript):
 
     """
     args = get_osascript_args(applescript)
-    p = sp.Popen(["osascript", *args], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    p = sp.Popen(
+        ["osascript", *args],  # noqa: S607
+        stdin=sp.PIPE,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+    )
     output, errors = p.communicate()
     retcode = p.wait()
     return retcode, output, errors
@@ -118,7 +123,7 @@ def get_serial():
     """Return this mac's serial number"""
     try:
         p = sp.Popen(
-            ["ioreg", "-c", "IOPlatformExpertDevice", "-d", "2"],
+            ["ioreg", "-c", "IOPlatformExpertDevice", "-d", "2"],  # noqa: S607
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
@@ -136,7 +141,10 @@ def get_model_id():
     """Return this mac's model id"""
     try:
         p = sp.Popen(
-            ["sysctl", "hw.model"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
+            ["sysctl", "hw.model"],  # noqa: S607
+            stdin=sp.PIPE,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
         )
         output, errors = p.communicate()
     except BaseException:
@@ -165,7 +173,7 @@ def get_machine_attributes(model_id=None):
     filename = si if os.path.isfile(f"{si}.plist") else sk
     try:
         p = sp.Popen(
-            ["defaults", "read", filename, model_id],
+            ["defaults", "read", filename, model_id],  # noqa: S607
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.PIPE,

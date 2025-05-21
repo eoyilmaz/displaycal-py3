@@ -11,6 +11,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
+
 if sys.version_info >= (3, 11):
     from typing import Self
 else:

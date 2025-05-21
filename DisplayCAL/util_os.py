@@ -202,7 +202,7 @@ def find_library(pattern: str, arch: None | str = None) -> str:
 
     if not arch:
         try:
-            p = sp.Popen(["file", "-L", sys.executable], stdout=sp.PIPE)
+            p = sp.Popen(["file", "-L", sys.executable], stdout=sp.PIPE)  # noqa: S607
             file_stdout, file_stderr = p.communicate()
             file_stdout = file_stdout.decode()
             file_stderr = file_stderr.decode()
@@ -545,7 +545,7 @@ def launch_file(filepath: str) -> None | int:
     retcode = None
     kwargs = {"stdin": sp.PIPE, "stdout": sp.PIPE, "stderr": sp.PIPE}
     if sys.platform == "darwin":
-        retcode = sp.call(["open", filepath], **kwargs)
+        retcode = sp.call(["open", filepath], **kwargs)  # noqa: S607
     elif sys.platform == "win32":
         # for win32, we could use os.startfile,
         # but then we'd not be able to return exitcode (does it matter?)
@@ -559,7 +559,7 @@ def launch_file(filepath: str) -> None | int:
         }
         retcode = sp.call(f'start "" "{filepath}"', **kwargs)
     elif which("xdg-open"):
-        retcode = sp.call(["xdg-open", filepath], **kwargs)
+        retcode = sp.call(["xdg-open", filepath], **kwargs)  # noqa: S607
     return retcode
 
 
@@ -1163,7 +1163,7 @@ def execute_whereis(names: list[str], args: list[Any]) -> dict:
     """
     if isinstance(names, str):
         names = [names]
-    p = sp.Popen(["whereis", *args, *names], stdout=sp.PIPE)
+    p = sp.Popen(["whereis", *args, *names], stdout=sp.PIPE)  # noqa: S607
     stdout, stderr = p.communicate()
     return parse_whereis_output(stdout)
 

@@ -1667,7 +1667,7 @@ class ProfileLoader:
                     print("Menu command: Open display settings")
                     try:
                         sp.call(
-                            [
+                            [  # noqa: S607
                                 "control",
                                 "/name",
                                 "Microsoft.Display",

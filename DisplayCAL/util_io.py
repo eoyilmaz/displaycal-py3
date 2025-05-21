@@ -15,7 +15,12 @@ import sys
 import tarfile
 from io import StringIO
 from time import time
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 # from safe_print import safe_print
 from DisplayCAL.util_str import universal_newlines

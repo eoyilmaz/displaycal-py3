@@ -8,10 +8,13 @@ from __future__ import annotations
 import errno
 import os
 import socket
+import sys
 import urllib.error
-import urllib.parse
 import urllib.request
-from typing import Self
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from DisplayCAL import localization as lang
 from DisplayCAL.util_str import safe_str

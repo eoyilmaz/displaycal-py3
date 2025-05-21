@@ -13,11 +13,17 @@ import logging
 import math
 import sys
 import warnings
-from typing import Self, overload
+from typing import overload
 
 import numpy
 
 from DisplayCAL.debughelpers import DEBUG
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 logger = logging.getLogger(__name__)
 if DEBUG:

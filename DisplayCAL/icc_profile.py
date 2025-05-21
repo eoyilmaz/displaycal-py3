@@ -30,10 +30,15 @@ import warnings
 from collections import UserString
 from copy import copy
 from hashlib import md5
-from typing import Any, ClassVar, Self, SupportsIndex
+from typing import Any, ClassVar, SupportsIndex
 from weakref import WeakValueDictionary
 
 from DisplayCAL.util_dict import dict_sort
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 if sys.platform == "win32":
     import winreg

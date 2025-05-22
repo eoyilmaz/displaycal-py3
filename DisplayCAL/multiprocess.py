@@ -192,6 +192,8 @@ def pool_slice(
 
 
 class WorkerFunc:
+    """Wrap 'func' with optional arguments."""
+
     def __init__(self, func, exit_=False):
         self.func = func
         self.exit = exit_
@@ -257,6 +259,14 @@ class Mapper:
 
 
 class NonDaemonicProcess(mp.Process):
+    """Process that is not daemonic.
+
+    This is needed for Windows, as daemonic processes cannot have
+    children. This is a problem when using multiprocessing.Pool,
+    as the worker processes are daemonic and they create child
+    processes when they call the function.
+    """
+
     @property
     def daemon(self):
         return False

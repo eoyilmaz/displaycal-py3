@@ -372,7 +372,7 @@ def create_granger_rainbow_bitmap(width=1920, height=1080, filename=None):
 
 
 def get_parent_frame(window):
-    """Get parent frame (if any)"""
+    """Get parent frame (if any)."""
     parent = window.Parent
     while parent:
         if isinstance(parent, wx.Frame):
@@ -382,6 +382,8 @@ def get_parent_frame(window):
 
 
 class CustomEvent(wx.PyEvent):
+    """A wx.Event replacement."""
+
     def __init__(self, typeId, object, window=None):  # noqa: A002
         wx.PyEvent.__init__(self, object.GetId(), typeId)
         self.EventObject = object
@@ -399,6 +401,8 @@ EVT_BETTER_TIMER = wx.PyEventBinder(wxEVT_BETTER_TIMER, 1)
 
 
 class BetterTimerEvent(wx.PyCommandEvent):
+    """A wx.Timer event replacement."""
+
     def __init__(self, id=wx.ID_ANY, ms=0):  # noqa: A002
         wx.PyCommandEvent.__init__(self, wxEVT_BETTER_TIMER, id)
         self._ms = ms
@@ -412,11 +416,10 @@ class BetterTimerEvent(wx.PyCommandEvent):
 class BetterTimer(wx.Timer):
     """A wx.Timer replacement.
 
-    Doing GUI updates using regular timers can be incredibly segfaulty under
+    Doing GUI updates using regular timers can be incredibly SEGFAULTy under
     wxPython Phoenix when several timers run concurrently.
 
     This approach uses a global lock to work around the issue.
-
     """
 
     def __init__(self, owner=None, timerid=wx.ID_ANY):
@@ -432,6 +435,8 @@ class BetterTimer(wx.Timer):
 
 
 class BetterCallLater(wx.CallLater):
+    """A wx.CallLater replacement."""
+
     def __init__(self, millis, callableObj, *args, **kwargs):
         wx.CallLater.__init__(self, millis, callableObj, *args, **kwargs)
 
@@ -519,6 +524,9 @@ class ThreadedTimer:
 
 
 class ThreadedCallLater(ThreadedTimer):
+    """A wx.CallLater replacement that uses threads instead of actual timers
+    which are a limited resource."""
+
     def __init__(self, millis, callableObj, *args, **kwargs):
         ThreadedTimer.__init__(self)
         self._oneshot = True
@@ -667,6 +675,8 @@ class BetterWindowDisabler:
 
 
 class CustomGridCellEvent(CustomEvent):
+    """Custom event for wx.grid.GridCell."""
+
     def __init__(self, typeId, object, row=-1, col=-1, window=None):  # noqa: A002
         CustomEvent.__init__(self, typeId, object, window)
         self.Row = row
@@ -796,6 +806,8 @@ class PopupMenu:
 
 
 class FileDrop(wx.FileDropTarget):
+    """A wx.FileDropTarget derivative that can handle multiple file types."""
+
     def __init__(self, drophandlers=None):
         wx.FileDropTarget.__init__(self)
         if drophandlers is None:

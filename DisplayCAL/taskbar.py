@@ -84,6 +84,8 @@ taskbar.HrInit()
 
 
 class Taskbar:
+    """Taskbar progress bar interface."""
+
     def __init__(self, frame, maxv=100):
         self.frame = frame
         self.maxv = maxv

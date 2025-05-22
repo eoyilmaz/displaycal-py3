@@ -36,6 +36,7 @@ SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
 class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
+    """Class representing SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structure."""
     _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
@@ -49,13 +50,15 @@ class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
 
 
 class SYSTEM_INFORMATION(ctypes.Structure):  # noqa: N801
-    pass
+    """Class representing SYSTEM_INFORMATION structure."""
 
 
 PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
 class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
+    """Class representing SYSTEM_HANDLE_INFORMATION_EX structure."""
+
     _fields_: ClassVar[list[tuple]] = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),

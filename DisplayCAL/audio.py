@@ -276,10 +276,12 @@ class DummySound:
 
 
 class SDL_RWops(Structure):  # noqa: N801
-    pass
+    """SDL_RWops structure."""
 
 
 class Mix_Chunk(Structure):  # noqa: N801
+    """SDL_Mixer chunk structure."""
+
     _fields_: ClassVar[list[tuple]] = [
         ("allocated", c_int),
         ("abuf", POINTER(c_uint8)),

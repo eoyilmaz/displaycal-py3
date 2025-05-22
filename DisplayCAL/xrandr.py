@@ -45,6 +45,11 @@ Atom = c_ulong
 
 
 class Display(Structure):
+    """Structure representing an X display connection.
+
+    This structure is used to manage the connection to the X server and
+    perform operations on the display.
+    """
     __slots__ = []
     _fields_: ClassVar[list[tuple]] = [("_opaque_struct", c_int)]
 
@@ -93,6 +98,12 @@ except AttributeError as exception:
 
 
 class XDisplay:
+    """Class to manage an X display connection and perform operations on it.
+
+    Args:
+        name (str | None): The name of the display to connect to. If None, it
+            will use the DISPLAY environment variable. Defaults to None.
+    """
     def __init__(self, name=None):
         self.name = name or os.getenv("DISPLAY")
 

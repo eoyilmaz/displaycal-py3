@@ -481,6 +481,8 @@ def quirk_manufacturer(manufacturer):
 
 
 class Object(DBusObject):
+    """Base class for colord objects."""
+
     def __init__(self, object_path, object_type):
         try:
             DBusObject.__init__(
@@ -511,29 +513,33 @@ class Object(DBusObject):
 
 
 class Device(Object):
+    """Device object."""
+
     def __init__(self, object_path):
         Object.__init__(self, object_path, "Device")
 
 
 class Profile(Object):
+    """Profile object."""
+
     def __init__(self, object_path):
         Object.__init__(self, object_path, "Profile")
 
 
 class CDError(Exception):
-    pass
+    """Base class for colord errors."""
 
 
 class CDObjectQueryError(CDError):
-    pass
+    """Object query error."""
 
 
 class CDObjectNotFoundError(CDObjectQueryError):
-    pass
+    """Object not found error."""
 
 
 class CDTimeoutError(CDError):
-    pass
+    """Timeout error."""
 
 
 if __name__ == "__main__":

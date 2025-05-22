@@ -110,6 +110,8 @@ class _Trigger(_Dict2XML):
 
 
 class CalendarTrigger(_Trigger):
+    """Trigger for a calendar event."""
+
     def __init__(
         self,
         start_boundary="2019-09-17T00:00:00",
@@ -145,10 +147,12 @@ class CalendarTrigger(_Trigger):
 
 
 class LogonTrigger(_Trigger):
-    pass
+    """Trigger for when the user logs on."""
 
 
 class ResumeFromSleepTrigger(_Trigger):
+    """Trigger for when the system resumes from sleep."""
+
     def __init__(self, *args, **kwargs):
         _Trigger.__init__(self, *args, **kwargs)
         self["subscription"] = (
@@ -162,6 +166,8 @@ class ResumeFromSleepTrigger(_Trigger):
 
 
 class ExecAction(_Dict2XML):
+    """Exec action."""
+
     def __init__(self, cmd, args=None):
         # Filter any None values
         args = [arg for arg in args if arg is not None]
@@ -174,6 +180,8 @@ class ExecAction(_Dict2XML):
 
 
 class Task(_Dict2XML):
+    """Task Scheduler task."""
+
     def __init__(
         self,
         name="",
@@ -274,6 +282,11 @@ class Task(_Dict2XML):
 
 
 class TaskScheduler:
+    """Task Scheduler interface.
+
+    Currently only implemented for Windows (Vista and up).
+    """
+
     def __init__(self):
         self.__ts = None
         self.stdout = b""

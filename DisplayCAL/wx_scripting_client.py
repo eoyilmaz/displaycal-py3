@@ -31,6 +31,8 @@ RESPONSECOLOR = "#CCCCCC"
 
 
 class ScriptingClientFrame(SimpleTerminal):
+    """A wxPython frame that serves as a scripting client for DisplayCAL."""
+
     def __init__(self):
         SimpleTerminal.__init__(
             self,

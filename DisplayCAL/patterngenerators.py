@@ -479,6 +479,8 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
 
 
 class ResolveLSPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
+    """Resolve LS pattern generator server using TCP sockets."""
+
     def __init__(self, port=20002, bits=8, use_video_levels=False, logfile=None):
         GenTCPSockPatternGeneratorServer.__init__(
             self, port, bits, use_video_levels, logfile
@@ -509,6 +511,8 @@ class ResolveLSPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
 
 
 class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
+    """Resolve Colorimeter pattern generator server using TCP sockets."""
+
     def __init__(self, port=20002, bits=10, use_video_levels=False, logfile=None):
         GenTCPSockPatternGeneratorServer.__init__(
             self, port, bits, use_video_levels, logfile
@@ -540,6 +544,8 @@ class ResolveCMPatternGeneratorServer(GenTCPSockPatternGeneratorServer):
 
 
 class WebWinHTTPPatternGeneratorServer(TCPServer):
+    """WebWin pattern generator server using HTTP REST interface."""
+
     def __init__(self, port, logfile=None):
         self.port = port
         Handler = webwin.WebWinHTTPRequestHandler
@@ -567,13 +573,13 @@ class WebWinHTTPPatternGeneratorServer(TCPServer):
     def listening(self, value):
         if value:
             self._listening.set()
-        else:
-            self._listening.clear()
-            if hasattr(self, "conn"):
-                self.shutdown_request(self.conn)
-                del self.conn
-            if hasattr(self, "_thread") and self._thread.is_alive():
-                self.shutdown()
+            return
+        self._listening.clear()
+        if hasattr(self, "conn"):
+            self.shutdown_request(self.conn)
+            del self.conn
+        if hasattr(self, "_thread") and self._thread.is_alive():
+            self.shutdown()
 
     def send(
         self,

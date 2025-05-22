@@ -20,6 +20,8 @@ except ImportError:
 
 
 class FileBrowseButtonXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for FileBrowseButton controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         self._class = filebrowse.FileBrowseButton
@@ -57,6 +59,8 @@ class FileBrowseButtonXmlHandler(xrc.XmlResourceHandler):
 
 
 class FileBrowseButtonWithHistoryXmlHandler(FileBrowseButtonXmlHandler):
+    """Custom XML resource handler for FileBrowseButtonWithHistory controls."""
+
     def __init__(self):
         FileBrowseButtonXmlHandler.__init__(self)
         self._class = FileBrowseButtonWithHistory

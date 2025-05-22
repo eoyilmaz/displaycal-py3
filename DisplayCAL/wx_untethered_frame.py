@@ -36,6 +36,8 @@ FGCOLOUR = wx.Colour(0x99, 0x99, 0x99)
 
 
 class UntetheredFrame(BaseFrame):
+    """Untethered measurement frame."""
+
     def __init__(self, parent=None, handler=None, keyhandler=None, start_timer=True):
         # BaseFrame.__init__(self, parent, wx.ID_ANY,
         #                    lang.getstr("measurement.untethered"),

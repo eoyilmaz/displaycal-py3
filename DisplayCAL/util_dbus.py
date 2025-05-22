@@ -42,6 +42,8 @@ BUSTYPE_SYSTEM = 2
 
 
 class DBusObjectInterfaceMethod:
+    """A class representing a D-Bus object interface method."""
+
     def __init__(self, iface, method_name):
         self._iface = iface
         self._method_name = method_name
@@ -71,6 +73,8 @@ class DBusObjectInterfaceMethod:
 
 
 class DBusObject:
+    """A class representing a D-Bus object."""
+
     def __init__(self, bus_type, bus_name, object_path=None, iface_name=None):
         self._bus_type = bus_type
         self._bus_name = bus_name
@@ -160,6 +164,8 @@ class DBusObject:
 
 
 class DBusObjectError(DBusException):
+    """Custom exception class for D-Bus object errors."""
+
     def __init__(self, exception, bus_name=None):
         self._dbus_error_name = getattr(exception, "get_dbus_name", lambda: None)()
         if self._dbus_error_name == "org.freedesktop.DBus.Error.ServiceUnknown":

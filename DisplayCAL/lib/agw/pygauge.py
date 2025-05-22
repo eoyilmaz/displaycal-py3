@@ -522,6 +522,8 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
+        """A simple frame to test the :class:`PyGauge` class."""
+
         def __init__(self, parent):
             wx.Frame.__init__(self, parent, -1, "PyGauge Demo")
 

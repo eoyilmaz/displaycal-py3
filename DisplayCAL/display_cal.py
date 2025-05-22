@@ -18898,6 +18898,8 @@ else:
 
 
 class StartupFrame(start_cls):
+    """Splash screen."""
+
     def __init__(self):
         super().__init__()
         title = f"{APPNAME} {VERSION_SHORT}"
@@ -19457,6 +19459,8 @@ class StartupFrame(start_cls):
 
 
 class MeasurementFileCheckSanityDialog(ConfirmDialog):
+    """Dialog to check the sanity of a measurement file."""
+
     def __init__(self, parent, ti3, suspicious, force=False):
         scale = getcfg("app.dpi") / config.get_default_dpi()
         scale = max(scale, 1)

@@ -59,6 +59,7 @@ def escape(xml):
 
 
 class ETreeDict(dict):
+    """A class to parse XML data into a dictionary-like structure."""
     # Roughly follow "Converting Between XML and JSON"
     # https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
@@ -103,6 +104,8 @@ class ETreeDict(dict):
 
 
 class XMLDict(ETreeDict):
+    """A class to parse XML data into a dictionary-like structure."""
+
     def __init__(self, xml):
         etree = ElementTree.fromstring(xml)
         ETreeDict.__init__(self, etree)

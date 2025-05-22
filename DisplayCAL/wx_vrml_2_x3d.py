@@ -23,6 +23,8 @@ if gui:
     from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop
 
     class VRML2X3DFrame(BaseFrame):
+        """Frame for the VRML to X3D converter."""
+
         def __init__(self, html, embed, view, force, cache):
             BaseFrame.__init__(
                 self,

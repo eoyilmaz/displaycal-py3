@@ -985,6 +985,8 @@ def runtimeconfig(pyfile):
 
 
 class CaseSensitiveConfigParser(configparser.RawConfigParser):
+    """Case sensitive config parser."""
+
     def optionxform(self, optionstr: str) -> str:
         return optionstr
 

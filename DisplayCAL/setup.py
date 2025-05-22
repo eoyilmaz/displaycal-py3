@@ -215,6 +215,8 @@ plist_dict = {
 
 
 class Target:
+    """A class representing a target for installation."""
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 

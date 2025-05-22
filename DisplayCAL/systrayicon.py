@@ -20,6 +20,8 @@ from DisplayCAL.wx_addons import IdFactory, wx
 
 
 class Menu(wx.EvtHandler):
+    """A class that represents a system tray icon menu."""
+
     def __init__(self):
         wx.EvtHandler.__init__(self)
         self.hmenu = win32gui.CreatePopupMenu()
@@ -129,6 +131,8 @@ class Menu(wx.EvtHandler):
 
 
 class MenuItem:
+    """A class that represents a menu item in a system tray icon."""
+
     def __init__(
         self,
         menu,
@@ -180,6 +184,8 @@ class MenuItem:
 
 
 class SysTrayIcon(wx.EvtHandler):
+    """A class that creates a system tray icon with a context menu."""
+
     def __init__(self):
         wx.EvtHandler.__init__(self)
         msg_TaskbarCreated = win32gui.RegisterWindowMessage("TaskbarCreated")

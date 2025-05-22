@@ -14,6 +14,8 @@ except ImportError:
 
 
 class StaticFancyTextCtrlXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for StaticFancyText controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

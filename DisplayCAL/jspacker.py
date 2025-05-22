@@ -35,6 +35,8 @@ class Pattern:
 
 
 class Patterns(list):
+    """A collection of patterns."""
+
     def __str__(self) -> str:
         """Return the string representation of the patterns.
 
@@ -45,6 +47,8 @@ class Patterns(list):
 
 
 class ParseMaster:
+    """ParseMaster is a class for parsing and replacing patterns in strings."""
+
     # constants
     EXPRESSION = 0
     REPLACEMENT = 1
@@ -174,6 +178,8 @@ class ParseMaster:
 
 
 class JavaScriptPacker:
+    """JavaScriptPacker is a class for compressing and obfuscating JavaScript code."""
+
     def __init__(self):
         pass
 
@@ -413,9 +419,9 @@ class JavaScriptPacker:
             10: """ function($charCode) {return $charCode;}""",
             36: """ function($charCode) {return $charCode.toString(36);}""",
             62: """ function($charCode) {
-    return ($charCode < _encoding ? "" : 
+    return ($charCode < _encoding ? "" :
         arguments.callee(parseInt($charCode / _encoding))) +
-        (($charCode = $charCode % _encoding) > 35 ? 
+        (($charCode = $charCode % _encoding) > 35 ?
         String.fromCharCode($charCode + 29) : $charCode.toString(36));
 }""",
             95: """ function($charCode) {

@@ -16,6 +16,8 @@ except ImportError:
 
 
 class HStretchStaticBitmapXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for HStretchStaticBitmap controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

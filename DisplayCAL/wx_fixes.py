@@ -260,8 +260,11 @@ if "gtk3" in wx.PlatformInfo:
     DataViewListCtrl = dataview.DataViewListCtrl
 
     class ListCtrl(DataViewListCtrl):
-        # Implement ListCtrl as DataViewListCtrl
-        # Works around header rendering ugliness with GTK3
+        """Compatibility class for wx.ListCtrl.
+
+        Implements ListCtrl as DataViewListCtrl. Works around header rendering
+        ugliness with GTK3.
+        """
 
         def __init__(
             self,
@@ -362,6 +365,8 @@ if "gtk3" in wx.PlatformInfo:
     wx.ListCtrl = ListCtrl
 
     class SpinCtrl(wx._SpinCtrl):
+        """Compatibility class for wx.SpinCtrl."""
+
         _spinwidth = 0
 
         def __init__(
@@ -395,6 +400,8 @@ if "gtk3" in wx.PlatformInfo:
     _StaticText_SetLabel = wx._StaticText.SetLabel
 
     class StaticText(wx._StaticText):
+        """Compatibility class for wx.StaticText."""
+
         def __init__(self, *args, **kwargs):
             wx._StaticText.__init__(self, *args, **kwargs)
 
@@ -664,6 +671,10 @@ wx._Sizer = wx.Sizer
 
 
 class Sizer(wx._Sizer):
+    """Replacement for wx.Sizer which scales the spacing according to the
+    current DPI setting.
+    """
+
     def Add(self, *args, **kwargs):
         args, kwargs = _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs)
         return wx._Sizer.Add(self, *args, **kwargs)
@@ -680,6 +691,10 @@ wx._BoxSizer = wx.BoxSizer
 
 
 class BoxSizer(wx._BoxSizer):
+    """Replacement for wx.BoxSizer which scales the spacing according to the
+    current DPI setting.
+    """
+
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
 
@@ -691,6 +706,10 @@ wx._GridSizer = wx.GridSizer
 
 
 class GridSizer(wx._GridSizer):
+    """Replacement for wx.GridSizer which scales the spacing according to the
+    current DPI setting.
+    """
+
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
             from DisplayCAL.config import get_default_dpi, getcfg
@@ -713,6 +732,8 @@ wx._FlexGridSizer = wx.FlexGridSizer
 
 
 class FlexGridSizer(wx._FlexGridSizer):
+    """FlexGridSizer with DPI scaling."""
+
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
             from DisplayCAL.config import get_default_dpi, getcfg
@@ -1005,6 +1026,8 @@ _FileDialog = wx.FileDialog
 
 
 class PathDialogBase(wx.Dialog):
+    """Base class for wx.DirDialog and wx.FileDialog."""
+
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name=name)
         self._ismodal = False
@@ -1047,12 +1070,16 @@ class PathDialogBase(wx.Dialog):
 
 
 class DirDialog(PathDialogBase):
+    """Directory dialog that works around wxGTK3 issues with file dialogs."""
+
     def __init__(self, *args, **kwargs):
         PathDialogBase.__init__(self, args[0], name="dirdialog")
         self.filedialog = _DirDialog(*args, **kwargs)
 
 
 class FileDialog(PathDialogBase):
+    """File dialog that works around wxGTK3 issues with file dialogs."""
+
     def __init__(self, *args, **kwargs):
         PathDialogBase.__init__(self, args[0], name="filedialog")
         self.filedialog = _FileDialog(*args, **kwargs)
@@ -1167,6 +1194,8 @@ if "gtk3" not in wx.PlatformInfo:
 
 
 class GenBitmapButton(GenButton, _GenBitmapButton):
+    """A generic bitmap button, based on wx.lib.buttons.GenBitmapButton."""
+
     def __init__(self, *args, **kwargs):
         GenButton.__init__(self)
         _GenBitmapButton.__init__(self, *args, **kwargs)
@@ -1579,6 +1608,8 @@ if not hasattr(PlateButton, "_SetState"):
 
 
 class TempXmlResource:
+    """Temporary XML resource class to handle scaling and cleanup."""
+
     _temp = None
 
     def __init__(self, xmlpath):
@@ -1721,6 +1752,8 @@ class ThemedGenBitmapTextButton(ThemedGenButton, GenBitmapTextButton):
 
 
 class BitmapWithThemedButton(wx.BoxSizer):
+    """A sizer that contains a bitmap and a themed button."""
+
     def __init__(
         self,
         parent,

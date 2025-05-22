@@ -32,6 +32,8 @@ from DisplayCAL import localization as lang
 
 
 class ChromeCastPatternGeneratorController(BaseController):
+    """Controller for the Chromecast pattern generator app."""
+
     def __init__(self):
         super().__init__("urn:x-cast:net.hoech.cast.patterngenerator", "B5C2CBFC")
         self.request_id = 0
@@ -63,6 +65,8 @@ class ChromeCastPatternGeneratorController(BaseController):
 
 
 class ChromeCastPatternGenerator:
+    """Class to control a Chromecast device for pattern generation."""
+
     def __init__(self, name, logfile=None):
         self._controller = ChromeCastPatternGeneratorController()
         self.name = name

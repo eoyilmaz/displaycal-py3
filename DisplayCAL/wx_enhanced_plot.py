@@ -2967,6 +2967,8 @@ def _draw7Objects():
 
 
 class TestFrame(wx.Frame):
+    """The main frame for the wxPython demo."""
+
     def __init__(self, parent, id, title):  # noqa: A002
         wx.Frame.__init__(self, parent, id, title, wx.DefaultPosition, (600, 400))
 

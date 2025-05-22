@@ -97,6 +97,8 @@ def set_label_and_size(txtctrl, label):
 
 
 class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
+    """Overridden agw.ImageContainer."""
+
     def __init__(
         self,
         parent,
@@ -522,6 +524,8 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
 
 class DisplayAdjustmentPanel(wx_Panel):
+    """Panel for interactive display adjustment."""
+
     def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):  # noqa: A002
         # wx_Panel.__init__(self, parent, id)
         super().__init__(parent, id)
@@ -735,6 +739,8 @@ else:
 
 
 class DisplayAdjustmentFrame(windowcls):
+    """Main window for interactive display adjustment."""
+
     def __init__(self, parent=None, handler=None, keyhandler=None, start_timer=True):
         # windowcls.__init__(self, parent, wx.ID_ANY,
         #                    lang.getstr("calibration.interactive_display_adjustment"),
@@ -1647,14 +1653,19 @@ class DisplayAdjustmentFrame(windowcls):
 
 
 if __name__ == "__main__":
+    # TODO: Move these to a test module.
     from _thread import start_new_thread
     from time import sleep
 
     class Subprocess:
+        """Mock subprocess class to simulate sending commands."""
+
         def send(self, bytes_):
             start_new_thread(test, (bytes_,))
 
     class Worker:
+        """Mock worker class to simulate subprocess."""
+
         def __init__(self):
             self.subprocess = Subprocess()
 

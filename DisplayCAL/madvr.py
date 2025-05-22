@@ -1785,6 +1785,8 @@ class MadTPGNet(MadTPGBase):
 
 
 class MadTPGNetSender:
+    """madTPG network command sender."""
+
     def __init__(self, madtpg, conn, command):
         self.madtpg = madtpg
         self._conn = conn

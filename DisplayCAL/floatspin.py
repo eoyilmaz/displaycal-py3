@@ -1259,6 +1259,8 @@ if wx.VERSION >= (3,):
     EVT_FLOATSPIN = wx.EVT_SPINCTRLDOUBLE
 
     class FloatSpin(wx.SpinCtrlDouble):
+        """A wx.SpinCtrlDouble supporting floating point values and a default."""
+
         _spinwidth = 0
 
         def __init__(

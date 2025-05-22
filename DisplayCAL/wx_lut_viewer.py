@@ -151,6 +151,8 @@ class CoordinateType(list):
 
 
 class PolyBox(plot.PolyLine):
+    """Box for drawing rectangles."""
+
     def __init__(self, x, y, w, h, **attr):
         plot.PolyLine.__init__(
             self, [(x, y), (x + w, y), (x + w, y + h), (x, y + h), (x, y)], **attr
@@ -158,6 +160,8 @@ class PolyBox(plot.PolyLine):
 
 
 class LUTCanvas(plot.PlotCanvas):
+    """Canvas for displaying LUTs and TRCs."""
+
     def __init__(self, *args, **kwargs):
         self.colors = {
             "RGB_R": "red",

@@ -18,6 +18,8 @@ except ImportError:
 
 
 class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for FloatSpin controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

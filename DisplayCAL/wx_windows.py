@@ -178,6 +178,8 @@ REMAINING_TIME_LABEL = "--:--:--"
 
 
 class AboutDialog(wx.Dialog):
+    """About dialog for the application."""
+
     def __init__(self, *args, **kwargs):
         kwargs["style"] = wx.DEFAULT_DIALOG_STYLE & ~(
             wx.RESIZE_BORDER | wx.MAXIMIZE_BOX
@@ -347,6 +349,8 @@ class AnimatedBitmap(wx.PyControl):
 
 
 class AuiBetterTabArt(AuiDefaultTabArt):
+    """A custom tab art class for AUI tab controls, providing enhanced drawing."""
+
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         """Draw a single tab.
 
@@ -683,6 +687,8 @@ class AuiBetterTabArt(AuiDefaultTabArt):
 
 
 class AutocompleteComboBox(wx.ComboBox):
+    """A wx.ComboBox with autocomplete functionality."""
+
     def __init__(self, *args, **kwargs):
         wx.ComboBox.__init__(self, *args, **kwargs)
         self.Bind(wx.EVT_TEXT, self.OnText)
@@ -2695,6 +2701,8 @@ if not hasattr(wx, "WindowModalDialogEvent") or sys.platform != "darwin":
     )
 
     class WindowModalDialogEvent(wx.PyCommandEvent):
+        """A wx.CommandEvent that contains the dialog and return code."""
+
         def __init__(self, commandType=wx.wxEVT_NULL, id=0):  # noqa: A002
             wx.PyCommandEvent.__init__(self, commandType, id)
 
@@ -2708,6 +2716,8 @@ if not hasattr(wx, "WindowModalDialogEvent") or sys.platform != "darwin":
 
 
 class HtmlInfoDialog(BaseInteractiveDialog):
+    """A dialog with an HTML window and a bitmap."""
+
     def __init__(
         self,
         parent=None,
@@ -2753,6 +2763,8 @@ class HtmlInfoDialog(BaseInteractiveDialog):
 
 
 class HtmlWindow(wx.html.HtmlWindow):
+    """A wx.html.HtmlWindow that uses system default colors."""
+
     def __init__(self, *args, **kwargs):
         wx.html.HtmlWindow.__init__(self, *args, **kwargs)
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
@@ -3089,17 +3101,15 @@ class ConfirmDialog(BaseInteractiveDialog):
 
 
 class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHistory):
-    def __init__(self, *arguments, **namedarguments):
-        self.history = namedarguments.get("history") or []
-        namedarguments.pop("history", None)
-
+    """A FileBrowseButton with a history of previously selected files."""
+    def __init__(self, *args, **kwargs):
+        self.history = kwargs.pop("history", [])
         self.historyCallBack = None
         if callable(self.history):
             self.historyCallBack = self.history
             self.history = []
-        name = namedarguments.get("name", "fileBrowseButtonWithHistory")
-        namedarguments.pop("name", None)
-        filebrowse.FileBrowseButton.__init__(self, *arguments, **namedarguments)
+        name = kwargs.pop("name", "fileBrowseButtonWithHistory")
+        filebrowse.FileBrowseButton.__init__(self, *args, **kwargs)
         self.SetName(name)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         if "__WXGTK__" in wx.PlatformInfo and wx.VERSION < (2, 9):
@@ -3278,7 +3288,15 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
 
 
 class PathDialog(ConfirmDialog):
-    def __init__(self, parent, msg="", name="pathdialog"):
+    """A dialog that allows the user to select a file or directory.
+
+    Args:
+        parent (wx.Window): The parent window.
+        msg (str): The message to display in the dialog.
+        name (str): The name of the dialog.
+    """
+
+    def __init__(self, parent: wx.Window, msg : str="", name:str="pathdialog"):
         ConfirmDialog.__init__(
             self,
             parent,
@@ -3329,6 +3347,8 @@ class FileDialog(PathDialog):
 
 
 class FileDrop(_FileDrop):
+    """Drag'n'drop handler for unsupported files."""
+
     def __init__(self, parent, drophandlers=None):
         self.parent = parent
         _FileDrop.__init__(self, drophandlers)
@@ -3352,6 +3372,12 @@ class FileDrop(_FileDrop):
 
 
 class FlatShadedButton(GradientButton):
+    """A button with a flat shaded background.
+
+    This is a subclass of wx.BitmapButton that uses a flat shaded background
+    instead of a gradient.
+    """
+
     __bitmap = None
     _enabled = True
 
@@ -3621,6 +3647,8 @@ class FlatShadedButton(GradientButton):
 
 
 class BorderGradientButton(GradientButton):
+    """A button with a gradient background and border."""
+
     def __init__(
         self,
         parent,
@@ -3964,6 +3992,10 @@ class BorderGradientButton(GradientButton):
 
 
 class CustomGrid(wx.grid.Grid):
+    """Custom grid class to handle some wxPython bugs and provide
+    some additional functionality.
+    """
+
     def __init__(self, *args, **kwargs):
         wx.grid.Grid.__init__(self, *args, **kwargs)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
@@ -4593,6 +4625,11 @@ class CustomCheckBox(wx.Panel):
 
 
 class CustomCellEditor(wx.grid.PyGridCellEditor):
+    """Custom cell editor for wxPython grid.
+
+    This class is used to edit the cell value. It is used by the CustomGrid class.
+    """
+
     def __init__(self, grid):
         wx.grid.PyGridCellEditor.__init__(self)
         self._grid = grid
@@ -4707,6 +4744,12 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
 
 
 class CustomCellRenderer(wx.grid.PyGridCellRenderer):
+    """Custom cell renderer for wxPython grid.
+
+    This class is used to draw the cell background and text.
+    It is used by the CustomGrid class.
+    """
+
     def __init__(self, *args, **kwargs):
         wx.grid.PyGridCellRenderer.__init__(self)
         self.specialbitmap = getbitmap("theme/checkerboard-10x10x2-333-444")
@@ -4911,6 +4954,8 @@ class CustomCellRenderer(wx.grid.PyGridCellRenderer):
 
 
 class CustomCellBoolRenderer(CustomCellRenderer):
+    """Custom cell renderer for boolean values."""
+
     def __init__(self, *args, **kwargs):
         CustomCellRenderer.__init__(self)
         self._bitmap = geticon(16, "checkmark")
@@ -4930,6 +4975,8 @@ class CustomCellBoolRenderer(CustomCellRenderer):
 
 
 class CustomColLabelRenderer:
+    """Custom column label renderer."""
+
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5015,6 +5062,8 @@ class CustomColLabelRenderer:
 
 
 class CustomRowLabelRenderer:
+    """Custom row label renderer."""
+
     def __init__(self, bgcolor=None):
         self.bgcolor = bgcolor
 
@@ -5105,6 +5154,8 @@ class HStretchStaticBitmap(wx.StaticBitmap):
 
 
 class HyperLinkCtrl(hyperlink.HyperLinkCtrl):
+    """A wxPython hyperlink control that supports right-click context menu."""
+
     def __init__(self, *args, **kwargs):
         hyperlink.HyperLinkCtrl.__init__(self, *args, **kwargs)
         bgcolor, text, linkcolor, vlinkcolor = get_html_colors()
@@ -5183,6 +5234,18 @@ fancytext.RenderToRenderer = fancytext_RenderToRenderer
 
 
 class BetterPyGauge(pygauge.PyGauge):
+    """A wxPython gauge that supports gradients and indeterminate mode.
+
+    Args:
+        parent (wx.Window): The parent window.
+        id (int): The ID of the gauge.
+        range_ (int): The range of the gauge.
+        pos (tuple[int, int]): The position of the gauge.
+        size (tuple[int, int]): The size of the gauge.
+        style (int): The style of the gauge.
+        pd (wx.Dialog): The parent dialog (optional).
+    """
+
     def __init__(
         self,
         parent,
@@ -5365,6 +5428,8 @@ class BetterPyGauge(pygauge.PyGauge):
 
 
 class BetterStaticFancyTextBase:
+    """Base class for BetterStaticFancyText and BetterStaticFancyTextSetLabelMarkup."""
+
     def GetLabel(self):
         return self._rawlabel
 
@@ -5510,8 +5575,15 @@ class BetterStaticFancyText(BetterStaticFancyTextBase, GenStaticBitmap):
             self.Refresh()
 
 
-# Better under GTK (no text cutoff)
 class BetterStaticFancyTextSetLabelMarkup(BetterStaticFancyTextBase, wx.Panel):
+    """Based on wx.lib.fancytext functionality.
+
+    Renders crisp on 'Retina' displays under OS X and in high DPI mode
+    under Linux/Windows.
+
+    Better under GTK (no text cutoff).
+    """
+
     def __init__(self, parent, id, text, *args, **kwargs):  # noqa: A002
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.maxlen = 119
@@ -6666,12 +6738,16 @@ class ProgressDialog(wx.Dialog):
 
 
 class FancyProgressDialog(ProgressDialog):
+    """A fancy progress dialog."""
+
     def __init__(self, *args, **kwargs):
         kwargs["fancy"] = True
         ProgressDialog.__init__(self, *args, **kwargs)
 
 
 class SimpleBook(labelbook.FlatBookBase):
+    """A simple book-like control."""
+
     def __init__(
         self,
         parent,
@@ -6889,6 +6965,8 @@ class SimpleTerminal(InvincibleFrame):
 
 
 class TabButton(PlateButton):
+    """A button that looks like a tab."""
+
     def __init__(self, *args, **kwargs):
         from DisplayCAL.config import get_default_dpi, getcfg
 
@@ -7365,6 +7443,8 @@ class TooltipWindow(InvincibleFrame):
 
 
 class TwoWaySplitter(FourWaySplitter):
+    """A splitter that can be used to split a window into two panes."""
+
     def __init__(self, *args, **kwargs):
         FourWaySplitter.__init__(self, *args, **kwargs)
         self._minimum_pane_size = 0

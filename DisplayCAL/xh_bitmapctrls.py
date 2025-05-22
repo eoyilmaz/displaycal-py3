@@ -14,6 +14,8 @@ from DisplayCAL.log import safe_print
 
 
 class BitmapButton(xrc.XmlResourceHandler):
+    """Custom XML resource handler for wxBitmapButton controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles
@@ -46,6 +48,8 @@ class BitmapButton(xrc.XmlResourceHandler):
 
 
 class StaticBitmap(xrc.XmlResourceHandler):
+    """Custom XML resource handler for wxStaticBitmap controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

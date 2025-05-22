@@ -78,6 +78,8 @@ class NTSTATUS(ctypes.c_long):
 
 
 class UNICODE_STRING(ctypes.Structure):  # noqa: N801
+    """Class representing a UNICODE_STRING structure."""
+
     _fields_: ClassVar[list[tuple]] = [
         ("Length", wintypes.USHORT),
         ("MaximumLength", wintypes.USHORT),

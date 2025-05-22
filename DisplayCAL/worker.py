@@ -1528,6 +1528,8 @@ class EvalFalse:
 
 
 class DummyDialog:
+    """Dummy dialog class for testing."""
+
     def __init__(self, *args, **kwargs):
         self.is_shown_on_screen = True
 
@@ -1967,6 +1969,8 @@ class Sudo:
 
 
 class WPopen(sp.Popen):
+    """A wrapper around subprocess.Popen to handle output and errors."""
+
     def __init__(self, *args, **kwargs):
         sp.Popen.__init__(self, *args, **kwargs)
         self._seekpos = 0
@@ -2031,6 +2035,8 @@ class WPopen(sp.Popen):
 
 
 class Worker(WorkerBase):
+    """Worker class for ArgyllCMS."""
+
     def __init__(self, owner=None):
         """Create and return a new worker instance."""
         WorkerBase.__init__(self)

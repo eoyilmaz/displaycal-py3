@@ -144,38 +144,40 @@ def print_callstack():
 
 
 class ResourceError(Exception):
-    pass
+    """Error class for resource errors."""
 
 
 class Error(Exception):
-    pass
+    """Error class for fatal errors."""
 
 
 class Info(UserWarning):
-    pass
+    """Info class for non-fatal errors."""
 
 
 class UnloggedError(Error):
-    pass
+    """Error class for non-fatal errors that should not be logged."""
 
 
 class UnloggedInfo(Info):
-    pass
+    """Info class for non-fatal errors that should not be logged."""
 
 
 class UnloggedWarning(UserWarning):
-    pass
+    """Warning class for non-fatal errors that should not be logged."""
 
 
 class DownloadError(Error):
+    """Error class for download errors."""
+
     def __init__(self, *args):
         Error.__init__(self, *args[:-1])
         self.url = args[1]
 
 
 class UntracedError(Error):
-    pass
+    """Error class for errors that should not be logged."""
 
 
 class Warn(UserWarning):
-    pass
+    """Warning class for non-fatal errors."""

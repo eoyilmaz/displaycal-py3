@@ -276,6 +276,8 @@ def setup_profile_loader_task(exe, exedir, pydir):
 
 
 class DisplayIdentificationFrame(wx.Frame):
+    """Frame to show display identification."""
+
     def __init__(self, display, pos, size):
         wx.Frame.__init__(
             self,
@@ -337,6 +339,8 @@ class DisplayIdentificationFrame(wx.Frame):
 
 
 class FixProfileAssociationsDialog(ConfirmDialog):
+    """Dialog to show profile associations for displays."""
+
     def __init__(self, pl, parent=None):
         self.pl = pl
         ConfirmDialog.__init__(
@@ -421,6 +425,8 @@ class FixProfileAssociationsDialog(ConfirmDialog):
 
 
 class ProfileLoaderExceptionsDialog(ConfirmDialog):
+    """Dialog to manage exceptions for the profile loader."""
+
     def __init__(self, exceptions, known_apps=None):
         if known_apps is None:
             known_apps = set()
@@ -685,6 +691,8 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
 
 
 class ProfileAssociationsDialog(InfoDialog):
+    """Dialog to manage profile associations with displays."""
+
     def __init__(self, pl):
         self.monitors = []
         self.pl = pl
@@ -1165,6 +1173,8 @@ class ProfileAssociationsDialog(InfoDialog):
 
 
 class ProfileLoader:
+    """Profile loader class for Windows."""
+
     def __init__(self):
         from DisplayCAL.wx_windows import BaseApp, wx
 

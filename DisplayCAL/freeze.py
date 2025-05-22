@@ -182,6 +182,8 @@ msiversion = ".".join(
 
 
 class Target:
+    """Target class for py2exe."""
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 

@@ -25,7 +25,7 @@ from DisplayCAL.util_str import StrList, create_replace_function
 
 
 class VRMLParseError(Exception):
-    pass
+    """Exception raised for errors in the VRML parsing process."""
 
 
 class Tag:

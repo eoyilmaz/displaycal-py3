@@ -37,6 +37,8 @@ BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 
 
 class FlatShadedNumberedButton(FlatShadedButton):
+    """Flat shaded button with a number."""
+
     def __init__(
         self,
         parent,
@@ -74,6 +76,8 @@ class FlatShadedNumberedButton(FlatShadedButton):
 
 
 class DisplayUniformityFrame(BaseFrame):
+    """Display uniformity measurement frame."""
+
     def __init__(
         self,
         parent=None,
@@ -496,6 +500,8 @@ class DisplayUniformityFrame(BaseFrame):
 
 
 class Event:
+    """Custom event class to handle events in the DisplayUniformityFrame."""
+
     def __init__(self, evtobj):
         self.evtobj = evtobj
 
@@ -504,14 +510,19 @@ class Event:
 
 
 if __name__ == "__main__":
+    # TODO: Move the tests to the tests.
     from _thread import start_new_thread
     from time import sleep
 
     class Subprocess:
+        """Mock subprocess class to simulate subprocess behavior."""
+
         def send(self, bytes_):
             start_new_thread(test, (bytes_,))
 
     class Worker:
+        """Mock worker class to simulate subprocess behavior."""
+
         def __init__(self):
             self.subprocess = Subprocess()
             self.subprocess_abort = False

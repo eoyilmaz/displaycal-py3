@@ -83,6 +83,8 @@ from DisplayCAL.wx_windows import (
 
 
 class TestchartEditor(BaseFrame):
+    """Testchart editor window."""
+
     def __init__(
         self,
         parent=None,

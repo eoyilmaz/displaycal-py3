@@ -6,6 +6,12 @@ contents.
 
 
 class Cube3D:
+    """A 3D cube of data.
+
+    This class provides functionality to define a cube, access its elements,
+    and iterate through its contents. It allows for specifying the size of the
+    cube and the range of indices to be used.
+    """
     def __init__(self, size=65, start=0, end=None):
         orange = start, end
         numentries = size**3
@@ -117,8 +123,11 @@ class Cube3D:
 
 
 class Cube3DIterator(Cube3D):
-    # This iterator is actually slightly slower especially with large cubes
-    # than using iter(<Cube3D instance>)
+    """An iterator for the Cube3D class.
+
+    This iterator is actually slightly slower especially with large cubes
+    than using iter(<Cube3D instance>).
+    """
 
     def __init__(self, *args, **kwargs):
         Cube3D.__init__(self, *args, **kwargs)

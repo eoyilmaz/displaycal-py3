@@ -81,6 +81,8 @@ else:
 
 
 class GamutCanvas(LUTCanvas):
+    """Canvas for displaying color gamuts and profiles."""
+
     def __init__(self, *args, **kwargs):
         LUTCanvas.__init__(self, *args, **kwargs)
         self.SetEnableTitle(False)
@@ -645,6 +647,8 @@ class GamutCanvas(LUTCanvas):
 
 
 class GamutViewOptions(wx_Panel):
+    """Panel for selecting options for the GamutView."""
+
     def __init__(self, *args, **kwargs):
         scale = getcfg("app.dpi") / config.get_default_dpi()
         scale = max(scale, 1)
@@ -1081,6 +1085,8 @@ class GamutViewOptions(wx_Panel):
 
 
 class PIFrame2WaySplitter(TwoWaySplitter):
+    """Two-way splitter for profile info frame."""
+
     def OnLeftDClick(self, event):
         if not self.IsEnabled():
             return
@@ -1128,6 +1134,8 @@ class PIFrame2WaySplitter(TwoWaySplitter):
 
 
 class ProfileInfoFrame(LUTFrame):
+    """Profile info frame."""
+
     def __init__(self, *args, **kwargs):
         if len(args) < 3 and "title" not in kwargs:
             kwargs["title"] = lang.getstr("profile.info")

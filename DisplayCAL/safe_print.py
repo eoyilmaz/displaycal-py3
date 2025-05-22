@@ -40,6 +40,8 @@ def _get_console_width():
 
 
 class SafePrinter:
+    """A class for safely printing to a stream, avoiding Unicode errors."""
+
     def __init__(
         self,
         pad=False,

@@ -233,6 +233,8 @@ from DisplayCAL.lib.agw.fmresources import (
 
 
 class ImageBookStyle(IntFlag):
+    """This class that defines the styles for the LabelBook and FlatImageBook."""
+
     INB_BOTTOM = 1
     """Place labels below the page area.
 

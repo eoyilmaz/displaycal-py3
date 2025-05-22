@@ -78,6 +78,11 @@ def wx_log(logwindow, msg):
 
 
 class DummyLogger:
+    """Dummy logger class.
+
+    This is used when logging is disabled or not available.
+    """
+
     def critical(self, msg, *args, **kwargs):
         pass
 
@@ -101,6 +106,11 @@ class DummyLogger:
 
 
 class Log:
+    """Log class.
+
+    This is a wrapper around the logging module.
+    """
+
     def __call__(self, msg, fn=None):
         """Log a message.
 

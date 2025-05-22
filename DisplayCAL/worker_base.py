@@ -324,6 +324,8 @@ class ThreadAbort:
 
 
 class WorkerBase:
+    """Base worker class for calibration and profiling tasks."""
+
     def __init__(self):
         """Create and return a new base worker instance."""
         self.sessionlogfile = None
@@ -409,7 +411,6 @@ class WorkerBase:
         alternatively a list of strings.
         output data will be returned in same format, or as list of strings
         if 'raw' is true.
-
         """
         with Xicclu(
             profile,
@@ -433,6 +434,8 @@ class WorkerBase:
 
 
 class Xicclu(WorkerBase):
+    """Xicclu worker class."""
+
     def __init__(
         self,
         profile,
@@ -825,6 +828,8 @@ class Xicclu(WorkerBase):
 
 
 class XiccluMP(Xicclu):
+    """Xicclu multiprocessing worker."""
+
     def __init__(
         self,
         profile,

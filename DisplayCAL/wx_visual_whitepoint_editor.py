@@ -178,6 +178,8 @@ def AngleFromPoint(pt, center):
 
 
 class AuiDarkDockArt(aui.dockart.AuiDefaultDockArt):
+    """AuiDefaultDockArt with dark theme."""
+
     def __init__(self, *args, **kwargs):
         aui.dockart.AuiDefaultDockArt.__init__(self, *args, **kwargs)
         if hasattr(self, "SetDefaultColours"):
@@ -772,6 +774,10 @@ class BasePyControl(wx.PyControl):
 
 
 class BasePyButton(BasePyControl):
+    """Base class used to hold common code for the HSB colour wheel and the RGB
+    colour cube.
+    """
+
     def __init__(self, parent, bitmap):
         BasePyControl.__init__(self, parent, bitmap)
         self._bitmap_enabled = bitmap
@@ -1365,6 +1371,12 @@ class HSlider(BaseLineCtrl):
 
 
 class NumSpin(wx_Panel):
+    """A number spinner control that uses an IntCtrl and two buttons to
+    increment and decrement the value.
+
+    It is a replacement for wx.SpinCtrl that uses a custom IntCtrl instead of
+    the default one. It also supports mouse wheel scrolling and keyboard input.
+    """
     def __init__(self, parent, id=-1, *args, **kwargs):  # noqa: A002
         wx_Panel.__init__(self, parent)
         self.BackgroundColour = "#404040"

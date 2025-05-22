@@ -199,27 +199,27 @@ sort_by_rec709_luma = sort_by_luma_factory(0.2126, 0.7152, 0.0722)
 
 
 class CGATSError(Exception):
-    pass
+    """Base class for CGATS errors."""
 
 
 class CGATSInvalidError(CGATSError, IOError):
-    pass
+    """Invalid CGATS file error."""
 
 
 class CGATSInvalidOperationError(CGATSError):
-    pass
+    """Invalid operation error."""
 
 
 class CGATSKeyError(CGATSError, KeyError):
-    pass
+    """CGATS key not found error."""
 
 
 class CGATSTypeError(CGATSError, TypeError):
-    pass
+    """CGATS type error."""
 
 
 class CGATSValueError(CGATSError, ValueError):
-    pass
+    """CGATS value error."""
 
 
 class CGATS(dict):

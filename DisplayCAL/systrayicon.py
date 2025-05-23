@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Drop-In replacement for wx.TaskBarIcon
+"""Drop-In replacement for wx.TaskBarIcon
 
 This one won't stop showing updates to the icon like wx.TaskBarIcon
 
 """
 
+from __future__ import annotations
+
+import contextlib
 import ctypes
 import os
 import sys
@@ -13,13 +14,14 @@ import sys
 import win32api
 import win32con
 import win32gui
-import winerror
 
-from DisplayCAL.options import debug, verbose
-from DisplayCAL.wxaddons import wx, IdFactory
+from DisplayCAL.options import DEBUG, VERBOSE
+from DisplayCAL.wx_addons import IdFactory, wx
 
 
 class Menu(wx.EvtHandler):
+    """A class that represents a system tray icon menu."""
+
     def __init__(self):
         wx.EvtHandler.__init__(self)
         self.hmenu = win32gui.CreatePopupMenu()
@@ -31,20 +33,17 @@ class Menu(wx.EvtHandler):
         # functionality
         self._destroyed = False
 
-    def Append(self, id, text, help="", kind=wx.ITEM_NORMAL):
+    def Append(self, id, text, help="", kind=wx.ITEM_NORMAL):  # noqa: A002
         return self.AppendItem(MenuItem(self, id, text, help, kind))
 
-    def AppendCheckItem(self, id, text, help=""):
+    def AppendCheckItem(self, id, text, help=""):  # noqa: A002
         return self.Append(id, text, help, wx.ITEM_CHECK)
 
     def AppendItem(self, item):
         if item.Kind == wx.ITEM_SEPARATOR:
             flags = win32con.MF_SEPARATOR
         else:
-            if item.subMenu:
-                flags = win32con.MF_POPUP | win32con.MF_STRING
-            else:
-                flags = 0
+            flags = win32con.MF_POPUP | win32con.MF_STRING if item.subMenu else 0
             if not item.Enabled:
                 flags |= win32con.MF_DISABLED
         # Use ctypes instead of win32gui.AppendMenu for unicode support
@@ -57,17 +56,17 @@ class Menu(wx.EvtHandler):
             self.Check(item.Id)
         return item
 
-    def AppendSubMenu(self, submenu, text, help=""):
+    def AppendSubMenu(self, submenu, text, help=""):  # noqa: A002
         item = MenuItem(self, submenu.hmenu, text, help, wx.ITEM_NORMAL, submenu)
         return self.AppendItem(item)
 
-    def AppendRadioItem(self, id, text, help=""):
+    def AppendRadioItem(self, id, text, help=""):  # noqa: A002
         return self.Append(id, text, help, wx.ITEM_RADIO)
 
     def AppendSeparator(self):
         return self.Append(-1, "", kind=wx.ITEM_SEPARATOR)
 
-    def Check(self, id, check=True):
+    def Check(self, id, check=True):  # noqa: A002
         flags = win32con.MF_BYCOMMAND
         item_check = self._menuitems[id]
         if item_check.Kind == wx.ITEM_RADIO:
@@ -106,18 +105,23 @@ class Menu(wx.EvtHandler):
         for menuitem in self.MenuItems:
             menuitem.Destroy()
         if not self.Parent:
-            if debug or verbose > 1:
+            if DEBUG or VERBOSE > 1:
                 print("DestroyMenu HMENU", self.hmenu)
             win32gui.DestroyMenu(self.hmenu)
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print("Destroy", self.__class__.__name__, self)
         self._destroyed = True
         wx.EvtHandler.Destroy(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return the Menu instance's destroyed state as a bool.
+
+        Returns:
+            bool: True if the Menu instance is not destroyed,
+        """
         return not self._destroyed
 
-    def Enable(self, id, enable=True):
+    def Enable(self, id, enable=True):  # noqa: A002
         flags = win32con.MF_BYCOMMAND
         if not enable:
             flags |= win32con.MF_DISABLED
@@ -127,13 +131,21 @@ class Menu(wx.EvtHandler):
 
 
 class MenuItem:
+    """A class that represents a menu item in a system tray icon."""
+
     def __init__(
-        self, menu, id=-1, text="", help="", kind=wx.ITEM_NORMAL, subMenu=None
+        self,
+        menu,
+        id_=-1,
+        text="",
+        help="",  # noqa: A002
+        kind=wx.ITEM_NORMAL,
+        subMenu=None,
     ):
-        if id == -1:
-            id = IdFactory.NewId()
+        if id_ == -1:
+            id_ = IdFactory.NewId()
         self.Menu = menu
-        self.Id = id
+        self.Id = id_
         self.ItemLabel = text
         self.Help = help
         self.Kind = kind
@@ -151,7 +163,7 @@ class MenuItem:
     def Destroy(self):
         if self.subMenu:
             self.subMenu.Destroy()
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print(
                 "Destroy",
                 self.__class__.__name__,
@@ -172,6 +184,8 @@ class MenuItem:
 
 
 class SysTrayIcon(wx.EvtHandler):
+    """A class that creates a system tray icon with a context menu."""
+
     def __init__(self):
         wx.EvtHandler.__init__(self)
         msg_TaskbarCreated = win32gui.RegisterWindowMessage("TaskbarCreated")
@@ -190,7 +204,7 @@ class SysTrayIcon(wx.EvtHandler):
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map
 
-        classAtom = win32gui.RegisterClass(wc)
+        _classAtom = win32gui.RegisterClass(wc)
 
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = win32gui.CreateWindow(
@@ -271,9 +285,8 @@ class SysTrayIcon(wx.EvtHandler):
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         print(
-            "SysTrayIcon.OnCommand(hwnd={}, msg={}, wparam={}, lparam={})".format(
-                repr(hwnd), repr(msg), repr(wparam), repr(lparam)
-            )
+            f"SysTrayIcon.OnCommand(hwnd={hwnd!r}, msg={msg!r}, "
+            f"wparam={wparam!r}, lparam={lparam!r})"
         )
         if not self.menu:
             print("Warning: Don't have menu")
@@ -285,7 +298,7 @@ class SysTrayIcon(wx.EvtHandler):
         if not item:
             print(f"Warning: Don't have menu item ID {wparam}")
             return 0
-        if debug or verbose > 1:
+        if DEBUG or VERBOSE > 1:
             print(
                 item.__class__.__name__,
                 item.Id,
@@ -314,7 +327,12 @@ class SysTrayIcon(wx.EvtHandler):
         self._destroyed = True
         wx.EvtHandler.Destroy(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """Return the SysTrayIcon instance's destroyed state as a bool.
+
+        Returns:
+            bool: True if the SysTrayIcon instance is not destroyed,
+        """
         return not self._destroyed
 
     def OnRightUp(self, event):
@@ -348,12 +366,10 @@ class SysTrayIcon(wx.EvtHandler):
             pos = win32gui.GetCursorPos()
             # See remarks section under
             # https://msdn.microsoft.com/en-us/library/windows/desktop/ms648002(v=vs.85).aspx
-            try:
+            with contextlib.suppress(win32gui.error):
                 win32gui.SetForegroundWindow(self.hwnd)
-            except win32gui.error:
                 # Calls to SetForegroundWindow will fail if (e.g.) the Win10
                 # start menu is currently shown
-                pass
             win32gui.TrackPopupMenu(
                 menu.hmenu, win32con.TPM_RIGHTBUTTON, pos[0], pos[1], 0, self.hwnd, None
             )
@@ -375,10 +391,7 @@ class SysTrayIcon(wx.EvtHandler):
         if isinstance(hicon, wx.Icon):
             hicon = hicon.GetHandle()
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
-        if self._nid:
-            msg = win32gui.NIM_MODIFY
-        else:
-            msg = win32gui.NIM_ADD
+        msg = win32gui.NIM_MODIFY if self._nid else win32gui.NIM_ADD
         self._nid = (self.hwnd, 0, flags, win32con.WM_USER + 20, hicon, tooltip)
         try:
             win32gui.Shell_NotifyIcon(msg, self._nid)
@@ -398,19 +411,31 @@ def _get_kind_str(kind):
     }.get(kind, str(kind))
 
 
-def _get_selected_menu_item(id, menu):
+def _get_selected_menu_item(id: int, menu: Menu) -> None | MenuItem:  # noqa: A002
+    """Recursively search for a menu item by ID in the menu and its submenus.
+
+    Args:
+        id (int): The ID of the menu item to search for.
+        menu (Menu): The menu to search in.
+
+    Returns:
+        None | MenuItem: The found menu item or None if not found.
+    """
     if id in menu._menuitems:
         return menu._menuitems[id]
-    else:
-        for item in menu.MenuItems:
-            if item.subMenu:
-                item = _get_selected_menu_item(id, item.subMenu)
-                if item:
-                    return item
+
+    for item in menu.MenuItems:
+        if not item.subMenu:
+            continue
+        item = _get_selected_menu_item(id, item.subMenu)
+        if item:
+            return item
+
+    return None
 
 
 def main():
-    app = wx.App(0)
+    _app = wx.App(0)
     hinst = win32gui.GetModuleHandle(None)
     try:
         hicon = win32gui.LoadImage(

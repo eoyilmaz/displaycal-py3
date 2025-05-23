@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Diverse color mathematical functions.
+"""Diverse color mathematical functions.
 
 Note:
 
@@ -8,11 +6,30 @@ In most cases, unless otherwise stated RGB is R'G'B' (gamma-compressed)
 
 """
 
+from __future__ import annotations
+
 import colorsys
 import logging
 import math
 import sys
 import warnings
+from typing import overload
+
+import numpy
+
+from DisplayCAL.debughelpers import DEBUG
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+
+logger = logging.getLogger(__name__)
+if DEBUG:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 
 def get_transfer_function_phi(alpha, gamma):
@@ -50,10 +67,9 @@ def specialpow(a, b, slope_limit=0):
             if slope_limit:
                 return min(-math.pow(-a, b), a / slope_limit)
             return -math.pow(-a, b)
-        else:
-            if slope_limit:
-                return max(math.pow(a, b), a / slope_limit)
-            return math.pow(a, b)
+        if slope_limit:
+            return max(math.pow(a, b), a / slope_limit)
+        return math.pow(a, b)
     if a < 0.0:
         signScale = -1.0
         a = -a
@@ -73,10 +89,7 @@ def specialpow(a, b, slope_limit=0):
             v = 1.1115 * math.pow(a, 0.45) - 0.1115
     elif b == 1.0 / -3.0:
         # XYZ -> RGB, L* TRC
-        if a <= LSTAR_E:
-            v = 0.01 * a * LSTAR_K
-        else:
-            v = 1.16 * math.pow(a, 1.0 / 3.0) - 0.16
+        v = 0.01 * a * LSTAR_K if a <= LSTAR_E else 1.16 * math.pow(a, 1.0 / 3.0) - 0.16
     elif b == 1.0 / -2.4:
         # XYZ -> RGB, sRGB TRC
         if a <= SRGB_K0 / SRGB_P:
@@ -90,28 +103,21 @@ def specialpow(a, b, slope_limit=0):
         ) ** SMPTE2084_M2
     elif b == -2.4:
         # RGB -> XYZ, sRGB TRC
-        if a <= SRGB_K0:
-            v = a / SRGB_P
-        else:
-            v = math.pow((a + 0.055) / 1.055, 2.4)
+        v = a / SRGB_P if a <= SRGB_K0 else math.pow((a + 0.055) / 1.055, 2.4)
     elif b == -3.0:
         # RGB -> XYZ, L* TRC
-        if a <= 0.08:  # E * K * 0.01
-            v = 100.0 * a / LSTAR_K
-        else:
-            v = math.pow((a + 0.16) / 1.16, 3.0)
+        # E * K * 0.01
+        v = 100.0 * a / LSTAR_K if a <= 0.08 else math.pow((a + 0.16) / 1.16, 3.0)
     elif b == -240:
         # RGB -> XYZ, SMPTE 240M TRC
-        if a < SMPTE240M_K0:
-            v = a / SMPTE240M_P
-        else:
-            v = math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
+        v = (
+            a / SMPTE240M_P
+            if a < SMPTE240M_K0
+            else math.pow((0.1115 + a) / 1.1115, 1.0 / 0.45)
+        )
     elif b in (-601, -709):
         # RGB -> XYZ, Rec. 601/709 TRC
-        if a < REC709_K0:
-            v = a / REC709_P
-        else:
-            v = math.pow((a + 0.099) / 1.099, 1.0 / 0.45)
+        v = a / REC709_P if a < REC709_K0 else math.pow((a + 0.099) / 1.099, 1.0 / 0.45)
     elif b == -2084:
         # RGB -> XYZ, SMPTE 2084 (PQ)
         # See https://www.smpte.org/sites/default/files/2014-05-06-EOTF-Miller-1-2-handout.pdf
@@ -120,7 +126,7 @@ def specialpow(a, b, slope_limit=0):
             / (SMPTE2084_C2 - SMPTE2084_C3 * a ** (1.0 / SMPTE2084_M2))
         ) ** (1.0 / SMPTE2084_M1)
     else:
-        raise ValueError("Invalid gamma %r" % b)
+        raise ValueError(f"Invalid gamma {b!r}")
     return v * signScale
 
 
@@ -147,32 +153,31 @@ def DICOM(j, inverse=False):
             + H * math.pow(log10Y, 7)
             + I * math.pow(log10Y, 8)
         )
-    else:
-        logj = math.log(j)
-        a = -1.3011877
-        b = -2.5840191e-2
-        c = 8.0242636e-2
-        d = -1.0320229e-1
-        e = 1.3646699e-1
-        f = 2.8745620e-2
-        g = -2.5468404e-2
-        h = -3.1978977e-3
-        k = 1.2992634e-4
-        m = 1.3635334e-3
-        return (
-            a
-            + c * logj
-            + e * math.pow(logj, 2)
-            + g * math.pow(logj, 3)
-            + m * math.pow(logj, 4)
-        ) / (
-            1
-            + b * logj
-            + d * math.pow(logj, 2)
-            + f * math.pow(logj, 3)
-            + h * math.pow(logj, 4)
-            + k * math.pow(logj, 5)
-        )
+    logj = math.log(j)
+    a = -1.3011877
+    b = -2.5840191e-2
+    c = 8.0242636e-2
+    d = -1.0320229e-1
+    e = 1.3646699e-1
+    f = 2.8745620e-2
+    g = -2.5468404e-2
+    h = -3.1978977e-3
+    k = 1.2992634e-4
+    m = 1.3635334e-3
+    return (
+        a
+        + c * logj
+        + e * math.pow(logj, 2)
+        + g * math.pow(logj, 3)
+        + m * math.pow(logj, 4)
+    ) / (
+        1
+        + b * logj
+        + d * math.pow(logj, 2)
+        + f * math.pow(logj, 3)
+        + h * math.pow(logj, 4)
+        + k * math.pow(logj, 5)
+    )
 
 
 class HLG:
@@ -230,10 +235,7 @@ class HLG:
                 v = (math.exp((v - c) / a) + b) / 12.0
         else:
             # Relative scene linear light to non-linear HLG signal
-            if 0 <= v <= 1 / 12.0:
-                v = math.sqrt(3 * v)
-            else:
-                v = a * math.log(12 * v - b) + c
+            v = math.sqrt(3 * v) if 0 <= v <= 1 / 12.0 else a * math.log(12 * v - b) + c
         return v
 
     def eotf(self, RGB, inverse=False, apply_black_offset=True):
@@ -270,19 +272,13 @@ class HLG:
         Output range 0..1
 
         """
-        if isinstance(RGB, (float, int)):
-            R, G, B = (RGB,) * 3
-        else:
-            R, G, B = RGB
-        if apply_black_offset:
-            black_cdm2 = float(self.black_cdm2)
-        else:
-            black_cdm2 = 0
+        R, G, B = (RGB,) * 3 if isinstance(RGB, (float, int)) else RGB
+        black_cdm2 = float(self.black_cdm2) if apply_black_offset else 0
         alpha = (self.white_cdm2 - black_cdm2) / self.white_cdm2
         beta = black_cdm2 / self.white_cdm2
         Y = 0.2627 * R + 0.6780 * G + 0.0593 * B
         if inverse:
-            if Y > beta:
+            if beta < Y:
                 R, G, B = (
                     ((Y - beta) / alpha) ** ((1 - self.gamma) / self.gamma)
                     * ((v - beta) / alpha)
@@ -327,15 +323,6 @@ class HLG:
 
 
 rgb_spaces = {
-    # http://brucelindbloom.com/WorkingSpaceInfo.html
-    # ACES: https://github.com/ampas/aces-dev/blob/master/docs/ACES_1.0.1.pdf?raw=true
-    # Adobe RGB: http://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
-    # DCI P3: http://www.hp.com/united-states/campaigns/workstations/pdfs/lp2480zx-dci--p3-emulation.pdf
-    #         http://dcimovies.com/specification/DCI_DCSS_v12_with_errata_2012-1010.pdf
-    # Rec. 2020: http://en.wikipedia.org/wiki/Rec._2020
-    #
-    # name              gamma             white                     primaries
-    #                                     point                     Rx      Ry      RY          Gx      Gy      GY          Bx      By      BY
     "ACES": (
         1.0,
         (0.95265, 1.0, 1.00883),
@@ -399,7 +386,13 @@ rgb_spaces = {
         (0.2950, 0.6050, 0.658132),
         (0.1500, 0.0750, 0.066985),
     ),
-    # "DCDM X'Y'Z'":      (2.6,             "E",                     (1.0000, 0.0000, 0.000000), (0.0000, 1.0000, 1.000000), (0.0000, 0.0000, 0.000000)),
+    # "DCDM X'Y'Z'": (
+    #     2.6,
+    #     "E",
+    #     (1.0000, 0.0000, 0.000000),
+    #     (0.0000, 1.0000, 1.000000),
+    #     (0.0000, 0.0000, 0.000000)
+    # ),
     "DCI P3": (
         2.6,
         (0.89459, 1.0, 0.95442),
@@ -506,6 +499,17 @@ rgb_spaces = {
         (0.1570, 0.0180, 0.016875),
     ),
 }
+"""
+http://brucelindbloom.com/WorkingSpaceInfo.html
+ACES: https://github.com/ampas/aces-dev/blob/master/docs/ACES_1.0.1.pdf?raw=true
+Adobe RGB: http://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+DCI P3: http://www.hp.com/united-states/campaigns/workstations/pdfs/lp2480zx-dci--p3-emulation.pdf
+        http://dcimovies.com/specification/DCI_DCSS_v12_with_errata_2012-1010.pdf
+Rec. 2020: http://en.wikipedia.org/wiki/Rec._2020
+
+name              gamma             white                     primaries
+                                    point                     Rx      Ry      RY          Gx      Gy      GY          Bx      By      BY
+"""  # noqa: E501
 
 
 def get_cat_matrix(cat="Bradford"):
@@ -694,7 +698,6 @@ def blend_blackpoint(
     for input black first
 
     """
-
     wp = get_whitepoint(wp)
 
     for i, bp in enumerate((bp_in, bp_out)):
@@ -719,28 +722,24 @@ def interp_old(x, xp, fp, left=None, right=None):
 
     """
     if not isinstance(x, (int, float, complex)):
-        yi = []
-        for n in x:
-            yi.append(interp_old(n, xp, fp, left, right))
-        return yi
+        return [interp_old(n, xp, fp, left, right) for n in x]
     if x in xp:
         return fp[xp.index(x)]
-    elif x < xp[0]:
+    if x < xp[0]:
         return fp[0] if left is None else left
-    elif x > xp[-1]:
+    if x > xp[-1]:
         return fp[-1] if right is None else right
-    else:
-        # Interpolate
-        lower = 0
-        higher = len(fp) - 1
-        for i, v in enumerate(xp):
-            if v < x and i > lower:
-                lower = i
-            elif v > x and i < higher:
-                higher = i
-        step = float(x - xp[lower])
-        steps = (xp[higher] - xp[lower]) / step
-        return fp[lower] + (fp[higher] - fp[lower]) / steps
+    # Interpolate
+    lower = 0
+    higher = len(fp) - 1
+    for i, v in enumerate(xp):
+        if v < x and i > lower:
+            lower = i
+        elif v > x and i < higher:
+            higher = i
+    step = float(x - xp[lower])
+    steps = (xp[higher] - xp[lower]) / step
+    return fp[lower] + (fp[higher] - fp[lower]) / steps
 
 
 # This is much faster than the old implementation
@@ -754,35 +753,45 @@ def interp(x, xp, fp, left=None, right=None, period=None):
     # TODO: This function overrides the class implementation (Interp) and forces to use
     #       numpy.interp all the time, and it is kind of rude in that manner.
     #       Please respect the previous implementation, but use nump.interp again.
-    import numpy
-
     return numpy.interp(x, xp, fp, left, right, period)
 
 
 def interp_resize(iterable, new_size, use_numpy=False):
-    """Change size of iterable through linear interpolation"""
-    result = []
-    x_new = list(range(len(iterable)))
-    # interp = Interp(x_new, iterable, use_numpy=use_numpy)
-    for i in range(new_size):
-        result.append(
-            interp(
-                i / (new_size - 1.0) * (len(iterable) - 1.0),
-                x_new,
-                iterable,
-            )
+    """Change size of iterable through linear interpolation.
+
+    Args:
+        iterable (list): A list of float values.
+        new_size (int): New size of the list
+        use_numpy (bool): Use numpy for interpolation. Defaults to False.
+
+    Returns:
+        list: Interpolated values.
+    """
+    # interp = Interp(list(range(len(iterable))), iterable, use_numpy=use_numpy)
+    return [
+        interp(
+            i / (new_size - 1.0) * (len(iterable) - 1.0),
+            list(range(len(iterable))),
+            iterable,
         )
-    return result
+        for i in range(new_size)
+    ]
 
 
 def interp_fill(xp, fp, new_size, use_numpy=False):
-    """Fill missing points by interpolation"""
-    result = []
-    last = xp[-1]
+    """Fill missing points by interpolation.
+
+    Args:
+        xp (list): X values
+        fp (list): Y values
+        new_size (int): New size of the list
+        use_numpy (bool): Use numpy for interpolation. Defaults to False.
+
+    Returns:
+        list: Interpolated values.
+    """
     # interp = Interp(xp, fp, use_numpy=use_numpy)
-    for i in range(new_size):
-        result.append(interp(i / (new_size - 1.0) * last, xp, fp))
-    return result
+    return [interp(i / (new_size - 1.0) * xp[-1], xp, fp) for i in range(new_size)]
 
 
 def smooth_avg_old(values, passes=1, window=None, protect=None):
@@ -799,12 +808,13 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
     if not window or len(window) < 3 or len(window) % 2 != 1:
         if window:
             warnings.warn(
-                "Invalid window %r, size %i - using default (1, 1, 1)"
-                % (window, len(window)),
+                f"Invalid window {window!r}, size {len(window)} "
+                "- using default (1, 1, 1)",
                 Warning,
+                stacklevel=2,
             )
         window = (1.0, 1.0, 1.0)
-    for _x in range(0, passes):
+    for _x in range(passes):
         data = []
         for j, v in enumerate(values):
             tmp_window = window
@@ -819,8 +829,7 @@ def smooth_avg_old(values, passes=1, window=None, protect=None):
                             windowsize += float(weight) * windowslice[k]
                         v = windowsize / sum(tmp_window)
                         break
-                    else:
-                        tmp_window = tmp_window[1:-1]
+                    tmp_window = tmp_window[1:-1]
             data.append(v)
         values = data
     return values
@@ -843,9 +852,10 @@ def smooth_avg(values, passes=1, window=None, protect=None):
     if not window or len(window) < 3 or len(window) % 2 != 1:
         if window:
             warnings.warn(
-                "Invalid window %r, size %i - using default (1, 1, 1)"
-                % (window, len(window)),
+                f"Invalid window {window!r}, size {len(window)} "
+                "- using default (1, 1, 1)",
                 Warning,
+                stacklevel=2,
             )
         window = (1, 1, 1)
     # fix the window values
@@ -870,9 +880,7 @@ def smooth_avg(values, passes=1, window=None, protect=None):
             # offset the values with ``extend_amount``
             protected_values[index + extend_amount] = values[index + extend_amount]
 
-    import numpy
-
-    for i in range(passes):
+    for _ in range(passes):
         values = list(numpy.convolve(values, window, mode="same"))
         # Protect start and end values
         values[: extend_amount + protection_extension] = protected_start
@@ -961,10 +969,7 @@ def delta(
                   weighting factor (all three default to 1 if not set)
 
     """
-    if isinstance(method, str):
-        method = method.lower()
-    else:
-        method = str(int(method))
+    method = method.lower() if isinstance(method, str) else str(int(method))
     if method in ("94", "1994", "cie94", "cie1994"):
         textiles = p1
         dL = L2 - L1
@@ -976,10 +981,7 @@ def delta(
         SL = 1.0
         K1 = 0.048 if textiles else 0.045
         K2 = 0.014 if textiles else 0.015
-        if cie94_use_symmetric_chrominance:
-            C_ = math.sqrt(C1 * C2)
-        else:
-            C_ = C1
+        C_ = math.sqrt(C1 * C2) if cie94_use_symmetric_chrominance else C1
         SC = 1.0 + K1 * C_
         SH = 1.0 + K2 * C_
         KL = 2.0 if textiles else 1.0
@@ -1135,8 +1137,8 @@ def XYZ2Lab_delta(
         X2, Y2, Z2 = adapt(X2, Y2, Z2, whitepoint2, whitepoint_reference, cat)
     L1, a1, b1 = XYZ2Lab(X1, Y1, Z1, whitepoint_reference)
     L2, a2, b2 = XYZ2Lab(X2, Y2, Z2, whitepoint_reference)
-    logging.debug(
-        "L*a*b*[1] %.4f %.4f %.4f L*a*b*[2] %.4f %.4f %.4f" % (L1, a1, b1, L2, a2, b2)
+    logger.debug(
+        f"L*a*b*[1] {L1:.4f} {a1:.4f} {b1:.4f} L*a*b*[2] {L2:.4f} {a2:.4f} {b2:.4f}"
     )
     return delta(L1, a1, b1, L2, a2, b2, method)
 
@@ -1205,7 +1207,7 @@ def four_color_matrix(
     if Y_correction:
         # The Y calibration factor kY is obtained as the ratio of the reference
         # luminance value to the matrix-corrected Y value, as defined in
-        # Four-Color Matrix Method for Correction of Tristimulus Colorimeters –
+        # Four-Color Matrix Method for Correction of Tristimulus Colorimeters -
         # Part 2
         MW = XmW, YmW, ZmW
         kY = YrW / (R * MW)[1]
@@ -1236,12 +1238,10 @@ def get_gamma(values, scale=1.0, vmin=0.0, vmax=1.0, average=True, least_squares
             if not logxy or not logx2:
                 return 0
             return sum(logxy) / sum(logx2)
-        else:
-            if not gammas:
-                return 0
-            return sum(gammas) / len(gammas)
-    else:
-        return gammas
+        if not gammas:
+            return 0
+        return sum(gammas) / len(gammas)
+    return gammas
 
 
 def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
@@ -1249,7 +1249,7 @@ def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
     adaption matrix as found in an ICC profile's 'chad' tag"""
     if chad == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]:
         # Cannot figure out CAT from identity chad
-        return
+        return None
     for cat in cat_matrices:
         if is_similar_matrix(
             (
@@ -1261,6 +1261,7 @@ def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
             2,
         ):
             return cat
+    return None
 
 
 def CIEDCCT2xyY(T, scale=1.0):
@@ -1280,7 +1281,11 @@ def CIEDCCT2xyY(T, scale=1.0):
         return None
     if T < 4000:
         # Only accurate down to about 4000
-        warnings.warn("Daylight CCT is only accurate down to about 4000 K", Warning)
+        warnings.warn(
+            "Daylight CCT is only accurate down to about 4000 K",
+            Warning,
+            stacklevel=2,
+        )
     if T <= 7000:
         xD = (
             ((-4.607 * math.pow(10, 9)) / math.pow(T, 3))
@@ -1306,8 +1311,7 @@ def CIEDCCT2XYZ(T, scale=1.0):
 
     """
     xyY = CIEDCCT2xyY(T, scale)
-    if xyY:
-        return xyY2XYZ(*xyY)
+    return xyY2XYZ(*xyY) if xyY else None
 
 
 # cLUT Input value tweaks to make Video encoded black land on
@@ -1316,15 +1320,13 @@ def cLUT65_to_VidRGB(v, size=65):
     if v <= 236.0 / 256:
         # Scale up to near black point
         return v * 256.0 / 255
-    else:
-        return 1 - (1 - v) * (1 - 236.0 / 255) / (1 - 236.0 / 256)
+    return 1 - (1 - v) * (1 - 236.0 / 255) / (1 - 236.0 / 256)
 
 
 def VidRGB_to_cLUT65(v, size=65):
     if v <= 236.0 / 255.0:
         return v * 255.0 / 256
-    else:
-        return 1 - (1 - v) * (1 - 236.0 / 256) / (1 - 236.0 / 255)
+    return 1 - (1 - v) * (1 - 236.0 / 256) / (1 - 236.0 / 255)
 
 
 def VidRGB_to_eeColor(v):
@@ -1418,19 +1420,15 @@ def DIN99familyCH2DIN99ab(C99, H99):
 def DIN99familyab2DIN99CH(a99, b99):
     C99 = math.sqrt(math.pow(a99, 2) + math.pow(b99, 2))
     if a99 > 0:
-        if b99 >= 0:
-            h99ef = math.atan2(b99, a99)
-        else:
-            h99ef = 2 * math.pi + math.atan2(b99, a99)
+        h99ef = math.atan2(b99, a99) if b99 >= 0 else 2 * math.pi + math.atan2(b99, a99)
     elif a99 < 0:
         h99ef = math.atan2(b99, a99)
+    elif b99 > 0:
+        h99ef = math.pi / 2
+    elif b99 < 0:
+        h99ef = (3 * math.pi) / 2
     else:
-        if b99 > 0:
-            h99ef = math.pi / 2
-        elif b99 < 0:
-            h99ef = (3 * math.pi) / 2
-        else:
-            h99ef = 0.0
+        h99ef = 0.0
     H99 = h99ef * 180 / math.pi
     return C99, H99
 
@@ -1630,15 +1628,12 @@ def Lab2XYZ(L, a, b, whitepoint=None, scale=1.0):
     else:
         xr = (116.0 * fx - 16) / LSTAR_K
 
-    if L > LSTAR_K * LSTAR_E:
-        yr = math.pow((L + 16) / 116.0, 3.0)
-    else:
-        yr = L / LSTAR_K
-
-    if math.pow(fz, 3.0) > LSTAR_E:
-        zr = math.pow(fz, 3.0)
-    else:
-        zr = (116.0 * fz - 16) / LSTAR_K
+    yr = math.pow((L + 16) / 116.0, 3.0) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
+    zr = (
+        math.pow(fz, 3.0)
+        if math.pow(fz, 3.0) > LSTAR_E
+        else (116.0 * fz - 16) / LSTAR_K
+    )
 
     Xr, Yr, Zr = get_whitepoint(whitepoint, scale)
 
@@ -1672,7 +1667,6 @@ def Luv2RGB(
 
 def u_v_2xy(u, v):
     """Convert from u'v' to xy"""
-
     x = (9.0 * u) / (6 * u - 16 * v + 12)
     y = (4 * v) / (6 * u - 16 * v + 12)
 
@@ -1681,7 +1675,6 @@ def u_v_2xy(u, v):
 
 def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
     """Convert from Luv to XYZ"""
-
     Xr, Yr, Zr = get_whitepoint(whitepoint)
 
     Y = math.pow((L + 16.0) / 116.0, 3) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
@@ -1702,10 +1695,7 @@ def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
 
 def RGB2HSI(R, G, B, scale=1.0):
     I = (R + G + B) / 3.0
-    if I:
-        S = 1 - min(R, G, B) / I
-    else:
-        S = 0
+    S = 1 - min(R, G, B) / I if I else 0
     if not R == G == B:
         H = math.atan2(math.sqrt(3) * (G - B), 2 * R - G - B) / math.pi / 2
         if H < 0:
@@ -1832,10 +1822,7 @@ def RGB2XYZ(R, G, B, rgb_space=None, scale=1.0, eotf=None):
     RGB = [R, G, B]
     is_trc = isinstance(trc, (list, tuple))
     for i, v in enumerate(RGB):
-        if is_trc:
-            gamma = trc[i]
-        else:
-            gamma = trc
+        gamma = trc[i] if is_trc else trc
         if eotf:
             RGB[i] = eotf(v)
         elif isinstance(gamma, (list, tuple)):
@@ -1870,10 +1857,7 @@ def RGB2YPbPr_matrix(rgb_space="NTSC 1953"):
     (trc, whitepoint, (rx, ry, rY), (gx, gy, gY), (bx, by, bY), matrix) = get_rgb_space(
         rgb_space
     )
-    if matrix == get_rgb_space("NTSC 1953")[-1]:
-        ndigits = 3
-    else:
-        ndigits = 4
+    ndigits = 3 if matrix == get_rgb_space("NTSC 1953")[-1] else 4
     KR = round((matrix * (1, 0, 0))[1], ndigits)
     KB = round((matrix * (0, 0, 1))[1], ndigits)
     KG = 1.0 - KR - KB
@@ -2024,6 +2008,7 @@ def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
             continue
         if get_rgb_space_primaries_wp_xy(rgb_space_name, digits)[: len(xy)] == xy:
             return rgb_space_name
+    return None
 
 
 def get_rgb_space(rgb_space=None, scale=1.0):
@@ -2076,7 +2061,7 @@ def get_standard_illuminant(
     illuminant = None
     for standard_name in priority:
         if standard_name not in standard_illuminants:
-            raise ValueError('Unrecognized standard "%s"' % standard_name)
+            raise ValueError(f'Unrecognized standard "{standard_name}"')
         illuminant = standard_illuminants.get(standard_name).get(
             illuminant_name.upper(), None
         )
@@ -2084,7 +2069,7 @@ def get_standard_illuminant(
             illuminant = illuminant["X"] * scale, 1.0 * scale, illuminant["Z"] * scale
             get_standard_illuminant.cache[cachehash] = illuminant
             return illuminant
-    raise ValueError('Unrecognized illuminant "%s"' % illuminant_name)
+    raise ValueError(f'Unrecognized illuminant "{illuminant_name}"')
 
 
 get_standard_illuminant.cache = {}
@@ -2107,13 +2092,13 @@ def get_whitepoint(whitepoint=None, scale=1.0, planckian=False):
             whitepoint = planckianCT2XYZ(cct)
             if not whitepoint:
                 raise ValueError(
-                    "Planckian color temperature %s out of range (1667, 25000)" % cct
+                    f"Planckian color temperature {cct} out of range (1667, 25000)"
                 )
         else:
             whitepoint = CIEDCCT2XYZ(cct)
             if not whitepoint:
                 raise ValueError(
-                    "Daylight color temperature %s out of range (2500, 25000)" % cct
+                    f"Daylight color temperature {cct} out of range (2500, 25000)"
                 )
     if scale > 1.0 and whitepoint[1] == 100:
         scale = 1.0
@@ -2139,10 +2124,7 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
         keys = list(iterable.keys())
         values = list(iterable.values())
     else:
-        if hasattr(iterable, "next"):
-            values = list(iterable)
-        else:
-            values = iterable
+        values = list(iterable) if hasattr(iterable, "next") else iterable
         keys = range(len(values))
     if passes:
         values = smooth_avg(values, passes, window)
@@ -2168,8 +2150,7 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
 
 
 def matmul(XYZ, m1, m2):
-    XYZ = m1 * (m2 * XYZ)
-    return XYZ
+    return m1 * (m2 * XYZ)
 
 
 def planckianCT2XYZ(T, scale=1.0):
@@ -2179,8 +2160,7 @@ def planckianCT2XYZ(T, scale=1.0):
 
     """
     xyY = planckianCT2xyY(T, scale)
-    if xyY:
-        return xyY2XYZ(*xyY)
+    return xyY2XYZ(*xyY) if xyY else None
 
 
 def planckianCT2xyY(T, scale=1.0):
@@ -2271,10 +2251,9 @@ def xyY2XYZ(x, y, Y=1.0):
 
 
 def LERP(a, b, c):
-    """LERP(a,b,c) = linear interpolation macro.
+    """Linear interpolation macro.
 
     Is 'a' when c == 0.0 and 'b' when c == 1.0
-
     """
     return (b - a) * c + a
 
@@ -2385,7 +2364,7 @@ def XYZ2CCT(X, Y, Z):
     dm = dm / math.sqrt(1.0 + uvt[i - 1][2] * uvt[i - 1][2])
     p = dm / (dm - di)  # p = interpolation parameter, 0.0 : i-1, 1.0 : i
     p = 1.0 / (LERP(rt[i - 1], rt[i], p))
-    return p
+    return p  # noqa: RET504
 
 
 def XYZ2DIN99(X, Y, Z, whitepoint=None):
@@ -2583,7 +2562,6 @@ def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
 
 def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
     """Convert from XYZ to CIE Lu'v'"""
-
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -2604,7 +2582,6 @@ def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
 
 def XYZ2Luv(X, Y, Z, whitepoint=None):
     """Convert from XYZ to Luv"""
-
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -2668,10 +2645,7 @@ def XYZ2RGB(X, Y, Z, rgb_space=None, scale=1.0, round_=False, clamp=True, oetf=N
     RGB = matrix.inverted() * [X, Y, Z]
     is_trc = isinstance(trc, (list, tuple))
     for i, v in enumerate(RGB):
-        if is_trc:
-            gamma = trc[i]
-        else:
-            gamma = trc
+        gamma = trc[i] if is_trc else trc
         if clamp:
             v = min(1.0, max(0.0, v))
         if oetf:
@@ -2730,10 +2704,9 @@ def xy_CCT_delta(x, y, daylight=True, method=2000):
             # Daylight locus
             if 2500 <= cct <= 25000:
                 locus = CIEDCCT2XYZ(cct, 100.0)
-        else:
-            # Planckian locus
-            if 1667 <= cct <= 25000:
-                locus = planckianCT2XYZ(cct, 100.0)
+        # Planckian locus
+        elif 1667 <= cct <= 25000:
+            locus = planckianCT2XYZ(cct, 100.0)
         if locus:
             L2, a2, b2 = xyY2Lab(x, y, 100.0, locus)
             d = delta(L2, 0, 0, L2, a2, b2, method)
@@ -2749,10 +2722,8 @@ def dmatrixz(nrl, nrh, ncl, nch):
     # nch  # Col high index
     m = {}
 
-    if nrh < nrl:  # Prevent failure for 0 dimension
-        nrh = nrl
-    if nch < ncl:
-        nch = ncl
+    nrh = max(nrh, nrl)  # Prevent failure for 0 dimension
+    nch = max(nch, ncl)
 
     rows = nrh - nrl + 1
     cols = nch - ncl + 1
@@ -2775,7 +2746,7 @@ def dvector(nl, nh):
 
 def gam_fit(gf, v):
     # Adapted from ArgyllCMS xicc/xicc.c
-    """gamma + input offset function handed to powell()"""
+    """Gamma + input offset function handed to powell()"""
     gamma = v[0]
     rv = 0.0
 
@@ -2798,12 +2769,11 @@ def gam_fit(gf, v):
 
 
 def linmin(cp, xi, di, ftol, func, fdata):
-    # Adapted from ArgyllCMS numlib/powell.c
+    """Line bracketing and minimisation routine.
 
-    """
-    Line bracketing and minimisation routine.
     Return value at minimum.
 
+    Adapted from ArgyllCMS numlib/powell.c
     """
     POWELL_GOLD = 1.618034
     POWELL_CGOLD = 0.3819660
@@ -2819,15 +2789,12 @@ def linmin(cp, xi, di, ftol, func, fdata):
     # xt, XT  # Trial point
     XT = {}
 
-    if di <= 10:
-        xt = XT
-    else:
-        xt = dvector(0, di - 1)  # Vector for trial point
+    xt = XT if di <= 10 else dvector(0, di - 1)  # Vector for trial point
 
     # --------------------------
     # First bracket the solution
 
-    logging.debug("linmin: Bracketing solution")
+    logger.debug("linmin: Bracketing solution")
 
     # The line is measured as startpoint + offset * search vector.
     # (Search isn't symetric, but it seems to depend on cp being
@@ -2843,7 +2810,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xt[i] = cp[i] + xx * xi[i]
     xf = func(fdata, xt)
 
-    logging.debug("linmin: Initial points a:%f:%f -> b:%f:%f" % (ax, af, xx, xf))
+    logger.debug(f"linmin: Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     # Fix it so that we are decreasing from point a -> x
     if xf > af:
@@ -2854,23 +2821,21 @@ def linmin(cp, xi, di, ftol, func, fdata):
         af = xf
         xf = tt
 
-    logging.debug(
-        "linmin: Ordered Initial points a:%f:%f -> b:%f:%f" % (ax, af, xx, xf)
-    )
+    logger.debug(f"linmin: Ordered Initial points a:{ax:f}:{af:f} -> b:{xx:f}:{xf:f}")
 
     bx = xx + POWELL_GOLD * (xx - ax)  # Guess b beyond a -> x
     for i in range(di):
         xt[i] = cp[i] + bx * xi[i]
     bf = func(fdata, xt)
 
-    logging.debug(
-        "linmin: Initial bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
+    logger.debug(
+        f"linmin: Initial bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
     )
 
     # While not bracketed
     while xf > bf:
-        logging.debug("linmin: Not bracketed because xf %f > bf %f" % (xf, bf))
-        logging.debug("        ax = %f, xx = %f, bx = %f" % (ax, xx, bx))
+        logger.debug(f"linmin: Not bracketed because xf {xf:f} > bf {bf:f}")
+        logger.debug(f"        ax = {ax:f}, xx = {xx:f}, bx = {bx:f}")
 
         # Compute ux by parabolic interpolation from a, x & b
         q = (xx - bx) * (xf - af)
@@ -2894,7 +2859,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 xx = ux
                 xf = uf
                 break
-            elif uf > xf:  # Minimum is between a and u
+            if uf > xf:  # Minimum is between a and u
                 bx = ux
                 bf = uf
                 break
@@ -2935,9 +2900,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
         xf = bf
         bx = ux
         bf = uf
-    logging.debug(
-        "linmin: Got bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
-    )
+    logger.debug(f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}")
     # Got bracketed minimum between a -> x -> b
 
     # ---------------------------------------
@@ -2975,15 +2938,15 @@ def linmin(cp, xi, di, ftol, func, fdata):
             tol1 = ftol * abs(xx) + 1e-10
             tol2 = 2.0 * tol1
 
-            logging.debug(
-                "linmin: Got bracket a:%f:%f x:%f:%f b:%f:%f" % (ax, af, xx, xf, bx, bf)
+            logger.debug(
+                f"linmin: Got bracket a:{ax:f}:{af:f} x:{xx:f}:{xf:f} b:{bx:f}:{bf:f}"
             )
 
             # See if we're done
             if abs(xx - mx) <= (tol2 - 0.5 * (bx - ax)):
-                logging.debug(
-                    "linmin: We're done because %f <= %f"
-                    % (abs(xx - mx), tol2 - 0.5 * (bx - ax))
+                logger.debug(
+                    "linmin: We're done because "
+                    f"{abs(xx - mx):f} <= {tol2 - 0.5 * (bx - ax):f}"
                 )
                 break
 
@@ -2999,7 +2962,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 te = e  # Save previous e value
                 e = de  # Previous steps distance moved
 
-                logging.debug("linmin: Trial parabolic fit")
+                logger.debug("linmin: Trial parabolic fit")
 
                 if (
                     abs(p) >= abs(0.5 * q * te)
@@ -3011,31 +2974,28 @@ def linmin(cp, xi, di, ftol, func, fdata):
                         ax - xx if xx >= mx else bx - xx
                     )  # Override previous distance moved */
                     de = POWELL_CGOLD * e
-                    logging.debug("linmin: Moving to golden section search")
+                    logger.debug("linmin: Moving to golden section search")
                 else:  # Use parabolic fit
                     de = p / q  # Change in xb
                     ux = xx + de  # Trial point according to parabolic fit
                     if (ux - ax) < tol2 or (bx - ux) < tol2:
-                        if (mx - xx) > 0.0:  # Don't use parabolic, use tol1
-                            de = tol1  # tol1 is +ve
-                        else:
-                            de = -tol1
-                    logging.debug("linmin: Using parabolic fit")
+                        # Don't use parabolic, use tol1 if (mx - xx) > 0.0: tol1 is +ve
+                        de = tol1 if (mx - xx) > 0.0 else -tol1
+                    logger.debug("linmin: Using parabolic fit")
             else:  # Keep using the golden section search
                 e = ax - xx if xx >= mx else bx - xx  # Override previous distance moved
                 de = POWELL_CGOLD * e
-                logging.debug("linmin: Continuing golden section search")
+                logger.debug("linmin: Continuing golden section search")
 
             if abs(de) >= tol1:  # If de moves as much as tol1 would
                 ux = xx + de  # use it
-                logging.debug("linmin: ux = %f = xx %f + de %f" % (ux, xx, de))
-            else:  # else move by tol1 in direction de
-                if de > 0.0:
-                    ux = xx + tol1
-                    logging.debug("linmin: ux = %f = xx %f + tol1 %f" % (ux, xx, tol1))
-                else:
-                    ux = xx - tol1
-                    logging.debug("linmin: ux = %f = xx %f - tol1 %f" % (ux, xx, tol1))
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} + de {de:f}")
+            elif de > 0.0:
+                ux = xx + tol1
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} + tol1 {tol1:f}")
+            else:
+                ux = xx - tol1
+                logger.debug(f"linmin: ux = {ux:f} = xx {xx:f} - tol1 {tol1:f}")
 
             # Evaluate function
             for i in range(di):
@@ -3055,7 +3015,7 @@ def linmin(cp, xi, di, ftol, func, fdata):
                 wf = xf  # New 2nd best solution from previous best
                 xx = ux
                 xf = uf  # New best solution from latest
-                logging.debug("linmin: found new best solution")
+                logger.debug("linmin: found new best solution")
             else:  # Found a worse solution
                 if ux < xx:
                     ax = ux
@@ -3068,12 +3028,10 @@ def linmin(cp, xi, di, ftol, func, fdata):
                     vf = wf  # New previous 2nd best solution
                     wx = ux
                     wf = uf  # New 2nd best from latest
-                elif (
-                    uf <= vf or vx == xx or vx == wx
-                ):  # New 3rd best, or equal 1st & 2nd
+                elif uf <= vf or vx in [xx, wx]:  # New 3rd best, or equal 1st & 2nd
                     vx = ux
                     vf = uf  # New previous 2nd best from latest
-                logging.debug("linmin: found new worse solution")
+                logger.debug("linmin: found new worse solution")
         # !!! should do something if iter > POWELL_MAXIT !!!!
         # Solution is at xx, xf
 
@@ -3084,14 +3042,14 @@ def linmin(cp, xi, di, ftol, func, fdata):
     return xf
 
 
-def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
-    # Adapted from ArgyllCMS powell.c
+def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None) -> bool:
+    """Standard interface for powell function.
 
-    """
-    Standard interface for powell function
-    return True on sucess, False on failure due to excessive iterions
-    Result will be in cp
+    Adapted from ArgyllCMS `powell.c`.
 
+    Returns:
+        bool: True on sucess, False on failure due to excessive iterions, result
+            will be in cp
     """
     DBL_EPSILON = 2.2204460492503131e-016
     # di  # Dimentionality
@@ -3133,7 +3091,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
     retv = func(fdata, cp)
 
     # Iterate untill we converge on a solution, or give up.
-    for iter in range(1, maxit):
+    for iter_ in range(1, maxit):
         # lretv  # Last function return value
         ibig = 0  # Index of biggest delta
         del_ = 0.0  # Biggest function value decrease
@@ -3143,7 +3101,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
 
         # Loop over all directions in the set
         for i in range(di):
-            logging.debug("Looping over direction %d" % i)
+            logger.debug(f"Looping over direction {i}")
 
             for j in range(di):  # Extract this direction to make search vector
                 svec[j] = dmtx[j][i]
@@ -3152,7 +3110,7 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
             lretv = retv
             retv = linmin(cp, svec, di, ftol, func, fdata)
 
-            # Record bigest function decrease, and dimension it occured on
+            # Record bigest function decrease, and dimension it occurred on
             if abs(lretv - retv) > del_:
                 del_ = abs(lretv - retv)
                 ibig = i
@@ -3181,13 +3139,13 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
 
         # If we have had at least one change of direction and
         # reached a suitable tollerance, then finish
-        if iter > 1 and curdel <= stopth:
-            logging.debug(
-                "Reached stop tollerance because curdel %f <= stopth "
-                "%f" % (curdel, stopth)
+        if iter_ > 1 and curdel <= stopth:
+            logger.debug(
+                f"Reached stop tollerance because curdel {curdel:f} <= stopth "
+                f"{stopth:f}"
             )
             break
-        logging.debug("Not stopping because curdel %f > stopth %f" % (curdel, stopth))
+        logger.debug(f"Not stopping because curdel {curdel:f} > stopth {stopth:f}")
 
         for i in range(di):
             svec[i] = cp[i] - spt[i]  # Average direction moved after minimization round
@@ -3211,22 +3169,19 @@ def powell(di, cp, s, ftol, maxit, func, fdata, prog=None, pdata=None):
     if prog:  # Report final progress
         prog(pdata, 100)
 
-    if iter < maxit:
+    if iter_ < maxit:
         return True
 
-    logging.debug("powell: returning False due to excessive iterations")
+    logger.debug("powell: returning False due to excessive iterations")
     return False  # Failed due to execessive iterations
 
 
 def xicc_tech_gamma(egamma, off, outoffset=0.0):
-    # Adapted from ArgyllCMS xicc.c
+    """Compute technical gamma for correct 50% response.
 
+    Adapted from ArgyllCMS xicc.c
     """
-    Given the effective gamma and the output offset Y,
-    return the technical gamma needed for the correct 50% response.
-
-    """
-    gf = gam_fits()
+    gf = GammaFits()
     op = {}
     sa = {}
 
@@ -3243,13 +3198,13 @@ def xicc_tech_gamma(egamma, off, outoffset=0.0):
     sa[0] = 0.1
 
     if not powell(1, op, sa, 1e-6, 500, gam_fit, gf):
-        logging.warning("Computing effective gamma and input offset is inaccurate")
+        logger.warning("Computing effective gamma and input offset is inaccurate")
 
     return op[0]
 
 
-class gam_fits:
-    # Adapted from ArgyllCMS xicc/xicc.c
+class GammaFits:
+    """Adapted from ArgyllCMS xicc/xicc.c."""
 
     def __init__(self, wp=1.0, thyr=0.2, bp=0.0):
         self.wp = wp  # 100% input target
@@ -3258,14 +3213,13 @@ class gam_fits:
 
 
 class Interp:
+    """Interpolation class."""
+
     def __init__(self, xp, fp, left=None, right=None, use_numpy=False):
         if use_numpy:
             # Use numpy for speed
-            import numpy
-
             xp = numpy.array(xp)
             fp = numpy.array(fp)
-            self.numpy = numpy
         self.xp = xp
         self.fp = fp
         self.left = left
@@ -3280,17 +3234,15 @@ class Interp:
 
     def _interp(self, x):
         if self.use_numpy:
-            import numpy
-
-            return self.numpy.interp(x, self.xp, self.fp, self.left, self.right)
-        else:
-            return interp(x, self.xp, self.fp, self.left, self.right)
+            return numpy.interp(x, self.xp, self.fp, self.left, self.right)
+        return interp(x, self.xp, self.fp, self.left, self.right)
 
 
 class BT1886:
-    # Adapted from ArgyllCMS xicc/xicc.c
+    """BT.1886 like transfer function.
 
-    """BT.1886 like transfer function"""
+    Adapted from ArgyllCMS xicc/xicc.c
+    """
 
     def __init__(self, matrix, XYZbp, outoffset=0.0, gamma=2.4, apply_trc=True):
         """Setup BT.1886 for the given target
@@ -3335,7 +3287,8 @@ class BT1886:
         self.apply_trc = apply_trc
 
     def apply(self, X, Y, Z):
-        """Apply BT.1886 black offset and gamma curve to the XYZ out of the input profile.
+        """Apply BT.1886 black offset + gamma curve to the XYZ out of the input profile.
+
         Do this in the colorspace defined by the input profile matrix lookup,
         so it will be relative XYZ. We assume that BT.1886 does a Rec709 to gamma
         viewing adjustment, on top of any source profile transfer curve
@@ -3343,22 +3296,18 @@ class BT1886:
         Rec709 curve and the output offset pure 2.4 gamma curve)
 
         """
-
-        logging.debug("bt1886 XYZ in %f %f %f" % (X, Y, Z))
+        logger.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
         out = self.bwd_matrix * (X, Y, Z)
 
-        logging.debug("bt1886 RGB in %f %f %f" % (out[0], out[1], out[2]))
+        logger.debug(f"bt1886 RGB in {out[0]:f} {out[1]:f} {out[2]:f}")
 
         for j in range(3):
             vv = out[j]
 
             if self.apply_trc:
                 # Convert linear light to Rec709 transfer curve
-                if vv < 0.018:
-                    vv = 4.5 * vv
-                else:
-                    vv = 1.099 * math.pow(vv, 0.45) - 0.099
+                vv = 4.5 * vv if vv < 0.018 else 1.099 * math.pow(vv, 0.45) - 0.099
 
             # Apply input offset
             vv = vv + self.ingo
@@ -3377,11 +3326,11 @@ class BT1886:
 
         out = self.fwd_matrix * out
 
-        logging.debug("bt1886 RGB bt.1886 %f %f %f" % (out[0], out[1], out[2]))
+        logger.debug(f"bt1886 RGB bt.1886 {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = list(XYZ2Lab(*[v * 100 for v in out]))
 
-        logging.debug("bt1886 Lab after Y adj. %f %f %f" % (out[0], out[1], out[2]))
+        logger.debug(f"bt1886 Lab after Y adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         # Blend ab to required black point offset self.tab[] as L approaches black.
         vv = (out[0] - self.outL) / (100.0 - self.outL)  # 0 at bp, 1 at wp
@@ -3396,11 +3345,11 @@ class BT1886:
         out[1] += vv * self.tab[1]
         out[2] += vv * self.tab[2]
 
-        logging.debug("bt1886 Lab after wp adj. %f %f %f" % (out[0], out[1], out[2]))
+        logger.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
 
         out = Lab2XYZ(*out)
 
-        logging.debug("bt1886 XYZ out %f %f %f" % (out[0], out[1], out[2]))
+        logger.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
 
         return out
 
@@ -3423,7 +3372,6 @@ class BT2390:
         rolled-off highlights)
 
         """
-
         self.black_cdm2 = black_cdm2
         self.white_cdm2 = white_cdm2
         self.master_black_cdm2 = master_black_cdm2
@@ -3536,12 +3484,9 @@ class BT2390:
             # minLum > 0.25, due to a 'dip' in the function. The solution is to
             # adjust the exponent according to minLum. For minLum <= 0.25
             # (< 5.15 cd/m2), this will give the same result as 'pure' BT.2390-3
-            if b >= 0:
-                # Only for positive b i.e. minLum >= LB
-                p = min(1.0 / b, 4)
-            else:
-                # For negative b i.e. minLum < LB
-                p = 4
+            # Only for positive b i.e. minLum >= LB if b >= 0,
+            # otherwise for negative b i.e. minLum < LB
+            p = min(1.0 / b, 4) if b >= 0 else 4
             E3 = E2 + b * (1 - E2) ** p
             # If maxLum < 1, and the input value reaches maxLum, the resulting
             # output value will be higher than maxLum after applying the black
@@ -3566,7 +3511,7 @@ class Matrix3x3(list):
     """Simple 3x3 matrix"""
 
     def __init__(self, matrix=None):
-        super(Matrix3x3, self).__init__()
+        super().__init__()
         if matrix:
             self.update(matrix)
         else:
@@ -3574,14 +3519,14 @@ class Matrix3x3(list):
 
     def update(self, matrix):
         if len(matrix) != 3:
-            raise ValueError("Invalid number of rows for 3x3 matrix: %i" % len(matrix))
+            raise ValueError(f"Invalid number of rows for 3x3 matrix: {len(matrix)}")
         self._reset()
         while len(self):
             self.pop()
         for row in matrix:
             if len(row) != 3:
                 raise ValueError(
-                    "Invalid number of columns for 3x3 matrix: %i" % len(row)
+                    f"Invalid number of columns for 3x3 matrix: {len(row)}"
                 )
             self.append([])
             for column in row:
@@ -3593,7 +3538,15 @@ class Matrix3x3(list):
         self._rounded = {}
         self._applied = {}
 
-    def __add__(self, matrix):
+    def __add__(self, matrix: list | tuple | Matrix3x3) -> Matrix3x3:
+        """Matrix addition.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to add.
+
+        Returns:
+            Matrix3x3: The result of the addition.
+        """
         instance = self.__class__()
         instance.update(
             [
@@ -3616,28 +3569,65 @@ class Matrix3x3(list):
         )
         return instance
 
-    def __iadd__(self, matrix):
+    def __iadd__(self, matrix: list | tuple | Matrix3x3) -> Self:
+        """Matrix addition in place."""
         # inplace
         self.update(self.__add__(matrix))
         return self
 
+    @overload
+    def __imul__(
+        self, matrix: list[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __imul__(
+        self, matrix: tuple[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __imul__(self, matrix: Matrix3x3) -> Self: ...
+
     def __imul__(self, matrix):
+        """Matrix multiplication.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to multiply with.
+        """
         # inplace
         self.update(self.__mul__(matrix))
         return self
 
+    @overload
+    def __mul__(
+        self, matrix: list[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __mul__(
+        self, matrix: tuple[float, float, float]
+    ) -> list[float, float, float]: ...
+
+    @overload
+    def __mul__(self, matrix: Matrix3x3) -> Matrix3x3: ...
+
     def __mul__(self, matrix):
+        """Matrix multiplication.
+
+        Args:
+            matrix (Matrix3x3 or list or tuple): The matrix to multiply with.
+        """
         if not isinstance(matrix[0], (list, tuple)):
             return [
-                matrix[0] * self[0][0]
-                + matrix[1] * self[0][1]
-                + matrix[2] * self[0][2],
-                matrix[0] * self[1][0]
-                + matrix[1] * self[1][1]
-                + matrix[2] * self[1][2],
-                matrix[0] * self[2][0]
-                + matrix[1] * self[2][1]
-                + matrix[2] * self[2][2],
+                self[0][0] * matrix[0]
+                + self[0][1] * matrix[1]
+                + self[0][2] * matrix[2],
+                self[1][0] * matrix[0]
+                + self[1][1] * matrix[1]
+                + self[1][2] * matrix[2],
+                self[2][0] * matrix[0]
+                + self[2][1] * matrix[1]
+                + self[2][2] * matrix[2],
             ]
         instance = self.__class__()
         instance.update(
@@ -3790,8 +3780,17 @@ class Matrix3x3(list):
 
 
 class NumberTuple(tuple):
-    def __repr__(self):
-        return "(%s)" % ", ".join(str(value) for value in self)
+    """Simple tuple with a few extra methods."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        """Return a string representation of the tuple.
+
+        Returns:
+            str: String representation of the tuple.
+        """
+        return "({})".format(", ".join(str(value) for value in self))
 
     def round(self, digits=4):
         return self.__class__(round(value, digits) for value in self)
@@ -4051,7 +4050,7 @@ cie1931_2_xy = [
     (0.734690, 0.265310),
 ]
 
-optimalcolors_Lab = [
+OPTIMAL_COLORS_LAB = [
     (52.40, 95.40, 10.58),
     (52.33, 91.23, 38.56),
     (52.31, 89.09, 65.80),
@@ -4149,10 +4148,7 @@ def test():
             XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
             wp = " ".join([str(v) for v in XYZ])
         print(
-            (
-                "RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint %s"
-                % wp
-            )
+            f"RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint {wp}"
         )
         for name in rgb_spaces:
             spc = rgb_spaces[name]
@@ -4160,19 +4156,19 @@ def test():
                 XYZ = CIEDCCT2XYZ(spc[1])
             spc = spc[0], XYZ, spc[2], spc[3], spc[4]
             print(
-                "%s 1.0, 1.0, 1.0 = XYZ" % name,
+                f"{name} 1.0, 1.0, 1.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(1.0, 1.0, 1.0, spc)],
             )
             print(
-                "%s 1.0, 0.0, 0.0 = XYZ" % name,
+                f"{name} 1.0, 0.0, 0.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(1.0, 0.0, 0.0, spc)],
             )
             print(
-                "%s 0.0, 1.0, 0.0 = XYZ" % name,
+                f"{name} 0.0, 1.0, 0.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(0.0, 1.0, 0.0, spc)],
             )
             print(
-                "%s 0.0, 0.0, 1.0 = XYZ" % name,
+                f"{name} 0.0, 0.0, 1.0 = XYZ",
                 [str(round(v, 4)) for v in RGB2XYZ(0.0, 0.0, 1.0, spc)],
             )
         print("")

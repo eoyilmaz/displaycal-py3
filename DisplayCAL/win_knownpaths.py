@@ -1,3 +1,9 @@
+"""This module provides utilities for retrieving known folder paths on Windows
+using the Windows Shell API. It defines constants for various known folder
+GUIDs and provides a function to retrieve their paths for the current or
+common user. The implementation uses the `ctypes` library for interacting
+with the Windows API.
+"""
 # knownpaths.py (https://gist.github.com/mkropat/7550097)
 #
 # The MIT License (MIT)
@@ -29,11 +35,13 @@
 import ctypes
 import sys
 from ctypes import windll, wintypes
+from typing import ClassVar
 from uuid import UUID
 
 
 class GUID(ctypes.Structure):  # [1]
-    _fields_ = [
+    """Class representing a GUID (Globally Unique Identifier)."""
+    _fields_: ClassVar[list[tuple]] = [
         ("Data1", wintypes.DWORD),
         ("Data2", wintypes.WORD),
         ("Data3", wintypes.WORD),
@@ -55,6 +63,7 @@ class GUID(ctypes.Structure):  # [1]
 
 
 class FOLDERID:  # [2]
+    """Class representing known folder GUIDs."""
     AccountPictures = UUID("{008ca0b1-55b4-4c56-b8a8-4de4b299d3be}")
     AdminTools = UUID("{724EF170-A42D-4FEF-9F26-B60E846FBA4F}")
     ApplicationShortcuts = UUID("{A3918781-E5F2-4890-B3D9-A7E54332328C}")
@@ -152,6 +161,7 @@ class FOLDERID:  # [2]
 
 
 class UserHandle:  # [3]
+    """Class representing user handles for accessing known folder paths."""
     current = wintypes.HANDLE(0)
     common = wintypes.HANDLE(-1)
 
@@ -169,8 +179,8 @@ _SHGetKnownFolderPath.argtypes = [
 ]
 
 
-class PathNotFoundException(Exception):
-    pass
+class PathNotFoundError(Exception):
+    """Exception raised when a known folder path is not found."""
 
 
 def get_path(folderid, user_handle=UserHandle.common):
@@ -181,7 +191,7 @@ def get_path(folderid, user_handle=UserHandle.common):
         _SHGetKnownFolderPath(ctypes.byref(fid), 0, user_handle, ctypes.byref(pPath))
         != S_OK
     ):
-        raise PathNotFoundException()
+        raise PathNotFoundError
     path = pPath.value
     _CoTaskMemFree(pPath)
     return path
@@ -195,7 +205,7 @@ if __name__ == "__main__":
     try:
         folderid = getattr(FOLDERID, sys.argv[1])
     except AttributeError:
-        print('Unknown folder id "%s"' % sys.argv[1], file=sys.stderr)
+        print(f'Unknown folder id "{sys.argv[1]}"', file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -203,8 +213,8 @@ if __name__ == "__main__":
             print(get_path(folderid))
         else:
             print(get_path(folderid, getattr(UserHandle, sys.argv[2])))
-    except PathNotFoundException:
-        print('Folder not found "%s"' % " ".join(sys.argv[1:]), file=sys.stderr)
+    except PathNotFoundError:
+        print('Folder not found "{}"'.format(" ".join(sys.argv[1:])), file=sys.stderr)
         sys.exit(1)
 
 # [1] http://msdn.microsoft.com/en-us/library/windows/desktop/aa373931.aspx

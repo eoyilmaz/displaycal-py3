@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from DisplayCAL.colormath import smooth_avg_old, smooth_avg

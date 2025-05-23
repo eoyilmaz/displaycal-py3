@@ -1,3 +1,8 @@
+"""This module provides the `PyEmbeddedImage` class, which allows embedding PNG
+image data directly into Python code. It is primarily used with the
+`wx.tools.img2py` code generator to simplify the distribution of image assets
+by embedding them as base64-encoded data within Python modules.
+"""
 # ----------------------------------------------------------------------
 # Name:        wx.lib.embeddedimage
 # Purpose:     Defines a class used for embedding PNG images in Python
@@ -14,6 +19,7 @@
 
 import base64
 import io
+
 import wx
 
 try:
@@ -60,12 +66,6 @@ class PyEmbeddedImage:
     def GetImage(self):
         stream = io.BytesIO(self.GetData())
         return wx.ImageFromStream(stream)
-
-    # added for backwards compatibility
-    getBitmap = GetBitmap
-    getData = GetData
-    getIcon = GetIcon
-    getImage = GetImage
 
     # define properties, for convenience
     Bitmap = property(GetBitmap)

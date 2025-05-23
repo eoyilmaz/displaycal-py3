@@ -1,31 +1,38 @@
-# -*- coding: utf-8 -*-
+"""This module implements a scripting client for DisplayCAL, providing a
+graphical interface for sending commands to and receiving responses from
+a connected application. It features a terminal-like interface built with
+wxPython, supporting command history, text highlighting, and basic scripting
+capabilities.
+"""
 
 import errno
 import os
 import socket
 import sys
-import threading
 from time import sleep
+
+from wx.lib import delayedresult
 
 from DisplayCAL import (
     config,
+)
+from DisplayCAL import (
     localization as lang,
 )
-from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writecfg
-from DisplayCAL.meta import name as appname
+from DisplayCAL.config import CONFIG_HOME, getcfg, setcfg, writecfg
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxfixes import GenBitmapButton
-from DisplayCAL.wxwindows import BaseApp, SimpleTerminal, numpad_keycodes
-
-import wx.lib.delayedresult as delayedresult
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import NUMPAD_KEYCODES, BaseApp, SimpleTerminal
 
 ERRORCOLOR = "#FF3300"
 RESPONSECOLOR = "#CCCCCC"
 
 
 class ScriptingClientFrame(SimpleTerminal):
+    """A wxPython frame that serves as a scripting client for DisplayCAL."""
+
     def __init__(self):
         SimpleTerminal.__init__(
             self,
@@ -45,7 +52,7 @@ class ScriptingClientFrame(SimpleTerminal):
             name="scriptingframe",
         )
         self.SetIcons(
-            config.get_icon_bundle([256, 48, 32, 16], appname + "-scripting-client")
+            config.get_icon_bundle([256, 48, 32, 16], f"{APPNAME}-scripting-client")
         )
         self.console.SetForegroundColour("#EEEEEE")
         self.console.SetDefaultStyle(wx.TextAttr("#EEEEEE"))
@@ -54,14 +61,14 @@ class ScriptingClientFrame(SimpleTerminal):
         self.commands = []
         self.history = []
         self.historyfilename = os.path.join(
-            confighome, "%s-scripting-client.history" % config.appbasename
+            CONFIG_HOME, f"{config.APPBASENAME}-scripting-client.history"
         )
         if os.path.isfile(self.historyfilename):
             try:
                 with open(self.historyfilename) as historyfile:
                     for line in historyfile:
                         self.history.append(line.rstrip("\r\n"))
-            except EnvironmentError as exception:
+            except OSError as exception:
                 print("Warning - couldn't read history file:", exception)
         # Always have empty selection at bottom
         self.history.append("")
@@ -123,7 +130,7 @@ class ScriptingClientFrame(SimpleTerminal):
                         historyfile.write(
                             (safe_str(command, "UTF-8") + os.linesep).encode("utf-8")
                         )
-        except EnvironmentError as exception:
+        except OSError as exception:
             print("Warning - couldn't write history file:", exception)
         self.listening = False
         # Need to use CallAfter to prevent hang under Windows if minimized
@@ -164,15 +171,12 @@ class ScriptingClientFrame(SimpleTerminal):
             if isinstance(result, socket.socket):
                 self.conn = result
                 result = lang.getstr("connection.established")
-            text = "%s\n" % result
+            text = f"{result}\n"
             self.add_text(text)
             if colorize or isinstance(result, Exception):
                 end = self.console.GetLastPosition()
                 start = end - len(text)
-                if isinstance(result, Exception):
-                    color = ERRORCOLOR
-                else:
-                    color = RESPONSECOLOR
+                color = ERRORCOLOR if isinstance(result, Exception) else RESPONSECOLOR
                 self.mark_text(start, end, color)
         if get_response and not isinstance(result, Exception):
             delayedresult.startWorker(
@@ -232,9 +236,9 @@ class ScriptingClientFrame(SimpleTerminal):
             try:
                 peer = self.conn.getpeername()
                 self.conn.shutdown(socket.SHUT_RDWR)
-            except socket.error as exception:
+            except OSError as exception:
                 if exception.errno != errno.ENOTCONN:
-                    self.add_text("%s\n" % exception)
+                    self.add_text(f"{exception}\n")
             else:
                 self.add_text(lang.getstr("disconnected.from", peer) + "\n")
             self.conn.close()
@@ -256,15 +260,16 @@ class ScriptingClientFrame(SimpleTerminal):
                     wx.CallAfter(
                         self.add_text,
                         lang.getstr(
-                            "connected.to.at", ((response,) + self.conn.getpeername())
+                            "connected.to.at", ((response, *self.conn.getpeername()))
                         )
-                        + "\n%s\n" % lang.getstr("scripting-client.cmdhelptext"),
+                        + "\n{}\n".format(lang.getstr("scripting-client.cmdhelptext")),
                     )
-        except socket.error as exception:
+        except OSError as exception:
             return exception
 
     def get_commands(self):
-        return self.get_common_commands() + [
+        return [
+            *self.get_common_commands(),
             "clear",
             "connect <ip>:<port>",
             "disconnect",
@@ -294,7 +299,7 @@ class ScriptingClientFrame(SimpleTerminal):
     def get_response(self):
         try:
             return b"< " + b"\n< ".join(self.conn.get_single_response().splitlines())
-        except socket.error as exception:
+        except OSError as exception:
             return exception
 
     def key_handler(self, event):
@@ -334,11 +339,14 @@ class ScriptingClientFrame(SimpleTerminal):
                         self.console.Undo()
                     else:
                         wx.Bell()
-                elif event.KeyCode != wx.WXK_SHIFT and event.UnicodeKey:
+                elif (
+                    event.KeyCode != wx.WXK_SHIFT
+                    and event.UnicodeKey
+                    and event.UnicodeKey != "\0"
+                ):
                     # wxPython 3 "Phoenix" defines UnicodeKey as "\x00" when
                     # control key pressed
-                    if event.UnicodeKey != "\0":
-                        wx.Bell()
+                    wx.Bell()
             elif event.KeyCode in (10, 13, wx.WXK_NUMPAD_ENTER):
                 # Enter, return key
                 self.send_command_handler(lastline[2:])
@@ -413,7 +421,7 @@ class ScriptingClientFrame(SimpleTerminal):
                 # works for single-line TextCtrls
                 commonpart = lastline[2:endcol]
                 candidates = []
-                for command in sorted(list(set(self.commands + self.get_commands()))):
+                for command in sorted(set(self.commands + self.get_commands())):
                     command = command.split()[0]
                     if command.startswith(commonpart):
                         candidates.append(command)
@@ -423,17 +431,16 @@ class ScriptingClientFrame(SimpleTerminal):
                     for candidate in candidates:
                         if candidate.startswith(commonpart):
                             continue
-                        else:
-                            commonpart = commonpart[:-1]
-                            findcommon = False
-                            break
+                        commonpart = commonpart[:-1]
+                        findcommon = False
+                        break
                 if len(candidates) > 1:
-                    self.add_text("\n%s\n" % " ".join(candidates))
+                    self.add_text("\n{}\n".format(" ".join(candidates)))
                 self.add_text("\r> " + commonpart + lastline[endcol:])
                 self.console.SetInsertionPoint(
                     self.console.GetLastPosition() - len(lastline[endcol:])
                 )
-            elif event.UnicodeKey or event.KeyCode in numpad_keycodes:
+            elif event.UnicodeKey or event.KeyCode in NUMPAD_KEYCODES:
                 if startcol > 1:
                     event.Skip()
                     if self.overwrite and startcol == endcol:
@@ -507,10 +514,11 @@ class ScriptingClientFrame(SimpleTerminal):
     def send_command(self, command):
         try:
             self.conn.send_command(command)
-        except socket.error as exception:
+        except OSError as exception:
             return exception
         if not wx.GetApp().IsMainLoopRunning():
             delayedresult.AbortEvent()()
+        return None
 
     def send_command_handler(self, command, additional_commands=None):
         self.add_text("\n")

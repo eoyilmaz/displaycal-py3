@@ -1,52 +1,48 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
+"""Interactive display calibration UI."""
 
-"""
-
-from time import sleep, strftime
 import os
 import re
 import sys
+from time import sleep, strftime
 
-from DisplayCAL.wxaddons import wx
-
+from DisplayCAL import config, report
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
-    getbitmap,
-    getcfg,
-    get_icon_bundle,
     get_display_number,
     get_display_rects,
+    get_icon_bundle,
     get_verified_path,
+    getbitmap,
+    getcfg,
     setcfg,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname, version as appversion
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.meta import VERSION_STRING as APPVERSION
 from DisplayCAL.util_os import launch_file, waccess
-from DisplayCAL.wxaddons import CustomEvent
-from DisplayCAL.wxMeasureFrame import MeasureFrame
-from DisplayCAL.wxwindows import (
+from DisplayCAL.wx_addons import CustomEvent, wx
+from DisplayCAL.wx_measure_frame import MeasureFrame
+from DisplayCAL.wx_windows import (
+    NAV_KEYCODES,
+    NUMPAD_KEYCODES,
+    PROCESSING_KEYCODES,
     BaseApp,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
-    nav_keycodes,
-    processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import colormath
-from DisplayCAL import config
-from DisplayCAL import localization as lang
-from DisplayCAL import report
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 
 
 class FlatShadedNumberedButton(FlatShadedButton):
+    """Flat shaded button with a number."""
+
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         bitmap=None,
         label="",
         pos=wx.DefaultPosition,
@@ -80,6 +76,8 @@ class FlatShadedNumberedButton(FlatShadedButton):
 
 
 class DisplayUniformityFrame(BaseFrame):
+    """Display uniformity measurement frame."""
+
     def __init__(
         self,
         parent=None,
@@ -101,7 +99,7 @@ class DisplayUniformityFrame(BaseFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="displayuniformityframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.GridSizer(rows, cols, 0, 0)
         self.SetSizer(self.sizer)
@@ -153,18 +151,18 @@ class DisplayUniformityFrame(BaseFrame):
             keycodes = [wx.WXK_TAB, wx.WXK_SPACE]
             keycodes.extend(list(range(ord("0"), ord("9"))))
             keycodes.extend(list(range(ord("A"), ord("Z"))))
-            keycodes.extend(numpad_keycodes)
-            keycodes.extend(nav_keycodes)
-            keycodes.extend(processing_keycodes)
+            keycodes.extend(NUMPAD_KEYCODES)
+            keycodes.extend(NAV_KEYCODES)
+            keycodes.extend(PROCESSING_KEYCODES)
             for keycode in keycodes:
                 self.id_to_keycode[wx.Window.NewControlId()] = keycode
             accels = []
-            for id in self.id_to_keycode:
-                keycode = self.id_to_keycode[id]
-                self.Bind(wx.EVT_MENU, self.key_handler, id=id)
-                accels.append((wx.ACCEL_NORMAL, keycode, id))
+            for id_ in self.id_to_keycode:
+                keycode = self.id_to_keycode[id_]
+                self.Bind(wx.EVT_MENU, self.key_handler, id=id_)
+                accels.append((wx.ACCEL_NORMAL, keycode, id_))
                 if keycode == wx.WXK_TAB:
-                    accels.append((wx.ACCEL_SHIFT, keycode, id))
+                    accels.append((wx.ACCEL_SHIFT, keycode, id_))
             self.SetAcceleratorTable(wx.AcceleratorTable(accels))
         else:
             self.Bind(wx.EVT_CHAR_HOOK, self.key_handler)
@@ -203,11 +201,11 @@ class DisplayUniformityFrame(BaseFrame):
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
-        for id in self.id_to_keycode.keys():
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
         return 0
@@ -313,7 +311,7 @@ class DisplayUniformityFrame(BaseFrame):
     def measure(self, event=None):
         if event:
             self.index = event.GetEventObject().index
-            print("%s: Uniformity grid index %i" % (appname, self.index))
+            print(f"{APPNAME}: Uniformity grid index {self.index}")
             self.is_measuring = True
             self.results[self.index] = []
             self.labels[self.index].SetLabel("")
@@ -326,12 +324,8 @@ class DisplayUniformityFrame(BaseFrame):
         self.panels[self.index].Refresh()
         self.panels[self.index].Update()
         print(
-            "%s: About to measure uniformity grid index %i @%i%%"
-            % (
-                appname,
-                self.index,
-                self.colors[len(self.results[self.index])].red / 2.55,
-            )
+            f"{APPNAME}: About to measure uniformity grid index {self.index} "
+            f"@{self.colors[len(self.results[self.index])].red / 2.55}%"
         )
         # Use a delay to allow for TFT lag
         wx.CallLater(200, self.safe_send, " ")
@@ -339,14 +333,14 @@ class DisplayUniformityFrame(BaseFrame):
     def parse_txt(self, txt):
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         if "Setting up the instrument" in txt:
             self.Pulse(lang.getstr("instrument.initializing"))
         if "Spot read failed" in txt:
             self.last_error = txt
         if "Result is XYZ:" in txt:
-            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd
-            # 							CCT = ddddK (Delta E d.dddddd)
+            # Result is XYZ: d.dddddd d.dddddd d.dddddd, D50 Lab: d.dddddd d.dddddd d.dddddd  # noqa: E501
+            #                           CCT = ddddK (Delta E d.dddddd)
             # Closest Planckian temperature = ddddK (Delta E d.dddddd)
             # Closest Daylight temperature  = ddddK (Delta E d.dddddd)
             XYZ = re.search(r"XYZ:\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)", txt)
@@ -358,17 +352,17 @@ class DisplayUniformityFrame(BaseFrame):
         for locus in list(loci.values()):
             if locus in txt:
                 CT = re.search(
-                    r"Closest\s+%s\s+temperature\s+=\s+(\d+)K" % locus, txt, re.I
+                    rf"Closest\s+{locus}\s+temperature\s+=\s+(\d+)K", txt, re.I
                 )
-                self.results[self.index][-1]["C%sT" % locus[0]] = int(CT.groups()[0])
+                self.results[self.index][-1][f"C{locus[0]}T"] = int(CT.groups()[0])
         if "key to take a reading" in txt and not self.last_error:
-            print("%s: Got 'key to take a reading'" % appname)
+            print(f"{APPNAME}: Got 'key to take a reading'")
             if not self.is_measuring:
                 self.enable_buttons()
                 return
             if len(self.results[self.index]) < len(self.colors):
                 # Take readings at 5 different brightness levels per swatch
-                print("%s: About to take next reading" % appname)
+                print(f"{APPNAME}: About to take next reading")
                 self.measure()
             else:
                 self.is_measuring = False
@@ -387,14 +381,16 @@ class DisplayUniformityFrame(BaseFrame):
                     # Let the user choose a location for the results html
                     display_no, geometry, client_area = self.get_display()
                     # Translate from wx display index to Argyll display index
-                    geometry = "%i, %i, %ix%i" % tuple(geometry)
+                    geometry = (
+                        f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
+                    )
                     for i, display in enumerate(getcfg("displays")):
-                        if display.find("@ " + geometry) > -1:
-                            print("Found display %s at index %i" % (display, i))
+                        if display.find(f"@ {geometry}") > -1:
+                            print(f"Found display {display} at index {i}")
                             break
                     display = display.replace(" [PRIMARY]", "")
-                    defaultFile = "Uniformity Check %s — %s — %s" % (
-                        appversion,
+                    defaultFile = "Uniformity Check {} — {} — {}".format(
+                        APPVERSION,
                         re.sub(r"[\\/:*?\"<>|]+", "_", display),
                         strftime("%Y-%m-%d %H-%M.html"),
                     )
@@ -431,7 +427,7 @@ class DisplayUniformityFrame(BaseFrame):
                         report.create(
                             save_path,
                             {
-                                "${REPORT_VERSION}": appversion,
+                                "${REPORT_VERSION}": APPVERSION,
                                 "${DISPLAY}": display,
                                 "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),
                                 "${ROWS}": str(self.rows),
@@ -442,7 +438,7 @@ class DisplayUniformityFrame(BaseFrame):
                             getcfg("report.pack_js"),
                             "uniformity",
                         )
-                    except (IOError, OSError) as exception:
+                    except OSError as exception:
                         from DisplayCAL.worker import show_result_dialog
 
                         show_result_dialog(exception, self)
@@ -472,16 +468,16 @@ class DisplayUniformityFrame(BaseFrame):
         self.results = {}
         self.display_rects = get_display_rects()
 
-    def safe_send(self, bytes):
+    def safe_send(self, bytes_):
         if self.has_worker_subprocess() and not self.worker.subprocess_abort:
             if not self.worker.instrument_on_screen:
                 if not getattr(self, "wait_for_instrument_on_screen", False):
                     self.wait_for_instrument_on_screen = True
-                    print("%s: Waiting for instrument to be placed on screen" % appname)
-                wx.CallLater(200, self.safe_send, bytes)
+                    print(f"{APPNAME}: Waiting for instrument to be placed on screen")
+                wx.CallLater(200, self.safe_send, bytes_)
             else:
                 self.wait_for_instrument_on_screen = False
-                self.worker.safe_send(bytes)
+                self.worker.safe_send(bytes_)
 
     def show_cursor(self):
         cursor = wx.StockCursor(wx.CURSOR_ARROW)
@@ -504,6 +500,8 @@ class DisplayUniformityFrame(BaseFrame):
 
 
 class Event:
+    """Custom event class to handle events in the DisplayUniformityFrame."""
+
     def __init__(self, evtobj):
         self.evtobj = evtobj
 
@@ -512,14 +510,19 @@ class Event:
 
 
 if __name__ == "__main__":
+    # TODO: Move the tests to the tests.
     from _thread import start_new_thread
     from time import sleep
 
     class Subprocess:
+        """Mock subprocess class to simulate subprocess behavior."""
+
         def send(self, bytes_):
             start_new_thread(test, (bytes_,))
 
     class Worker:
+        """Mock worker class to simulate subprocess behavior."""
+
         def __init__(self):
             self.subprocess = Subprocess()
             self.subprocess_abort = False
@@ -564,7 +567,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 65.336831 69.578641 68.180005, D50 Lab: 86.789788 -3.888434 -10.469442
                            CCT = 5983K (Delta E 6.816507)
@@ -626,7 +629,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.511790 68.522425 66.980369, D50 Lab: 86.267011 -3.491468 -10.263432
                            CCT = 5945K (Delta E 6.363056)
@@ -688,7 +691,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.672460 68.441938 67.178377, D50 Lab: 86.226954 -2.956057 -10.516177
                            CCT = 5931K (Delta E 5.640857)
@@ -750,7 +753,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 66.590402 70.542611 69.377397, D50 Lab: 87.262309 -3.134252 -10.747149
                            CCT = 5951K (Delta E 5.807812)
@@ -812,7 +815,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 67.775736 72.266319 71.178047, D50 Lab: 88.096621 -4.123469 -10.928024
                            CCT = 6023K (Delta E 6.995424)
@@ -874,7 +877,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 64.869350 68.842421 67.977252, D50 Lab: 86.425958 -3.370123 -10.910497
                            CCT = 5991K (Delta E 6.099488)
@@ -936,7 +939,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 62.334621 66.118418 64.979303, D50 Lab: 85.056784 -3.250929 -10.473103
                            CCT = 5960K (Delta E 6.051574)
@@ -998,7 +1001,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 61.818899 65.859246 64.979340, D50 Lab: 84.924570 -3.876653 -10.701093
                            CCT = 6024K (Delta E 6.822442)
@@ -1060,7 +1063,7 @@ and hit [A-Z] to read white and setup FWA compensation (keyed to letter)
 [a-z] to read and make FWA compensated reading from keyed reference
 'r' to set reference, 's' to save spectrum,
 'h' to toggle high res., 'k' to do a calibration
-Hit ESC or Q to exit, any other key to take a reading:""",
+Hit ESC or Q to exit, any other key to take a reading:""",  # noqa: E501
                     """
  Result is XYZ: 63.469751 67.164836 66.177725, D50 Lab: 85.587118 -2.928291 -10.687360
                            CCT = 5951K (Delta E 5.590334)
@@ -1125,5 +1128,5 @@ Hit ESC or Q to exit, any other key to take a reading:""",
             wx.CallAfter(app.TopWindow.write, line)
             print(line)
 
-    start_new_thread(test, tuple())
+    start_new_thread(test, ())
     app.MainLoop()

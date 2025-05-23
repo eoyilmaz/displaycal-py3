@@ -1,9 +1,15 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for handling encoded input and output
+streams, allowing seamless encoding and decoding of text data in Python
+applications. It includes functionality to register custom codec aliases,
+conditionally encode or decode text, and wrap standard input/output streams
+with automatic encoding/decoding support.
+"""
 
 import codecs
-import locale
 import os
 import sys
+from collections.abc import Iterator
+from typing import Any
 
 from DisplayCAL.encoding import get_encoding
 
@@ -70,11 +76,7 @@ def encodestdio(encodings=None, errors=None):
 def read(stream, size=-1):
     """Read from stream. Uses os.read() if stream is a tty,
     stream.read() otherwise."""
-    if stream.isatty():
-        data = os.read(stream.fileno(), size)
-    else:
-        data = stream.read(size)
-    return data
+    return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):
@@ -99,19 +101,32 @@ class EncodedStream:
         self.encoding = encoding
         self.errors = errors
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attributes from the stream or the EncodedStream itself.
+
+        Args:
+            name (str): The name of the attribute to get.
+        """
         return getattr(self.stream, name)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
+        """Return an iterator over the lines in the stream."""
         return iter(self.readlines())
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set attributes on the stream or the EncodedStream itself.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name == "softspace":
             setattr(self.stream, name, value)
         else:
             object.__setattr__(self, name, value)
 
     def __next__(self):
+        """Read the next line from the stream."""
         return self.readline()
 
     def read(self, size=-1):
@@ -158,8 +173,8 @@ if __name__ == "__main__":
     test = "test \u00e4\u00f6\u00fc\ufffe test"
     try:
         print(test)
-    except (LookupError, IOError, UnicodeError) as exception:
-        print("could not print %r:" % test, exception)
+    except (OSError, LookupError, UnicodeError) as exception:
+        print(f"could not print {test!r}:", exception)
     print("wrapping stdout/stderr via encodestdio()")
     encodestdio()
     print(test)

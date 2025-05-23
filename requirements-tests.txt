@@ -2,12 +2,14 @@ build
 certifi
 comtypes; sys_platform == "win32"
 dbus-python; sys_platform == "linux"
+defusedxml
 distro
 numpy
 pillow
 protobuf
 PyChromecast
 pywin32; sys_platform == "win32"
+PyYAML
 Send2Trash
 WMI; sys_platform == "win32"
 wxPython >= 4.2.2; python_version >= "3.12"

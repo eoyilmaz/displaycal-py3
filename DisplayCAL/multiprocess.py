@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for parallel processing using Python's
+multiprocessing library. It includes functions and classes to manage
+worker pools, handle task distribution, and process data slices efficiently.
+"""
 
-from queue import Empty
-import atexit
+import contextlib
 import errno
 import logging
 import math
@@ -9,10 +11,12 @@ import multiprocessing as mp
 import multiprocessing.pool
 import sys
 import threading
+from queue import Empty
 
 
 def cpu_count(limit_by_total_vmem=True):
-    """Returns the number of CPUs in the system
+    """Return
+      the number of CPUs in the system
 
     If psutil is installed, the number of reported CPUs is limited according to
     total RAM by assuming 1 GB for each CPU + 1 GB for the system, unless
@@ -33,10 +37,8 @@ def cpu_count(limit_by_total_vmem=True):
             # We use total instead of available because we assume the system is
             # smart enough to swap memory used by inactive processes to disk to
             # free up more physical RAM for active processes.
-            try:
+            with contextlib.suppress(Exception):
                 max_cpus = int(psutil.virtual_memory().total / (1024**3) - 1)
-            except Exception:
-                pass
     try:
         return max(min(mp.cpu_count(), max_cpus), 1)
     except Exception:
@@ -113,13 +115,8 @@ def pool_slice(
         manager = None
         Queue = FakeQueue
 
-    if thread_abort is not None:
-        thread_abort_event = thread_abort.event
-    else:
-        thread_abort_event = None
-
+    thread_abort_event = thread_abort.event if thread_abort is not None else None
     progress_queue = Queue()
-
     if logfile:
 
         def progress_logger(num_workers, progress=0.0):
@@ -133,7 +130,7 @@ def pool_slice(
                     progress += inc
                 except Empty:
                     continue
-                except IOError:
+                except OSError:
                     break
                 except EOFError:
                     eof_count += 1
@@ -141,7 +138,7 @@ def pool_slice(
                         break
                 perc = round(progress / num_workers)
                 if perc > prevperc:
-                    logfile.write("\r%i%%" % perc)
+                    logfile.write(f"\r{perc}%")
                     prevperc = perc
 
         threading.Thread(
@@ -160,7 +157,7 @@ def pool_slice(
             results.append(
                 pool.apply_async(
                     WorkerFunc(func, batch == num_batches - 1),
-                    (data_in[start:end], thread_abort_event, progress_queue) + args,
+                    (data_in[start:end], thread_abort_event, progress_queue, *args),
                     kwds,
                 )
             )
@@ -195,9 +192,11 @@ def pool_slice(
 
 
 class WorkerFunc:
-    def __init__(self, func, exit=False):
+    """Wrap 'func' with optional arguments."""
+
+    def __init__(self, func, exit_=False):
         self.func = func
-        self.exit = exit
+        self.exit = exit_
 
     def __call__(self, data, thread_abort_event, progress_queue, *args, **kwds):
         try:
@@ -260,6 +259,14 @@ class Mapper:
 
 
 class NonDaemonicProcess(mp.Process):
+    """Process that is not daemonic.
+
+    This is needed for Windows, as daemonic processes cannot have
+    children. This is a problem when using multiprocessing.Pool,
+    as the worker processes are daemonic and they create child
+    processes when they call the function.
+    """
+
     @property
     def daemon(self):
         return False
@@ -275,7 +282,7 @@ class NonDaemonicPool(mp.pool.Pool):
     def Process(self, *args, **kwargs):
         # Process is a function after Python 3.7+
         # Process = NonDaemonicProcess -- This will not work with Python3.7+
-        proc = super(NonDaemonicPool, self).Process(*args, **kwargs)
+        proc = super().Process(*args, **kwargs)
         proc.__class__ = NonDaemonicProcess  # TODO: This is not cool, find a better way
         #                                            of doing it.
         return proc
@@ -327,8 +334,8 @@ class FakeQueue:
     def get(self, block=True, timeout=None):
         try:
             return self.queue.pop()
-        except Exception:
-            raise Empty
+        except Exception as e:
+            raise Empty from e
 
     def join(self):
         pass

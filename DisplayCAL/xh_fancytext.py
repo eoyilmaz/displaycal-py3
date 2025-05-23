@@ -1,16 +1,21 @@
-# -*- coding: utf-8 -*-
+"""This module provides a custom XML resource handler for wxPython to create
+and manage StaticFancyText controls from XML resource files. It allows
+configuration of properties such as label text, position, size, and styles.
+"""
 
-import wx
-import wx.xrc as xrc
+from wx import xrc
+
 from DisplayCAL.log import safe_print
 
 try:
-    from DisplayCAL.wxwindows import BetterStaticFancyText as StaticFancyText
+    from DisplayCAL.wx_windows import BetterStaticFancyText as StaticFancyText
 except ImportError:
     from wx.lib.fancytext import StaticFancyText
 
 
 class StaticFancyTextCtrlXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for StaticFancyText controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

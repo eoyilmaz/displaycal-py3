@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+"""This module provides functionality for compressing and obfuscating
+JavaScript code. It includes classes and methods for parsing, encoding, and
+packing JavaScript scripts to reduce their size and improve performance.
+"""
+
 #   ParseMaster, version 1.0 (pre-release) (2005/05/12) x6
 #   Copyright 2005, Dean Edwards
 #   Web: http://dean.edwards.name/
@@ -21,16 +25,30 @@ class Pattern:
         self.replacement = replacement
         self.length = length
 
-    def __str__(self):
-        return "(" + self.expression + ")"
+    def __str__(self) -> str:
+        """Return the string representation of the pattern.
+
+        Returns:
+            str: The string representation of the pattern.
+        """
+        return f"({self.expression})"
 
 
 class Patterns(list):
-    def __str__(self):
+    """A collection of patterns."""
+
+    def __str__(self) -> str:
+        """Return the string representation of the patterns.
+
+        Returns:
+            str: The string representation of the patterns.
+        """
         return "|".join([str(e) for e in self])
 
 
 class ParseMaster:
+    """ParseMaster is a class for parsing and replacing patterns in strings."""
+
     # constants
     EXPRESSION = 0
     REPLACEMENT = 1
@@ -56,14 +74,10 @@ class ParseMaster:
     def _repl(self, a, o, r, i):
         while i:
             m = a.group(o + i - 1)
-            if m is None:
-                s = ""
-            else:
-                s = m
+            s = "" if m is None else m
             r = r.replace("$" + str(i), s)
             i = i - 1
-        r = ParseMaster.TRIM.sub("$1", r)
-        return r
+        return ParseMaster.TRIM.sub("$1", r)
 
     # public
     def add(self, expression="^$", replacement=None):
@@ -84,7 +98,10 @@ class ParseMaster:
                 # build a function to do the lookup
                 i = length
                 r = replacement
-                replacement = lambda a, o: self._repl(a, o, r, i)
+
+                def replacement(a, o):
+                    return self._repl(a, o, r, i)
+
         # pass the modified arguments
         self._patterns.append(Pattern(expression, replacement, length))
 
@@ -98,7 +115,7 @@ class ParseMaster:
         string = r.sub(self._replacement, string)
         string = self._unescape(string, self.escapeChar)
         string = ParseMaster.DELETED.sub("", string)
-        return string
+        return string  # noqa: RET504
 
     # clear the patterns collections so that this object may be re-used
     def reset(self):
@@ -113,12 +130,12 @@ class ParseMaster:
                 replacement = pattern.replacement
                 if callable(replacement):
                     return replacement(match, i)
-                elif isinstance(replacement, int):
+                if isinstance(replacement, int):
                     return match.group(replacement + i)
-                else:
-                    return replacement
-            else:
-                i = i + pattern.length
+                return replacement
+            i = i + pattern.length
+
+        return None
 
     # encode escaped characters
     def _escape(self, string, escapeChar=None):
@@ -131,24 +148,21 @@ class ParseMaster:
             return string
 
         r = re.compile(r"\\" + escapeChar + r"(.)", re.M)
-        result = r.sub(repl, string)
-        return result
+        return r.sub(repl, string)
 
     # decode escaped characters
     def _unescape(self, string, escapeChar=None):
         def repl(match):
             try:
                 # result = eval("'"+escapeChar + self._escaped.pop(0)+"'")
-                result = escapeChar + self._escaped.pop(0)
-                return result
+                return escapeChar + self._escaped.pop(0)
             except IndexError:
                 return escapeChar
 
         if escapeChar is None:
             return string
         r = re.compile(r"\\" + escapeChar, re.M)
-        result = r.sub(repl, string)
-        return result
+        return r.sub(repl, string)
 
     def _internalEscape(self, string):
         return ParseMaster.ESCAPE.sub("", string)
@@ -164,6 +178,8 @@ class ParseMaster:
 
 
 class JavaScriptPacker:
+    """JavaScriptPacker is a class for compressing and obfuscating JavaScript code."""
+
     def __init__(self):
         pass
 
@@ -201,16 +217,16 @@ class JavaScriptPacker:
         parser.add(r"""\s+""", "")
         return parser.execute(script)
 
-    def getEncoder(self, ascii):
+    def getEncoder(self, ascii_):
         mapping = {}
         base = ord("0")
-        mapping.update(dict([(i, chr(i + base)) for i in range(10)]))
+        mapping.update({i: chr(i + base) for i in range(10)})
         base = ord("a")
-        mapping.update(dict([(i + 10, chr(i + base)) for i in range(26)]))
+        mapping.update({i + 10: chr(i + base) for i in range(26)})
         base = ord("A")
-        mapping.update(dict([(i + 36, chr(i + base)) for i in range(26)]))
+        mapping.update({i + 36: chr(i + base) for i in range(26)})
         base = 161
-        mapping.update(dict([(i + 62, chr(i + base)) for i in range(95)]))
+        mapping.update({i + 62: chr(i + base) for i in range(95)})
 
         # zero encoding
         # characters: 0123456789
@@ -258,26 +274,23 @@ class JavaScriptPacker:
             l.reverse()
             return "".join(l)
 
-        if ascii <= 10:
+        if ascii_ <= 10:
             return encode10
-        elif ascii <= 36:
+        if ascii_ <= 36:
             return encode36
-        elif ascii <= 62:
+        if ascii_ <= 62:
             return encode62
         return encode95
 
     def escape(self, script):
-        script = script.replace("\\", "\\\\")
-        script = script.replace("'", "\\'")
-        script = script.replace("\n", "\\n")
+        return script.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
         # return re.sub(r"""([\\'](?!\n))""", "\\$1", script)
-        return script
 
     def escape95(self, script):
         result = []
         for x in script:
             if x > "\xa1":
-                x = "\\x%0x" % ord(x)
+                x = f"\\x{ord(x):0x}"
             result.append(x)
         return "".join(result)
 
@@ -289,10 +302,7 @@ class JavaScriptPacker:
         parser = ParseMaster()
         encode = self.getEncoder(encoding)
         # for high-ascii, don't encode single character low-ascii
-        if encoding > 62:
-            regexp = r"""\w\w+"""
-        else:
-            regexp = r"""\w+"""
+        regexp = r"""\w\w+""" if encoding > 62 else r"""\w+"""
         # build the word list
         keywords = self.analyze(script, regexp, encode)
         encoded = keywords["encoded"]
@@ -304,25 +314,24 @@ class JavaScriptPacker:
         parser.add(regexp, repl)
         # if encoded, wrap the script in a decoding function
         script = parser.execute(script)
-        script = self.bootStrap(script, keywords, encoding, fastDecode)
-        return script
+        return self.bootStrap(script, keywords, encoding, fastDecode)
 
     def analyze(self, script, regexp, encode):
         # analyse
-        # retreive all words in the script
+        # retrieve all words in the script
         regexp = re.compile(regexp, re.M)
-        all = regexp.findall(script)
+        all_words = regexp.findall(script)
         sorted_ = []  # list of words sorted by frequency
         encoded = {}  # dictionary of word->encoding
         protected = {}  # instances of "protected" words
-        if all:
+        if all_words:
             unsorted = []
             _protected = {}
             values = {}
             count = {}
-            all.reverse()
-            for word in all:
-                word = "$" + word
+            all_words.reverse()
+            for word in all_words:
+                word = f"${word}"
                 if word not in count:
                     count[word] = 0
                     j = len(unsorted)
@@ -398,7 +407,7 @@ class JavaScriptPacker:
         count = len(keywords["sorted"])
 
         # $ascii: base for encoding
-        ascii = min(count, encoding) or 1
+        ascii_value = min(count, encoding) or 1
 
         # $keywords: list of words contained in the script
         for i in keywords["protected"]:
@@ -407,68 +416,64 @@ class JavaScriptPacker:
         keywords = "'" + "|".join(keywords["sorted"]) + "'.split('|')"
 
         encoding_functions = {
-            10: """ function($charCode) {
-                        return $charCode;
-                    }""",
-            36: """ function($charCode) {
-                        return $charCode.toString(36);
-                    }""",
+            10: """ function($charCode) {return $charCode;}""",
+            36: """ function($charCode) {return $charCode.toString(36);}""",
             62: """ function($charCode) {
-                        return ($charCode < _encoding ? "" : arguments.callee(parseInt($charCode / _encoding))) +
-                            (($charCode = $charCode % _encoding) > 35 ? String.fromCharCode($charCode + 29) : $charCode.toString(36));
-                    }""",
+    return ($charCode < _encoding ? "" :
+        arguments.callee(parseInt($charCode / _encoding))) +
+        (($charCode = $charCode % _encoding) > 35 ?
+        String.fromCharCode($charCode + 29) : $charCode.toString(36));
+}""",
             95: """ function($charCode) {
-                        return ($charCode < _encoding ? "" : arguments.callee($charCode / _encoding)) +
-                            String.fromCharCode($charCode % _encoding + 161);
-                    }""",
+    return ($charCode < _encoding ? "" : arguments.callee($charCode / _encoding)) +
+        String.fromCharCode($charCode % _encoding + 161);
+}""",
         }
 
         # $encode: encoding function (used for decoding the script)
         encode = encoding_functions[encoding]
         encode = encode.replace("_encoding", "$ascii")
         encode = encode.replace("arguments.callee", "$encode")
-        if ascii > 10:
-            inline = "$count.toString($ascii)"
-        else:
-            inline = "$count"
+        inline = "$count.toString($ascii)" if ascii_value > 10 else "$count"
         # $decode: code snippet to speed up decoding
         if fastDecode:
             # create the decoder
             decode = r"""// does the browser support String.replace where the
-                        //  replacement value is a function?
-                        if (!''.replace(/^/, String)) {
-                            // decode all the values we need
-                            while ($count--) {
-                                $decode[$encode($count)] = $keywords[$count] || $encode($count);
-                            }
-                            // global replacement function
-                            $keywords = [function($encoded){return $decode[$encoded]}];
-                            // generic match
-                            $encode = function(){return'\\w+'};
-                            // reset the loop counter -  we are now doing a global replace
-                            $count = 1;
-                        }"""
+//  replacement value is a function?
+if (!''.replace(/^/, String)) {
+    // decode all the values we need
+    while ($count--) {
+        $decode[$encode($count)] = $keywords[$count] || $encode($count);
+    }
+    // global replacement function
+    $keywords = [function($encoded){return $decode[$encoded]}];
+    // generic match
+    $encode = function(){return'\\w+'};
+    // reset the loop counter -  we are now doing a global replace
+    $count = 1;
+}"""
             if encoding > 62:
                 decode = decode.replace("\\\\w", "[\\xa1-\\xff]")
-            else:
-                # perform the encoding inline for lower ascii values
-                if ascii < 36:
-                    decode = ENCODE.sub(inline, decode)
+            # perform the encoding inline for lower ascii values
+            elif ascii_value < 36:
+                decode = ENCODE.sub(inline, decode)
             # special case: when $count==0 there ar no keywords. i want to keep
-            #  the basic shape of the unpacking funcion so i'll frig the code...
+            #  the basic shape of the unpacking function so i'll frig the code...
             if not count:
                 raise NotImplementedError
                 # ) $decode = $decode.replace(/(\$count)\s*=\s*1/, "$1=0");
 
         # boot function
         unpack = r"""function($packed, $ascii, $count, $keywords, $encode, $decode) {
-                        while ($count--) {
-                            if ($keywords[$count]) {
-                                $packed = $packed.replace(new RegExp("\\b" + $encode($count) + "\\b", "g"), $keywords[$count]);
-                            }
-                        }
-                        return $packed;
-                    }"""
+    while ($count--) {
+        if ($keywords[$count]) {
+            $packed = $packed.replace(
+                new RegExp("\\b" + $encode($count) + "\\b", "g"), $keywords[$count]
+            );
+        }
+    }
+    return $packed;
+}"""
         if fastDecode:
             # insert the decoder
             # unpack = re.sub(r"""\{""", "{" + decode + ";", unpack)
@@ -477,7 +482,7 @@ class JavaScriptPacker:
         if encoding > 62:  # high-ascii
             # get rid of the word-boundaries for regexp matches
             unpack = re.sub(r"""'\\\\b'\s*\+|\+\s*'\\\\b'""", "", unpack)
-        if ascii > 36 or encoding > 62 or fastDecode:
+        if ascii_value > 36 or encoding > 62 or fastDecode:
             # insert the encode function
             # unpack = re.sub(r"""\{""", "{$encode=" + encode + ";", unpack)
             unpack = unpack.replace("{", "{$encode=" + encode + ";", 1)
@@ -488,7 +493,7 @@ class JavaScriptPacker:
         unpack = self.pack(unpack, 0, False, True)
 
         # arguments
-        params = [packed, str(ascii), str(count), keywords]
+        params = [packed, str(ascii_value), str(count), keywords]
         if fastDecode:
             # insert placeholders for the decoder
             params.extend(["0", "{}"])
@@ -505,9 +510,8 @@ class JavaScriptPacker:
         if specialChars:
             script = self.specialCompression(script)
             script = self.encodeSpecialChars(script)
-        else:
-            if compaction:
-                script = self.basicCompression(script)
+        elif compaction:
+            script = self.basicCompression(script)
         if encoding:
             script = self.encodeKeywords(script, encoding, fastDecode)
         return script
@@ -515,9 +519,11 @@ class JavaScriptPacker:
 
 def run():
     p = JavaScriptPacker()
-    script = open(sys.argv[1]).read()
+    with open(sys.argv[1]) as f:
+        script = f.read()
     result = p.pack(script, encoding=62, fastDecode=True, compaction=True)
-    open(sys.argv[1] + "pack", "w").write(result)
+    with open(f"{sys.argv[1]}pack", "w") as f:
+        f.write(result)
 
 
 def run1():
@@ -525,7 +531,7 @@ def run1():
 
     test_scripts.append(
         (
-            """// -----------------------------------------------------------------------
+            """// ----------------------------------------------------------------------
 // public interface
 // -----------------------------------------------------------------------
 
@@ -535,7 +541,8 @@ cssQuery.toString = function() {
             0,
             False,
             False,
-            """cssQuery.toString=function(){return"function cssQuery() {\n  [version "+version+"]\n}"};""",
+            """cssQuery.toString=function(){return"function cssQuery() {\n  """
+            """[version "+version+"]\n}"};""",
         )
     )
 
@@ -590,7 +597,8 @@ function _bar(_ocalvar) {
             0,
             False,
             True,
-            """function _3(l){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}function _2(_1){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}""",
+            """function _3(l){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}"""
+            """function _2(_1){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}""",
         )
     )
 
@@ -607,7 +615,8 @@ function _bar(_ocalvar) {
             0,
             False,
             True,
-            """function _4(l){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}function _3(_1){var n=1;var _2=2;var __foo=3;return n+_2+l+__foo}""",
+            """function _4(l){var n=1;var _0=2;var __foo=3;return n+_0+l+__foo}"""
+            """function _3(_1){var n=1;var _2=2;var __foo=3;return n+_2+l+__foo}""",
         )
     )
     test_scripts.append(
@@ -616,8 +625,11 @@ function _bar(_ocalvar) {
             10,
             False,
             False,
-            """eval(function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp("\\b"+e(c)+"\\b","g"),k[c])}}return p}('8 13($6){0 $4=1;0 7=2;0 5=3;9 $4+7+$6+5}8 11(12){0 $4=1;0 10=2;0 5=3;9 $4+10+$6+5}',10,14,'var||||name|__foo|localvar|_dummy|function|return|_2|_bar|_ocalvar|_test'.split('|')))
-""",
+            """eval(function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp"""
+            """("\\b"+e(c)+"\\b","g"),k[c])}}return p}('8 13($6){0 $4=1;0 7=2;0 5=3;"""
+            """9 $4+7+$6+5}8 11(12){0 $4=1;0 10=2;0 5=3;9 $4+10+$6+5}',10,14,'var||||"""
+            """name|__foo|localvar|_dummy|function|return|_2|_bar|_ocalvar|_test'"""
+            """.split('|')))""",
         )
     )
     test_scripts.append(
@@ -626,24 +638,27 @@ function _bar(_ocalvar) {
             62,
             False,
             False,
-            """eval(function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp("\\b"+e(c)+"\\b","g"),k[c])}}return p}('8 d($6){0 $4=1;0 7=2;0 5=3;9 $4+7+$6+5}8 b(c){0 $4=1;0 a=2;0 5=3;9 $4+a+$6+5}',14,14,'var||||name|__foo|localvar|_dummy|function|return|_2|_bar|_ocalvar|_test'.split('|')))
-""",
+            """eval(function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp"""
+            """("\\b"+e(c)+"\\b","g"),k[c])}}return p}('8 d($6){0 $4=1;0 7=2;0 5=3;9 """
+            """$4+7+$6+5}8 b(c){0 $4=1;0 a=2;0 5=3;9 $4+a+$6+5}',14,14,'var||||name|"""
+            """__foo|localvar|_dummy|function|return|_2|_bar|_ocalvar|_test'.split('|"""
+            """')))""",
         )
     )
     test_scripts.append(("test.js", 95, False, False, "test-p4.js"))
     test_scripts.append(("cssQuery.js", 0, False, True, "cssQuery-p3.js"))
     test_scripts.append(("cssQuery.js", 62, False, True, "cssQuery-p4.js"))
 
-    import difflib
-
     p = JavaScriptPacker()
     for script, encoding, fastDecode, specialChars, expected in test_scripts:
         if os.path.exists(script):
-            _script = open(script).read()
+            with open(script) as f:
+                _script = f.read()
         else:
             _script = script
         if os.path.exists(expected):
-            _expected = open(expected).read()
+            with open(expected) as f:
+                _expected = f.read()
         else:
             _expected = expected
         print(script[:20], encoding, fastDecode, specialChars, expected[:20])

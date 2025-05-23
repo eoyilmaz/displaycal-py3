@@ -911,6 +911,7 @@ def runtimeconfig(pyfile):
     setup_logging(LOGDIR, PYNAME, PYEXT, confighome=CONFIG_HOME)
     if DEBUG:
         print("[D] pydir:", PYDIR)
+        print("[D] config_home:", CONFIG_HOME)
     if ISAPP:
         runtype = ".app"
     elif ISEXE:

@@ -74,7 +74,7 @@ warnings.showwarning = showwarning
 LOGBUFFER = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
-def wx_log(logwindow: wx.Window, msg: str) -> None:
+def wx_log(logwindow: "wx.Window", msg: str) -> None:
     """Log a message to the wxPython log window.
 
     Args:

@@ -1,11 +1,17 @@
-# -*- coding: utf-8 -*-
+"""This module provides utilities for working with Argyll CMS CGATS (Color and
+Gray Appearance Test Specification) files and related calibration data. It
+includes functions for manipulating CGATS data, extracting calibration
+information, and creating or modifying ICC profiles with embedded calibration
+data.
+"""
 
 # import decimal
 # Decimal = decimal.Decimal
+import contextlib
 import decimal
-from decimal import Decimal
 import os
 import traceback
+from decimal import Decimal
 from io import BytesIO
 from time import strftime
 
@@ -20,6 +26,7 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
@@ -29,8 +36,7 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     WcsProfilesTagType,
 )
-from DisplayCAL.debughelpers import Error
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 
 cals = {}
 
@@ -50,6 +56,15 @@ def quote_nonoption_args(args):
 
 
 def add_dispcal_options_to_cal(cal, options_dispcal):
+    """Add dispcal options to cal.
+
+    Args:
+        cal (str or CGATS): The input CAL file or CGATS instance.
+        options_dispcal (list): List of dispcal options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal options to cal
     options_dispcal = quote_nonoption_args(options_dispcal)
     try:
@@ -61,6 +76,16 @@ def add_dispcal_options_to_cal(cal, options_dispcal):
 
 
 def add_options_to_ti3(ti3, options_dispcal=None, options_colprof=None):
+    """Add dispcal and colprof options to ti3.
+
+    Args:
+        ti3 (str or CGATS): The input TI3 file or CGATS instance.
+        options_dispcal (list): List of dispcal options to add.
+        options_colprof (list): List of colprof options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal and colprof options to ti3
     try:
         cgats = CGATS(ti3)
@@ -90,7 +115,7 @@ def cal_to_fake_profile(cal):
     """
     vcgt, cal = cal_to_vcgt(cal, True)
     if not vcgt:
-        return
+        return None
     profile = ICCProfile()
     profile.fileName = cal.filename
     profile._data = b"\0" * 128
@@ -115,7 +140,7 @@ def cal_to_vcgt(cal, return_cgats=False):
         try:
             cal = CGATS(cal)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -128,17 +153,17 @@ def cal_to_vcgt(cal, return_cgats=False):
     if data_format := cal.queryv1("DATA_FORMAT"):
         for field in required_fields:
             if field.encode("utf-8") not in list(data_format.values()):
-                if debug:
+                if DEBUG:
                     print(f"[D] Missing required field: {field}")
                 return None
         for field in list(data_format.values()):
             if field.decode("utf-8") not in required_fields:
-                if debug:
+                if DEBUG:
                     print(f"[D] Unknown field: {field}")
                 return None
     entries = cal.queryv(required_fields)
     if len(entries) < 1:
-        if debug:
+        if DEBUG:
             print(f"[D] No entries found in calibration {cal.filename}")
         return None
     vcgt = VideoCardGammaTableType(b"", "vcgt")
@@ -169,15 +194,14 @@ def can_update_cal(path):
         try:
             cal = CGATS(path)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
             CGATSTypeError,
             CGATSValueError,
         ) as exception:
-            if path in cals:
-                del cals[path]
+            cals.pop(path, None)
             print(f"Warning - couldn't process CGATS file '{path}': {exception}")
         else:
             if cal.queryv1("DEVICE_CLASS") == "DISPLAY" and None not in (
@@ -223,7 +247,7 @@ def extract_cal_from_profile(
     if check:
         try:
             cgats = get_cgats(arg)
-        except (IOError, CGATSError) as e:
+        except (OSError, CGATSError) as e:
             traceback.print_exc()
             raise Error(lang.getstr("cal_extraction_failed")) from e
     elif raise_on_missing_cal:
@@ -314,10 +338,8 @@ def extract_cal_from_ti3(ti3):
             cal_lines.append(line)
             if line == b"END_DATA":
                 break
-    try:
+    with contextlib.suppress(AttributeError):
         ti3.close()
-    except AttributeError:
-        pass
 
     return b"\n".join(cal_lines)
 
@@ -332,7 +354,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
 
     try:
         profile = ICCProfile(source_filename)
-    except (IOError, ICCProfileInvalidError) as exception:
+    except (OSError, ICCProfileInvalidError) as exception:
         return exception
     if "CIED" not in profile.tags and "targ" not in profile.tags:
         return None
@@ -344,7 +366,8 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
     for line in ti3_lines:
         line = line.strip()
         if line == b"CAL":
-            line = b"CAL    "  # Make sure CGATS file identifiers are always a minimum of 7 characters
+            # Make sure CGATS file identifiers are always a minimum of 7 characters long
+            line = line.ljust(7)
             cal_found = True
         if not cal_found:
             continue
@@ -422,9 +445,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
                     q = b"medium"
                 else:
                     q = b"high"
-                cal_lines.extend(
-                    (b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q)
-                )
+                cal_lines.extend((b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q))
         if not whitepoint:
             cal_lines.extend(
                 (
@@ -440,6 +461,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
             except Exception as exception:
                 return exception
         return cal_lines
+    return None
 
 
 def extract_device_gray_primaries(
@@ -603,7 +625,7 @@ def vcgt_to_cal(profile):
     context[key].type = key.encode("utf-8")
     values = profile.tags.vcgt.getNormalizedValues()
     for i, triplet in enumerate(values):
-        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)),) + triplet)
+        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)), *triplet))
     return cgats
 
 

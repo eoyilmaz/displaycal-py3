@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
-
 from DisplayCAL.dev.mocks import check_call, check_call_str
 from tests.data.display_data import DisplayData
 
 
 def test_update_estimated_measurement_time_1(setup_argyll):
-    """Testing for issue #37
+    """Testing for issue #37.
 
-    wxReportFrame.ReportFrame.update_estimated_measurement_time() method raising
+    ReportFrame.update_estimated_measurement_time() method raising
     TypeError.
     """
     from DisplayCAL.config import initcfg
-    from DisplayCAL.wxReportFrame import ReportFrame
+    from DisplayCAL.wx_report_frame import ReportFrame
     import wx
 
     initcfg()

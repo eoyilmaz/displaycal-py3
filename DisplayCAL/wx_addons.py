@@ -1,15 +1,21 @@
-# -*- coding: utf-8 -*-
-from time import sleep
+"""This module extends wxPython functionality by adding custom methods,
+utilities, and classes for enhanced GUI behavior. It includes image
+manipulation methods, custom event handling, improved timer implementations,
+and additional window and display utilities.
+"""
+
+import contextlib
 import os
 import sys
 import threading
 import types
+from time import sleep
+from typing import ClassVar
 
-from DisplayCAL.colormath import specialpow
-from DisplayCAL.wxfixes import wx, GenButton, PlateButton, get_dialogs
-
-from DisplayCAL.lib.agw.gradientbutton import GradientButton
 from DisplayCAL import floatspin
+from DisplayCAL.colormath import specialpow
+from DisplayCAL.lib.agw.gradientbutton import GradientButton
+from DisplayCAL.wx_fixes import GenButton, PlateButton, get_dialogs, wx
 
 
 def AdjustMinMax(self, minvalue=0.0, maxvalue=1.0):
@@ -79,14 +85,10 @@ def GetRealClientArea(self):
     # need to fix overlapping ClientArea on some Linux multi-display setups
     # the client area must be always smaller than the geometry
     clientarea = list(self.ClientArea)
-    if self.Geometry[0] > clientarea[0]:
-        clientarea[0] = self.Geometry[0]
-    if self.Geometry[1] > clientarea[1]:
-        clientarea[1] = self.Geometry[1]
-    if self.Geometry[2] < clientarea[2]:
-        clientarea[2] = self.Geometry[2]
-    if self.Geometry[3] < clientarea[3]:
-        clientarea[3] = self.Geometry[3]
+    clientarea[0] = max(clientarea[0], self.Geometry[0])
+    clientarea[1] = max(clientarea[1], self.Geometry[1])
+    clientarea[2] = min(clientarea[2], self.Geometry[2])
+    clientarea[3] = min(clientarea[3], self.Geometry[3])
     return wx.Rect(*clientarea)
 
 
@@ -112,8 +114,7 @@ wx.Window.GetAllChildren = GetAllChildren
 def GetDisplay(self):
     """Return the display the window is shown on"""
     display_no = wx.Display.GetFromWindow(self)
-    if display_no < 0:  # window outside visible area
-        display_no = 0
+    display_no = max(display_no, 0)  # window outside visible area
     return wx.Display(display_no)
 
 
@@ -121,6 +122,7 @@ wx.Window.GetDisplay = GetDisplay
 
 
 def SetMaxFontSize(self, pointsize=11):
+    """Set the maximum font size for this window."""
     font = self.GetFont()
     if font.GetPointSize() > pointsize:
         font.SetPointSize(pointsize)
@@ -130,7 +132,7 @@ def SetMaxFontSize(self, pointsize=11):
 wx.Window.SetMaxFontSize = SetMaxFontSize
 
 
-def RealCenterOnScreen(self, dir=wx.BOTH):
+def RealCenterOnScreen(self, dir=wx.BOTH):  # noqa: A002
     """Center the window on the screen it is on, unlike CenterOnScreen which
     always centers on 1st screen.
 
@@ -156,12 +158,8 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):
     # is completely outside the client area of all displays
     display_client_rect = self.GetDisplay().ClientArea
     if sys.platform not in ("darwin", "win32"):  # Linux
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
-            # Client-side decorations
-            safety_margin = 0
-        else:
-            # Assume server-side decorations
-            safety_margin = 40
+        # Client-side decorations on wayland, otherwise assume server-side decorations
+        safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
     else:
         safety_margin = 20
     if None not in (w, h):
@@ -176,27 +174,27 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):
             min(display_client_rect[2] - border_lr, max(w, min_w)),
             min(display_client_rect[3] - border_tb - safety_margin, max(h, min_h)),
         )
-    if None not in (x, y):
-        if not display_client_rect.ContainsXY(
-            x, y
-        ) or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1])):
-            # If outside client area, move into client area
-            xy = [x, y]
-            for i, pos in enumerate([xy, (x + self.Size[0], y + self.Size[1])]):
-                for j in range(2):
-                    if (
-                        pos[j] > display_client_rect[j] + display_client_rect[2 + j]
-                        or pos[j] < display_client_rect[j]
-                    ):
-                        if i:
-                            xy[j] = (
-                                display_client_rect[j]
-                                + display_client_rect[2 + j]
-                                - self.Size[j]
-                            )
-                        else:
-                            xy[j] = display_client_rect[j]
-            self.SetPosition(tuple(xy))
+    if None not in (x, y) and (
+        not display_client_rect.ContainsXY(x, y)
+        or not display_client_rect.ContainsRect((x, y, self.Size[0], self.Size[1]))
+    ):
+        # If outside client area, move into client area
+        xy = [x, y]
+        for i, pos in enumerate([xy, (x + self.Size[0], y + self.Size[1])]):
+            for j in range(2):
+                if (
+                    pos[j] > display_client_rect[j] + display_client_rect[2 + j]
+                    or pos[j] < display_client_rect[j]
+                ):
+                    if i:
+                        xy[j] = (
+                            display_client_rect[j]
+                            + display_client_rect[2 + j]
+                            - self.Size[j]
+                        )
+                    else:
+                        xy[j] = display_client_rect[j]
+        self.SetPosition(tuple(xy))
 
 
 wx.Window.SetSaneGeometry = SetSaneGeometry
@@ -267,11 +265,11 @@ def gamma_encode(R, G, B, alpha=wx.ALPHA_OPAQUE):
         ]
         RGBa.append(alpha)
         return RGBa
-    else:
-        return [R, G, B, alpha]
+    return [R, G, B, alpha]
 
 
 def get_platform_window_decoration_size():
+    """Get the size of the window decoration."""
     if sys.platform in ("darwin", "win32"):
         # Size includes windows decoration
         if sys.platform == "win32":
@@ -290,7 +288,7 @@ def get_platform_window_decoration_size():
 def draw_granger_rainbow(dc, x=0, y=0, width=1920, height=1080):
     """Draw a granger rainbow to a DC"""
     if not isinstance(dc, wx.GCDC):
-        raise NotImplementedError("%s lacks alpha transparency support" % dc.__class__)
+        raise NotImplementedError(f"{dc.__class__} lacks alpha transparency support")
 
     # Widths
     column_width = int(162.0 / 1920.0 * width)
@@ -345,7 +343,7 @@ def draw_granger_rainbow(dc, x=0, y=0, width=1920, height=1080):
 
 
 def create_granger_rainbow_bitmap(width=1920, height=1080, filename=None):
-    """Create a granger rainbow bitmap"""
+    """Create a granger rainbow bitmap."""
     # Main bitmap
     bmp = wx.EmptyBitmap(width, height)
     mdc = wx.MemoryDC(bmp)
@@ -372,21 +370,23 @@ def create_granger_rainbow_bitmap(width=1920, height=1080, filename=None):
             ".xpm": wx.BITMAP_TYPE_XPM,
         }.get(ext, wx.BITMAP_TYPE_PNG)
         bmp.SaveFile(filename, bmp_type)
-    else:
-        return bmp
+    return bmp
 
 
 def get_parent_frame(window):
-    """Get parent frame (if any)"""
+    """Get parent frame (if any)."""
     parent = window.Parent
     while parent:
         if isinstance(parent, wx.Frame):
             return parent
         parent = parent.Parent
+    return None
 
 
 class CustomEvent(wx.PyEvent):
-    def __init__(self, typeId, object, window=None):
+    """A wx.Event replacement."""
+
+    def __init__(self, typeId, object, window=None):  # noqa: A002
         wx.PyEvent.__init__(self, object.GetId(), typeId)
         self.EventObject = object
         self.Window = window
@@ -395,16 +395,18 @@ class CustomEvent(wx.PyEvent):
         return self.Window
 
 
-_global_timer_lock = threading.Lock()
+_GLOBAL_TIMER_LOCK = threading.Lock()
 
 
-wxEVT_BETTERTIMER = wx.NewEventType()
-EVT_BETTERTIMER = wx.PyEventBinder(wxEVT_BETTERTIMER, 1)
+wxEVT_BETTER_TIMER = wx.NewEventType()  # noqa: N816
+EVT_BETTER_TIMER = wx.PyEventBinder(wxEVT_BETTER_TIMER, 1)
 
 
 class BetterTimerEvent(wx.PyCommandEvent):
-    def __init__(self, id=wx.ID_ANY, ms=0):
-        wx.PyCommandEvent.__init__(self, wxEVT_BETTERTIMER, id)
+    """A wx.Timer event replacement."""
+
+    def __init__(self, id=wx.ID_ANY, ms=0):  # noqa: A002
+        wx.PyCommandEvent.__init__(self, wxEVT_BETTER_TIMER, id)
         self._ms = ms
 
     def GetInterval(self):
@@ -416,11 +418,10 @@ class BetterTimerEvent(wx.PyCommandEvent):
 class BetterTimer(wx.Timer):
     """A wx.Timer replacement.
 
-    Doing GUI updates using regular timers can be incredibly segfaulty under
+    Doing GUI updates using regular timers can be incredibly SEGFAULTy under
     wxPython Phoenix when several timers run concurrently.
 
     This approach uses a global lock to work around the issue.
-
     """
 
     def __init__(self, owner=None, timerid=wx.ID_ANY):
@@ -428,23 +429,25 @@ class BetterTimer(wx.Timer):
         self._owner = owner
 
     def Notify(self):
-        if self._owner and _global_timer_lock.acquire(False):
+        if self._owner and _GLOBAL_TIMER_LOCK.acquire(False):
             try:
                 wx.PostEvent(self._owner, BetterTimerEvent(self.Id, self.Interval))
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
 
 class BetterCallLater(wx.CallLater):
+    """A wx.CallLater replacement."""
+
     def __init__(self, millis, callableObj, *args, **kwargs):
         wx.CallLater.__init__(self, millis, callableObj, *args, **kwargs)
 
     def Notify(self):
-        if _global_timer_lock.acquire(True):
+        if _GLOBAL_TIMER_LOCK.acquire(True):
             try:
                 wx.CallLater.Notify(self)
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
 
 class ThreadedTimer:
@@ -462,11 +465,11 @@ class ThreadedTimer:
         self._thread = None
 
     def _notify(self):
-        if _global_timer_lock.acquire(self._oneshot):
+        if _GLOBAL_TIMER_LOCK.acquire(self._oneshot):
             try:
                 self.Notify()
             finally:
-                _global_timer_lock.release()
+                _GLOBAL_TIMER_LOCK.release()
 
     def _timer(self):
         self._keep_running = True
@@ -479,10 +482,8 @@ class ThreadedTimer:
 
     def Destroy(self):
         if hasattr(wx.Window, "UnreserveControlId") and self.Id < 0:
-            try:
+            with contextlib.suppress(wx.wxAssertionError):
                 wx.Window.UnreserveControlId(self.Id)
-            except wx.wxAssertionError:
-                pass
 
     def GetId(self):
         return self._id
@@ -525,6 +526,9 @@ class ThreadedTimer:
 
 
 class ThreadedCallLater(ThreadedTimer):
+    """A wx.CallLater replacement that uses threads instead of actual timers
+    which are a limited resource."""
+
     def __init__(self, millis, callableObj, *args, **kwargs):
         ThreadedTimer.__init__(self)
         self._oneshot = True
@@ -569,7 +573,7 @@ class BetterWindowDisabler:
 
     """
 
-    windows = set()
+    windows: ClassVar[set] = set()
 
     def __init__(self, skip=None, toplevelparent=None, include_menus=False):
         self._windows = []
@@ -578,7 +582,8 @@ class BetterWindowDisabler:
         self.include_menus = include_menus
         self.disable()
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Destruct the instance."""
         self.enable()
 
     def disable(self):
@@ -587,9 +592,8 @@ class BetterWindowDisabler:
     def enable(self, enable=True):
         if not enable:
             skip = self.skip or []
-            if skip:
-                if not isinstance(skip, (list, tuple)):
-                    skip = [skip]
+            if skip and not isinstance(skip, (list, tuple)):
+                skip = [skip]
             if self.toplevelparent:
                 toplevel = [self.toplevelparent]
             else:
@@ -598,7 +602,7 @@ class BetterWindowDisabler:
                 if (
                     w
                     and w not in skip
-                    and "Inspection" not in "%s" % w
+                    and "Inspection" not in f"{w}"
                     and w not in BetterWindowDisabler.windows
                 ):
                     self._windows.append(w)
@@ -673,7 +677,9 @@ class BetterWindowDisabler:
 
 
 class CustomGridCellEvent(CustomEvent):
-    def __init__(self, typeId, object, row=-1, col=-1, window=None):
+    """Custom event for wx.grid.GridCell."""
+
+    def __init__(self, typeId, object, row=-1, col=-1, window=None):  # noqa: A002
         CustomEvent.__init__(self, typeId, object, window)
         self.Row = row
         self.Col = col
@@ -700,11 +706,12 @@ class PopupMenu:
     def EnableTop(self, pos, enable=True):
         self._enabledtop[pos] = enable
 
-    def FindItemById(self, id):
+    def FindItemById(self, id):  # noqa: A002
         for menu, _label in self._menus:
             item = menu.FindItemById(id)
             if item:
                 return item
+        return None
 
     def FindMenu(self, title):
         for i, (_menu, label) in enumerate(self._menus):
@@ -722,7 +729,7 @@ class PopupMenu:
         """Return menus.
 
         Returns:
-            List[wx.Menu]: List of child menus.
+            list[wx.Menu]: List of child menus.
         """
         return list(self._menus)
 
@@ -730,7 +737,7 @@ class PopupMenu:
         """Set menus.
 
         Args:
-            menus (List[wx.Menu]): A list of wx.Menu instances to set as a
+            menus (list[wx.Menu]): A list of wx.Menu instances to set as a
                 child of this menubar.
         """
         self._menus = []
@@ -785,7 +792,6 @@ class PopupMenu:
 
     def popup(self):
         """Popup the list of menus (with actual menus as submenus)"""
-
         top_menu = wx.Menu()
 
         for menu, label in self._menus:
@@ -802,6 +808,8 @@ class PopupMenu:
 
 
 class FileDrop(wx.FileDropTarget):
+    """A wx.FileDropTarget derivative that can handle multiple file types."""
+
     def __init__(self, drophandlers=None):
         wx.FileDropTarget.__init__(self)
         if drophandlers is None:
@@ -849,10 +857,10 @@ class IdFactory:
     """Inspired by wxPython 4 (Phoenix) wx.IdManager"""
 
     CurrentId = 100
-    ReservedIds = set()
+    ReservedIds: ClassVar[set] = set()
 
     @classmethod
-    def NewId(cls):
+    def NewId(cls) -> int:
         """Replacement for wx.NewId()"""
         start_id = cls.CurrentId
 
@@ -860,26 +868,26 @@ class IdFactory:
             # Skip the part of IDs space that contains hard-coded values
             if cls.CurrentId == wx.ID_LOWEST:
                 cls.CurrentId = wx.ID_HIGHEST + 1
-            id = cls.CurrentId
-            if id < 30095:
+            id_ = cls.CurrentId
+            if id_ < 30095:
                 cls.CurrentId += 1
             else:
                 cls.CurrentId = 100
-            if id not in cls.ReservedIds:
+            if id_ not in cls.ReservedIds:
                 break
-            elif cls.CurrentId == start_id:
+            if cls.CurrentId == start_id:
                 raise RuntimeError(
                     "Error: Out of IDs. Recommend shutting down application."
                 )
 
-        cls.ReserveId(id)
+        cls.ReserveId(id_)
 
-        return id
-
-    @classmethod
-    def ReserveId(cls, id):
-        cls.ReservedIds.add(id)
+        return id_
 
     @classmethod
-    def UnreserveId(cls, id):
-        cls.ReservedIds.remove(id)
+    def ReserveId(cls, id_) -> None:
+        cls.ReservedIds.add(id_)
+
+    @classmethod
+    def UnreserveId(cls, id_) -> None:
+        cls.ReservedIds.remove(id_)

@@ -1,24 +1,34 @@
-# -*- coding: utf-8 -*-
-"""
-Simple CGATS file parser class
+"""Simple CGATS file parser class
 
 Copyright (C) 2008 Florian Hoech
 """
 
+from __future__ import annotations
+
 import functools
 import io
 import math
-import re
 import os
+import re
 from pathlib import Path
+from typing import Any
 
 from DisplayCAL import colormath
+from DisplayCAL.icc_profile import ICCProfileTag
 from DisplayCAL.log import safe_print
-from DisplayCAL.options import debug, verbose
-from DisplayCAL.util_io import GzipFileProper, StringIOu as StringIO
+from DisplayCAL.options import DEBUG
+from DisplayCAL.util_io import GzipFileProper
 
 
 def get_device_value_labels(color_rep=None):
+    """Return a list of device value labels.
+
+    Args:
+        color_rep (str): Color representation. Default is None.
+
+    Returns:
+        list: List of device value labels.
+    """
     # TODO: Avoid using filter...
     return list(
         filter(
@@ -63,120 +73,224 @@ def rpad(value, width) -> bytes:
 
 
 def sort_RGB_gray_to_top(a, b):
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[0] == a[1] == a[2]:
         if b[0] == b[1] == b[2]:
             return 0
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_RGB_to_top_factory(i1, i2, i3, i4):
+    """Return a function to sort RGB values to the top.
+
+    Args:
+        i1 (int): Index of the first RGB value.
+        i2 (int): Index of the second RGB value.
+        i3 (int): Index of the third RGB value.
+        i4 (int): Index of the fourth RGB value.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their values.
+    """
+
     def sort_RGB_to_top(a, b):
         if a[i1] == a[i2] and 0 <= a[i3] < a[i4]:
             if b[i1] == b[i2] and 0 <= b[i3] < b[i4]:
                 return 0
             return -1
-        else:
-            return 0
+        return 0
 
     return sort_RGB_to_top
 
 
 def sort_RGB_white_to_top(a, b):
-    sum1, sum2 = sum(a[:3]), sum(b[:3])
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
+    sum1 = sum(a[:3])
+    # sum2 = sum(b[:3])
     return -1 if sum1 == 300 else 0
 
 
 def sort_by_HSI(a, b):
+    """Sort by HSI value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSI(*a[:3]))
     b = list(colormath.RGB2HSI(*b[:3]))
     a[0] = round(math.degrees(a[0]))
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_HSL(a, b):
+    """Sort by HSL value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSL(*a[:3]))
     b = list(colormath.RGB2HSL(*b[:3]))
     a[0] = round(math.degrees(a[0]))
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_HSV(a, b):
+    """Sort by HSV value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSV(*a[:3]))
     b = list(colormath.RGB2HSV(*b[:3]))
     a[0] = round(math.degrees(a[0]))
     b[0] = round(math.degrees(b[0]))
     if a > b:
         return 1
-    elif a < b:
+    if a < b:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_RGB(a, b):
+    """Sort by RGB value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3] > b[:3]:
         return 1
-    elif a[:3] < b[:3]:
+    if a[:3] < b[:3]:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_BGR(a, b):
+    """Sort by BGR value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3][::-1] > b[:3][::-1]:
         return 1
-    elif a[:3] == b[:3]:
+    if a[:3] == b[:3]:
         return 0
-    else:
-        return -1
+    return -1
 
 
 def sort_by_RGB_sum(a, b):
+    """Sort by RGB sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(a[:3]), sum(b[:3])
     if sum1 > sum2:
         return 1
-    elif sum1 < sum2:
+    if sum1 < sum2:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def sort_by_RGB_pow_sum(a, b):
+    """Sort by RGB power sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(v**2.2 for v in a[:3]), sum(v**2.2 for v in b[:3])
     if sum1 > sum2:
         return 1
-    elif sum1 < sum2:
+    if sum1 < sum2:
         return -1
-    else:
-        return 0
+    return 0
 
 
 def stable_sort_by_L(a, b):
+    """Stable sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     return sort_by_L(a, b, stable=True)
 
 
 def sort_by_L(a, b, stable=False):
+    """Sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+        stable (bool): If True, sort stably by L* value.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
+
     def sort(a1, b1):
         if a1 > b1:
             return 1
-        elif a1 < b1:
+        if a1 < b1:
             return -1
-        else:
-            return 0
+        return 0
 
     Lab1 = colormath.XYZ2Lab(*a[3:])
     Lab2 = colormath.XYZ2Lab(*b[3:])
@@ -186,20 +300,30 @@ def sort_by_L(a, b, stable=False):
             if v != 0:
                 return v
         return 0
-    else:
-        return sort(Lab1[0], Lab2[0])
+    return sort(Lab1[0], Lab2[0])
 
 
 def sort_by_luma_factory(RY, GY, BY, gamma=1):
+    """Return a function to sort by luma.
+
+    Args:
+        RY (float): Red Y value.
+        GY (float): Green Y value.
+        BY (float): Blue Y value.
+        gamma (float): Gamma correction value. Default is 1.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their luma value.
+    """
+
     def sort_by_luma(a, b):
         a = RY * a[0] ** gamma + GY * a[1] ** gamma + BY * a[2] ** gamma
         b = RY * b[0] ** gamma + GY * b[1] ** gamma + BY * b[2] ** gamma
         if a > b:
             return 1
-        elif a < b:
+        if a < b:
             return -1
-        else:
-            return 0
+        return 0
 
     return sort_by_luma
 
@@ -208,46 +332,39 @@ sort_by_rec709_luma = sort_by_luma_factory(0.2126, 0.7152, 0.0722)
 
 
 class CGATSError(Exception):
-    pass
+    """Base class for CGATS errors."""
 
 
 class CGATSInvalidError(CGATSError, IOError):
-    pass
+    """Invalid CGATS file error."""
 
 
 class CGATSInvalidOperationError(CGATSError):
-    pass
+    """Invalid operation error."""
 
 
 class CGATSKeyError(CGATSError, KeyError):
-    pass
+    """CGATS key not found error."""
 
 
 class CGATSTypeError(CGATSError, TypeError):
-    pass
+    """CGATS type error."""
 
 
 class CGATSValueError(CGATSError, ValueError):
-    pass
+    """CGATS value error."""
 
 
 class CGATS(dict):
     """CGATS structure.
 
     CGATS files are treated mostly as 'soup', so only basic checking is in place.
+
+    TODO: Don't derive this from dict, but use a dict as a member variable.
     """
 
     datetime = None
     filename = None
-
-    @property
-    def fileName(self):
-        return self.filename
-
-    @fileName.setter
-    def fileName(self, filename):
-        self.filename = filename
-
     key = None
     _lvl = 0
     _modified = False
@@ -260,10 +377,10 @@ class CGATS(dict):
     def __init__(
         self,
         cgats=None,
-        normalize_fields=False,
-        file_identifier=b"CTI3",
-        emit_keywords=False,
-        strict=False,
+        normalize_fields: bool = False,
+        file_identifier: bytes = b"CTI3",
+        emit_keywords: bool = False,
+        strict: bool = False,
     ):
         """Return a CGATS instance.
 
@@ -275,192 +392,264 @@ class CGATS(dict):
 
         file_identifier is used as fallback if no file identifier is present
         """
-        super(CGATS, self).__init__()
+        super().__init__()
 
         self.normalize_fields = normalize_fields
         self.file_identifier = file_identifier.strip()
         self.emit_keywords = emit_keywords
         self.root = self
 
-        if cgats:
-            if isinstance(cgats, list):
-                raw_lines = cgats
+        if not cgats:
+            return
+
+        raw_lines = self.read_raw_data(cgats)
+
+        if self.filename:
+            self.mtime = os.stat(self.filename).st_mtime
+
+        self.parse_raw_data(strict, raw_lines)
+
+    def read_raw_data(self, cgats: str | bytes | list | Path | io.IOBase) -> list:
+        """Read raw CGATS data.
+
+        Args:
+            cgats (str | bytes | list | Path | io.IOBase): CGATS data to parse.
+
+        Raises:
+            CGATSInvalidError: If the type of cgats is unsupported.
+
+        Returns:
+            list: Parsed CGATS data lines.
+        """
+        raw_lines = []
+        if isinstance(cgats, list):
+            raw_lines = cgats
+        elif isinstance(cgats, str):
+            if "\n" not in cgats or "\r" not in cgats:
+                # assume filename
+                with open(cgats, "rb") as cgats_:
+                    self.filename = cgats_.name
+                    cgats_.seek(0)
+                    raw_lines = cgats_.readlines()
             else:
-                if isinstance(cgats, str):
-                    if "\n" not in cgats or "\r" not in cgats:
-                        # assume filename
-                        cgats = open(cgats, "rb")
-                        self.filename = cgats.name
-                    else:
-                        # assume text
-                        cgats = io.StringIO(cgats)
-
-                from DisplayCAL.icc_profile import ICCProfileTag
-
-                if isinstance(cgats, bytes):
-                    # assume text
-                    cgats = io.BytesIO(cgats)
-                elif isinstance(cgats, ICCProfileTag):
-                    cgats = io.BytesIO(cgats.tagData)
-                elif isinstance(cgats, Path):
-                    self.filename = cgats.absolute()
-                    cgats = open(cgats, "rb")
-                elif not isinstance(cgats, (StringIO, io.BytesIO, io.BufferedReader)):
-                    raise CGATSInvalidError(f"Unsupported type: {type(cgats)}")
-
-                if self.filename:
-                    self.mtime = os.stat(self.filename).st_mtime
-
+                # assume text
+                with io.StringIO(cgats) as cgats_:
+                    cgats_.seek(0)
+                    raw_lines = cgats_.readlines()
+        elif isinstance(cgats, bytes):
+            # assume text
+            with io.BytesIO(cgats) as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
+        elif isinstance(cgats, ICCProfileTag):
+            with io.BytesIO(cgats.tagData) as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
+        elif isinstance(cgats, Path):
+            self.filename = cgats.absolute()
+            with open(cgats, "rb") as cgats_:
+                cgats_.seek(0)
+                raw_lines = cgats_.readlines()
+        elif isinstance(cgats, io.IOBase):
+            if hasattr(cgats, "readlines"):
                 cgats.seek(0)
                 raw_lines = cgats.readlines()
-                cgats.close()
+            else:
+                # Assume file-like object
+                raw_lines = cgats.read()
+                if isinstance(raw_lines, bytes):
+                    raw_lines = [raw_lines]
+            cgats.close()
+        else:
+            raise CGATSInvalidError(f"Unsupported type: {type(cgats)}")
+        return raw_lines
 
-            context = self
-            for raw_line in raw_lines:
-                # Replace 1.#IND00 with NaN
-                raw_line = raw_line.replace(b"1.#IND00", b"NaN")
+    def parse_raw_data(self, strict: bool, raw_lines: list) -> None:
+        """Parse raw CGATS data.
 
-                # strip control chars and leading/trailing whitespace
-                line = re.sub(b"[^\x09\x20-\x7e\x80-\xff]", b"", raw_line.strip())
+        Args:
+            strict (bool): If True, raise errors for malformed data.
+            raw_lines (list): List of raw CGATS data lines to parse.
 
-                if b"#" in line or b'"' in line:
-                    # Deal with comments and quotes
-                    quoted = False
-                    values = []
-                    token_start = 0
-                    end = len(line) - 1
-                    for i in range(len(line)):
-                        char = line[i : i + 1]
-                        if char == b'"':
-                            if quoted is False:
-                                if not line[token_start:i]:
-                                    token_start = i
-                                quoted = True
-                            else:
-                                quoted = False
-                        if (quoted is False and char in b"# \t") or i == end:
-                            if i == end:
-                                i += 1
-                            value = line[token_start:i]
-                            if value:
-                                if value[0:1] == b'"' == value[-2:-1]:
-                                    # Unquote
-                                    value = value[1:-1]
-                                # Need to unescape double quote -> single quote
-                                values.append(value.replace(b'""', b'"'))
-                            if char == b"#":
-                                # Strip comment
-                                line = line[:i].strip()
-                                break
-                            elif char in b" \t":
-                                token_start = i + 1
-                else:
-                    # no comments or quotes
-                    values = line.split()
+        Raises:
+            CGATSInvalidError: If strict is True and data is malformed.
 
-                if line[:6] == b"BEGIN_":
-                    key = line[6:].decode()
-                    if key in context:
-                        # Start new CGATS
-                        new = len(self)
-                        self[new] = CGATS()
-                        self[new].key = ""
-                        self[new].parent = self
-                        self[new].root = self.root
-                        self[new].type = b""
-                        context = self[new]
+        """
+        context = self
+        for raw_line in raw_lines:
+            # Replace 1.#IND00 with NaN
+            raw_line = raw_line.replace(b"1.#IND00", b"NaN")
 
-                if line == b"BEGIN_DATA_FORMAT":
-                    context["DATA_FORMAT"] = CGATS()
-                    context["DATA_FORMAT"].key = "DATA_FORMAT"
-                    context["DATA_FORMAT"].parent = context
-                    context["DATA_FORMAT"].root = self
-                    context["DATA_FORMAT"].type = b"DATA_FORMAT"
-                    context = context["DATA_FORMAT"]
-                elif line == b"END_DATA_FORMAT":
-                    context = context.parent
-                elif line == b"BEGIN_DATA":
-                    context["DATA"] = CGATS()
-                    context["DATA"].key = "DATA"
-                    context["DATA"].parent = context
-                    context["DATA"].root = self
-                    context["DATA"].type = b"DATA"
-                    context = context["DATA"]
-                elif line == b"END_DATA":
-                    context = context.parent
-                elif line[:6] == b"BEGIN_":
-                    key = line[6:].decode()
-                    context[key] = CGATS()
-                    context[key].key = key
-                    context[key].parent = context
-                    context[key].root = self
-                    context[key].type = b"SECTION"
-                    context = context[key]
-                elif line[:4] == b"END_":
-                    context = context.parent
-                elif context.type in (b"DATA_FORMAT", b"DATA"):
-                    if len(values):
-                        context = context.add_data(values)
-                elif context.type == b"SECTION":
-                    context = context.add_data(line)
-                elif len(values) > 1:
-                    if values[0] == b"Date:":
-                        context.datetime = line
+            # strip control chars and leading/trailing whitespace
+            line = re.sub(b"[^\x09\x20-\x7e\x80-\xff]", b"", raw_line.strip())
+
+            if b"#" in line or b'"' in line:
+                # Deal with comments and quotes
+                quoted = False
+                values = []
+                token_start = 0
+                end = len(line) - 1
+                for i in range(len(line)):
+                    char = line[i : i + 1]
+                    if char == b'"':
+                        if quoted is False:
+                            if not line[token_start:i]:
+                                token_start = i
+                            quoted = True
+                        else:
+                            quoted = False
+                    if (quoted is False and char in b"# \t") or i == end:
+                        if i == end:
+                            i += 1
+                        value = line[token_start:i]
+                        if value:
+                            if value[0:1] == b'"' == value[-2:-1]:
+                                # Unquote
+                                value = value[1:-1]
+                            # Need to unescape double quote -> single quote
+                            values.append(value.replace(b'""', b'"'))
+                        if char == b"#":
+                            # Strip comment
+                            line = line[:i].strip()
+                            break
+                        if char in b" \t":
+                            token_start = i + 1
+            else:
+                # no comments or quotes
+                values = line.split()
+
+            if line[:6] == b"BEGIN_":
+                key = line[6:].decode()
+                if key in context:
+                    # Start new CGATS
+                    new = len(self)
+                    self[new] = CGATS()
+                    self[new].key = ""
+                    self[new].parent = self
+                    self[new].root = self.root
+                    self[new].type = b""
+                    context = self[new]
+
+            if line == b"BEGIN_DATA_FORMAT":
+                context["DATA_FORMAT"] = CGATS()
+                context["DATA_FORMAT"].key = "DATA_FORMAT"
+                context["DATA_FORMAT"].parent = context
+                context["DATA_FORMAT"].root = self
+                context["DATA_FORMAT"].type = b"DATA_FORMAT"
+                context = context["DATA_FORMAT"]
+            elif line == b"END_DATA_FORMAT":
+                context = context.parent
+            elif line == b"BEGIN_DATA":
+                context["DATA"] = CGATS()
+                context["DATA"].key = "DATA"
+                context["DATA"].parent = context
+                context["DATA"].root = self
+                context["DATA"].type = b"DATA"
+                context = context["DATA"]
+            elif line == b"END_DATA":
+                context = context.parent
+            elif line[:6] == b"BEGIN_":
+                key = line[6:].decode()
+                context[key] = CGATS()
+                context[key].key = key
+                context[key].parent = context
+                context[key].root = self
+                context[key].type = b"SECTION"
+                context = context[key]
+            elif line[:4] == b"END_":
+                context = context.parent
+            elif context.type in (b"DATA_FORMAT", b"DATA"):
+                if len(values):
+                    context = context.add_data(values)
+            elif context.type == b"SECTION":
+                context = context.add_data(line)
+            elif len(values) > 1:
+                if values[0] == b"Date:":
+                    context.datetime = line
+                elif len(values) == 2 and b'"' not in values[0]:
+                    key, value = values[0].decode(), values[1]
+                    if value is not None:
+                        context = context.add_data({key: value.strip(b'"')})
                     else:
-                        if len(values) == 2 and b'"' not in values[0]:
-                            key, value = values[0].decode(), values[1]
-                            if value is not None:
-                                context = context.add_data({key: value.strip(b'"')})
-                            else:
-                                context = context.add_data({key: b""})
-                        elif strict:
-                            raise CGATSInvalidError(
-                                "Malformed {} file: {}".format(
-                                    context.parent and context.type or "CGATS",
-                                    self.filename or self,
-                                )
-                            )
-                elif (
-                    values
-                    and values[0] not in (b"Comment:", b"Date:")
-                    and len(line) >= 3
-                    and not re.search(b"[^ 0-9A-Za-z/.]", line)
-                ):
-                    context = self.add_data(line)
+                        context = context.add_data({key: b""})
+                elif strict:
+                    raise CGATSInvalidError(
+                        "Malformed {} file: {}".format(
+                            (context.parent and context.type) or "CGATS",
+                            self.filename or self,
+                        )
+                    )
+            elif (
+                values
+                and values[0] not in (b"Comment:", b"Date:")
+                and len(line) >= 3
+                and not re.search(b"[^ 0-9A-Za-z/.]", line)
+            ):
+                context = self.add_data(line)
 
-            if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
-                # Always normalize to Y = 100
-                reprstr = self.filename or "<%s.%s instance at 0x%016x>" % (
-                    self.__module__,
-                    self.__class__.__name__,
-                    id(self),
-                )
-                if self[0].normalize_to_y_100():
-                    print("Normalized to Y = 100:", reprstr)
-                else:
-                    print("Warning: Could not normalize to Y = 100:", reprstr)
-            self.setmodified(False)
+        if 0 in self and self[0].get("NORMALIZED_TO_Y_100") == b"NO":
+            # Always normalize to Y = 100
+            reprstr = self.filename or (
+                f"<{self.__module__}.{self.__class__.__name__} "
+                f"instance at 0x{id(self):016x}>"
+            )
+            if self[0].normalize_to_y_100():
+                print("Normalized to Y = 100:", reprstr)
+            else:
+                print("Warning: Could not normalize to Y = 100:", reprstr)
+        self.setmodified(False)
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
+        """Delete attributes from CGATS dictionary.
+
+        Args:
+            name (str): The name of the attribute to delete.
+        """
         del self[name]
         self.setmodified()
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
+        """Delete item from CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to delete.
+        """
         dict.__delitem__(self, name)
         self.setmodified()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attributes from CGATS dictionary.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Raises:
+            AttributeError: If the attribute is not found.
+
+        Returns:
+            Any: The value of the attribute.
+        """
         if name in self:
             return self[name]
-        else:
-            raise AttributeError(name)
+        raise AttributeError(name)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
+        """Get item from CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to get.
+
+        Raises:
+            CGATSKeyError: If the item is not found.
+
+        Returns:
+            Any: The value of the item.
+        """
         if name == -1:
             return self.get(len(self) - 1)
-        elif name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
+        if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
             return getattr(self, name)
-        elif name in self:
+        if name in self:
             if str(name).upper() in ("INDEX", "SAMPLE_ID", "SAMPLEID"):
                 if not isinstance(self.get(name), (int, float)):
                     return self.get(name)
@@ -472,27 +661,35 @@ class CGATS(dict):
             return self.get(name)
         raise CGATSKeyError(name)
 
+    @property
+    def fileName(self):
+        return self.filename
+
+    @fileName.setter
+    def fileName(self, filename):
+        self.filename = filename
+
     def get(self, name, default=None):
         if name == -1:
             return dict.get(self, len(self) - 1, default)
-        elif name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
+        if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
             return getattr(self, name, default)
-        else:
-            return dict.get(self, name, default)
+        return dict.get(self, name, default)
 
     def get_colorants(self):
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
-        if len(color_rep) == 2:
-            query = {}
-            colorants = []
-            for i in range(len(color_rep[0])):
-                for j in range(len(color_rep[0])):
-                    channelname = color_rep[0][j : j + 1]
-                    # the key should be str
-                    key = b"_".join([color_rep[0], channelname]).decode("utf-8")
-                    query[key] = 100 if i == j else 0
-                colorants.append(self.queryi1(query))
-            return colorants
+        if len(color_rep) != 2:
+            return None
+        query = {}
+        colorants = []
+        for i in range(len(color_rep[0])):
+            for j in range(len(color_rep[0])):
+                channelname = color_rep[0][j : j + 1]
+                # the key should be str
+                key = b"_".join([color_rep[0], channelname]).decode("utf-8")
+                query[key] = 100 if i == j else 0
+            colorants.append(self.queryi1(query))
+        return colorants
 
     def get_descriptor(self, localized=True):
         """Return CGATS description as string, based on metadata.
@@ -544,6 +741,12 @@ class CGATS(dict):
         return desc
 
     def __setattr__(self, name, value):
+        """Set attributes on the CGATS object.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value (Any): The value to set the attribute to.
+        """
         if name in ("_keys", "_lvl"):
             object.__setattr__(self, name, value)
         elif name == "modified":
@@ -567,7 +770,13 @@ class CGATS(dict):
         else:
             self[name] = value
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: str, value: Any) -> None:
+        """Set item in CGATS dictionary.
+
+        Args:
+            name (str): The name of the item to set.
+            value (Any): The value to set for the item.
+        """
         dict.__setitem__(self, name, value)
         self.setmodified()
 
@@ -576,7 +785,12 @@ class CGATS(dict):
         if self.root and self.root._modified != modified:
             object.__setattr__(self.root, "_modified", modified)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
+        """Return CGATS data as bytes.
+
+        Returns:
+            bytes: CGATS data as bytes.
+        """
         result = []
         lvl = self.root._lvl
         self.root._lvl += 1
@@ -621,11 +835,12 @@ class CGATS(dict):
                             else:
                                 result.append(bytes(str(value), "utf-8"))
                         else:
-                            if "KEYWORDS" in self and key in list(
-                                self["KEYWORDS"].values()
+                            if (
+                                "KEYWORDS" in self
+                                and key in list(self["KEYWORDS"].values())
+                                and self.emit_keywords
                             ):
-                                if self.emit_keywords:
-                                    result.append(b'KEYWORD "%s"' % key.encode())
+                                result.append(b'KEYWORD "%s"' % key.encode())
                             if isinstance(value, bytes):
                                 # Need to escape single quote -> double quote
                                 value = value.replace(b'"', b'""')
@@ -646,9 +861,11 @@ class CGATS(dict):
                 result.append(b"")
         if data and data.parent["DATA_FORMAT"]:
             if "KEYWORDS" in data.parent and self.emit_keywords:
-                for item in list(data.parent["DATA_FORMAT"].values()):
-                    if item in list(data.parent["KEYWORDS"].values()):
-                        result.append(b'KEYWORD "%s"' % item)
+                result.extend(
+                    b'KEYWORD "%s"' % item
+                    for item in list(data.parent["DATA_FORMAT"].values())
+                    if item in list(data.parent["KEYWORDS"].values())
+                )
             result.append(
                 b"NUMBER_OF_FIELDS %s"
                 % bytes(str(len(data.parent["DATA_FORMAT"])), "utf-8")
@@ -659,22 +876,22 @@ class CGATS(dict):
             result.append(b"")
             result.append(b"NUMBER_OF_SETS %s" % (bytes(str(len(data)), "utf-8")))
             result.append(b"BEGIN_DATA")
-            for key in data:
-                result.append(
-                    b" ".join(
-                        [
-                            rpad(
-                                data[key][item.decode("utf-8")],
-                                data.vmaxlen
-                                + (1 if data[key][item.decode("utf-8")] < 0 else 0),
-                            )
-                            for item in list(data.parent["DATA_FORMAT"].values())
-                        ]
-                    )
+            result.extend(
+                b" ".join(
+                    [
+                        rpad(
+                            data[key][item.decode("utf-8")],
+                            data.vmaxlen
+                            + (1 if data[key][item.decode("utf-8")] < 0 else 0),
+                        )
+                        for item in list(data.parent["DATA_FORMAT"].values())
+                    ]
                 )
+                for key in data
+            )
             result.append(b"END_DATA")
         if (
-            (self.parent and self.parent.type or self.type) == b"ROOT"
+            ((self.parent and self.parent.type) or self.type) == b"ROOT"
             and result
             and result[-1] != b""
             and lvl == 0
@@ -743,7 +960,7 @@ class CGATS(dict):
         data = self.queryv1("DATA")
         if not data:
             return False
-        elif field_names:
+        if field_names:
             data = data.queryi(field_names)
         return data
 
@@ -752,13 +969,9 @@ class CGATS(dict):
         data = self.get_data(field_names)
         if not data:
             return False, False
-        valueslist = []
-        for _key in data:
-            item = data[_key]
-            values = []
-            for field_name in field_names:
-                values.append(item[field_name])
-            valueslist.append(values)
+        valueslist = [
+            [data[_key][field_name] for field_name in field_names] for _key in data
+        ]
         return data, valueslist
 
     def set_RGB_XYZ_values(self, valueslist):
@@ -793,68 +1006,65 @@ class CGATS(dict):
             prev_values = []
             added = {prev_i: True}  # Keep track of entries we have added
             for i, values in enumerate(valueslist):
-                if debug:
+                if DEBUG:
                     print(i + 1, "IN", values[:3])
                 is_gray = values[:3] == [values[:3][0]] * 3
                 prev = color
                 cur = color
                 if is_gray:
                     if not prev_values:
-                        if debug:
+                        if DEBUG:
                             print("WARNING - skipping gray because no prev")
                     elif values[:3] == prev_values[:3]:
                         # Same gray as prev value
                         prev = color
                         cur = gray
-                        if prev_i not in added:
-                            if debug:
-                                print(
-                                    "INFO - appending prev %s to color because prev was"
-                                    " same gray but got skipped" % prev_values[:3]
-                                )
-                        if debug:
+                        if prev_i not in added and DEBUG:
                             print(
-                                "INFO - appending cur to gray because prev %s was same "
-                                "gray" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} to color "
+                                "because prev was same gray but got skipped"
+                            )
+                        if DEBUG:
+                            print(
+                                "INFO - appending cur to gray because prev "
+                                f"{prev_values[:3]} was same gray"
                             )
                     elif prev_values[:3] == [prev_values[:3][0]] * 3:
                         # Prev value was different gray
                         prev = gray
                         cur = gray
-                        if prev_i not in added:
-                            if debug:
-                                print(
-                                    "INFO - appending prev %s to gray because prev was "
-                                    "different gray but got skipped" % prev_values[:3]
-                                )
-                        if debug:
+                        if prev_i not in added and DEBUG:
                             print(
-                                "INFO - appending cur to gray because prev %s was "
-                                "different gray" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} to gray "
+                                "because prev was different gray but got skipped"
+                            )
+                        if DEBUG:
+                            print(
+                                "INFO - appending cur to gray because prev "
+                                f"{prev_values[:3]} was different gray"
                             )
                     elif i < numvalues - 1:
-                        if debug:
+                        if DEBUG:
                             print(
-                                "WARNING - skipping gray because prev %s was not gray"
-                                % prev_values[:3]
+                                "WARNING - skipping gray because prev "
+                                f"{prev_values[:3]} was not gray"
                             )
-                    else:
-                        # Last
-                        if debug:
-                            print(
-                                "INFO - appending cur to color because prev %s was not "
-                                "gray but cur is last" % prev_values[:3]
-                            )
+                    # Last
+                    elif DEBUG:
+                        print(
+                            "INFO - appending cur to color because prev "
+                            f"{prev_values[:3]} was not gray but cur is last"
+                        )
                 if not is_gray or cur is gray or i == numvalues - 1:
                     if prev_i not in added:
-                        if debug and prev is cur is color:
+                        if DEBUG and prev is cur is color:
                             print(
-                                "INFO - appending prev %s to color because prev got "
-                                "skipped" % prev_values[:3]
+                                f"INFO - appending prev {prev_values[:3]} "
+                                "to color because prev got skipped"
                             )
                         prev.append(prev_values)
                         added[prev_i] = True
-                    if debug and not is_gray and cur is color:
+                    if DEBUG and not is_gray and cur is color:
                         print("INFO - appending cur to color")
                     cur.append(values)
                     added[i] = True
@@ -865,7 +1075,7 @@ class CGATS(dict):
                 and color[0][:3] == [0, 0, 0]
                 and color[1][:3] == [100, 100, 100]
             ):
-                if debug:
+                if DEBUG:
                     print(
                         "INFO - appending color to gray because color is only black "
                         "and white"
@@ -876,11 +1086,19 @@ class CGATS(dict):
                     gray = sorted(gray, key=functools.cmp_to_key(sort1))
                 if sort2:
                     gray = sorted(gray, key=functools.cmp_to_key(sort2))
-            if debug:
+            if DEBUG:
                 for i, values in enumerate(gray):
-                    print("%4i" % (i + 1), "GRAY", ("%8.4f " * 3) % tuple(values[:3]))
+                    print(
+                        f"{i + 1:4d}",
+                        "GRAY",
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}",
+                    )
                 for i, values in enumerate(color):
-                    print("%4i" % (i + 1), "COLOR", ("%8.4f " * 3) % tuple(values[:3]))
+                    print(
+                        f"{i + 1:4d}",
+                        "COLOR",
+                        f"{values[0]:8.4f} {values[1]:8.4f} {values[2]:8.4f}",
+                    )
         else:
             color = valueslist
         checkerboard = []
@@ -921,14 +1139,14 @@ class CGATS(dict):
                         checkerboard.append(values)
         if shift and checkerboard[-1][:3] == [100, 100, 100]:
             # Move white patch to front
-            if debug:
+            if DEBUG:
                 print("INFO - moving white to front")
             checkerboard.insert(0, checkerboard.pop())
         if len(checkerboard) != numvalues:
             # This should never happen
             print(
-                "Number of patches incorrect after re-ordering (is %i, should be %i)"
-                % (len(checkerboard), numvalues)
+                "Number of patches incorrect after re-ordering "
+                f"(is {len(checkerboard)}, should be {numvalues})"
             )
             return False
         return data.set_RGB_XYZ_values(checkerboard)
@@ -1016,11 +1234,10 @@ class CGATS(dict):
             if key in self:
                 if key + inc < 0:
                     break
-                else:
-                    self[key].key += inc
-                    self[key + inc] = self[key]
-                    if key == len(self) - 1:
-                        break
+                self[key].key += inc
+                self[key + inc] = self[key]
+                if key == len(self) - 1:
+                    break
 
     def add_data(self, data, key=None):
         """Add data to the CGATS structure.
@@ -1035,7 +1252,7 @@ class CGATS(dict):
                     fl, il = len(self.parent["DATA_FORMAT"]), len(data)
                     if fl != il:
                         raise CGATSTypeError(
-                            "DATA entries take exactly %s values (%s given)" % (fl, il)
+                            f"DATA entries take exactly {fl} values ({il} given)"
                         )
                     dataset = CGATS()
                     i = -1
@@ -1044,8 +1261,8 @@ class CGATS(dict):
                         if isinstance(data, dict):
                             try:
                                 value = data[item.decode()]
-                            except KeyError:
-                                raise CGATSKeyError(item)
+                            except KeyError as e:
+                                raise CGATSKeyError(item) from e
                         else:
                             value = data[i]
                         if item.upper() in (b"INDEX", b"SAMPLE_ID", b"SAMPLEID"):
@@ -1071,18 +1288,17 @@ class CGATS(dict):
                         ):
                             try:
                                 value = float(value)
-                            except ValueError:
+                            except ValueError as e:
                                 raise CGATSValueError(
                                     f"Invalid data type for {item} "
-                                    f"(expected float, got {type(value)})"
-                                )
+                                    f"(expected float, got {value.__class__.__name__})"
+                                ) from e
                             else:
                                 strval = bytes(str(abs(value)), "UTF-8")
                                 if (
                                     self.parent.type != b"CAL"
                                     and item.startswith(b"RGB_")
-                                    or item.startswith(b"CMYK_")
-                                ):
+                                ) or item.startswith(b"CMYK_"):
                                     # Assuming 0..100, 4 decimal digits is
                                     # enough for roughly 19 bits integer
                                     # device values
@@ -1094,8 +1310,7 @@ class CGATS(dict):
                                 lencheck = len(parts[0])
                                 if len(parts) > 1:
                                     lencheck += abs(int(parts[1]))
-                                if lencheck > self.vmaxlen:
-                                    self.vmaxlen = lencheck
+                                self.vmaxlen = max(self.vmaxlen, lencheck)
                         elif (
                             self.root.normalize_fields and item.upper() == b"SAMPLENAME"
                         ):
@@ -1251,7 +1466,7 @@ class CGATS(dict):
         RGB_black_offset=40,
         normalize_RGB_white=False,
         compress=True,
-        format="VRML",
+        file_format="VRML",
     ):
         if colorspace not in (
             "DIN99",
@@ -1272,7 +1487,7 @@ class CGATS(dict):
             "IPT",
             "Lpt",
         ):
-            raise ValueError("export_3d: Unknown colorspace %r" % colorspace)
+            raise ValueError(f"export_3d: Unknown colorspace {colorspace!r}")
         from DisplayCAL import x3dom
 
         data = self.queryv1("DATA")
@@ -1283,16 +1498,10 @@ class CGATS(dict):
         radius = 15.0 / (len(data) ** (1.0 / 3.0))
         scale = 1.0
         if colorspace.startswith("DIN99"):
-            if colorspace == "DIN99":
-                scale = 100.0 / 40
-            else:
-                scale = 100.0 / 50
+            scale = 100.0 / 40 if colorspace == "DIN99" else 100.0 / 50
             radius /= scale
         white = data.queryi1({"RGB_R": 100, "RGB_G": 100, "RGB_B": 100})
-        if white:
-            white = white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-        else:
-            white = "D50"
+        white = white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"] if white else "D50"
         white = colormath.get_whitepoint(white)
         d50 = colormath.get_whitepoint("D50")
         if colorspace == "Lu'v'":
@@ -1333,7 +1542,7 @@ Transform {
                 }
             ]
         }
-"""
+"""  # noqa: E501
         axes = ""
         if colorspace not in (
             "Lab",
@@ -1379,41 +1588,36 @@ Transform {
             pycolor = "1.0 1.0 0.0"
             nycolor = "0.0 0.0 1.0"
             if colorspace.startswith("DIN99"):
-                axes += """Transform {
-            translation %.1f %.1f -50.0
+                axes += f"""Transform {{
+            translation {100 / scale:.1f} {100 / scale:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string ["%s"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %.1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string ["{colorspace}"]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {10.0 / scale:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
-""" % (
-                    100 / scale,
-                    100 / scale,
-                    colorspace,
-                    10.0 / scale,
-                )
+        }}
+"""  # noqa: E501
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"a", "+%i"' % (100 / scale),
-                    '"a", "-%i"' % (100 / scale),
-                    '"b +%i"' % (100 / scale),
-                    '"b -%i"' % (100 / scale),
+                    f'"a", "+{int(100 / scale)}"',
+                    f'"a", "-{int(100 / scale)}"',
+                    f'"b +{int(100 / scale)}"',
+                    f'"b -{int(100 / scale)}"',
                     '"L", "+100"',
                 )
             elif colorspace == "ICtCp":
                 scale = 2.0
                 radius /= 2.0
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"Ct", "+%.1f"' % 0.5,
-                    '"Ct", "-%.1f"' % 0.5,
-                    '"Cp +%.1f"' % 0.5,
-                    '"Cp -%.1f"' % 0.5,
+                    '"Ct", "+0.5"',
+                    '"Ct", "-0.5"',
+                    '"Cp +0.5"',
+                    '"Cp -0.5"',
                     '"I"',
                 )
                 pxcolor = "0.5 0.0 1.0"
@@ -1422,10 +1626,10 @@ Transform {
                 nycolor = "0.0 1.0 1.0"
             elif colorspace == "IPT":
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"P", "+%.1f"' % 1,
-                    '"P", "-%.1f"' % 1,
-                    '"T +%.1f"' % 1,
-                    '"T -%.1f"' % 1,
+                    '"P", "+1.0',
+                    '"P", "-1.0"',
+                    '"T +1.0"',
+                    '"T -1.0"',
                     '"I"',
                 )
             else:
@@ -1439,10 +1643,10 @@ Transform {
                     x = "a"
                     y = "b"
                 (pxlabel, nxlabel, pylabel, nylabel, pllabel) = (
-                    '"%s*", "+100"' % x,
-                    '"%s*", "-100"' % x,
-                    '"%s* +100"' % y,
-                    '"%s* -100"' % y,
+                    f'"{x}*", "+100"',
+                    f'"{x}*", "-100"',
+                    f'"{y}* +100"',
+                    f'"{y}* -100"',
                     '"L*", "+100"',
                 )
             values = {
@@ -1467,160 +1671,157 @@ Transform {
                 "pycolor": pycolor,
                 "nycolor": nycolor,
             }
-            axes += (
-                """# L* axis
-        Transform {
+            axes += """# L* axis
+        Transform {{
             translation 0.0 0.0 0.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(wh).1f 100.0 }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7 }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {wh:.1f} 100.0 }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7 }}
+                    }}
+                }}
             ]
-        }
+        }}
         # L* axis label
-        Transform {
-            translation -%(Ln).1f -%(wh).1f 55.0
+        Transform {{
+            translation -{Ln:.1f} -{wh:.1f} 55.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pllabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7}
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pllabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7}}
+                    }}
+                }}
             ]
-        }
+        }}
         # +x axis
-        Transform {
-            translation %(aboffset).1f 0.0 -50.0
+        Transform {{
+            translation {aboffset:.1f} 0.0 -50.0
             children [
-                Shape {
-                    geometry Box { size %(ab).1f %(wh).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {ab:.1f} {wh:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +x axis label
-        Transform {
-            translation %(ap).1f -%(wh).1f -50.0
+        Transform {{
+            translation {ap:.1f} -{wh:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pxlabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pxlabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -x axis
-        Transform {
-            translation -%(aboffset).1f 0.0 -50.0
+        Transform {{
+            translation -{aboffset:.1f} 0.0 -50.0
             children [
-                Shape {
-                    geometry Box { size %(ab).1f %(wh).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {ab:.1f} {wh:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -x axis label
-        Transform {
-            translation -%(an).1f -%(wh).1f -50.0
+        Transform {{
+            translation -{an:.1f} -{wh:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(nxlabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nxcolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{nxlabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nxcolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +y axis
-        Transform {
-            translation 0.0 %(aboffset).1f -50.0
+        Transform {{
+            translation 0.0 {aboffset:.1f} -50.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(ab).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {ab:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # +y axis label
-        Transform {
-            translation -%(bp0).1f %(bp1).1f -50.0
+        Transform {{
+            translation -{bp0:.1f} {bp1:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(pylabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(pycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{pylabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {pycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -y axis
-        Transform {
-            translation 0.0 -%(aboffset).1f -50.0
+        Transform {{
+            translation 0.0 -{aboffset:.1f} -50.0
             children [
-                Shape {
-                    geometry Box { size %(wh).1f %(ab).1f %(wh).1f }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Box {{ size {wh:.1f} {ab:.1f} {wh:.1f} }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # -y axis label
-        Transform {
-            translation -%(bn0).1f -%(bn1).1f -50.0
+        Transform {{
+            translation -{bn0:.1f} -{bn1:.1f} -50.0
             children [
-                Shape {
-                    geometry Text {
-                        string [%(nylabel)s]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor %(nycolor)s }
-                    }
-                }
+                Shape {{
+                    geometry Text {{
+                        string [{nylabel}]
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor {nycolor} }}
+                    }}
+                }}
             ]
-        }
+        }}
         # Zero
-        Transform {
-            translation -%(Ln).1f -%(wh).1f -55.0
+        Transform {{
+            translation -{Ln:.1f} -{wh:.1f} -55.0
             children [
-                Shape {
-                    geometry Text {
+                Shape {{
+                    geometry Text {{
                         string ["0"]
-                        fontStyle FontStyle { family "SANS" style "BOLD" size %(fontsize).1f }
-                    }
-                    appearance Appearance {
-                        material Material { diffuseColor 0.7 0.7 0.7}
-                    }
-                }
+                        fontStyle FontStyle {{ family "SANS" style "BOLD" size {fontsize:.1f} }}
+                    }}
+                    appearance Appearance {{
+                        material Material {{ diffuseColor 0.7 0.7 0.7}}
+                    }}
+                }}
             ]
-        }
-"""
-                % values
-            )
+        }}
+""".format(**values)  # noqa: E501
         children = []
         sqrt3_100 = math.sqrt(3) * 100
         sqrt3_50 = math.sqrt(3) * 50
@@ -1775,17 +1976,14 @@ Transform {
             "fov": fov / 180.0 * math.pi,
             "z": z,
         }
-        if format != "VRML":
-            print("Generating", format)
+        if file_format != "VRML":
+            print("Generating", file_format)
             x3d = x3dom.vrml2x3dom(out)
-            if format == "HTML":
+            if file_format == "HTML":
                 out = x3d.html(title=os.path.basename(filename))
             else:
                 out = x3d.x3d()
-        if compress:
-            writer = GzipFileProper
-        else:
-            writer = open
+        writer = GzipFileProper if compress else open
         safe_print("Writing", filename)
         with writer(filename, "wb") as outfile:
             outfile.write(out.encode("utf-8"))
@@ -1812,27 +2010,16 @@ Transform {
 
         """
         modified = self.modified
-
-        if not get_first:
-            result = CGATS()
-        else:
-            result = None
-
-        if not isinstance(query, dict):
-            if not isinstance(query, (list, tuple)):
-                query = (query,)
+        result = CGATS() if not get_first else None
+        if not isinstance(query, dict) and not isinstance(query, (list, tuple)):
+            query = (query,)
 
         items = [self] + [self[key] for key in self]
         for item in items:
             if isinstance(item, (dict, list, tuple)):
                 if not get_first:
                     n = len(result)
-
-                if get_value:
-                    result_n = CGATS()
-                else:
-                    result_n = None
-
+                result_n = CGATS() if get_value else None
                 match_count = 0
                 for query_key in query:
                     if query_key in item or (
@@ -1846,9 +2033,11 @@ Transform {
                             current_query_value = query[query_key]
                         else:
                             current_query_value = query_value
-                        if current_query_value is not None:
-                            if item[query_key] != current_query_value:
-                                break
+                        if (
+                            current_query_value is not None
+                            and item[query_key] != current_query_value
+                        ):
+                            break
                         if get_value:
                             result_n[len(result_n)] = item[query_key]
                         match_count += 1
@@ -1869,7 +2058,7 @@ Transform {
                             else:
                                 result = result_n
                             break
-                        elif len(result_n):
+                        if len(result_n):
                             if (
                                 get_value
                                 and isinstance(result_n, dict)
@@ -1885,7 +2074,7 @@ Transform {
                         if get_first:
                             result = result_n
                             break
-                        elif len(result_n):
+                        if len(result_n):
                             for i in result_n:
                                 n = len(result)
                                 if result_n[i] not in list(result.values()):
@@ -1913,10 +2102,7 @@ Transform {
 
     def remove(self, item):
         """Remove an item from the internal CGATS structure."""
-        if isinstance(item, CGATS):
-            key = item.key
-        else:
-            key = item
+        key = item.key if isinstance(item, CGATS) else item
         maxindex = len(self) - 1
         result = self[key]
         if isinstance(key, int) and key != maxindex:
@@ -1940,8 +2126,9 @@ Transform {
             or color_rep[1] != b"XYZ"
         ):
             raise NotImplementedError(
-                "Got unsupported color "
-                "representation %s" % b"_".join(color_rep).decode("utf-8")
+                "Got unsupported color representation {}".format(
+                    b"_".join(color_rep).decode("utf-8")
+                )
             )
 
         data = self.queryv1("DATA")
@@ -2018,9 +2205,9 @@ Transform {
                                 if warn_only:
                                     if logfile:
                                         logfile.write(
-                                            "Warning: Sample ID %i (%s %s) has %s <= 0!\n"
-                                            % (
-                                                sample.SAMPLE_ID,
+                                            "Warning: Sample ID {:d} ({} {}) has {} "
+                                            "<= 0!\n".format(
+                                                int(sample.SAMPLE_ID),
                                                 color_rep[0],
                                                 " ".join(
                                                     device_label_values.decode(
@@ -2037,10 +2224,9 @@ Transform {
                                     sample[label.decode("utf-8")] = 0.000001
                                     if logfile:
                                         logfile.write(
-                                            "Fudged sample ID %i (%s %s) %s to be "
-                                            "non-zero\n"
-                                            % (
-                                                sample.SAMPLE_ID,
+                                            "Fudged sample ID {:d} ({} {}) {} to be "
+                                            "non-zero\n".format(
+                                                int(sample.SAMPLE_ID),
                                                 color_rep[0],
                                                 " ".join(
                                                     device_label_values.decode(
@@ -2063,8 +2249,7 @@ Transform {
                 if warn_only:
                     if logfile:
                         logfile.write(
-                            "Warning: Sample ID %i (%s %s) has %s = 0!\n"
-                            % (
+                            "Warning: Sample ID {} ({} {}) has {} = 0!\n".format(
                                 sample.SAMPLE_ID,
                                 color_rep[0],
                                 " ".join(
@@ -2080,9 +2265,8 @@ Transform {
                     remove.insert(0, sample)
                     if logfile:
                         logfile.write(
-                            "Removed sample ID %i (%s %s) with %s = 0\n"
-                            % (
-                                sample.SAMPLE_ID,
+                            "Removed sample ID {:d} ({} {}) with {} = 0\n".format(
+                                int(sample.SAMPLE_ID),
                                 color_rep[0],
                                 " ".join(
                                     device_label_values.decode("utf-8").split()
@@ -2122,8 +2306,9 @@ Transform {
                 if white_Y != 100:
                     self.add_keyword(
                         "LUMINANCE_XYZ_CDM2",
-                        "%.4f %.4f %.4f"
-                        % (white_cie["XYZ_X"], white_cie["XYZ_Y"], white_cie["XYZ_Z"]),
+                        "{:.4f} {:.4f} {:.4f}".format(
+                            white_cie["XYZ_X"], white_cie["XYZ_Y"], white_cie["XYZ_Z"]
+                        ),
                     )
                     for sample in self.DATA.values():
                         for label in "XYZ":
@@ -2155,7 +2340,7 @@ Transform {
                         )
 
     def scale_device_values(self, factor=100.0 / 255, color_rep=None):
-        """Scales device values by multiplying with factor."""
+        """Scale device values by multiplying with factor."""
         for labels in get_device_value_labels(color_rep):
             for data in self.queryv("DATA").values():
                 for item in data.queryi(labels).values():
@@ -2237,7 +2422,7 @@ Transform {
                 else:
                     labels = ("XYZ_X", "XYZ_Y", "XYZ_Z")
                     index = 1  # Index of Y in labels
-                data = dataset.queryi(("RGB_R", "RGB_G", "RGB_B") + labels)
+                data = dataset.queryi(("RGB_R", "RGB_G", "RGB_B", *labels))
 
                 # Get blacks
                 blacks = data.queryi({"RGB_R": 0, "RGB_G": 0, "RGB_B": 0})
@@ -2296,72 +2481,69 @@ Transform {
 
     def get_white_cie(self, colorspace=None):
         """Get the 'white' from the CIE values (if any)."""
-        data_format = self.get_cie_data_format()
-        if data_format:
-            if "RGB_R" in list(data_format.values()):
-                white = {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
-            elif "CMYK_C" in list(data_format.values()):
-                white = {"CMYK_C": 0, "CMYK_M": 0, "CMYK_Y": 0, "CMYK_K": 0}
-            else:
-                white = None
-            if white:
-                white = self.queryi1(white)
+        if not (data_format := self.get_cie_data_format()):
+            return None
+        if "RGB_R" in list(data_format.values()):
+            white = {"RGB_R": 100, "RGB_G": 100, "RGB_B": 100}
+        elif "CMYK_C" in list(data_format.values()):
+            white = {"CMYK_C": 0, "CMYK_M": 0, "CMYK_Y": 0, "CMYK_K": 0}
+        else:
+            white = None
+        if white:
+            white = self.queryi1(white)
+        if not white:
+            for key in ("LUMINANCE_XYZ_CDM2", "APPROX_WHITE_POINT"):
+                white = self.queryv1(key)
+                if white:
+                    try:
+                        white = [float(v) for v in white.split()]
+                    except ValueError:
+                        white = None
+                    else:
+                        if len(white) == 3:
+                            white = [v / white[1] * 100 for v in white]
+                            white = {
+                                "XYZ_X": white[0],
+                                "XYZ_Y": white[1],
+                                "XYZ_Z": white[2],
+                            }
+                            break
+                        white = None
             if not white:
-                for key in ("LUMINANCE_XYZ_CDM2", "APPROX_WHITE_POINT"):
-                    white = self.queryv1(key)
-                    if white:
-                        try:
-                            white = [float(v) for v in white.split()]
-                        except ValueError:
-                            white = None
-                        else:
-                            if len(white) == 3:
-                                white = [v / white[1] * 100 for v in white]
-                                white = {
-                                    "XYZ_X": white[0],
-                                    "XYZ_Y": white[1],
-                                    "XYZ_Z": white[2],
-                                }
-                                break
-                            else:
-                                white = None
-                if not white:
-                    return
-            if white and (
-                ("XYZ_X" in white and "XYZ_Y" in white and "XYZ_Z" in white)
-                or ("LAB_L" in white and "LAB_B" in white and "LAB_B" in white)
-            ):
-                if colorspace == "XYZ":
-                    if "XYZ_X" in white:
-                        return white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                    else:
-                        return colormath.Lab2XYZ(
-                            white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
-                        )
-                elif colorspace == "Lab":
-                    if "LAB_L" in white:
-                        return white["LAB_L"], white["LAB_A"], white["LAB_B"]
-                    else:
-                        return colormath.XYZ2Lab(
-                            white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
-                        )
-                return white
+                return None
+        if white and (
+            ("XYZ_X" in white and "XYZ_Y" in white and "XYZ_Z" in white)
+            or ("LAB_L" in white and "LAB_B" in white and "LAB_B" in white)
+        ):
+            if colorspace == "XYZ":
+                if "XYZ_X" in white:
+                    return white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"]
+                return colormath.Lab2XYZ(
+                    white["LAB_L"], white["LAB_A"], white["LAB_B"], scale=100
+                )
+            if colorspace == "Lab":
+                if "LAB_L" in white:
+                    return white["LAB_L"], white["LAB_A"], white["LAB_B"]
+                return colormath.XYZ2Lab(white["XYZ_X"], white["XYZ_Y"], white["XYZ_Z"])
+            return white
+        return None
 
     def get_cie_data_format(self):
         """Check if DATA_FORMAT defines any CIE XYZ or LAB columns.
 
-        Return the DATA_FORMAT on success or None on failure.
-
+        Returns:
+            bytes | None: The DATA_FORMAT on success or None on failure.
         """
         if data_format := self.queryv1("DATA_FORMAT"):
             cie = {}
             for channel in (b"LAB_L", b"LAB_A", b"LAB_B"):
                 cie[channel] = channel in list(data_format.values())
-            if len(list(cie.values())) in {0, 3}:
+            if len(list(cie.values())) in [0, 3]:
                 for channel in (b"XYZ_X", b"XYZ_Y", b"XYZ_Z"):
                     cie[channel] = channel in list(data_format.values())
                 if len([v for v in iter(cie.values()) if v is not False]) in {3, 6}:
                     return data_format
+        return None
 
     pop = remove
 

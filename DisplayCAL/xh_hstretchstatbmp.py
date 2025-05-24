@@ -1,16 +1,23 @@
-# -*- coding: utf-8 -*-
+"""This module provides a custom XML resource handler for wxPython to create
+and manage HStretchStaticBitmap controls from XML resource files. It handles
+the processing of XML parameters, creation of the control, and its
+configuration.
+"""
 
 import wx
-import wx.xrc as xrc
+from wx import xrc
+
 from DisplayCAL.log import safe_print
 
 try:
-    from DisplayCAL.wxwindows import HStretchStaticBitmap
+    from DisplayCAL.wx_windows import HStretchStaticBitmap
 except ImportError:
     HStretchStaticBitmap = wx.StaticBitmap
 
 
 class HStretchStaticBitmapXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for HStretchStaticBitmap controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles

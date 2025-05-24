@@ -25,9 +25,7 @@
 # End Of Comments
 # ---------------------------------------------------------------------------- #
 
-"""
-:class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
-
+""":class:`~wx.lib.agw.pygauge.PyGauge` is a generic :class:`Gauge` implementation.
 
 Description
 ===========
@@ -114,7 +112,6 @@ Version 0.1
 
 import copy
 
-
 import wx
 
 
@@ -139,8 +136,8 @@ class PyGauge(wx.Window):
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
-        range=100,
+        id=wx.ID_ANY,  # noqa: A002
+        range_=100,
         pos=wx.DefaultPosition,
         size=(-1, 30),
         style=0,
@@ -154,7 +151,7 @@ class PyGauge(wx.Window):
         self._barGradient = self._barGradientSorted = None
 
         self._border_padding = 0
-        self._range = range
+        self._range = range_
         self._value = [0]
         self._valueSorted = [0]
 
@@ -180,7 +177,6 @@ class PyGauge(wx.Window):
 
     def GetBorderColour(self):
         """Return the :class:`PyGauge` border colour."""
-
         return self._border_colour
 
     def SetBorderColour(self, colour):
@@ -189,7 +185,6 @@ class PyGauge(wx.Window):
         Args:
             colour: an instance of :class:`wx.Colour`.
         """
-
         self._border_colour = colour
 
     SetBorderColor = SetBorderColour
@@ -197,7 +192,6 @@ class PyGauge(wx.Window):
 
     def GetBarColour(self) -> wx.Colour:
         """Return the :class:`PyGauge` main bar colour."""
-
         return self._barColour[0]
 
     def SetBarColour(self, colour) -> None:
@@ -206,7 +200,6 @@ class PyGauge(wx.Window):
         Args:
             colour: an instance of :class:`wx.Colour`.
         """
-
         if not isinstance(colour, list):
             self._barColour = [colour]
         else:
@@ -218,8 +211,7 @@ class PyGauge(wx.Window):
     GetBarColor = GetBarColour
 
     def GetBarGradient(self):
-        """Returns a tuple containing the gradient start and end colours."""
-
+        """Return a tuple containing the gradient start and end colours."""
         if self._barGradient is None:
             return None
 
@@ -248,7 +240,6 @@ class PyGauge(wx.Window):
         Returns:
             int: Pixels between the border and the progress bar.
         """
-
         return self._border_padding
 
     def SetBorderPadding(self, padding: int) -> None:
@@ -267,7 +258,7 @@ class PyGauge(wx.Window):
         """
         return self._range
 
-    def SetRange(self, range: int) -> None:
+    def SetRange(self, range: int) -> None:  # noqa: A002
         """Set the range of the gauge.
 
         The gauge length is its value as a proportion of the range.
@@ -310,7 +301,6 @@ class PyGauge(wx.Window):
         Note:
             This method is intentionally empty to reduce flicker.
         """
-        pass
 
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` event for :class:`PyGauge`.
@@ -318,7 +308,6 @@ class PyGauge(wx.Window):
         Args:
             event: a :class:`PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         rect = self.GetClientRect()
 
@@ -381,27 +370,26 @@ class PyGauge(wx.Window):
     def SetDrawValue(
         self, draw=True, drawPercent=True, font=None, colour=wx.BLACK, formatString=None
     ):
-        """Set whether percentage or current value should be drawn on the gauge for precise indication.
+        """Enable or disable drawing of value/percentage on the gauge.
 
         Args:
-            bool draw: a boolean value, which if ``True`` tells to start drawing
+            draw (bool): a boolean value, which if ``True`` tells to start drawing
                 value or percentage. If set to ``False`` nothing will be drawn
                 and other parameters will be ignored;
-            bool drawPercent: a boolean value which indicates that a percent
+            drawPercent (bool): a boolean value which indicates that a percent
                 should be drawn instead of value passed in :meth:`SetValue`;
-            wx.Font font: a font with which indication should be drawn,
+            font (wx.Font): a font with which indication should be drawn,
                 if ``None``, then ``wx.NORMAL_FONT`` will be used.
                 Usually text would be displayed centered in the control,
                 but if the text font is too large to be displayed
                 (either in width or height) the corresponding coordinate will be
                 set to zero;
-            wx.Colour colour: the colour with which indication should be drawn,
+            colour (wx.Colour): the colour with which indication should be drawn,
                 if ``None`` then ``wx.BLACK`` will be used;
-            string formatString: a string specifying format of the indication
+            formatString (str): a string specifying format of the indication
                 (should have one and only one number placeholder).
                 If set to ``None``, will use ``{:.0f}`` format string for values
-                and ``{:.0f}%`` format string for percentages. As described in
-                http://docs.python.org/library/string.html#format-specification-mini-language.
+                and ``{:.0f}%`` format string for percentages.
 
         Note:
             formatString will override addition of percent sign (after value)
@@ -430,16 +418,18 @@ class PyGauge(wx.Window):
         if formatString is not None:
             error_occurred = True
             try:
-                # This is to test if format string is valid. If not, it will be replaced with default one.
+                # This is to test if format string is valid.
+                # If not, it will be replaced with default one.
                 formatString.format(12.345)
                 error_occurred = False
             except Exception as e:
-                print(("We have exception: %s" % e))
+                print(f"We have exception: {e}")
 
             if error_occurred:
                 formatString = None
 
-        # Here formatString is either valid formatting string, or None in case of error or None passed
+        # Here formatString is either valid formatting string,
+        # or None in case of error or None passed
         if formatString is None:
             if self._drawIndicatorText_drawPercent:
                 self._drawIndicatorText_formatString = "{:.0f}%"
@@ -458,7 +448,7 @@ class PyGauge(wx.Window):
             return
 
         stop_timer = True
-        for i, v in enumerate(self._value):
+        for i, _ in enumerate(self._value):
             self._value[i] += self._update_step[i]
 
             if self._update_step[i] > 0:
@@ -466,11 +456,10 @@ class PyGauge(wx.Window):
                     self._value[i] = self._update_value[i]
                 else:
                     stop_timer = False
+            elif self._value[i] < self._update_value[i]:
+                self._value[i] = self._update_value[i]
             else:
-                if self._value[i] < self._update_value[i]:
-                    self._value[i] = self._update_value[i]
-                else:
-                    stop_timer = False
+                stop_timer = False
 
         if stop_timer:
             self._timer.Stop()
@@ -489,7 +478,6 @@ class PyGauge(wx.Window):
             time: The length of time in milliseconds that it will take to move
                 the gauge.
         """
-
         if not isinstance(value, list):
             value = [value]
 
@@ -534,6 +522,8 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
+        """A simple frame to test the :class:`PyGauge` class."""
+
         def __init__(self, parent):
             wx.Frame.__init__(self, parent, -1, "PyGauge Demo")
 

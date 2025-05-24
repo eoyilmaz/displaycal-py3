@@ -1,48 +1,55 @@
-# -*- coding: utf-8 -*-
+"""This module provides logging functionality for the application, including
+custom loggers, file-based logging with rotation, and safe logging mechanisms
+to handle Unicode and multiprocessing scenarios.
+"""
 
-
-from codecs import EncodedFile
-from hashlib import md5
 import atexit
+import contextlib
 import logging
 import logging.handlers
 import os
 import re
 import sys
 import warnings
+from codecs import EncodedFile
+from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
+from typing import TYPE_CHECKING
 
-from DisplayCAL.meta import name as appname, script2pywname
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.meta import script2pywname
 from DisplayCAL.multiprocess import mp
-from DisplayCAL.options import debug
-from DisplayCAL.safe_print import SafePrinter, safe_print as _safe_print
+from DisplayCAL.options import DEBUG
+from DisplayCAL.safe_print import SafePrinter
+from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
+
+if TYPE_CHECKING:
+    import wx  # noqa: TC004
 
 logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
 
 
-if debug:
-    loglevel = logging.DEBUG
-else:
-    loglevel = logging.INFO
+LOGLEVEL = logging.DEBUG if DEBUG else logging.INFO
 
 
-logger = None
-_logdir = None
+LOGGER = None
+_LOGDIR = None
 
 
 def showwarning(message, category, filename, lineno, file=None, line=""):
     # Adapted from _showwarning in Python2.7/lib/logging/__init__.py
-    """
-    Implementation of showwarnings which redirects to logging, which will first
-    check to see if the file parameter is None. If a file is specified, it will
-    delegate to the original warnings implementation of showwarning. Otherwise,
-    it will call warnings.formatwarning and will log the resulting string to a
-    warnings logger named "py.warnings" with level logging.WARNING.
+    """Implementation of `showwarnings` which redirects to logging.
 
-    UNlike the default implementation, the line is omitted from the warning,
+    It will first check to see if the file parameter is None. If a file is
+    specified, it will delegate to the original warnings implementation of
+    showwarning. Otherwise, it will call warnings.formatwarning and will log
+    the resulting string to a warnings logger named "py.warnings" with level
+    logging.WARNING.
+
+    Unlike the default implementation, the line is omitted from the warning,
     and the warning does not end with a newline.
     """
     if file is not None:
@@ -59,23 +66,33 @@ def showwarning(message, category, filename, lineno, file=None, line=""):
             else:
                 handler = logging.NullHandler()
             logger.addHandler(handler)
-        log(s.strip(), fn=logger.warning)
+        LOG(s.strip(), fn=logger.warning)
 
 
 warnings.showwarning = showwarning
 
-logbuffer = EncodedFile(BytesIO(), "UTF-8", errors="replace")
+LOGBUFFER = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
-def wx_log(logwindow, msg):
-    if logwindow.IsShownOnScreen():
+def wx_log(logwindow: "wx.Window", msg: str) -> None:
+    """Log a message to the wxPython log window.
+
+    Args:
+        logwindow (wx.Window): The wxPython log window to log to.
+        msg (str): The message to log.
+    """
+    if logwindow.IsShownOnScreen() and LOGBUFFER.tell():
         # Check if log buffer has been emptied or not.
         # If it has, our log message is already included.
-        if logbuffer.tell():
-            logwindow.Log(msg)
+        logwindow.Log(msg)
 
 
 class DummyLogger:
+    """Dummy logger class.
+
+    This is used when logging is disabled or not available.
+    """
+
     def critical(self, msg, *args, **kwargs):
         pass
 
@@ -99,34 +116,38 @@ class DummyLogger:
 
 
 class Log:
+    """Log class.
+
+    This is a wrapper around the logging module.
+    """
+
     def __call__(self, msg, fn=None):
         """Log a message.
 
         Optionally use function 'fn' instead of logging.info.
-
         """
-        global logger
+        global LOGGER
         if isinstance(msg, bytes):
             msg = msg.decode("utf-8", "replace")
 
         msg = msg.replace("\r\n", "\n").replace("\r", "")
-        if fn is None and logger and logger.handlers:
-            fn = logger.info
+        if fn is None and LOGGER and LOGGER.handlers:
+            fn = LOGGER.info
         if fn:
             for line in msg.split("\n"):
                 fn(line)
         # If wxPython itself calls warnings.warn on import, it is not yet fully
         # imported at the point our showwarning() function calls log().
-        # Check for presence of our wxfixes module and if it has an attribute
+        # Check for presence of our wx_fixes module and if it has an attribute
         # "wx", in which case wxPython has finished importing.
-        wxfixes = sys.modules.get("%s.wxfixes" % appname)
-        # wxfixes = sys.modules.get("wxfixes")
+        wx_fixes = sys.modules.get(f"{APPNAME}.wx_fixes")
+        # wx_fixes = sys.modules.get("wx_fixes")
         if (
-            wxfixes
-            and hasattr(wxfixes, "wx")
+            wx_fixes
+            and hasattr(wx_fixes, "wx")
             and mp.current_process().name == "MainProcess"
         ):
-            wx = wxfixes.wx
+            wx = wx_fixes.wx
             if (
                 wx.GetApp() is not None
                 and hasattr(wx.GetApp(), "frame")
@@ -141,7 +162,7 @@ class Log:
         self(msg.rstrip())
 
 
-log = Log()
+LOG = Log()
 
 
 class LogFile:
@@ -150,7 +171,7 @@ class LogFile:
     def __init__(self, filename, logdir, when="never", backupCount=0):
         self.filename = filename
         self._logger = get_file_logger(
-            md5(filename.encode()).hexdigest(),
+            md5(filename.encode()).hexdigest(),  # noqa: S324
             when=when,
             backupCount=backupCount,
             logdir=logdir,
@@ -189,12 +210,8 @@ class SafeLogger(SafePrinter):
         if kwargs.get("print_", self.print_):
             _safe_print(*args, **kwargs)
         if kwargs.get("log", self.log):
-            kwargs.update(fn=log, encoding=None)
+            kwargs.update(fn=LOG, encoding=None)
             _safe_print(*args, **kwargs)
-
-
-safe_log = SafeLogger(print_=False)
-safe_print = SafeLogger()
 
 
 safe_log = SafeLogger(print_=False)
@@ -203,7 +220,7 @@ safe_print = SafeLogger()
 
 def get_file_logger(
     name,
-    level=loglevel,
+    level=LOGLEVEL,
     when="midnight",
     backupCount=5,
     logdir=None,
@@ -215,11 +232,11 @@ def get_file_logger(
     A TimedRotatingFileHandler or FileHandler (if when == "never") will be used.
 
     """
-    global _logdir
-    global logger
+    global _LOGDIR
+    global LOGGER
     if logdir is None:
-        logdir = _logdir
-    logger = logging.getLogger(name)
+        logdir = _LOGDIR
+    LOGGER = logging.getLogger(name)
     if not filename:
         filename = name
     mode = "a"
@@ -227,13 +244,13 @@ def get_file_logger(
         # Use different logfile name (append number) for each additional instance
         is_main_process = mp.current_process().name == "MainProcess"
         if os.path.basename(confighome).lower() == "dispcalgui":
-            lockbasename = filename.replace(appname, "dispcalGUI")
+            lockbasename = filename.replace(APPNAME, "dispcalGUI")
         else:
             lockbasename = filename
         lockfilepath = os.path.join(confighome, lockbasename + ".lock")
         if os.path.isfile(lockfilepath):
             try:
-                with open(lockfilepath, "r") as lockfile:
+                with open(lockfilepath) as lockfile:
                     instances = len(lockfile.read().splitlines())
             except Exception:
                 pass
@@ -243,7 +260,7 @@ def get_file_logger(
                     instances -= 1
                 if instances:
                     filenames = [filename]
-                    filename += ".%i" % instances
+                    filename = f"{filename}.{instances}"
                     filenames.append(filename)
                     if filenames[0].endswith("-apply-profiles"):
                         # Running the profile loader always sends a close
@@ -252,7 +269,7 @@ def get_file_logger(
                         # the one not currently in use.
                         mtimes = {}
                         for filename in filenames:
-                            logfile = os.path.join(logdir, filename + ".log")
+                            logfile = os.path.join(logdir, f"{filename}.log")
                             if not os.path.isfile(logfile):
                                 mtimes[0] = filename
                                 continue
@@ -260,8 +277,8 @@ def get_file_logger(
                                 logstat = os.stat(logfile)
                             except Exception as exception:
                                 print(
-                                    "Warning - os.stat('%s') failed: %s"
-                                    % (logfile, exception)
+                                    f"Warning - os.stat('{logfile}') failed: "
+                                    f"{exception}"
                                 )
                             else:
                                 mtimes[logstat.st_mtime] = filename
@@ -269,23 +286,19 @@ def get_file_logger(
                             filename = mtimes[sorted(mtimes.keys())[0]]
         if is_main_process:
             for lockfilepath in safe_glob(
-                os.path.join(confighome, lockbasename + ".mp-worker-*.lock")
+                os.path.join(confighome, f"{lockbasename}.mp-worker-*.lock")
             ):
-                try:
+                with contextlib.suppress(Exception):
                     os.remove(lockfilepath)
-                except Exception:
-                    pass
         else:
             # Running as child from multiprocessing under Windows
-            lockbasename += ".mp-worker-"
+            lockbasename = f"{lockbasename}.mp-worker-"
             process_num = 1
             while os.path.isfile(
-                os.path.join(confighome, lockbasename + "%i.lock" % process_num)
+                os.path.join(confighome, f"{lockbasename}{process_num}.lock")
             ):
                 process_num += 1
-            lockfilepath = os.path.join(
-                confighome, lockbasename + "%i.lock" % process_num
-            )
+            lockfilepath = os.path.join(confighome, f"{lockbasename}{process_num}.lock")
             try:
                 with open(lockfilepath, "w") as lockfile:
                     pass
@@ -294,29 +307,28 @@ def get_file_logger(
             else:
                 atexit.register(os.remove, lockfilepath)
             when = "never"
-            filename += ".mp-worker-%i" % process_num
+            filename = f"{filename}.mp-worker-{process_num}"
             mode = "w"
     logfile = os.path.join(logdir, filename + ".log")
-    for handler in logger.handlers:
+    for handler in LOGGER.handlers:
         if isinstance(
             handler, logging.FileHandler
         ) and handler.baseFilename == os.path.abspath(logfile):
-            return logger
-    logger.propagate = 0
-    logger.setLevel(level)
+            return LOGGER
+    LOGGER.propagate = 0
+    LOGGER.setLevel(level)
     if not os.path.exists(logdir):
         try:
             os.makedirs(logdir)
         except Exception as exception:
             print(
-                "Warning - log directory '%s' could not be created: %s"
-                % (logdir, exception)
+                f"Warning - log directory '{logdir}' could not be created: {exception}"
             )
     elif when != "never" and os.path.exists(logfile):
         try:
             logstat = os.stat(logfile)
         except Exception as exception:
-            print("Warning - os.stat('%s') failed: %s" % (logfile, exception))
+            print(f"Warning - os.stat('{logfile}') failed: {exception}")
         else:
             # rollover needed?
             t = logstat.st_mtime
@@ -336,10 +348,7 @@ def get_file_logger(
             dstNow = now[-1]
             dstThen = mtime[-1]
             if dstNow != dstThen:
-                if dstNow:
-                    addend = 3600
-                else:
-                    addend = -3600
+                addend = 3600 if dstNow else -3600
                 mtime = localtime(t + addend)
             if now[:3] > mtime[:3]:
                 # do rollover
@@ -349,15 +358,15 @@ def get_file_logger(
                         os.remove(logbackup)
                     except Exception as exception:
                         print(
-                            "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                            % (logbackup, exception)
+                            f"Warning - logfile backup '{logbackup}' "
+                            f"could not be removed during rollover: {exception}"
                         )
                 try:
                     os.rename(logfile, logbackup)
                 except Exception as exception:
                     print(
-                        "Warning - logfile '%s' could not be renamed to '%s' during rollover: %s"
-                        % (logfile, os.path.basename(logbackup), exception)
+                        f"Warning - logfile '{logfile}' could not be renamed to "
+                        f"'{os.path.basename(logbackup)}' during rollover: {exception}"
                     )
                 # Adapted from Python 2.6's
                 # logging.handlers.TimedRotatingFileHandler.getFilesToDelete
@@ -367,8 +376,8 @@ def get_file_logger(
                     fileNames = os.listdir(logdir)
                 except Exception as exception:
                     print(
-                        "Warning - log directory '%s' listing failed during rollover: %s"
-                        % (logdir, exception)
+                        f"Warning - log directory '{logdir}' "
+                        f"listing failed during rollover: {exception}"
                     )
                 else:
                     result = []
@@ -386,8 +395,8 @@ def get_file_logger(
                                 os.remove(logbackup)
                             except Exception as exception:
                                 print(
-                                    "Warning - logfile backup '%s' could not be removed during rollover: %s"
-                                    % (logbackup, exception)
+                                    f"Warning - logfile backup '{logbackup}' "
+                                    f"could not be removed during rollover: {exception}"
                                 )
     if os.path.exists(logdir):
         try:
@@ -399,34 +408,28 @@ def get_file_logger(
                 filehandler = logging.FileHandler(logfile, mode)
             fileformatter = logging.Formatter("%(asctime)s %(message)s")
             filehandler.setFormatter(fileformatter)
-            logger.addHandler(filehandler)
+            LOGGER.addHandler(filehandler)
         except Exception as exception:
-            print(
-                "Warning - logging to file '%s' not possible: %s" % (logfile, exception)
-            )
-    return logger
+            print(f"Warning - logging to file '{logfile}' not possible: {exception}")
+    return LOGGER
 
 
-def setup_logging(logdir, name=appname, ext=".py", backupCount=5, confighome=None):
+def setup_logging(logdir, name=APPNAME, ext=".py", backupCount=5, confighome=None):
     """Setup the logging facility."""
-    global _logdir, logger
-    _logdir = logdir
+    global _LOGDIR, LOGGER
+    _LOGDIR = logdir
     name = script2pywname(name)
-    if (
-        name.startswith(appname)
-        or name.startswith("dispcalGUI")
-        or ext in (".app", ".exe", ".pyw")
-    ):
-        logger = get_file_logger(
+    if name.startswith((APPNAME, "dispcalGUI")) or ext in (".app", ".exe", ".pyw"):
+        LOGGER = get_file_logger(
             None,
-            loglevel,
+            LOGLEVEL,
             "midnight",
             backupCount,
             filename=name,
             confighome=confighome,
         )
-        if name == appname or name == "dispcalGUI":
-            streamhandler = logging.StreamHandler(logbuffer)
+        if name in (APPNAME, "dispcalGUI"):
+            streamhandler = logging.StreamHandler(LOGBUFFER)
             streamformatter = logging.Formatter("%(asctime)s %(message)s")
             streamhandler.setFormatter(streamformatter)
-            logger.addHandler(streamhandler)
+            LOGGER.addHandler(streamhandler)

@@ -1,5 +1,12 @@
-# -*- coding: utf-8 -*-
+"""This module provides utility classes and functions for handling file I/O
+operations. It includes tools for encoding/decoding data during file writes,
+managing multiple file objects, working with GZIP and TAR files, buffering
+line-based streams, and other file-related utilities.
+"""
 
+from __future__ import annotations
+
+import contextlib
 import copy
 import gzip
 import operator
@@ -8,9 +15,18 @@ import sys
 import tarfile
 from io import StringIO
 from time import time
+from typing import TYPE_CHECKING, Any
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 # from safe_print import safe_print
 from DisplayCAL.util_str import universal_newlines
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class EncodedWriter:
@@ -28,7 +44,15 @@ class EncodedWriter:
         self.file_encoding = file_encoding
         self.errors = errors
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute from the file object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the file object.
+        """
         return getattr(self.file, name)
 
     def write(self, data):
@@ -52,11 +76,16 @@ class Files:
         self.files = []
         for item in files:
             if isinstance(item, str):
-                self.files.append(open(item, mode))
+                self.files.append(open(item, mode))  # noqa: SIM115
             else:
                 self.files.append(item)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the files in the Files object.
+
+        Returns:
+            iterator: An iterator over the files in the Files object.
+        """
         return iter(self.files)
 
     def close(self):
@@ -65,10 +94,9 @@ class Files:
 
     def flush(self):
         for item in self.files:
-            try:
+            with contextlib.suppress(AttributeError):
+                # TODO: Restore safe_log
                 item.flush()
-            except AttributeError:  # TODO: Restore safe_log
-                pass
 
     def seek(self, pos, mode=0):
         for item in self.files:
@@ -83,10 +111,8 @@ class Files:
             try:
                 item.write(data)
             except AttributeError:  # TODO: restore safe_log, safe_print etc...
-                try:
+                with contextlib.suppress(TypeError):
                     item(data)
-                except TypeError:
-                    pass
 
     def writelines(self, str_sequence):
         self.write("".join(str_sequence))
@@ -124,16 +150,28 @@ class GzipFileProper(gzip.GzipFile):
                 # force the name to lowercase
                 fname = fname.lower()
             self.fileobj.write(
-                fname.encode("ISO-8859-1", "replace").replace(
-                    "?".encode(), "_".encode()
-                )
-                + b"\000"
+                fname.encode("ISO-8859-1", "replace").replace(b"?", b"_") + b"\000"
             )
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
+        """Enter the runtime context related to this object.
+
+        Returns:
+            GzipFileProper: The GzipFileProper object itself.
+        """
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, exc_type, exc_value, tb) -> None:
+        """Exit the runtime context related to this object.
+
+        Args:
+            exc_type: The exception type.
+            exc_value: The exception value.
+            tb: The traceback object.
+
+        Returns:
+            None: No return value.
+        """
         self.close()
 
 
@@ -157,10 +195,19 @@ class LineBufferedStream:
         self.linesep_out = linesep_out
         self.stream = stream
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """Destructor to ensure the stream is closed properly."""
         self.commit()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute from the stream.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the stream.
+        """
         return getattr(self.stream, name)
 
     def close(self):
@@ -168,28 +215,40 @@ class LineBufferedStream:
         self.stream.close()
 
     def commit(self):
-        if self.buf:
-            if self.data_encoding and isinstance(self.buf, bytes):
-                self.buf = self.buf.decode(self.data_encoding, self.errors)
-            if self.file_encoding:
-                self.buf = self.buf.encode(self.file_encoding, self.errors)
-            self.stream.write(self.buf)
-            self.buf = ""
+        if not self.buf:
+            return
+        if self.data_encoding and isinstance(self.buf, bytes):
+            self.buf = self.buf.decode(self.data_encoding, self.errors)
+        if self.file_encoding:
+            self.buf = self.buf.encode(self.file_encoding, self.errors)
+        self.stream.write(self.buf)
+        self.buf = ""
 
-    def write(self, data):
-        if not isinstance(data, str):
+    def write(self, data: str | bytes | bytearray) -> None:
+        """Write data to the stream, buffering it until a line separator is detected.
+
+        Args:
+            data (str | bytes): The data to write to the stream.
+
+        Raises:
+            TypeError: If the data is not of type str, bytes, or bytearray.
+        """
+        if isinstance(data, bytes):
             data = data.decode()
+        if not isinstance(data, str):
+            raise TypeError(
+                f"Expected str, bytes or bytearray, got {type(data).__name__}"
+            )
         data = data.replace(self.linesep_in, "\n")
         for char in data:
             if char == "\r":
                 while self.buf and not self.buf.endswith("\n"):
                     self.buf = self.buf[:-1]
+            elif char == "\n":
+                self.buf += self.linesep_out
+                self.commit()
             else:
-                if char == "\n":
-                    self.buf += self.linesep_out
-                    self.commit()
-                else:
-                    self.buf += char
+                self.buf += char
 
 
 class LineCache:
@@ -247,6 +306,14 @@ class Tee(Files):
         Files.__init__((sys.stdout, file_obj))
 
     def __getattr__(self, name):
+        """Get attribute from the second file object.
+
+        Args:
+            name (str): The name of the attribute to get.
+
+        Returns:
+            Any: The value of the attribute from the second file object.
+        """
         return getattr(self.files[1], name)
 
     def close(self):
@@ -269,11 +336,7 @@ class TarFileProper(tarfile.TarFile):
         object. You can specify a different directory using `path'.
         """
         self._check("r")
-
-        if isinstance(member, str):
-            tarinfo = self.getmember(member)
-        else:
-            tarinfo = member
+        tarinfo = self.getmember(member) if isinstance(member, str) else member
 
         # Prepare the link target for makelink().
         if tarinfo.islnk():
@@ -287,19 +350,17 @@ class TarFileProper(tarfile.TarFile):
             if not full:
                 name = os.path.basename(name)
             self._extract_member(tarinfo, os.path.join(path, name))
-        except EnvironmentError as e:
+        except OSError as e:
             if self.errorlevel > 0:
-                raise
+                raise e
+            if e.filename is None:
+                self._dbg(1, f"tarfile: {e.strerror}")
             else:
-                if e.filename is None:
-                    self._dbg(1, "tarfile: %s" % e.strerror)
-                else:
-                    self._dbg(1, "tarfile: %s %r" % (e.strerror, e.filename))
+                self._dbg(1, f"tarfile: {e.strerror} {e.filename!r}")
         except tarfile.ExtractError as e:
             if self.errorlevel > 1:
-                raise
-            else:
-                self._dbg(1, "tarfile: %s" % e)
+                raise e
+            self._dbg(1, f"tarfile: {e}")
 
     def extractall(self, path=".", members=None, full=True):
         """Extract all members from the archive to the current working
@@ -337,6 +398,5 @@ class TarFileProper(tarfile.TarFile):
                 self.chmod(tarinfo, dirpath)
             except tarfile.ExtractError as e:
                 if self.errorlevel > 1:
-                    raise
-                else:
-                    self._dbg(1, "tarfile: %s" % e)
+                    raise e
+                self._dbg(1, f"tarfile: {e}")

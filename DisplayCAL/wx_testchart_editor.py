@@ -4387,6 +4387,7 @@ END_DATA"""
 
 
 def main():
+    """Main function to run the wxPython application."""
     config.initcfg("testchart-editor")
     lang.init()
     lang.update_defaults()

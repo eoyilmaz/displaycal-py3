@@ -361,17 +361,41 @@ def get_wayland_display(x, y, w, h):
     return None
 
 
-def get_x_display(display_no=0):
+def get_x_display(display_no: int = 0) -> None | str:
+    """Get the X display name for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | str: The X display name.
+    """
     if (display := get_display(display_no)) and (name := display.get("name")):
         return _get_x_display(name)
     return None
 
 
-def get_x_icc_profile_atom_id(display_no=0):
+def get_x_icc_profile_atom_id(display_no: int = 0) -> None | int:
+    """Get the ICC profile atom ID for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | int: The ICC profile atom ID.
+    """
     display = get_display(display_no)
     return display.get("icc_profile_atom_id") if display else None
 
 
-def get_x_icc_profile_output_atom_id(display_no=0):
+def get_x_icc_profile_output_atom_id(display_no: int = 0) -> None | int:
+    """Get the ICC profile output atom ID for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | int: The ICC profile output atom ID.
+    """
     display = get_display(display_no)
     return display.get("icc_profile_output_atom_id") if display else None

@@ -389,6 +389,14 @@ def get_argyll_version_string(name, silent=False, paths=None):
 
 
 def parse_argyll_version_string(argyll_version_string):
+    """Parse the Argyll version string.
+
+    Args:
+        argyll_version_string (str): The version string to parse.
+
+    Returns:
+        list: A list of version components.
+    """
     if isinstance(argyll_version_string, bytes):
         argyll_version_string = argyll_version_string.decode()
     argyll_version = re.findall(r"(\d+|[^.\d]+)", argyll_version_string)

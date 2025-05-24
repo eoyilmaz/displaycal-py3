@@ -56,6 +56,15 @@ def quote_nonoption_args(args):
 
 
 def add_dispcal_options_to_cal(cal, options_dispcal):
+    """Add dispcal options to cal.
+
+    Args:
+        cal (str or CGATS): The input CAL file or CGATS instance.
+        options_dispcal (list): List of dispcal options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal options to cal
     options_dispcal = quote_nonoption_args(options_dispcal)
     try:
@@ -67,6 +76,16 @@ def add_dispcal_options_to_cal(cal, options_dispcal):
 
 
 def add_options_to_ti3(ti3, options_dispcal=None, options_colprof=None):
+    """Add dispcal and colprof options to ti3.
+
+    Args:
+        ti3 (str or CGATS): The input TI3 file or CGATS instance.
+        options_dispcal (list): List of dispcal options to add.
+        options_colprof (list): List of colprof options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal and colprof options to ti3
     try:
         cgats = CGATS(ti3)

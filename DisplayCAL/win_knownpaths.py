@@ -41,6 +41,7 @@ from uuid import UUID
 
 class GUID(ctypes.Structure):  # [1]
     """Class representing a GUID (Globally Unique Identifier)."""
+
     _fields_: ClassVar[list[tuple]] = [
         ("Data1", wintypes.DWORD),
         ("Data2", wintypes.WORD),
@@ -64,6 +65,7 @@ class GUID(ctypes.Structure):  # [1]
 
 class FOLDERID:  # [2]
     """Class representing known folder GUIDs."""
+
     AccountPictures = UUID("{008ca0b1-55b4-4c56-b8a8-4de4b299d3be}")
     AdminTools = UUID("{724EF170-A42D-4FEF-9F26-B60E846FBA4F}")
     ApplicationShortcuts = UUID("{A3918781-E5F2-4890-B3D9-A7E54332328C}")
@@ -162,6 +164,7 @@ class FOLDERID:  # [2]
 
 class UserHandle:  # [3]
     """Class representing user handles for accessing known folder paths."""
+
     current = wintypes.HANDLE(0)
     common = wintypes.HANDLE(-1)
 
@@ -183,8 +186,20 @@ class PathNotFoundError(Exception):
     """Exception raised when a known folder path is not found."""
 
 
-def get_path(folderid, user_handle=UserHandle.common):
-    fid = GUID(folderid)
+def get_path(folder_id, user_handle=UserHandle.common):
+    """Get the path of a known folder by its GUID.
+
+    Args:
+        folder_id (UUID): The GUID of the known folder.
+        user_handle (wintypes.HANDLE): The user handle to use (current or common).
+
+    Raises:
+        PathNotFoundError: If the known folder path cannot be found.
+
+    Returns:
+        str: The path of the known folder.
+    """
+    fid = GUID(folder_id)
     pPath = ctypes.c_wchar_p()
     S_OK = 0
     if (
@@ -203,16 +218,16 @@ if __name__ == "__main__":
         sys.exit(0)
 
     try:
-        folderid = getattr(FOLDERID, sys.argv[1])
+        folder_id = getattr(FOLDERID, sys.argv[1])
     except AttributeError:
         print(f'Unknown folder id "{sys.argv[1]}"', file=sys.stderr)
         sys.exit(1)
 
     try:
         if len(sys.argv) == 2:
-            print(get_path(folderid))
+            print(get_path(folder_id))
         else:
-            print(get_path(folderid, getattr(UserHandle, sys.argv[2])))
+            print(get_path(folder_id, getattr(UserHandle, sys.argv[2])))
     except PathNotFoundError:
         print('Folder not found "{}"'.format(" ".join(sys.argv[1:])), file=sys.stderr)
         sys.exit(1)

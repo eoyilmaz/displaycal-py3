@@ -43,6 +43,7 @@ def init(set_wx_locale=False):
 
 
 def update_defaults():
+    """Update default paths in the DEFAULTS dictionary."""
     DEFAULTS.update(
         {
             "last_3dlut_path": os.path.join(expanduseru("~"), getstr("unnamed")),
@@ -116,7 +117,15 @@ def getstr(id_str, strvars=None, lcode=None, default=None):
     return default or id_str
 
 
-def gettext(text):
+def gettext(text: str) -> str:
+    """Get a translated string from the dictionary.
+
+    Args:
+        text (str): The text to be translated.
+
+    Returns:
+        str: The translated string if found, otherwise the original text.
+    """
     if not CATALOG and DEFAULTS["lang"] in LDICT:
         for id_str in LDICT[DEFAULTS["lang"]]:
             lstr = LDICT[DEFAULTS["lang"]][id_str]
@@ -144,6 +153,7 @@ if DEBUG:
         usage.path = usage_path
 
     def write_usage():
+        """Write localization usage to file on exit."""
         global usage
         if not usage:
             return

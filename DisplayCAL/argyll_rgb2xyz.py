@@ -46,6 +46,16 @@ NORMALISATION_FACTOR["Ynorm"] = 1.0 / NORMALISATION_FACTOR["Ynorm"]
 
 
 def XYZ_denormalize_remove_glare(X, Y, Z):
+    """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
+
+    Args:
+        X (float): The X component of the XYZ color.
+        Y (float): The Y component of the XYZ color.
+        Z (float): The Z component of the XYZ color.
+
+    Returns:
+        tuple: A tuple containing the X, Y, and Z components of the XYZ color.
+    """
     XYZ = [X, Y, Z]
     # De-Normalise Y from 1.0, & remove black glare
     for j in range(3):
@@ -55,6 +65,16 @@ def XYZ_denormalize_remove_glare(X, Y, Z):
 
 
 def XYZ_normalize_add_glare(X, Y, Z):
+    """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
+
+    Args:
+        X (float): The X component of the XYZ color.
+        Y (float): The Y component of the XYZ color.
+        Z (float): The Z component of the XYZ color.
+
+    Returns:
+        tuple: A tuple containing the X, Y, and Z components of the XYZ color.
+    """
     XYZ = [X, Y, Z]
     # Normalise Y to 1.0, & add black glare
     for j in range(3):
@@ -63,7 +83,19 @@ def XYZ_normalize_add_glare(X, Y, Z):
     return tuple(XYZ)
 
 
-def RGB2XYZ(R, G, B):  # from xcolorants.c -> icxColorantLu_to_XYZ
+def RGB2XYZ(R, G, B):
+    """Convert RGB to XYZ using the RGB to XYZ conversion.
+
+    from xcolorants.c -> icxColorantLu_to_XYZ
+
+    Args:
+        R (float): The red component of the RGB color.
+        G (float): The green component of the RGB color.
+        B (float): The blue component of the RGB color.
+
+    Returns:
+        tuple: A tuple containing the X, Y, and Z components of the XYZ color.
+    """
     d = (R, G, B)
     # We assume a simple additive model with gamma
     XYZ = [0.0, 0.0, 0.0]
@@ -83,4 +115,14 @@ def RGB2XYZ(R, G, B):  # from xcolorants.c -> icxColorantLu_to_XYZ
 
 
 def XYZ2RGB(X, Y, Z):
+    """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
+
+    Args:
+        X (float): The X component of the XYZ color.
+        Y (float): The Y component of the XYZ color.
+        Z (float): The Z component of the XYZ color.
+
+    Returns:
+        tuple: A tuple containing the R, G, and B components of the RGB color.
+    """
     return colormath.XYZ2RGB(*XYZ_denormalize_remove_glare(X, Y, Z))

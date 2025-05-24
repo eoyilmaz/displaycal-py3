@@ -1329,6 +1329,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
 
 
 def get_mapping(mapping, keys):
+    """Get a mapping of keys to values."""
     return sorted(
         [
             (k, lang.getstr(v.lower().replace(" ", "_")))
@@ -1339,6 +1340,7 @@ def get_mapping(mapping, keys):
 
 
 def main():
+    """Main function to run the application."""
     config.initcfg("synthprofile")
     lang.init()
     lang.update_defaults()

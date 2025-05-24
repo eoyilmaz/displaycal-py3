@@ -85,11 +85,13 @@ if "phoenix" in wx.PlatformInfo:
     from wx.lib.agw import aui
 
     def BitmapFromIcon(icon):
+        """Convert an icon to a bitmap."""
         bmp = wx.Bitmap()
         bmp.CopyFromIcon(icon)
         return bmp
 
     def IconFromBitmap(bmp):
+        """Convert a bitmap to an icon."""
         icon = wx.Icon()
         icon.CopyFromBitmap(bmp)
         return bmp
@@ -156,6 +158,7 @@ if "phoenix" in wx.PlatformInfo:
     )
 
     def ContainsRect(self, *args):
+        """Check if the rectangle is contained in this rectangle."""
         rect = wx.Rect(*args) if len(args) > 1 else args[0]
         return self.Contains(rect)
 
@@ -165,6 +168,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.RegionFromBitmap = wx.Region
 
     def GetItemIndex(self, window):
+        """Return the index of the item in the sizer."""
         for index, sizeritem in enumerate(self.Children):
             if sizeritem.Window == window:
                 return index
@@ -206,6 +210,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.TextCtrl.PositionToXY = lambda self, pos: PositionToXY(self, pos)[1:]
 
     def TabFrame__init__(self, parent):
+        """Fix TabFrame.__init__ to not set the size to 0, 0."""
         wx.Window.__init__(self)
 
         self._tabs = None
@@ -502,6 +507,7 @@ wx.Menu.FindItem = FindMenuItem
 
 
 def GTKMenuItemGetFixedLabel(label):
+    """Return the fixed label for GTK menu items."""
     if sys.platform not in ("darwin", "win32"):
         # The underscore is a special character under GTK, like the
         # ampersand on Mac OS X and Windows
@@ -517,6 +523,7 @@ def GTKMenuItemGetFixedLabel(label):
 if not hasattr(wx.Sizer, "GetItemIndex"):
 
     def GetItemIndex(self, item):
+        """Return the index of the item in the sizer."""
         for i, child in enumerate(list(self.GetChildren())):
             if child.GetWindow() is item:
                 return i
@@ -526,6 +533,7 @@ if not hasattr(wx.Sizer, "GetItemIndex"):
 
 
 def set_maxsize(window, maxsize):
+    """Set the maximum size of a window."""
     window.MaxSize = maxsize
 
 
@@ -535,6 +543,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     is_first_toplevel_window = True
 
     def fix_wayland_window_size(window):
+        """Fix erroneous extra spacing around window contents under Wayland."""
         global is_first_toplevel_window
         if is_first_toplevel_window:
             # Not needed for first toplevel window
@@ -544,6 +553,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
             wx.CallAfter(set_maxsize, window, (-1, -1))
 
     def TopLevelWindow_Show(self, show=True):
+        """Replacement for TopLevelWindow.Show which circumvents repainting issues."""
         if show and not self.IsShown():
             fix_wayland_window_size(self)
         return _TopLevelWindow_Show(self, show)
@@ -559,6 +569,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     # ~ wx.Dialog.ShowModal = Dialog_ShowModal
 
     def Sizer_SetSizeHints(self, window):
+        """Replacement for Sizer.SetSizeHints which circumvents repainting issues."""
         if isinstance(window, wx.Dialog):
             window.MaxSize = (-1, -1)
         _Sizer_SetSizeHints(self, window)
@@ -567,6 +578,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     wx.Sizer.SetSizeHints = Sizer_SetSizeHints
 
     def Sizer_Layout(self):
+        """Replacement for Sizer.Layout which circumvents repainting issues."""
         _Sizer_Layout(self)
         window = self.GetContainingWindow()
         if isinstance(window, wx.Dialog):
@@ -582,20 +594,24 @@ if sys.platform == "darwin":
 
     @property
     def StaticTextEnabled(self):
+        """Replacement for StaticText.Enabled which circumvents repainting issues."""
         return self.IsEnabled()
 
     @StaticTextEnabled.setter
     def StaticTextEnabled(self, enable=True):
+        """Replacement for StaticText.Enabled which circumvents repainting issues."""
         self.Enable(enable)
 
     wx.StaticText.Enabled = StaticTextEnabled
 
     def StaticTextDisable(self):
+        """Replacement for StaticText.Disable which circumvents repainting issues."""
         self.Enable(False)
 
     wx.StaticText.Disable = StaticTextDisable
 
     def StaticTextEnable(self, enable=True):
+        """Replacement for StaticText.Enable which circumvents repainting issues."""
         enable = bool(enable)
         if self.Enabled is enable:
             return
@@ -616,7 +632,8 @@ if sys.platform == "darwin":
 
     wx.StaticText.Enable = StaticTextEnable
 
-    def StaticTextIsEnabled(self):
+    def StaticTextIsEnabled(self) -> bool:
+        """Return whether the StaticText is enabled."""
         return getattr(self, "_enabled", True)
 
     wx.StaticText.IsEnabled = StaticTextIsEnabled
@@ -791,6 +808,7 @@ wx.grid.Grid.GetSelection = GridGetSelection
 
 
 def adjust_font_size_for_gcdc(font):
+    """Adjust font size for GCDC."""
     size = get_gcdc_font_size(font.PointSize)
     font.SetPointSize(int(size))
     return font
@@ -826,6 +844,7 @@ def get_dc_font_size(size, dc):
 
 
 def get_gcdc_font_size(size):
+    """Get correct font size for GCDC."""
     dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
     with contextlib.suppress(Exception):
         dc = wx.GCDC(dc)
@@ -833,6 +852,7 @@ def get_gcdc_font_size(size):
 
 
 def get_bitmap_disabled(bitmap):
+    """Get the disabled bitmap."""
     # Use Rec. 709 luma coefficients to convert to grayscale
     image = bitmap.ConvertToImage().ConvertToGreyscale(0.2126, 0.7152, 0.0722)
     if image.HasMask() and not image.HasAlpha():
@@ -846,6 +866,7 @@ def get_bitmap_disabled(bitmap):
 
 
 def get_bitmap_hover(bitmap, ctrl=None):
+    """Get the hover bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
@@ -935,6 +956,7 @@ def get_bitmap_hover(bitmap, ctrl=None):
 
 
 def get_bitmap_pressed(bitmap):
+    """Get the pressed bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
@@ -946,6 +968,7 @@ def get_bitmap_pressed(bitmap):
 
 
 def get_bitmap_focus(bitmap):
+    """Get the focus bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
@@ -957,6 +980,7 @@ def get_bitmap_focus(bitmap):
 
 
 def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
+    """Set the bitmap labels for a button."""
     bitmap = btn.BitmapLabel
     if not bitmap.IsOk():
         size = btn.MinSize

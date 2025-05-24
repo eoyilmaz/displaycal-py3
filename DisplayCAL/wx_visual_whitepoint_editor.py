@@ -114,6 +114,7 @@ def s(i) -> int:
 
 
 def update_patterngenerator(self):
+    """Update the Chromecast pattern generator."""
     while self and wx.App.IsMainLoopRunning():
         if self.update_patterngenerator_event.wait(0.05):
             self.update_patterngenerator_event.clear()
@@ -1377,6 +1378,7 @@ class NumSpin(wx_Panel):
     It is a replacement for wx.SpinCtrl that uses a custom IntCtrl instead of
     the default one. It also supports mouse wheel scrolling and keyboard input.
     """
+
     def __init__(self, parent, id=-1, *args, **kwargs):  # noqa: A002
         wx_Panel.__init__(self, parent)
         self.BackgroundColour = "#404040"

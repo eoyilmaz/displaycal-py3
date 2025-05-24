@@ -435,6 +435,7 @@ def _get_selected_menu_item(id: int, menu: Menu) -> None | MenuItem:  # noqa: A0
 
 
 def main():
+    """Main function to create and run the system tray icon."""
     _app = wx.App(0)
     hinst = win32gui.GetModuleHandle(None)
     try:

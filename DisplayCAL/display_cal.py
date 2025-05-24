@@ -17,6 +17,8 @@ this program; if not, see <http://www.gnu.org/licenses/>
 """
 
 # Standard modules
+from __future__ import annotations
+
 import contextlib
 import datetime
 import json as json_module
@@ -318,7 +320,14 @@ webbrowser.PROCESS_CREATION_DELAY = 0
 APP_IS_UPTODATE = True
 
 
-def show_ccxx_error_dialog(exception, path, parent):
+def show_ccxx_error_dialog(exception, path, parent) -> None:
+    """Show a dialog with the error message from CGATS exception.
+
+    Args:
+        exception: The CGATS exception that was raised.
+        path: The path to the CGATS file.
+        parent: The parent window to show the dialog.
+    """
     msg = str(exception)
     if msg.startswith("Malformed"):
         fn, ext = os.path.splitext(path)
@@ -456,9 +465,16 @@ def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
         wx.CallAfter(parent.check_instrument_setup, check_donation, (parent, snapshot))
 
 
-def check_donation(parent, snapshot):
-    # Show donation popup if user did not choose "don't show again".
-    # Reset donation popup after a major update.
+def check_donation(parent, snapshot) -> None:
+    """Check if we need to show donation message.
+
+    Show donation popup if user did not choose "don't show again".
+    Reset donation popup after a major update.
+
+    Args:
+        parent: Parent window to show the dialog.
+        snapshot: If True, the application is a snapshot build.
+    """
     if not snapshot and VERSION[0] > next(
         iter(intlist(getcfg("last_launch").split(".")))
     ):
@@ -999,7 +1015,9 @@ def colorimeter_correction_check_overwrite(
     parent=None, cgats=None, update_comports=False
 ):
     """Check if a colorimeter correction file will be overwritten and
-    present a dialog to confirm or cancel the operation. Write the file."""
+    present a dialog to confirm or cancel the operation.
+
+    Write the file."""
     result = check_create_dir(config.get_argyll_data_dir())
     if isinstance(result, Exception):
         show_result_dialog(result, parent)
@@ -1042,7 +1060,16 @@ def colorimeter_correction_check_overwrite(
     return True
 
 
-def get_cgats_measurement_mode(cgats, instrument):
+def get_cgats_measurement_mode(cgats: bytes, instrument: str) -> str:
+    """Get the measurement mode for the CGATS data.
+
+    Args:
+        cgats (bytes): The CGATS data.
+        instrument (str): The instrument name.
+
+    Returns:
+        str: The measurement mode.
+    """
     base_id = cgats.queryv1("DISPLAY_TYPE_BASE_ID")
     refresh = cgats.queryv1("DISPLAY_TYPE_REFRESH")
     mode = None
@@ -1070,7 +1097,15 @@ def get_cgats_measurement_mode(cgats, instrument):
     return mode
 
 
-def get_cgats_path(cgats):
+def get_cgats_path(cgats: bytes) -> str:
+    """Get the path to save the CGATS file.
+
+    Args:
+        cgats (bytes): The CGATS data.
+
+    Returns:
+        str: The path to save the CGATS file.
+    """
     descriptor = re.search(rb'\nDESCRIPTOR\s+"(.+?)"\n', cgats)
     if descriptor:
         descriptor = descriptor.groups()[0]
@@ -1092,6 +1127,20 @@ def get_header(
     y=44,
     repeat_sub_bitmap_h=(220, 0, 2, 64),
 ):
+    """Create a header panel with a bitmap and label.
+
+    Args:
+        parent (wx.Window): The parent window.
+        bitmap (wx.Bitmap): The bitmap to display.
+        label (str): The label to display.
+        size (tuple): The size of the header panel.
+        x (int): The x position of the label.
+        y (int): The y position of the label.
+        repeat_sub_bitmap_h (tuple): The sub-bitmap height for repeating.
+
+    Returns:
+        wx.Panel: The header panel.
+    """
     w, h = 222, 64
     scale = getcfg("app.dpi") / config.get_default_dpi()
     if scale > 1:
@@ -1121,7 +1170,15 @@ def get_header(
     return header
 
 
-def get_profile_load_on_login_label(os_cal):
+def get_profile_load_on_login_label(os_cal: bool) -> str:
+    """Get the label for the profile load on login checkbox.
+
+    Args:
+        os_cal (bool): True if the OS calibration is active.
+
+    Returns:
+        str: The label for the profile load on login checkbox.
+    """
     label = lang.getstr("profile.load_on_login")
     if sys.platform == "win32" and not os_cal:
         lstr = lang.getstr("calibration.preserve")
@@ -1131,8 +1188,15 @@ def get_profile_load_on_login_label(os_cal):
     return label
 
 
-def upload_colorimeter_correction(parent=None, params=None):
-    """Upload colorimeter correction to online database"""
+def upload_colorimeter_correction(
+    parent: None | wx.Window = None, params: None | dict = None
+) -> None:
+    """Upload colorimeter correction to online database.
+
+    Args:
+        parent (None | wx.Window): The parent window.
+        params (None | dict): The parameters for the upload.
+    """
     path = "/index.php"
     failure_msg = lang.getstr("colorimeter_correction.upload.failure")
     # Check for duplicate
@@ -1191,6 +1255,7 @@ def upload_colorimeter_correction(parent=None, params=None):
 
 
 def install_scope_handler(event=None, dlg=None):
+    """Enable/disable the install systemwide button and the ok button."""
     dlg = dlg or event.EventObject.TopLevelParent
     auth_needed = dlg.install_systemwide.GetValue()
     if hasattr(dlg.ok, "SetAuthNeeded"):
@@ -1201,6 +1266,7 @@ def install_scope_handler(event=None, dlg=None):
 
 
 def webbrowser_open(url, new=False):
+    """Open a URL in the web browser."""
     try:
         webbrowser.open(url, new=new)
         return True
@@ -19821,6 +19887,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
 
 
 def main():
+    """Main function to start the application."""
     initcfg()
     lang.init()
     # Startup messages

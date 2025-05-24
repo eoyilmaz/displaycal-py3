@@ -48,3 +48,31 @@ def test_get_default_size_1(real_display: bool, size_in_mm: tuple[int, int]) -> 
                             result = get_default_size()
     assert isinstance(result, int)
     assert result > 1
+
+
+@pytest.mark.skip(
+    reason="TODO: This test is moved from the module, properly implement it."
+)
+def test_from_module():
+    import time
+
+    for rgb in [
+        (0.079291, 1 / 51.0, 1 / 51.0),
+        (0.079291, 0.089572, 0.094845),
+        (0.032927, 0.028376, 0.027248),
+        (0.037647, 0.037095, 0.036181),
+        (51.2 / 255, 153.7 / 255, 127.4 / 255),
+    ]:
+        wx.CallAfter(wx.GetApp().TopWindow.show_rgb, rgb)
+        time.sleep(0.05)
+        input("Press RETURN to continue\n")
+        if not wx.GetApp().TopWindow:
+            break
+
+    # This is the caller of the test function... implement it properly later on.
+    import threading
+
+    t = threading.Thread(target=test)
+    app.TopWindow.show_controls(False)
+    t.start()
+

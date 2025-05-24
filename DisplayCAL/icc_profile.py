@@ -30,7 +30,7 @@ import warnings
 from collections import UserString
 from copy import copy
 from hashlib import md5
-from typing import Any, ClassVar, SupportsIndex
+from typing import Any, Callable, ClassVar, SupportsIndex
 from weakref import WeakValueDictionary
 
 from DisplayCAL.util_dict import dict_sort
@@ -431,16 +431,38 @@ CIIS = {
 }
 
 
-def legacy_PCSLab_dec_to_uInt16(L, a, b):
-    # ICCv2 (legacy) PCS L*a*b* encoding
-    # Only used by LUT16Type and namedColor2Type in ICCv4
+def legacy_PCSLab_dec_to_uInt16(L, a, b) -> list[int]:
+    """Convert ICCv2 (legacy) PCS L*a*b* float values to int.
+
+    Only used by LUT16Type and namedColor2Type in ICCv4.
+
+    Args:
+        L (float): L* value in float format.
+        a (float): a* value in float format.
+        b (float): b* value in float format.
+
+    Returns:
+        list[int]: List of int values representing L*, a*, and b* in 16-bit.
+    """
     return [
         v * (652.80, 256, 256)[i] + (0, 32768, 32768)[i]
         for i, v in enumerate((L, a, b))
     ]
 
 
-def legacy_PCSLab_uInt16_to_dec(L_uInt16, a_uInt16, b_uInt16):
+def legacy_PCSLab_uInt16_to_dec(
+    L_uInt16: int, a_uInt16: int, b_uInt16: int
+) -> list[float]:
+    """Convert ICCv2 (legacy) PCS L*a*b* to float values.
+
+    Args:
+        L_uInt16 (int): L* value in 16-bit unsigned integer format.
+        a_uInt16 (int): a* value in 16-bit unsigned integer format.
+        b_uInt16 (int): b* value in 16-bit unsigned integer format.
+
+    Returns:
+        list: List of float values representing L*, a*, and b*.
+    """
     # ICCv2 (legacy) PCS L*a*b* encoding
     # Only used by LUT16Type and namedColor2Type in ICCv4
     return [
@@ -2525,7 +2547,6 @@ def _wcs_unset_display_profile(
     Note that the profile needs to have been already installed.
 
     * 0..65535 will get mapped to 0..65280, which is a Windows bug
-
     """
     # Disassociating a profile will always (regardless of whether or
     # not the profile was associated or even exists) result in Windows
@@ -2556,8 +2577,23 @@ def _wcs_unset_display_profile(
 
 
 def set_display_profile(
-    profile_name, display_no=0, devicekey=None, use_active_display_device=True
-):
+    profile_name: str,
+    display_no: int = 0,
+    devicekey: None | str = None,
+    use_active_display_device: bool = True,
+) -> bool:
+    """Set the current default WCS color profile for the given device.
+
+    Args:
+        profile_name (str): The name of the profile to be set.
+        display_no (int): The display number to set the profile for.
+        devicekey (str): The device key of the display.
+        use_active_display_device (bool): Whether to use the active display
+            device.
+
+    Returns:
+        bool: True if the profile was set successfully, False otherwise.
+    """
     # Currently only implemented for Windows.
     # The profile to be assigned has to be already installed!
     if not devicekey:
@@ -2578,6 +2614,15 @@ def set_display_profile(
 def unset_display_profile(
     profile_name, display_no=0, devicekey=None, use_active_display_device=True
 ):
+    """Unset the current default WCS color profile for the given device.
+
+    If the device is a display, this will also set its video card gamma ramps
+    to linear* if the given profile is the display's current default profile
+    and Windows calibration management isn't enabled.
+
+    Note that the profile needs to have been already installed.
+    * 0..65535 will get mapped to 0..65280, which is a Windows bug.
+    """
     # Currently only implemented for Windows.
     # The profile to be unassigned has to be already installed!
     if not devicekey:
@@ -2813,12 +2858,16 @@ def _mp_hdr_tonemap(
     return HDR_XYZ
 
 
-def hexrepr(bytestring, mapping=None):
+def hexrepr(bytestring: bytes, mapping: None | dict = None) -> str:
     """Generate hex representation of a bytes instance
 
-    :param bytestring:
-    :param mapping:
-    :return:
+    Args:
+        bytestring (bytes): The bytes to convert.
+        mapping (dict): A dictionary to map the ASCII representation to
+            a string.
+
+    Returns:
+        str: The hex representation of the bytes.
     """
     hex_repr = (b"0x%s" % binascii.hexlify(bytestring).upper()).decode()
     ascii_repr = re.sub(b"[^\x20-\x7e]", b"", bytestring)
@@ -2831,8 +2880,10 @@ def hexrepr(bytestring, mapping=None):
     return hex_repr
 
 
-def dateTimeNumber(binary_string):
-    """Byte
+def dateTimeNumber(binary_string: bytes) -> datetime.datetime:
+    """Convert a 12-byte hex representation to a datetime object.
+
+    Byte
     Offset Content                                     Encoded as...
     0..1   number of the year (actual year, e.g. 1994) uInt16Number
     2..3   number of the month (1-12)                  uInt16Number
@@ -2841,7 +2892,12 @@ def dateTimeNumber(binary_string):
     8..9   number of minutes (0-59)                    uInt16Number
     10..11 number of seconds (0-59)                    uInt16Number
 
-    :param binary_string: A 12 character long bytes value representing a datetime value.
+    Args:
+        binary_string (bytes): A 12 character long bytes value representing a
+            datetime value.
+
+    Returns:
+        datetime: The datetime object represented by the hex.
     """
     Y, m, d, H, M, S = [
         uInt16Number(chunk)
@@ -2857,74 +2913,209 @@ def dateTimeNumber(binary_string):
     return datetime.datetime(*(Y, m, d, H, M, S))
 
 
-def dateTimeNumber_tohex(dt):
+def dateTimeNumber_tohex(dt: datetime.datetime) -> bytes:
+    """Convert a datetime object to a 12-byte hex representation.
+
+    Args:
+        dt (datetime): The datetime object to convert.
+
+    Returns:
+        bytes: The 12-byte hex representation of the datetime.
+    """
     data = [uInt16Number_tohex(n) for n in dt.timetuple()[:6]]
     return b"".join(data)
 
 
-def s15Fixed16Number(binaryString):
+def s15Fixed16Number(binaryString: bytes) -> float:
+    """Convert a 4-byte hex representation to a float.
+
+    Args:
+        binaryString (bytes): The 4-byte hex representation.
+
+    Returns:
+        float: The number represented by the hex.
+    """
     return struct.unpack(">i", binaryString)[0] / 65536.0
 
 
-def s15Fixed16Number_tohex(num):
+def s15Fixed16Number_tohex(num: int) -> bytes:
+    """Convert a number to a 4-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 4-byte hex representation of the number.
+    """
     return struct.pack(">i", int(round(num * 65536)))
 
 
-def s15f16_is_equal(
-    a, b, quantizer=lambda v: s15Fixed16Number(s15Fixed16Number_tohex(v))
-):
+def s15f16_is_equal(a: bytes, b: bytes, quantizer: None | Callable = None):
+    """Compare two s15Fixed16Number values.
+
+    Args:
+        a (bytes): First value.
+        b (bytes): Second value.
+        quantizer (Optional[callable]): A callable to quantize the values.
+            Defaults to None.
+
+    Returns:
+        bool: True if the values are equal, False otherwise.
+    """
+    if quantizer is None:
+
+        def quantizer(v):
+            return s15Fixed16Number(s15Fixed16Number_tohex(v))
+
     return colormath.is_equal(a, b, quantizer)
 
 
-def u16Fixed16Number(binaryString):
+def u16Fixed16Number(binaryString: bytes) -> int:
+    """Convert a 2-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 2-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">I", binaryString)[0] / 65536.0
 
 
-def u16Fixed16Number_tohex(num):
+def u16Fixed16Number_tohex(num: int) -> bytes:
+    """Convert a number to a 2-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 2-byte hex representation of the number.
+    """
     return struct.pack(">I", int(round(num * 65536)) & 0xFFFFFFFF)
 
 
-def u8Fixed8Number(binaryString):
+def u8Fixed8Number(binaryString: bytes) -> int:
+    """Convert a 1-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 1-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">H", binaryString)[0] / 256.0
 
 
-def u8Fixed8Number_tohex(num):
+def u8Fixed8Number_tohex(num: int) -> bytes:
+    """Convert a number to a 1-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 1-byte hex representation of the number.
+    """
     return struct.pack(">H", int(round(num * 256)))
 
 
-def uInt16Number(binaryString):
+def uInt16Number(binaryString: bytes) -> int:
+    """Convert a 2-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 2-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">H", binaryString)[0]
 
 
-def uInt16Number_tohex(num):
+def uInt16Number_tohex(num: int) -> bytes:
+    """Convert a number to a 2-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 2-byte hex representation of the number.
+    """
     return struct.pack(">H", int(round(num)))
 
 
-def uInt32Number(binaryString):
+def uInt32Number(binaryString: bytes) -> int:
+    """Convert a 4-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 4-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">I", binaryString)[0]
 
 
-def uInt32Number_tohex(num):
+def uInt32Number_tohex(num: int) -> bytes:
+    """Convert a number to a 4-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 4-byte hex representation of the number.
+    """
     return struct.pack(">I", int(round(num)))
 
 
-def uInt64Number(binaryString):
+def uInt64Number(binaryString: bytes) -> int:
+    """Convert a 8-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 8-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">Q", binaryString)[0]
 
 
-def uInt64Number_tohex(num):
+def uInt64Number_tohex(num: int) -> bytes:
+    """Convert a number to a 8-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 8-byte hex representation of the number.
+    """
     return struct.pack(">Q", int(round(num)))
 
 
-def uInt8Number(binaryString):
+def uInt8Number(binaryString: bytes) -> int:
+    """Convert a 1-byte hex representation to a number.
+
+    Args:
+        binaryString (bytes): The 1-byte hex representation.
+
+    Returns:
+        int: The number represented by the hex.
+    """
     return struct.unpack(">H", b"\0" + binaryString)[0]
 
 
-def uInt8Number_tohex(num):
+def uInt8Number_tohex(num: int) -> bytes:
+    """Convert a number to a 1-byte hex representation.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        bytes: The 1-byte hex representation of the number.
+    """
     return struct.pack(">H", int(round(num)))[1:2]
 
 
 def videoCardGamma(tagData, tagSignature):
+    """Generate a VideoCardGammaTableType or VideoCardGammaFormulaType tag."""
     # reserved = uInt32Number(tagData[4:8])
     tagType = uInt32Number(tagData[8:12])
     if tagType == 0:  # table
@@ -5155,6 +5346,7 @@ class S15Fixed16ArrayType(ICCProfileTag, list):
 
 
 def SignatureType(tagData, tagSignature):
+    """Generate ICC signatureType tag."""
     tag = Text(tagData[8:12].rstrip(b"\0"))
     tag.tagData = tagData
     tag.tagSignature = tagSignature
@@ -5163,6 +5355,7 @@ def SignatureType(tagData, tagSignature):
 
 class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
     """ICC textDescriptionType tag."""
+
     def __init__(self, tagData=None, tagSignature=None):
         ICCProfileTag.__init__(self, tagData, tagSignature)
         self.ASCII = b""
@@ -5389,6 +5582,7 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
 
 
 def TextType(tagData, tagSignature):
+    """Generate an ICC textType tag."""
     tag = Text(tagData[8:].rstrip(b"\0"))
     tag.tagData = tagData
     tag.tagSignature = tagSignature
@@ -6066,6 +6260,7 @@ class ChromaticAdaptionTag(colormath.Matrix3x3, S15Fixed16ArrayType):
         8..11  CIE Z   s15Fixed16Number
         ...
     """
+
     def __init__(self, tagData=None, tagSignature=None):
         ICCProfileTag.__init__(self, tagData, tagSignature)
         if tagData:
@@ -6253,6 +6448,7 @@ class NamedColor2Type(ICCProfileTag, AODict):
         52..83  suffix            s32Fixed32Number
         84..n   colorValues       NamedColor2Value
     """
+
     REPR_OUTPUT_SIZE = 10
 
     def __init__(self, tagData=b"\0" * 84, tagSignature=None, pcs=None, device=None):

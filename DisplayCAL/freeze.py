@@ -213,6 +213,16 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
 
 
 def get_scripts(excludes=None):
+    """Return a list of scripts with their descriptions.
+
+    Args:
+        excludes (None | list[str]): List of scripts to exclude. Default is
+            None.
+
+    Returns:
+        list[tuple[str, str]]: List of tuples containing script names and their
+            descriptions.
+    """
     # It is required that each script has an accompanying .desktop file
     scripts_with_desc = []
     scripts = safe_glob(os.path.join(pydir, "..", "scripts", appname.lower() + "*"))

@@ -231,7 +231,14 @@ def find(what, search):
 
 
 def get_default_profile(device_id):
-    """Get default profile for device"""
+    """Get default profile for device.
+
+    Args:
+        device_id (str): Device ID to search for.
+
+    Returns:
+        str: Default profile ID for the device.
+    """
     # Find device object path
     device = Device(get_object_path(device_id, "device"))
 
@@ -250,6 +257,14 @@ def get_default_profile(device_id):
 
 
 def get_devices_by_kind(kind):
+    """Get devices by kind.
+
+    Args:
+        kind (str): Kind of device to search for.
+
+    Returns:
+        list: List of devices of the specified kind.
+    """
     if not isinstance(Colord, DBusObject):
         return []
     return [
@@ -258,10 +273,20 @@ def get_devices_by_kind(kind):
 
 
 def get_display_devices():
+    """Get display devices.
+
+    Returns:
+        list: List of display devices.
+    """
     return get_devices_by_kind("display")
 
 
 def get_display_device_ids():
+    """Get display device IDs.
+
+    Returns:
+        list: List of display device IDs.
+    """
     return [
         _f
         for _f in (
@@ -273,7 +298,7 @@ def get_display_device_ids():
 
 def get_object_path(search, object_type):
     """Get object path for profile or device ID"""
-    result = find(object_type + "-by-id", search)
+    result = find(f"{object_type}-by-id", search)
     if not result:
         raise CDObjectNotFoundError(f"Could not find object path for {search}")
     return result
@@ -458,7 +483,15 @@ def install_profile(
             logfn(stdout.strip())
 
 
-def quirk_manufacturer(manufacturer):
+def quirk_manufacturer(manufacturer: str) -> str:
+    """Correct manufacturer name for colord.
+
+    Args:
+        manufacturer (str): Manufacturer name to correct.
+
+    Returns:
+        str: Corrected manufacturer name.
+    """
     if (
         Colord
         and not isinstance(Colord, DBusObject)

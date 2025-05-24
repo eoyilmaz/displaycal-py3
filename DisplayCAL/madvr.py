@@ -118,6 +118,7 @@ _lock = threading.RLock()
 
 
 def safe_print(*args):
+    """Thread-safe print function."""
     with _lock:
         print(*args)
 

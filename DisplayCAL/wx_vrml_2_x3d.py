@@ -118,6 +118,7 @@ if gui:
 
 
 def main():
+    """Main function to handle command line arguments and initiate conversion."""
     if "--help" in sys.argv[1:] or (not sys.argv[1:] and not gui):
         print("Convert VRML file to X3D")
         print("Author: Florian Hoech, licensed under the GPL version 3")

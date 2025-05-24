@@ -2194,6 +2194,7 @@ class ProfileInfoFrame(LUTFrame):
 
 
 def main():
+    """Main function to run the ProfileInfoFrame application."""
     config.initcfg("profile-info")
     lang.init()
     lang.update_defaults()

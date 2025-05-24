@@ -21,6 +21,14 @@ from DisplayCAL.util_io import GzipFileProper
 
 
 def get_device_value_labels(color_rep=None):
+    """Return a list of device value labels.
+
+    Args:
+        color_rep (str): Color representation. Default is None.
+
+    Returns:
+        list: List of device value labels.
+    """
     # TODO: Avoid using filter...
     return list(
         filter(
@@ -65,6 +73,15 @@ def rpad(value, width) -> bytes:
 
 
 def sort_RGB_gray_to_top(a, b):
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[0] == a[1] == a[2]:
         if b[0] == b[1] == b[2]:
             return 0
@@ -73,6 +90,18 @@ def sort_RGB_gray_to_top(a, b):
 
 
 def sort_RGB_to_top_factory(i1, i2, i3, i4):
+    """Return a function to sort RGB values to the top.
+
+    Args:
+        i1 (int): Index of the first RGB value.
+        i2 (int): Index of the second RGB value.
+        i3 (int): Index of the third RGB value.
+        i4 (int): Index of the fourth RGB value.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their values.
+    """
+
     def sort_RGB_to_top(a, b):
         if a[i1] == a[i2] and 0 <= a[i3] < a[i4]:
             if b[i1] == b[i2] and 0 <= b[i3] < b[i4]:
@@ -84,12 +113,30 @@ def sort_RGB_to_top_factory(i1, i2, i3, i4):
 
 
 def sort_RGB_white_to_top(a, b):
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1 = sum(a[:3])
     # sum2 = sum(b[:3])
     return -1 if sum1 == 300 else 0
 
 
 def sort_by_HSI(a, b):
+    """Sort by HSI value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSI(*a[:3]))
     b = list(colormath.RGB2HSI(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -102,6 +149,15 @@ def sort_by_HSI(a, b):
 
 
 def sort_by_HSL(a, b):
+    """Sort by HSL value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSL(*a[:3]))
     b = list(colormath.RGB2HSL(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -114,6 +170,15 @@ def sort_by_HSL(a, b):
 
 
 def sort_by_HSV(a, b):
+    """Sort by HSV value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSV(*a[:3]))
     b = list(colormath.RGB2HSV(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -126,6 +191,15 @@ def sort_by_HSV(a, b):
 
 
 def sort_by_RGB(a, b):
+    """Sort by RGB value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3] > b[:3]:
         return 1
     if a[:3] < b[:3]:
@@ -134,6 +208,15 @@ def sort_by_RGB(a, b):
 
 
 def sort_by_BGR(a, b):
+    """Sort by BGR value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3][::-1] > b[:3][::-1]:
         return 1
     if a[:3] == b[:3]:
@@ -142,6 +225,15 @@ def sort_by_BGR(a, b):
 
 
 def sort_by_RGB_sum(a, b):
+    """Sort by RGB sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(a[:3]), sum(b[:3])
     if sum1 > sum2:
         return 1
@@ -151,6 +243,15 @@ def sort_by_RGB_sum(a, b):
 
 
 def sort_by_RGB_pow_sum(a, b):
+    """Sort by RGB power sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(v**2.2 for v in a[:3]), sum(v**2.2 for v in b[:3])
     if sum1 > sum2:
         return 1
@@ -160,10 +261,30 @@ def sort_by_RGB_pow_sum(a, b):
 
 
 def stable_sort_by_L(a, b):
+    """Stable sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     return sort_by_L(a, b, stable=True)
 
 
 def sort_by_L(a, b, stable=False):
+    """Sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+        stable (bool): If True, sort stably by L* value.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
+
     def sort(a1, b1):
         if a1 > b1:
             return 1
@@ -183,6 +304,18 @@ def sort_by_L(a, b, stable=False):
 
 
 def sort_by_luma_factory(RY, GY, BY, gamma=1):
+    """Return a function to sort by luma.
+
+    Args:
+        RY (float): Red Y value.
+        GY (float): Green Y value.
+        BY (float): Blue Y value.
+        gamma (float): Gamma correction value. Default is 1.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their luma value.
+    """
+
     def sort_by_luma(a, b):
         a = RY * a[0] ** gamma + GY * a[1] ** gamma + BY * a[2] ** gamma
         b = RY * b[0] ** gamma + GY * b[1] ** gamma + BY * b[2] ** gamma

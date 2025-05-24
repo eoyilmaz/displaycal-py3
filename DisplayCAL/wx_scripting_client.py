@@ -551,6 +551,7 @@ class ScriptingClientFrame(SimpleTerminal):
 
 
 def main():
+    """Main function to run the wxPython application."""
     config.initcfg("scripting-client")
     lang.init()
     app = BaseApp(0)

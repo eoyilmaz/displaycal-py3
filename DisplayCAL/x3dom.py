@@ -250,6 +250,7 @@ def get_vrml_axes(
     maxz=100,
     zero=True,
 ):
+    """Generate VRML axes."""
     return """# Z axis
         Transform {{
             translation {offsetx:.1f} {offsety:.1f} {offsetz:.1f}
@@ -371,6 +372,7 @@ def get_vrml_axes(
 
 
 def safe_print(*args, **kwargs):
+    """Print to stdout if DEBUG is enabled."""
     if DEBUG:
         _safe_print(*args, **kwargs)
 

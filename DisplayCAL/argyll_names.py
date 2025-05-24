@@ -62,7 +62,13 @@ ALTNAMES = {
 }
 
 
-def add_prefixes_suffixes(name, altname):
+def add_prefixes_suffixes(name, altname) -> None:
+    """Add prefixes and suffixes to the alternative tool names.
+
+    Args:
+        name (str): The original tool name.
+        altname (str): The alternative tool name.
+    """
     for prefix_suffix in PREFIXES_SUFFIXES:
         ALTNAMES[name].append(f"{altname}-{prefix_suffix}")
         ALTNAMES[name].append(f"{prefix_suffix}-{altname}")

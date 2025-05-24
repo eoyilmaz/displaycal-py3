@@ -803,35 +803,15 @@ class MeasureFrame(InvincibleFrame):
         return measureframe_dimensions
 
 
-def test():
-    import time
-
-    for rgb in [
-        (0.079291, 1 / 51.0, 1 / 51.0),
-        (0.079291, 0.089572, 0.094845),
-        (0.032927, 0.028376, 0.027248),
-        (0.037647, 0.037095, 0.036181),
-        (51.2 / 255, 153.7 / 255, 127.4 / 255),
-    ]:
-        wx.CallAfter(wx.GetApp().TopWindow.show_rgb, rgb)
-        time.sleep(0.05)
-        input("Press RETURN to continue\n")
-        if not wx.GetApp().TopWindow:
-            break
-
-
 def main():
+    """Main function to run the wxPython application."""
     config.initcfg()
     lang.init()
     app = BaseApp(0)
     app.TopWindow = MeasureFrame()
     app.TopWindow.Show()
     if "--test-dither" in sys.argv[1:]:
-        import threading
-
-        t = threading.Thread(target=test)
-        app.TopWindow.show_controls(False)
-        t.start()
+        print("Testing thourhg the `--test-dither` argument is not supported.")
     app.MainLoop()
 
 

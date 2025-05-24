@@ -112,6 +112,7 @@ from DisplayCAL.wx_fixes import get_dc_font_scale
 
 
 def convert_to_list_of_tuples(iterable):
+    """Convert an iterable of iterables to a list of tuples."""
     return [tuple(map(int, p)) for p in iterable]
 
 

@@ -122,3 +122,44 @@ def test_smooth_avg_protetced_values_2():
         0,
     ]
     assert result == expected_result
+
+
+@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+def test_from_module():
+    for i in range(4):
+        if i == 0:
+            wp = "native"
+        elif i == 1:
+            wp = "D50"
+            XYZ = get_standard_illuminant(wp)
+        elif i == 2:
+            wp = "D65"
+            XYZ = get_standard_illuminant(wp)
+        elif i == 3:
+            XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
+            wp = " ".join([str(v) for v in XYZ])
+        print(
+            f"RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint {wp}"
+        )
+        for name in rgb_spaces:
+            spc = rgb_spaces[name]
+            if i == 0:
+                XYZ = CIEDCCT2XYZ(spc[1])
+            spc = spc[0], XYZ, spc[2], spc[3], spc[4]
+            print(
+                f"{name} 1.0, 1.0, 1.0 = XYZ",
+                [str(round(v, 4)) for v in RGB2XYZ(1.0, 1.0, 1.0, spc)],
+            )
+            print(
+                f"{name} 1.0, 0.0, 0.0 = XYZ",
+                [str(round(v, 4)) for v in RGB2XYZ(1.0, 0.0, 0.0, spc)],
+            )
+            print(
+                f"{name} 0.0, 1.0, 0.0 = XYZ",
+                [str(round(v, 4)) for v in RGB2XYZ(0.0, 1.0, 0.0, spc)],
+            )
+            print(
+                f"{name} 0.0, 0.0, 1.0 = XYZ",
+                [str(round(v, 4)) for v in RGB2XYZ(0.0, 0.0, 1.0, spc)],
+            )
+        print("")

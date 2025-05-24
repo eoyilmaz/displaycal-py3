@@ -2484,6 +2484,7 @@ class LUTFrame(BaseFrame):
 
 
 def main():
+    """Main function to run the LUT viewer application."""
     config.initcfg("curve-viewer")
     # Backup display config
     _cfg_display = getcfg("display.number")

@@ -356,6 +356,7 @@ def spawn(
     columns=None,
     rows=None,
 ):
+    """Create a new spawn instance."""
     if args is None:
         args = []
 

@@ -437,6 +437,7 @@ def check_ti3_criteria1(
     delta_to_sRGB_threshold_H=75,
     print_debuginfo=True,
 ):
+    """Check if delta E between a patch and its sRGB equivalent is suspiciously high."""
     sRGBLab = colormath.RGB2Lab(
         RGB[0] / 100.0, RGB[1] / 100.0, RGB[2] / 100.0, noadapt=not white_XYZ
     )
@@ -530,6 +531,7 @@ def check_ti3_criteria1(
 def check_ti3_criteria2(
     prev_Lab, Lab, prev_sRGBLab, sRGBLab, prev_RGB, RGB, sRGB_delta_E_scale_factor=0.5
 ):
+    """Check if the delta E between two patches is suspiciously low."""
     delta = colormath.delta(*prev_Lab + Lab + (2000,))
     sRGB_delta = colormath.delta(*prev_sRGBLab + sRGBLab + (2000,))
     sRGB_delta["E"] *= sRGB_delta_E_scale_factor
@@ -1218,7 +1220,11 @@ def get_options_from_cprt(cprt):
     return dispcal_args, colprof_args
 
 
-def get_options_from_cal(cal) -> ([str], [str]):
+def get_options_from_cal(cal) -> tuple[list, list]:
+    """Try and get options from calibration file.
+
+    First, try the 'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS' tags. If
+    either does not exist, fall back to the copyright tag."""
     if not isinstance(cal, CGATS):
         cal = CGATS(cal)
     if 0 in cal:

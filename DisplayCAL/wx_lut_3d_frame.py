@@ -2050,6 +2050,7 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
 
 
 def main():
+    """Main function to run the 3D LUT maker application."""
     config.initcfg("3DLUT-maker")
     lang.init()
     lang.update_defaults()

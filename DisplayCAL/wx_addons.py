@@ -122,6 +122,7 @@ wx.Window.GetDisplay = GetDisplay
 
 
 def SetMaxFontSize(self, pointsize=11):
+    """Set the maximum font size for this window."""
     font = self.GetFont()
     if font.GetPointSize() > pointsize:
         font.SetPointSize(pointsize)
@@ -268,6 +269,7 @@ def gamma_encode(R, G, B, alpha=wx.ALPHA_OPAQUE):
 
 
 def get_platform_window_decoration_size():
+    """Get the size of the window decoration."""
     if sys.platform in ("darwin", "win32"):
         # Size includes windows decoration
         if sys.platform == "win32":

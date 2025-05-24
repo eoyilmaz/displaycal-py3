@@ -15,6 +15,7 @@ from codecs import EncodedFile
 from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
+from typing import TYPE_CHECKING
 
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import script2pywname
@@ -23,6 +24,9 @@ from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import SafePrinter
 from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
+
+if TYPE_CHECKING:
+    import wx  # noqa: TC004
 
 logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
@@ -70,7 +74,13 @@ warnings.showwarning = showwarning
 LOGBUFFER = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
-def wx_log(logwindow, msg):
+def wx_log(logwindow: wx.Window, msg: str) -> None:
+    """Log a message to the wxPython log window.
+
+    Args:
+        logwindow (wx.Window): The wxPython log window to log to.
+        msg (str): The message to log.
+    """
     if logwindow.IsShownOnScreen() and LOGBUFFER.tell():
         # Check if log buffer has been emptied or not.
         # If it has, our log message is already included.

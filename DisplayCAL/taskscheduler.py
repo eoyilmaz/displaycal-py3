@@ -523,6 +523,7 @@ class TaskScheduler:
 if __name__ == "__main__":
 
     def print_task_attr(name, attr, *args):
+        """Print task attribute."""
         print(f"{name:18s}:", end=" ")
         if callable(attr):
             try:

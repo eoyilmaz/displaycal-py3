@@ -125,7 +125,14 @@ if sys.platform == "win32":
             EXEDIR = os.path.dirname(EXE)
 
 
-def setup_profile_loader_task(exe, exedir, pydir):
+def setup_profile_loader_task(exe: str, exedir: str, pydir: str) -> None:
+    """Setup profile loader task for Windows.
+
+    Args:
+        exe (str): Path to the executable.
+        exedir (str): Directory of the executable.
+        pydir (str): Directory of the Python installation.
+    """
     print("setup_profile_loader_task start")
     if sys.getwindowsversion() < (6,):
         print("setup_profile_loader_task end 1")
@@ -3754,6 +3761,17 @@ class ProfileLoader:
 
 
 def get_display_name_edid(device, moninfo=None, index=None, include_adapter=False):
+    """Return display name and EDID information.
+
+    Args:
+        device: The display device object.
+        moninfo: Monitor information dictionary.
+        index: Index of the display.
+        include_adapter: Whether to include adapter information.
+
+    Returns:
+        tuple: Display name and EDID information.
+    """
     edid = {}
     if device:
         display = str(device.DeviceString)
@@ -3800,7 +3818,8 @@ def get_profile_desc(profile_path, include_basename_if_different=True):
     return profile_path
 
 
-def main():
+def main() -> None:
+    """Main function for the profile loader application."""
     unknown_option = None
     for arg in sys.argv[1:]:
         if (

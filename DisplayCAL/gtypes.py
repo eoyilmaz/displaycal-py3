@@ -9,6 +9,7 @@ from typing import ClassVar
 
 class gchar_p(c_char_p):  # noqa: N801
     """Represents a pointer to a null-terminated string."""
+
     # represents "[const] gchar*"
 
 

@@ -20,7 +20,18 @@ TIFF_TAG_TYPE_DWORD = 4
 TIFF_TAG_TYPE_RATIONAL = 5  # 2 DWORDs
 
 
-def tiff_get_header(w, h, samples_per_pixel, bitdepth):
+def tiff_get_header(w: int, h: int, samples_per_pixel: int, bitdepth: int):
+    """Return TIFF header for given width, height, samples per pixel and bitdepth.
+
+    Args:
+        w (int): Width of the image.
+        h (int): Height of the image.
+        samples_per_pixel (int): Number of samples per pixel.
+        bitdepth (int): Bit depth of the image.
+
+    Returns:
+        bytes: TIFF header as bytes.
+    """
     # Very helpful: http://www.fileformat.info/format/tiff/corion.htm
 
     header = []
@@ -86,11 +97,33 @@ def write(
     file_format=None,
     dimensions=None,
     extrainfo=None,
-):
+) -> None:
+    """Write image data to a file.
+
+    Args:
+        data (list): The image data to write.
+        stream_or_filename (str or file-like object): The output file or stream.
+        bitdepth (int): The bit depth of the image (default: 16).
+        file_format (str): The file format to use (default: None, which infers
+            from filename).
+        dimensions (tuple): The dimensions of the image (width, height).
+        extrainfo (dict): Additional information for the image.
+    """
     Image(data, bitdepth, extrainfo).write(stream_or_filename, file_format, dimensions)
 
 
-def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, file_format=None):
+def write_rgb_clut(
+    stream_or_filename, clutres=33, bitdepth=16, file_format=None
+) -> None:
+    """Write a color lookup table (CLUT) to a file.
+
+    Args:
+        stream_or_filename (str or file-like object): The output file or stream.
+        clutres (int): The resolution of the CLUT (default: 33).
+        bitdepth (int): The bit depth of the CLUT (default: 16).
+        file_format (str): The file format to use (default: None, which infers
+            from filename).
+    """
     clut = []
     for R in range(clutres):
         for G in range(clutres):

@@ -690,13 +690,3 @@ def wrap(text, width=70):
         ),
         text.split(" "),
     )
-
-
-def test():
-    for k in subst:
-        v = subst[k]
-        print(k, v)
-
-
-if __name__ == "__main__":
-    test()

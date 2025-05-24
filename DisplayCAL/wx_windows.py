@@ -5,6 +5,8 @@ and improved aesthetics. The module also supports advanced features like
 custom rendering, event handling, and platform-specific adjustments.
 """
 
+from __future__ import annotations
+
 import contextlib
 import errno
 import html
@@ -3102,6 +3104,7 @@ class ConfirmDialog(BaseInteractiveDialog):
 
 class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHistory):
     """A FileBrowseButton with a history of previously selected files."""
+
     def __init__(self, *args, **kwargs):
         self.history = kwargs.pop("history", [])
         self.historyCallBack = None
@@ -3296,7 +3299,7 @@ class PathDialog(ConfirmDialog):
         name (str): The name of the dialog.
     """
 
-    def __init__(self, parent: wx.Window, msg : str="", name:str="pathdialog"):
+    def __init__(self, parent: wx.Window, msg: str = "", name: str = "pathdialog"):
         ConfirmDialog.__init__(
             self,
             parent,
@@ -5183,7 +5186,12 @@ class HyperLinkCtrl(hyperlink.HyperLinkCtrl):
             hyperlink.HyperLinkCtrl.SetFont(self, font)
 
 
-def fancytext_Renderer_getCurrentFont(self):
+def fancytext_renderer_getCurrentFont(self) -> wx.Font:
+    """Get the current font of the text.
+
+    Returns:
+        wx.Font: The current font.
+    """
     # Use system font instead of fancytext default font
     font = self.fonts[-1]
     _font = self._font or wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
@@ -5203,7 +5211,12 @@ def fancytext_Renderer_getCurrentFont(self):
     return _font
 
 
-def fancytext_Renderer_getCurrentColor(self):
+def fancytext_Renderer_getCurrentColor(self) -> wx.Colour:
+    """Get the current color of the text.
+
+    Returns:
+        wx.Colour: The current text color.
+    """
     # Use system text color instead of fancytext default color
     font = self.fonts[-1]
     if "color" in font:
@@ -5213,10 +5226,20 @@ def fancytext_Renderer_getCurrentColor(self):
 
 fancytext.Renderer._font = None
 fancytext.Renderer.getCurrentColor = fancytext_Renderer_getCurrentColor
-fancytext.Renderer.getCurrentFont = fancytext_Renderer_getCurrentFont
+fancytext.Renderer.getCurrentFont = fancytext_renderer_getCurrentFont
 
 
-def fancytext_RenderToRenderer(text, renderer, enclose=True):
+def fancytext_RenderToRenderer(text: str, renderer, enclose: bool = True) -> None:
+    """Render the given text using the given renderer.
+
+    Args:
+        text (str): The text to render.
+        renderer (FancyTextRenderer): The renderer to use.
+        enclose (bool): Whether to enclose the text in XML tags.
+
+    Raises:
+        ValueError: If there is an error parsing the text.
+    """
     text = safe_str(text, "UTF-8")
     try:
         if enclose:
@@ -7753,6 +7776,16 @@ class TwoWaySplitter(FourWaySplitter):
 
 
 def get_gradient_panel(parent, label, x=16):
+    """Create a gradient panel with a label.
+
+    Args:
+        parent (wx.Window): The parent window.
+        label (str): The label to display on the panel.
+        x (int): The x-coordinate for the label position.
+
+    Returns:
+        wx.Panel: The created gradient panel.
+    """
     gradientpanel = BitmapBackgroundPanelText(parent, size=(-1, 31))
     gradientpanel.alpha = 0.75
     gradientpanel.blend = True
@@ -7804,7 +7837,16 @@ def get_html_colors(allow_alpha=False):
     return bgcolor, text, linkcolor, vlinkcolor
 
 
-def get_widget(win, id_name_label):
+def get_widget(win: wx.Window, id_name_label: str) -> None | wx.Window:
+    """Get a widget based on ID, name, or label.
+
+    Args:
+        win (wx.Window): The parent window.
+        id_name_label (str): The ID, name, or label of the widget.
+
+    Returns:
+        wx.Window: The widget if found, None otherwise.
+    """
     # hasattr, getattr, setattr silently convert attribute names to byte strings,
     # we have to make sure there's no UnicodeEncodeError
     if id_name_label == safe_str(str(id_name_label), "ascii") and hasattr(
@@ -7832,6 +7874,14 @@ def get_widget(win, id_name_label):
 
 
 def get_toplevel_window(id_name_label):
+    """Get the top-level window based on ID, name, or label.
+
+    Args:
+        id_name_label (str): The ID, name, or label of the window.
+
+    Returns:
+            wx.Window: The top-level window if found, None otherwise.
+    """
     with contextlib.suppress(ValueError):
         id_name_label = int(id_name_label)
     for win in reversed(list(wx.GetTopLevelWindows())):
@@ -7840,7 +7890,16 @@ def get_toplevel_window(id_name_label):
     return None
 
 
-def is_scripting_allowed(win, child):
+def is_scripting_allowed(win: wx.Window, child: wx.Window) -> bool:
+    """Check if a child window is allowed for scripting.
+
+    Args:
+        win (wx.Window): The parent window.
+        child (wx.Window): The child window to check.
+
+    Returns:
+        bool: True if the child window is allowed for scripting, False otherwise.
+    """
     return (
         child
         and child.TopLevelParent is win
@@ -7864,6 +7923,7 @@ _elementtable = {}
 
 
 def format_ui_element(child, file_format="plain"):
+    """Format a UI element for output."""
     if child.TopLevelParent:
         if not hasattr(child.TopLevelParent, "_win2name"):
             child.TopLevelParent._win2name = {}
@@ -7962,24 +8022,33 @@ def format_ui_element(child, file_format="plain"):
 
 
 def restore_path_dialog_classes():
+    """Restore the original wx.DirDialog and wx.FileDialog classes."""
     wx.DirDialog = _DirDialog
     wx.FileDialog = _FileDialog
 
 
-def get_appid_from_window_hierarchy(toplevelwindow):
+def get_appid_from_window_hierarchy(toplevelwindow: wx.Window | wx.Frame) -> str:
+    """Get the AppID from the window hierarchy.
+
+    Args:
+        toplevelwindow (wx.Window): The top-level window.
+
+    Returns:
+        str: The AppID.
+    """
     if isinstance(toplevelwindow, wx.Frame):
         frame = toplevelwindow
     else:
         frame = get_parent_frame(toplevelwindow)
     base_appid = APPNAME.lower()
     return {
-        "lut3dframe": base_appid + "-3dlut-maker",
-        "lut_viewer": base_appid + "-curve-viewer",
-        "profile_info": base_appid + "-profile-info",
-        "scriptingframe": base_appid + "-scripting-client",
-        "synthiccframe": base_appid + "-synthprofile",
-        "tcgen": base_appid + "-testchart-editor",
-        "vrml2x3dframe": base_appid + "-vrml-to-x3d-converter",
+        "lut3dframe": f"{base_appid}-3dlut-maker",
+        "lut_viewer": f"{base_appid}-curve-viewer",
+        "profile_info": f"{base_appid}-profile-info",
+        "scriptingframe": f"{base_appid}-scripting-client",
+        "synthiccframe": f"{base_appid}-synthprofile",
+        "tcgen": f"{base_appid}-testchart-editor",
+        "vrml2x3dframe": f"{base_appid}-vrml-to-x3d-converter",
     }.get(frame and frame.Name, base_appid)
 
 
@@ -8036,49 +8105,3 @@ def show_result_dialog(result, parent=None, pos=None, confirm=False, wrap=70):
         return dlg_ok
 
     return None
-
-
-def test():
-    config.initcfg()
-    lang.init()
-
-    def key_handler(self, event):
-        if event.GetEventType() == wx.EVT_CHAR_HOOK.typeId:
-            print(
-                "Received EVT_CHAR_HOOK",
-                event.GetKeyCode(),
-                repr(chr(event.GetKeyCode())),
-            )
-        elif event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
-            print(
-                "Received EVT_KEY_DOWN",
-                event.GetKeyCode(),
-                repr(chr(event.GetKeyCode())),
-            )
-        elif event.GetEventType() == wx.EVT_MENU.typeId:
-            print(
-                "Received EVT_MENU",
-                self.id_to_keycode.get(event.GetId()),
-                repr(chr(self.id_to_keycode.get(event.GetId()))),
-            )
-        event.Skip()
-
-    ProgressDialog.key_handler = key_handler
-    SimpleTerminal.key_handler = key_handler
-
-    app = BaseApp(0)
-    style = wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_CAN_ABORT | wx.PD_SMOOTH
-    _ = ProgressDialog(
-        msg="".join("Test " * 5),
-        maximum=10000,
-        style=style,
-        pauseable=True,
-        fancy="+fancy" not in sys.argv[1:],
-        allow_close=True,
-    )
-    # t = SimpleTerminal(start_timer=False)
-    app.MainLoop()
-
-
-if __name__ == "__main__":
-    test()

@@ -10,6 +10,7 @@ with contextlib.suppress(ImportError):
 
 
 def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level=0):
+    """Convert a dictionary to an XML string."""
     indent = (pretty and "\t" * level) or ""
     xml = []
     attributes = []
@@ -50,6 +51,7 @@ def dict2xml(d, elementname="element", pretty=True, allow_attributes=True, level
 
 
 def escape(xml):
+    """Escape XML special characters in a string."""
     return (
         xml.replace("&", "&amp;")
         .replace("<", "&lt;")
@@ -60,6 +62,7 @@ def escape(xml):
 
 class ETreeDict(dict):
     """A class to parse XML data into a dictionary-like structure."""
+
     # Roughly follow "Converting Between XML and JSON"
     # https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 

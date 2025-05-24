@@ -62,6 +62,7 @@ from DisplayCAL.util_os import (
 from DisplayCAL.util_str import create_replace_function, strtr
 
 if TYPE_CHECKING:
+    from DisplayCAL.icc_profile import ICCProfile
     from DisplayCAL.wx_addons import wx
 
 configparser.DEFAULTSECT = "Default"  # Sadly, this line needs to be here.
@@ -262,11 +263,27 @@ def is_uncalibratable_display(display: None | str = None) -> bool:
     return is_special_display(display, UNCALIBRATABLE_DISPLAYS)
 
 
-def is_patterngenerator(display=None):
+def is_patterngenerator(display: None | str = None) -> bool:
+    """Check if the display is a pattern generator.
+
+    Args:
+        display (None | str): The display name.
+
+    Returns:
+        bool: True if the display is a pattern generator, False otherwise.
+    """
     return is_special_display(display, PATTERN_GENERATORS)
 
 
-def is_non_argyll_display(display=None):
+def is_non_argyll_display(display=None) -> bool:
+    """Check if the display is a non-Argyll display.
+
+    Args:
+        display (None | str): The display name.
+
+    Returns:
+        bool: True if the display is a non-Argyll display, False otherwise.
+    """
     return is_special_display(display, NON_ARGYLL_DISPLAYS)
 
 
@@ -1769,7 +1786,16 @@ def get_current_profile(include_display_profile=False):
     return None
 
 
-def get_display_profile(display_no=None):
+def get_display_profile(display_no: None | int = None) -> None | ICCProfile:
+    """Get the display profile for the specified display number.
+
+    Args:
+        display_no (int, optional): The display number. If None, use the
+            configured display number. Defaults to None.
+
+    Returns:
+        None | ICCProfile: The display profile if available, otherwise None.
+    """
     if display_no is None:
         display_no = max(getcfg("display.number") - 1, 0)
     if is_virtual_display(display_no):
@@ -1787,7 +1813,16 @@ def get_display_profile(display_no=None):
 STANDARD_PROFILES = []
 
 
-def get_standard_profiles(paths_only=False):
+def get_standard_profiles(paths_only: bool = False) -> list:
+    """Get a list of standard ICC profiles.
+
+    Args:
+        paths_only (bool, optional): If True, return only the file paths of the
+            profiles. Defaults to False.
+
+    Returns:
+        list: A list of standard ICC profiles or their file paths.
+    """
     if not STANDARD_PROFILES:
         from DisplayCAL.icc_profile import ICCProfile
 
@@ -1861,14 +1896,31 @@ def get_standard_profiles(paths_only=False):
 
 
 def get_total_patches(
-    white_patches=None,
-    black_patches=None,
-    single_channel_patches=None,
-    gray_patches=None,
-    multi_steps=None,
-    multi_bcc_steps=None,
-    fullspread_patches=None,
-):
+    white_patches: None | int = None,
+    black_patches: None | int = None,
+    single_channel_patches: None | int = None,
+    gray_patches: None | int = None,
+    multi_steps: None | int = None,
+    multi_bcc_steps: None | int = None,
+    fullspread_patches: None | int = None,
+) -> int:
+    """Calculate the total number of patches in a test chart.
+
+    Args:
+        white_patches (int, optional): Number of white patches. Defaults to None.
+        black_patches (int, optional): Number of black patches. Defaults to None.
+        single_channel_patches (int, optional): Number of single channel patches.
+            Defaults to None.
+        gray_patches (int, optional): Number of gray patches. Defaults to None.
+        multi_steps (int, optional): Number of multi steps. Defaults to None.
+        multi_bcc_steps (int, optional): Number of multi BCC steps. Defaults to
+            None.
+        fullspread_patches (int, optional): Number of full spread patches.
+            Defaults to None.
+
+    Returns:
+        int: Total number of patches.
+    """
     if white_patches is None:
         white_patches = getcfg("tc_white_patches")
     if black_patches is None and getcfg("argyll.version") >= "1.6":
@@ -1981,7 +2033,21 @@ def is_ccxx_testchart(testchart: None | str = None) -> bool:
     return testchart == get_ccxx_testchart()
 
 
-def is_profile(filename=None, include_display_profile=False):
+def is_profile(
+    filename: None | str = None, include_display_profile: bool = False
+) -> bool:
+    """Check if the given filename is a valid ICC profile.
+
+    Args:
+        filename (None | str): The filename to check.
+            If not provided, the default calibration file will be used.
+        include_display_profile (bool): Whether to include the display profile
+            in the check. Defaults to False.
+
+    Returns:
+        bool: True if the filename is a valid ICC profile,
+            False otherwise.
+    """
     filename = filename or getcfg("calibration.file", False)
     if filename:
         if os.path.exists(filename):
@@ -1998,7 +2064,22 @@ def is_profile(filename=None, include_display_profile=False):
     return False
 
 
-def makecfgdir(which="user", worker=None):
+def makecfgdir(which=None, worker=None) -> bool:
+    """Create the configuration directory.
+
+    Args:
+        which (None | str): The type of configuration directory to create.
+            Can be "user" or "system". Defaults to "user".
+        worker (None | Worker): The worker instance to use for executing commands.
+            Defaults to None.
+
+    Returns:
+        bool: True if the configuration directory was created successfully,
+            False otherwise.
+    """
+    if which is None:
+        which = "user"
+
     if which == "user":
         if not os.path.exists(CONFIG_HOME):
             try:
@@ -2170,7 +2251,12 @@ def set_default_app_dpi():
     DPISET = True
 
 
-def get_hidpi_scaling_factor():
+def get_hidpi_scaling_factor() -> float:
+    """Get the scaling factor for high DPI displays.
+
+    Returns:
+        float: The scaling factor for high DPI displays.
+    """
     if sys.platform in ("darwin", "win32"):
         return 1.0  # Handled via app DPI
     # Linux

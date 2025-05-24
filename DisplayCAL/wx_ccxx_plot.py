@@ -45,10 +45,12 @@ NTICK = 10
 
 
 def expt(a, n):
+    """Return a**n."""
     return math.pow(a, n)
 
 
 def nicenum(x, do_round):
+    """Return nice number for axis labeling."""
     if x < 0.0:
         x = -x
     ex = math.floor(math.log10(x))

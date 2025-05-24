@@ -2,7 +2,7 @@ import pytest
 
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test_run():
     p = JavaScriptPacker()
     with open(sys.argv[1]) as f:
@@ -12,7 +12,7 @@ def test_run():
         f.write(result)
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test_run1():
     test_scripts = []
 

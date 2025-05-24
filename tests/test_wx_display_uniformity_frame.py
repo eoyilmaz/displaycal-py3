@@ -39,7 +39,7 @@ def setup_test():
 
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test(bytes_=None):
     global i
     menu = r"""Place instrument on spot to be measured,

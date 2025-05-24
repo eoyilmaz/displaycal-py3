@@ -43,7 +43,7 @@ def setup_test():
     app.MainLoop()
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test_from_modules(bytes_=None):
     global i
     # 0 = dispcal -v -yl

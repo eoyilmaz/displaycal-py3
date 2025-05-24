@@ -268,7 +268,7 @@ def test_make_ascii_printable_4():
     assert result == expected_result
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test_from_modules():
     from DisplayCAL.util_str import subst
     for k in subst:

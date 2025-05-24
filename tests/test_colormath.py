@@ -124,7 +124,7 @@ def test_smooth_avg_protetced_values_2():
     assert result == expected_result
 
 
-@pytest.skip(reason="TODO: This test is moved from the module, properly implement it.")
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
 def test_from_module():
     for i in range(4):
         if i == 0:

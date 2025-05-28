@@ -22,10 +22,23 @@ class BitmapButton(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class wxBitmapButton, False otherwise.
+        """
         return self.IsOfClass(node, "wxBitmapButton")
 
     # Process XML parameters and create the object
     def DoCreateResource(self):
+        """Create the BitmapButton control from XML parameters.
+
+        Returns:
+            wx.BitmapButton: The created BitmapButton control.
+        """
         name = os.path.splitext(self.GetText("bitmap"))[0]
         if name.startswith("../"):
             name = name[3:]
@@ -56,10 +69,23 @@ class StaticBitmap(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class wxStaticBitmap, False otherwise.
+        """
         return self.IsOfClass(node, "wxStaticBitmap")
 
     # Process XML parameters and create the object
     def DoCreateResource(self):
+        """Create the StaticBitmap control from XML parameters.
+
+        Returns:
+            wx.StaticBitmap: The created StaticBitmap control.
+        """
         name = os.path.splitext(self.GetText("bitmap"))[0]
         if name.startswith("../"):
             name = name[3:]

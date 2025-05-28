@@ -42,6 +42,17 @@ class Tag:
         return self.markup()
 
     def markup(self, allow_empty_element_tag=False, x3dom=False):
+        """Return the X3D markup for this tag.
+
+        Args:
+            allow_empty_element_tag (bool): If True, allows the tag to be
+                self-closing. Defaults to False.
+            x3dom (bool): If True, generates X3DOM compatible markup.
+                Defaults to False.
+
+        Returns:
+            str: The X3D markup for this tag.
+        """
         markup = [f"<{self.tagname}"]
         attrs = []
         for key in self.attributes:
@@ -88,6 +99,11 @@ class Tag:
         return "".join(markup)
 
     def append_child(self, child):
+        """Append a child tag to this tag.
+
+        Args:
+            child (Tag): The child tag to append.
+        """
         child.parent = self
         self.children.append(child)
 
@@ -217,10 +233,26 @@ class Tag:
         return html
 
     def xhtml(self, *args, **kwargs):
+        """Return XHTML representation of the tag.
+
+        Args:
+            *args: Positional arguments to pass to the html method.
+            **kwargs: Keyword arguments to pass to the html method.
+                If `xhtml` is not set, it will be set to True.
+
+        Returns:
+            str: The XHTML representation of the tag.
+        """
         kwargs["xhtml"] = True
         return self.html(*args, **kwargs)
 
     def x3d(self):
+        """Return X3D representation of the tag.
+
+        Returns:
+            str: The X3D representation of the tag, including the XML
+                declaration and DOCTYPE.
+        """
         return "\n".join(
             [
                 "<?xml version='1.0' encoding='UTF-8'?>",

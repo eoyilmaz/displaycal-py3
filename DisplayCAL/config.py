@@ -1005,6 +1005,11 @@ class CaseSensitiveConfigParser(configparser.RawConfigParser):
     """Case sensitive config parser."""
 
     def optionxform(self, optionstr: str) -> str:
+        """Return the option string as is, preserving case sensitivity.
+
+        Args:
+            optionstr (str): The option string to be processed.
+        """
         return optionstr
 
 

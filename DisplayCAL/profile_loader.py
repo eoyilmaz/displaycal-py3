@@ -283,7 +283,14 @@ def setup_profile_loader_task(exe: str, exedir: str, pydir: str) -> None:
 
 
 class DisplayIdentificationFrame(wx.Frame):
-    """Frame to show display identification."""
+    """Frame to show display identification.
+
+    Args:
+        display (str): The display identifier, typically in the format
+            "DISPLAY_NAME@EDID - [DESCRIPTION]".
+        pos (tuple): The position of the frame on the screen.
+        size (tuple): The size of the frame, typically in pixels.
+    """
 
     def __init__(self, display, pos, size):
         wx.Frame.__init__(
@@ -346,7 +353,13 @@ class DisplayIdentificationFrame(wx.Frame):
 
 
 class FixProfileAssociationsDialog(ConfirmDialog):
-    """Dialog to show profile associations for displays."""
+    """Dialog to show profile associations for displays.
+
+    Args:
+        pl (ProfileLoader): The profile loader instance.
+        parent (wx.Window, optional): The parent window for the dialog.
+            Defaults to None.
+    """
 
     def __init__(self, pl, parent=None):
         self.pl = pl
@@ -391,6 +404,12 @@ class FixProfileAssociationsDialog(ConfirmDialog):
         self.update()
 
     def update(self, event=None):
+        """Update the list of displays and profiles.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this update.
+                Defaults to None.
+        """
         self.pl._set_display_profiles(dry_run=True)
         numdisp = min(len(self.pl.devices2profiles), 5)
         scale = getcfg("app.dpi") / get_default_dpi()
@@ -593,6 +612,11 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         self._exceptions[path.lower()] = enabled, reset, path
 
     def cell_click_handler(self, event):
+        """Handle click events on the grid cells.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if event.Col < 2:
             value = "" if self.grid.GetCellValue(event.Row, event.Col) else "1"
             self.grid.SetCellValue(event.Row, event.Col, value)
@@ -601,21 +625,33 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         event.Skip()
 
     def cell_dclick_handler(self, event):
+        """Handle double-click events on the grid cells.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if event.Col > 1:
             self.browse_handler(event)
         else:
             self.cell_click_handler(event)
 
     def cell_select_handler(self, event):
+        """Handle cell selection events."""
         event.Skip()
         wx.CallAfter(self.check_select_status)
 
     def check_select_status(self):
+        """Check the selection status of the grid and enable/disable buttons."""
         rows = self.grid.GetSelectedRows()
         self.browse_btn.Enable(len(rows) == 1)
         self.delete_btn.Enable(bool(rows))
 
     def key_handler(self, event):
+        """Handle key events for the grid.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         dlg = self
         if event.KeyCode == wx.WXK_SPACE:
             dlg.cell_click_handler(
@@ -632,6 +668,11 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
             event.Skip()
 
     def browse_handler(self, event):
+        """Browse for an executable to add or edit an exception.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if event.GetId() == self.add_btn.Id:
             lstr = "add"
             defaultDir = getenvu("ProgramW6432") or getenvu("ProgramFiles")
@@ -653,43 +694,49 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         result = dlg.ShowModal()
         path = dlg.GetPath()
         dlg.Destroy()
-        if result == wx.ID_OK:
-            if os.path.basename(path).lower() in self.known_apps:
-                show_result_dialog(
-                    UnloggedError(
-                        lang.getstr(
-                            "profile_loader.exceptions.known_app.error",
-                            os.path.basename(path),
-                        )
+        if result != wx.ID_OK:
+            return
+        if os.path.basename(path).lower() in self.known_apps:
+            show_result_dialog(
+                UnloggedError(
+                    lang.getstr(
+                        "profile_loader.exceptions.known_app.error",
+                        os.path.basename(path),
                     )
                 )
-                return
-            if event.GetId() == self.add_btn.Id:
-                # If it already exists, select the respective row
-                if path.lower() in self._exceptions:
-                    for row in range(self.grid.GetNumberRows()):
-                        exception = os.path.join(
-                            self.grid.GetCellValue(row, 3),
-                            self.grid.GetCellValue(row, 2),
-                        )
-                        if exception.lower() == path.lower():
-                            break
-                else:
-                    # Add new row
-                    self.grid.AppendRows(1)
-                    row = self.grid.GetNumberRows() - 1
-                    self.grid.SetCellValue(row, 0, "1")
-                    self.grid.SetCellValue(row, 1, "")
-                    self._exceptions[path.lower()] = 1, 0, path
-            self.grid.SetCellValue(row, 2, os.path.basename(path))
-            self.grid.SetCellValue(row, 3, os.path.dirname(path))
-            self._update_exception(row)
-            self.grid.SelectRow(row)
-            self.check_select_status()
-            self.grid.MakeCellVisible(row, 0)
-            self.ok.Enable()
+            )
+            return
+        if event.GetId() == self.add_btn.Id:
+            # If it already exists, select the respective row
+            if path.lower() in self._exceptions:
+                for row in range(self.grid.GetNumberRows()):
+                    exception = os.path.join(
+                        self.grid.GetCellValue(row, 3),
+                        self.grid.GetCellValue(row, 2),
+                    )
+                    if exception.lower() == path.lower():
+                        break
+            else:
+                # Add new row
+                self.grid.AppendRows(1)
+                row = self.grid.GetNumberRows() - 1
+                self.grid.SetCellValue(row, 0, "1")
+                self.grid.SetCellValue(row, 1, "")
+                self._exceptions[path.lower()] = 1, 0, path
+        self.grid.SetCellValue(row, 2, os.path.basename(path))
+        self.grid.SetCellValue(row, 3, os.path.dirname(path))
+        self._update_exception(row)
+        self.grid.SelectRow(row)
+        self.check_select_status()
+        self.grid.MakeCellVisible(row, 0)
+        self.ok.Enable()
 
     def delete_handler(self, event):
+        """Delete selected exceptions.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         for row in sorted(self.grid.GetSelectedRows(), reverse=True):
             del self._exceptions[self._get_path(row).lower()]
             self.grid.DeleteRows(row)
@@ -698,7 +745,12 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
 
 
 class ProfileAssociationsDialog(InfoDialog):
-    """Dialog to manage profile associations with displays."""
+    """Dialog to manage profile associations with displays.
+
+    Args:
+        pl (ProfileLoader): The profile loader instance to manage associations
+            for.
+    """
 
     def __init__(self, pl):
         self.monitors = []
@@ -839,13 +891,28 @@ class ProfileAssociationsDialog(InfoDialog):
         dlg.update_profiles_timer.Start(1000)
 
     def OnClose(self, event):
+        """Handle the close event for the dialog.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         InfoDialog.OnClose(self, event)
 
     def EndModal(self, retCode):
+        """End the modal dialog and stop the update timer.
+
+        Args:
+            retCode (int): The return code for the dialog.
+        """
         self.update_profiles_timer.Stop()
         wx.Dialog.EndModal(self, retCode)
 
     def add_profile(self, event):
+        """Add a profile to the selected display.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         if self.add_btn.GetAuthNeeded():
             if self.pl.elevate():
                 self.EndModal(wx.ID_CANCEL)
@@ -920,6 +987,11 @@ class ProfileAssociationsDialog(InfoDialog):
         dlg.Destroy()
 
     def identify_displays(self, event):
+        """Identify the displays by showing a frame with their description.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         for display, frame in list(self.display_identification_frames.items()):
             if not frame:
                 self.display_identification_frames.pop(display)
@@ -941,6 +1013,11 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.display_identification_frames[display] = frame
 
     def show_profile_info(self, event):
+        """Show the profile information for the selected profile.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         pindex = self.profiles_ctrl.GetNextItem(
             -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
         )
@@ -987,6 +1064,11 @@ class ProfileAssociationsDialog(InfoDialog):
                 self.pl.writecfg()
 
     def close_profile_info(self, event):
+        """Close the profile info window and remove it from the hash table.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         # Remove the frame from the hash table
         if self:
             self.profile_info.pop(event.GetEventObject().profileID)
@@ -994,11 +1076,17 @@ class ProfileAssociationsDialog(InfoDialog):
         event.Skip()
 
     def disable_btns(self):
+        """Disable buttons that are not applicable."""
         self.remove_btn.Disable()
         self.profile_info_btn.Disable()
         self.set_as_default_btn.Disable()
 
     def remove_profile(self, event):
+        """Remove the selected profile from the monitor.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         if self.remove_btn.GetAuthNeeded():
             if self.pl.elevate():
                 self.EndModal(wx.ID_CANCEL)
@@ -1012,6 +1100,11 @@ class ProfileAssociationsDialog(InfoDialog):
             wx.Bell()
 
     def set_as_default(self, event):
+        """Set the selected profile as the default for the monitor.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         if self.set_as_default_btn.GetAuthNeeded():
             if self.pl.elevate():
                 self.EndModal(wx.ID_CANCEL)
@@ -1025,10 +1118,22 @@ class ProfileAssociationsDialog(InfoDialog):
             wx.Bell()
 
     def set_profile(self, profile, unset=False):
+        """Set the display profile for the selected monitor.
+
+        Args:
+            profile (str): The name of the profile to set.
+            unset (bool): Whether to unset the profile instead of setting it.
+        """
         fn = unset_display_profile if unset else set_display_profile
         self._update_configuration(fn, profile)
 
     def _update_configuration(self, fn, arg0):
+        """Update the display profile configuration.
+
+        Args:
+            fn (callable): The function to call for updating the profile.
+            arg0: The argument to pass to the function.
+        """
         dindex = self.display_ctrl.GetSelection()
         display, edid, moninfo, device = self.monitors[dindex]
         device0 = get_first_display_device(moninfo["Device"])
@@ -1045,6 +1150,14 @@ class ProfileAssociationsDialog(InfoDialog):
             wx.Bell()
 
     def _update_device(self, fn, arg0, devicekey, show_error=True):
+        """Update the display profile for a specific device.
+
+        Args:
+            fn (callable): The function to call for updating the profile.
+            arg0: The argument to pass to the function.
+            devicekey (str): The device key for the display.
+            show_error (bool): Whether to show an error dialog on failure.
+        """
         if (
             not USE_REGISTRY
             and fn is enable_per_user_profiles
@@ -1072,6 +1185,11 @@ class ProfileAssociationsDialog(InfoDialog):
             set_display_profile(profile_name, devicekey=devicekey)
 
     def toggle_fix_profile_associations(self, event):
+        """Toggle the fix profile associations checkbox.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         self.fix_profile_associations_cb.Value = (
             self.pl._toggle_fix_profile_associations(event, self)
         )
@@ -1079,6 +1197,11 @@ class ProfileAssociationsDialog(InfoDialog):
             self.update_profiles(True)
 
     def update(self, event=None):
+        """Update the list of monitors and their associated profiles.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         self.monitors = list(self.pl.monitors)
         self.display_ctrl.SetItems(
             [
@@ -1102,6 +1225,14 @@ class ProfileAssociationsDialog(InfoDialog):
             self.RequestUserAttention()
 
     def update_profiles(self, event=None, monitor=None, next_=False):
+        """Update the profile associations for the selected monitor.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+            monitor (tuple): A tuple containing display, edid, moninfo, and
+                device.
+            next_ (bool): Whether to proceed to the next step in the update.
+        """
         if not monitor:
             dindex = self.display_ctrl.GetSelection()
             if -1 < dindex < len(self.monitors):
@@ -1176,6 +1307,11 @@ class ProfileAssociationsDialog(InfoDialog):
                 print("ProfileAssociationsDialog: Releasing lock")
 
     def use_my_settings(self, event):
+        """Enable or disable per-user profiles.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         self._update_configuration(enable_per_user_profiles, event.IsChecked())
 
 
@@ -1933,6 +2069,17 @@ class ProfileLoader:
                 app.MainLoop()
 
     def apply_profiles(self, event=None, index=None):
+        """Apply profiles to the displays.
+
+        Args:
+            event (wx.Event, optional): The event that triggered the profile
+                application.
+            index (int, optional): The index of the display to apply the
+                profile to. If None, applies to all displays.
+
+        Returns:
+            None | list[str]: A list of errors if any, None otherwise.
+        """
         from DisplayCAL.util_os import dlopen, which
         from DisplayCAL.worker import Worker, get_argyll_util
 
@@ -2101,11 +2248,31 @@ class ProfileLoader:
         return errors
 
     def notify(self, results, errors, sticky=False, show_notification=False):
+        """Notify the user about the results of profile application.
+
+        Args:
+            results (list): List of successful profile applications.
+            errors (list): List of errors encountered during profile application.
+            sticky (bool, optional): Whether the notification should be sticky.
+                Defaults to False.
+            show_notification (bool, optional): Whether to show the notification.
+                Defaults to False.
+        """
         wx.CallAfter(
             lambda: self and self._notify(results, errors, sticky, show_notification)
         )
 
     def _notify(self, results, errors, sticky=False, show_notification=False):
+        """Handle the notification logic.
+
+        Args:
+            results (list): List of successful profile applications.
+            errors (list): List of errors encountered during profile application.
+            sticky (bool, optional): Whether the notification should be sticky.
+                Defaults to False.
+            show_notification (bool, optional): Whether to show the notification.
+                Defaults to False.
+        """
         if DEBUG > 1:
             print(
                 f"[DEBUG] notify(results={results!r}, errors={errors!r}, "
@@ -2121,6 +2288,14 @@ class ProfileLoader:
             print("[DEBUG] /notify")
 
     def apply_profiles_and_warn_on_error(self, event=None, index=None):
+        """Apply profiles and show a warning dialog if there are errors.
+
+        Args:
+            event (wx.Event, optional): The event that triggered the
+                application of profiles. Defaults to None.
+            index (int, optional): The index of the monitor to apply profiles
+                to. If None, applies to all monitors. Defaults to None.
+        """
         # wx.App must already be initialized at this point!
         errors = self.apply_profiles(event, index)
         if (
@@ -2228,6 +2403,12 @@ class ProfileLoader:
         return False
 
     def exit(self, event=None):
+        """Exit the application.
+
+        Args:
+            event (wx.Event, optional): The event that triggered the exit.
+                Defaults to None.
+        """
         print(f"Executing ProfileLoader.exit({event})")
         dlg = None
         for dlg in get_dialogs():
@@ -2282,6 +2463,11 @@ class ProfileLoader:
             wx.GetApp().ExitMainLoop()
 
     def get_title(self):
+        """Get the title of the application.
+
+        Returns:
+            str: The title of the application.
+        """
         title = "{} {} {}".format(
             APPNAME,
             lang.getstr("profile_loader").title(),
@@ -3099,6 +3285,7 @@ class ProfileLoader:
         self.shutdown()
 
     def shutdown(self):
+        """Shut down the profile loader."""
         if self._shutdown:
             return
         self._shutdown = True
@@ -3278,9 +3465,23 @@ class ProfileLoader:
                 self.__other_component = filename, cls, 0
 
     def _is_known_window_class(self, cls):
+        """Check if the window class is known and should be monitored.
+
+        Returns:
+            bool: True if the window class is known, False otherwise.
+        """
         return any(partial in cls for partial in self._known_window_classes)
 
     def _is_buggy_video_driver(self, moninfo):
+        """Check if the video driver is buggy and requires a gamma ramp hack.
+
+        Args:
+            moninfo (dict): Monitor information dictionary containing adapter
+                info.
+
+        Returns:
+            bool: True if the video driver is buggy, False otherwise.
+        """
         # Intel video drivers won't reload gamma ramps if the
         # previously loaded calibration was the same.
         # Work-around by first loading a slightly changed
@@ -3292,6 +3493,11 @@ class ProfileLoader:
         return False
 
     def _is_displaycal_running(self):
+        """Check if DisplayCAL is running by looking for its lock file.
+
+        Returns:
+            bool: True if DisplayCAL is running, False otherwise.
+        """
         displaycal_lockfile = os.path.join(CONFIG_HOME, APPBASENAME + ".lock")
         return os.path.isfile(displaycal_lockfile)
 
@@ -3447,42 +3653,63 @@ class ProfileLoader:
     def _madvr_connection_callback(
         self, param, connection, ip, pid, module, component, instance, is_new_instance
     ):
+        """Callback for madVR connection events.
+
+        Args:
+            param (int): Parameter passed to the callback.
+            connection (object): Connection object.
+            ip (str): IP address of the madVR instance.
+            pid (int): Process ID of the madVR instance.
+            module (str): Module name of the madVR instance.
+            component (str): Component name of the madVR instance.
+            instance (int): Instance number of the madVR instance.
+            is_new_instance (bool): True if this is a new madVR instance, False
+                if it is a disconnection.
+        """
         if self.lock.locked():
             print("Waiting to acquire lock...")
         with self.lock:
             print("Acquired lock")
-            if ip in ("127.0.0.1", "localhost", "::1", "0:0:0:0:0:0:0:1"):
-                args = (param, connection, ip, pid, module, component, instance)
-                try:
-                    filename = get_process_filename(pid)
-                except Exception:
-                    filename = lang.getstr("unknown")
-                if is_new_instance:
-                    apply_profiles = self._should_apply_profiles(manual_override=None)
-                    self._madvr_instances.append(args)
-                    self.__other_component = filename, "madHcNetQueueWindow", 0
-                    print("madVR instance connected:", "PID", pid, filename)
-                    if apply_profiles:
-                        msg = lang.getstr(
-                            "app.detected.calibration_loading_disabled", component
-                        )
-                        print(msg)
-                        self.notify([msg], [], True, show_notification=False)
-                    wx.CallAfter(wx.CallLater, 1500, self._check_madvr_reset_cal, args)
-                elif args in self._madvr_instances:
-                    self._madvr_instances.remove(args)
-                    print("madVR instance disconnected:", "PID", pid, filename)
-                    if not self._madvr_instances and self._should_apply_profiles(
-                        manual_override=None
-                    ):
-                        msg = lang.getstr(
-                            "app.detection_lost.calibration_loading_enabled", component
-                        )
-                        print(msg)
-                        self.notify([msg], [], show_notification=False)
+            if ip not in ("127.0.0.1", "localhost", "::1", "0:0:0:0:0:0:0:1"):
+                print("Releasing lock")
+                return
+            args = (param, connection, ip, pid, module, component, instance)
+            try:
+                filename = get_process_filename(pid)
+            except Exception:
+                filename = lang.getstr("unknown")
+            if is_new_instance:
+                apply_profiles = self._should_apply_profiles(manual_override=None)
+                self._madvr_instances.append(args)
+                self.__other_component = filename, "madHcNetQueueWindow", 0
+                print("madVR instance connected:", "PID", pid, filename)
+                if apply_profiles:
+                    msg = lang.getstr(
+                        "app.detected.calibration_loading_disabled", component
+                    )
+                    print(msg)
+                    self.notify([msg], [], True, show_notification=False)
+                wx.CallAfter(wx.CallLater, 1500, self._check_madvr_reset_cal, args)
+            elif args in self._madvr_instances:
+                self._madvr_instances.remove(args)
+                print("madVR instance disconnected:", "PID", pid, filename)
+                if not self._madvr_instances and self._should_apply_profiles(
+                    manual_override=None
+                ):
+                    msg = lang.getstr(
+                        "app.detection_lost.calibration_loading_enabled", component
+                    )
+                    print(msg)
+                    self.notify([msg], [], show_notification=False)
             print("Releasing lock")
 
     def _check_madvr_reset_cal(self, madvr_instance):
+        """Check if madVR reset the video card gamma tables.
+
+        Args:
+            madvr_instance (tuple): A tuple containing madVR instance details
+                (param, connection, ip, pid, module, component, instance).
+        """
         if madvr_instance not in self._madvr_instances:
             return
         # Check if madVR did reset the video card gamma tables.
@@ -3491,45 +3718,53 @@ class ProfileLoader:
             self._next = True
 
     def _reset_display_profile_associations(self):
+        """Reset display profile associations for all monitors."""
         if not self._can_fix_profile_associations():
             return
         for devicekey in self.devices2profiles:
             display_edid, profile, desc = self.devices2profiles[devicekey]
-            if devicekey in self._fixed_profile_associations and profile:
-                try:
-                    current_profile = get_display_profile(
-                        path_only=True, devicekey=devicekey
-                    )
-                except Exception as exception:
-                    print(
-                        "Could not get display profile for display "
-                        f"device {devicekey} ({display_edid[0]}):",
-                        exception,
-                    )
-                    continue
-                if not current_profile:
-                    continue
-                current_profile = os.path.basename(current_profile)
-                if current_profile and current_profile != profile:
-                    print(
-                        f"Resetting profile association for {display_edid[0]}:",
-                        current_profile,
-                        "->",
-                        profile,
-                    )
-                    try:
-                        if not is_superuser() and not per_user_profiles_isenabled(
-                            devicekey=devicekey
-                        ):
-                            # Can only associate profiles to the display if
-                            # per-user-profiles are enabled or if running as admin
-                            enable_per_user_profiles(devicekey=devicekey)
-                        set_display_profile(profile, devicekey=devicekey)
-                        unset_display_profile(current_profile, devicekey=devicekey)
-                    except OSError as exception:
-                        print(exception)
+            if devicekey not in self._fixed_profile_associations or not profile:
+                continue
+            try:
+                current_profile = get_display_profile(
+                    path_only=True, devicekey=devicekey
+                )
+            except Exception as exception:
+                print(
+                    "Could not get display profile for display "
+                    f"device {devicekey} ({display_edid[0]}):",
+                    exception,
+                )
+                continue
+            if not current_profile:
+                continue
+            current_profile = os.path.basename(current_profile)
+            if not current_profile or current_profile == profile:
+                continue
+            print(
+                f"Resetting profile association for {display_edid[0]}:",
+                current_profile,
+                "->",
+                profile,
+            )
+            try:
+                if not is_superuser() and not per_user_profiles_isenabled(
+                    devicekey=devicekey
+                ):
+                    # Can only associate profiles to the display if
+                    # per-user-profiles are enabled or if running as admin
+                    enable_per_user_profiles(devicekey=devicekey)
+                set_display_profile(profile, devicekey=devicekey)
+                unset_display_profile(current_profile, devicekey=devicekey)
+            except OSError as exception:
+                print(exception)
 
     def _set_display_profiles(self, dry_run=False):
+        """Set display profiles for all monitors.
+
+        Args:
+            dry_run (bool): If True, do not actually set the profiles.
+        """
         if not self._can_fix_profile_associations():
             return
         if DEBUG or VERBOSE > 1:
@@ -3640,6 +3875,12 @@ class ProfileLoader:
                     self._fixed_profile_associations.add(device.DeviceKey)
 
     def _set_manual_restore(self, event, manual_restore=True):
+        """Set the manual restore state for profile loading.
+
+        Args:
+            event: The event that triggered this method.
+            manual_restore (bool): Whether to set the manual restore state.
+        """
         if event:
             print("Menu command:", end=" ")
         print("Set calibration state to load profile vcgt")
@@ -3655,6 +3896,12 @@ class ProfileLoader:
         self.writecfg()
 
     def _set_reset_gamma_ramps(self, event, manual_restore=True):
+        """Set the calibration state to reset video card gamma ramps.
+
+        Args:
+            event: The event that triggered this method.
+            manual_restore (bool): Whether to set the manual restore state.
+        """
         if event:
             print("Menu command:", end=" ")
         print("Set calibration state to reset vcgt")
@@ -3672,6 +3919,18 @@ class ProfileLoader:
     def _should_apply_profiles(
         self, enumerate_windows_and_processes=True, manual_override=2
     ):
+        """Determine if profiles should be applied.
+
+        Args:
+            enumerate_windows_and_processes (bool): Whether to enumerate
+                windows and processes to check if other software is running.
+            manual_override (int): Manual override for profile loading state.
+                0: Do not load profiles, 1: Load profiles, 2: Load profiles
+                with manual restore.
+
+        Returns:
+            bool: True if profiles should be applied, False otherwise.
+        """
         displaycal_running = self._is_displaycal_running()
         if displaycal_running:
             enumerate_windows_and_processes = False
@@ -3693,6 +3952,16 @@ class ProfileLoader:
         )
 
     def _toggle_fix_profile_associations(self, event, parent=None):
+        """Toggle the fix profile associations setting.
+
+        Args:
+            event: The event that triggered this method.
+            parent: The parent window for the dialog (optional).
+
+        Returns:
+            bool: True if the fix profile associations setting is enabled,
+                  False otherwise.
+        """
         if event:
             print("Menu command:", end=" ")
         print("Toggle fix profile associations", event.IsChecked())
@@ -3719,6 +3988,7 @@ class ProfileLoader:
         return event.IsChecked()
 
     def _set_exceptions(self):
+        """Set exceptions for profile loading."""
         self._exceptions = {}
         self._exception_names = set()
         exceptions = config.getcfg("profile_loader.exceptions").strip()
@@ -3745,6 +4015,7 @@ class ProfileLoader:
             )
 
     def _set_profile_associations(self, event):
+        """Open the profile associations dialog."""
         if event:
             print("Menu command:", end=" ")
         print("Set profile associations")
@@ -3754,6 +4025,7 @@ class ProfileLoader:
         dlg.ShowModalThenDestroy()
 
     def writecfg(self):
+        """Write configuration to the config file."""
         config.writecfg(
             module="apply-profiles",
             options=("argyll.dir", "profile.load_on_login", "profile_loader"),

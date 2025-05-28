@@ -4608,7 +4608,17 @@ class GammaFits:
 
 
 class Interp:
-    """Interpolation class."""
+    """Interpolation class.
+
+    Args:
+        xp (list): x values for interpolation.
+        fp (list): f(x) values for interpolation.
+        left (float, optional): Value to return for x < min(xp). Defaults to
+            None.
+        right (float, optional): Value to return for x > max(xp). Defaults to
+            None.
+        use_numpy (bool, optional): Use numpy for speed. Defaults to False.
+    """
 
     def __init__(self, xp, fp, left=None, right=None, use_numpy=False):
         if use_numpy:
@@ -4623,6 +4633,14 @@ class Interp:
         self.use_numpy = use_numpy
 
     def __call__(self, x):
+        """Return the interpolated value for x.
+
+        Args:
+            x (float): The x value to interpolate.
+
+        Returns:
+            float: The interpolated value at x.
+        """
         if x not in self.lookup:
             self.lookup[x] = self._interp(x)
         return self.lookup[x]
@@ -4690,6 +4708,13 @@ class BT1886:
         (i.e. BT.1886 viewing adjustment is assumed to be the mismatch between
         Rec709 curve and the output offset pure 2.4 gamma curve)
 
+        Args:
+            X (float): X value in XYZ
+            Y (float): Y value in XYZ
+            Z (float): Z value in XYZ
+
+        Returns:
+            tuple: Adjusted XYZ values as a tuple (X, Y, Z).
         """
         logger.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
@@ -4741,16 +4766,24 @@ class BT1886:
         out[2] += vv * self.tab[2]
 
         logger.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
-
         out = Lab2XYZ(*out)
-
         logger.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
-
         return out
 
 
 class BT2390:
-    """Roll-off for SMPTE 2084 (PQ) according to Report ITU-R BT.2390-2 HDR TV"""
+    """Roll-off for SMPTE 2084 (PQ) according to Report ITU-R BT.2390-2 HDR TV.
+
+    Args:
+        black_cdm2 (float): Black level in cd/m^2.
+        white_cdm2 (float): White level in cd/m^2.
+        master_black_cdm2 (float, optional): Mastering black level in cd/m^2.
+            Defaults to 0.
+        master_white_cdm2 (float, optional): Mastering white level in cd/m^2.
+            Defaults to 10000.
+        use_alternate_master_white_clip (bool, optional): If True, use an
+            alternate method for mastering white clipping. Defaults to True.
+    """
 
     def __init__(
         self,
@@ -4766,6 +4799,16 @@ class BT2390:
         the mastering white adjustment (allows to preserve more detail in
         rolled-off highlights)
 
+        Args:
+            black_cdm2 (float): Black level in cd/m^2.
+            white_cdm2 (float): White level in cd/m^2.
+            master_black_cdm2 (float, optional): Mastering black level in
+                cd/m^2. Defaults to 0.
+            master_white_cdm2 (float, optional): Mastering white level in
+                cd/m^2. Defaults to 10000.
+            use_alternate_master_white_clip (bool, optional): If True, use an
+                alternate method for mastering white clipping. Defaults to
+                True.
         """
         self.black_cdm2 = black_cdm2
         self.white_cdm2 = white_cdm2
@@ -4807,6 +4850,18 @@ class BT2390:
             self.s = (self.maxci - self.maxi) / diff
 
     def P(self, B, KS, maxi, maxci=1.0):
+        """Apply the roll-off function P(E1) to the input value E1.
+
+        Args:
+            B (float): Input value E1 to apply the roll-off to.
+            KS (float): The KS value.
+            maxi (float): The maximum input value.
+            maxci (float, optional): The maximum clip input value. Defaults to
+                1.0.
+
+        Returns:
+            float: The output value after applying the roll-off.
+        """  # noqa: D402
         T = (B - KS) / (1 - KS)
         E2 = (
             (2 * T**3 - 3 * T**2 + 1) * KS
@@ -4832,9 +4887,28 @@ class BT2390:
         bpc=False,
         normalize=True,
     ):
-        """Apply roll-off (E' in, E' out)
-        maxci if < 1.0 applies alterante clip.
+        """Apply roll-off (E' in, E' out) maxci if < 1.0 applies alterante clip.
 
+        Args:
+            v (float): Input value to apply roll-off to.
+            KS (float, optional): The KS value. Defaults to self.KS.
+            maxi (float, optional): The maximum input value. Defaults to
+                self.maxi.
+            maxci (float, optional): The maximum clip input value. Defaults to
+                self.maxci.
+            mini (float, optional): The minimum input value. Defaults to
+                self.mini.
+            mmaxi (float, optional): The mastering maximum input value.
+                Defaults to self.mmaxi.
+            mmini (float, optional): The mastering minimum input value.
+                Defaults to self.mmini.
+            bpc (bool, optional): If True, apply black point compensation.
+                Defaults to False.
+            normalize (bool, optional): If True, normalize PQ values based on
+                mastering display black/white levels. Defaults to True.
+
+        Returns:
+            float: The output value after applying the roll-off.
         """
         if KS is None:
             KS = self.KS
@@ -4903,7 +4977,12 @@ class BT2390:
 
 
 class Matrix3x3(list):
-    """Simple 3x3 matrix"""
+    """Simple 3x3 matrix.
+
+    Args:
+        matrix (list or tuple, optional): A 3x3 matrix to initialize with.
+            Defaults to None.
+    """
 
     def __init__(self, matrix=None):
         super().__init__()
@@ -4913,6 +4992,15 @@ class Matrix3x3(list):
             self._reset()
 
     def update(self, matrix):
+        """Update the matrix with a new 3x3 matrix.
+
+        Args:
+            matrix (list or tuple): A 3x3 matrix to update with.
+
+        Raises:
+            ValueError: If the matrix is not 3x3.
+            ValueError: If the rows or columns of the matrix are not of length 3.
+        """
         if len(matrix) != 3:
             raise ValueError(f"Invalid number of rows for 3x3 matrix: {len(matrix)}")
         self._reset()
@@ -5065,10 +5153,19 @@ class Matrix3x3(list):
         return instance
 
     def adjoint(self):
+        """Return adjoint matrix.
+
+        Returns:
+            Matrix3x3: Adjoint matrix.
+        """
         return self.cofactors().transposed()
 
     def applied(self, fn):
-        """Apply function to every element, return new matrix"""
+        """Apply function to every element, return new matrix.
+
+        Args:
+            fn (callable): Function to apply to each element of the matrix.
+        """
         if fn in self._applied:
             return self._applied[fn]
         matrix = self.__class__()
@@ -5080,6 +5177,7 @@ class Matrix3x3(list):
         return matrix
 
     def cofactors(self):
+        """Return cofactor matrix."""
         instance = self.__class__()
         instance.update(
             [
@@ -5103,6 +5201,11 @@ class Matrix3x3(list):
         return instance
 
     def determinant(self):
+        """Return determinant of the matrix.
+
+        Returns:
+            float: Determinant of the matrix.
+        """
         return (
             self[0][0] * self[1][1] * self[2][2]
             + self[1][0] * self[2][1] * self[0][2]
@@ -5114,10 +5217,16 @@ class Matrix3x3(list):
         )
 
     def invert(self):
+        """Invert the matrix in place."""
         # inplace
         self.update(self.inverted())
 
     def inverted(self):
+        """Return inverted matrix.
+
+        Returns:
+            Matrix3x3: Inverted matrix.
+        """
         if self._inverted:
             return self._inverted
         determinant = self.determinant()
@@ -5146,6 +5255,15 @@ class Matrix3x3(list):
         return instance
 
     def rounded(self, digits=3):
+        """Round each element of the matrix to the specified number of digits.
+
+        Args:
+            digits (int): Number of digits to round to. Default is 3.
+
+        Returns:
+            Matrix3x3: A new Matrix3x3 with each element rounded to the
+                specified number of digits.
+        """
         if digits in self._rounded:
             return self._rounded[digits]
         matrix = self.__class__()
@@ -5157,9 +5275,15 @@ class Matrix3x3(list):
         return matrix
 
     def transpose(self):
+        """Transpose the matrix in place."""
         self.update(self.transposed())
 
     def transposed(self):
+        """Return transposed matrix.
+
+        Returns:
+            Matrix3x3: Transposed matrix.
+        """
         if self._transposed:
             return self._transposed
         instance = self.__class__()
@@ -5188,6 +5312,15 @@ class NumberTuple(tuple):
         return "({})".format(", ".join(str(value) for value in self))
 
     def round(self, digits=4):
+        """Round each element of the tuple to the specified number of digits.
+
+        Args:
+            digits (int): Number of digits to round to. Default is 4.
+
+        Returns:
+            NumberTuple: A new NumberTuple with each element rounded to the
+                specified number of digits.
+        """
         return self.__class__(round(value, digits) for value in self)
 
 

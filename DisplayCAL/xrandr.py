@@ -124,15 +124,32 @@ class XDisplay:
         """
         self.close()
 
-    def open(self):
+    def open(self) -> None:
+        """Open a connection to the X display.
+
+        Raises:
+            ValueError: If the display name is invalid or cannot be opened.
+        """
         self.display = libx11.XOpenDisplay(self.name.encode())
         if not self.display:
             raise ValueError(f"Invalid X display {self.name!r}")
 
-    def close(self):
+    def close(self) -> None:
+        """Close the X display connection."""
         libx11.XCloseDisplay(self.display)
 
     def intern_atom(self, atom_name):
+        """Intern an atom by its name.
+
+        Args:
+            atom_name (str): The name of the atom to intern.
+
+        Raises:
+            ValueError: If the atom name is invalid or cannot be interned.
+
+        Returns:
+            int: The atom identifier for the specified atom name.
+        """
         atom_id = libx11.XInternAtom(self.display, atom_name, False)
         if not atom_id:
             raise ValueError(f"Invalid atom name {atom_name!r}")
@@ -140,6 +157,19 @@ class XDisplay:
         return atom_id
 
     def root_window(self, screen_no=0):
+        """Get the root window for a given screen number.
+
+        Args:
+            screen_no (int): The screen number for which to get the root window.
+                Defaults to 0.
+
+        Raises:
+            ValueError: If the screen number is invalid or the root window cannot
+                be retrieved.
+
+        Returns:
+            int: The root window identifier for the specified screen.
+        """
         window = libx11.XRootWindow(self.display, screen_no)
         if not window:
             raise ValueError(f"Invalid X screen {screen_no!r}")
@@ -147,6 +177,19 @@ class XDisplay:
         return window
 
     def get_window_property(self, window, atom_id, atom_type=XA_CARDINAL):
+        """Get the property of an X window.
+
+        Args:
+            window (int): The window identifier.
+            atom_id (int): The atom identifier for the property.
+            atom_type (int): The type of the atom, default is XA_CARDINAL.
+
+        Raises:
+            ValueError: If the window is invalid or the property cannot be retrieved.
+
+        Returns:
+            list: A list of property values for the specified window.
+        """
         ret_type, ret_format, ret_len, ret_togo, atomv = (
             c_ulong(),
             c_int(),
@@ -184,6 +227,19 @@ class XDisplay:
         return window_property
 
     def get_output_property(self, output, atom_id, atom_type=XA_CARDINAL):
+        """Get the property of an X output.
+
+        Args:
+            output (int): The output identifier.
+            atom_id (int): The atom identifier for the property.
+            atom_type (int): The type of the atom, default is XA_CARDINAL.
+
+        Raises:
+            ValueError: If the output is invalid or the property cannot be retrieved.
+
+        Returns:
+            list: A list of property values for the specified output.
+        """
         if not output:
             raise ValueError(f"Invalid output {output!r} specified")
 

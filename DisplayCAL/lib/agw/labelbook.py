@@ -3272,6 +3272,11 @@ class FlatBookBase(wx.Panel):
 
     @property
     def PageImage(self) -> int:
+        """Return the image index for the current page.
+
+        Returns:
+            int: The image index for the current page.
+        """
         return self.GetPageImage(self.GetSelection())
 
     @PageImage.setter

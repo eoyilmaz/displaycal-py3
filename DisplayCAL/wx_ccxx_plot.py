@@ -76,7 +76,13 @@ def nicenum(x, do_round):
 
 
 class CCXXPlot(wx.Frame):
-    """CCMX/CCSS plot and information"""
+    """CCMX/CCSS plot and information.
+
+    Args:
+        parent (wx.Window): Parent window (only used for error dialogs).
+        cgats (CGATS): A CCMX/CCSS CGATS instance.
+        worker (Worker, optional): Worker instance for executing commands.
+    """
 
     def __init__(self, parent, cgats, worker=None):
         """Init new CCXPlot window.
@@ -460,6 +466,12 @@ class CCXXPlot(wx.Frame):
         self.Sizer.Layout()
 
     def OnSize(self, event):
+        """Resize the canvas.
+
+        Args:
+            event (wx.SizeEvent): The size event triggered by resizing the
+                window.
+        """
         if self.canvas.last_draw:
             wx.CallAfter(self.canvas._DrawCanvas, self.canvas.last_draw[0])
         event.Skip()

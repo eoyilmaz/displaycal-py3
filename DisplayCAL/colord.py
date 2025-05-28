@@ -514,7 +514,13 @@ def quirk_manufacturer(manufacturer: str) -> str:
 
 
 class Object(DBusObject):
-    """Base class for colord objects."""
+    """Base class for colord objects.
+
+    Args:
+        object_path (str): D-Bus object path of the colord object.
+        object_type (str): Type of the colord object, e.g., "Device" or
+            "Profile".
+    """
 
     def __init__(self, object_path, object_type):
         try:
@@ -533,6 +539,14 @@ class Object(DBusObject):
 
     @property
     def properties(self):
+        """Get properties of the object.
+
+        Returns:
+            dict: Dictionary of properties of the object.
+
+        Raises:
+            CDError: If there is an error retrieving the properties.
+        """
         try:
             properties = {}
             for key in self._properties:

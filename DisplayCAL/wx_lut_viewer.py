@@ -96,7 +96,21 @@ class CoordinateType(list):
         least_squares=False,
         slice_=(0.01, 0.99),
     ):
-        """Return average or least squares gamma or a list of gamma values"""
+        """Return average or least squares gamma or a list of gamma values.
+
+        Args:
+            use_vmin_vmax (bool): If True, use the minimum and maximum values
+                from the coordinates for gamma calculation.
+            average (bool): If True, return the average gamma value.
+            least_squares (bool): If True, return the least squares gamma value.
+            slice_ (tuple): Tuple with start and end percentage to use for
+                calculating the gamma.
+
+        Returns:
+            float | list: If average or least_squares is True, returns a single
+                gamma value. Otherwise, returns a list of gamma values for the
+                specified slice.
+        """
         if len(self):
             start = slice_[0] * 100
             end = slice_[1] * 100
@@ -118,7 +132,21 @@ class CoordinateType(list):
         return colormath.get_gamma(values, 100.0, vmin, vmax, average, least_squares)
 
     def get_transfer_function(self, best=True, slice_=(0.05, 0.95), outoffset=None):
-        """Return transfer function name, exponent and match percentage"""
+        """Return transfer function name, exponent and match percentage.
+
+        Args:
+            best (bool): If True, return the best match transfer function.
+                If False, return a list of all transfer functions.
+            slice_ (tuple): Tuple with start and end percentage to use for
+                calculating the transfer function.
+            outoffset (float): Output offset to apply to the transfer function.
+
+        Returns:
+            tuple: A tuple containing the transfer function name, exponent,
+                and match percentage if best is True. If best is False, returns
+                a list of tuples with transfer function name, exponent, and
+                match percentage for each transfer function.
+        """
         transfer_function = self._transfer_function.get((best, slice_))
         if transfer_function:
             return transfer_function
@@ -142,6 +170,11 @@ class CoordinateType(list):
         -601 = Rec. 601, -709 = Rec. 709 (Rec. 601 and 709 transfer functions are
         identical)
 
+        Args:
+            power (float): The power to raise the input value to.
+            values (list): List of tuples with (Y, x) values to set.
+            vmin (float): Minimum value for Y.
+            vmax (float): Maximum value for Y.
         """
         self[:] = [[y, x] for y, x in values]
         for i in range(len(self)):
@@ -233,6 +266,26 @@ class LUTCanvas(plot.PlotCanvas):
         colorspace=b"RGB",
         connection_colorspace=b"RGB",
     ):
+        """Draw a LUT or TRC on the canvas.
+
+        Args:
+            vcgt (VideoCardGammaType or VideoCardGammaTableType): The video
+                card gamma table or type to draw.
+            title (str): Title of the plot.
+            xLabel (str): Label for the X-axis.
+            yLabel (str): Label for the Y-axis.
+            channels (dict): Dictionary of channels to plot, e.g. {0: "R", 1:
+                "G", 2: "B"}.
+            colorspace (bytes): Colorspace of the LUT, e.g. b"RGB", b"CMYK".
+            connection_colorspace (bytes): Colorspace used for connection,
+                e.g. b"RGB".
+
+        Raises:
+            ValueError: If the colorspace is not supported or if the vcgt is
+                invalid.
+            UnloggedError: If the vcgt is not a valid VideoCardGammaType or
+                VideoCardGammaTableType.
+        """
         if not title:
             title = ""
         if not xLabel:
@@ -511,6 +564,15 @@ class LUTCanvas(plot.PlotCanvas):
         )
 
     def get_color(self, channels_label, default="white"):
+        """Get color based on channels label.
+
+        Args:
+            channels_label (str): The label of the channels.
+            default (str): Default color if no specific color is found.
+
+        Returns:
+            str: The color.
+        """
         if channels_label in ("RGB", "CMYK", "XYZ"):
             return "white"
         if channels_label in ("RG", "XY"):
@@ -530,9 +592,10 @@ class LUTCanvas(plot.PlotCanvas):
     def DrawPointLabel(self, dc, mDataDict):
         """Draw point labels.
 
-        dc - DC that will be passed
-        mDataDict - Dictionary of data that you want to use for the pointLabel
-
+        Args:
+            dc (wx.DC): DC that will be passed.
+            mDataDict (dict): Dictionary of data that you want to use for the
+                pointLabel.
         """
         if not self.last_draw:
             return
@@ -584,6 +647,15 @@ class LUTCanvas(plot.PlotCanvas):
         x, y in user coords
         if pointScaled == True based on screen coords
         if pointScaled == False based on user coords
+
+        Args;
+            pntXY (tuple): The point coordinates (x, y) to find the closest
+                points to.
+            pointScaled (bool): Whether the point coordinates are scaled or not.
+
+        Returns:
+            list: A list of lists, each containing information about the
+                closest point in each curve.
         """
         if self.last_draw is None:
             # no graph available
@@ -600,6 +672,11 @@ class LUTCanvas(plot.PlotCanvas):
         return l
 
     def _disabledoublebuffer(self, event):
+        """Disable double buffering for the canvas and its parent windows.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         window = self
         while window:
             if not isinstance(window, wx.TopLevelWindow):
@@ -608,6 +685,11 @@ class LUTCanvas(plot.PlotCanvas):
         event.Skip()
 
     def _enabledoublebuffer(self, event):
+        """Enable double buffering for the canvas and its parent windows.
+
+        Args:
+            event (wx.Event): The event that triggered this method.
+        """
         window = self
         while window:
             if not isinstance(window, wx.TopLevelWindow):
@@ -616,12 +698,22 @@ class LUTCanvas(plot.PlotCanvas):
         event.Skip()
 
     def OnMouseDoubleClick(self, event):
+        """Handle mouse double click event.
+
+        Args:
+            event (wx.Event): The mouse double click event.
+        """
         boundingbox = self.last_draw[0].boundingBox() if self.last_draw else None
         self.resetzoom(boundingbox=boundingbox)
         if self.last_draw:
             self.center()
 
     def OnMouseLeftDown(self, event):
+        """Handle mouse left button down event.
+
+        Args:
+            event (wx.Event): The mouse left button down event.
+        """
         self.erase_pointlabel()
         self._zoomCorner1[0], self._zoomCorner1[1] = self._getXY(event)
         self._screenCoordinates = numpy.array(event.GetPosition())
@@ -630,6 +722,11 @@ class LUTCanvas(plot.PlotCanvas):
             self.canvas.CaptureMouse()
 
     def OnMouseLeftUp(self, event):
+        """Handle mouse left button release event.
+
+        Args:
+            event (wx.Event): The mouse left button release event.
+        """
         if self._dragEnabled:
             self.SetCursor(self.HandCursor)
             if self.canvas.HasCapture():
@@ -639,7 +736,7 @@ class LUTCanvas(plot.PlotCanvas):
             self.TopLevelParent.OnMotion(event)
 
     def _DrawCanvas(self, graphics):
-        """Draw proportionally correct, center and zoom"""
+        """Draw proportionally correct, center and zoom."""
         w = float(self.GetSize()[0] or 1)
         h = float(self.GetSize()[1] or 1)
         if w > 45:
@@ -684,7 +781,7 @@ class LUTCanvas(plot.PlotCanvas):
         self.Draw(graphics, axis_x, axis_y)
 
     def _set_center(self):
-        """Set center position from current X and Y axis"""
+        """Set center position from current X and Y axis."""
         if not self.last_draw:
             return
         axis_x = self.GetXCurrentRange()
@@ -706,7 +803,12 @@ class LUTCanvas(plot.PlotCanvas):
         self.center_x, self.center_y = x, y
 
     def center(self, boundingbox=None):
-        """Center the current graphic"""
+        """Center the current graphic.
+
+        Args:
+            boundingbox (tuple): Optional bounding box to center the graphic to.
+                If not provided, the current axis range will be used.
+        """
         if boundingbox:
             # Min, max points of graphics
             p1, p2 = boundingbox
@@ -723,42 +825,55 @@ class LUTCanvas(plot.PlotCanvas):
             self._DrawCanvas(self.last_draw[0])
 
     def erase_pointlabel(self):
+        """Erase the point label if it exists."""
         if self.GetEnablePointLabel() and self.last_PointLabel:
             # Erase point label
             self._drawPointLabel(self.last_PointLabel)
             self.last_PointLabel = None
 
     def resetzoom(self, boundingbox=None):
+        """Reset zoom to fit bounding box.
+
+        Args:
+            boundingbox (tuple): Optional bounding box to fit the zoom to.
+                If not provided, the current axis range will be used.
+        """
         self.center_x = 0
         self.center_y = 0
         self._zoomfactor = 1.0
-        if boundingbox:
-            # Min, max points of graphics
-            p1, p2 = boundingbox
-            # In user units
-            min_x, max_x = self._axisInterval(self._xSpec, p1[0], p2[0])
-            min_y, max_y = self._axisInterval(self._ySpec, p1[1], p2[1])
-            max_abs_x = abs(min_x) + max_x
-            max_abs_y = abs(min_y) + max_y
-            max_abs_axis_x = abs(self.axis_x[0]) + self.axis_x[1]
-            max_abs_axis_y = abs(self.axis_y[0]) + self.axis_y[1]
-            w = float(self.GetSize()[0] or 1)
-            h = float(self.GetSize()[1] or 1)
-            if w > 45:
-                w -= 45
-            if h > 20:
-                h -= 20
-            ratio = [w / h, h / w]
-            if ratio[0] > 1:
-                max_abs_axis_x *= ratio[0]
-            if ratio[1] > 1:
-                max_abs_axis_y *= ratio[1]
-            if max_abs_x / max_abs_y > max_abs_axis_x / max_abs_axis_y:
-                self._zoomfactor = max_abs_x / max_abs_axis_x
-            else:
-                self._zoomfactor = max_abs_y / max_abs_axis_y
+        if not boundingbox:
+            return
+        # Min, max points of graphics
+        p1, p2 = boundingbox
+        # In user units
+        min_x, max_x = self._axisInterval(self._xSpec, p1[0], p2[0])
+        min_y, max_y = self._axisInterval(self._ySpec, p1[1], p2[1])
+        max_abs_x = abs(min_x) + max_x
+        max_abs_y = abs(min_y) + max_y
+        max_abs_axis_x = abs(self.axis_x[0]) + self.axis_x[1]
+        max_abs_axis_y = abs(self.axis_y[0]) + self.axis_y[1]
+        w = float(self.GetSize()[0] or 1)
+        h = float(self.GetSize()[1] or 1)
+        if w > 45:
+            w -= 45
+        if h > 20:
+            h -= 20
+        ratio = [w / h, h / w]
+        if ratio[0] > 1:
+            max_abs_axis_x *= ratio[0]
+        if ratio[1] > 1:
+            max_abs_axis_y *= ratio[1]
+        if max_abs_x / max_abs_y > max_abs_axis_x / max_abs_axis_y:
+            self._zoomfactor = max_abs_x / max_abs_axis_x
+        else:
+            self._zoomfactor = max_abs_y / max_abs_axis_y
 
     def zoom(self, direction=1.0):
+        """Zoom in or out.
+
+        Args:
+            direction (float): 1.0 for zoom in, -1.0 for zoom out.
+        """
         _zoomfactor = 0.025 * direction
         if 0 < self._zoomfactor + _zoomfactor <= 5:
             self._zoomfactor += _zoomfactor
@@ -1068,13 +1183,18 @@ class LUTFrame(BaseFrame):
         self.display_rects = get_display_rects()
 
     def apply_bpc_handler(self, event):
+        """Apply black point compensation to the current profile.
+
+        Args:
+            event (wx.Event): The event triggered by the button.
+        """
         cal = vcgt_to_cal(self.profile)
         cal.filename = self.profile.fileName or ""
         cal.apply_bpc(weight=True)
         self.LoadProfile(cal_to_fake_profile(cal))
 
     def drop_handler(self, path):
-        """Drag'n'drop handler for .cal/.icc/.icm files."""
+        """Handle drag'n'drop for .cal/.icc/.icm files."""
         filename, ext = os.path.splitext(path)
         if ext.lower() not in (".icc", ".icm"):
             profile = cal_to_fake_profile(path)
@@ -1104,18 +1224,23 @@ class LUTFrame(BaseFrame):
     get_display = MeasureFrame.__dict__["get_display"]
 
     def handle_errors(self):
-        if self.client.errors:
-            show_result_dialog(
-                Error(
-                    "\n\n".join(
-                        [f"{e}" for e in set(self.client.errors) if e is not None]
-                    )
-                ),
-                self,
-            )
-            self.client.errors = []
+        """Handle errors from the client."""
+        if not self.client.errors:
+            return
+        show_result_dialog(
+            Error(
+                "\n\n".join([f"{e}" for e in set(self.client.errors) if e is not None])
+            ),
+            self,
+        )
+        self.client.errors = []
 
     def install_vcgt_handler(self, event):
+        """Install the VCGT from the current profile to the display.
+
+        Args:
+            event (wx.Event): The event triggered by the button.
+        """
         cwd = self.worker.create_tempdir()
         if isinstance(cwd, Exception):
             show_result_dialog(cwd, self)
@@ -1153,6 +1278,11 @@ class LUTFrame(BaseFrame):
                 )
 
     def key_handler(self, event):
+        """Handle key events for the LUT viewer.
+
+        Args:
+            event (wx.Event): The event triggered by the key press.
+        """
         # AltDown
         # CmdDown
         # ControlDown
@@ -1194,12 +1324,27 @@ class LUTFrame(BaseFrame):
             event.Skip()
 
     def direction_select_handler(self, event):
+        """Handle the direction selection.
+
+        Args:
+            event (wx.Event): The event triggered by the choice selection.
+        """
         self.toggle_clut_handler(event)
 
     def rendering_intent_select_handler(self, event):
+        """Handle the rendering intent selection.
+
+        Args:
+            event (wx.Event): The event triggered by the choice selection.
+        """
         self.toggle_clut_handler(event)
 
     def toggle_clut_handler(self, event):
+        """Handle the toggle CLUT checkbox.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         try:
             self.lookup_tone_response_curves()
         except Exception as exception:
@@ -1213,6 +1358,11 @@ class LUTFrame(BaseFrame):
             self.handle_errors()
 
     def tooltip_handler(self, event):
+        """Handle the tooltip button.
+
+        Args:
+            event (wx.Event): The event triggered by the button.
+        """
         if not hasattr(self, "tooltip_window"):
             self.tooltip_window = TooltipWindow(
                 self,
@@ -1225,11 +1375,21 @@ class LUTFrame(BaseFrame):
             self.tooltip_window.Raise()
 
     def show_actual_lut_handler(self, event):
+        """Handle the show actual LUT checkbox.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("lut_viewer.show_actual_lut", int(self.show_actual_lut_cb.GetValue()))
         profile = self.current_cal if hasattr(self, "current_cal") else None
         self.load_lut(profile=profile)
 
     def load_lut(self, profile=None):
+        """Load LUT from profile.
+
+        Args:
+            profile (ICCProfile): The profile to load the LUT from.
+        """
         self.current_cal = profile
         if (
             getcfg("lut_viewer.show_actual_lut")
@@ -1289,7 +1449,11 @@ class LUTFrame(BaseFrame):
             self.LoadProfile(None)
 
     def lookup_tone_response_curves(self, intent="r"):
-        """Lookup Y -> RGB tone values through TRC tags or LUT"""
+        """Lookup Y -> RGB tone values through TRC tags or LUT.
+
+        Args:
+            intent (str): Rendering intent, one of 'a', 'r', 'p', 's'.
+        """
         profile = self.profile
 
         # Final number of coordinates
@@ -1571,6 +1735,11 @@ class LUTFrame(BaseFrame):
                 prev.append([Y, v])
 
     def move_handler(self, event):
+        """Handle the move event to update the display number and load the LUT.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if not self.IsShownOnScreen():
             return
         display_no, geometry, client_area = self.get_display()
@@ -1586,10 +1755,16 @@ class LUTFrame(BaseFrame):
         event.Skip()
 
     def plot_mode_select_handler(self, event):
+        """Handle selection of the plot mode from the dropdown.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         # self.client.resetzoom()
         self.DrawLUT()
 
     def get_commands(self):
+        """Get a list of commands that can be used with this frame."""
         return [
             *self.get_common_commands(),
             "curve-viewer [filename]",
@@ -1597,6 +1772,17 @@ class LUTFrame(BaseFrame):
         ]
 
     def process_data(self, data):
+        """Process commands from the command line or other sources.
+
+        Args:
+            data (list): A list of strings containing the command and its
+                arguments.
+
+        Returns:
+            str: "ok" if the command was processed successfully, "fail" if
+                the command failed, or "invalid" if the command is not
+                recognized.
+        """
         if (data[0] == "curve-viewer" and len(data) < 3) or (
             data[0] == "load" and len(data) == 2
         ):
@@ -1614,6 +1800,11 @@ class LUTFrame(BaseFrame):
         return "invalid"
 
     def reload_vcgt_handler(self, event):
+        """Reload the VCGT from the display profile.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         cmd, args = self.worker.prepare_dispwin(True)
         if isinstance(cmd, Exception):
             show_result_dialog(cmd, self)
@@ -1629,6 +1820,12 @@ class LUTFrame(BaseFrame):
                 self.load_lut(get_display_profile())
 
     def LoadProfile(self, profile):
+        """Load a profile and update the LUT viewer.
+
+        Args:
+            profile (ICCProfile or str): The ICC profile to load, either as an
+                ICCProfile object or a file path.
+        """
         if profile and not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
@@ -1699,6 +1896,16 @@ class LUTFrame(BaseFrame):
         wx.CallAfter(self.handle_errors)
 
     def add_shaper_curves(self, curves):
+        """Add shaper curves to the list of curves if available.
+
+        Args:
+            curves (list): The list of curves to which shaper curves will be
+                added.
+
+        Returns:
+            list: The updated list of curves including shaper curves if they
+                are available.
+        """
         if getcfg("show_advanced_options"):
             if isinstance(self.profile.tags.get("A2B0"), LUT16Type):
                 curves.append(lang.getstr("profile.tags.A2B0.shaper_curves.input"))
@@ -1721,6 +1928,12 @@ class LUTFrame(BaseFrame):
         return curves
 
     def add_toggles(self, parent, sizer):
+        """Add toggle checkboxes for up to 16 channels.
+
+        Args:
+            parent (wx.Panel): The parent panel to which the toggles will be added.
+            sizer (wx.Sizer): The sizer to which the toggles will be added.
+        """
         # Add toggle checkboxes for up to 16 channels
         self.toggles = []
         for i in range(16):
@@ -1738,6 +1951,11 @@ class LUTFrame(BaseFrame):
             toggle.Hide()
 
     def add_tone_values(self, legend):
+        """Add tone values to the legend.
+
+        Args:
+            legend (list): The legend to which tone values will be added.
+        """
         if not self.profile:
             return
         colorants = legend[0]
@@ -1865,6 +2083,11 @@ class LUTFrame(BaseFrame):
                 legend.append(f"{label} {value}")
 
     def DrawLUT(self, event=None):
+        """Draw the LUT in the client area.
+
+        Args:
+            event: The event that triggered the redraw, if any.
+        """
         self.SetStatusText("")
         self.Freeze()
         curves = None
@@ -2172,6 +2395,11 @@ class LUTFrame(BaseFrame):
         self.Thaw()
 
     def OnClose(self, event):
+        """Handle the window close event.
+
+        Args:
+            event (wx.CloseEvent): The close event.
+        """
         self.listening = False
         if self.worker.tempdir and os.path.isdir(self.worker.tempdir):
             self.worker.wrapup(False)
@@ -2185,14 +2413,25 @@ class LUTFrame(BaseFrame):
         wx.CallAfter(self.Destroy)
 
     def OnMotion(self, event):
-        if isinstance(event, wx.MouseEvent):
-            if not event.LeftIsDown():
-                self.UpdatePointLabel(self.client._getXY(event))
-            else:
-                self.client.erase_pointlabel()
-            event.Skip()  # Go to next handler
+        """Handle mouse motion events.
+
+        Args:
+            event (wx.MouseEvent): The mouse motion event.
+        """
+        if not isinstance(event, wx.MouseEvent):
+            return
+        if not event.LeftIsDown():
+            self.UpdatePointLabel(self.client._getXY(event))
+        else:
+            self.client.erase_pointlabel()
+        event.Skip()  # Go to next handler
 
     def OnMove(self, event=None):
+        """Handle window move events.
+
+        Args:
+            event (wx.MoveEvent, optional): The move event. Defaults to None.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
             setcfg("position.lut_viewer.x", x)
@@ -2201,6 +2440,11 @@ class LUTFrame(BaseFrame):
             event.Skip()
 
     def OnSize(self, event=None):
+        """Handle window size changes.
+
+        Args:
+            event (wx.SizeEvent, optional): The size event. Defaults to None.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             w, h = self.ClientSize
             setcfg("size.lut_viewer.w", w)
@@ -2212,6 +2456,11 @@ class LUTFrame(BaseFrame):
                 self.Refresh()
 
     def OnWheel(self, event):
+        """Handle mouse wheel events for zooming.
+
+        Args:
+            event (wx.MouseEvent): The mouse wheel event.
+        """
         _xy = wx.GetMousePosition()
         if self.client.last_draw:
             direction = 1.0 if event.WheelRotation < 0 else -1.0
@@ -2311,153 +2560,167 @@ class LUTFrame(BaseFrame):
         return res
 
     def SetStatusText(self, text):
+        """Set the text for the status label.
+
+        Args:
+            text (str): The text to display in the status label.
+        """
         self.status.Label = text
         self.status.Refresh()
 
     def SetGamutStatusText(self, text):
+        """Set the text for the gamut status label.
+
+        Args:
+            text (str): The text to display in the gamut status label.
+        """
         self.gamut_status.Label = text
         self.status.Refresh()
 
     def UpdatePointLabel(self, xy):
-        if self.client.GetEnablePointLabel():
-            # Show closest point (when enbled)
-            # Make up dict with info for the point label
-            dlst = self.client.GetClosestPoint(xy, pointScaled=True)
-            if dlst != [] and hasattr(self.client, "point_grid"):
-                curveNum, legend, pIndex, pointXY, scaledXY, distance = dlst
-                legend = legend.split(", ")
-                channels = {}
-                value = []
-                for channel in self.client.point_grid:
-                    toggle = self.toggles[channel]
-                    channels[channel] = toggle.Label or ""
-                    x = int(round(pointXY[0] / 255.0 * 4095))
-                    v = self.client.point_grid[channel].get(x, 0)
-                    if toggle.Label in ("a*", "b*"):
-                        v = -128 + v / 100.0 * (255 + 255 / 256.0)
-                    value.append((toggle.Label, v))
-                identical = len(value) > 1 and all(v[1] == value[0][1] for v in value)
-                if 1:
-                    joiner = " \u2192 "
-                    label = [_f for _f in list(channels.values()) if _f]
-                    if (
-                        self.plot_mode_select.GetStringSelection()
-                        == lang.getstr("[rgb]TRC")
-                        and self.profile.connectionColorSpace != b"RGB"
-                    ):
-                        if self.show_as_L.GetValue():
-                            format_ = "L* %.2f", "%s %.2f"
-                        else:
-                            format_ = "Y %.4f", "%s %.2f"
-                        axis_y = 100.0
-                    elif "L*" in label and ("a*" in label or "b*" in label):
-                        a = b = -128 + pointXY[0] / 100.0 * (255 + 255 / 256.0)
-                        if label == ["L*", "a*", "b*"]:
-                            format_ = f"L* %.2f a* {a:.2f} b* {b:.2f}", "%s %.2f"
-                        elif label == ["L*", "a*"]:
-                            format_ = f"L* %.2f a* {a:.2f}", "%s %.2f"
-                        elif label == ["L*", "b*"]:
-                            format_ = f"L* %.2f b* {b:.2f}", "%s %.2f"
-                        axis_y = self.client.axis_y[1]
-                    else:
-                        format_ = "{} %.2f".format("=".join(label)), "%s %.2f"
-                        axis_y = self.client.axis_y[1]
-                    if identical:
-                        # if value[0][1] is None:
-                        vout = pointXY[1]
-                        if "L*" not in label and ("a*" in label or "b*" in label):
-                            vout = -128 + vout / 100.0 * (255 + 255 / 256.0)
-                        RGB = " ".join(["=".join(label), f"{vout:.2f}"])
-                    # else:
-                    # RGB = "R=G=B %.2f" % value[0][1]
-                    else:
-                        RGB = " ".join(
-                            [
-                                format_[1] % (v, s)
-                                for v, s in [v for v in value if v[1] is not None]
-                            ]
-                        )
-                    vin = pointXY[0]
-                    if "L*" not in label and ("a*" in label or "b*" in label):
-                        vin = -128 + pointXY[0] / 100.0 * (255 + 255 / 256.0)
-                    legend[0] = joiner.join([format_[0] % vin, RGB])
-                    if (
-                        self.plot_mode_select.GetStringSelection()
-                        == lang.getstr("[rgb]TRC")
-                        and self.profile.connectionColorSpace != b"RGB"
-                    ):
-                        pointXY = pointXY[1], pointXY[0]
+        """Update point label with the closest point information.
+
+        Args:
+            xy (tuple): The x and y coordinates of the point to label.
+        """
+        if not self.client.GetEnablePointLabel():
+            return
+        # Show closest point (when enbled)
+        # Make up dict with info for the point label
+        dlst = self.client.GetClosestPoint(xy, pointScaled=True)
+        if dlst == [] or not hasattr(self.client, "point_grid"):
+            return
+        curveNum, legend, pIndex, pointXY, scaledXY, distance = dlst
+        legend = legend.split(", ")
+        channels = {}
+        value = []
+        for channel in self.client.point_grid:
+            toggle = self.toggles[channel]
+            channels[channel] = toggle.Label or ""
+            x = int(round(pointXY[0] / 255.0 * 4095))
+            v = self.client.point_grid[channel].get(x, 0)
+            if toggle.Label in ("a*", "b*"):
+                v = -128 + v / 100.0 * (255 + 255 / 256.0)
+            value.append((toggle.Label, v))
+        identical = len(value) > 1 and all(v[1] == value[0][1] for v in value)
+        if True:
+            joiner = " \u2192 "
+            label = [_f for _f in list(channels.values()) if _f]
+            if (
+                self.plot_mode_select.GetStringSelection() == lang.getstr("[rgb]TRC")
+                and self.profile.connectionColorSpace != b"RGB"
+            ):
+                if self.show_as_L.GetValue():
+                    format_ = "L* %.2f", "%s %.2f"
                 else:
-                    joiner = " \u2192 "
-                    format_ = "%.2f", "%.2f"
-                    axis_y = self.client.axis_y[1]
-                    legend[0] = "{} {}".format(
-                        legend[0],
-                        joiner.join(
-                            [format_[i] % point for i, point in enumerate(pointXY)]
+                    format_ = "Y %.4f", "%s %.2f"
+                axis_y = 100.0
+            elif "L*" in label and ("a*" in label or "b*" in label):
+                a = b = -128 + pointXY[0] / 100.0 * (255 + 255 / 256.0)
+                if label == ["L*", "a*", "b*"]:
+                    format_ = f"L* %.2f a* {a:.2f} b* {b:.2f}", "%s %.2f"
+                elif label == ["L*", "a*"]:
+                    format_ = f"L* %.2f a* {a:.2f}", "%s %.2f"
+                elif label == ["L*", "b*"]:
+                    format_ = f"L* %.2f b* {b:.2f}", "%s %.2f"
+                axis_y = self.client.axis_y[1]
+            else:
+                format_ = "{} %.2f".format("=".join(label)), "%s %.2f"
+                axis_y = self.client.axis_y[1]
+            if identical:
+                # if value[0][1] is None:
+                vout = pointXY[1]
+                if "L*" not in label and ("a*" in label or "b*" in label):
+                    vout = -128 + vout / 100.0 * (255 + 255 / 256.0)
+                RGB = " ".join(["=".join(label), f"{vout:.2f}"])
+            # else:
+            # RGB = "R=G=B %.2f" % value[0][1]
+            else:
+                RGB = " ".join(
+                    [
+                        format_[1] % (v, s)
+                        for v, s in [v for v in value if v[1] is not None]
+                    ]
+                )
+            vin = pointXY[0]
+            if "L*" not in label and ("a*" in label or "b*" in label):
+                vin = -128 + pointXY[0] / 100.0 * (255 + 255 / 256.0)
+            legend[0] = joiner.join([format_[0] % vin, RGB])
+            if (
+                self.plot_mode_select.GetStringSelection() == lang.getstr("[rgb]TRC")
+                and self.profile.connectionColorSpace != b"RGB"
+            ):
+                pointXY = pointXY[1], pointXY[0]
+        else:
+            joiner = " \u2192 "
+            format_ = "{:.2f}", "{:.2f}"
+            axis_y = self.client.axis_y[1]
+            legend[0] = "{} {}".format(
+                legend[0],
+                joiner.join(
+                    [format_[i].format(point) for i, point in enumerate(pointXY)]
+                ),
+            )
+        if len(legend) == 1:
+            # Calculate gamma
+            axis_x = self.client.axis_y[1]
+            gamma = []
+            for label, v in value:
+                if v is None or label in ("a*", "b*"):
+                    continue
+                if (
+                    self.plot_mode_select.GetStringSelection()
+                    == lang.getstr("[rgb]TRC")
+                    and self.profile.connectionColorSpace != b"RGB"
+                ):
+                    x = v
+                    y = pointXY[1]
+                    if self.show_as_L.GetValue():
+                        y = colormath.Lab2XYZ(y, 0, 0)[1] * 100
+                else:
+                    x = pointXY[0]
+                    y = v
+                if x <= 0 or x >= axis_x or y <= 0 or y >= axis_y:
+                    continue
+                if identical:
+                    label = "=".join(
+                        [
+                            f"{s}"
+                            for s, v in [s_v for s_v in value if s_v[1] is not None]
+                        ]
+                    )
+                # Note: We need to make sure each point is a float because it
+                # might be a decimal.Decimal, which can't be divided by floats!
+                gamma.append(
+                    "{} {:.2f}".format(
+                        label,
+                        round(
+                            math.log(float(y) / axis_y) / math.log(x / axis_x),
+                            2,
                         ),
                     )
-                if len(legend) == 1:
-                    # Calculate gamma
-                    axis_x = self.client.axis_y[1]
-                    gamma = []
-                    for label, v in value:
-                        if v is None or label in ("a*", "b*"):
-                            continue
-                        if (
-                            self.plot_mode_select.GetStringSelection()
-                            == lang.getstr("[rgb]TRC")
-                            and self.profile.connectionColorSpace != b"RGB"
-                        ):
-                            x = v
-                            y = pointXY[1]
-                            if self.show_as_L.GetValue():
-                                y = colormath.Lab2XYZ(y, 0, 0)[1] * 100
-                        else:
-                            x = pointXY[0]
-                            y = v
-                        if x <= 0 or x >= axis_x or y <= 0 or y >= axis_y:
-                            continue
-                        if identical:
-                            label = "=".join(
-                                [
-                                    f"{s}"
-                                    for s, v in [
-                                        s_v for s_v in value if s_v[1] is not None
-                                    ]
-                                ]
-                            )
-                        # Note: We need to make sure each point is a float because it
-                        # might be a decimal.Decimal, which can't be divided by floats!
-                        gamma.append(
-                            "{} {:.2f}".format(
-                                label,
-                                round(
-                                    math.log(float(y) / axis_y) / math.log(x / axis_x),
-                                    2,
-                                ),
-                            )
-                        )
-                        if "=" in label:
-                            break
-                    if gamma:
-                        legend.append("Gamma {}".format(" ".join(gamma)))
-                if self.profile.connectionColorSpace != b"RGB":
-                    self.add_tone_values(legend)
-                legend = [", ".join(legend[:-1]), legend[-1]]
-                self.SetStatusText("\n".join(legend))
-                # Make up dictionary to pass to DrawPointLabel
-                mDataDict = {
-                    "curveNum": curveNum,
-                    "legend": legend,
-                    "pIndex": pIndex,
-                    "pointXY": pointXY,
-                    "scaledXY": scaledXY,
-                }
-                # Pass dict to update the point label
-                self.client.UpdatePointLabel(mDataDict)
+                )
+                if "=" in label:
+                    break
+            if gamma:
+                legend.append("Gamma {}".format(" ".join(gamma)))
+        if self.profile.connectionColorSpace != b"RGB":
+            self.add_tone_values(legend)
+        legend = [", ".join(legend[:-1]), legend[-1]]
+        self.SetStatusText("\n".join(legend))
+        # Make up dictionary to pass to DrawPointLabel
+        mDataDict = {
+            "curveNum": curveNum,
+            "legend": legend,
+            "pIndex": pIndex,
+            "pointXY": pointXY,
+            "scaledXY": scaledXY,
+        }
+        # Pass dict to update the point label
+        self.client.UpdatePointLabel(mDataDict)
 
     def update_controls(self):
+        """Update the controls based on the current state of the worker."""
         self.show_actual_lut_cb.Enable(
             (
                 self.worker.argyll_version[0:3] > [1, 1, 0]
@@ -2475,9 +2738,19 @@ class LUTFrame(BaseFrame):
 
     @property
     def worker(self):
+        """Get the worker instance for the LUT viewer.
+
+        Returns:
+            Worker: The worker instance.
+        """
         return self.client.worker
 
     def display_changed(self, event):
+        """Handle display change events.
+
+        Args:
+            event (wx.Event): The display change event.
+        """
         self.worker.enumerate_displays_and_ports(
             check_lut_access=False, enumerate_ports=False, include_network_devices=False
         )

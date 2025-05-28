@@ -11,6 +11,19 @@ class Cube3D:
     This class provides functionality to define a cube, access its elements,
     and iterate through its contents. It allows for specifying the size of the
     cube and the range of indices to be used.
+
+    Args:
+        size (int): The size of the cube along each dimension. Default is 65.
+        start (int): The starting index for the cube. Default is 0.
+        end (int, optional): The ending index for the cube. If not specified,
+            it defaults to the total number of entries in the cube, which is
+            `size**3`. If specified, it must be greater than or equal to `start`.
+            Default is None.
+
+    Raises:
+        TypeError: If `start` or `end` is not an integer.
+        ValueError: If `start` or `end` is out of range or if `end` is less
+            than `start`.
     """
 
     def __init__(self, size=65, start=0, end=None):
@@ -35,14 +48,35 @@ class Cube3D:
         self._len = end - start
 
     def get(self, i, default=None):
+        """Return the item at the specified index or a default value.
+
+        Args:
+            i (int): The index of the item to return.
+            default: The value to return if the index is out of range.
+
+        Returns:
+            tuple[int, int, int] or default: The item at the specified index or
+                the default value if the index is out of range.
+        """
         if i < 0:
             i = self._len + i
         if i < 0 or i > self._len - 1:
             return default
         return self[i]
 
-    def index(self, xxx_todo_changeme):
-        (c0, c1, c2) = xxx_todo_changeme
+    def index(self, item):
+        """Return the index of the specified item in the cube.
+
+        Args:
+            item (tuple): The item to find the index of.
+
+        Raises:
+            ValueError: If the item is not found in the cube.
+
+        Returns:
+            int: The index of the item in the cube.
+        """
+        (c0, c1, c2) = item
         if (c0, c1, c2) not in self:
             raise ValueError(f"{(c0, c1, c2)!r} not in {self!r}")
         i = c0 * self._size**2 + c1 * self._size + c2

@@ -39,10 +39,6 @@ class UntetheredFrame(BaseFrame):
     """Untethered measurement frame."""
 
     def __init__(self, parent=None, handler=None, keyhandler=None, start_timer=True):
-        # BaseFrame.__init__(self, parent, wx.ID_ANY,
-        #                    lang.getstr("measurement.untethered"),
-        #                    style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
-        #                    name="untetheredframe")
         BaseFrame.__init__(
             self,
             parent,
@@ -230,12 +226,27 @@ class UntetheredFrame(BaseFrame):
             self.start_timer()
 
     def EndModal(self, returncode=wx.ID_OK):
+        """End the untethered frame modal state.
+
+        Args:
+            returncode (int): The return code to indicate the result of the
+                operation.
+        """
         return returncode
 
-    def MakeModal(self, makemodal=False):
-        pass
+    def MakeModal(self, modal=False):
+        """Make the untethered frame modal or not.
+
+        Args:
+            modal (bool): Whether to make the untethered frame modal.
+        """
 
     def OnClose(self, event):
+        """Handle the close event to stop the timer and save configuration.
+
+        Args:
+            event (wx.Event): The event that triggered the action.
+        """
         config.writecfg()
         if not self.timer.IsRunning():
             self.Destroy()
@@ -243,6 +254,14 @@ class UntetheredFrame(BaseFrame):
             self.keepGoing = False
 
     def OnDestroy(self, event):
+        """Handle the destruction of the untethered frame.
+
+        Args:
+            event (wx.Event): The event that triggered the action.
+
+        Returns:
+            int: Return code indicating the success of the operation.
+        """
         self.stop_timer()
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
@@ -259,6 +278,11 @@ class UntetheredFrame(BaseFrame):
         return 0
 
     def OnMove(self, event):
+        """Handle the move event to save the position of the untethered frame.
+
+        Args:
+            event (wx.Event): The event that triggered the action.
+        """
         if (
             self.IsShownOnScreen()
             and not self.IsIconized()
@@ -272,29 +296,72 @@ class UntetheredFrame(BaseFrame):
                 setcfg("position.progress.y", y)
 
     def OnResize(self, event):
+        """Handle the resize event to adjust the grid size.
+
+        Args:
+            event (wx.Event): The event that triggered the action.
+        """
         wx.CallAfter(self.resize_grid)
         event.Skip()
 
     def Pulse(self, msg=""):
+        """Pulse the untethered frame with a message.
+
+        Args:
+            msg (str): The message to display in the pulse.
+
+        Returns:
+            tuple: A tuple containing a boolean indicating whether to keep going
+        """
+        self.label_RGB.SetLabel(msg)
         if msg == lang.getstr("instrument.initializing"):
             self.label_RGB.SetLabel(msg)
         return self.keepGoing, False
 
     def Resume(self):
+        """Resume the untethered frame after a pause."""
         self.keepGoing = True
         self.set_sound_on_off_btn_bitmap()
 
     def UpdateProgress(self, value, msg=""):
+        """Update the progress with a value and a message.
+
+        Args:
+            value (int): The value to display in the progress bar.
+            msg (str): The message to display in the progress bar.
+
+        Returns:
+            tuple: A tuple containing a boolean indicating whether to keep going
+        """
         return self.Pulse(msg)
 
     def UpdatePulse(self, msg=""):
+        """Update the pulse with a  message.
+
+        Args:
+            msg (str): The message to display in the pulse.
+
+        Returns:
+            tuple: A tuple containing a boolean indicating whether to keep going
+        """
         return self.Pulse(msg)
 
     def back_btn_handler(self, event):
+        """Handle the back button click event.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         if self.index > 0:
             self.update(self.index - 1)
 
     def enable_btns(self, enable=True, enable_measure_button=False):
+        """Enable or disable buttons based on the measurement state.
+
+        Args:
+            enable (bool): Whether to enable the buttons.
+            enable_measure_button (bool): Whether to enable the measure button.
+        """
         self.is_measuring = not enable and enable_measure_button
         self.back_btn.Enable(enable and self.index > 0)
         self.next_btn.Enable(enable and self.index < self.index_max)
@@ -309,6 +376,11 @@ class UntetheredFrame(BaseFrame):
             self.measure_btn.SetFocus()
 
     def finish_btn_handler(self, event):
+        """Handle the finish button click event.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         self.finish_btn.Disable()
         self.cgats[0].type = b"CTI3"
         self.cgats[0].add_keyword("COLOR_REP", "RGB_XYZ")
@@ -341,9 +413,14 @@ class UntetheredFrame(BaseFrame):
         self.safe_send("Q")
 
     def flush(self):
-        pass
+        """Flush the worker subprocess output."""
 
     def get_Lab_RGB(self):
+        """Calculate the Lab and RGB values for the current patch.
+
+        Returns:
+            tuple: A tuple containing the Lab and RGB values for the current patch.
+        """
         row = self.cgats[0].DATA[self.index]
         XYZ = row["XYZ_X"], row["XYZ_Y"], row["XYZ_Z"]
         self.last_XYZ = XYZ
@@ -375,6 +452,11 @@ class UntetheredFrame(BaseFrame):
         return Lab, color
 
     def grid_left_click_handler(self, event):
+        """Handle left click events on the grid.
+
+        Args:
+            event (wx.grid.GridEvent): The event that triggered the action.
+        """
         if not self.is_measuring:
             row, col = event.GetRow(), event.GetCol()
             if row == -1 and col > -1:  # col label clicked
@@ -385,14 +467,29 @@ class UntetheredFrame(BaseFrame):
                 event.Skip()
 
     def has_worker_subprocess(self):
+        """Check if the untethered frame has a worker subprocess.
+
+        Returns:
+            bool: True if the frame has a worker subprocess, False otherwise.
+        """
         return bool(
             getattr(self, "worker", None) and getattr(self.worker, "subprocess", None)
         )
 
     def isatty(self):
+        """Check if the untethered frame is interactive.
+
+        Returns:
+            bool: True if the frame is interactive, False otherwise.
+        """
         return True
 
     def key_handler(self, event):
+        """Handle key events for navigation and measurement control.
+
+        Args:
+            event (wx.KeyEvent): The event that triggered the action.
+        """
         keycode = None
         is_key_event = event.GetEventType() in (
             wx.EVT_CHAR.typeId,
@@ -444,15 +541,30 @@ class UntetheredFrame(BaseFrame):
             event.Skip()
 
     def measure(self, event=None):
+        """Start or stop the measurement process.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         self.enable_btns(False, True)
         # Use a delay to allow for TFT lag
         wx.CallLater(200, self.safe_send, " ")
 
     def measure_auto_ctrl_handler(self, event):
+        """Handle the auto measurement checkbox change event.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         auto = self.measure_auto_cb.GetValue()
         setcfg("untethered.measure.auto", int(auto))
 
     def measure_btn_handler(self, event):
+        """Handle the measure button click event.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         if self.is_measuring:
             self.is_measuring = False
         else:
@@ -461,12 +573,22 @@ class UntetheredFrame(BaseFrame):
             self.measure()
 
     def measurement_play_sound_handler(self, event):
+        """Toggle the sound on/off setting and update the button bitmap.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         setcfg(
             "measurement.play_sound", int(not (bool(getcfg("measurement.play_sound"))))
         )
         self.set_sound_on_off_btn_bitmap()
 
     def get_sound_on_off_btn_bitmap(self):
+        """Get the bitmap for the sound on/off button based on the current setting.
+
+        Returns:
+            wx.Bitmap: The bitmap for the sound on/off button.
+        """
         if getcfg("measurement.play_sound"):
             bitmap = geticon(16, "sound_volume_full")
         else:
@@ -474,14 +596,25 @@ class UntetheredFrame(BaseFrame):
         return bitmap
 
     def set_sound_on_off_btn_bitmap(self):
+        """Set the bitmap for the sound on/off button based on the current setting."""
         bitmap = self.get_sound_on_off_btn_bitmap()
         self.sound_on_off_btn._bitmap = bitmap
 
     def next_btn_handler(self, event):
+        """Handle the next button click event.
+
+        Args:
+            event (wx.Event): The event that triggered the action, if any.
+        """
         if self.index < self.index_max:
             self.update(self.index + 1)
 
     def parse_txt(self, txt):
+        """Parse the text output from the worker subprocess.
+
+        Args:
+            txt (str): The text output to parse.
+        """
         if not txt:
             return
         self.logger.info(f"{txt!r}")
@@ -619,17 +752,29 @@ class UntetheredFrame(BaseFrame):
                 wx.CallLater(delay, self.enable_btns)
 
     def pause_continue_handler(self, event=None):
+        """Handle pause/continue action.
+
+        Args:
+            event: The event that triggered the action, if any.
+        """
         if not event:
             self.parse_txt(self.worker.lastmsg.read())
 
     @property
     def paused(self):
+        """Check if the untethered frame is paused.
+
+        Returns:
+            bool: True if the frame is paused, False otherwise.
+        """
         return False
 
     def reset(self):
+        """Reset the untethered frame to its initial state."""
         self._setup()
 
     def resize_grid(self):
+        """Resize the grid to fit the window."""
         num_cols = self.grid.GetNumberCols()
         if not num_cols:
             return
@@ -649,6 +794,7 @@ class UntetheredFrame(BaseFrame):
         self.grid.ForceRefresh()
 
     def _setup(self):
+        """Initial setup of the untethered frame."""
         self.logger.info("-" * 80)
         self.is_measuring = False
         self.keepGoing = True
@@ -682,10 +828,22 @@ class UntetheredFrame(BaseFrame):
         self.SetSaneGeometry(x, y)
 
     def safe_send(self, bytes_):
+        """Send bytes to the worker subprocess if it exists and is not aborted.
+
+        Args:
+            bytes_ (bytes): The bytes to send.
+        """
         if self.has_worker_subprocess() and not self.worker.subprocess_abort:
             self.worker.safe_send(bytes_)
 
     def show_RGB(self, clear_XYZ=True, mark_current_row=True):
+        """Display the RGB values and color for the current patch.
+
+        Args:
+            clear_XYZ (bool): Whether to clear the XYZ display.
+            mark_current_row (bool): Whether to mark the current row in the
+                grid.
+        """
         row = self.cgats[0].DATA[self.index]
         self.label_RGB.SetLabel(
             "RGB {} {} {}".format(
@@ -718,6 +876,7 @@ class UntetheredFrame(BaseFrame):
         self.label_index.GetContainingSizer().Layout()
 
     def show_XYZ(self):
+        """Display the XYZ values and color for the current patch."""
         Lab, color = self.get_Lab_RGB()
         self.label_XYZ.SetLabel("L*a*b* {:.2f} {:.2f} {:.2f}".format(*Lab))
         self.panel_XYZ.SetBackgroundColour(wx.Colour(*color))
@@ -726,12 +885,23 @@ class UntetheredFrame(BaseFrame):
         self.panel_XYZ.Update()
 
     def start_timer(self, ms=50):
+        """Start the timer with the given interval in milliseconds.
+
+        Args:
+            ms (int): The interval in milliseconds to trigger the timer.
+        """
         self.timer.Start(ms)
 
     def stop_timer(self):
+        """Stop the timer."""
         self.timer.Stop()
 
     def update(self, index):
+        """Update the display with the given index.
+
+        Args:
+            index (int): The index of the patch to update.
+        """
         # Reset row label
         self.grid.SetRowLabelValue(self.index, f"{self.index + 1}")
 
@@ -743,4 +913,9 @@ class UntetheredFrame(BaseFrame):
         self.enable_btns()
 
     def write(self, txt):
+        """Write text to the untethered frame.
+
+        Args:
+            txt (str): The text to write.
+        """
         wx.CallAfter(self.parse_txt, txt)

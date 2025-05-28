@@ -241,35 +241,102 @@ def Sound(filename, loop=False, raise_exceptions=False):
 
 
 class DummySound:
-    """Dummy sound wrapper class"""
+    """Dummy sound wrapper class.
+
+    Args:
+        filename (str): The filename of the sound file (not used).
+        loop (bool): Whether to loop the sound (not used).
+    """
 
     def __init__(self, filename=None, loop=False):
         pass
 
     def fade(self, fade_ms, fade_in=None):
+        """Fade in/out.
+
+        Args:
+            fade_ms (int): Fade in/out duration in milliseconds.
+            fade_in (bool): If True, fade in, if False, fade out. If None,
+                fade in if currently not playing, otherwise fade out.
+
+        Returns:
+            bool: Always True for DummySound.
+        """
         return True
 
     @property
     def is_playing(self):
+        """Return whether the sound is currently playing.
+
+        Returns:
+            bool: Always False for DummySound.
+        """
         return False
 
     def play(self, fade_ms=0):
+        """Play the sound.
+
+        Args:
+            fade_ms (int): Fade in duration in milliseconds.
+
+        Returns:
+            bool: True if the sound was played, False otherwise.
+        """
         return True
 
     @property
     def play_count(self):
+        """Return the number of times the sound has been played.
+
+        Returns:
+            int: The number of times the sound has been played.
+        """
         return 0
 
     def safe_fade(self, fade_ms, fade_in=None):
+        """Like fade(), but catch any exceptions.
+
+        Args:
+            fade_ms (int): Fade in/out duration in milliseconds.
+            fade_in (bool): If True, fade in, if False, fade out. If None,
+                fade in if currently not playing, otherwise fade out.
+
+        Returns:
+            bool: True if the fade was successful, False otherwise.
+        """
         return True
 
     def safe_play(self, fade_ms=0):
+        """Like play(), but catch any exceptions.
+
+        Args:
+            fade_ms (int): Fade in duration in milliseconds.
+
+        Returns:
+            bool: True if the sound was played, False otherwise.
+        """
         return True
 
     def safe_stop(self, fade_ms=0):
+        """Like stop(), but catch any exceptions.
+
+        Args:
+            fade_ms (int): Fade out duration in milliseconds.
+
+        Returns:
+            bool: True if the sound was stopped, False otherwise.
+        """
         return True
 
     def stop(self, fade_ms=0):
+        """Stop playback.
+
+        Args:
+            fade_ms (int): Fade out duration in milliseconds.
+
+        Returns:
+            bool: True if the sound was stopped, False otherwise.
+        """
         return True
 
     volume = 0

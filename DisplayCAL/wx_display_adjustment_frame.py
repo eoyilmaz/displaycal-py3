@@ -131,20 +131,22 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         """Return the index of the tab at the specified position or ``wx.NOT_FOUND``
         if ``None``, plus the flag style of L{HitTest}.
 
-        :param pt: an instance of `wx.Point`, to test for hits.
+        Args:
+            pt (wx.Point): an instance of `wx.Point`, to test for hits.
 
-        :return: The index of the tab at the specified position plus the hit test
-         flag, which can be one of the following bits:
+        Returns:
+            tupe(int, int): The index of the tab at the specified position plus
+                the hit test flag, which can be one of the following bits:
 
-         ====================== ======= ================================
-         HitTest Flags           Value  Description
-         ====================== ======= ================================
-         ``IMG_OVER_IMG``             0 The mouse is over the tab icon
-         ``IMG_OVER_PIN``             1 The mouse is over the pin button
-         ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west book border
-         ``IMG_NONE``                 3 Nowhere
-         ====================== ======= ================================
-
+                ====================== ======= ================================
+                HitTest Flags           Value  Description
+                ====================== ======= ================================
+                ``IMG_OVER_IMG``             0 The mouse is over the tab icon
+                ``IMG_OVER_PIN``             1 The mouse is over the pin button
+                ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west
+                                               book border
+                ``IMG_NONE``                 3 Nowhere
+                ====================== ======= ================================
         """
         if self.GetParent().GetParent().is_busy:
             return -1, IMG_NONE
@@ -182,7 +184,8 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` event for L{ImageContainer}.
 
-        :param event: a `wx.PaintEvent` event to be processed.
+        Args:
+            event (wx.PaintEvent): a `wx.PaintEvent` event to be processed.
         """
         dc = wx.BufferedPaintDC(self)
         style = self.GetParent().GetAGWWindowStyleFlag()
@@ -429,6 +432,15 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
     This is a subclass of L{FlatImageBook} that allows you to use
     BackgroundColour and ForegroundColour with no borders/labeltext and hilite
     image instead of hilite shading.
+
+    Args:
+        parent (wx.Window): The parent window.
+        id (int): The identifier for the FlatImageBook.
+        pos (wx.Point): The position of the FlatImageBook.
+        size (wx.Size): The size of the FlatImageBook.
+        style (int): The style of the FlatImageBook.
+        agwStyle (int): The advanced GUI window style flags.
+        name (str): The name of the FlatImageBook.
     """
 
     def __init__(
@@ -446,6 +458,11 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         )
 
     def CreateImageContainer(self):
+        """Create the image container for the FlatImageBook.
+
+        Returns:
+            DisplayAdjustmentImageContainer: An instance of the custom image.
+        """
         return DisplayAdjustmentImageContainer(
             self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
         )
@@ -526,7 +543,15 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
 
 class DisplayAdjustmentPanel(wx_Panel):
-    """Panel for interactive display adjustment."""
+    """Panel for interactive display adjustment.
+
+    Args:
+        parent (wx.Window | None): The parent window.
+        id (int): The identifier for the panel.
+        title (str): The title of the panel.
+        ctrltype (str): The type of control to display, e.g., "luminance",
+            "black_level", "white_point", "black_point", or "rgb_offset".
+    """
 
     def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):  # noqa: A002
         # wx_Panel.__init__(self, parent, id)
@@ -592,13 +617,13 @@ class DisplayAdjustmentPanel(wx_Panel):
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
             self.add_marker()
-            self.add_gauge("R", ctrltype + "_red", "R")
+            self.add_gauge("R", f"{ctrltype}_red", "R")
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
-            self.add_gauge("G", ctrltype + "_green", "G")
+            self.add_gauge("G", f"{ctrltype}_green", "G")
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
-            self.add_gauge("B", ctrltype + "_blue", "B")
+            self.add_gauge("B", f"{ctrltype}_blue", "B")
             self.add_marker("btm")
             self.add_txt("rgb")
         else:
@@ -626,8 +651,16 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.add_marker("btm")
         self.add_txt("luminance")
 
-    def add_gauge(self, name="R", bitmapname=None, tooltip=None):
-        if bitmapname == "black_level" or bitmapname.startswith("rgb_offset"):
+    def add_gauge(self, name="R", bitmap_name=None, tooltip=None):
+        """Add a gauge to the panel.
+
+        Args:
+            name (str): The name of the gauge, e.g., "R", "G", "B", or "L".
+            bitmap_name (str | None): The name of the bitmap to use for the
+                gauge label.
+            tooltip (str | None): An optional tooltip for the gauge label.
+        """
+        if bitmap_name == "black_level" or bitmap_name.startswith("rgb_offset"):
             gaugecolors = {
                 "R": (wx.Colour(102, 0, 0), wx.Colour(204, 0, 0)),
                 "G": (wx.Colour(0, 102, 0), wx.Colour(0, 204, 0)),
@@ -649,9 +682,9 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.gauges[name].SetBarGradient(gaugecolors[name])
         self.gauges[name].SetBorderColour(BORDERCOLOUR)
         self.gauges[name].SetValue(0)
-        if bitmapname:
+        if bitmap_name:
             self.gauges[name].label = wx.StaticBitmap(
-                self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{bitmapname}")
+                self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{bitmap_name}")
             )
             if tooltip:
                 self.gauges[name].label.SetToolTipString(tooltip)
@@ -664,6 +697,11 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.sizer.Add(self.gauges[name], flag=wx.ALIGN_CENTER_VERTICAL)
 
     def add_marker(self, direction="top"):
+        """Add a marker line to the panel.
+
+        Args:
+            direction (str): The direction of the marker, either "top" or "btm".
+        """
         self.sizer.Add((1, 1))
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
         self.sizer.Add(
@@ -676,6 +714,14 @@ class DisplayAdjustmentPanel(wx_Panel):
         )
 
     def add_txt(self, name, spacer=None, border=8):
+        """Add a text label with a checkmark icon.
+
+        Args:
+            name (str): The name of the text control.
+            spacer (wx.Window | None): An optional spacer window to add before
+                the checkmark.
+            border (int): The border size around the text control.
+        """
         checkmark = wx.StaticBitmap(
             self, wx.ID_ANY, getbitmap("theme/icons/16x16/checkmark")
         )
@@ -715,22 +761,24 @@ class DisplayAdjustmentPanel(wx_Panel):
         )
 
     def update_desc(self):
-        if self.ctrltype in ("luminance", "black_level"):
-            if self.ctrltype == "black_level":
-                lstr = "calibration.interactive_display_adjustment.black_level.crt"
-            elif getcfg("measurement_mode") == "c":
-                # CRT
-                lstr = "calibration.interactive_display_adjustment.white_level.crt"
-            else:
-                lstr = "calibration.interactive_display_adjustment.white_level.lcd"
-            self.desc.SetLabel(
-                lang.getstr(lstr)
-                + " "
-                + lang.getstr(
-                    "calibration.interactive_display_adjustment.generic_hint.singular"
-                )
+        """Update the description label based on the control type."""
+        if self.ctrltype not in ("luminance", "black_level"):
+            return
+        if self.ctrltype == "black_level":
+            lstr = "calibration.interactive_display_adjustment.black_level.crt"
+        elif getcfg("measurement_mode") == "c":
+            # CRT
+            lstr = "calibration.interactive_display_adjustment.white_level.crt"
+        else:
+            lstr = "calibration.interactive_display_adjustment.white_level.lcd"
+        self.desc.SetLabel(
+            lang.getstr(lstr)
+            + " "
+            + lang.getstr(
+                "calibration.interactive_display_adjustment.generic_hint.singular"
             )
-            self.desc.Wrap(250)
+        )
+        self.desc.Wrap(250)
 
 
 NEVER = False
@@ -741,7 +789,16 @@ else:
 
 
 class DisplayAdjustmentFrame(windowcls):
-    """Main window for interactive display adjustment."""
+    """Main window for interactive display adjustment.
+
+    Args:
+        parent (None | wx.Window): The parent window.
+        handler (None | callable): A handler function to call when an event
+            occurs.
+        keyhandler (None | callable): A key handler function to call when a key
+            event occurs.
+        start_timer (bool): Whether to start a timer for periodic updates.
+    """
 
     def __init__(self, parent=None, handler=None, keyhandler=None, start_timer=True):
         # windowcls.__init__(self, parent, wx.ID_ANY,
@@ -931,12 +988,32 @@ class DisplayAdjustmentFrame(windowcls):
         OnEraseBackground = wx_Panel.__dict__["OnEraseBackground"]
 
     def EndModal(self, returncode=wx.ID_OK):
+        """End the modal state of the display adjustment frame.
+
+        Args:
+            returncode (int): The return code to indicate the result of the
+                modal operation. Defaults to wx.ID_OK.
+
+        Returns:
+            int: The return code indicating the result of the modal operation.
+        """
         return returncode
 
-    def MakeModal(self, makemodal=False):
-        pass
+    def MakeModal(self, modal=False):
+        """Make the display adjustment frame modal or not.
+
+        Args:
+            modal (bool): If True, make the frame modal; otherwise, make it
+                non-modal.
+        """
 
     def OnClose(self, event):
+        """Handle the close event of the display adjustment frame.
+
+        Args:
+            event (wx.CloseEvent): The event object containing information
+                about the window being closed.
+        """
         # if getattr(self, "measurement_play_sound_ctrl", None):
         # setcfg("measurement.play_sound",
         # int(self.measurement_play_sound_ctrl.GetValue()))
@@ -947,6 +1024,15 @@ class DisplayAdjustmentFrame(windowcls):
             self.keepGoing = False
 
     def OnDestroy(self, event):
+        """Handle the destruction of the display adjustment frame.
+
+        Args:
+            event (wx.WindowDestroyEvent): The event object containing information
+                about the window being destroyed.
+
+        Returns:
+            int: Returns 0 if the control IDs were successfully unreserved.
+        """
         self.stop_timer()
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
@@ -963,6 +1049,11 @@ class DisplayAdjustmentFrame(windowcls):
         return 0
 
     def OnMove(self, event):
+        """Handle window move event.
+
+        Args:
+            event (wx.MoveEvent): The event object containing information about
+        """
         if (
             self.IsShownOnScreen()
             and not self.IsIconized()
@@ -976,12 +1067,27 @@ class DisplayAdjustmentFrame(windowcls):
                 setcfg("position.progress.y", y)
 
     def OnPageChanging(self, event):
+        """Handle page changing event.
+
+        Args:
+            event (wx.CommandEvent): The event object containing information
+        """
         _oldsel = event.GetOldSelection()
         _newsel = event.GetSelection()
         self.abort()
         event.Skip()
 
     def Pulse(self, msg=""):
+        """Pulse the display adjustment with a message.
+
+        Args:
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
         if not msg:
             return self.keepGoing, False
         msg = str(msg)
@@ -1013,16 +1119,39 @@ class DisplayAdjustmentFrame(windowcls):
         return self.keepGoing, False
 
     def Resume(self):
+        """Resume the interactive display adjustment."""
         self.keepGoing = True
         self.set_sound_on_off_btn_bitmap()
 
     def UpdateProgress(self, value, msg=""):
+        """Update the progress with a value and a message.
+
+        Args:
+            value (int): The value to set the progress to.
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
         return self.Pulse(msg)
 
     def UpdatePulse(self, msg=""):
+        """Update the pulse with a message.
+
+        Args:
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
         return self.Pulse(msg)
 
     def _assign_image_list(self):
+        """Assign an image list to the labelbook."""
         imagelist = None
         modes = {CRT: {"black_luminance": "luminance", "luminance": "contrast"}}
         for img in (
@@ -1041,6 +1170,11 @@ class DisplayAdjustmentFrame(windowcls):
         self.lb.AssignImageList(imagelist)
 
     def _setup(self, init=False):
+        """Setup the display adjustment frame.
+
+        Args:
+            init (bool): If True, perform initial setup.
+        s"""
         self.logger.info("-" * 80)
         self.cold_run = True
         self.is_busy = None
@@ -1142,10 +1276,16 @@ class DisplayAdjustmentFrame(windowcls):
         self.SetSaneGeometry(x, y)
 
     def abort(self):
+        """Abort the current operation."""
         if self.has_worker_subprocess() and self.is_measuring:
             self.worker.safe_send(" ")
 
     def abort_and_send(self, key):
+        """Abort the current operation and send a key to the worker subprocess.
+
+        Args:
+            key (str): The key to send to the worker subprocess.
+        """
         self.abort()
         if self.has_worker_subprocess() and self.worker.safe_send(key):
             self.is_busy = True
@@ -1153,11 +1293,25 @@ class DisplayAdjustmentFrame(windowcls):
             self.calibration_btn.Disable()
 
     def add_panel(self, size=wx.DefaultSize, flag=0):
+        """Add a panel to the sizer with the specified size and flags.
+
+        Args:
+            size (tuple): The size of the panel to add.
+            flag (int): The flags to apply to the panel.
+
+        Returns:
+            wx.Panel: The created panel instance.
+        """
         panel = get_panel(self, size)
         self.sizer.Add(panel, flag=flag)
         return panel
 
     def continue_to_calibration(self, event=None):
+        """Continue to the calibration step after interactive adjustment.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this method.
+        """
         if getcfg("trc"):
             self.abort_and_send("7")
         else:
@@ -1166,6 +1320,14 @@ class DisplayAdjustmentFrame(windowcls):
     def create_start_interactive_adjustment_button(
         self, icon="play", enable=False, startstop="start"
     ):
+        """Create or update the interactive adjustment button.
+
+        Args:
+            icon (str): The icon to use for the button.
+            enable (bool): Whether the button should be enabled.
+            startstop (str): The action to display on the button, either
+                "start" or "stop".
+        """
         if getattr(self, "adjustment_btn", None):
             self.adjustment_btn._bitmap = getbitmap(f"theme/icons/10x10/{icon}")
             self.adjustment_btn.SetLabel(
@@ -1182,6 +1344,16 @@ class DisplayAdjustmentFrame(windowcls):
         self.adjustment_btn.Enable(enable)
 
     def create_gradient_button(self, bitmap, label, name):
+        """Create a gradient button with the specified bitmap and label.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to display on the button.
+            label (str): The label for the button.
+            name (str): The name of the button.
+
+        Returns:
+            FlatShadedButton: The created button instance.
+        """
         btn = FlatShadedButton(
             self, bitmap=bitmap, label=label, name=name, fgcolour=FGCOLOUR
         )
@@ -1190,17 +1362,32 @@ class DisplayAdjustmentFrame(windowcls):
         return btn
 
     def flush(self):
-        pass
+        """Flush the output buffer of the worker subprocess if available."""
 
     def has_worker_subprocess(self):
+        """Check if the worker subprocess is available.
+
+        Returns:
+            bool: True if the worker subprocess is available, False otherwise.
+        """
         return bool(
             getattr(self, "worker", None) and getattr(self.worker, "subprocess", None)
         )
 
     def isatty(self):
+        """Check if the interactive display adjustment is in a terminal.
+
+        Returns:
+            bool: Always returns True, as this is a GUI application.
+        """
         return True
 
     def key_handler(self, event):
+        """Handle key events for interactive display adjustment.
+
+        Args:
+            event (wx.Event): The key event triggered by the user.
+        """
         # print {wx.EVT_CHAR.typeId: 'EVT_CHAR',
         # wx.EVT_CHAR_HOOK.typeId: 'EVT_CHAR_HOOK',
         # wx.EVT_KEY_DOWN.typeId: 'EVT_KEY_DOWN',
@@ -1258,6 +1445,11 @@ class DisplayAdjustmentFrame(windowcls):
             event.Skip()
 
     def measurement_play_sound_handler(self, event):
+        """Toggle the sound on/off setting and update the button bitmap.
+
+        Args:
+            event (wx.Event): The event triggered by the button click.
+        """
         # self.measurement_play_sound_ctrl.SetValue(
         #     not self.measurement_play_sound_ctrl.GetValue()
         # )
@@ -1267,6 +1459,7 @@ class DisplayAdjustmentFrame(windowcls):
         self.set_sound_on_off_btn_bitmap()
 
     def get_sound_on_off_btn_bitmap(self):
+        """Get the bitmap for the sound on/off button based on the current setting."""
         if getcfg("measurement.play_sound"):
             bitmap = geticon(16, "sound_volume_full")
         else:
@@ -1274,10 +1467,16 @@ class DisplayAdjustmentFrame(windowcls):
         return bitmap
 
     def set_sound_on_off_btn_bitmap(self):
+        """Set the bitmap for the sound on/off button based on the current setting."""
         bitmap = self.get_sound_on_off_btn_bitmap()
         self.sound_on_off_btn._bitmap = bitmap
 
     def parse_txt(self, txt):
+        """Parse the text output from the instrument and update the UI.
+
+        Args:
+            txt (str): The text output from the instrument.
+        """
         colors = {True: wx.Colour(0x33, 0xCC, 0x0), False: FGCOLOUR}
         if not txt:
             return
@@ -1620,6 +1819,7 @@ class DisplayAdjustmentFrame(windowcls):
     # (str(self.is_measuring), self.timer.IsRunning(), self.keepGoing))
 
     def reset(self):
+        """Reset the display adjustment frame to its initial state."""
         self.Freeze()
         self._setup()
         # Reset controls
@@ -1639,16 +1839,32 @@ class DisplayAdjustmentFrame(windowcls):
         self.Thaw()
 
     def start_interactive_adjustment(self, event=None):
+        """Start the interactive display adjustment process.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this method.
+        """
         if self.is_measuring:
             self.abort()
         else:
             self.abort_and_send(self.pagenum_2_argyll_key_num[self.lb.GetSelection()])
 
     def start_timer(self, ms=50):
+        """Start the timer with a specified interval.
+
+        Args:
+            ms (int): The interval in milliseconds to trigger the timer.
+        """
         self.timer.Start(ms)
 
     def stop_timer(self):
+        """Stop the timer."""
         self.timer.Stop()
 
     def write(self, txt):
+        """Write text to the display adjustment frame.
+
+        Args:
+            txt (str): The text to write.
+        """
         wx.CallAfter(self.parse_txt, txt)

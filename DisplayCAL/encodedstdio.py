@@ -126,30 +126,76 @@ class EncodedStream:
             object.__setattr__(self, name, value)
 
     def __next__(self):
-        """Read the next line from the stream."""
+        """Read the next line from the stream.
+
+        Returns:
+            str: The next line read from the stream, decoded.
+        """
         return self.readline()
 
     def read(self, size=-1):
+        """Read from the stream and decode it.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads the entire stream.
+
+        Returns:
+            str: The decoded text read from the stream.
+        """
         return conditional_decode(read(self.stream, size), self.encoding, self.errors)
 
     def readline(self, size=-1):
+        """Read a single line from the stream and decode it.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads the entire line.
+
+        Returns:
+            str: The decoded line read from the stream.
+        """
         return conditional_decode(
             self.stream.readline(size), self.encoding, self.errors
         )
 
     def readlines(self, size=-1):
+        """Read lines from the stream and decode them.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads all lines.
+
+        Returns:
+            list: A list of decoded lines read from the stream.
+        """
         return [
             conditional_decode(line, self.encoding, self.errors)
             for line in self.stream.readlines(size)
         ]
 
     def xreadlines(self):
+        """Return an iterator that reads lines from the stream.
+
+        Returns:
+            Iterator[str]: An iterator that yields lines from the stream.
+        """
         return self
 
     def write(self, text):
+        """Write text to the stream, encoding it if necessary.
+
+        Args:
+            text (str): The text to write to the stream.
+        """
         write(self.stream, conditional_encode(text, self.encoding, self.errors))
 
     def writelines(self, lines):
+        """Write a list of lines to the stream.
+
+        Args:
+            lines (list): A list of strings to write to the stream.
+        """
         for line in lines:
             self.write(line)
 

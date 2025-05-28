@@ -36,7 +36,33 @@ BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 
 
 class FlatShadedNumberedButton(FlatShadedButton):
-    """Flat shaded button with a number."""
+    """Flat shaded button with a number.
+
+    Args:
+        parent (wx.Window): The parent window for this button.
+        id (int, optional): The identifier for the button. Defaults to
+            wx.ID_ANY.
+        bitmap (wx.Bitmap, optional): The bitmap to display on the button.
+            Defaults to None.
+        label (str, optional): The label for the button. Defaults to an empty
+            string.
+        pos (wx.Point, optional): The position of the button. Defaults to
+            wx.DefaultPosition.
+        size (wx.Size, optional): The size of the button. Defaults to
+            wx.DefaultSize.
+        style (int, optional): The style of the button. Defaults to
+            wx.NO_BORDER.
+        validator (wx.Validator, optional): The validator for the button.
+            Defaults to wx.DefaultValidator.
+        name (str, optional): The name of the button. Defaults to
+            "gradientbutton".
+        bgcolour (wx.Colour, optional): The background colour of the button.
+            Defaults to None.
+        fgcolour (wx.Colour, optional): The foreground colour of the button.
+            Defaults to None.
+        index (int, optional): The index of the button in the grid. Defaults to
+            0.
+    """
 
     def __init__(
         self,
@@ -70,12 +96,32 @@ class FlatShadedNumberedButton(FlatShadedButton):
         self.index = index
 
     def OnGainFocus(self, event):
+        """Handle the focus gain event for the button.
+
+        Args:
+            event (wx.Event): The focus gain event triggered when the button
+                gains focus.
+        """
         self.TopLevelParent.index = self.index
         FlatShadedButton.OnGainFocus(self, event)
 
 
 class DisplayUniformityFrame(BaseFrame):
-    """Display uniformity measurement frame."""
+    """Display uniformity measurement frame.
+
+    Args:
+        parent (wx.Window): The parent window for this frame.
+        handler (callable, optional): A function to handle timer events.
+            Defaults to None.
+        keyhandler (callable, optional): A function to handle key events.
+            Defaults to None.
+        start_timer (bool, optional): Whether to start the timer on
+            initialization. Defaults to True.
+        rows (int, optional): Number of rows in the grid. Defaults to config
+            value.
+        cols (int, optional): Number of columns in the grid. Defaults to config
+            value.
+    """
 
     def __init__(
         self,
@@ -184,18 +230,42 @@ class DisplayUniformityFrame(BaseFrame):
             self.start_timer()
 
     def EndModal(self, returncode=wx.ID_OK):
+        """End the modal state of the display uniformity frame.
+
+        Args:
+            returncode (int): The return code to indicate the result of the modal
+                operation. Default is wx.ID_OK.
+
+        Returns:
+            int: The return code indicating the result of the modal operation.
+        """
         return returncode
 
-    def MakeModal(self, makemodal=False):
-        pass
+    def MakeModal(self, modal=False):
+        """Make the display uniformity frame modal.
+
+        Args:
+            modal (bool): If True, make the frame modal; if False, make it
+                non-modal.
+        """
 
     def OnClose(self, event):
+        """Handle the close event for the display uniformity frame.
+
+        Args:
+            event (wx.Event): The close event triggered when the frame is closed.
+        """
         if not self.timer.IsRunning():
             self.Destroy()
         else:
             self.keepGoing = False
 
     def OnDestroy(self, event):
+        """Handle the destruction of the display uniformity frame.
+
+        Args:
+            event (wx.Event): The destroy event triggered when the frame is closed.
+        """
         self.stop_timer()
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
@@ -210,15 +280,30 @@ class DisplayUniformityFrame(BaseFrame):
         return 0
 
     def OnMove(self, event):
-        pass
+        """Handle the move event for the display uniformity frame.
+
+        Args:
+            event (wx.Event): The move event triggered when the frame is moved.
+        """
 
     def Pulse(self, msg=""):
+        """Pulse the display uniformity frame with a message.
+
+        Args:
+            msg (str): The message to display during the pulse.
+        """
         return self.keepGoing, False
 
     def Resume(self):
+        """Resume the display uniformity frame."""
         self.keepGoing = True
 
     def Show(self, show=True):
+        """Show or hide the display uniformity frame.
+
+        Args:
+            show (bool): If True, show the frame; if False, hide it.
+        """
         if show:
             display_no = getcfg("display.number") - 1
             if display_no < 0 or display_no > wx.Display.GetCount() - 1:
@@ -235,29 +320,55 @@ class DisplayUniformityFrame(BaseFrame):
         self.panels[0].SetFocus()
 
     def UpdateProgress(self, value, msg=""):
+        """Update the progress of the display uniformity frame.
+
+        Args:
+            value (int): The progress value to update.
+            msg (str): The message to display during the progress update.
+
+        Returns:
+            bool: True if the pulse was successful, False otherwise.
+        """
         return self.Pulse(msg)
 
     def UpdatePulse(self, msg=""):
+        """Update the pulse with a message.
+
+        Args:
+            msg (str): The message to display during the pulse.
+        """
         return self.Pulse(msg)
 
     def disable_buttons(self):
+        """Disable all buttons in the display uniformity frame."""
         self.enable_buttons(False)
 
     def enable_buttons(self, enable=True):
+        """Enable or disable all buttons in the display uniformity frame.
+
+        Args:
+            enable (bool): If True, enable the buttons; if False, disable them.
+        """
         for button in self.buttons:
             button.Enable(enable)
 
     def flush(self):
-        pass
+        """Flush the output stream."""
 
     get_display = MeasureFrame.__dict__["get_display"]
 
     def has_worker_subprocess(self):
+        """Check if the worker subprocess exists.
+
+        Returns:
+            bool: True if the worker subprocess exists, False otherwise.
+        """
         return bool(
             getattr(self, "worker", None) and getattr(self.worker, "subprocess", None)
         )
 
     def hide_cursor(self):
+        """Hide the cursor and set it to a blank cursor."""
         cursor_id = wx.CURSOR_BLANK
         cursor = wx.StockCursor(cursor_id)
         self.SetCursor(cursor)
@@ -269,9 +380,19 @@ class DisplayUniformityFrame(BaseFrame):
             button.SetCursor(cursor)
 
     def isatty(self):
+        """Check if the standard output is a terminal.
+
+        Returns:
+            bool: True if the standard output is a terminal, False otherwise.
+        """
         return True
 
     def key_handler(self, event):
+        """Handle key events for the display uniformity frame.
+
+        Args:
+            event (wx.Event): The key event to handle.
+        """
         keycode = None
         if event.GetEventType() in (
             wx.EVT_CHAR.typeId,
@@ -308,6 +429,12 @@ class DisplayUniformityFrame(BaseFrame):
             event.Skip()
 
     def measure(self, event=None):
+        """Start measuring the uniformity grid.
+
+        Args:
+            event (wx.Event, optional): The event that triggered the
+                measurement. Defaults to None.
+        """
         if event:
             self.index = event.GetEventObject().index
             print(f"{APPNAME}: Uniformity grid index {self.index}")
@@ -330,6 +457,11 @@ class DisplayUniformityFrame(BaseFrame):
         wx.CallLater(200, self.safe_send, " ")
 
     def parse_txt(self, txt):
+        """Parse the text output from the instrument.
+
+        Args:
+            txt (str): The text output from the instrument.
+        """
         if not txt:
             return
         self.logger.info(f"{txt!r}")
@@ -354,99 +486,97 @@ class DisplayUniformityFrame(BaseFrame):
                     rf"Closest\s+{locus}\s+temperature\s+=\s+(\d+)K", txt, re.I
                 )
                 self.results[self.index][-1][f"C{locus[0]}T"] = int(CT.groups()[0])
-        if "key to take a reading" in txt and not self.last_error:
-            print(f"{APPNAME}: Got 'key to take a reading'")
-            if not self.is_measuring:
-                self.enable_buttons()
-                return
-            if len(self.results[self.index]) < len(self.colors):
-                # Take readings at 5 different brightness levels per swatch
-                print(f"{APPNAME}: About to take next reading")
-                self.measure()
-            else:
-                self.is_measuring = False
-                self.show_cursor()
-                self.enable_buttons()
-                self.buttons[self.index].Show()
-                self.buttons[self.index].SetFocus()
-                self.buttons[self.index].SetBitmap(
-                    getbitmap("theme/icons/16x16/checkmark")
+        if "key to take a reading" not in txt or self.last_error:
+            return
+        print(f"{APPNAME}: Got 'key to take a reading'")
+        if not self.is_measuring:
+            self.enable_buttons()
+            return
+        if len(self.results[self.index]) < len(self.colors):
+            # Take readings at 5 different brightness levels per swatch
+            print(f"{APPNAME}: About to take next reading")
+            self.measure()
+        else:
+            self.is_measuring = False
+            self.show_cursor()
+            self.enable_buttons()
+            self.buttons[self.index].Show()
+            self.buttons[self.index].SetFocus()
+            self.buttons[self.index].SetBitmap(getbitmap("theme/icons/16x16/checkmark"))
+            self.panels[self.index].SetBackgroundColour(BGCOLOUR)
+            self.panels[self.index].Refresh()
+            self.panels[self.index].Update()
+            if len(self.results) == self.rows * self.cols:
+                # All swatches have been measured, show results
+                # Let the user choose a location for the results html
+                display_no, geometry, client_area = self.get_display()
+                # Translate from wx display index to Argyll display index
+                geometry = f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
+                for i, display in enumerate(getcfg("displays")):
+                    if display.find(f"@ {geometry}") > -1:
+                        print(f"Found display {display} at index {i}")
+                        break
+                display = display.replace(" [PRIMARY]", "")
+                defaultFile = "Uniformity Check {} — {} — {}".format(
+                    APPVERSION,
+                    re.sub(r"[\\/:*?\"<>|]+", "_", display),
+                    strftime("%Y-%m-%d %H-%M.html"),
                 )
-                self.panels[self.index].SetBackgroundColour(BGCOLOUR)
-                self.panels[self.index].Refresh()
-                self.panels[self.index].Update()
-                if len(self.results) == self.rows * self.cols:
-                    # All swatches have been measured, show results
-                    # Let the user choose a location for the results html
-                    display_no, geometry, client_area = self.get_display()
-                    # Translate from wx display index to Argyll display index
-                    geometry = (
-                        f"{geometry[0]}, {geometry[1]}, {geometry[2]}x{geometry[3]}"
-                    )
-                    for i, display in enumerate(getcfg("displays")):
-                        if display.find(f"@ {geometry}") > -1:
-                            print(f"Found display {display} at index {i}")
-                            break
-                    display = display.replace(" [PRIMARY]", "")
-                    defaultFile = "Uniformity Check {} — {} — {}".format(
-                        APPVERSION,
-                        re.sub(r"[\\/:*?\"<>|]+", "_", display),
-                        strftime("%Y-%m-%d %H-%M.html"),
-                    )
-                    defaultDir = get_verified_path(
-                        None, os.path.join(getcfg("profile.save_path"), defaultFile)
-                    )[0]
-                    dlg = wx.FileDialog(
-                        self,
-                        lang.getstr("save_as"),
-                        defaultDir,
-                        defaultFile,
-                        wildcard=lang.getstr("filetype.html") + "|*.html;*.htm",
-                        style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
-                    )
-                    dlg.Center(wx.BOTH)
-                    result = dlg.ShowModal()
-                    if result == wx.ID_OK:
-                        path = dlg.GetPath()
-                        if not waccess(path, os.W_OK):
-                            from DisplayCAL.worker import show_result_dialog
-
-                            show_result_dialog(
-                                Error(lang.getstr("error.access_denied.write", path)),
-                                self,
-                            )
-                            return
-                        save_path = os.path.splitext(path)[0] + ".html"
-                        setcfg("last_filedialog_path", save_path)
-                    dlg.Destroy()
-                    if result != wx.ID_OK:
-                        return
-                    locus = loci.get(getcfg("whitepoint.colortemp.locus"))
-                    try:
-                        report.create(
-                            save_path,
-                            {
-                                "${REPORT_VERSION}": APPVERSION,
-                                "${DISPLAY}": display,
-                                "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),
-                                "${ROWS}": str(self.rows),
-                                "${COLS}": str(self.cols),
-                                "${RESULTS}": str(self.results),
-                                "${LOCUS}": locus,
-                            },
-                            getcfg("report.pack_js"),
-                            "uniformity",
-                        )
-                    except OSError as exception:
+                defaultDir = get_verified_path(
+                    None, os.path.join(getcfg("profile.save_path"), defaultFile)
+                )[0]
+                dlg = wx.FileDialog(
+                    self,
+                    lang.getstr("save_as"),
+                    defaultDir,
+                    defaultFile,
+                    wildcard=lang.getstr("filetype.html") + "|*.html;*.htm",
+                    style=wx.SAVE | wx.FD_OVERWRITE_PROMPT,
+                )
+                dlg.Center(wx.BOTH)
+                result = dlg.ShowModal()
+                if result == wx.ID_OK:
+                    path = dlg.GetPath()
+                    if not waccess(path, os.W_OK):
                         from DisplayCAL.worker import show_result_dialog
 
-                        show_result_dialog(exception, self)
-                    else:
-                        launch_file(save_path)
-                if getcfg("uniformity.measure.continuous"):
-                    self.measure(event=Event(self.buttons[self.index]))
+                        show_result_dialog(
+                            Error(lang.getstr("error.access_denied.write", path)),
+                            self,
+                        )
+                        return
+                    save_path = os.path.splitext(path)[0] + ".html"
+                    setcfg("last_filedialog_path", save_path)
+                dlg.Destroy()
+                if result != wx.ID_OK:
+                    return
+                locus = loci.get(getcfg("whitepoint.colortemp.locus"))
+                try:
+                    report.create(
+                        save_path,
+                        {
+                            "${REPORT_VERSION}": APPVERSION,
+                            "${DISPLAY}": display,
+                            "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),
+                            "${ROWS}": str(self.rows),
+                            "${COLS}": str(self.cols),
+                            "${RESULTS}": str(self.results),
+                            "${LOCUS}": locus,
+                        },
+                        getcfg("report.pack_js"),
+                        "uniformity",
+                    )
+                except OSError as exception:
+                    from DisplayCAL.worker import show_result_dialog
+
+                    show_result_dialog(exception, self)
+                else:
+                    launch_file(save_path)
+            if getcfg("uniformity.measure.continuous"):
+                self.measure(event=Event(self.buttons[self.index]))
 
     def reset(self):
+        """Reset the display uniformity frame to its initial state."""
         self._setup()
         for panel in self.panels:
             panel.SetBackgroundColour(BGCOLOUR)
@@ -467,18 +597,24 @@ class DisplayUniformityFrame(BaseFrame):
         self.results = {}
         self.display_rects = get_display_rects()
 
-    def safe_send(self, bytes_):
+    def safe_send(self, data):
+        """Safely send the data to the worker subprocess if it exists.
+
+        Args:
+            data (str): The data to send to the worker subprocess.
+        """
         if self.has_worker_subprocess() and not self.worker.subprocess_abort:
             if not self.worker.instrument_on_screen:
                 if not getattr(self, "wait_for_instrument_on_screen", False):
                     self.wait_for_instrument_on_screen = True
                     print(f"{APPNAME}: Waiting for instrument to be placed on screen")
-                wx.CallLater(200, self.safe_send, bytes_)
+                wx.CallLater(200, self.safe_send, data)
             else:
                 self.wait_for_instrument_on_screen = False
-                self.worker.safe_send(bytes_)
+                self.worker.safe_send(data)
 
     def show_cursor(self):
+        """Show the cursor and reset it to the default arrow cursor."""
         cursor = wx.StockCursor(wx.CURSOR_ARROW)
         self.SetCursor(cursor)
         for panel in self.panels:
@@ -489,20 +625,36 @@ class DisplayUniformityFrame(BaseFrame):
             button.SetCursor(cursor)
 
     def start_timer(self, ms=50):
+        """Start the timer with a specified interval in milliseconds.
+
+        Args:
+            ms (int): The interval in milliseconds for the timer. Default is 50 ms.
+        """
         self.timer.Start(ms)
 
     def stop_timer(self):
+        """Stop the timer."""
         self.timer.Stop()
 
     def write(self, txt):
+        """Write text to the display uniformity frame."""
         wx.CallAfter(self.parse_txt, txt)
 
 
 class Event:
-    """Custom event class to handle events in the DisplayUniformityFrame."""
+    """Custom event class to handle events in the DisplayUniformityFrame.
+
+    Args:
+        evtobj (wx.Events): The event object associated with this event.
+    """
 
     def __init__(self, evtobj):
         self.evtobj = evtobj
 
     def GetEventObject(self):
+        """Return the event object.
+
+        Returns:
+            The event object associated with this event.
+        """
         return self.evtobj

@@ -40,7 +40,28 @@ def _get_console_width():
 
 
 class SafePrinter:
-    """A class for safely printing to a stream, avoiding Unicode errors."""
+    r"""A class for safely printing to a stream, avoiding Unicode errors.
+
+    Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
+    converting all other objects to safe string representations.
+
+    sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end=r'\n',
+                            file=sys.stdout, fn=None)
+    sprint(value, ..., pad=False, padchar=' ', sep=' ', end=r'\n',
+            file=sys.stdout, fn=None)
+
+    Writes the values to a stream (default sys.stdout), honoring its
+    encoding and replacing characters not present in the encoding with
+    question marks silently.
+
+    Optional keyword arguments:
+    pad:     pad the lines to n chars, or os.getenv('COLUMNS') if True.
+    padchar: character to use for padding, default a space.
+    sep:     string inserted between values, default a space.
+    end:     string appended after the last value, default a newline.
+    file:    a file-like object (stream); defaults to the sys.stdout.
+    fn:      a function to execute instead of printing.
+    """
 
     def __init__(
         self,
@@ -52,26 +73,6 @@ class SafePrinter:
         fn=None,
         encoding=None,
     ):
-        r"""Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
-        converting all other objects to safe string representations.
-
-        sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end=r'\n',
-                             file=sys.stdout, fn=None)
-        sprint(value, ..., pad=False, padchar=' ', sep=' ', end=r'\n',
-               file=sys.stdout, fn=None)
-
-        Writes the values to a stream (default sys.stdout), honoring its
-        encoding and replacing characters not present in the encoding with
-        question marks silently.
-
-        Optional keyword arguments:
-        pad:     pad the lines to n chars, or os.getenv('COLUMNS') if True.
-        padchar: character to use for padding, default a space.
-        sep:     string inserted between values, default a space.
-        end:     string appended after the last value, default a newline.
-        file:    a file-like object (stream); defaults to the sys.stdout.
-        fn:      a function to execute instead of printing.
-        """
         self.pad = pad
         self.padchar = padchar
         self.sep = sep
@@ -81,13 +82,16 @@ class SafePrinter:
         self.encoding = "utf-8"
 
     def __call__(self, *args, **kwargs):
+        """Call the instance to write the given arguments to the stream."""
         # TODO: Why calling the instance writes it, this is not a good practice.
         self.write(*args, **kwargs)
 
     def flush(self):
+        """Flush the output stream."""
         self.file and self.file.flush()
 
     def write(self, *args, **kwargs):
+        """Write the given arguments to the stream, formatted and encoded."""
         pad = kwargs.get("pad", self.pad)
         padchar = kwargs.get("padchar", self.padchar)
         sep = kwargs.get("sep", self.sep)

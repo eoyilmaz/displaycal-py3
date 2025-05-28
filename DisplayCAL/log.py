@@ -94,25 +94,68 @@ class DummyLogger:
     """
 
     def critical(self, msg, *args, **kwargs):
-        pass
+        """Log a critical message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def debug(self, msg, *args, **kwargs):
-        pass
+        """Log a debug message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def error(self, msg, *args, **kwargs):
-        pass
+        """Log an error message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def exception(self, msg, *args, **kwargs):
-        pass
+        """Log an exception message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def info(self, msg, *args, **kwargs):
-        pass
+        """Log an info message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def log(self, level, msg, *args, **kwargs):
-        pass
+        """Log a message with the specified level.
+
+        Args:
+            level (int): The logging level (e.g., logging.INFO).
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def warning(self, msg, *args, **kwargs):
-        pass
+        """Log a warning message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
 
 class Log:
@@ -156,9 +199,10 @@ class Log:
                 wx.CallAfter(wx_log, wx.GetApp().frame.infoframe, msg)
 
     def flush(self):
-        pass
+        """Flush the log."""
 
     def write(self, msg):
+        """Write a message to the log."""
         self(msg.rstrip())
 
 
@@ -179,15 +223,18 @@ class LogFile:
         )
 
     def close(self):
+        """Close the log file."""
         for handler in reversed(self._logger.handlers):
             handler.close()
             self._logger.removeHandler(handler)
 
     def flush(self):
+        """Flush the log file."""
         for handler in self._logger.handlers:
             handler.flush()
 
     def write(self, msg):
+        """Write a message to the log file."""
         for line in msg.rstrip().replace("\r\n", "\n").replace("\r", "").split("\n"):
             self._logger.info(line)
 
@@ -207,6 +254,7 @@ class SafeLogger(SafePrinter):
         self.print_ = print_
 
     def write(self, *args, **kwargs):
+        """Write the given arguments to the stream, formatted and encoded."""
         if kwargs.get("print_", self.print_):
             _safe_print(*args, **kwargs)
         if kwargs.get("log", self.log):

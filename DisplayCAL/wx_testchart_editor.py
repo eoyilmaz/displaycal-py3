@@ -83,7 +83,20 @@ from DisplayCAL.wx_windows import (
 
 
 class TestchartEditor(BaseFrame):
-    """Testchart editor window."""
+    """Testchart editor window.
+
+    Args:
+        parent (wx.Window, optional): Parent window.
+        id (int, optional): Window identifier. Defaults to -1.
+        path (str, optional): Path to a test chart file to load. If None,
+            an empty test chart is created.
+        cfg (str, optional): Configuration file name. Defaults to
+            "testchart.file".
+        parent_set_chart_methodname (str, optional): Method name in the parent
+            to set the test chart. Defaults to "set_testchart".
+        setup (bool, optional): Whether to set up the editor immediately.
+            Defaults to True.
+    """
 
     def __init__(
         self,
@@ -119,6 +132,12 @@ class TestchartEditor(BaseFrame):
             self.setup(path)
 
     def setup(self, path=None):
+        """Set up the testchart editor.
+
+        Args:
+            path (str, optional): Path to a test chart file to load. If None,
+                an empty test chart is created.
+        """
         self.worker = Worker(self)
         self.worker.set_argyll_version("targen")
 
@@ -1183,6 +1202,11 @@ class TestchartEditor(BaseFrame):
             wx.CallAfter(self.tc_load_cfg_from_ti1, None, path)
 
     def csv_drop_handler(self, path):
+        """Handle dropping a CSV file onto the test chart editor.
+
+        Args:
+            path (str): The file path of the dropped CSV file.
+        """
         if self.worker.is_working():
             return
         if not self.tc_check_save_ti1():
@@ -1201,6 +1225,15 @@ class TestchartEditor(BaseFrame):
         )
 
     def csv_convert(self, path):
+        """Convert a CSV file to a temporary TI1 file.
+
+        Args:
+            path (str): The file path of the CSV file to convert.
+
+        Returns:
+            CGATS or Exception: The converted CGATS object or an exception if
+                an error occurred.
+        """
         # Read CSV file and get rows
         rows = []
         maxval = 100.0
@@ -1264,16 +1297,31 @@ END_DATA"""
         return result
 
     def csv_convert_finish(self, result):
+        """Handle the completion of the CSV conversion.
+
+        Args:
+            result (CGATS or Exception): The result of the conversion.
+        """
         if isinstance(result, Exception):
             show_result_dialog(result, self)
         else:
             self.tc_load_cfg_from_ti1(None, result.filename, resume=True)
 
     def precond_profile_drop_handler(self, path):
+        """Handle dropping a profile file onto the precondition profile control.
+
+        Args:
+            path (str): The file path of the dropped profile.
+        """
         self.tc_precond_profile.SetPath(path)
         self.tc_precond_profile_handler()
 
     def get_commands(self):
+        """Get a list of commands for the test chart editor.
+
+        Returns:
+            list: List of command strings.
+        """
         return [
             *self.get_common_commands(),
             "testchart-editor [filename | create filename]",
@@ -1281,6 +1329,15 @@ END_DATA"""
         ]
 
     def process_data(self, data):
+        """Process command line data for the test chart editor.
+
+        Args:
+            data (list): List of command line arguments.
+
+        Returns:
+            str: "ok" if the command was processed successfully, "fail" if it
+                failed, or "invalid" if the command was not recognized.
+        """
         if (
             data[0] == "testchart-editor"
             and (len(data) < 3 or (len(data) == 3 and data[1] == "create"))
@@ -1302,9 +1359,11 @@ END_DATA"""
         return "invalid"
 
     def ti1_drop_handler(self, path):
+        """Handle dropping a TI1 file onto the test chart editor."""
         self.tc_load_cfg_from_ti1(None, path)
 
     def resize_grid(self):
+        """Resize the grid columns based on the current size of the grid."""
         num_cols = self.grid.GetNumberCols()
         if not num_cols or num_cols == 1:
             return
@@ -1343,6 +1402,11 @@ END_DATA"""
             self.preview.ForceRefresh()
 
     def tc_grid_range_select_handler(self, event):
+        """Handler for grid range selection events.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if DEBUG:
             print("[D] tc_grid_range_select_handler")
         if not self.grid.GetBatchCount():
@@ -1350,10 +1414,20 @@ END_DATA"""
         event.Skip()
 
     def tc_grid_label_left_click_handler(self, event):
+        """Handler for left-clicking on a grid label.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         wx.CallAfter(self.tc_set_default_status)
         event.Skip()
 
     def tc_grid_label_left_dclick_handler(self, event):
+        """Handler for double-clicking on a grid label.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         row, col = event.GetRow(), event.GetCol()
         if col == -1:  # row label clicked
             _data = self.ti1.queryv1("DATA")
@@ -1376,6 +1450,11 @@ END_DATA"""
         event.Skip()
 
     def tc_key_handler(self, event):
+        """Handler for key events in the test chart editor.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         # AltDown
         # CmdDown
         # ControlDown
@@ -1459,11 +1538,21 @@ END_DATA"""
             event.Skip()
 
     def tc_sash_handler(self, event):
+        """Handler for the sash position change event.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if event.GetSashPosition() < self.sizer.GetMinSize()[1]:
             self.splitter.SetSashPosition(self.sizer.GetMinSize()[1])
         event.Skip()
 
     def tc_size_handler(self, event=None):
+        """Handler for the window size event.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         wx.CallAfter(self.resize_grid)
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             w, h = self.ClientSize
@@ -1473,6 +1562,11 @@ END_DATA"""
             event.Skip()
 
     def tc_sort_handler(self, event):
+        """Handler for the change patch order button.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         idx = self.change_patch_order_ctrl.GetSelection()
         if idx == 0:
             self.ti1.sort_RGB_gray_to_top()
@@ -1533,11 +1627,18 @@ END_DATA"""
         self.tc_preview(True)
 
     def tc_enable_sort_controls(self):
+        """Enable or disable the patch order controls based on the current state."""
         enable = hasattr(self, "ti1")
         self.change_patch_order_ctrl.Enable(enable)
         self.change_patch_order_btn.Enable(enable)
 
     def tc_grid_cell_change_handler(self, event, save_check=True):
+        """Handler for grid cell changes.
+
+        Args:
+            event (wx.grid.GridEvent): The grid event that triggered this handler.
+            save_check (bool): Whether to check for unsaved changes.
+        """
         data = self.ti1[0]["DATA"]
         sample = data[event.GetRow()]
         label = self.label_b2a.get(self.grid.GetColLabelValue(event.GetCol()))
@@ -1637,18 +1738,33 @@ END_DATA"""
             )
 
     def tc_white_patches_handler(self, event=None):
+        """Handler for the white patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         setcfg("tc_white_patches", self.tc_white_patches.GetValue())
         self.tc_check()
         if event:
             event.Skip()
 
     def tc_black_patches_handler(self, event=None):
+        """Handler for the black patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         setcfg("tc_black_patches", self.tc_black_patches.GetValue())
         self.tc_check()
         if event:
             event.Skip()
 
     def tc_single_channel_patches_handler(self, event=None):
+        """Handler for the single channel patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event:
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
@@ -1660,6 +1776,11 @@ END_DATA"""
             wx.CallAfter(self.tc_single_channel_patches_handler2, event)
 
     def tc_single_channel_patches_handler2(self, event=None):
+        """Handler for the single channel patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if self.tc_single_channel_patches.GetValue() == 1:
             if (
                 event
@@ -1673,6 +1794,11 @@ END_DATA"""
         self.tc_check()
 
     def tc_gray_handler(self, event=None):
+        """Handler for the gray patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event:
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
@@ -1684,6 +1810,11 @@ END_DATA"""
             wx.CallAfter(self.tc_gray_handler2, event)
 
     def tc_gray_handler2(self, event=None):
+        """Handler for the gray patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if self.tc_gray_patches.GetValue() == 1:
             if (
                 event
@@ -1697,11 +1828,21 @@ END_DATA"""
         self.tc_check()
 
     def tc_fullspread_handler(self, event=None):
+        """Handler for the full spread patches control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         setcfg("tc_fullspread_patches", self.tc_fullspread_patches.GetValue())
         self.tc_algo_handler()
         self.tc_check()
 
     def tc_gamma_handler(self, event):
+        """Handler for the gamma control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         setcfg("tc_gamma", self.tc_gamma_floatctrl.GetValue())
 
     def tc_get_total_patches(
@@ -1714,6 +1855,20 @@ END_DATA"""
         multi_bcc_steps=None,
         fullspread_patches=None,
     ):
+        """Get the total number of patches for the test chart.
+
+        Args:
+            white_patches (int, optional): Number of white patches.
+            black_patches (int, optional): Number of black patches.
+            single_channel_patches (int, optional): Number of single channel patches.
+            gray_patches (int, optional): Number of gray patches.
+            multi_steps (int, optional): Number of multi steps.
+            multi_bcc_steps (int, optional): Number of multi BCC steps.
+            fullspread_patches (int, optional): Number of full spread patches.
+
+        Returns:
+            int: The total number of patches.
+        """
         if (
             hasattr(self, "ti1")
             and [
@@ -1766,6 +1921,11 @@ END_DATA"""
         )
 
     def tc_get_black_patches(self):
+        """Get the number of black patches for the test chart.
+
+        Returns:
+            int: The number of black patches.
+        """
         if self.worker.argyll_version >= [1, 6]:
             black_patches = self.tc_black_patches.GetValue()
         else:
@@ -1782,6 +1942,11 @@ END_DATA"""
         return max(0, black_patches)
 
     def tc_get_white_patches(self):
+        """Get the number of white patches for the test chart.
+
+        Returns:
+            int: The number of white patches.
+        """
         white_patches = self.tc_white_patches.GetValue()
         single_channel_patches = self.tc_single_channel_patches.GetValue()
         gray_patches = self.tc_gray_patches.GetValue()
@@ -1795,6 +1960,11 @@ END_DATA"""
         return max(0, white_patches)
 
     def tc_multi_steps_handler(self, event=None):
+        """Handler for the multi steps control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event:
             event.Skip()
             event = CustomEvent(event.GetEventType(), event.GetEventObject())
@@ -1806,6 +1976,11 @@ END_DATA"""
             wx.CallAfter(self.tc_multi_steps_handler2, event)
 
     def tc_multi_steps_handler2(self, event=None):
+        """Handle the multi steps control.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if self.tc_multi_steps.GetValue() == 1:
             if (
                 event
@@ -1833,6 +2008,11 @@ END_DATA"""
         self.tc_check()
 
     def tc_neutral_axis_emphasis_handler(self, event=None):
+        """Handler for the neutral axis emphasis slider or intctrl.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event.GetId() == self.tc_neutral_axis_emphasis_slider.GetId():
             self.tc_neutral_axis_emphasis_intctrl.SetValue(
                 self.tc_neutral_axis_emphasis_slider.GetValue()
@@ -1848,6 +2028,11 @@ END_DATA"""
         self.tc_algo_handler()
 
     def tc_dark_emphasis_handler(self, event=None):
+        """Handler for the dark emphasis slider or intctrl.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event.GetId() == self.tc_dark_emphasis_slider.GetId():
             self.tc_dark_emphasis_intctrl.SetValue(
                 self.tc_dark_emphasis_slider.GetValue()
@@ -1860,6 +2045,11 @@ END_DATA"""
         self.tc_algo_handler()
 
     def tc_algo_handler(self, event=None):
+        """Handler for the test chart algorithm selection.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         tc_algo_enable = self.tc_fullspread_patches.GetValue() > 0
         self.tc_algo.Enable(tc_algo_enable)
         tc_algo = self.tc_algos_ba[self.tc_algo.GetStringSelection()]
@@ -1894,6 +2084,7 @@ END_DATA"""
         self.tc_enable_add_precond_controls()
 
     def tc_enable_add_precond_controls(self):
+        """Enable or disable controls related to additional preconditioning."""
         _tc_algo = getcfg("tc_algo")
         add_preconditioned_enable = hasattr(self, "ti1") and bool(
             getcfg("tc_precond_profile")
@@ -1915,6 +2106,11 @@ END_DATA"""
         self.add_ti3_relative_cb.Enable(add_preconditioned_enable)
 
     def tc_adaption_handler(self, event=None):
+        """Handler for adapting the test chart based on the adaption slider or intctrl.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this handler.
+        """
         if event.GetId() == self.tc_adaption_slider.GetId():
             self.tc_adaption_intctrl.SetValue(self.tc_adaption_slider.GetValue())
         else:
@@ -1923,61 +2119,70 @@ END_DATA"""
         self.tc_algo_handler()
 
     def tc_add_saturation_sweeps_handler(self, event):
+        """Handler for adding saturation sweeps to the test chart.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
         except (OSError, ICCProfileInvalidError) as exception:
             show_result_dialog(exception, self)
-        else:
-            rgb_space = profile.get_rgb_space()
-            if not rgb_space:
-                show_result_dialog(
-                    Error(
-                        lang.getstr(
-                            "profile.required_tags_missing",
-                            lang.getstr("profile.type.shaper_matrix"),
-                        )
-                    ),
-                    self,
-                )
-                return
-            R, G, B = {
-                self.saturation_sweeps_R_btn.GetId(): (1, 0, 0),
-                self.saturation_sweeps_G_btn.GetId(): (0, 1, 0),
-                self.saturation_sweeps_B_btn.GetId(): (0, 0, 1),
-                self.saturation_sweeps_C_btn.GetId(): (0, 1, 1),
-                self.saturation_sweeps_M_btn.GetId(): (1, 0, 1),
-                self.saturation_sweeps_Y_btn.GetId(): (1, 1, 0),
-                self.saturation_sweeps_custom_btn.GetId(): (
-                    self.saturation_sweeps_custom_R_ctrl.GetValue() / 100.0,
-                    self.saturation_sweeps_custom_G_ctrl.GetValue() / 100.0,
-                    self.saturation_sweeps_custom_B_ctrl.GetValue() / 100.0,
+            return
+
+        rgb_space = profile.get_rgb_space()
+        if not rgb_space:
+            show_result_dialog(
+                Error(
+                    lang.getstr(
+                        "profile.required_tags_missing",
+                        lang.getstr("profile.type.shaper_matrix"),
+                    )
                 ),
-            }[event.GetId()]
-            maxv = self.saturation_sweeps_intctrl.GetValue()
-            newdata = []
-            rows = self.grid.GetSelectionRows()
-            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
-            for i in range(maxv):
-                _saturation = 1.0 / (maxv - 1) * i
-                RGB, xyY = colormath.RGBsaturation(
-                    R, G, B, 1.0 / (maxv - 1) * i, rgb_space
-                )
-                X, Y, Z = colormath.xyY2XYZ(*xyY)
-                newdata.append(
-                    {
-                        "SAMPLE_ID": row + 2,
-                        "RGB_R": round(RGB[0] * 100, 4),
-                        "RGB_G": round(RGB[1] * 100, 4),
-                        "RGB_B": round(RGB[2] * 100, 4),
-                        "XYZ_X": X * 100,
-                        "XYZ_Y": Y * 100,
-                        "XYZ_Z": Z * 100,
-                    }
-                )
-            self.tc_add_data(row, newdata)
-            self.grid.select_row(row + len(newdata))
+                self,
+            )
+            return
+        R, G, B = {
+            self.saturation_sweeps_R_btn.GetId(): (1, 0, 0),
+            self.saturation_sweeps_G_btn.GetId(): (0, 1, 0),
+            self.saturation_sweeps_B_btn.GetId(): (0, 0, 1),
+            self.saturation_sweeps_C_btn.GetId(): (0, 1, 1),
+            self.saturation_sweeps_M_btn.GetId(): (1, 0, 1),
+            self.saturation_sweeps_Y_btn.GetId(): (1, 1, 0),
+            self.saturation_sweeps_custom_btn.GetId(): (
+                self.saturation_sweeps_custom_R_ctrl.GetValue() / 100.0,
+                self.saturation_sweeps_custom_G_ctrl.GetValue() / 100.0,
+                self.saturation_sweeps_custom_B_ctrl.GetValue() / 100.0,
+            ),
+        }[event.GetId()]
+        maxv = self.saturation_sweeps_intctrl.GetValue()
+        newdata = []
+        rows = self.grid.GetSelectionRows()
+        row = rows[-1] if rows else self.grid.GetNumberRows() - 1
+        for i in range(maxv):
+            _saturation = 1.0 / (maxv - 1) * i
+            RGB, xyY = colormath.RGBsaturation(R, G, B, 1.0 / (maxv - 1) * i, rgb_space)
+            X, Y, Z = colormath.xyY2XYZ(*xyY)
+            newdata.append(
+                {
+                    "SAMPLE_ID": row + 2,
+                    "RGB_R": round(RGB[0] * 100, 4),
+                    "RGB_G": round(RGB[1] * 100, 4),
+                    "RGB_B": round(RGB[2] * 100, 4),
+                    "XYZ_X": X * 100,
+                    "XYZ_Y": Y * 100,
+                    "XYZ_Z": Z * 100,
+                }
+            )
+        self.tc_add_data(row, newdata)
+        self.grid.select_row(row + len(newdata))
 
     def tc_drop_ti3_handler(self, path):
+        """Handler for dropping a TI3 file to the test chart.
+
+        Args:
+            path (str): Path to the dropped file.
+        """
         if not hasattr(self, "ti1"):
             wx.Bell()
         elif getcfg("tc_precond_profile"):
@@ -1986,6 +2191,12 @@ END_DATA"""
             show_result_dialog(lang.getstr("tc.precond.notset"), self)
 
     def tc_add_ti3_handler(self, event, chart=None):
+        """Handler for adding a TI3 file to the test chart.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+            chart (str, optional): Path to the chart file. Defaults to None.
+        """
         try:
             profile = ICCProfile(getcfg("tc_precond_profile"))
         except (OSError, ICCProfileInvalidError) as exception:
@@ -2099,81 +2310,100 @@ END_DATA"""
         )
 
     def tc_add_ti3_consumer(self, result, profile=None):
+        """Consumer for the tc_add_ti3 worker.
+
+        Args:
+            result (str or Exception): Result from the worker, either a path
+                to the processed ti3 file or an Exception.
+            profile (ICCProfile, optional): Preconditioning profile. Defaults
+                to None.
+        """
         if isinstance(result, Exception):
             show_result_dialog(result, self)
-        else:
-            chart = result
-            data_format = list(chart.queryv1("DATA_FORMAT").values())
-            intent = "r" if getcfg("tc_add_ti3_relative") else "a"
-            if not (
-                chart[0].type.strip() == "GAMUT"
-                and "RGB_R" in data_format
-                and "RGB_G" in data_format
-                and "RGB_B" in data_format
-            ):
-                as_ti3 = (
-                    "LAB_L" in data_format
-                    and "LAB_A" in data_format
-                    and "LAB_B" in data_format
-                ) or (
-                    "XYZ_X" in data_format
-                    and "XYZ_Y" in data_format
-                    and "XYZ_Z" in data_format
-                )
-                if getcfg("tc_add_ti3_relative"):
-                    _ = chart.adapt()
-                ti1, ti3, void = self.worker.chart_lookup(
-                    chart, profile, as_ti3, intent=intent, white_patches=False
-                )
-                if not ti1 or not ti3:
-                    return
-                chart = ti1 if as_ti3 else ti3
-            dataset = chart.queryi1("DATA")
-            data_format = list(dataset.queryv1("DATA_FORMAT").values())
-            # Returned CIE values are always either XYZ or Lab
-            if (
+            return
+
+        chart = result
+        data_format = list(chart.queryv1("DATA_FORMAT").values())
+        intent = "r" if getcfg("tc_add_ti3_relative") else "a"
+        if not (
+            chart[0].type.strip() == "GAMUT"
+            and "RGB_R" in data_format
+            and "RGB_G" in data_format
+            and "RGB_B" in data_format
+        ):
+            as_ti3 = (
                 "LAB_L" in data_format
                 and "LAB_A" in data_format
                 and "LAB_B" in data_format
-            ):
-                cie = "Lab"
-            else:
-                cie = "XYZ"
-            newdata = []
-            rows = self.grid.GetSelectionRows()
-            row = rows[-1] if rows else self.grid.GetNumberRows() - 1
-            for i in dataset.DATA:
-                if cie == "Lab":
-                    (
-                        dataset.DATA[i]["XYZ_X"],
-                        dataset.DATA[i]["XYZ_Y"],
-                        dataset.DATA[i]["XYZ_Z"],
-                    ) = colormath.Lab2XYZ(
-                        dataset.DATA[i]["LAB_L"],
-                        dataset.DATA[i]["LAB_A"],
-                        dataset.DATA[i]["LAB_B"],
-                        scale=100,
-                    )
-                if intent == "r":
-                    (
-                        dataset.DATA[i]["XYZ_X"],
-                        dataset.DATA[i]["XYZ_Y"],
-                        dataset.DATA[i]["XYZ_Z"],
-                    ) = colormath.adapt(
-                        dataset.DATA[i]["XYZ_X"],
-                        dataset.DATA[i]["XYZ_Y"],
-                        dataset.DATA[i]["XYZ_Z"],
-                        "D50",
-                        list(profile.tags.wtpt.values()),
-                    )
-                entry = {"SAMPLE_ID": row + 2 + i}
-                for label in ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z"):
-                    entry[label] = round(dataset.DATA[i][label], 4)
-                newdata.append(entry)
-            self.tc_add_data(row, newdata)
-            self.grid.select_row(row + len(newdata))
+            ) or (
+                "XYZ_X" in data_format
+                and "XYZ_Y" in data_format
+                and "XYZ_Z" in data_format
+            )
+            if getcfg("tc_add_ti3_relative"):
+                _ = chart.adapt()
+            ti1, ti3, void = self.worker.chart_lookup(
+                chart, profile, as_ti3, intent=intent, white_patches=False
+            )
+            if not ti1 or not ti3:
+                return
+            chart = ti1 if as_ti3 else ti3
+        dataset = chart.queryi1("DATA")
+        data_format = list(dataset.queryv1("DATA_FORMAT").values())
+        # Returned CIE values are always either XYZ or Lab
+        if "LAB_L" in data_format and "LAB_A" in data_format and "LAB_B" in data_format:
+            cie = "Lab"
+        else:
+            cie = "XYZ"
+        newdata = []
+        rows = self.grid.GetSelectionRows()
+        row = rows[-1] if rows else self.grid.GetNumberRows() - 1
+        for i in dataset.DATA:
+            if cie == "Lab":
+                (
+                    dataset.DATA[i]["XYZ_X"],
+                    dataset.DATA[i]["XYZ_Y"],
+                    dataset.DATA[i]["XYZ_Z"],
+                ) = colormath.Lab2XYZ(
+                    dataset.DATA[i]["LAB_L"],
+                    dataset.DATA[i]["LAB_A"],
+                    dataset.DATA[i]["LAB_B"],
+                    scale=100,
+                )
+            if intent == "r":
+                (
+                    dataset.DATA[i]["XYZ_X"],
+                    dataset.DATA[i]["XYZ_Y"],
+                    dataset.DATA[i]["XYZ_Z"],
+                ) = colormath.adapt(
+                    dataset.DATA[i]["XYZ_X"],
+                    dataset.DATA[i]["XYZ_Y"],
+                    dataset.DATA[i]["XYZ_Z"],
+                    "D50",
+                    list(profile.tags.wtpt.values()),
+                )
+            entry = {"SAMPLE_ID": row + 2 + i}
+            for label in ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z"):
+                entry[label] = round(dataset.DATA[i][label], 4)
+            newdata.append(entry)
+        self.tc_add_data(row, newdata)
+        self.grid.select_row(row + len(newdata))
 
     def tc_add_ti3(self, chart, img=None, use_gamut=True, profile=None):
+        """Add a ti3 file or image to the test chart.
+
+        Args:
+            chart (str): Path to the ti3 file or image.
+            img (wx.Image, optional): Image object if chart is an image.
+                Defaults to None.
+            use_gamut (bool, optional): Whether to use tiffgamut for
+                processing. Defaults to True.
+            profile (ICCProfile, optional): Preconditioning profile. Defaults
+                to None.
+
+        Returns:
+            str: Path to the processed ti3 file or image.
+        """
         if img:
             cwd = self.worker.create_tempdir()
             if isinstance(cwd, Exception):
@@ -2420,9 +2650,19 @@ END_DATA"""
         return chart
 
     def tc_add_ti3_relative_handler(self, event):
+        """Handle the checkbox for adding TI3 relative to the preconditioned chart.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("tc_add_ti3_relative", int(self.add_ti3_relative_cb.GetValue()))
 
     def tc_angle_handler(self, event=None):
+        """Handle the angle slider and integer control for test chart generation.
+
+        Args:
+            event (wx.Event): The event triggered by the slider or integer control.
+        """
         if event.GetId() == self.tc_angle_slider.GetId():
             self.tc_angle_intctrl.SetValue(self.tc_angle_slider.GetValue())
         else:
@@ -2430,10 +2670,20 @@ END_DATA"""
         setcfg("tc_angle", self.tc_angle_intctrl.GetValue() / 10000.0)
 
     def tc_multi_bcc_cb_handler(self, event=None):
+        """Handle the checkbox for multi BCC steps in test chart generation.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("tc_multi_bcc", int(self.tc_multi_bcc_cb.GetValue()))
         self.tc_multi_steps_handler2()
 
     def tc_precond_handler(self, event=None):
+        """Handle the checkbox for test chart preconditioning.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("tc_precond", int(self.tc_precond.GetValue()))
         self.tc_adaption_slider.SetValue(
             int((1 if getcfg("tc_precond") else DEFAULTS["tc_adaption"]) * 100)
@@ -2442,12 +2692,22 @@ END_DATA"""
         self.tc_algo_handler()
 
     def tc_precond_profile_handler(self, event=None):
+        """Handle the test chart preconditioning profile selection.
+
+        Args:
+            event (wx.Event): The event triggered by the control.
+        """
         tc_precond_enable = bool(self.tc_precond_profile.GetPath())
         self.tc_precond.Enable(tc_precond_enable)
         setcfg("tc_precond_profile", self.tc_precond_profile.GetPath())
         self.tc_algo_handler()
 
     def tc_precond_profile_current_ctrl_handler(self, event):
+        """Handle the current profile path control for test chart preconditioning.
+
+        Args:
+            event (wx.Event): The event triggered by the control.
+        """
         profile_path = get_current_profile_path(True, True)
         if profile_path:
             self.tc_precond_profile.SetPath(profile_path)
@@ -2463,6 +2723,11 @@ END_DATA"""
             )
 
     def tc_filter_handler(self, event=None):
+        """Handle the checkbox for test chart filtering.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("tc_filter", int(self.tc_filter.GetValue()))
         setcfg("tc_filter_L", self.tc_filter_L.GetValue())
         setcfg("tc_filter_a", self.tc_filter_a.GetValue())
@@ -2470,12 +2735,23 @@ END_DATA"""
         setcfg("tc_filter_rad", self.tc_filter_rad.GetValue())
 
     def tc_vrml_black_offset_ctrl_handler(self, event):
+        """Handle the VRML black offset control.
+
+        Args:
+            event (wx.Event): The event triggered by the control.
+        """
         setcfg("tc_vrml_black_offset", self.tc_vrml_black_offset_intctrl.GetValue())
 
     def tc_vrml_compress_handler(self, event):
+        """Handle the checkbox for VRML compression.
+
+        Args:
+            event (wx.Event): The event triggered by the checkbox.
+        """
         setcfg("vrml.compress", int(self.tc_vrml_compress_cb.GetValue()))
 
     def tc_vrml_handler(self, event=None):
+        """Handle the VRML controls and update the configuration."""
         d = self.tc_vrml_device.GetValue()
         l = self.tc_vrml_cie.GetValue()
         if event:
@@ -2493,9 +2769,11 @@ END_DATA"""
         self.view_3d_format_btn.Enable(hasattr(self, "ti1") and (d or l))
 
     def tc_vrml_use_D50_handler(self, event):
+        """Handle the checkbox for using D50 in VRML."""
         setcfg("tc_vrml_use_D50", int(self.tc_vrml_use_D50_cb.GetValue()))
 
     def tc_update_controls(self):
+        """Update the test chart controls with the current configuration."""
         self.tc_algo.SetStringSelection(
             self.tc_algos_ab.get(
                 getcfg("tc_algo"), self.tc_algos_ab.get(DEFAULTS["tc_algo"])
@@ -2560,6 +2838,7 @@ END_DATA"""
         self.tc_enable_sort_controls()
 
     def tc_check(self, event=None):
+        """Validate and update test chart controls."""
         white_patches = self.tc_white_patches.GetValue()
         self.tc_amount = self.tc_get_total_patches(white_patches)
         self.preview_btn.Enable(
@@ -2578,6 +2857,7 @@ END_DATA"""
         self.tc_set_default_status()
 
     def tc_save_check(self):
+        """Check if the save button should be enabled based on the current state."""
         self.save_btn.Enable(
             hasattr(self, "ti1")
             and self.ti1.modified
@@ -2590,6 +2870,7 @@ END_DATA"""
         )
 
     def tc_save_cfg(self):
+        """Save the current test chart configuration to the settings."""
         setcfg("tc_white_patches", self.tc_white_patches.GetValue())
         if self.worker.argyll_version >= [1, 6]:
             setcfg("tc_black_patches", self.tc_black_patches.GetValue())
@@ -2616,6 +2897,12 @@ END_DATA"""
         setcfg("tc_vrml_device", int(self.tc_vrml_device.GetValue()))
 
     def tc_preview_handler(self, event=None, path=None):
+        """Handle the preview button click event.
+
+        Args:
+            event (wx.Event): The event that triggered the preview.
+            path (str): Optional path to save the preview.
+        """
         if self.worker.is_working():
             return
 
@@ -2682,6 +2969,11 @@ END_DATA"""
         )
 
     def tc_preview_update(self, startindex):
+        """Update the preview grid with the current test chart data.
+
+        Args:
+            startindex (int): The index from which to start updating the preview.
+        """
         if not hasattr(self, "preview"):
             return
         numcols = self.preview.GetNumberCols()
@@ -2715,9 +3007,20 @@ END_DATA"""
             self.preview.DeleteRows(row, self.preview.GetNumberRows() - row)
 
     def tc_clear_handler(self, event):
+        """Clear the test chart editor.
+
+        Args:
+            event (wx.Event): The event that triggered the clear.
+        """
         self.tc_check_save_ti1()
 
     def tc_clear(self, clear_ti1=True):
+        """Clear the test chart editor.
+
+        Args:
+            clear_ti1 (bool): If True, clear the ti1 object and reset the
+                window title.
+        """
         grid = self.grid
         if grid.GetNumberRows() > 0:
             grid.DeleteRows(0, grid.GetNumberRows())
@@ -2743,6 +3046,11 @@ END_DATA"""
             self.SetTitle(lang.getstr("testchart.edit"))
 
     def tc_export_handler(self, event):
+        """Export the test chart to a file.
+
+        Args:
+            event (wx.Event): The event that triggered the export.
+        """
         if not hasattr(self, "ti1"):
             return
         path = None
@@ -2861,15 +3169,30 @@ END_DATA"""
             )
 
     def tc_export(self, path, filter_index):
+        """Export the test chart to the given path.
+
+        Args:
+            path (str): The file path to export the test chart to.
+            filter_index (int): Index of the selected filter format.
+        """
         if filter_index < 5:
             # Image format
             self.tc_export_subroutine(path, filter_index)
-        else:
-            # CSV
-            with open(path, "w") as csvfile:
-                self.tc_export_subroutine(csv.writer(csvfile), filter_index)
+            return
+
+        # CSV
+        with open(path, "w") as csvfile:
+            self.tc_export_subroutine(csv.writer(csvfile), filter_index)
 
     def tc_export_subroutine(self, target, filter_index, allow_gaps=False):
+        """Export the test chart to the given target.
+
+        Args:
+            target (str or csv.writer): The file path for image formats or a
+                CSV writer object.
+            filter_index (int): Index of the selected filter format.
+            allow_gaps (bool): Whether to allow gaps in the timecode.
+        """
         maxlen = len(self.ti1[0].DATA)
         if filter_index < 5:
             # Image format
@@ -3017,9 +3340,24 @@ END_DATA"""
                         os.symlink(os.path.basename(filename), filecopyname)
 
     def tc_save_handler(self, event=None):
+        """Save the testchart to its current filename.
+
+        Args:
+            event: The event that triggered this handler, if any.
+        """
         self.tc_save_as_handler(event, path=self.ti1.filename)
 
     def tc_save_as_handler(self, event=None, path=None):
+        """Open a file dialog to save the testchart.
+
+        Args:
+            event: The event that triggered this handler, if any.
+            path (str): The path to save the testchart to. If None, a dialog
+                will be opened.
+
+        Returns:
+            bool: True if the testchart was saved successfully, False otherwise.
+        """
         checkoverwrite = True
         if path is None or (event and not os.path.isfile(path)):
             path = None
@@ -3109,6 +3447,11 @@ END_DATA"""
         return False
 
     def tc_view_3d(self, event):
+        """View the 3D representation of the testchart.
+
+        Args:
+            event (wx.Event): The event that triggered this method, if any.
+        """
         if (
             self.ti1.filename
             and not (
@@ -3138,6 +3481,14 @@ END_DATA"""
             launch_file(path)
 
     def tc_save_3d_as_handler(self, event):
+        """Open a file dialog to save the 3D representation of the testchart.
+
+        Args:
+            event: The event that triggered this handler, if any.
+
+        Returns:
+            list: A list of paths to the saved 3D files.
+        """
         path = None
         paths = []
         if (
@@ -3184,6 +3535,16 @@ END_DATA"""
         return paths
 
     def tc_save_3d(self, filename, regenerate=True):
+        """Save the 3D representation of the testchart.
+
+        Args:
+            filename (str): The base filename to save the 3D files to.
+            regenerate (bool): Whether to regenerate the 3D files if they
+                already exist. Defaults to True.
+
+        Returns:
+            list: A list of paths to the saved 3D files.
+        """
         paths = []
         view_3d_format = getcfg("3d.format")
         if view_3d_format == "VRML":
@@ -3192,102 +3553,116 @@ END_DATA"""
             formatext = ".x3d"
             if view_3d_format == "HTML":
                 formatext += ".html"
-        if getcfg("tc_vrml_device") or getcfg("tc_vrml_cie"):
-            colorspaces = []
-            if getcfg("tc_vrml_device"):
-                colorspaces.append(getcfg("tc_vrml_device_colorspace"))
-            if getcfg("tc_vrml_cie"):
-                colorspaces.append(getcfg("tc_vrml_cie_colorspace"))
-            for colorspace in colorspaces:
-                path = filename + " " + colorspace + formatext
-                if os.path.exists(path):
-                    if regenerate:
-                        dlg = ConfirmDialog(
-                            self,
-                            msg=lang.getstr("dialog.confirm_overwrite", (path)),
-                            ok=lang.getstr("overwrite"),
-                            cancel=lang.getstr("cancel"),
-                            bitmap=geticon(32, "dialog-warning"),
-                        )
-                        result = dlg.ShowModal()
-                        dlg.Destroy()
-                    else:
-                        result = wx.ID_CANCEL
-                    if result != wx.ID_OK:
-                        paths.append(path)
-                        continue
-                try:
-                    self.ti1[0].export_3d(
-                        path,
-                        colorspace,
-                        RGB_black_offset=getcfg("tc_vrml_black_offset"),
-                        normalize_RGB_white=getcfg("tc_vrml_use_D50"),
-                        compress=formatext == ".wrz",
-                        file_format=view_3d_format,
+        if not getcfg("tc_vrml_device") and getcfg("tc_vrml_cie"):
+            return paths
+        colorspaces = []
+        if getcfg("tc_vrml_device"):
+            colorspaces.append(getcfg("tc_vrml_device_colorspace"))
+        if getcfg("tc_vrml_cie"):
+            colorspaces.append(getcfg("tc_vrml_cie_colorspace"))
+        for colorspace in colorspaces:
+            path = filename + " " + colorspace + formatext
+            if os.path.exists(path):
+                if regenerate:
+                    dlg = ConfirmDialog(
+                        self,
+                        msg=lang.getstr("dialog.confirm_overwrite", (path)),
+                        ok=lang.getstr("overwrite"),
+                        cancel=lang.getstr("cancel"),
+                        bitmap=geticon(32, "dialog-warning"),
                     )
-                except Exception as exception:
-                    handle_error(
-                        UserWarning(
-                            f"Warning - 3D file could not be saved: {exception}"
-                        ),
-                        parent=self,
-                    )
+                    result = dlg.ShowModal()
+                    dlg.Destroy()
                 else:
+                    result = wx.ID_CANCEL
+                if result != wx.ID_OK:
                     paths.append(path)
+                    continue
+            try:
+                self.ti1[0].export_3d(
+                    path,
+                    colorspace,
+                    RGB_black_offset=getcfg("tc_vrml_black_offset"),
+                    normalize_RGB_white=getcfg("tc_vrml_use_D50"),
+                    compress=formatext == ".wrz",
+                    file_format=view_3d_format,
+                )
+            except Exception as exception:
+                handle_error(
+                    UserWarning(f"Warning - 3D file could not be saved: {exception}"),
+                    parent=self,
+                )
+            else:
+                paths.append(path)
         return paths
 
     def tc_check_save_ti1(self, clear=True):
-        if hasattr(self, "ti1"):
-            if (
-                self.ti1.root.modified
-                or not self.ti1.filename
-                or not os.path.exists(self.ti1.filename)
-            ):
-                if self.save_btn.Enabled:
-                    ok = lang.getstr("save")
-                else:
-                    ok = lang.getstr("save_as")
-                dlg = ConfirmDialog(
-                    self,
-                    msg=lang.getstr("testchart.save_or_discard"),
-                    ok=ok,
-                    cancel=lang.getstr("cancel"),
-                    bitmap=geticon(32, "dialog-warning"),
-                )
-                if self.IsBeingDeleted():
-                    dlg.buttonpanel.Hide(0)
-                if self.save_btn.Enabled:
-                    dlg.save_as = wx.Button(dlg.buttonpanel, -1, lang.getstr("save_as"))
-                    ID_SAVE_AS = dlg.save_as.GetId()
-                    dlg.Bind(wx.EVT_BUTTON, dlg.OnClose, id=ID_SAVE_AS)
-                    dlg.sizer2.Add((12, 12))
-                    dlg.sizer2.Add(dlg.save_as)
-                else:
-                    ID_SAVE_AS = wx.ID_OK
-                dlg.discard = wx.Button(
-                    dlg.buttonpanel, -1, lang.getstr("testchart.discard")
-                )
-                ID_DISCARD = dlg.discard.GetId()
-                dlg.Bind(wx.EVT_BUTTON, dlg.OnClose, id=ID_DISCARD)
+        """Check if the current testchart needs to be saved before closing.
+
+        Args:
+            clear (bool): If True, clear the testchart after saving or discarding.
+
+        Returns:
+            bool: True if the testchart can be closed, False otherwise.
+        """
+        if not hasattr(self, "ti1"):
+            return True
+        if (
+            self.ti1.root.modified
+            or not self.ti1.filename
+            or not os.path.exists(self.ti1.filename)
+        ):
+            if self.save_btn.Enabled:
+                ok = lang.getstr("save")
+            else:
+                ok = lang.getstr("save_as")
+            dlg = ConfirmDialog(
+                self,
+                msg=lang.getstr("testchart.save_or_discard"),
+                ok=ok,
+                cancel=lang.getstr("cancel"),
+                bitmap=geticon(32, "dialog-warning"),
+            )
+            if self.IsBeingDeleted():
+                dlg.buttonpanel.Hide(0)
+            if self.save_btn.Enabled:
+                dlg.save_as = wx.Button(dlg.buttonpanel, -1, lang.getstr("save_as"))
+                ID_SAVE_AS = dlg.save_as.GetId()
+                dlg.Bind(wx.EVT_BUTTON, dlg.OnClose, id=ID_SAVE_AS)
                 dlg.sizer2.Add((12, 12))
-                dlg.sizer2.Add(dlg.discard)
-                dlg.buttonpanel.Layout()
-                dlg.sizer0.SetSizeHints(dlg)
-                dlg.sizer0.Layout()
-                result = dlg.ShowModal()
-                dlg.Destroy()
-                if result in (wx.ID_OK, ID_SAVE_AS):
-                    path = None if result == ID_SAVE_AS else self.ti1.filename
-                    if not self.tc_save_as_handler(True, path):
-                        return False
-                elif result == wx.ID_CANCEL:
+                dlg.sizer2.Add(dlg.save_as)
+            else:
+                ID_SAVE_AS = wx.ID_OK
+            dlg.discard = wx.Button(
+                dlg.buttonpanel, -1, lang.getstr("testchart.discard")
+            )
+            ID_DISCARD = dlg.discard.GetId()
+            dlg.Bind(wx.EVT_BUTTON, dlg.OnClose, id=ID_DISCARD)
+            dlg.sizer2.Add((12, 12))
+            dlg.sizer2.Add(dlg.discard)
+            dlg.buttonpanel.Layout()
+            dlg.sizer0.SetSizeHints(dlg)
+            dlg.sizer0.Layout()
+            result = dlg.ShowModal()
+            dlg.Destroy()
+            if result in (wx.ID_OK, ID_SAVE_AS):
+                path = None if result == ID_SAVE_AS else self.ti1.filename
+                if not self.tc_save_as_handler(True, path):
                     return False
-                clear = True
-            if clear and not self.IsBeingDeleted():
-                self.tc_clear()
+            elif result == wx.ID_CANCEL:
+                return False
+            clear = True
+        if clear and not self.IsBeingDeleted():
+            self.tc_clear()
         return True
 
     def tc_close_handler(self, event=None):
+        """Handle the closing of the testchart editor.
+
+        Args:
+            event (wx.CloseEvent, optional): The event that triggered this
+                function.
+        """
         if getattr(self.worker, "thread", None) and self.worker.thread.is_alive():
             self.worker.abort_subprocess(True)
             return None
@@ -3314,6 +3689,11 @@ END_DATA"""
         return None
 
     def tc_move_handler(self, event=None):
+        """Handle the movement of the testchart editor window.
+
+        Args:
+            event (wx.MoveEvent, optional): The event that triggered this function.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
             setcfg("position.tcgen.x", x)
@@ -3322,6 +3702,11 @@ END_DATA"""
             event.Skip()
 
     def tc_destroy_handler(self, event):
+        """Handle the destruction of the testchart editor.
+
+        Args:
+            event: The event that triggered this function.
+        """
         event.Skip()
 
     def tc_load_cfg_from_ti1(
@@ -3332,6 +3717,16 @@ END_DATA"""
         parent_set_chart_methodname=None,
         resume=False,
     ):
+        """Load a testchart from a file and update the UI accordingly.
+
+        Args:
+            event: The event that triggered this function (optional).
+            path (str): Path to the testchart file (TI1, ICC, ICM, or TI3).
+            cfg (str): Configuration key to set the loaded testchart.
+            parent_set_chart_methodname (str): Method name in the parent to set
+                the chart.
+            resume (bool): Whether to resume a previous operation.
+        """
         if self.worker.is_working():
             return
 
@@ -3365,6 +3760,14 @@ END_DATA"""
         )
 
     def tc_load_cfg_from_ti1_worker(self, path):
+        """Worker function to load a testchart from a file.
+
+        Args:
+            path (str): Path to the testchart file (TI1, ICC, ICM, or TI3).
+
+        Returns:
+            CGATS: The loaded testchart as a CGATS object.
+        """
         path = str(path)
         try:
             filename, ext = os.path.splitext(path)
@@ -3768,6 +4171,11 @@ END_DATA"""
         )
 
     def tc_load_cfg_from_ti1_finish(self, result):
+        """Finish loading testchart configuration from ti1 file.
+
+        Args:
+            result (tuple or Exception): The result of the worker thread.
+        """
         self.worker.wrapup(False)
         if isinstance(result, tuple):
             # UGLY HACK: This 'print' call fixes a GTK assertion and
@@ -3866,6 +4274,16 @@ END_DATA"""
         return False
 
     def tc_get_increments(self, channel, vmaxlen=4):
+        """Get the increments of a channel.
+
+        Args:
+            channel (list): The channel.
+            vmaxlen (int): The maximum length of the increment string.
+
+        Returns:
+            dict: A dictionary with increments as keys and their counts as
+                values.
+        """
         channel.sort()
         increments = {"0": 0}
         for i, v in enumerate(channel):
@@ -3885,6 +4303,10 @@ END_DATA"""
         in a separate step if any number of iterative patches are to be
         generated as well.
 
+        Args:
+            gray (bool): Whether to include gray patches.
+            multidim (bool): Whether to include multi-dimensional patches.
+            single (bool): Whether to include single-channel patches.
         """
         self.writecfg()
         fullspread_patches = getcfg("tc_fullspread_patches")
@@ -3984,6 +4406,11 @@ END_DATA"""
         return result
 
     def tc_create_ti1(self):
+        """Create a testchart using targen.
+
+        Returns:
+            CGATS or Exception: The created testchart or an error.
+        """
         cmd, args = self.worker.prepare_targen()
         if not isinstance(cmd, Exception):
             result = self.worker.exec_cmd(
@@ -4017,6 +4444,12 @@ END_DATA"""
         return result
 
     def tc_preview(self, result, path=None):
+        """Create a preview of the testchart.
+
+        Args:
+            result (CGATS or Exception): The result of the testchart creation.
+            path (str, optional): The path to save the testchart. Defaults to None.
+        """
         self.tc_check()
         if isinstance(result, Exception):
             show_result_dialog(result, self)
@@ -4106,6 +4539,12 @@ END_DATA"""
             self.Parent.start_timers()
 
     def tc_add_data(self, row, newdata):
+        """Add new data to the grid and update the preview.
+
+        Args:
+            row (int): The row number where new data should be inserted.
+            newdata (list): A list of dictionaries containing the new data.
+        """
         self.grid.BeginBatch()
         self.grid.InsertRows(row + 1, len(newdata))
         data = self.ti1.queryv1("DATA")
@@ -4152,6 +4591,12 @@ END_DATA"""
             self.preview.EndBatch()
 
     def tc_grid_setcolorlabel(self, row, data=None):
+        """Set the color label and background for a grid cell.
+
+        Args:
+            row (int): The row number of the grid to update.
+            data (CGATS, optional): The CGATS data object containing sample data.
+        """
         grid = self.grid
         col = grid.GetNumberCols() - 1
         if data is None:
@@ -4177,6 +4622,11 @@ END_DATA"""
             self.preview.Refresh()
 
     def tc_getcolorlabel(self, sample):
+        """Get the style, colour, label text and label colour for a sample.
+
+        Args:
+            sample (CGATS): The sample data containing RGB values.
+        """
         colour = wx.Colour(
             *[
                 int(round(value / 100.0 * 255))
@@ -4280,28 +4730,42 @@ END_DATA"""
         return style, colour, labeltext, labelcolour
 
     def tc_set_default_status(self, event=None):
-        if hasattr(self, "tc_amount"):
-            statustxt = "{}: {}".format(lang.getstr("tc.patches.total"), self.tc_amount)
-            sel = self.grid.GetSelectionRows()
-            if sel:
-                statustxt += " / {}: {}".format(
-                    lang.getstr("tc.patches.selected"),
-                    len(sel),
+        """Set the default status text for the testchart editor.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this method.
+        """
+        if not hasattr(self, "tc_amount"):
+            return
+
+        statustxt = "{}: {}".format(lang.getstr("tc.patches.total"), self.tc_amount)
+        sel = self.grid.GetSelectionRows()
+        if sel:
+            statustxt += " / {}: {}".format(
+                lang.getstr("tc.patches.selected"),
+                len(sel),
+            )
+            index = self.grid.GetGridCursorRow()
+            if index > -1:
+                colour = self.grid.GetCellBackgroundColour(index, 3)
+                patchinfo = " \u2014 {} {}: R={} G={} B={}".format(
+                    lang.getstr("tc.patch"),
+                    index + 1,
+                    colour[0],
+                    colour[1],
+                    colour[2],
                 )
-                index = self.grid.GetGridCursorRow()
-                if index > -1:
-                    colour = self.grid.GetCellBackgroundColour(index, 3)
-                    patchinfo = " \u2014 {} {}: R={} G={} B={}".format(
-                        lang.getstr("tc.patch"),
-                        index + 1,
-                        colour[0],
-                        colour[1],
-                        colour[2],
-                    )
-                    statustxt += patchinfo
-            self.SetStatusText(statustxt)
+                statustxt += patchinfo
+        self.SetStatusText(statustxt)
 
     def tc_mouseclick_handler(self, event):
+        """Handle mouse click events on the testchart grid.
+
+        This method selects the row in the grid based on the mouse click position.
+
+        Args:
+            event (wx.MouseEvent): The mouse event containing the click position.
+        """
         if not getattr(self, "ti1", None):
             return
         index = event.Row * self.preview.GetNumberCols() + event.Col
@@ -4313,6 +4777,11 @@ END_DATA"""
         return
 
     def tc_delete_rows(self, rows):
+        """Delete rows from the testchart grid and update the data accordingly.
+
+        Args:
+            rows (list): List of row indices to delete.
+        """
         self.grid.BeginBatch()
         if hasattr(self, "preview"):
             self.preview.BeginBatch()
@@ -4347,6 +4816,11 @@ END_DATA"""
         self.tc_set_default_status()
 
     def view_3d_format_popup(self, event):
+        """Show a popup menu to select the 3D format for the testchart.
+
+        Args:
+            event (wx.MouseEvent): The event triggered by the right-click.
+        """
         menu = wx.Menu()
 
         # item_selected = False
@@ -4361,6 +4835,11 @@ END_DATA"""
         menu.Destroy()
 
     def view_3d_format_handler(self, event):
+        """Handle the selection of a 3D format from the popup menu.
+
+        Args:
+            event (wx.CommandEvent): The event triggered by the menu selection.
+        """
         for item in event.EventObject.MenuItems:
             if item.IsChecked():
                 setcfg("3d.format", item.GetItemLabelText())
@@ -4368,6 +4847,7 @@ END_DATA"""
         self.tc_view_3d(None)
 
     def writecfg(self):
+        """Write configuration settings to the config file."""
         if self.Parent:
             writecfg()
         else:

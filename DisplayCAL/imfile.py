@@ -426,6 +426,17 @@ class Image:
                 stream.write(b"".join(self._pack(v) for v in sample))
 
     def write(self, stream_or_filename, file_format=None, dimensions=None):
+        """Write the image data to a file or stream.
+
+        Args:
+            stream_or_filename (str or file-like object): The output file or stream.
+            file_format (str): The file format to use (default: None, which infers
+                from filename).
+            dimensions (tuple): The dimensions of the image (width, height).
+
+        Raises:
+            ValueError: If the specified file format is unsupported.
+        """
         if not file_format:
             if isinstance(stream_or_filename, str):
                 file_format = (

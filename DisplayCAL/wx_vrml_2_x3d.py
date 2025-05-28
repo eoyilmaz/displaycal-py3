@@ -94,12 +94,23 @@ if gui:
             self.SetMaxSize(self.GetSize())
 
         def OnClose(self, event):
+            """Handle the close event for the frame.
+
+            Args:
+                event (wx.Event): The close event.
+            """
             # Hide first (looks nicer)
             self.Hide()
             # Need to use CallAfter to prevent hang under Windows if minimized
             wx.CallAfter(self.Destroy)
 
         def get_commands(self):
+            """Get the list of commands for the command line interface.
+
+            Returns:
+                list: A list of command strings that can be used in the command
+                    line.
+            """
             return [
                 *self.get_common_commands(),
                 "VRML-to-X3D-converter [filename...]",
@@ -107,6 +118,16 @@ if gui:
             ]
 
         def process_data(self, data):
+            """Process data received from the command line or drag-and-drop.
+
+            Args:
+                data (tuple): A tuple containing the command and optional
+                    filename(s).
+
+            Returns:
+                str: "ok" if the command was processed successfully, "invalid"
+                    otherwise.
+            """
             if data[0] in ("VRML-to-X3D-converter", "load"):
                 if self.IsIconized():
                     self.Restore()

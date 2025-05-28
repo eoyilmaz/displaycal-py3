@@ -24,10 +24,23 @@ class HStretchStaticBitmapXmlHandler(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class HStretchStaticBitmap, False otherwise.
+        """
         return self.IsOfClass(node, "HStretchStaticBitmap")
 
     # Process XML parameters and create the object
-    def DoCreateResource(self):
+    def DoCreateResource(self) -> HStretchStaticBitmap:
+        """Create the HStretchStaticBitmap control from XML parameters.
+
+        Returns:
+            HStretchStaticBitmap: The created HStretchStaticBitmap control.
+        """
         w = HStretchStaticBitmap(
             self.GetParentAsWindow(),
             self.GetID(),

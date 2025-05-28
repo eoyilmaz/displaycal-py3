@@ -101,6 +101,11 @@ class ETreeDict(dict):
 
     @property
     def json(self):
+        """Return a JSON representation of the ETreeDict.
+
+        Returns:
+            str: A JSON string representation of the ETreeDict.
+        """
         import json
 
         return json.dumps(self)

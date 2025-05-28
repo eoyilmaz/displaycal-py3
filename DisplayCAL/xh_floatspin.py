@@ -26,10 +26,23 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class FloatSpin, False otherwise.
+        """
         return self.IsOfClass(node, "FloatSpin")
 
     # Process XML parameters and create the object
-    def DoCreateResource(self):
+    def DoCreateResource(self) -> floatspin.FloatSpin:
+        """Create the FloatSpin control from XML parameters.
+
+        Returns:
+            FloatSpin: The created FloatSpin control.
+        """
         try:
             min_val = float(self.GetText("min_val"))
         except Exception:

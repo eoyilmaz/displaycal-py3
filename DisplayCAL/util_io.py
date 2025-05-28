@@ -56,6 +56,14 @@ class EncodedWriter:
         return getattr(self.file, name)
 
     def write(self, data):
+        """Write data to the file.
+
+        First decoding it with data_encoding and encoding it with file_encoding
+        if specified.
+
+        Args:
+            data (str | bytes): The data to write to the file.
+        """
         if self.data_encoding and not isinstance(data, str):
             data = data.decode(self.data_encoding, self.errors)
         if self.file_encoding and isinstance(data, str):
@@ -64,15 +72,15 @@ class EncodedWriter:
 
 
 class Files:
-    """Read and/or write from/to several files at once."""
+    """Read and/or write from/to several files at once.
+
+    Args:
+        files (list[file objects] | list[str]): files must be a list or tuple
+            of file objects or filenames (the mode parameter is only used in
+            the latter case).
+    """
 
     def __init__(self, files, mode="r"):
-        """Return a Files object.
-
-        files must be a list or tuple of file objects or filenames
-        (the mode parameter is only used in the latter case).
-
-        """
         self.files = []
         for item in files:
             if isinstance(item, str):
@@ -89,24 +97,46 @@ class Files:
         return iter(self.files)
 
     def close(self):
+        """Close all files in the Files object."""
         for item in self.files:
             item.close()
 
     def flush(self):
+        """Flush all files."""
         for item in self.files:
             with contextlib.suppress(AttributeError):
                 # TODO: Restore safe_log
                 item.flush()
 
     def seek(self, pos, mode=0):
+        """Seek to a position in all files.
+
+        Args:
+            pos (int): The position to seek to.
+            mode (int, optional): The mode for seeking. Defaults to 0 (absolute
+                file positioning). Other values are 1 (relative to current position)
+                and 2 (relative to file's end).
+        """
         for item in self.files:
             item.seek(pos, mode)
 
     def truncate(self, size=None):
+        """Truncate all files to the specified size.
+
+        Args:
+            size (int, optional): The size to truncate the files to. If None,
+                the files are truncated to the current position. Defaults to
+                None.
+        """
         for item in self.files:
             item.truncate(size)
 
     def write(self, data):
+        """Write data to all files.
+
+        Args:
+            data (str): The data to write to the files.
+        """
         for item in self.files:
             try:
                 item.write(data)
@@ -115,6 +145,11 @@ class Files:
                     item(data)
 
     def writelines(self, str_sequence):
+        """Write a sequence of strings to all files.
+
+        Args:
+            str_sequence (list of str): A sequence of strings to write to the files.
+        """
         self.write("".join(str_sequence))
 
 
@@ -211,10 +246,12 @@ class LineBufferedStream:
         return getattr(self.stream, name)
 
     def close(self):
+        """Close the stream and commit any buffered data."""
         self.commit()
         self.stream.close()
 
     def commit(self):
+        """Write the buffered data to the stream, encoding it if necessary."""
         if not self.buf:
             return
         if self.data_encoding and isinstance(self.buf, bytes):
@@ -253,19 +290,35 @@ class LineBufferedStream:
 
 class LineCache:
     """When written to it, stores only the last n + 1 lines and
-    returns only the last n non-empty lines when read."""
+    returns only the last n non-empty lines when read.
+
+    Args:
+        maxlines (int): The maximum number of lines to keep in the cache.
+            Defaults to 1.
+    """
 
     def __init__(self, maxlines=1):
         self.clear()
         self.maxlines = maxlines
 
     def clear(self):
+        """Clear the cache, resetting it to an empty state."""
         self.cache = [""]
 
     def flush(self):
-        pass
+        """Flush the cache, clearing it."""
 
     def read(self, triggers=None):
+        """Read the cached lines, filtering out lines that contain any of the
+        specified triggers.
+
+        Args:
+            triggers (list of str, optional): A list of strings to filter out
+                lines that contain them. If None, no filtering is applied.
+
+        Returns:
+            str: The last n non-empty lines from the cache, joined by newlines.
+        """
         lines = [""]
         for line in self.cache:
             read = True
@@ -279,6 +332,11 @@ class LineCache:
         return "\n".join([line for line in lines if line][-self.maxlines :])
 
     def write(self, data):
+        """Write data to the cache, splitting it into lines and handling line endings.
+
+        Args:
+            data (str): The data to write to the cache.
+        """
         cache = list(self.cache)
         for char in data:
             if char == "\r":
@@ -300,7 +358,11 @@ class StringIOu(StringIO):
 
 
 class Tee(Files):
-    """Write to a file and stdout."""
+    """Write to a file and stdout.
+
+    Args:
+        file_obj (file-like object): The file object to write to.
+    """
 
     def __init__(self, file_obj):
         Files.__init__((sys.stdout, file_obj))
@@ -317,12 +379,30 @@ class Tee(Files):
         return getattr(self.files[1], name)
 
     def close(self):
+        """Close the second file object."""
         self.files[1].close()
 
     def seek(self, pos, mode=0):
+        """Seek to a position in the second file.
+
+        Args:
+            pos (int): The position to seek to.
+            mode (int, optional): The mode for seeking. Defaults to 0 (absolute
+                file positioning).
+
+        Returns:
+            int: The new position in the second file after seeking.
+        """
         return self.files[1].seek(pos, mode)
 
     def truncate(self, size=None):
+        """Truncate the second file to the specified size.
+
+        Args:
+            size (int, optional): The size to truncate the file to. If None,
+                the file is truncated to the current position. Defaults to
+                None.
+        """
         return self.files[1].truncate(size)
 
 

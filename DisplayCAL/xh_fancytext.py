@@ -22,10 +22,23 @@ class StaticFancyTextCtrlXmlHandler(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class StaticFancyText, False otherwise.
+        """
         return self.IsOfClass(node, "StaticFancyText")
 
     # Process XML parameters and create the object
     def DoCreateResource(self):
+        """Create the StaticFancyText control from XML parameters.
+
+        Returns:
+            StaticFancyText: The created StaticFancyText control.
+        """
         try:
             text = self.GetText("label")
         except Exception:

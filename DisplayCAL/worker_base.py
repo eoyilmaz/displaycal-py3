@@ -327,14 +327,18 @@ class WorkerBase:
     """Base worker class for calibration and profiling tasks."""
 
     def __init__(self):
-        """Create and return a new base worker instance."""
         self.sessionlogfile = None
         self.subprocess_abort = False
         self.tempdir = None
         self._thread_abort = ThreadAbort()
 
     def create_tempdir(self):
-        """Create a temporary working directory and return its path."""
+        """Create a temporary working directory and return its path.
+
+        Returns:
+            str | Exception: The path to the temporary directory, or an Error
+                if creation fails.
+        """
         if not self.tempdir or not os.path.isdir(self.tempdir):
             # we create the tempdir once each calibrating/profiling run
             # (deleted by 'wrapup' after each run)
@@ -355,7 +359,11 @@ class WorkerBase:
         return self.tempdir
 
     def isalive(self, subprocess=None):
-        """Check if subprocess is still alive"""
+        """Check if subprocess is still alive.
+
+        Args:
+            subprocess: The subprocess to check (default: None, uses self.subprocess).
+        """
         if not subprocess:
             subprocess = getattr(self, "subprocess", None)
         return subprocess and (
@@ -364,7 +372,7 @@ class WorkerBase:
         )
 
     def log(self, *args, **kwargs):
-        """Log to global logfile and session logfile (if any)"""
+        """Log to global logfile and session logfile (if any)."""
         # if we have any exceptions print the traceback, so we bust'em.
         if any(isinstance(arg, BaseException) for arg in args):
             traceback.print_exc()
@@ -376,10 +384,22 @@ class WorkerBase:
 
     @property
     def thread_abort(self):
+        """Get the thread abort event.
+
+        Returns:
+            ThreadAbort: The thread abort event, which can be used to signal
+                that the thread should be aborted.
+        """
         return self._thread_abort
 
     @thread_abort.setter
     def thread_abort(self, abort):
+        """Set the thread abort event.
+
+        Args:
+            abort (bool): If True, set the thread abort event to signal
+                that the thread should be aborted.
+        """
         if abort:
             self._thread_abort.event.set()
         else:
@@ -411,6 +431,31 @@ class WorkerBase:
         alternatively a list of strings.
         output data will be returned in same format, or as list of strings
         if 'raw' is true.
+
+        Args:
+            profile (ICCProfile or CGATS): The ICC profile to use.
+            idata (list): Input data to be processed by xicclu.
+            intent (str): The rendering intent to use (default: "r").
+            direction (str): The direction of the transformation (default: "f").
+            order (str): The order of the transformation (default: "n").
+            pcs (str): The PCS to use (default: None).
+            scale (int): The scale factor for the transformation (default: 1).
+            cwd (str): The current working directory (default: None).
+            startupinfo: Startup information for subprocesses (default: None).
+            raw (bool): If True, return raw output as a list of strings.
+            logfile: Log file for output messages (default: None).
+            use_icclu (bool): Whether to use icclu instead of xicclu
+                (default: False).
+            use_cam_clipping (bool): Whether to use CAM clipping
+                (default: False).
+            get_clip (bool): If True, include clipping information in the
+                output.
+            show_actual_if_clipped (bool): Whether to show actual values if clipped
+                (default: False).
+            input_encoding (str): Input encoding for xicclu
+                (default: None).
+            output_encoding (str): Output encoding for xicclu
+                (default: None).
         """
         with Xicclu(
             profile,
@@ -434,7 +479,29 @@ class WorkerBase:
 
 
 class Xicclu(WorkerBase):
-    """Xicclu worker class."""
+    """Xicclu worker class.
+
+    Args:
+        profile (ICCProfile or CGATS): The ICC profile to use.
+        intent (str): The rendering intent to use (default: "r").
+        direction (str): The direction of the transformation (default: "f").
+        order (str): The order of the transformation (default: "n").
+        pcs (str): The PCS to use (default: None).
+        scale (int): The scale factor for the transformation (default: 1).
+        cwd (str): The current working directory (default: None).
+        startupinfo: Startup information for subprocesses (default: None).
+        use_icclu (bool): Whether to use icclu instead of xicclu (default: False).
+        use_cam_clipping (bool): Whether to use CAM clipping (default: False).
+        logfile: Log file for output messages (default: None).
+        worker: Worker instance for multiprocessing (default: None).
+        show_actual_if_clipped (bool): Whether to show actual values if clipped
+            (default: False).
+        input_encoding (str): Input encoding for xicclu (default: None).
+        output_encoding (str): Output encoding for xicclu (default: None).
+        convert_video_rgb_to_clut65 (bool): Whether to convert video RGB
+            values to cLUT65 format.
+        verbose (int): Verbosity level for logging.
+    """
 
     def __init__(
         self,
@@ -598,6 +665,7 @@ class Xicclu(WorkerBase):
         self.spawn()
 
     def spawn(self):
+        """Spawn the xicclu subprocess."""
         self.closed = False
         self.output = []
         self.errors = []
@@ -613,11 +681,28 @@ class Xicclu(WorkerBase):
         )
 
     def devi_devip(self, n):
+        """Convert device value to device-independent value.
+
+        Args:
+            n (float): The device value to convert.
+
+        Returns:
+            float: The converted device-independent value.
+        """
         if n > 236 / 256.0:
             n = colormath.convert_range(n, 236 / 256.0, 1, 236 / 256.0, 255 / 256.0)
         return VidRGB_to_cLUT65(eeColor_to_VidRGB(n))
 
     def __call__(self, idata):
+        """Call the xicclu worker with input data.
+
+        Args:
+            idata (list or str): Input data to be processed by the xicclu worker.
+
+        Returns:
+            None: The method processes the input data and sends it to the
+                xicclu subprocess.
+        """
         if not isinstance(idata, str):
             verbose = self.verbose
             if self.convert_video_rgb_to_clut65:
@@ -702,6 +787,15 @@ class Xicclu(WorkerBase):
         return not traceback_
 
     def close(self, raise_exception=True):
+        """Close the xicclu worker process.
+
+        Args:
+            raise_exception (bool): If True, raise an exception if the worker
+                has errors.
+
+        Raises:
+            OSError: If the worker has errors and raise_exception is True.
+        """
         if self.closed:
             return
         p = self.subprocess
@@ -726,6 +820,12 @@ class Xicclu(WorkerBase):
             raise OSError(b"\n".join(self.errors))
 
     def exit(self, raise_exception=True):
+        """Exit the xicclu worker process.
+
+        Args:
+            raise_exception (bool): If True, raise an exception if the worker
+                has errors.
+        """
         self.close(raise_exception)
         if self.temp and os.path.isfile(self.profile_path):
             os.remove(self.profile_path)
@@ -739,6 +839,19 @@ class Xicclu(WorkerBase):
                     )
 
     def get(self, raw=False, get_clip=False, output_format=None, reverse=False):
+        """Get the output from xicclu.
+
+        Args:
+            raw (bool): If True, return raw output as a list of strings.
+            get_clip (bool): If True, include clipping information in the
+                output.
+            output_format (tuple): A tuple specifying the output format.
+            reverse (bool): If True, reverse the order of the output.
+
+        Returns:
+            list: The processed output from xicclu, either as raw strings or
+                formatted data.
+        """
         if raw:
             if self.sessionlogfile:
                 self.sessionlogfile.write("\n".join(self.output))
@@ -808,27 +921,76 @@ class Xicclu(WorkerBase):
 
     @property
     def subprocess_abort(self):
+        """Get the subprocess abort flag.
+
+        Returns:
+            bool: True if the subprocess abort flag is set, False otherwise.
+        """
         if self.worker:
             return self.worker.subprocess_abort
         return False
 
     @subprocess_abort.setter
     def subprocess_abort(self, v):
-        pass
+        """Set the subprocess abort flag.
+
+        Args:
+            v (bool): If True, set the subprocess abort flag to signal
+                that the subprocess should be aborted.
+        """
 
     @property
     def thread_abort(self):
+        """Get the thread abort event.
+
+        Returns:
+            ThreadAbort: The thread abort event, which can be used to signal
+                that the thread should be aborted.
+        """
         if self.worker:
             return self.worker.thread_abort
         return None
 
     @thread_abort.setter
     def thread_abort(self, v):
-        pass
+        """Set the thread abort event.
+
+        Args:
+            v (bool): If True, set the thread abort event to signal
+                that the thread should be aborted.
+        """
 
 
 class XiccluMP(Xicclu):
-    """Xicclu multiprocessing worker."""
+    """Xicclu multiprocessing worker.
+
+    Args:
+        profile (ICCProfile): The ICC profile to use.
+        intent (str): The rendering intent to use (default: "r").
+        direction (str): The direction of the transformation (default: "f").
+        order (str): The order of the transformation (default: "n").
+        pcs (str): The PCS to use (default: None).
+        scale (int): The scale factor for the transformation (default: 1).
+        cwd (str): The current working directory (default: None).
+        startupinfo: Startup information for subprocesses (default: None).
+        use_icclu (bool): Whether to use icclu instead of xicclu (default: False).
+        use_cam_clipping (bool): Whether to use CAM clipping (default: False).
+        logfile: Log file for output messages (default: None).
+        worker: Worker instance for multiprocessing (default: None).
+        show_actual_if_clipped (bool): Whether to show actual values if clipped
+            (default: False).
+        input_encoding (str): Input encoding for xicclu (default: None).
+        output_encoding (str): Output encoding for xicclu (default: None).
+        output_format (tuple): Output format for xicclu results
+            (default: None).
+        reverse (bool): Whether to reverse the output order
+            (default: False).
+        output_stream: Stream to write output to, if any
+            (default: None).
+        convert_video_rgb_to_clut65 (bool): Whether to convert video RGB
+            values to cLUT65 format.
+        verbose (int): Verbosity level for logging.
+    """
 
     def __init__(
         self,
@@ -895,18 +1057,46 @@ class XiccluMP(Xicclu):
             self.num_batches = 1
 
     def __call__(self, idata):
+        """Call the xicclu worker with input data.
+
+        Args:
+            idata (list): Input data to be processed by the xicclu worker.
+        """
         self._in.append(idata)
 
     def close(self, raise_exception=True):
-        pass
+        """Close the xicclu worker process.
+
+        Args:
+            raise_exception (bool): If True, raise an exception if the worker
+                has errors.
+        """
 
     def exit(self, raise_exception=True):
-        pass
+        """Exit the xicclu worker process.
+
+        Args:
+            raise_exception (bool): If True, raise an exception if the worker
+                has errors.
+        """
 
     def spawn(self):
-        pass
+        """Spawn the xicclu worker process."""
 
     def get(self, raw=False, get_clip=False, output_format=None, reverse=False):
+        """Get the output from the xicclu worker.
+
+        Args:
+            raw (bool): If True, return raw output as a list of strings.
+            get_clip (bool): If True, include clipping information in the
+                output.
+            output_format (tuple): A tuple specifying the output format.
+            reverse (bool): If True, reverse the order of the output.
+
+        Returns:
+            list: The processed output from the xicclu worker, either as raw
+                strings or formatted data.
+        """
         for slices in pool_slice(
             _xicclu_mp,
             self._in,

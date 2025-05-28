@@ -387,6 +387,11 @@ class H3DLUT:
 
     @property
     def data(self):
+        """Return the raw 3D LUT data as bytes.
+
+        Returns:
+            bytes: The raw 3D LUT data, including header and parameters.
+        """
         parameters_data = []
         for key in self.parametersData:
             values = self.parametersData[key]
@@ -570,9 +575,11 @@ class MadTPGBase:
     """Generic pattern generator compatibility layer"""
 
     def wait(self):
+        """Wait for madTPG to be ready."""
         self.connect(method2=CM_StartLocalInstance)
 
     def disconnect_client(self):
+        """Disconnect the client from madTPG."""
         self.disconnect()
 
     def send(
@@ -586,6 +593,18 @@ class MadTPGBase:
         w=1,
         h=1,
     ):
+        """Send RGB values to madTPG.
+
+        Args:
+            rgb (tuple): RGB values to display, each in the range 0-255.
+            bgrgb (tuple): BGR values to display, each in the range 0-255.
+            bits (int): Bit depth of the RGB values (default: 8).
+            use_video_levels (bool): Whether to use video levels (default: False).
+            x (int): X position on screen to display the pattern.
+            y (int): Y position on screen to display the pattern.
+            w (int): Width of the pattern area.
+            h (int): Height of the pattern area.
+        """
         cfg = self.get_pattern_config()
         if cfg:
             self.set_pattern_config(
@@ -768,11 +787,22 @@ class MadTPG(MadTPGBase):
         return result and (area.value, bglvl.value, bgmode.value, border.value)
 
     def get_selected_3dlut(self):
+        """Return the currently selected 3D LUT ID.
+
+        Returns:
+            int: The ID of the selected 3D LUT, or None if no LUT is selected.
+        """
         thr3dlut = ctypes.c_ulong()
         result = self.mad.madVR_GetSelected3dlut(ctypes.byref(thr3dlut))
         return result and thr3dlut.value
 
     def get_version(self):
+        """Return the madVR version as 4-tuple.
+
+        Returns:
+            tuple[str, str, str, str]: The madVR version as a tuple of four strings
+                representing the major, minor, patch, and build numbers.
+        """
         version = ctypes.c_ulong()
         result = self.mad.madVR_GetVersion(ctypes.byref(version))
         version = tuple(
@@ -788,6 +818,11 @@ class MadTPG(MadTPGBase):
 
     @property
     def uri(self):
+        """Return the URI of the madTPG instance.
+
+        Returns:
+            str: The URI of the madTPG instance, which is the path to the DLL.
+        """
         return self.dllpath
 
 
@@ -836,6 +871,7 @@ class MadTPGNet(MadTPGBase):
         self.multicast_ip = "235.117.220.191"
 
     def listen(self):
+        """Start listening for incoming connections and broadcasts."""
         self.listening = True
         # Connection listen sockets
         for port in self.server_ports:
@@ -1168,6 +1204,7 @@ class MadTPGNet(MadTPGBase):
         sock.close()
 
     def shutdown(self):
+        """Shutdown the madTPG network connection."""
         self.disconnect()
         self.listening = False
         while self._threads:
@@ -1329,6 +1366,15 @@ class MadTPGNet(MadTPGBase):
             thread.start()
 
     def disconnect(self, stop=True):
+        """Disconnect from madTPG instance.
+
+        Args:
+            stop (bool): If True, send 'StopTestPattern' command to madTPG.
+                Defaults to True.
+
+        Returns:
+            bool: True if the disconnect was successful, False otherwise.
+        """
         returnvalue = False
         conn = self._client_socket
         if conn:
@@ -1421,6 +1467,11 @@ class MadTPGNet(MadTPGBase):
         self._incoming[addr].append((commandno, command, params, component))
 
     def get_black_and_white_level(self):
+        """Return madVR output level setup.
+
+        Returns:
+            tuple: A tuple containing the black level and white level.
+        """
         # XXX: madHcNetXX.dll exports madVR_GetBlackAndWhiteLevel,
         # but the equivalent madVR network protocol command is
         # GetBlackWhiteLevel (without the "And")!
@@ -1777,6 +1828,11 @@ class MadTPGNet(MadTPGBase):
 
     @property
     def uri(self):
+        """Return the URI of the connected madTPG instance.
+
+        Returns:
+            str: The URI in the format "IP:PORT".
+        """
         try:
             addr = self._client_socket and self._client_socket.getpeername()[:2]
         except OSError as exception:
@@ -1786,7 +1842,13 @@ class MadTPGNet(MadTPGBase):
 
 
 class MadTPGNetSender:
-    """madTPG network command sender."""
+    """madTPG network command sender.
+
+    Args:
+        madtpg (MadTPGNet): Instance of MadTPGNet to send commands to.
+        conn (socket.socket): Connection socket to send commands through.
+        command (str): The command to send, e.g. "SetOsdText", "ShowRGB", etc.
+    """
 
     def __init__(self, madtpg, conn, command):
         self.madtpg = madtpg
@@ -1796,6 +1858,18 @@ class MadTPGNetSender:
         self.command = command
 
     def __call__(self, *args, **kwargs):
+        """Send command to madTPG instance and return reply.
+
+        Args:
+            *args: Positional arguments for the command.
+            **kwargs: Keyword arguments for the command.
+
+        Raises:
+            TypeError: If the command requires more arguments than provided.
+
+        Returns:
+            bool | str | tuple: The result of the command execution.
+        """
         if self.command in ("Load3dlutFile", "LoadHdr3dlutFile"):
             lut = H3DLUT(args[0])
             lutdata = lut.LUTDATA

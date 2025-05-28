@@ -663,13 +663,33 @@ class CGATS(dict):
 
     @property
     def fileName(self):
+        """Return the filename for the CGATS object.
+
+        Returns:
+            str: The filename of the CGATS object.
+        """
         return self.filename
 
     @fileName.setter
     def fileName(self, filename):
+        """Set the filename for the CGATS object.
+
+        Args:
+            filename (str): The filename to set.
+        """
         self.filename = filename
 
     def get(self, name, default=None):
+        """Get item from CGATS dictionary.
+
+        Args:
+            name (str | int): The name or index of the item to get.
+            default (None | Any, optional): The value to return if the item is
+                not found.
+
+        Returns:
+            Any: The value of the item or the default value if not found.
+        """
         if name == -1:
             return dict.get(self, len(self) - 1, default)
         if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
@@ -677,6 +697,11 @@ class CGATS(dict):
         return dict.get(self, name, default)
 
     def get_colorants(self):
+        """Return colorants from CGATS file.
+
+        Returns:
+            None | list: List of colorants if available, otherwise None.
+        """
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
         if len(color_rep) != 2:
             return None
@@ -902,7 +927,13 @@ class CGATS(dict):
         return b"\n".join(result)
 
     def add_keyword(self, keyword, value=None):
-        """Add a keyword to the list of keyword values."""
+        """Add a keyword to the list of keyword values.
+
+        Args:
+            keyword (str): The keyword to add.
+            value (str, optional): The value associated with the keyword.
+                Defaults to None.
+        """
         if isinstance(keyword, bytes):
             keyword = keyword.decode()
 
@@ -927,6 +958,12 @@ class CGATS(dict):
             context[keyword] = value
 
     def add_section(self, key, value):
+        """Add a section to the CGATS data.
+
+        Args:
+            key (str): The key for the section.
+            value (str): The value for the section.
+        """
         self[key] = CGATS()
         self[key].key = key
         self[key].parent = self
@@ -935,7 +972,13 @@ class CGATS(dict):
         self[key].add_data(value)
 
     def remove_keyword(self, keyword, remove_value=True):
-        """Remove a keyword from the list of keyword values."""
+        """Remove a keyword from the list of keyword values.
+
+        Args:
+            keyword (str): The keyword to remove.
+            remove_value (bool): If True, also remove the value associated
+                with the keyword. Defaults to True.
+        """
         if self.type in (b"DATA", b"DATA_FORMAT", b"KEYWORDS", b"SECTION"):
             context = self.parent
         elif self.type == b"SAMPLE":
@@ -949,14 +992,34 @@ class CGATS(dict):
             del context[keyword]
 
     def insert(self, key=None, data=None):
-        """Insert data at index key. Also see add_data method."""
+        """Insert data at index key. Also see add_data method.
+
+        Args:
+            key (int, optional): The index at which to insert the data.
+                If None, data is appended. Defaults to None.
+            data (CGATS, optional): The CGATS data to insert. If None,
+                the current CGATS instance is used. Defaults to None.
+        """
         self.add_data(data, key)
 
     def append(self, data):
-        """Append data. Also see add_data method."""
+        """Append data. Also see add_data method.
+
+        Args:
+            data (CGATS): The CGATS data to append.
+        """
         self.add_data(data)
 
     def get_data(self, field_names=None):
+        """Get CGATS data.
+
+        Args:
+            field_names (tuple, optional): A tuple of field names to query.
+                If None, all data is returned. Defaults to None.
+
+        Returns:
+            dict: A dictionary containing the CGATS data.
+        """
         data = self.queryv1("DATA")
         if not data:
             return False
@@ -965,6 +1028,15 @@ class CGATS(dict):
         return data
 
     def get_RGB_XYZ_values(self):
+        """Get RGB and XYZ values from the CGATS data.
+
+        Returns:
+            tuple: A tuple containing two elements:
+                - A dictionary with RGB and XYZ values.
+                - A list of lists containing RGB and XYZ values in the order:
+                  [R, G, B, X, Y, Z].
+            If no data is found, returns (False, False).
+        """
         field_names = ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z")
         data = self.get_data(field_names)
         if not data:
@@ -975,6 +1047,16 @@ class CGATS(dict):
         return data, valueslist
 
     def set_RGB_XYZ_values(self, valueslist):
+        """Set RGB and XYZ values in the CGATS data.
+
+        Args:
+            valueslist (list): A list of RGB and XYZ values, where each entry
+                is a list containing RGB and XYZ values in the order:
+                [R, G, B, X, Y, Z].
+
+        Returns:
+            bool: True if values were set successfully, False otherwise.
+        """
         field_names = ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z")
         for i, values in enumerate(valueslist):
             for j, field_name in enumerate(field_names):
@@ -988,6 +1070,17 @@ class CGATS(dict):
         split_grays=False,
         shift=False,
     ):
+        """Return a checkerboard of RGB values.
+
+        Args:
+            sort1 (function): Function to sort the first dimension.
+            sort2 (function): Function to sort the second dimension.
+            split_grays (bool): If True, split grays from colors.
+            shift (bool): If True, shift values in checkerboard.
+
+        Returns:
+            list: A list of RGB values arranged in a checkerboard pattern.
+        """
         data, valueslist = self.get_RGB_XYZ_values()
         if not valueslist:
             return False
@@ -1152,6 +1245,11 @@ class CGATS(dict):
         return data.set_RGB_XYZ_values(checkerboard)
 
     def sort_RGB_gray_to_top(self):
+        """Sort RGB values with gray at the top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_RGB_gray_to_top)
 
     def sort_RGB_to_top(
@@ -1162,6 +1260,13 @@ class CGATS(dict):
         Example: sort_RGB_to_top(True, False, False) - sort red values to top
         Example: sort_RGB_to_top(False, True, True) - sort cyan values to top
 
+        Args:
+            red (bool): If True, sort red values to top.
+            green (bool): If True, sort green values to top.
+            blue (bool): If True, sort blue values to top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
         """
         if red and green and blue:
             function = sort_RGB_gray_to_top
@@ -1182,37 +1287,96 @@ class CGATS(dict):
         return self.sort_data_RGB_XYZ(function)
 
     def sort_RGB_white_to_top(self):
+        """Sort RGB values with white at the top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_RGB_white_to_top)
 
     def sort_by_HSI(self):
+        """Sort by HSI values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSI)
 
     def sort_by_HSL(self):
+        """Sort by HSL values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSL)
 
     def sort_by_HSV(self):
+        """Sort by HSV values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSV)
 
     def sort_by_L(self):
+        """Sort by L values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_L)
 
     def sort_by_RGB(self):
+        """Sort by RGB values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB)
 
     def sort_by_BGR(self):
+        """Sort by BGR values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_BGR)
 
     def sort_by_RGB_pow_sum(self):
+        """Sort by RGB power sum.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB_pow_sum)
 
     def sort_by_RGB_sum(self):
+        """Sort by RGB sum.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB_sum)
 
     def sort_by_rec709_luma(self):
+        """Sort by Rec. 709 luma.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_rec709_luma)
 
     def sort_data_RGB_XYZ(self, cmp=None, key=None, reverse=False):
-        """Sort RGB/XYZ data"""
+        """Sort RGB/XYZ data.
+
+        Args:
+            cmp (callable, optional): Comparison function to use for sorting.
+            key (callable, optional): Key function to use for sorting.
+            reverse (bool, optional): If True, sort in descending order.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         data, valueslist = self.get_RGB_XYZ_values()
         if not valueslist:
             return False
@@ -1221,6 +1385,11 @@ class CGATS(dict):
 
     @property
     def modified(self):
+        """Return whether the CGATS object has been modified.
+
+        Returns:
+            bool: True if modified, False otherwise.
+        """
         if self.root:
             return self.root._modified
         return self._modified
@@ -1468,6 +1637,22 @@ class CGATS(dict):
         compress=True,
         file_format="VRML",
     ):
+        """Export 3D data to a file in the specified colorspace.
+
+        Args:
+            filename (str): The name of the file to export to.
+            colorspace (str): The colorspace to use for the export.
+                Supported values are: "DIN99", "DIN99b", "DIN99c", "DIN99d",
+                "LCH(ab)", "LCH(uv)", "Lab", "Luv", "Lu'v'", "RGB", "xyY",
+                "HSI", "HSL", "HSV", "ICtCp", "IPT", and "Lpt".
+            RGB_black_offset (int): The offset for black in RGB space.
+            normalize_RGB_white (bool): Whether to normalize RGB white.
+            compress (bool): Whether to compress the output file.
+            file_format (str): The format of the output file, e.g., 'VRML'.
+
+        Raises:
+            ValueError: If the specified colorspace is not supported.
+        """
         if colorspace not in (
             "DIN99",
             "DIN99b",

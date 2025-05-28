@@ -68,6 +68,12 @@ class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
 
     @property
     def Handles(self):
+        """Return a list of handles.
+
+        Returns:
+            list[SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX]: A list of handles
+                represented by SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structures.
+        """
         arr_t = SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * self.NumberOfHandles
         return ctypes.POINTER(arr_t)(self._Handles)[0]
 

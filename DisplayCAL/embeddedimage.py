@@ -50,20 +50,40 @@ class PyEmbeddedImage:
         self.isBase64 = isBase64
 
     def GetBitmap(self):
+        """Return a wx.Bitmap object created from the embedded image data.
+
+        Returns:
+            wx.Bitmap: The bitmap created from the embedded data.
+        """
         return wx.BitmapFromImage(self.GetImage())
 
     def GetData(self):
+        """Return the raw image data, decoding it if necessary.
+
+        Returns:
+            bytes: The raw image data, decoded if it was base64 encoded.
+        """
         if self.isBase64:
             data = b64decode(self.data)
         # TODO: what is ``data`` if self.isBase64 is False
         return data
 
     def GetIcon(self):
+        """Return a wx.Icon object created from the embedded image data.
+
+        Returns:
+            wx.Icon: The icon created from the embedded data.
+        """
         icon = wx.EmptyIcon()
         icon.CopyFromBitmap(self.GetBitmap())
         return icon
 
     def GetImage(self):
+        """Return a wx.Image object created from the embedded image data.
+
+        Returns:
+            wx.Image: The image created from the embedded data.
+        """
         stream = io.BytesIO(self.GetData())
         return wx.ImageFromStream(stream)
 

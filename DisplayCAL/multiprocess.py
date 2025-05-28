@@ -192,13 +192,34 @@ def pool_slice(
 
 
 class WorkerFunc:
-    """Wrap 'func' with optional arguments."""
+    """Wrap 'func' with optional arguments.
+
+    Args:
+        func (callable): The function to wrap.
+        exit_ (bool): If True, the worker process will exit after processing
+            the data. This is useful for cleaning up resources in worker
+            processes, especially on Windows where atexit handlers may not run
+            automatically.
+    """
 
     def __init__(self, func, exit_=False):
         self.func = func
         self.exit = exit_
 
     def __call__(self, data, thread_abort_event, progress_queue, *args, **kwds):
+        """Call the wrapped function with the given data and arguments.
+
+        Args:
+            data (iterable): The data to process.
+            thread_abort_event (threading.Event): Event to signal thread abort.
+            progress_queue (multiprocessing.Queue): Queue to send progress updates.
+            *args: Positional arguments to pass to the wrapped function.
+            **kwds: Keyword arguments to pass to the wrapped function.
+
+        Returns:
+            Exception or result: The result of the function call, or an exception
+                if one occurred.
+        """
         try:
             return self.func(data, thread_abort_event, progress_queue, *args, **kwds)
         except Exception as exception:
@@ -247,6 +268,10 @@ class Mapper:
 
     To be used as function argument for Pool.map
 
+    Args:
+        func (callable): The function to wrap.
+        *args: Positional arguments to pass to the wrapped function.
+        **kwds: Keyword arguments to pass to the wrapped function.
     """
 
     def __init__(self, func, *args, **kwds):
@@ -255,6 +280,14 @@ class Mapper:
         self.kwds = kwds
 
     def __call__(self, iterable):
+        """Call the wrapped function with the given iterable.
+
+        Args:
+            iterable (iterable): The iterable to process with the wrapped function.
+
+        Returns:
+            list: The result of applying the wrapped function to the iterable.
+        """
         return self.func(iterable, *self.args, **self.kwds)
 
 
@@ -269,10 +302,21 @@ class NonDaemonicProcess(mp.Process):
 
     @property
     def daemon(self):
+        """Return False, as this process is always non-daemonic.
+
+        Returns:
+            bool: Always False, indicating that this process is non-daemonic.
+        """
         return False
 
     @daemon.setter
     def daemon(self, daemonic):
+        """Set the process as non-daemonic.
+
+        Args:
+            daemonic (bool): This is ignored, as this process is always
+                non-daemonic.
+        """
         return
 
 
@@ -280,6 +324,16 @@ class NonDaemonicPool(mp.pool.Pool):
     """Pool that has non-daemonic workers"""
 
     def Process(self, *args, **kwargs):
+        """Return a non-daemonic process.
+
+        This is needed for Windows, as daemonic processes cannot have
+        children. This is a problem when using multiprocessing.Pool,
+        as the worker processes are daemonic and they create child
+        processes when they call the function.
+
+        Returns:
+            NonDaemonicProcess: A non-daemonic process.
+        """
         # Process is a function after Python 3.7+
         # Process = NonDaemonicProcess -- This will not work with Python3.7+
         proc = super().Process(*args, **kwargs)
@@ -289,20 +343,55 @@ class NonDaemonicPool(mp.pool.Pool):
 
 
 class FakeManager:
-    """Fake manager"""
+    """Fake manager."""
 
     def Queue(self):
+        """Return a fake queue.
+
+        Returns:
+            FakeQueue: A fake queue that does not use multiprocessing.
+        """
         return FakeQueue()
 
     def Value(self, typecode, *args, **kwds):
+        """Return a fake Value.
+
+        Args:
+            typecode (str): The type code for the value.
+            *args: Positional arguments to pass to the Value constructor.
+            **kwds: Keyword arguments to pass to the Value constructor.
+
+        Returns:
+            mp.managers.Value: A fake Value that does not use multiprocessing.
+        """
         return mp.managers.Value(typecode, *args, **kwds)
 
     def shutdown(self):
-        pass
+        """Shutdown the fake manager."""
 
 
 class FakePool:
-    """Fake pool."""
+    """Fake pool.
+
+    This is a fake pool that does not use multiprocessing. It is used for
+    testing purposes or when multiprocessing is not available or not needed.
+    It does not create worker processes and runs the function in the main
+    thread. It is a drop-in replacement for multiprocessing.Pool.
+    It does not support any of the advanced features of multiprocessing.Pool,
+    such as process management, task tracking, or error handling.
+    It is only suitable for simple use cases where the function can be run
+    synchronously in the main thread without any parallelism.
+
+    Args:
+        processes (int, optional): Number of worker processes to use. Not used
+            in this fake pool.
+        initializer (callable, optional): Function to run when a worker process
+            starts. Not used in this fake pool.
+        initargs (tuple, optional): Arguments to pass to the initializer
+            function. Not used in this fake pool.
+        maxtasksperchild (int, optional): Maximum number of tasks a worker can
+            complete before it is replaced. Not used in this fake pool.
+    """
 
     def __init__(
         self, processes=None, initializer=None, initargs=(), maxtasksperchild=None
@@ -310,19 +399,42 @@ class FakePool:
         pass
 
     def apply_async(self, func, args, kwds):
+        """Apply function asynchronously.
+
+        Args:
+            func (callable): The function to apply.
+            args (tuple): The positional arguments to pass to the function.
+            kwds (dict): The keyword arguments to pass to the function.
+
+        Returns:
+            Result: A Result instance containing the result of the function call.
+        """
         return Result(func(*args, **kwds))
 
     def close(self):
-        pass
+        """Close the pool."""
 
     def join(self):
-        pass
+        """Wait for the worker processes to finish."""
 
     def map(self, func, iterable, chunksize=None):
+        """Map function over iterable using the given function.
+
+        Args:
+            func (callable): The function to apply to each item in the
+                iterable.
+            iterable (iterable): The iterable to process.
+            chunksize (int, optional): The size of each chunk to process. Not
+                used in this fake pool.
+
+        Returns:
+            list: A list of results from applying the function to each item
+                in the iterable.
+        """
         return func(iterable)
 
     def terminate(self):
-        pass
+        """Terminate the pool."""
 
 
 class FakeQueue:
@@ -332,15 +444,31 @@ class FakeQueue:
         self.queue = []
 
     def get(self, block=True, timeout=None):
+        """Get an item from the queue.
+
+        Args:
+            block (bool): If True, block until an item is available.
+            timeout (float): Timeout for blocking, not used in this fake queue.
+
+        Raises:
+            Empty: If the queue is empty.
+        """
         try:
             return self.queue.pop()
         except Exception as e:
             raise Empty from e
 
     def join(self):
-        pass
+        """Wait until all items in the queue have been processed."""
 
     def put(self, item, block=True, timeout=None):
+        """Put an item into the queue.
+
+        Args:
+            item: The item to be added to the queue.
+            block (bool): If True, block until the item is added.
+            timeout (float): Timeout for blocking, not used in this fake queue.
+        """
         self.queue.append(item)
 
 

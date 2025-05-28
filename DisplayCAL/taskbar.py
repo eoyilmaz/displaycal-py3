@@ -84,16 +84,31 @@ taskbar.HrInit()
 
 
 class Taskbar:
-    """Taskbar progress bar interface."""
+    """Taskbar progress bar interface.
+
+    Args:
+        frame (wx.Frame): The frame to associate with the taskbar progress.
+        maxv (int): The maximum value for the progress bar, default is 100.
+    """
 
     def __init__(self, frame, maxv=100):
         self.frame = frame
         self.maxv = maxv
 
     def set_progress_value(self, value):
+        """Set the taskbar progress value.
+
+        Args:
+            value (int): The progress value, should be between 0 and maxv.
+        """
         if self.frame:
             taskbar.SetProgressValue(self.frame.GetHandle(), value, self.maxv)
 
     def set_progress_state(self, state):
+        """Set the taskbar progress state.
+
+        Args:
+            state (int): The progress state, one of TBPF_* constants.
+        """
         if self.frame:
             taskbar.SetProgressState(self.frame.GetHandle(), state)

@@ -29,10 +29,23 @@ class FileBrowseButtonXmlHandler(xrc.XmlResourceHandler):
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class FileBrowseButton, False otherwise.
+        """
         return self.IsOfClass(node, self._class.__name__)
 
     # Process XML parameters and create the object
     def DoCreateResource(self):
+        """Create the FileBrowseButton control from XML parameters.
+
+        Returns:
+            FileBrowseButton: The created FileBrowseButton control.
+        """
         w = self._class(
             parent=self.GetParentAsWindow(),
             id=self.GetID(),
@@ -66,6 +79,15 @@ class FileBrowseButtonWithHistoryXmlHandler(FileBrowseButtonXmlHandler):
         self._class = FileBrowseButtonWithHistory
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class FileBrowseButtonWithHistory,
+                False otherwise.
+        """
         return self.IsOfClass(node, self._class.__name__) or self.IsOfClass(
             node, "FileBrowseButtonWithHistory"
         )

@@ -1,7 +1,6 @@
-"""This module provides utilities for interacting with the D-Bus inter-process
-communication system, supporting both the `Gio` library (via GObject
-Introspection) and the `dbus` Python library. It abstracts D-Bus object
-interactions, enabling method calls, property access, and introspection.
+"""Utilities for interacting with D-Bus using Gio or dbus.
+
+Provides object access, method calls, properties, and introspection.
 """
 
 import sys

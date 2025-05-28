@@ -1,7 +1,8 @@
-"""This module provides utility classes and functions for handling file I/O
-operations. It includes tools for encoding/decoding data during file writes,
-managing multiple file objects, working with GZIP and TAR files, buffering
-line-based streams, and other file-related utilities.
+"""Utility classes and functions for file I/O.
+
+It includes tools for encoding/decoding data during file writes, managing
+multiple file objects, working with GZIP and TAR files, buffering line-based
+streams, and other file-related utilities.
 """
 
 from __future__ import annotations
@@ -30,10 +31,18 @@ if TYPE_CHECKING:
 
 
 class EncodedWriter:
-    """Decode data with data_encoding and encode it with file_encoding before
-    writing it to file_obj.
+    """Encodes data before writing it to a file object.
 
     Either data_encoding or file_encoding can be None.
+
+    Args:
+        file_obj (file-like object): The file object to write to.
+        data_encoding (str, optional): The encoding to use for decoding data
+            before writing. Defaults to None.
+        file_encoding (str, optional): The encoding to use for encoding data
+            before writing. Defaults to None.
+        errors (str, optional): The error handling scheme to use for encoding
+            and decoding errors. Defaults to "replace".
     """
 
     def __init__(
@@ -154,9 +163,11 @@ class Files:
 
 
 class GzipFileProper(gzip.GzipFile):
-    """Proper GZIP file implementation, where the optional filename in the
-    header has directory components removed, and is converted to ISO 8859-1
-    (Latin-1). On Windows, the filename will also be forced to lowercase.
+    """Proper GZIP file implementation.
+
+    Where the optional filename in the header has directory components removed,
+    and is converted to ISO 8859-1 (Latin-1). On Windows, the filename will
+    also be forced to lowercase.
 
     See RFC 1952 GZIP File Format Specification	version 4.3
     """
@@ -289,8 +300,9 @@ class LineBufferedStream:
 
 
 class LineCache:
-    """When written to it, stores only the last n + 1 lines and
-    returns only the last n non-empty lines when read.
+    """A simple line cache that stores the last n + 1 lines written to it.
+
+    And returns only the last n non-empty lines when read.
 
     Args:
         maxlines (int): The maximum number of lines to keep in the cache.
@@ -309,8 +321,7 @@ class LineCache:
         """Flush the cache, clearing it."""
 
     def read(self, triggers=None):
-        """Read the cached lines, filtering out lines that contain any of the
-        specified triggers.
+        """Read cached lines, excluding those containing any triggers.
 
         Args:
             triggers (list of str, optional): A list of strings to filter out
@@ -410,10 +421,23 @@ class TarFileProper(tarfile.TarFile):
     """Support extracting to unicode location and using base name"""
 
     def extract(self, member, path="", full=True):
-        """Extract a member from the archive to the current working directory,
-        using its full name or base name. Its file information is extracted
-        as accurately as possible. `member' may be a filename or a TarInfo
-        object. You can specify a different directory using `path'.
+        """Extract a member from the archive to the current working directory.
+
+        The full name or base name of the extracted files are used. Its file
+        information is extracted as accurately as possible.
+
+        Args:
+            member (str | TarInfo): The name of the member to extract or a
+                TarInfo object representing the member.
+            path (str, optional): The directory to extract to. Defaults to the
+                current working directory ("").
+            full (bool, optional): If True, use the full path for extraction.
+                If False, use only the base name of the member. Defaults to
+                True.
+
+        Raises:
+            OSError: If there is an error during extraction.
+            tarfile.ExtractError: If there is an error extracting the member.
         """
         self._check("r")
         tarinfo = self.getmember(member) if isinstance(member, str) else member
@@ -443,11 +467,20 @@ class TarFileProper(tarfile.TarFile):
             self._dbg(1, f"tarfile: {e}")
 
     def extractall(self, path=".", members=None, full=True):
-        """Extract all members from the archive to the current working
-        directory and set owner, modification time and permissions on
-        directories afterwards. `path' specifies a different directory
-        to extract to. `members' is optional and must be a subset of the
-        list returned by getmembers().
+        """Extract all members from the archive to the current working directory.
+
+        Also, set owner, modification time and permissions on directories
+        afterwards.
+
+        Args:
+            path (str, optional): The directory to extract to. Defaults to the
+                current working directory (".").
+            members (list of TarInfo, optional): A list of members to extract.
+                must be a subset of the list returned by `getmembers()`. If
+                None, all members are extracted. Defaults to None.
+            full (bool, optional): If True, use the full path for extraction.
+                If False, use only the base name of the member. Defaults to
+                True.
         """
         directories = []
 

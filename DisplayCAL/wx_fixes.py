@@ -1,8 +1,7 @@
-"""This module provides compatibility fixes, workarounds, and enhancements for
-wxPython to address platform-specific issues, deprecated features, and
-inconsistencies across different versions. It includes custom widget
-implementations, DPI scaling adjustments, and additional utility functions for
-improved UI behavior and appearance.
+"""Compatibility fixes and enhancements for wxPython across platforms and versions.
+
+It includes custom widget implementations, DPI scaling adjustments, and
+additional utility functions for improved UI behavior and appearance.
 """
 
 import contextlib
@@ -824,9 +823,7 @@ wx._Sizer = wx.Sizer
 
 
 class Sizer(wx._Sizer):
-    """Replacement for wx.Sizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """wx.Sizer replacement that scales spacing for current DPI."""
 
     def Add(self, *args, **kwargs):
         """Add an item to the sizer.
@@ -856,9 +853,7 @@ wx._BoxSizer = wx.BoxSizer
 
 
 class BoxSizer(wx._BoxSizer):
-    """Replacement for wx.BoxSizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """BoxSizer with DPI scaling."""
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
@@ -871,9 +866,7 @@ wx._GridSizer = wx.GridSizer
 
 
 class GridSizer(wx._GridSizer):
-    """Replacement for wx.GridSizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """GridSizer with DPI scaling."""
 
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
@@ -1724,9 +1717,7 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
 
 
 class PlateButton(platebtn.PlateButton):
-    """Fixes wx.lib.platebtn.PlateButton sometimes not reflecting enabled state
-    correctly aswelll as other quirks.
-    """
+    """Fixes PlateButton enabled state and related issues."""
 
     _really_enabled = True
 

@@ -1,8 +1,7 @@
-"""This module provides an interface for interacting with the `colord` color
-management service, which is used to manage color profiles and devices on Linux
-systems. It supports querying, managing, and installing color profiles for
-display devices, leveraging both the D-Bus API and the `colormgr` command-line
-utility.
+"""Interface to the colord service for managing color profiles and devices on Linux.
+
+It supports querying, managing, and installing color profiles for display
+devices, leveraging both the D-Bus API and the `colormgr` command-line utility.
 """
 
 import contextlib

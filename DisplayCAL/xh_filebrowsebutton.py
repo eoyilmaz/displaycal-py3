@@ -1,8 +1,8 @@
-"""This module provides custom XML resource handlers for wxPython to create and
-manage file browse buttons from XML resource files. It supports both standard
-FileBrowseButton controls and FileBrowseButtonWithHistory controls, allowing
-configuration of properties such as labels, tooltips, dialog titles, and file
-filters.
+"""Custom XML handlers for wxPython file browse buttons.
+
+It supports both standard FileBrowseButton controls and
+FileBrowseButtonWithHistory controls, allowing configuration of properties such
+as labels, tooltips, dialog titles, and file filters.
 """
 
 import wx

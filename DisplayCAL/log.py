@@ -1,7 +1,4 @@
-"""This module provides logging functionality for the application, including
-custom loggers, file-based logging with rotation, and safe logging mechanisms
-to handle Unicode and multiprocessing scenarios.
-"""
+"""Logging utilities for file-based, rotating, and safe Unicode logging."""
 
 import atexit
 import contextlib
@@ -240,9 +237,7 @@ class LogFile:
 
 
 class SafeLogger(SafePrinter):
-    """Print and log safely, avoiding any UnicodeDe-/EncodingErrors on strings
-    and converting all other objects to safe string representations.
-    """
+    """Safely print and log, avoiding Unicode errors."""
 
     def __init__(self, log=True, print_=None):
         SafePrinter.__init__(self)

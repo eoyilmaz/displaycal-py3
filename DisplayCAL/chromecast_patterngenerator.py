@@ -1,7 +1,8 @@
-"""This module provides functionality to control a Chromecast device for
-pattern generation. It includes classes to send color patterns, manage
-connections, and interact with the Chromecast's pattern generator app for use
-in display calibration workflows.
+"""Control Chromecast for pattern generation.
+
+It includes classes to send color patterns, manage connections, and interact
+with the Chromecast's pattern generator app for use in display calibration
+workflows.
 """
 
 # 0install: Make sure imported protobuf is from implementation to ensure

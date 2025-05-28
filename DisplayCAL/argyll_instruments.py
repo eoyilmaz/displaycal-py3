@@ -1,7 +1,7 @@
-"""This module defines a collection of supported instruments and their
-properties for use with Argyll CMS. It provides utilities for managing
-instrument names, removing vendor prefixes, and mapping instrument names to
-canonical forms.
+"""Supported instruments and their properties for Argyll CMS.
+
+It provides utilities for managing instrument names, removing vendor prefixes,
+and mapping instrument names to canonical forms.
 """
 
 from __future__ import annotations

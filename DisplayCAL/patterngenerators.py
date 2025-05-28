@@ -1,5 +1,5 @@
-"""This module provides implementations for pattern generator clients and
-servers, enabling communication with devices over HTTP and TCP protocols.
+"""Pattern generator clients and servers for HTTP and TCP devices.
+
 It supports sending RGB patterns, managing connections, and handling events for
 various pattern generator devices.
 """

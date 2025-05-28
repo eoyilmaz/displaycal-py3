@@ -1,8 +1,7 @@
-"""This module provides functionality for retrieving and parsing EDID
-(Extended Display Identification Data) from various operating systems.
+"""Retrieve and parse EDID (Extended Display Identification Data) from various OSes.
 
-It includes methods for fetching EDID data from Windows, macOS,
-and other platforms, as well as parsing the EDID data into a structured format.
+It includes methods for fetching EDID data from Windows, macOS, and other
+platforms, as well as parsing the EDID data into a structured format.
 """
 
 from __future__ import annotations

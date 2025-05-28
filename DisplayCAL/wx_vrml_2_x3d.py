@@ -1,8 +1,9 @@
-"""This module provides functionality to convert VRML files to X3D format,
-with optional HTML embedding and viewing capabilities. It includes a graphical
-interface using wxPython for file selection and conversion, as well as a
-command-line mode for batch processing. The module supports features like
-caching, forced downloads, and embedding viewer components in the output.
+"""Convert VRML files to X3D format, with optional HTML embedding and viewing.
+
+It includes a graphical interface using wxPython for file selection and
+conversion, as well as a command-line mode for batch processing. The module
+supports features like caching, forced downloads, and embedding viewer
+components in the output.
 """
 
 import os
@@ -223,9 +224,29 @@ def vrmlfile2x3dfile(
     worker=None,
     gui=True,
 ):
-    """Convert VRML to HTML. Output is written to <vrmlfilename>.x3d.html
-    unless you set x3dpath to desired output path, or False to be prompted
-    for an output path."""
+    """Convert VRML to HTML.
+
+    Output is written to <vrmlfilename>.x3d.html unless you set x3dpath to
+    desired output path, or False to be prompted for an output path.
+
+    Args:
+        vrmlpath (str): Path to the VRML file to convert. If None, a file
+            dialog will be shown to select the file.
+        x3dpath (str): Path to the output X3D file. If None, it will be derived
+            from vrmlpath. If False, a file dialog will be shown to select the
+            output path.
+        html (bool): Whether to generate an HTML file with the X3D viewer.
+        embed (bool): Whether to embed the X3D viewer components in the HTML.
+        view (bool): Whether to view the generated file after conversion.
+        force (bool): Whether to force a fresh download of viewer components.
+        cache (bool): Whether to use the viewer components cache.
+        worker (Worker): Worker instance for asynchronous processing.
+        gui (bool): Whether to use GUI for file selection.
+
+    Returns:
+        bool: True if the conversion was successful, False otherwise.
+        None: If the user cancels the file selection dialog.
+    """
     while not vrmlpath or not os.path.isfile(vrmlpath):
         if not gui:
             if not vrmlpath or vrmlpath.startswith("--"):

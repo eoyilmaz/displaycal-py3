@@ -1,5 +1,5 @@
-"""This module provides utilities for network-related operations, including
-hostname resolution, network address retrieval, and custom socket handling.
+"""Network utilities: hostname resolution, address retrieval, and custom sockets.
+
 It also includes HTTP redirect handlers for logging or preventing redirections.
 """
 

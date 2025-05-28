@@ -1,8 +1,8 @@
-"""This module provides a graphical interface for viewing and analyzing ICC
-profiles in DisplayCAL. It includes features for visualizing color gamuts, tone
-response curves, and 3D representations of profiles. The module integrates with
-wxPython for user interaction and supports various color spaces and rendering
-intents.
+"""Graphical interface for viewing and analyzing ICC profiles in DisplayCAL.
+
+It includes features for visualizing color gamuts, tone response curves, and 3D
+representations of profiles. The module integrates with wxPython for user
+interaction and supports various color spaces and rendering intents.
 """
 
 import os

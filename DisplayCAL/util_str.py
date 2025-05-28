@@ -1,7 +1,6 @@
-"""This module provides utility functions for string manipulation, including
-ASCII conversion, safe filename generation, text wrapping, and handling
-Unicode characters. It also includes error handling utilities and custom
-string-like classes.
+"""String utility functions for ASCII conversion, safe filenames, and Unicode handling.
+
+It also includes error handling utilities and custom string-like classes.
 """
 
 from __future__ import annotations
@@ -234,8 +233,11 @@ subst.update(
 
 
 class StrList(list):
-    """It's a list. It's a string. It's a list of strings that behaves like a
-    string! And like a list."""
+    """A list of strings that behaves like a string.
+
+    It's a list. It's a string. It's a list of strings that behaves like a
+    string! And like a list.
+    """
 
     def __init__(self, seq=None) -> None:
         if seq is None:

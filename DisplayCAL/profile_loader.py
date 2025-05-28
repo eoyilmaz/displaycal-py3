@@ -3502,9 +3502,9 @@ class ProfileLoader:
         return os.path.isfile(displaycal_lockfile)
 
     def _is_other_running(self, enumerate_windows_and_processes=True):
-        """Determine if other software that may be using the videoLUT is in use
-        (e.g. madVR video playback, madTPG, other calibration software)
+        """Determine if other software that may be using the videoLUT is in use.
 
+        (e.g. madVR video playback, madTPG, other calibration software)
         """
         if sys.platform != "win32":
             return None

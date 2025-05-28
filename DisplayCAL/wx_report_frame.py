@@ -1,8 +1,9 @@
-"""This module provides the implementation of the measurement report creation
-window in DisplayCAL. It allows users to configure test charts, profiles, and
-various settings for generating measurement reports. The module integrates
-with wxPython for the graphical interface and supports handling ICC profiles,
-test charts, and rendering intents.
+"""Measurement report creation window for DisplayCAL.
+
+It allows users to configure test charts, profiles, and various settings for
+generating measurement reports. The module integrates with wxPython for the
+graphical interface and supports handling ICC profiles, test charts, and
+rendering intents.
 """
 
 import math

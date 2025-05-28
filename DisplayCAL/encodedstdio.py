@@ -1,8 +1,7 @@
-"""This module provides utilities for handling encoded input and output
-streams, allowing seamless encoding and decoding of text data in Python
-applications. It includes functionality to register custom codec aliases,
-conditionally encode or decode text, and wrap standard input/output streams
-with automatic encoding/decoding support.
+"""Utilities for handling encoded input/output streams.
+
+Includes codec alias registration and automatic encoding/decoding for standard
+streams.
 """
 
 import codecs
@@ -45,9 +44,11 @@ def conditional_encode(text, encoding="UTF-8", errors="strict"):
 
 
 def encodestdio(encodings=None, errors=None):
-    """After this function is called, Unicode strings written to
-    stdout/stderr are automatically encoded and strings read from stdin
-    automatically decoded with the given encodings and error handling.
+    """Wrap sys.stdin, sys.stdout, and sys.stderr with EncodedStream.
+
+    After this function is called, Unicode strings written to stdout/stderr are
+    automatically encoded and strings read from stdin automatically decoded
+    with the given encodings and error handling.
 
     encodings and errors can be a dict with mappings for stdin/stdout/stderr,
     e.g. encodings={'stdin': 'UTF-8', 'stdout': 'UTF-8', 'stderr': 'UTF-8'}
@@ -74,14 +75,18 @@ def encodestdio(encodings=None, errors=None):
 
 
 def read(stream, size=-1):
-    """Read from stream. Uses os.read() if stream is a tty,
-    stream.read() otherwise."""
+    """Read from stream.
+
+    Uses os.read() if stream is a tty, stream.read() otherwise.
+    """
     return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):
-    """Write to stream. Uses os.write() if stream is a tty,
-    stream.write() otherwise."""
+    """Write to stream.
+
+    Uses os.write() if stream is a tty, stream.write() otherwise.
+    """
     if stream.isatty():
         os.write(stream.fileno(), data)
     else:
@@ -89,12 +94,11 @@ def write(stream, data):
 
 
 class EncodedStream:
-    """Unicode strings written to an EncodedStream are automatically encoded
-    and strings read from it automtically decoded with the given encoding
-    and error handling.
+    """Automatically encodes writes and decodes reads using the given encoding.
 
-    Uses os.read() and os.write() for proper handling of unicode codepages
-    for stdout/stderr under Windows"""
+    This class also does error handling. Uses os.read() and os.write() for
+    proper handling of unicode codepages for stdout/stderr under Windows.
+    """
 
     def __init__(self, stream, encoding="UTF-8", errors="strict"):
         self.stream = stream

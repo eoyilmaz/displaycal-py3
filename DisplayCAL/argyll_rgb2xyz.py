@@ -1,5 +1,5 @@
-"""This module provides functions and data structures for color space
-conversions between RGB and XYZ, including normalization and glare adjustments.
+"""Functions and data for RGB/XYZ color space conversions.
+
 It defines ink tables, normalization factors, and channel mappings used in the
 conversion process.
 """

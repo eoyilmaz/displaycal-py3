@@ -46,10 +46,10 @@ def get_device_value_labels(color_rep=None):
 
 def rpad(value, width) -> bytes:
     """If value isn't a number, return a quoted string representation.
+
     If value is greater or equal than 1e+16, return string in scientific
-    notation.
-    Otherwise, return string in decimal notation right-padded to given width
-    (using trailing zeros).
+    notation. Otherwise, return string in decimal notation right-padded to
+    given width (using trailing zeros).
     """
     strval = b""
     if not isinstance(value, bytes):

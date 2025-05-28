@@ -1,7 +1,8 @@
-"""This module defines Windows-specific structures and types using the `ctypes`
-library. It includes utility classes such as `NTSTATUS` for representing
-Windows NT status codes and `UNICODE_STRING` for handling Unicode strings
-in Windows API interactions.
+"""Windows-specific structures and types using ctypes.
+
+It includes utility classes such as `NTSTATUS` for representing Windows NT
+status codes and `UNICODE_STRING` for handling Unicode strings in Windows API
+interactions.
 """
 
 from __future__ import annotations

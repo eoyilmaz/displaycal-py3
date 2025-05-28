@@ -1,8 +1,8 @@
-"""This module provides utilities for retrieving known folder paths on Windows
-using the Windows Shell API. It defines constants for various known folder
-GUIDs and provides a function to retrieve their paths for the current or
-common user. The implementation uses the `ctypes` library for interacting
-with the Windows API.
+"""Utilities for retrieving known Windows folder paths using the Windows Shell API.
+
+It defines constants for various known folder GUIDs and provides a function to
+retrieve their paths for the current or common user. The implementation uses
+the `ctypes` library for interacting with the Windows API.
 """
 # knownpaths.py (https://gist.github.com/mkropat/7550097)
 #

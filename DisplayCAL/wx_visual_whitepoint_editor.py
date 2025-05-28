@@ -165,8 +165,7 @@ def Distance(pt1, pt2):
 
 
 def AngleFromPoint(pt, center):
-    """Return the angle between the x-axis and the line connecting the center and
-    the point `pt`.
+    """Return angle between x-axis and line from center to pt.
 
     Args:
         pt: an instance of :class:`Point`;
@@ -541,7 +540,9 @@ class AuiManagerLRDocking(aui.AuiManager):
 
 
 class Colour:
-    """This is a class similar to :class:`Colour`, which adds Hue, Saturation and
+    """Colour class with RGB and HSV conversion methods.
+
+    This is a class similar to :class:`Colour`, which adds Hue, Saturation and
     Brightness capability. It contains also methods to convert RGB triplets
     into HSB triplets and vice-versa.
 
@@ -643,8 +644,7 @@ class Colour:
 
 
 class BasePyControl(wx.PyControl):
-    """Base class used to hold common code for the HSB colour wheel and the RGB
-    colour cube.
+    """Base class for HSB colour wheel and RGB colour cube.
 
     Args:
         parent (wx.Window): The control parent;
@@ -718,7 +718,9 @@ class BasePyControl(wx.PyControl):
         """
 
     def AcceptsFocusFromKeyboard(self):
-        """Can this window be given focus by keyboard navigation? If not, the
+        """Return whether this window can be given focus by keyboard navigation.
+
+        Can this window be given focus by keyboard navigation? If not, the
         only way to give it focus (provided it accepts it at all) is to click
         it.
 
@@ -775,8 +777,9 @@ class BasePyControl(wx.PyControl):
         self.Refresh()
 
     def DoGetBestSize(self):
-        """Overridden base class virtual. Determines the best size of the
-        control based on the bitmap size.
+        """Overridden base class virtual.
+
+        Determines the best size of the control based on the bitmap size.
 
         :note: Overridden from :class:`PyControl`.
         """
@@ -784,9 +787,7 @@ class BasePyControl(wx.PyControl):
 
 
 class BasePyButton(BasePyControl):
-    """Base class used to hold common code for the HSB colour wheel and the RGB
-    colour cube.
-    """
+    """Common base for HSB colour wheel and RGB colour cube."""
 
     def __init__(self, parent, bitmap):
         BasePyControl.__init__(self, parent, bitmap)
@@ -862,7 +863,9 @@ class BasePyButton(BasePyControl):
 
 
 class HSVWheel(BasePyControl):
-    """Implement the drawing, mouse handling and sizing routines for the HSV
+    """Custom control to select a colour in the HSV colour space.
+
+    Implement the drawing, mouse handling and sizing routines for the HSV
     colour wheel.
 
     Args:
@@ -1015,8 +1018,7 @@ class HSVWheel(BasePyControl):
 
 
 class BaseLineCtrl(wx.PyControl):
-    """Base class used to hold common code for the Alpha channel control and the
-    brightness palette control.
+    """Base class for alpha and brightness controls.
 
     Args:
         parent: the control parent window.
@@ -1099,7 +1101,9 @@ class BaseLineCtrl(wx.PyControl):
         return brightRect
 
     def AcceptsFocusFromKeyboard(self):
-        """Can this window be given focus by keyboard navigation? If not, the
+        """Return whether this window can be given focus by keyboard navigation.
+
+        Can this window be given focus by keyboard navigation? If not, the
         only way to give it focus (provided it accepts it at all) is to click
         it.
 
@@ -1122,8 +1126,10 @@ class BaseLineCtrl(wx.PyControl):
 
 
 class BrightCtrl(BaseLineCtrl):
-    """Implement the drawing, mouse handling and sizing routines for the brightness
-    palette control.
+    """A control used to select the brightness of a colour.
+
+    Implement the drawing, mouse handling and sizing routines for the
+    brightness palette control.
 
     Args:
         parent (wx.Window): the control parent window.
@@ -1267,8 +1273,7 @@ class BrightCtrl(BaseLineCtrl):
 
 
 class HSlider(BaseLineCtrl):
-    """Implement the drawing, mouse handling and sizing routines for the
-    slider control.
+    """A horizontal slider for selecting a value within a range.
 
     Args:
         parent (wx.Window): the control parent window.
@@ -1505,8 +1510,7 @@ class HSlider(BaseLineCtrl):
 
 
 class NumSpin(wx_Panel):
-    """A number spinner control that uses an IntCtrl and two buttons to
-    increment and decrement the value.
+    """A numeric spinner using IntCtrl and up/down buttons.
 
     It is a replacement for wx.SpinCtrl that uses a custom IntCtrl instead of
     the default one. It also supports mouse wheel scrolling and keyboard input.
@@ -1826,9 +1830,14 @@ class ProfileManager:
             self._update_timer.Stop()
 
     def update(self, restore_display_profiles=True):
-        """Clear calibration on the current display, and restore it on
-        the previous one (if any)
+        """Update the display manager.
 
+        Clear calibration on the current display, and restore it on the
+        previous one (if any)
+
+        Args:
+            restore_display_profiles (bool): Whether to restore display
+                profiles when the display changes.
         """
         if restore_display_profiles:
             self.restore_display_profiles()
@@ -1899,10 +1908,14 @@ class ProfileManager:
         event.Skip()
 
     def window_move_handler(self, event):
-        """Clear calibration on the current display, and restore it on
-        the previous one (if any) when the window is moved from one to
-        another display.
+        """Handle the ``wx.EVT_MOVE`` event.
 
+        Clear calibration on the current display, and restore it on the
+        previous one (if any) when the window is moved from one to another
+        display.
+
+        Args:
+            event (wx.Event): The move event that triggered the handler.
         """
         display = self._window.GetDisplay()
         if not self._display or display.Geometry != self._display.Geometry:
@@ -2447,38 +2460,43 @@ class VisualWhitepointEditor(wx.Frame):
                 self.Restore()
             else:
                 self.Close()
-        # elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_UP,
-        # wx.WXK_DOWN):
-        # self._colour.h += {wx.WXK_LEFT: 1,
-        # wx.WXK_RIGHT: -1,
-        # wx.WXK_UP: 0,
-        # wx.WXK_DOWN: 0}[event.KeyCode]
-        # if self._colour.h > 359:
-        # self._colour.h = 0
-        # elif self._colour.h < 0:
-        # self._colour.h = 359
-        # self._colour.s += {wx.WXK_LEFT: 0,
-        # wx.WXK_RIGHT: 0,
-        # wx.WXK_UP: 1,
-        # wx.WXK_DOWN: -1}[event.KeyCode]
-        # if self._colour.s > 255:
-        # self._colour.s = 255
-        # elif self._colour.s < 0:
-        # self._colour.s = 0
-        # print self._colour.h, self._colour.s
-        # self._colour.ToRGB()
-        # self.DrawAll()
+        # elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_UP, wx.WXK_DOWN):
+        #     self._colour.h += {
+        #         wx.WXK_LEFT: 1,
+        #         wx.WXK_RIGHT: -1,
+        #         wx.WXK_UP: 0,
+        #         wx.WXK_DOWN: 0
+        #     }[event.KeyCode]
+        #     if self._colour.h > 359:
+        #         self._colour.h = 0
+        #     elif self._colour.h < 0:
+        #         self._colour.h = 359
+        #     self._colour.s += {
+        #       wx.WXK_LEFT: 0,
+        #       wx.WXK_RIGHT: 0,
+        #       wx.WXK_UP: 1,
+        #       wx.WXK_DOWN: -1
+        #     }[event.KeyCode]
+        #     if self._colour.s > 255:
+        #         self._colour.s = 255
+        #     elif self._colour.s < 0:
+        #         self._colour.s = 0
+        #     print(self._colour.h, self._colour.s)
+        #     self._colour.ToRGB()
+        #     self.DrawAll()
         else:
             event.Skip()
 
     def PtFromAngle(self, angle, sat, center):
-        """Given the angle with respect to the x-axis, returns the point based on
-        the saturation value.
+        """Return a point based on the angle and saturation.
 
         Args:
-            angle: a float representing an angle;
-            sat: a float representing the colour saturation value;
-            center: a float value representing the center.
+            angle (float): a float representing an angle;
+            sat (float): a float representing the colour saturation value;
+            center (float): a float value representing the center.
+
+        Returns:
+            wx.Point: A point calculated from the angle and saturation.
         """
         angle = deg2rad(angle)
         sat = min(

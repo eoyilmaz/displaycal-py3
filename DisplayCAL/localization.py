@@ -1,6 +1,7 @@
-"""This module provides functionality for managing localization and
-translations within the application. It handles loading language files,
-retrieving translated strings, and managing language-specific configurations.
+"""Localization and translation management.
+
+It handles loading language files, retrieving translated strings, and managing
+language-specific configurations.
 """
 
 import os

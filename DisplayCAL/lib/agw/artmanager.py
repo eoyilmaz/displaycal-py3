@@ -1,6 +1,4 @@
-"""Drawing routines and customizations for the AGW widgets
-:class:`~wx.lib.agw.labelbook.LabelBook` and :class:`~wx.lib.agw.flatmenu.FlatMenu`.
-"""
+"""Drawing routines and customizations for AGW widgets."""
 
 from __future__ import annotations
 

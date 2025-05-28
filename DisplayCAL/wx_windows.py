@@ -1,8 +1,9 @@
-"""This module provides various wxPython-based GUI components and utilities for
-building graphical interfaces. It includes custom widgets, dialogs, frames,
-and enhancements to standard wxPython controls, offering extended functionality
-and improved aesthetics. The module also supports advanced features like
-custom rendering, event handling, and platform-specific adjustments.
+"""wxPython-based GUI components and utilities.
+
+It includes custom widgets, dialogs, frames, and enhancements to standard
+wxPython controls, offering extended functionality and improved aesthetics. The
+module also supports advanced features like custom rendering, event handling,
+and platform-specific adjustments.
 """
 
 from __future__ import annotations
@@ -1072,8 +1073,17 @@ class BaseFrame(wx.Frame):
         self.init()
 
     def FindWindowByName(self, name):
-        """WxPython Phoenix FindWindowByName descends into the parent windows,
-        we don't want that
+        """Find a child window by its name.
+
+        WxPython Phoenix FindWindowByName descends into the parent windows,
+        we don't want that.
+
+        Args:
+            name (str): The name of the child window to find.
+
+        Returns:
+            wx.Window: The child window with the specified name, or None if not
+                found.
         """
         for child in list(self.GetAllChildren()):
             if hasattr(child, "Name") and child.Name == name:
@@ -3816,8 +3826,11 @@ _DirDialog = wx.DirDialog
 
 
 class DirDialog(PathDialog):
-    """wx.DirDialog cannot be interacted with programmatically after
-    ShowModal(), a functionality we need for scripting."""
+    """wx.DirDialog alternative that allows programmatic interaction.
+
+    wx.DirDialog cannot be interacted with programmatically after
+    ShowModal(), a functionality we need for scripting.
+    """
 
     def __init__(self, *args, **kwargs):
         PathDialog.__init__(self, *args[0:2], name="dirdialog")
@@ -3828,8 +3841,11 @@ _FileDialog = wx.FileDialog
 
 
 class FileDialog(PathDialog):
-    """wx.FileDialog cannot be interacted with programmatically after
-    ShowModal(), a functionality we need for scripting."""
+    """wx.FileDialog alternative that allows programmatic interaction.
+
+    wx.FileDialog cannot be interacted with programmatically after
+    ShowModal(), a functionality we need for scripting.
+    """
 
     def __init__(self, *args, **kwargs):
         PathDialog.__init__(self, *args[0:2], name="filedialog")
@@ -3926,8 +3942,9 @@ class FlatShadedButton(GradientButton):
         self.Enable(False)
 
     def DoGetBestSize(self):
-        """Overridden base class virtual. Determines the best size of the
-        button based on the label and bezel size.
+        """Overridden base class virtual.
+
+        Determines the best size of the button based on the label and bezel size.
         """
         if not getattr(self, "_lastBestSize", None):
             dummy = "FfGgJjPpYy"
@@ -4577,9 +4594,7 @@ class BorderGradientButton(GradientButton):
 
 
 class CustomGrid(wx.grid.Grid):
-    """Custom grid class to handle some wxPython bugs and provide
-    some additional functionality.
-    """
+    """Handle some wxPython bugs and provide some additional functionality."""
 
     def __init__(self, *args, **kwargs):
         wx.grid.Grid.__init__(self, *args, **kwargs)
@@ -5325,21 +5340,26 @@ class CustomCheckBox(wx.Panel):
         self._label.SetMaxFontSize(pointsize)
 
     def GetValue(self):
-        """Return the state of CustomCheckBox, True if checked, False
-        otherwise.
+        """Return the state of CustomCheckBox.
+
+        Returns:
+            bool: True if checked, False otherwise.
         """
         return self._cb.Value
 
     def IsChecked(self):
-        """This is just a maybe more readable synonym for GetValue: just as the
-        latter, it returns True if the CustomCheckBox is checked and False
-        otherwise.
+        """This is just a maybe more readable synonym for GetValue.
+
+        Returns:
+            bool: True if the CustomCheckBox is checked and False otherwise.
         """
         return self._cb.Value
 
     def SetValue(self, state):
-        """Set the CustomCheckBox to the given state. This does not cause a
-        wx.wxEVT_COMMAND_CHECKBOX_CLICKED event to get emitted.
+        """Set the CustomCheckBox to the given state.
+
+        This does not cause a wx.wxEVT_COMMAND_CHECKBOX_CLICKED event to get
+        emitted.
 
         Args:
             state (bool): True to check the CustomCheckBox, False to uncheck it.
@@ -5439,6 +5459,7 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
 
     def SetSize(self, rect):
         """Called to position/size the edit control within the cell rectangle.
+
         If you don't fill the cell (the rect) then be sure to override
         PaintBackground and do something meaningful there.
         """
@@ -5451,8 +5472,10 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         )
 
     def Show(self, show, attr):
-        """Show or hide the edit control.  You can use the attr (if not None)
-        to set colours or fonts for the control.
+        """Show or hide the edit control.
+
+        You can use the attr (if not None) to set colours or fonts for the
+        control.
         """
         print(
             f"CustomCellEditor.Show({show!r}, {attr!r}) was called. This should "
@@ -5478,8 +5501,9 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         )
 
     def BeginEdit(self, row, col, grid):
-        """Fetch the value from the table and prepare the edit control
-        to begin editing.  Set the focus to the edit control.
+        """Fetch the value from the table and prepare the edit control to begin editing.
+
+        Set the focus to the edit control.
         """
         print(
             f"CustomCellEditor.BeginEdit({row!r}, {col!r}, {grid!r}) was called. "
@@ -5487,8 +5511,12 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         )
 
     def EndEdit(self, row, col, grid, value=None):
-        """Complete the editing of the current cell. Returns True if the value
-        has changed.  If necessary, the control may be destroyed.
+        """Complete the editing of the current cell.
+
+        If necessary, the control may be destroyed.
+
+        Returns:
+            bool: True if the value has changed.
         """
         print(
             f"CustomCellEditor.EndEdit({row!r}, {col!r}, {grid!r}, {value!r}) "
@@ -5504,16 +5532,11 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         )
 
     def IsAcceptedKey(self, evt):
-        """Return True to allow the given key to start editing: the base class
-        version only checks that the event has no modifiers.  F2 is special
-        and will always start the editor.
-        """
+        """Return True if the key should start editing (F2 always allowed)."""
         return False
 
     def StartingKey(self, evt):
-        """If the editor is enabled by pressing keys on the grid, this will be
-        called to let the editor do something about that first key if desired.
-        """
+        """Handle the first key when editing starts via keyboard."""
         print(
             f"CustomCellEditor.StartingKey({evt!r}) was called. This should "
             "not happen, but is unlikely an issue."
@@ -5521,19 +5544,16 @@ class CustomCellEditor(wx.grid.PyGridCellEditor):
         evt.Skip()
 
     def StartingClick(self):
-        """If the editor is enabled by clicking on the cell, this method will be
-        called to allow the editor to simulate the click on the control if
-        needed.
-        """
+        """Called when editing starts via mouse click.
+
+        No-op for this editor."""
 
     def Destroy(self):
         """Do final cleanup."""
         super(self.__class__, self).Destroy()
 
     def Clone(self):
-        """Create a new object which is the copy of this one
-        *Must Override*
-        """
+        """Create a new object which is the copy of this one *Must Override*."""
         return self.__class__()
 
 
@@ -8260,7 +8280,7 @@ class TabButton(PlateButton):
         return best
 
     def OnFocus(self, evt):
-        """Set the visual focus state if need be"""
+        """Set the visual focus state if need be."""
         if self._pressed:
             # Skip focus over to next control if it came from another control
             if isinstance(evt, wx.FocusEvent) and isinstance(
@@ -8271,20 +8291,14 @@ class TabButton(PlateButton):
             self._SetState(platebtn.PLATE_HIGHLIGHT)
 
     def OnKillFocus(self, evt):
-        """Set the visual state back to normal when focus is lost
-        unless the control is currently in a pressed state.
-
-        """
+        """Restore normal state on focus loss unless pressed."""
         if self._pressed:
             self._SetState(platebtn.PLATE_PRESSED)
         else:
             self._SetState(platebtn.PLATE_NORMAL)
 
     def OnLeftDown(self, evt):
-        """Depending on the click position will
-        show the popup menu if one has been set.
-
-        """
+        """Show popup menu if click is on menu area."""
         pos = evt.GetPosition()
         size = self.GetSize()
         if pos[0] >= size[0] - 16:

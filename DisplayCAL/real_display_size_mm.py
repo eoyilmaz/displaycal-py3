@@ -1,5 +1,5 @@
-"""This module provides utilities for retrieving and managing display
-information, including physical dimensions, positions, and associated metadata.
+"""Utilities for retrieving and managing display information.
+
 It supports various platforms and integrates with ArgyllCMS's `dispwin` tool to
 enumerate displays and extract detailed display data.
 """

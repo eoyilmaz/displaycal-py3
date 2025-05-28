@@ -1,8 +1,4 @@
-"""This module provides classes and utilities for working with lazy-loading
-dictionaries. Lazy dictionaries defer loading their contents from external
-files (e.g., JSON or YAML) until accessed, improving performance and memory
-usage for large datasets.
-"""
+"""Lazy-loading dictionaries that defer loading from files (JSON/YAML) until accessed."""  # noqa: E501
 
 import codecs
 import json
@@ -16,12 +12,10 @@ from DisplayCAL.util_str import safe_str
 
 
 def unquote(string, raise_exception=True):
-    """Remove single or double quote at start and end of string and unescape
-    escaped chars, YAML-style
+    """Remove outer single/double quotes and unescape YAML-style escapes.
 
     Unlike 'string'.strip("'"'"'), only removes the outermost quote pair.
     Raises ValueError on missing end quote if there is a start quote.
-
     """
     if len(string) > 1 and string[0] in "'\"":
         if string[-1] == string[0]:

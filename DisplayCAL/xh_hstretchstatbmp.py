@@ -1,6 +1,6 @@
-"""This module provides a custom XML resource handler for wxPython to create
-and manage HStretchStaticBitmap controls from XML resource files. It handles
-the processing of XML parameters, creation of the control, and its
+"""Custom XML handler for HStretchStaticBitmap controls in wxPython.
+
+It handles the processing of XML parameters, creation of the control, and its
 configuration.
 """
 

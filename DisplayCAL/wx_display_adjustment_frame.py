@@ -99,7 +99,12 @@ def set_label_and_size(txtctrl, label):
 
 
 class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
-    """Overridden agw.ImageContainer."""
+    """Overridden agw.ImageContainer.
+
+    Override default agw ImageContainer to use BackgroundColour and
+    ForegroundColour with no borders/labeltext and hilite image instead of
+    hilite shading.
+    """
 
     def __init__(
         self,
@@ -111,10 +116,6 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         agwStyle=0,
         name="ImageContainer",
     ):
-        """Override default agw ImageContainer to use BackgroundColour and
-        ForegroundColour with no borders/labeltext and hilite image instead of
-        hilite shading
-        """
         labelbook.ImageContainer.__init__(
             self, parent, id, pos, size, style, agwStyle, name
         )
@@ -128,7 +129,9 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         self.stateimgs = imagelist
 
     def HitTest(self, pt):
-        """Return the index of the tab at the specified position or ``wx.NOT_FOUND``
+        """Return the index of the tab at the specified position or ``wx.NOT_FOUND``.
+
+        Return the index of the tab at the specified position or ``wx.NOT_FOUND``
         if ``None``, plus the flag style of L{HitTest}.
 
         Args:

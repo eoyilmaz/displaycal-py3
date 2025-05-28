@@ -1,7 +1,7 @@
-"""This module provides classes for working with 3D cubes of data, particularly
-useful for iterating over or indexing into a 3D grid structure. It includes
-functionality to define a cube, access its elements, and iterate through its
-contents.
+"""Classes for working with and iterating over 3D data cubes.
+
+It includes functionality to define a cube, access its elements, and iterate
+through its contents.
 """
 
 

@@ -1,7 +1,4 @@
-"""This module provides utility functions for macOS-specific tasks, including
-interacting with applications via AppleScript, retrieving system information
-such as serial numbers and model IDs, and customizing Terminal settings.
-"""
+"""macOS utility functions for AppleScript, system info, and Terminal settings."""
 
 import os
 import re

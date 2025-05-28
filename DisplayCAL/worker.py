@@ -1,9 +1,9 @@
-"""This module provides the core functionality for managing display calibration
-and profiling workflows. It includes classes and methods for interacting with
-hardware instruments, handling pattern generators, managing profiles, and
-executing Argyll CMS utilities. The module also supports various
-platform-specific features and integrates with external tools like madVR and
-colord.
+"""Core functionality for display calibration and profiling workflows.
+
+It includes classes and methods for interacting with hardware instruments,
+handling pattern generators, managing profiles, and executing Argyll CMS
+utilities. The module also supports various platform-specific features and
+integrates with external tools like madVR and colord.
 """
 
 # stdlib
@@ -621,8 +621,7 @@ def check_ti3_criteria2(
 
 
 def check_ti3(ti3, print_debuginfo=True):
-    """Check subsequent patches' expected vs real deltaE and collect patches
-    with different RGB values, but suspiciously low delta E
+    """Check for suspiciously low delta E between patches with different RGB values.
 
     Used as a means to find misreads.
 
@@ -1300,10 +1299,12 @@ def get_options_from_cal(cal) -> tuple[list, list]:
 
 
 def get_options_from_profile(profile):
-    """Try and get options from profile. First, try the 'targ' tag and
-    look for the special DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and
-    'ARGYLL_COLPROF_ARGS'. If either does not exist, fall back to the
-    copyright tag (DisplayCAL < 0.4.0.2)"""
+    """Try and get options from profile.
+
+    First, try the 'targ' tag and look for the special DisplayCAL sections of
+    'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS'. If either does not exist,
+    fall back to the copyright tag (DisplayCAL < 0.4.0.2)
+    """
     if not isinstance(profile, ICCProfile):
         profile = ICCProfile(profile)
     dispcal_args = None
@@ -1322,8 +1323,10 @@ def get_options_from_profile(profile):
 
 
 def get_options_from_ti3(ti3):
-    """Try and get options from TI3 file by looking for the special
-    DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS'.
+    """Get dispcal and colprof options from TI3 file if present.
+
+    This looks for the special DisplayCAL sections of 'ARGYLL_DISPCAL_ARGS' and
+    'ARGYLL_COLPROF_ARGS'.
     """
     if not isinstance(ti3, CGATS):
         ti3 = CGATS(ti3)
@@ -1337,7 +1340,7 @@ def get_options_from_ti3(ti3):
 
 
 def get_pattern_geometry():
-    """Return pattern geometry for pattern generator"""
+    """Return pattern geometry for pattern generator."""
     x, y, size = [float(v) for v in getcfg("dimensions.measureframe").split(",")]
     if os.getenv("XDG_SESSION_TYPE") == "wayland":
         # No way to get coordinates under Wayland, default to center
@@ -1532,9 +1535,11 @@ def http_request(
 
 
 def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
-    """Insert patches from first TI file after first patch of second TI,
-    ignoring RGB duplicates. Return second TI as CGATS instance.
-    """
+    """Insert unique patches from the first TI file after the first patch of the second TI.
+
+    Returns:
+        CGATS: Second TI as CGATS instance.
+    """  # noqa: E501
     cgats2 = CGATS(cgats2_path)
     cgats1_data = cgats1.queryv1("DATA")
     data = cgats2.queryv1("DATA")
@@ -4211,8 +4216,10 @@ END_DATA
         hdr_display=False,
         XYZwp=None,
     ):
-        """Create a 3D LUT from one (device link) or two (device) profiles,
-        optionally incorporating an abstract profile."""
+        """Create a 3D LUT from one (device link) or two (device) profiles.
+
+        Optionally incorporating an abstract profile.
+        """
         # .cube: http://doc.iridas.com/index.php?title=LUT_Formats
         # .3dl: http://www.kodak.com/US/plugins/acrobat/en/motion/products/look/UserGuide.pdf
         #       http://download.autodesk.com/us/systemdocs/pdf/lustre_color_management_user_guide.pdf
@@ -7832,8 +7839,9 @@ BEGIN_DATA
         filename=None,
         only_input_curves=False,
     ):
-        """Generate a profile's B2A table by inverting the A2B table
-        (default A2B1 or A2B0)
+        """Generate a profile's B2A table by inverting the A2B table.
+
+        Default A2B1 or A2B0.
 
         It is also possible to re-generate a B2A table by interpolating
         the B2A table itself.
@@ -9226,8 +9234,7 @@ BEGIN_DATA
     def update_display_name_manufacturer(
         self, ti3, display_name=None, display_manufacturer=None, write=True
     ):
-        """Update display name and manufacturer in colprof arguments
-        embedded in 'ARGYLL_COLPROF_ARGS' section in a TI3 file.
+        """Update display name and manufacturer in 'ARGYLL_COLPROF_ARGS' section of a TI3 file.
 
         Args:
             ti3 (CGATS): The CGATS object representing the TI3 file.
@@ -9237,7 +9244,7 @@ BEGIN_DATA
 
         Returns:
             list: List of options for colprof command.
-        """
+        """  # noqa: E501
         options_colprof = []
         if not display_name and not display_manufacturer:
             # Note: Do not mix'n'match display name and manufacturer from
@@ -9707,8 +9714,7 @@ BEGIN_DATA
     def install_profile(
         self, profile_path, capture_output=True, skip_scripts=False, silent=False
     ):
-        """Install a profile by copying it to an appropriate location and
-        registering it with the system.
+        """Install a profile to the system and register it.
 
         Args:
             profile_path (str): Path to the profile file to install.
@@ -15278,8 +15284,7 @@ BEGIN_DATA
         return len(self.get_real_displays()) == 1
 
     def argyll_support_file_exists(self, name, scope=None):
-        """Check if named file exists in any of the known Argyll support
-        locations valid for the chosen Argyll CMS version.
+        """Check if file exists in Argyll support locations for current version.
 
         Args:
             name (str): Name of the file to check for.
@@ -15328,8 +15333,7 @@ BEGIN_DATA
         return any(os.path.isfile(searchpath) for searchpath in searchpaths)
 
     def spyder2_firmware_exists(self, scope=None):
-        """Check if the Spyder 2 firmware file exists in any of the known
-        locations valid for the chosen Argyll CMS version.
+        """Check if the Spyder 2 firmware file exists for the current Argyll version.
 
         Args:
             scope (str | None): Scope can be 'u' (user), 'l' (local system) or
@@ -15348,8 +15352,7 @@ BEGIN_DATA
         return self.argyll_support_file_exists("spyd2PLD.bin", scope=scope)
 
     def spyder4_cal_exists(self):
-        """Check if the Spyder4/5 calibration file exists in any of the known
-        locations valid for the chosen Argyll CMS version.
+        """Check if Spyder4/5 calibration file exists for current Argyll version.
 
         Returns:
             bool: True if the Spyder4/5 calibration file exists, False

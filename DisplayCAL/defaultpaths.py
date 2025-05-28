@@ -1,7 +1,8 @@
-"""This module defines platform-specific default paths and directories used by
-the DisplayCAL application. It provides a unified way to access system paths
-such as application data directories, cache directories, and ICC profile
-locations across different operating systems (Windows, macOS, and Linux).
+"""Platform-specific default paths for DisplayCAL.
+
+It provides a unified way to access system paths such as application data
+directories, cache directories, and ICC profile locations across different
+operating systems (Windows, macOS, and Linux).
 """
 
 import os

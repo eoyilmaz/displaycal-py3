@@ -245,17 +245,21 @@ class FloatSpinEvent(wx.PyCommandEvent):
 
 
 class FloatTextCtrl(wx.TextCtrl):
-    """A class which holds a :class:`TextCtrl`, one of the two building blocks
-    of :class:`FloatSpin`.
+    """A class which holds a :class:`TextCtrl`.
+
+    This is one of the two building blocks of :class:`FloatSpin`.
 
     Args:
-        parent: The :class:`FloatTextCtrl` parent;
-        id: an identifier for the control: a value of -1 is taken to mean a default;
-        value: default text value;
-        pos: the control position. A value of (-1, -1) indicates a default position,
-            chosen by either the windowing system or wxPython, depending on platform;
+        parent: The :class:`FloatTextCtrl` parent.
+        id: an identifier for the control: a value of -1 is taken to mean a
+            default.
+        value: default text value.
+        pos: the control position. A value of (-1, -1) indicates a default
+            position, chosen by either the windowing system or wxPython,
+            depending on platform.
         size: the control size. A value of (-1, -1) indicates a default size,
-            chosen by either the windowing system or wxPython, depending on platform;
+            chosen by either the windowing system or wxPython, depending on
+            platform.
         style: the window style;
         validator: the window validator;
         name: the window name.
@@ -353,11 +357,13 @@ class FloatTextCtrl(wx.TextCtrl):
 
 
 class FloatSpin(wx.PyControl):
-    """:class:`FloatSpin` implements a floating point :class:`SpinCtrl`. It is built
-    using a custom :class:`PyControl`, composed by a :class:`TextCtrl` and a
-    :class:`SpinButton`. In order to correctly handle floating points numbers without
-    rounding errors or non-exact floating point representations, :class:`FloatSpin` uses
-    the great :class:`FixedPoint` class from Tim Peters.
+    """Implements a floating point :class:`SpinCtrl`.
+
+    It is built using a custom :class:`PyControl`, composed by a
+    :class:`TextCtrl` and a :class:`SpinButton`. In order to correctly handle
+    floating points numbers without rounding errors or non-exact floating point
+    representations, :class:`FloatSpin` uses the great :class:`FixedPoint`
+    class from Tim Peters.
     """
 
     _spinwidth = 0
@@ -606,9 +612,10 @@ class FloatSpin(wx.PyControl):
         return 0
 
     def DoGetBestSize(self):
-        """Get the size which best suits the window: for a control, it would be the
-        minimal size which doesn't truncate the control, for a panel - the same
-        size as it would have after a call to `Fit()`.
+        """Get the size which best suits the window: for a control.
+
+        It would be the minimal size which doesn't truncate the control, for a
+        panel - the same size as it would have after a call to `Fit()`.
 
         :note: Overridden from :class:`PyControl`.
         """
@@ -1049,8 +1056,7 @@ class FloatSpin(wx.PyControl):
             self.SetValue(value)
 
     def ClampValue(self, var):
-        """Clamp `var` between `_min` and `_max` depending on the range has
-        been specified.
+        """Clamp var between _min and _max depending on the range has been specified.
 
         Args:
             var: the value to be clamped.
@@ -1257,23 +1263,25 @@ class FloatSpin(wx.PyControl):
         return self._textctrl.GetFont()
 
     def GetMin(self):
-        """Return the minimum value for :class:`FloatSpin`. It can be a
-        number or ``None`` if no minimum is present.
+        """Return the minimum value.
+
+        It can be a number or ``None`` if no minimum is present.
         """
         return self._min
 
     def GetMax(self):
-        """Return the maximum value for :class:`FloatSpin`. It can be a
-        number or ``None`` if no minimum is present.
+        """Return the maximum value.
+
+        It can be a number or ``None`` if no minimum is present.
         """
         return self._max
 
     def HasRange(self):
-        """Return whether :class:`FloatSpin` range has been set or not."""
+        """Return whether range has been set or not."""
         return (self._min is not None) or (self._max is not None)
 
     def InRange(self, value):
-        """Return whether a value is inside :class:`FloatSpin` range.
+        """Return whether a value is inside the range.
 
         Args:
             value: The value to test.
@@ -1398,9 +1406,9 @@ DEFAULT_PRECISION = 2
 
 
 class FixedPoint:
-    """FixedPoint objects support decimal arithmetic with a fixed number of
-    digits (called the object's precision) after the decimal point.  The
-    number of digits before the decimal point is variable & unbounded.
+    """Decimal arithmetic with a fixed number of digits after the decimal point.
+
+    The number of digits before the decimal point is variable & unbounded.
 
     The precision is user-settable on a per-object basis when a FixedPoint
     is constructed, and may vary across FixedPoint objects.  The precision

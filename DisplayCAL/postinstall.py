@@ -1,7 +1,7 @@
-"""This module handles post-installation and uninstallation tasks for
-DisplayCAL across different platforms (Windows, macOS, and Linux). It includes
-functions to create shortcuts, manage installed files, and update system
-resources such as icons and desktop menu entries.
+"""Post-install and uninstall tasks for DisplayCAL on Windows, macOS, and Linux.
+
+It includes functions to create shortcuts, manage installed files, and update
+system resources such as icons and desktop menu entries.
 """
 
 import contextlib

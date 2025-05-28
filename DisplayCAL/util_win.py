@@ -1,6 +1,4 @@
-"""This module provides utility functions for interacting with Windows-specific
-features, such as display devices, process management, and color management.
-"""
+"""Windows utility functions for display, process, and color management."""
 
 from __future__ import annotations
 

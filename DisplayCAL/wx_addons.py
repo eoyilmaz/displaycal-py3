@@ -1,5 +1,6 @@
-"""This module extends wxPython functionality by adding custom methods,
-utilities, and classes for enhanced GUI behavior. It includes image
+"""Extensions and utilities for wxPython GUI functionality.
+
+It includes image
 manipulation methods, custom event handling, improved timer implementations,
 and additional window and display utilities.
 """
@@ -604,8 +605,9 @@ class BetterCallLater(wx.CallLater):
 
 
 class ThreadedTimer:
-    """A wx.Timer replacement that uses threads instead of actual timers
-    which are a limited resource.
+    """Threaded wx.Timer replacement.
+
+    This uses threads instead of actual timers which are a limited resource.
 
     Args:
         owner (wx.Window, optional): The owner window that will receive the
@@ -732,8 +734,9 @@ class ThreadedTimer:
 
 
 class ThreadedCallLater(ThreadedTimer):
-    """A wx.CallLater replacement that uses threads instead of actual timers
-    which are a limited resource.
+    """Threaded wx.CallLater replacement.
+
+    This uses threads instead of actual timers which are a limited resource.
 
     Args:
         millis (int): The number of milliseconds to wait before calling the
@@ -800,9 +803,10 @@ class ThreadedCallLater(ThreadedTimer):
 
 
 class BetterWindowDisabler:
-    """Also disables child windows instead of only top level windows. This is
-    actually needed under Mac OS X where disabling a top level window will
-    not prevent interaction with its children.
+    """Class to disable all top-level windows and their child windows.
+
+    This is actually needed under Mac OS X where disabling a top level window
+    will not prevent interaction with its children.
 
     If toplevelparent is given, disable only this window and its child windows.
 

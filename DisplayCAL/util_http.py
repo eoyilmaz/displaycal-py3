@@ -1,6 +1,7 @@
-"""This module provides utility functions for making HTTP requests with
-multipart/form-data encoding. It includes functions to post fields and
-files to an HTTP host and to encode data for multipart form submissions.
+"""Utility functions for HTTP multipart/form-data requests.
+
+It includes functions to post fields and files to an HTTP host and to encode
+data for multipart form submissions.
 """
 # http://code.activestate.com/recipes/146306-http-client-to-post-using-multipartform-data/
 

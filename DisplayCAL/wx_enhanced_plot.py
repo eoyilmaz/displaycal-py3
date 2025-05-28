@@ -1,4 +1,6 @@
-"""-----------------------------------------------------------------------------
+"""Enhanced wxPython Plotting Library.
+
+-----------------------------------------------------------------------------
 Name:        wx.lib.plot.py
 Purpose:     Line, Bar and Scatter Graphs
 Author:      Gordon Williams
@@ -591,10 +593,23 @@ class PolyPoints:
         return self.attributes["legend"]
 
     def getClosestPoint(self, pntXY, pointScaled=True):
-        """Return the index of closest point on the curve, pointXY, scaledXY, distance
-        x, y in user coords
+        """Return the index of the closest point on the curve.
+
+        Return the index of closest point on the curve, pointXY, scaledXY,
+        distance x, y in user coords
         if pointScaled == True based on screen coords
         if pointScaled == False based on user coords
+
+        Args:
+            pntXY (tuple): The (x, y) coordinates of the point to find the
+                closest point to.
+            pointScaled (bool): If True, use screen coordinates; if False,
+                use user coordinates. Default is True.
+
+        Returns:
+            list: A list containing the index of the closest point, the
+                coordinates of the closest point, the scaled coordinates of the
+                closest point, and the distance to the closest point.
         """
         if pointScaled is True:
             # Using screen coords
@@ -678,7 +693,8 @@ class PolyLine(PolyPoints):
 
 
 class PolySpline(PolyLine):
-    """Class to define line type and style
+    """Class to define line type and style.
+
     - All methods except __init__ are private.
 
 
@@ -733,8 +749,7 @@ class PolySpline(PolyLine):
 
 
 class PolyMarker(PolyPoints):
-    """Class to define marker type and style
-    - All methods except __init__ are private.
+    """Class to define marker type and style.
 
     Create PolyMarker object
     points - sequence (array, tuple or list) of (x,y) points
@@ -1049,12 +1064,13 @@ class PlotGraphics:
 
 
 class PlotCanvas(wx.Panel):
-    """Subclass of a wx.Panel which holds two scroll bars and the actual
-    plotting canvas (self.canvas). It allows for simple general plotting
-    of data with zoom, labels, and automatic axis scaling.
+    """wx.Panel derivative which holds two scroll bars and the actual plotting canvas.
 
-    Constructs a panel, which can be a child of a frame or
-    any other non-control window.
+    It allows for simple general plotting of data with zoom, labels, and
+    automatic axis scaling.
+
+    Constructs a panel, which can be a child of a frame or any other
+    non-control window.
 
     Args:
         parent (wx.Window): The parent window for this panel.
@@ -1608,8 +1624,19 @@ class PlotCanvas(wx.Panel):
         return self._centerLinesEnabled
 
     def SetEnableDiagonals(self, value):
-        """Set True, 'Bottomleft-Topright' or 'Bottomright-Topleft' to enable
-        center line(s)."""
+        """Set enable diagonals.
+
+        Set True, 'Bottomleft-Topright' or 'Bottomright-Topleft' to enable
+        center line(s).
+
+        Args:
+            value (bool | str): True to enable diagonals, False to disable,
+                or one of the strings of ['Bottomleft-Topright',  'Bottomright-Topleft']
+                to indicate the diagonal direction.
+
+        Raises:
+            TypeError: If value is not one of the expected types.
+        """
         if value not in [True, False, "Bottomleft-Topright", "Bottomright-Topleft"]:
             raise TypeError(
                 "Value should be True, False, Bottomleft-Topright "
@@ -1683,7 +1710,14 @@ class PlotCanvas(wx.Panel):
 
     def SetPointLabelFunc(self, func):
         """Set the function with custom code for pointLabel drawing.
-        ******** more info needed ***************
+
+        The function should take a single argument, which is the
+        wx.GraphicsContext, and a point as arguments. The function
+        should draw the point label at the specified point.
+
+        Args:
+            func (callable): A function that takes a wx.GraphicsContext and
+                a point as arguments and draws the point label.
         """
         self._pointLabelFunc = func
 
@@ -1740,7 +1774,10 @@ class PlotCanvas(wx.Panel):
         return x, y
 
     def SetXSpec(self, type_="auto"):
-        """xSpec- defines x axis type. Can be 'none', 'min' or 'auto'
+        """Set the X axis type.
+
+        xSpec- defines x axis type. Can be 'none', 'min' or 'auto'
+
         where:
             'none' - shows no axis or tick mark values
             'min' - shows min bounding box values
@@ -1750,7 +1787,10 @@ class PlotCanvas(wx.Panel):
         self._xSpec = type_
 
     def SetYSpec(self, type_="auto"):
-        """ySpec- defines x axis type. Can be 'none', 'min' or 'auto'
+        """Set the Y axis type.
+
+        ySpec- defines x axis type. Can be 'none', 'min' or 'auto'.
+
         where:
             'none' - shows no axis or tick mark values
             'min' - shows min bounding box values

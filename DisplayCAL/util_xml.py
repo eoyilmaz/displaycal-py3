@@ -1,7 +1,4 @@
-"""This module provides utilities for working with XML data, including
-functions to convert dictionaries to XML, escape XML special characters, and
-classes to parse XML into dictionary-like structures.
-"""
+"""Utilities for converting between dictionaries and XML."""
 
 import contextlib
 

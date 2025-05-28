@@ -1,6 +1,7 @@
-"""This module provides utilities for parallel processing using Python's
-multiprocessing library. It includes functions and classes to manage
-worker pools, handle task distribution, and process data slices efficiently.
+"""Utilities for parallel processing with multiprocessing.
+
+It includes functions and classes to manage worker pools, handle task
+distribution, and process data slices efficiently.
 """
 
 import contextlib
@@ -15,8 +16,7 @@ from queue import Empty
 
 
 def cpu_count(limit_by_total_vmem=True):
-    """Return
-      the number of CPUs in the system
+    """Return the number of CPUs in the system.
 
     If psutil is installed, the number of reported CPUs is limited according to
     total RAM by assuming 1 GB for each CPU + 1 GB for the system, unless

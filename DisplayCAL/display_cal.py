@@ -336,8 +336,7 @@ def show_ccxx_error_dialog(exception, path, parent) -> None:
 
 
 def app_update_check(parent=None, silent=False, snapshot=False, argyll=False):
-    """Check for application update. Show an error dialog if a failure
-    occurs."""
+    """Check for application update. Show an error dialog if a failure occurs."""
     global APP_IS_UPTODATE
     if argyll:
         if TEST_UPDATE:
@@ -1014,10 +1013,18 @@ def colorimeter_correction_web_check_choose(resp, parent=None):
 def colorimeter_correction_check_overwrite(
     parent=None, cgats=None, update_comports=False
 ):
-    """Check if a colorimeter correction file will be overwritten and
-    present a dialog to confirm or cancel the operation.
+    """Prompt to confirm overwriting a colorimeter correction file if it exists.
 
-    Write the file."""
+    Write the file.
+
+    Args:
+        parent (wx.Window): The parent window to show dialogs.
+        cgats (bytes): The CGATS data to write.
+        update_comports (bool): Whether to update the comports after writing.
+
+    Returns:
+        bool: True if the file was written successfully, False otherwise.
+    """
     result = check_create_dir(config.get_argyll_data_dir())
     if isinstance(result, Exception):
         show_result_dialog(result, parent)
@@ -15298,8 +15305,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def import_colorimeter_corrections_handler(
         self, event, paths=None, callafter=None, callafter_args=()
     ):
-        """Convert correction matrices from other profiling software to Argyll's
-        CCMX or CCSS format (or to spyd4cal.bin in case of the Spyder4/5)
+        """Import colorimeter corrections from other profiling software.
 
         Currently supported: iColor Display (native import to CCMX),
         i1 Profiler (import to CCSS via Argyll CMS >= 1.3.4)
@@ -16555,9 +16561,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.check_testchart_patches_amount()
 
     def check_testchart_patches_amount(self):
-        """Check if the selected testchart has at least the recommended
-        amount of patches. Give user the choice to use the recommended amount
-        if patch count is lower."""
+        """Check if the selected testchart has at least the recommended amount of patches.
+
+        Give user the choice to use the recommended amount if patch count is lower.
+        """  # noqa: E501
         recommended = {
             "G": 6,
             "g": 6,
@@ -18807,8 +18814,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
     def check_update_controls(
         self, event=None, silent=False, callafter=None, callafter_args=()
     ):
-        """Update controls and menuitems when changes in displays or instruments
-        are detected.
+        """Update controls and menu items when displays or instruments change.
 
         Return True if update was needed and carried out, False otherwise.
 
@@ -19032,8 +19038,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         return returnvalue
 
     def check_instrument_setup(self, callafter=None, callafter_args=()):
-        """Check if we should import colorimeter corrections or do other instrument
-        specific setup.
+        """Check if colorimeter corrections should be imported.
+
+        Or do other instrument specific setup.
 
         Args:
             callafter (callable, optional): Function to call after the setup check.

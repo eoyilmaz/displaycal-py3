@@ -199,10 +199,7 @@ def DICOM(j, inverse=False):
 
 
 class HLG:
-    """Hybrid Log Gamma (HLG) as defined in Rec BT.2100
-    and BT.2390-4
-
-    """
+    """Hybrid Log Gamma (HLG) as defined in Rec BT.2100 and BT.2390-4."""
 
     def __init__(
         self,
@@ -618,10 +615,7 @@ def LMS_wp_adaption_matrix(
 def wp_adaption_matrix(
     whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
 ):
-    """Prepare a matrix to match the whitepoints in cone response doamin and
-    transform back to XYZ
-
-    """
+    """Return matrix to adapt source whitepoint to destination in XYZ."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -768,10 +762,21 @@ def blend_ab(X, Y, Z, bp, wp, power=40.0, signscale=1):
 def blend_blackpoint(
     X, Y, Z, bp_in=None, bp_out=None, wp=None, power=40.0, pin_chromaticity=False
 ):
-    """Blend to destination black as L approaches black, optionally compensating
-    for input black first
+    """Blend to destination black as L approaches black, with optional input black compensation.
 
-    """
+    Args:
+        X (float): X value
+        Y (float): Y value
+        Z (float): Z value
+        bp_in (tuple): Input black point
+        bp_out (tuple): Output black point
+        wp (str or tuple): White point, defaults to "D50"
+        power (float): Power for blending, defaults to 40.0
+        pin_chromaticity (bool): Whether to pin chromaticity, defaults to False.
+
+    Returns:
+        tuple[float, float, float]: Adjusted X, Y, Z values.
+    """  # noqa: E501
     wp = get_whitepoint(wp)
 
     for i, bp in enumerate((bp_in, bp_out)):
@@ -3035,9 +3040,18 @@ def rgb_to_xyz_matrix(rx, ry, gx, gy, bx, by, whitepoint=None, scale=1.0):
 
 
 def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
-    """Given primaries and whitepoint xy as list, find matching RGB space by
-    comparing primaries and whitepoint (fuzzy match rounded to n digits) and
-    return its name (or None if no match)
+    """Find the RGB space name matching given primaries and whitepoint xy.
+
+    Args:
+        xy (list | tuple): The xy coordinates of the primaries and whitepoint.
+        rgb_space_names (None | list | tuple): A list of RGB space names to
+            search in. If None, all RGB spaces will be searched.
+            Defaults to None.
+        digits (int): The number of digits to round to. Defaults to 4.
+
+    Returns:
+        None | str: The name of the RGB space matching the given xy
+            coordinates, or None if no match is found.
     """
     for _i, rgb_space_name in enumerate(rgb_space_names or iter(rgb_spaces.keys())):
         if not rgb_space_names and rgb_space_name in (
@@ -3075,9 +3089,20 @@ def get_rgb_space(rgb_space=None, scale=1.0):
 
 
 def get_rgb_space_primaries_wp_xy(rgb_space=None, digits=4):
-    """Given RGB space, get primaries and whitepoint xy, optionally rounded to n
-    digits (default 4)
+    """Return primaries and whitepoint xy for a given RGB space, rounded to n digits.
 
+    Args:
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+        digits (int): The number of digits to round to. Defaults to 4.
     """
     rgb_space = get_rgb_space(rgb_space)
     xy = []
@@ -3187,8 +3212,7 @@ get_whitepoint.cache = {}
 
 
 def make_monotonically_increasing(iterable, passes=0, window=None):
-    """Given an iterable or sequence, make the values strictly monotonically
-    increasing (no repeated successive values) by linear interpolation.
+    """Make values in iterable strictly monotonically increasing by linear interpolation.
 
     If iterable is a dict, keep the keys of the original.
 
@@ -3206,7 +3230,7 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
     Returns:
         list: A list of tuples containing the original keys and the
             monotonically increasing values.
-    """
+    """  # noqa: E501
     if isinstance(iterable, dict):
         keys = list(iterable.keys())
         values = list(iterable.values())

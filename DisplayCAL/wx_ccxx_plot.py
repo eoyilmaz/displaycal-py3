@@ -1,7 +1,8 @@
-"""This module provides functionality for visualizing CCMX/CCSS data using
-wxPython. It includes tools for plotting spectral data, matrix 'flower' plots,
-and CIE 1931 chromaticity diagrams, with support for interactive zooming,
-toggling views, and customized graph rendering.
+"""Visualize CCMX/CCSS data with wxPython.
+
+It includes tools for plotting spectral data, matrix 'flower' plots, and CIE
+1931 chromaticity diagrams, with support for interactive zooming, toggling
+views, and customized graph rendering.
 """
 
 import math

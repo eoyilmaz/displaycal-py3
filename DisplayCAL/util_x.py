@@ -1,6 +1,4 @@
-"""This module provides utility functions for working with X display names,
-including parsing and extracting hostname, display number, and screen number.
-"""
+"""Utility functions for parsing X display names."""
 
 import os
 import warnings

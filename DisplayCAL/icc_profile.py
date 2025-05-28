@@ -1,12 +1,8 @@
-"""This module provides functionality for working with ICC (International Color
-Consortium) profiles, which are used to manage color consistency across
-different devices such as monitors, printers, and cameras. ICC profiles define
-the color characteristics of a device or a color space, enabling accurate color
-reproduction and ensuring that colors appear consistent across various mediums.
+"""ICC profile utilities for color management across devices.
 
-The module includes utilities for parsing, validating, and manipulating ICC
-profile data. It can be used to extract metadata, analyze profile contents, and
-apply ICC profiles to image processing workflows.
+ICC profiles describe device or color space color characteristics for
+consistent color reproduction. This module provides, utilities for parsing,
+validating, and manipulating ICC profile data.
 """
 
 from __future__ import annotations
@@ -753,8 +749,7 @@ def create_synthetic_smpte2084_clut_profile(
     logfile=None,
     cat="Bradford",
 ):
-    """Create a synthetic cLUT profile with the SMPTE 2084 TRC from a colorspace
-    definition
+    """Create a synthetic cLUT profile with SMPTE 2084 TRC from a colorspace definition.
 
     mode:  The gamut mapping mode when rolling off. Valid values:
            "HSV_ICtCp" (default, recommended)
@@ -1943,8 +1938,7 @@ def create_synthetic_hlg_clut_profile(
     logfile=None,
     cat="Bradford",
 ):
-    """Create a synthetic cLUT profile with the HLG TRC from a colorspace
-    definition
+    """Create a synthetic cLUT profile with the HLG TRC from a colorspace definition.
 
     mode:  The gamut mapping mode when rolling off. Valid values:
            "RGB_ICtCp" (default, recommended)
@@ -3790,8 +3784,16 @@ class LUT16Type(ICCProfileTag):
         self._clut = value
 
     def clut_writepng(self, stream_or_filename):
-        """Write the cLUT as PNG image organized in <grid steps> * <grid steps>
-        sized squares, ordered vertically"""
+        """Write the cLUT as a PNG image arranged in grid squares.
+
+        Args:
+            stream_or_filename (str or file-like object): The filename or
+                file-like object to write the PNG image to.
+
+        Raises:
+            NotImplementedError: If the output channels are not RGB
+                (3 channels).
+        """
         if len(self.clut[0][0]) != 3:
             raise NotImplementedError("clut_writepng: output channels != 3")
         imfile.write(self.clut, stream_or_filename)
@@ -6390,8 +6392,9 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
 
 
 class XYZNumber(AODict):
-    """Byte
-    Offset Content Encoded as...
+    """XYZNumber class.
+
+    Byte Offset Content Encoded as...
     0..3   CIE X   s15Fixed16Number
     4..7   CIE Y   s15Fixed16Number
     8..11  CIE Z   s15Fixed16Number
@@ -8021,13 +8024,14 @@ class ICCProfile:
         return profile
 
     def set_wtpt(self, wXYZ, cat="Bradford"):
-        """Set whitepoint, 'chad' tag (if >= v2.4 profile or CAT is not Bradford
-        and wtpt is not D50)
-        Add ArgyllCMS 'arts' tag
+        """Set whitepoint, 'chad' tag and add ArgyllCMS 'arts' tag.
+
+        if >= v2.4 profile or CAT is not Bradford and wtpt is not D50.
 
         Args:
             wXYZ (tuple): White point in absolute XYZ, Y range 0.0..1.0
-            cat (str): Chromatic adaptation transform to use, default 'Bradford'
+            cat (str): Chromatic adaptation transform to use, default
+                'Bradford'.
         """
         self.tags.wtpt = XYZType(profile=self)
         # Compatibility: ArgyllCMS will only read 'chad' if display or
@@ -9115,6 +9119,7 @@ class ICCProfile:
 
     def read(self, profile):
         """Read profile from binary string, filename or file object.
+
         Same as self.__init__(profile)
         """
         self.__init__(profile)

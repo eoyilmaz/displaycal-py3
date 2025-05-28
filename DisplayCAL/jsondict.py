@@ -1,6 +1,7 @@
-"""This module provides a JSONDict class, which extends LazyDict to create a
-lazy-loading dictionary for JSON data. It allows efficient parsing and
-manipulation of JSON files by loading data only when accessed.
+"""Provides JSONDict, a lazy-loading JSON dictionary.
+
+It allows efficient parsing and manipulation of JSON files by loading data only
+when accessed.
 """
 
 import demjson_compat

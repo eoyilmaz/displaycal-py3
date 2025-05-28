@@ -1,6 +1,6 @@
-"""This module provides a graphical interface for defining and managing the
-measurement area used by DisplayCAL for display calibration and profiling. It
-includes functionality for resizing, centering, and zooming the measurement
+"""Graphical interface for setting the measurement area in DisplayCAL.
+
+It includes functionality for resizing, centering, and zooming the measurement
 frame, as well as handling display geometry and configurations. The module
 integrates with wxPython for user interaction and supports various display
 environments.
@@ -655,8 +655,7 @@ class MeasureFrame(InvincibleFrame):
                 MeasureFrame.exitcode = 0
 
     def get_display(self, display_no=None):
-        """Get the display number, geometry and client area, taking into
-        account separate X screens, TwinView and similar
+        """Return display number, geometry, and client area, handling multi-screen setups.
 
         Args:
             display_no (int, optional): The display number to get the geometry
@@ -665,7 +664,7 @@ class MeasureFrame(InvincibleFrame):
         Returns:
             tuple: A tuple containing the display number, geometry (wx.Rect),
                 and client area (wx.Rect).
-        """
+        """  # noqa: E501
         if wx.Display.GetCount() == 1 and len(self.display_rects) > 1:
             # Separate X screens, TwinView or similar
             display = wx.Display(0)

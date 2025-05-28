@@ -1,6 +1,7 @@
-"""This module provides the implementation for the 3D LUT creation window in
-DisplayCAL. It includes functionality for managing ICC profiles, configuring 3D
-LUT settings, handling user interactions, and integrating with wxPython for the
+"""3D LUT creation window implementation for DisplayCAL.
+
+It includes functionality for managing ICC profiles, configuring 3D LUT
+settings, handling user interactions, and integrating with wxPython for the
 graphical interface. The module also supports various 3D LUT formats and
 advanced options for color space and tone mapping adjustments.
 """

@@ -1,7 +1,7 @@
-"""This module provides functionality to convert iColorDisplay
-DeviceCorrections.txt files into individual Argyll CCMX files. It parses the
-input file, extracts relevant data, and generates CCMX files in the specified
-format for use with color calibration tools.
+"""Convert iColorDisplay DeviceCorrections.txt to Argyll CCMX files.
+
+It parses the input file, extracts relevant data, and generates CCMX files in
+the specified format for use with color calibration tools.
 """
 
 import codecs

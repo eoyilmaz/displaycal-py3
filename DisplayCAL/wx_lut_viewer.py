@@ -1,8 +1,8 @@
-"""This module implements a graphical interface for viewing and analyzing
-Look-Up Tables (LUTs) and tone response curves (TRCs) in DisplayCAL. It
-provides functionality for loading, visualizing, and interacting with LUTs and
-ICC profiles, supporting various color spaces and rendering intents. The module
-integrates with wxPython for plotting and user interaction.
+"""Graphical interface for viewing and analyzing LUTs and TRCs in DisplayCAL.
+
+It provides functionality for loading, visualizing, and interacting with LUTs
+and ICC profiles, supporting various color spaces and rendering intents. The
+module integrates with wxPython for plotting and user interaction.
 """
 
 import math
@@ -639,9 +639,10 @@ class LUTCanvas(plot.PlotCanvas):
         dc.DrawLine(int(sx), 0, int(sx), int(pty + rectHeight + 2))
 
     def GetClosestPoints(self, pntXY, pointScaled=True):
-        """Return list with
-        [curveNumber, legend, index of closest point, pointXY, scaledXY, distance]
-        list for each curve.
+        """Get closest points in all curves to a given point.
+
+        Return a list with [curveNumber, legend, index of closest point,
+        pointXY, scaledXY, distance] list for each curve.
         Returns [] if no curves are being plotted.
 
         x, y in user coords

@@ -1,8 +1,7 @@
-"""This module implements a scripting client for DisplayCAL, providing a
-graphical interface for sending commands to and receiving responses from
-a connected application. It features a terminal-like interface built with
-wxPython, supporting command history, text highlighting, and basic scripting
-capabilities.
+"""Scripting client for DisplayCAL with a graphical command interface.
+
+It features a terminal-like interface built with wxPython, supporting command
+history, text highlighting, and basic scripting capabilities.
 """
 
 import errno
@@ -384,8 +383,7 @@ class ScriptingClientFrame(SimpleTerminal):
             return exception
 
     def key_handler(self, event):
-        """Handle key events in the console, providing custom behavior for
-        various key combinations and commands.
+        """Custom key event handler for the console.
 
         Args:
             event (wx.KeyEvent): The key event triggered by the user.

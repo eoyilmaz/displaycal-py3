@@ -1,7 +1,8 @@
-"""This module provides integration with madVR's Test Pattern Generator (madTPG)
-for advanced display calibration and profiling. It supports both local and
-network-based communication with madVR instances, enabling features such as
-3D LUT creation, device gamma ramp manipulation, and test pattern display.
+"""Integration with madVR's Test Pattern Generator (madTPG) for display calibration.
+
+It supports both local and network-based communication with madVR instances,
+enabling features such as 3D LUT creation, device gamma ramp manipulation, and
+test pattern display.
 """
 
 # See developers/interfaces/madTPG.h in the madVR package

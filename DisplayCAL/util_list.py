@@ -1,8 +1,4 @@
-"""This module provides utility functions for working with lists. It includes
-functions for type conversion (e.g., to floats, integers, or strings),
-case-insensitive indexing, natural sorting, and safely retrieving list
-elements with a default value.
-"""
+"""Utility functions for list conversion, indexing, and natural sorting."""
 
 import re
 

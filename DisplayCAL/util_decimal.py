@@ -1,6 +1,7 @@
-"""This module provides utility functions for working with decimal numbers.
-It includes functions for converting floats to decimals with precision
-handling and for stripping trailing zeros from numeric representations.
+"""Utility functions for decimal numbers.
+
+It includes functions for converting floats to decimals with precision handling
+and for stripping trailing zeros from numeric representations.
 """
 
 import contextlib

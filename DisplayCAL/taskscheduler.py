@@ -1,4 +1,6 @@
-"""Task Scheduler interface. Currently only implemented for Windows (Vista and up).
+"""Task Scheduler interface.
+
+Currently only implemented for Windows (Vista and up).
 The implementation is currently minimal and incomplete when it comes to
 creating tasks (all tasks are created for the 'INTERACTIVE' group and with
 only logon triggers and exec actions available).

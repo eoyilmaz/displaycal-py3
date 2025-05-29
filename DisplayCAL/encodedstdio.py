@@ -17,7 +17,7 @@ _stdio = {}
 
 
 def codec_register_alias(alias, name):
-    """Register an alias for encoding 'name'"""
+    """Register an alias for encoding 'name'."""
     _codecs[alias] = codecs.CodecInfo(
         name=alias,
         encode=codecs.getencoder(name),
@@ -30,14 +30,14 @@ def codec_register_alias(alias, name):
 
 
 def conditional_decode(text, encoding="UTF-8", errors="strict"):
-    """Decode text if not unicode"""
+    """Decode text if not unicode."""
     if not isinstance(text, str):
         text = text.decode(encoding, errors)
     return text
 
 
 def conditional_encode(text, encoding="UTF-8", errors="strict"):
-    """Encode text if unicode"""
+    """Encode text if unicode."""
     if isinstance(text, str):
         text = text.encode(encoding, errors)
     return text

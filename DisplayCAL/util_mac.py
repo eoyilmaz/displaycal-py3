@@ -7,7 +7,7 @@ from time import sleep
 
 
 def get_osascript_args(applescript):
-    """Return arguments ready to use for osascript"""
+    """Return arguments ready to use for osascript."""
     if isinstance(applescript, str):
         applescript = applescript.splitlines()
     args = []
@@ -17,7 +17,7 @@ def get_osascript_args(applescript):
 
 
 def get_osascript_args_or_run(applescript, run=True):
-    """Return arguments ready to use for osascript or run the AppleScript"""
+    """Return arguments ready to use for osascript or run the AppleScript."""
     if run:
         return osascript(applescript)
     return get_osascript_args(applescript)
@@ -79,7 +79,7 @@ def mac_terminal_set_colors(
 
 
 def osascript(applescript):
-    """Run AppleScript with the 'osascript' command
+    """Run AppleScript with the 'osascript' command.
 
     Return osascript's exit code.
 
@@ -97,7 +97,7 @@ def osascript(applescript):
 
 
 def get_model_code(serial=None):
-    """Given a mac serial number, return the model code
+    """Given a mac serial number, return the model code.
 
     If serial is None, this mac's serial number is used.
 
@@ -117,7 +117,7 @@ def get_model_code(serial=None):
 
 
 def get_serial():
-    """Return this mac's serial number"""
+    """Return this mac's serial number."""
     try:
         p = sp.Popen(
             ["ioreg", "-c", "IOPlatformExpertDevice", "-d", "2"],  # noqa: S607
@@ -135,7 +135,7 @@ def get_serial():
 
 
 def get_model_id():
-    """Return this mac's model id"""
+    """Return this mac's model id."""
     try:
         p = sp.Popen(
             ["sysctl", "hw.model"],  # noqa: S607
@@ -152,7 +152,7 @@ def get_model_id():
 
 
 def get_machine_attributes(model_id=None):
-    """Given a mac model ID, return the machine attributes
+    """Given a mac model ID, return the machine attributes.
 
     If model_code is None, this mac's model code is used.
 

@@ -2672,7 +2672,7 @@ class Wtty:
         self.switchBack()
 
     def isalive(self):
-        """True if the child is still alive, false otherwise"""
+        """True if the child is still alive, false otherwise."""
         return GetExitCodeProcess(self.__childProcess) == STILL_ACTIVE
 
     def __oproc_isalive(self):

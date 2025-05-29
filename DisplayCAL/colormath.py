@@ -63,7 +63,7 @@ SRGB_P = 12.92  # get_transfer_function_phi(0.055, 2.4)
 
 
 def specialpow(a, b, slope_limit=0):
-    """Wrapper for power, Rec. 601/709, SMPTE 240M, sRGB and L* functions
+    """Wrapper for power, Rec. 601/709, SMPTE 240M, sRGB and L* functions.
 
     Positive b = power, -2.4 = sRGB, -3.0 = L*, -240 = SMPTE 240M,
     -601 = Rec. 601, -709 = Rec. 709 (Rec. 601 and 709 transfer functions are
@@ -217,7 +217,7 @@ class HLG:
 
     @property
     def gamma(self):
-        """System gamma for nominal peak luminance and ambient"""
+        """System gamma for nominal peak luminance and ambient."""
         # Adjust system gamma for peak luminance != 1000 cd/m2 (extended model
         # described in BT.2390-4)
         K = 1.111
@@ -229,7 +229,7 @@ class HLG:
         return gamma
 
     def oetf(self, v, inverse=False):
-        """Hybrid Log Gamma (HLG) OETF
+        """Hybrid Log Gamma (HLG) OETF.
 
         Relative scene linear light to non-linear HLG signal, or inverse
 
@@ -254,7 +254,7 @@ class HLG:
         return v
 
     def eotf(self, RGB, inverse=False, apply_black_offset=True):
-        """Hybrid Log Gamma (HLG) EOTF
+        """Hybrid Log Gamma (HLG) EOTF.
 
         Non-linear HLG signal to display light, or inverse
 
@@ -279,7 +279,7 @@ class HLG:
         return G if isinstance(RGB, (float, int)) else (R, G, B)
 
     def ootf(self, RGB, inverse=False, apply_black_offset=True):
-        """Hybrid Log Gamma (HLG) OOTF
+        """Hybrid Log Gamma (HLG) OOTF.
 
         Relative scene linear light to display light, or inverse
 
@@ -308,7 +308,7 @@ class HLG:
         return G if isinstance(RGB, (float, int)) else (R, G, B)
 
     def RGB2XYZ(self, R, G, B, apply_black_offset=True):
-        """Non-linear HLG signal to display XYZ"""
+        """Non-linear HLG signal to display XYZ."""
         X, Y, Z = self.rgb_space[-1] * [self.oetf(v, True) for v in (R, G, B)]
         X, Y, Z = (max(v, 0) for v in (X, Y, Z))
         Yy = self.ootf(Y, apply_black_offset=False)
@@ -323,7 +323,7 @@ class HLG:
         return X, Y, Z
 
     def XYZ2RGB(self, X, Y, Z, apply_black_offset=True):
-        """Display XYZ to non-linear HLG signal"""
+        """Display XYZ to non-linear HLG signal."""
         if apply_black_offset:
             beta = self.ootf(0)
             bp_in = [v * beta for v in self.rgb_space[1]]
@@ -562,7 +562,7 @@ def cbrt(x):
 
 
 def var(a):
-    """Variance"""
+    """Variance."""
     s = 0.0
     l = len(a)
     while l:
@@ -578,7 +578,7 @@ def var(a):
 
 
 def XYZ2LMS(X, Y, Z, cat="Bradford"):
-    """Convert from XYZ to cone response domain
+    """Convert from XYZ to cone response domain.
 
     :param X:
     :param Y:
@@ -593,7 +593,7 @@ def XYZ2LMS(X, Y, Z, cat="Bradford"):
 def LMS_wp_adaption_matrix(
     whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
 ):
-    """Prepare a matrix to match the whitepoints in cone response domain"""
+    """Prepare a matrix to match the whitepoints in cone response domain."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -649,7 +649,7 @@ wp_adaption_matrix.cache = {}
 
 
 def adapt(X, Y, Z, whitepoint_source=None, whitepoint_destination=None, cat="Bradford"):
-    """Transform XYZ under source illuminant to XYZ under destination illuminant"""
+    """Transform XYZ under source illuminant to XYZ under destination illuminant."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -794,7 +794,7 @@ def blend_blackpoint(
 
 
 def interp_old(x, xp, fp, left=None, right=None):
-    """One-dimensional linear interpolation similar to numpy.interp
+    """One-dimensional linear interpolation similar to numpy.interp.
 
     Values do NOT have to be monotonically increasing
     interp(0, [0, 0], [0, 1]) will return 0
@@ -823,7 +823,7 @@ def interp_old(x, xp, fp, left=None, right=None):
 
 # This is much faster than the old implementation
 def interp(x, xp, fp, left=None, right=None, period=None):
-    """One-dimensional linear interpolation similar to numpy.interp
+    """One-dimensional linear interpolation similar to numpy.interp.
 
     Values do NOT have to be monotonically increasing
     interp(0, [0, 0], [0, 1]) will return 0
@@ -1020,7 +1020,7 @@ def delta(
     p3=None,
     cie94_use_symmetric_chrominance=True,
 ):
-    """Compute the delta of two samples
+    """Compute the delta of two samples.
 
     CIE 1994 & CMC calculation code derived from formulas on
      www.brucelindbloom.com
@@ -1279,7 +1279,7 @@ def four_color_matrix(
     ZmW,
     Y_correction=True,
 ):
-    """Four-Color Matrix Method for Correction of Tristimulus Colorimeters
+    """Four-Color Matrix Method for Correction of Tristimulus Colorimeters.
 
     Based on paper published in Proc., IS&T Fifth Color Imaging Conference,
     301-305 (1997) and IS&T Sixth Color Imaging Conference (1998).
@@ -3069,7 +3069,7 @@ def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
 
 
 def get_rgb_space(rgb_space=None, scale=1.0):
-    """Return gamma, whitepoint, primaries and RGB -> XYZ matrix"""
+    """Return gamma, whitepoint, primaries and RGB -> XYZ matrix."""
     if not rgb_space:
         rgb_space = "sRGB"
     if isinstance(rgb_space, str):
@@ -3863,7 +3863,7 @@ def XYZ2Lab(
 
 
 def XYZ2Lpt(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to Lpt
+    """Convert from XYZ to Lpt.
 
     This is a modern update to L*a*b*, based on IPT space.
 
@@ -3913,7 +3913,7 @@ def XYZ2Lpt(X, Y, Z, whitepoint=None):
 
 
 def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
-    """Convert from Lpt to XYZ
+    """Convert from Lpt to XYZ.
 
     This is a modern update to L*a*b*, based on IPT space.
 
@@ -3956,7 +3956,7 @@ def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
 
 
 def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to CIE Lu'v'"""
+    """Convert from XYZ to CIE Lu'v'."""
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -3976,7 +3976,7 @@ def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
 
 
 def XYZ2Luv(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to Luv"""
+    """Convert from XYZ to Luv."""
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -4149,7 +4149,7 @@ def dmatrixz(nrl: int, nrh: int, ncl: int, nch: int) -> dict:
 
 
 def dvector(nl, nh):
-    """Adapted from ArgyllCMS numlib/numsup.c
+    """Adapted from ArgyllCMS numlib/numsup.c.
 
     Args:
         nl:  Lowest index
@@ -4682,7 +4682,7 @@ class BT1886:
     """
 
     def __init__(self, matrix, XYZbp, outoffset=0.0, gamma=2.4, apply_trc=True):
-        """Setup BT.1886 for the given target
+        """Setup BT.1886 for the given target.
 
         If apply_trc is False, apply only the black point blending portion of
         BT.1886 mapping. Note that this will only work correctly for an output

@@ -484,7 +484,7 @@ def check_donation(parent, snapshot) -> None:
 
 
 def app_uptodate(parent=None, appname=APPNAME):
-    """Show a dialog confirming application is up-to-date"""
+    """Show a dialog confirming application is up-to-date."""
     dlg = InfoDialog(
         parent,
         msg=lang.getstr("update_check.uptodate", appname),
@@ -516,7 +516,7 @@ def app_update_confirm(
     argyll=False,
     silent=False,
 ):
-    """Show a dialog confirming application update, with cancel option"""
+    """Show a dialog confirming application update, with cancel option."""
     zeroinstall = (
         not argyll
         and os.path.exists(
@@ -705,7 +705,7 @@ def app_update_confirm(
 
 
 def donation_message(parent=None):
-    """Show donation message"""
+    """Show donation message."""
     dlg = ConfirmDialog(
         parent,
         title=lang.getstr("welcome"),
@@ -748,7 +748,7 @@ def donation_message(parent=None):
 
 
 def colorimeter_correction_web_check_choose(resp, parent=None):
-    """Let user choose a colorimeter correction and confirm overwrite"""
+    """Let user choose a colorimeter correction and confirm overwrite."""
     if resp is not False:
         try:
             json = json_module.load(resp)
@@ -1285,7 +1285,7 @@ class Dummy:
 
 
 class IncrementingInt:
-    """A integer that increments by `step` each time it is used"""
+    """A integer that increments by `step` each time it is used."""
 
     def __init__(self, start=0, stop=None, step=1):
         self.i = start
@@ -1868,7 +1868,7 @@ class GamapFrame(BaseFrame):
         )
 
     def update_controls(self):
-        """Update controls with values from the configuration"""
+        """Update controls with values from the configuration."""
         # B2A quality
         enable_gamap = getcfg("profile.type") in ("l", "x", "X")
         enable_b2a_extra = getcfg("profile.type") in ("l", "x", "X")
@@ -13262,7 +13262,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.check_keydown_timer.Stop()
 
     def synthicc_create_handler(self, event):
-        """Assign and initialize the synthetic ICC creation window"""
+        """Assign and initialize the synthetic ICC creation window."""
         if not getattr(self, "synthiccframe", None):
             self.init_synthiccframe()
         if self.synthiccframe.IsShownOnScreen():

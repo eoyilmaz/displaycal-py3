@@ -141,7 +141,7 @@ def get_handles():
 
 
 def get_process_handles(pid=None):
-    """Get handles of process <pid> (current process if not specified)"""
+    """Get handles of process <pid> (current process if not specified)."""
     if not pid:
         pid = os.getpid()
     handles = []

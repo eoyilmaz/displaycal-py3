@@ -70,7 +70,7 @@ def update_defaults():
 
 
 def getcode():
-    """Get language code from config"""
+    """Get language code from config."""
     lcode = getcfg("lang")
     if lcode not in LDICT:
         # fall back to default
@@ -82,7 +82,7 @@ def getcode():
 
 
 def getstr(id_str, strvars=None, lcode=None, default=None):
-    """Get a translated string from the dictionary"""
+    """Get a translated string from the dictionary."""
     if not lcode:
         lcode = getcode()
     if lcode not in LDICT or id_str not in LDICT[lcode]:

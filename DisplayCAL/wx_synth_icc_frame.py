@@ -484,7 +484,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.Thaw()
 
     def drop_handler(self, path):
-        """File dropped"""
+        """File dropped."""
         fn, ext = os.path.splitext(path)
         if ext.lower() == ".ti3":
             self.ti3_drop_handler(path)
@@ -492,7 +492,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
             self.icc_drop_handler(path)
 
     def icc_drop_handler(self, path):
-        """ICC profile dropped"""
+        """ICC profile dropped."""
         try:
             profile = ICCProfile(path)
         except (OSError, ICCProfileInvalidError):
@@ -539,7 +539,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
                 self.set_colors(colors, luminance, profile.colorSpace)
 
     def set_colors(self, colors, luminance, colorspace):
-        """Set controls according to args"""
+        """Set controls according to args."""
         self.panel.Freeze()
         for ctrl, value in [
             (self.colorspace_rgb_ctrl, colorspace == "RGB"),

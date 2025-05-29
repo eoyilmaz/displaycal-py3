@@ -1175,7 +1175,7 @@ class DisplayAdjustmentFrame(windowcls):
 
         Args:
             init (bool): If True, perform initial setup.
-        s"""
+        """
         self.logger.info("-" * 80)
         self.cold_run = True
         self.is_busy = None

@@ -44,5 +44,5 @@ def dict_sort(obj, key=None):
 
 
 def swap_dict_keys_values(mydict):
-    """Swap dictionary keys and values"""
+    """Swap dictionary keys and values."""
     return {v: k for k, v in mydict.items()}

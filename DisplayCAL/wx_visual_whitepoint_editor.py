@@ -109,7 +109,7 @@ def deg2rad(x: float) -> float:
 
 
 def s(i) -> int:
-    """Scale for HiDPI if necessary"""
+    """Scale for HiDPI if necessary."""
     return int(i * max(getcfg("app.dpi") / get_default_dpi(), 1))
 
 
@@ -1862,7 +1862,7 @@ class ProfileManager:
             print(msg)
 
     def restore_display_profiles(self, wrapup=False, wait=False):
-        """Reinstall memorized display profiles, restore calibration"""
+        """Reinstall memorized display profiles, restore calibration."""
         while self._profiles:
             geometry, profile = self._profiles.popitem()
             display_no = get_argyll_display_number(geometry)

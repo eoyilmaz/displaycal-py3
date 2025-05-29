@@ -4065,7 +4065,7 @@ def get_display_name_edid(device, moninfo=None, index=None, include_adapter=Fals
 
 
 def get_profile_desc(profile_path, include_basename_if_different=True):
-    """Return profile description or path if not available"""
+    """Return profile description or path if not available."""
     if not profile_path:
         return ""
     try:

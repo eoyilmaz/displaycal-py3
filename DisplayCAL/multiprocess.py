@@ -321,7 +321,7 @@ class NonDaemonicProcess(mp.Process):
 
 
 class NonDaemonicPool(mp.pool.Pool):
-    """Pool that has non-daemonic workers"""
+    """Pool that has non-daemonic workers."""
 
     def Process(self, *args, **kwargs):
         """Return a non-daemonic process.

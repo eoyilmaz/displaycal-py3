@@ -66,7 +66,7 @@ WX_RECVERSION = (4, 2, 0)
 
 
 def get_latest_changelog_entry(readme):
-    """Get changelog entry for latest version from ReadMe HTML"""
+    """Get changelog entry for latest version from ReadMe HTML."""
     changelog = re.search(
         r'<div id="(?:changelog|history)">.+?<h2>.+?</h2>.+?<dl>.+?</dd>', readme, re.S
     )

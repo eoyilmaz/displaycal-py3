@@ -429,12 +429,12 @@ class LazyDictJSON(LazyDict):
     """JSON lazy dictionary."""
 
     def parse(self, fileobj):
-        """Parse fileobj and update dict"""
+        """Parse fileobj and update dict."""
         super().update(json.load(fileobj))
 
 
 class LazyDictYAMLUltraLite(LazyDict):
-    """'YAML Ultra Lite' lazy dictionary
+    """'YAML Ultra Lite' lazy dictionary.
 
     YAML Ultra Lite is a restricted subset of YAML. It only supports the
     following notations:
@@ -459,7 +459,7 @@ class LazyDictYAMLUltraLite(LazyDict):
         self.debug = debug
 
     def parse(self, fileobj):
-        """Parse fileobj and update dict"""
+        """Parse fileobj and update dict."""
         block = False
         value = []
         key = None
@@ -569,7 +569,7 @@ class LazyDictYAMLUltraLite(LazyDict):
 
 
 class LazyDictYAMLLite(LazyDictYAMLUltraLite):
-    """'YAML Lite' lazy dictionary
+    """'YAML Lite' lazy dictionary.
 
     YAML Lite is a restricted subset of YAML. It only supports the
     following notations:
@@ -594,7 +594,7 @@ class LazyDictYAMLLite(LazyDictYAMLUltraLite):
     """
 
     def parse(self, fileobj):
-        """Parse fileobj and update dict"""
+        """Parse fileobj and update dict."""
         style = None
         value = []
         block_styles = ("|", ">", "|-", ">-", "|+", ">+")

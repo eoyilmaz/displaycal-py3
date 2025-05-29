@@ -89,7 +89,13 @@ class ETreeDict(dict):
             self[etree.tag] = None
 
     def __repr__(self):
-        """od.__repr__() <==> repr(od)"""
+        """Return a string representation of the ETreeDict.
+
+        od.__repr__() <==> repr(od).
+
+        Returns:
+            str: A string representation of the ETreeDict.
+        """
         l = []
         for k in self:
             v = self[k]

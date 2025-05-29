@@ -217,7 +217,7 @@ def can_update_cal(path):
 def extract_cal_from_profile(
     profile, out_cal_path=None, raise_on_missing_cal=True, prefer_cal=False
 ):
-    """Extract calibration from 'targ' tag in profile or vcgt as fallback"""
+    """Extract calibration from 'targ' tag in profile or vcgt as fallback."""
     white = False
 
     # Check if calibration is included in TI3
@@ -467,7 +467,7 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
 def extract_device_gray_primaries(
     ti3, gray=True, logfn=None, include_neutrals=False, neutrals_ab_threshold=0.1
 ):
-    """Extract gray or primaries into new TI3
+    """Extract gray or primaries into new TI3.
 
     Return extracted ti3, extracted RGB to XYZ mapping and remaining RGB to XYZ
     """

@@ -1,4 +1,4 @@
-"""Simple CGATS file parser class
+"""Simple CGATS file parser class.
 
 Copyright (C) 2008 Florian Hoech
 """
@@ -2175,14 +2175,14 @@ Transform {
 
     @property
     def NUMBER_OF_FIELDS(self):
-        """Get number of fields"""
+        """Get number of fields."""
         if "DATA_FORMAT" in self:
             return len(self["DATA_FORMAT"])
         return 0
 
     @property
     def NUMBER_OF_SETS(self):
-        """Get number of sets"""
+        """Get number of sets."""
         if "DATA" in self:
             return len(self["DATA"])
         return 0
@@ -2298,7 +2298,7 @@ Transform {
         return result
 
     def convert_XYZ_to_Lab(self):
-        """Convert XYZ to D50 L*a*b* and add it as additional fields"""
+        """Convert XYZ to D50 L*a*b* and add it as additional fields."""
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
 
         if color_rep[1] == b"LAB":
@@ -2353,7 +2353,7 @@ Transform {
                 sample[label] = Lab[i]
 
     def fix_zero_measurements(self, warn_only=False, logfile=safe_print):
-        """Fix (or warn about) <= zero measurements
+        """Fix (or warn about) <= zero measurements.
 
         If XYZ/Lab = 0, the sample gets removed. If only one component of
         XYZ/Lab is <= 0, it gets fudged so that the component is nonzero
@@ -2466,7 +2466,7 @@ Transform {
                 data.pop(sample)
 
     def fix_device_values_scaling(self, color_rep=None):
-        """Attempt to fix device value scaling so that max = 100
+        """Attempt to fix device value scaling so that max = 100.
 
         Return number of fixed DATA sections
 
@@ -2483,7 +2483,7 @@ Transform {
         return fixed
 
     def normalize_to_y_100(self):
-        """Scale XYZ values so that RGB 100 = Y 100"""
+        """Scale XYZ values so that RGB 100 = Y 100."""
         if "DATA" in self:
             white_cie = self.get_white_cie()
             if white_cie and "XYZ_Y" in white_cie:
@@ -2504,7 +2504,7 @@ Transform {
         return False
 
     def quantize_device_values(self, bits=8, quantizer=round):
-        """Quantize device values to n bits"""
+        """Quantize device values to n bits."""
         q = 2**bits - 1.0
         for data in self.queryv("DATA").values():
             if data.parent.type == b"CAL":
@@ -2535,7 +2535,7 @@ Transform {
     def adapt(
         self, whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
     ):
-        """Perform chromatic adaptation if possible (needs XYZ or LAB)
+        """Perform chromatic adaptation if possible (needs XYZ or LAB).
 
         Return number of affected DATA sections.
 

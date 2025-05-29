@@ -1228,7 +1228,7 @@ class FileDrop(wx.FileDropTarget):
 
 
 class IdFactory:
-    """Inspired by wxPython 4 (Phoenix) wx.IdManager"""
+    """Inspired by wxPython 4 (Phoenix) wx.IdManager."""
 
     CurrentId = 100
     ReservedIds: ClassVar[set] = set()

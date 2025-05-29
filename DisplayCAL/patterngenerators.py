@@ -40,7 +40,7 @@ _lock = threading.RLock()
 
 
 def _eintr_retry(func, *args):
-    """Restart a system call interrupted by EINTR"""
+    """Restart a system call interrupted by EINTR."""
     while True:
         try:
             return func(*args)
@@ -61,7 +61,7 @@ def _shutdown(sock, addr):
 
 
 class GenHTTPPatternGeneratorClient:
-    """Generic pattern generator client using HTTP REST interface"""
+    """Generic pattern generator client using HTTP REST interface."""
 
     def __init__(self, host, port, bits, use_video_levels=False, logfile=None):
         self.host = host

@@ -285,7 +285,7 @@ class AboutDialog(wx.Dialog):
 
 
 class AnimatedBitmap(wx.PyControl):
-    """Animated bitmap"""
+    """Animated bitmap."""
 
     def __init__(
         self,
@@ -298,7 +298,7 @@ class AnimatedBitmap(wx.PyControl):
         size=wx.DefaultSize,
         style=wx.NO_BORDER,
     ):
-        """Create animated bitmap
+        """Create animated bitmap.
 
         bitmaps should be an array of bitmaps.
         range should be the indexes of the range of frames that should be looped.
@@ -2725,7 +2725,7 @@ class BaseFrame(wx.Frame):
 
 
 class BaseInteractiveDialog(wx.Dialog):
-    """Base class for informational and confirmation dialogs"""
+    """Base class for informational and confirmation dialogs."""
 
     def __init__(
         self,
@@ -3125,7 +3125,7 @@ class HtmlWindow(wx.html.HtmlWindow):
         )
 
     def SetPage(self, source):
-        """Set displayed page with system default colors"""
+        """Set displayed page with system default colors."""
         html = str(source)
         bgcolor, text, linkcolor, vlinkcolor = get_html_colors()
         if "<body" not in html:
@@ -3325,7 +3325,7 @@ class BitmapBackgroundPanel(wx.PyPanel):
 
 
 class BitmapBackgroundPanelText(BitmapBackgroundPanel):
-    """A panel with a background bitmap and text label"""
+    """A panel with a background bitmap and text label."""
 
     def __init__(self, *args, **kwargs):
         BitmapBackgroundPanel.__init__(self, *args, **kwargs)
@@ -3426,7 +3426,7 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
 
 
 class BitmapBackgroundPanelTextGamut(BitmapBackgroundPanelText):
-    """A panel with a background bitmap and text label to display gamut"""
+    """A panel with a background bitmap and text label to display gamut."""
 
     def __init__(self, *args, **kwargs):
         BitmapBackgroundPanel.__init__(self, *args, **kwargs)
@@ -3442,7 +3442,7 @@ class BitmapBackgroundPanelTextGamut(BitmapBackgroundPanelText):
 
 
 class ConfirmDialog(BaseInteractiveDialog):
-    """Confirmation dialog with OK and Cancel buttons"""
+    """Confirmation dialog with OK and Cancel buttons."""
 
     def __init__(
         self,
@@ -6657,7 +6657,7 @@ if wx.Platform == "__WXGTK__" and hasattr(wx.StaticText, "SetLabelMarkup"):
 
 
 class InfoDialog(BaseInteractiveDialog):
-    """Informational dialog with OK button"""
+    """Informational dialog with OK button."""
 
     def __init__(
         self,
@@ -6694,7 +6694,7 @@ class InfoDialog(BaseInteractiveDialog):
 
 
 class InvincibleFrame(BaseFrame):
-    """A frame that won't be destroyed when closed"""
+    """A frame that won't be destroyed when closed."""
 
     def __init__(
         self,
@@ -6719,7 +6719,7 @@ class InvincibleFrame(BaseFrame):
 
 
 class LogWindow(InvincibleFrame):
-    """A log-type window with Clear and Save As buttons"""
+    """A log-type window with Clear and Save As buttons."""
 
     def __init__(
         self,
@@ -8240,7 +8240,7 @@ class TabButton(PlateButton):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def DoGetBestSize(self):
-        """Calculate the best size of the button
+        """Calculate the best size of the button.
 
         Returns:
             :class:`Size`: Best size of the button, which is based on the label
@@ -8338,7 +8338,7 @@ class TabButton(PlateButton):
         self.__DrawButton()
 
     def __DrawBitmap(self, gc):
-        """Draw the bitmap if one has been set
+        """Draw the bitmap if one has been set.
 
         Args:
             gc (GCDC): :class:`GCDC` to draw with
@@ -8357,7 +8357,7 @@ class TabButton(PlateButton):
         return xpos
 
     def __DrawHighlight(self, gc, width, height):
-        """Draw the main highlight/pressed state
+        """Draw the main highlight/pressed state.
 
         Args:
             gc (GCDC): :class:`GCDC` to draw with.
@@ -8402,7 +8402,7 @@ class TabButton(PlateButton):
         return True
 
     def __DrawButton(self):
-        """Draw the button"""
+        """Draw the button."""
         # TODO using a buffered paintdc on windows with the nobg style
         #      causes lots of weird drawing. So currently the use of a
         #      buffered dc is dissabled for this style.
@@ -8620,7 +8620,7 @@ class TaskBarNotification(wx.Frame):
 
 
 class TooltipWindow(InvincibleFrame):
-    """A tooltip-style window"""
+    """A tooltip-style window."""
 
     def __init__(
         self,
@@ -9110,7 +9110,7 @@ def get_gradient_panel(parent, label, x=16):
 
 
 def get_html_colors(allow_alpha=False):
-    """Get background, text, link and visited link colors based on system colors"""
+    """Get background, text, link and visited link colors based on system colors."""
     bgcolor = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
     text = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
     linkcolor = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HOTLIGHT)

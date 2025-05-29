@@ -593,7 +593,7 @@ wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 
 
 def BitmapButtonEnable(self, enable=True):
-    """Replacement for BitmapButton.Enable which circumvents repainting issues
+    """Replacement for BitmapButton.Enable which circumvents repainting issues.
 
     (bitmap does not change on button state change)
 
@@ -611,10 +611,9 @@ def BitmapButtonEnable(self, enable=True):
 
 
 def BitmapButtonDisable(self):
-    """Replacement for BitmapButton.Disable which circumvents repainting issues
+    """Replacement for BitmapButton.Disable which circumvents repainting issues.
 
     (bitmap does not change on button state change)
-
     """
     self.Enable(False)
 
@@ -625,7 +624,7 @@ if "phoenix" not in wx.PlatformInfo:
 
 
 def FindMenuItem(self, label):
-    """Replacement for wx.Menu.FindItem"""
+    """Replacement for wx.Menu.FindItem."""
     label = GTKMenuItemGetFixedLabel(label)
     for menuitem in self.GetMenuItems():
         try:
@@ -778,7 +777,7 @@ wx.Window._SetToolTipString = wx.Window.SetToolTipString
 
 
 def SetToolTipString(self, string):
-    """Replacement for SetToolTipString which updates correctly"""
+    """Replacement for SetToolTipString which updates correctly."""
     wx.Window.SetToolTip(self, None)
     wx.Window._SetToolTipString(self, string)
 
@@ -956,7 +955,7 @@ def adjust_font_size_for_gcdc(font):
 
 
 def get_dc_font_scale(dc):
-    """Get correct font scaling factor for DC"""
+    """Get correct font scaling factor for DC."""
     pointsize = (1.0, 1.0)
     if isinstance(dc, wx.GCDC):
         pointsize = tuple(1.0 / scale for scale in dc.GetLogicalScale())
@@ -980,7 +979,7 @@ def get_dc_font_scale(dc):
 
 
 def get_dc_font_size(size, dc):
-    """Get correct font size for DC"""
+    """Get correct font size for DC."""
     return int(size * get_dc_font_scale(dc))
 
 
@@ -1172,7 +1171,7 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
 
 
 def get_dialogs(modal=False):
-    """If there are any dialogs open, return them"""
+    """If there are any dialogs open, return them."""
     return [
         window
         for window in list(wx.GetTopLevelWindows())
@@ -2106,7 +2105,7 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
 
 
 class ThemedGenBitmapTextButton(ThemedGenButton, GenBitmapTextButton):
-    """A themed generic bitmapped button with text label"""
+    """A themed generic bitmapped button with text label."""
 
 
 class BitmapWithThemedButton(wx.BoxSizer):

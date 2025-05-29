@@ -157,7 +157,7 @@ def _mp_generate_B2A_clut(
     bpc,
     abortmessage="Aborted",
 ):
-    """B2A cLUT generation worker
+    """B2A cLUT generation worker.
 
     This should be spawned as a multiprocessing process
 

@@ -650,11 +650,11 @@ class FloatSpin(wx.PyControl):
         self.GetEventHandler().ProcessEvent(eventOut)
 
     def Disable(self):
-        """Disable the child controls. This is needed under wxMac"""
+        """Disable the child controls. This is needed under wxMac."""
         self.Enable(False)
 
     def Enable(self, enable=True):
-        """Enable the child controls. This is needed under wxMac"""
+        """Enable the child controls. This is needed under wxMac."""
         wx.PyControl.Enable(self, enable)
         self._enabled = enable
 
@@ -1962,7 +1962,7 @@ def _make_fixed_point(n, p):
 
 
 def cmp(a, b):
-    """Reimplemented Python 2.x cmp function
+    """Reimplemented Python 2.x cmp function.
 
     Args:
         a (int | float): A number.
@@ -2048,7 +2048,7 @@ def _string2exact(s):
 
 
 def get_all_keyboard_focusable_children(parent):
-    """Get all keyboard focusable children of parent"""
+    """Get all keyboard focusable children of parent."""
     children = []
     try:
         iter(parent.Children)

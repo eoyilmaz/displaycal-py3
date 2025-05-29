@@ -131,7 +131,7 @@ device_ids = {}
 
 
 def client_connect():
-    """Connect to colord"""
+    """Connect to colord."""
     client = Colord.Client.new()
 
     # Connect to colord
@@ -141,7 +141,7 @@ def client_connect():
 
 
 def device_connect(client, device_id):
-    """Connect to device"""
+    """Connect to device."""
     if isinstance(device_id, str):
         device_id = device_id.encode("UTF-8")
     try:
@@ -163,7 +163,7 @@ def device_id_from_edid(
     omit_manufacturer=False,
     query=False,
 ):
-    """Assemble device key from EDID"""
+    """Assemble device key from EDID."""
     # https://github.com/hughsie/colord/blob/master/doc/device-and-profile-naming-spec.txt
     # Should match device ID returned by gcm_session_get_output_id in
     # gnome-settings-daemon/plugins/color/gsd-color-state.c
@@ -213,7 +213,7 @@ def device_id_from_edid(
 
 
 def find(what, search):
-    """Find device or profile and return object path"""
+    """Find device or profile and return object path."""
     if not isinstance(Colord, DBusObject):
         raise CDError("colord API not available")
     if not isinstance(search, list):
@@ -296,7 +296,7 @@ def get_display_device_ids():
 
 
 def get_object_path(search, object_type):
-    """Get object path for profile or device ID"""
+    """Get object path for profile or device ID."""
     result = find(f"{object_type}-by-id", search)
     if not result:
         raise CDObjectNotFoundError(f"Could not find object path for {search}")

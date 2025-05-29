@@ -430,7 +430,7 @@ usage: spotread [-options] [logfile]
 
 
 def add_keywords_to_cgats(cgats, keywords):
-    """Add keywords to CGATS"""
+    """Add keywords to CGATS."""
     if not isinstance(cgats, CGATS):
         cgats = CGATS(cgats)
     for keyword in keywords:
@@ -725,7 +725,7 @@ def create_shaper_curves(
     optimize=False,
     cat="Bradford",
 ):
-    """Create input (device to PCS) shaper curves"""
+    """Create input (device to PCS) shaper curves."""
     RGB_XYZ = dict_sort(RGB_XYZ)
     R_R = []
     G_G = []
@@ -1359,7 +1359,7 @@ def get_pattern_geometry():
 
 
 def get_python_and_pythonpath():
-    """Return (system) python and pythonpath"""
+    """Return (system) python and pythonpath."""
     # Determine the path of python, and python module search paths
     # If we are running 'frozen', expect python.exe in the same directory
     # as the packed executable.
@@ -1408,7 +1408,7 @@ def get_arg(argmatch, args, whole=False) -> tuple[int, str] | None:
 
 
 def get_default_headers():
-    """Get default headers for HTTP request"""
+    """Get default headers for HTTP request."""
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)
@@ -1443,7 +1443,7 @@ def http_request(
     failure_msg="",
     silent=False,
 ):
-    """HTTP request wrapper"""
+    """HTTP request wrapper."""
     if params is None:
         params = {}
     if files:
@@ -1832,7 +1832,7 @@ class StringWithLengthOverride(UserString):
 
 
 class Sudo:
-    """Determine if a command can be run via sudo"""
+    """Determine if a command can be run via sudo."""
 
     def __init__(self):
         self.availoptions = {}
@@ -1916,7 +1916,7 @@ class Sudo:
             print(subprocess_before)
 
     def authenticate(self, args, title, parent=None):
-        """Authenticate for a given command
+        """Authenticate for a given command.
 
         The return value will be a tuple (auth_successful, password).
 
@@ -2064,7 +2064,7 @@ class Sudo:
         return p.before.strip()
 
     def kill(self):
-        """Remove cached credentials"""
+        """Remove cached credentials."""
         kill_arg = None
         if self.availoptions.get("K"):
             kill_arg = "-K"
@@ -2577,7 +2577,7 @@ class Worker(WorkerBase):
             args.append("-E")
 
     def authenticate(self, cmd, title=APPNAME, parent=None):
-        """Athenticate (using sudo) for a given command
+        """Athenticate (using sudo) for a given command.
 
         The return value will either be True (authentication successful and
         command allowed), False (in case of the user cancelling the password
@@ -9149,7 +9149,7 @@ BEGIN_DATA
         return ""
 
     def get_display_name_short(self, prepend_manufacturer=False, prefer_edid=False):
-        """Return shortened name of configured display (if possible)
+        """Return shortened name of configured display (if possible).
 
         If name can't be shortened (e.g. because it's already 10 characters
         or less), return full string.
@@ -12411,7 +12411,7 @@ BEGIN_DATA
     def _create_matrix_profile(
         self, outname, profile=None, ptype="s", omit=None, bpc=False, cat="Bradford"
     ):
-        """Create matrix profile from lookup through ti3
+        """Create matrix profile from lookup through ti3.
 
         <outname>.ti3 has to exist.
         If <profile> is given, it has to be an ICCProfile instance, and the
@@ -13452,7 +13452,7 @@ BEGIN_DATA
         return result
 
     def ensure_patch_sequence(self, ti1, write=True):
-        """Ensure correct patch sequence of TI1 file
+        """Ensure correct patch sequence of TI1 file.
 
         Return either the changed CGATS object or the original path/TI1
 
@@ -14682,7 +14682,7 @@ BEGIN_DATA
         return cmd, args
 
     def progress_handler(self, event):
-        """Handle progress dialog updates and react to Argyll CMS command output"""
+        """Handle progress dialog updates and react to Argyll CMS command output."""
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -14822,7 +14822,7 @@ BEGIN_DATA
     def progress_dlg_start(
         self, progress_title="", progress_msg="", parent=None, resume=False, fancy=True
     ):
-        """Start a progress dialog, replacing existing one if present"""
+        """Start a progress dialog, replacing existing one if present."""
         if self._progress_wnd and self.progress_wnd is getattr(self, "terminal", None):
             self.terminal.stop_timer()
             self.terminal.Hide()
@@ -14891,7 +14891,7 @@ BEGIN_DATA
         self.progress_wnd.original_msg = progress_msg
 
     def set_progress_type(self):
-        """Set progress type for fancy progress dialog"""
+        """Set progress type for fancy progress dialog."""
         if hasattr(self.progress_wnd, "progress_type"):
             if self.pauseable or getattr(self, "interactive_frame", "") in (
                 "ambient",
@@ -15661,7 +15661,7 @@ BEGIN_DATA
                         self.log(f"{APPNAME}: Uninhibited {bus_name}")
 
     def swap_progress_wnds(self):
-        """Swap the current interactive window with a progress dialog"""
+        """Swap the current interactive window with a progress dialog."""
         parent = self.terminal.GetParent()
         if isinstance(self.terminal, DisplayAdjustmentFrame):
             title = lang.getstr("calibration")
@@ -16451,7 +16451,7 @@ BEGIN_DATA
         white_patches_total=True,
         raise_exceptions=False,
     ):
-        """Lookup CIE or device values through profile"""
+        """Lookup CIE or device values through profile."""
         if profile.colorSpace == b"RGB":
             labels = ("RGB_R", "RGB_G", "RGB_B")
         else:

@@ -486,7 +486,7 @@ def legacy_PCSLab_uInt16_to_dec(
 
 
 def create_RGB_A2B_XYZ(input_curves, clut, logfn=print):
-    """Create RGB device A2B from input curve XYZ values and cLUT
+    """Create RGB device A2B from input curve XYZ values and cLUT.
 
     Note that input curves and cLUT should already be adapted to D50.
     """
@@ -605,7 +605,7 @@ def create_synthetic_clut_profile(
     entries=2049,
     cat="Bradford",
 ):
-    """Create a synthetic cLUT profile from a colorspace definition"""
+    """Create a synthetic cLUT profile from a colorspace definition."""
     profile = ICCProfile()
     profile.version = 2.2  # Match ArgyllCMS
 
@@ -823,7 +823,7 @@ def create_synthetic_hdr_clut_profile(
     logfile=None,
     cat="Bradford",
 ):
-    """Create a synthetic HDR cLUT profile from a colorspace definition"""
+    """Create a synthetic HDR cLUT profile from a colorspace definition."""
     rgb_space = colormath.get_rgb_space(rgb_space)
     content_rgb_space = colormath.get_rgb_space(content_rgb_space)
 
@@ -2673,7 +2673,7 @@ def _mp_apply(
     rinterp,
     abortmessage="Aborted",
 ):
-    """Worker for applying function to cLUT
+    """Worker for applying function to cLUT.
 
     This should be spawned as a multiprocessing process
 
@@ -2743,7 +2743,7 @@ def _mp_apply_black(
     rinterp,
     abortmessage="Aborted",
 ):
-    """Worker for applying black point compensation or offset
+    """Worker for applying black point compensation or offset.
 
     This should be spawned as a multiprocessing process
 
@@ -2765,7 +2765,7 @@ def _mp_apply_black(
 def _mp_hdr_tonemap(
     HDR_XYZ, thread_abort_event, progress_queue, rgb_space, maxv, sat, cat="Bradford"
 ):
-    """Worker for HDR tonemapping
+    """Worker for HDR tonemapping.
 
     This should be spawned as a multiprocessing process
 
@@ -2871,7 +2871,7 @@ def _mp_hdr_tonemap(
 
 
 def hexrepr(bytestring: bytes, mapping: None | dict = None) -> str:
-    """Generate hex representation of a bytes instance
+    """Generate hex representation of a bytes instance.
 
     Args:
         bytestring (bytes): The bytes to convert.
@@ -3323,7 +3323,7 @@ class ICCProfileTag:
             self[name] = value
 
     def __repr__(self):
-        """t.__repr__() <==> repr(t)"""
+        """t.__repr__() <==> repr(t)."""
         if isinstance(self, dict):
             return dict.__repr__(self)
         if isinstance(self, UserString):
@@ -3799,7 +3799,7 @@ class LUT16Type(ICCProfileTag):
         imfile.write(self.clut, stream_or_filename)
 
     def clut_writecgats(self, stream_or_filename):
-        """Write the cLUT as CGATS"""
+        """Write the cLUT as CGATS."""
         # TODO:
         # Need to take into account input/output curves
         # Currently only supports RGB, A2B direction, and XYZ color space
@@ -3928,7 +3928,7 @@ BEGIN_DATA
         protect_black=True,
         exclude=None,
     ):
-        """Apply function to channel values of each cLUT row"""
+        """Apply function to channel values of each cLUT row."""
         if fnargs is None:
             fnargs = ()
 
@@ -3973,7 +3973,7 @@ BEGIN_DATA
                     column[k] = channels[k][j]
 
     def clut_shift_columns(self, order=(1, 2, 0)):
-        """Shift cLUT columns, altering slowest to fastest changing column"""
+        """Shift cLUT columns, altering slowest to fastest changing column."""
         if len(self.input) != 3:
             raise NotImplementedError("input channels != 3")
         steps = len(self.clut[0])
@@ -4071,7 +4071,7 @@ BEGIN_DATA
         return self._m or len(self.output[0])
 
     def smooth(self, diagpng=2, pcs=None, filename=None, logfile=None, debug_=0):
-        """Apply extra smoothing to the cLUT"""
+        """Apply extra smoothing to the cLUT."""
         if not pcs:
             if self.profile:
                 pcs = self.profile.connectionColorSpace
@@ -4197,7 +4197,7 @@ BEGIN_DATA
         logfile=None,
         window=(1 / 16.0, 1, 1 / 16.0),
     ):
-        """Apply extra smoothing to the cLUT"""
+        """Apply extra smoothing to the cLUT."""
         if not pcs:
             if self.profile:
                 pcs = self.profile.connectionColorSpace
@@ -4520,7 +4520,7 @@ class CurveType(ICCProfileTag, list):
         slice_=(0.01, 0.99),
         lstar_slice=True,
     ):
-        """Return average or least squares gamma or a list of gamma values"""
+        """Return average or least squares gamma or a list of gamma values."""
         if len(self) <= 1:
             values = self if len(self) else [1.0]  # Identity
             if average or least_squares:
@@ -4710,7 +4710,7 @@ class CurveType(ICCProfileTag, list):
     def set_bt1886_trc(
         self, black_Y=0, outoffset=0.0, gamma=2.4, gamma_type="B", size=None
     ):
-        """Set the response to the BT. 1886 curve
+        """Set the response to the BT. 1886 curve.
 
         This response is special in that it depends on the actual black
         level of the display.
@@ -4744,7 +4744,7 @@ class CurveType(ICCProfileTag, list):
         return None
 
     def set_dicom_trc(self, black_cdm2=0.05, white_cdm2=100, size=None):
-        """Set the response to the DICOM Grayscale Standard Display Function
+        """Set the response to the DICOM Grayscale Standard Display Function.
 
         This response is special in that it depends on the actual black
         and white level of the display.
@@ -4794,7 +4794,7 @@ class CurveType(ICCProfileTag, list):
         size=None,
         logfile=None,
     ):
-        """Set the response to the Hybrid Log-Gamma (HLG) function
+        """Set the response to the Hybrid Log-Gamma (HLG) function.
 
         This response is special in that it depends on the actual black
         and white level of the display, system gamma and ambient.
@@ -4846,7 +4846,7 @@ class CurveType(ICCProfileTag, list):
         rolloff=False,
         size=None,
     ):
-        """Set the response to the SMPTE 2084 perceptual quantizer (PQ) function
+        """Set the response to the SMPTE 2084 perceptual quantizer (PQ) function.
 
         This response is special in that it depends on the actual black
         and white level of the display.
@@ -5114,7 +5114,7 @@ class DictListItem(list):
 
 
 class DictType(ICCProfileTag, AODict):
-    """ICC dictType Tag
+    """ICC dictType Tag.
 
     Implements all features of 'Dictionary Type and Metadata TAG Definition'
     (ICC spec revision 2010-02-25), including shared data (the latter will
@@ -5283,7 +5283,7 @@ class DictType(ICCProfileTag, AODict):
         pass
 
     def getname(self, name, default=None, locale="en_US"):
-        """Convenience function to get (localized) names"""
+        """Convenience function to get (localized) names."""
         item = self.get(name, default)
         if item is default:
             return default
@@ -5292,7 +5292,7 @@ class DictType(ICCProfileTag, AODict):
         return name
 
     def getvalue(self, name, default=None, locale="en_US"):
-        """Convenience function to get (localized) values"""
+        """Convenience function to get (localized) values."""
         item = self.get(name, default)
         if item is default:
             return default
@@ -5303,7 +5303,7 @@ class DictType(ICCProfileTag, AODict):
         return item
 
     def setitem(self, name, value, display_name=None, display_value=None):
-        """Convenience function to set items
+        """Convenience function to set items.
 
         display_name and display_value (if given) should be dict types with
         country -> language -> string mappings, e.g.:
@@ -5322,7 +5322,7 @@ class DictType(ICCProfileTag, AODict):
             item.display_value.update(display_value)
 
     def to_json(self, encoding="UTF-8", errors="replace", locale="en_US"):
-        """Return a JSON representation
+        """Return a JSON representation.
 
         Display names/values are used if present.
 
@@ -5441,13 +5441,13 @@ class MultiLocalizedUnicodeType(ICCProfileTag, AODict):  # ICC v4
         return ""
 
     def add_localized_string(self, languagecode, countrycode, localized_string):
-        """Convenience function for adding localized strings"""
+        """Convenience function for adding localized strings."""
         if languagecode not in self:
             self[languagecode] = AODict()
         self[languagecode][countrycode] = localized_string.strip("\0")
 
     def get_localized_string(self, languagecode="en", countrycode="US"):
-        """Convenience function for retrieving localized strings
+        """Convenience function for retrieving localized strings.
 
         Falls back to first locale available if the requested one isn't
 
@@ -5539,7 +5539,7 @@ class ProfileSequenceDescType(ICCProfileTag, list):
                 count -= 1
 
     def add(self, profile):
-        """Add description structure of profile"""
+        """Add description structure of profile."""
         desc = {}
         desc.update(profile.device)
         desc["tech"] = profile.tags.get("tech", b"").ljust(4, b"\0")[:4]
@@ -5861,7 +5861,7 @@ def TextType(tagData, tagSignature):
 
 
 class VideoCardGammaType(ICCProfileTag, ADict):
-    """Video Card Gamma Tag
+    """Video Card Gamma Tag.
 
     This tag contains the gamma correction values for the red, green and blue
     channels of the video card. The values are stored in a table or as a
@@ -6342,7 +6342,7 @@ class WcsProfilesTagType(ICCProfileTag, ADict):
                 self[modelname] = it.root
 
     def get_vcgt(self, quantize=False, quantizer=round):
-        """Return calibration information (if present) as VideoCardGammaType
+        """Return calibration information (if present) as VideoCardGammaType.
 
         If quantize is set, a table quantized to <quantize> bits is returned.
 
@@ -6556,7 +6556,7 @@ class XYZType(ICCProfileTag, XYZNumber):
 
     @property
     def ir(self):
-        """Get illuminant-relative values"""
+        """Get illuminant-relative values."""
         pcs_illuminant = list(self.profile.illuminant.values())
         if b"chad" in self.profile.tags and self.profile.creator != b"appl":
             # Apple profiles have a bug where they contain a 'chad' tag,
@@ -6593,7 +6593,7 @@ class XYZType(ICCProfileTag, XYZNumber):
 
     @property
     def pcs(self):
-        """Get PCS-relative values"""
+        """Get PCS-relative values."""
         if self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")) and (
             "chad" not in self.profile.tags or self.profile.creator == b"appl"
         ):
@@ -6692,7 +6692,7 @@ class ChromaticAdaptionTag(colormath.Matrix3x3, S15Fixed16ArrayType):
         pass
 
     def get_cat(self):
-        """Compare to known CAT matrices and return matching name (if any)"""
+        """Compare to known CAT matrices and return matching name (if any)."""
 
         def q(v):
             return s15Fixed16Number(s15Fixed16Number_tohex(v))
@@ -7667,7 +7667,7 @@ class ICCProfile:
             self._file.close()
 
     def convert_iccv4_tags_to_iccv2(self, version=2.4, undo_wtpt_chad=False):
-        """Convert ICCv4 parametric curve tags to ICCv2-compatible curve tags
+        """Convert ICCv4 parametric curve tags to ICCv2-compatible curve tags.
 
         If desired version after conversion is < 2.4 and undo_wtpt_chad is True,
         also set whitepoint to illuinant relative values, and remove any
@@ -7735,7 +7735,7 @@ class ICCProfile:
         return True
 
     def convert_iccv2_tags_to_iccv4(self):
-        """Convert ICCv2 text description tags to ICCv4 multi-localized unicode
+        """Convert ICCv2 text description tags to ICCv4 multi-localized unicode.
 
         Also sets whitepoint to D50, and stores illuminant-relative to D50
         matrix as chromatic adaptation tag.
@@ -7842,7 +7842,7 @@ class ICCProfile:
 
     @staticmethod
     def from_edid(edid, iccv4=False, cat="Bradford") -> ICCProfile:
-        """Create an ICC Profile from EDID data and return it
+        """Create an ICC Profile from EDID data and return it.
 
         You may override the gamma from EDID by setting it to a list of curve
         values.
@@ -7917,7 +7917,7 @@ class ICCProfile:
         cat="Bradford",
         profile_class=b"mntr",
     ) -> ICCProfile:
-        """Create an ICC Profile from chromaticities and return it"""
+        """Create an ICC Profile from chromaticities and return it."""
         wXYZ = colormath.xyY2XYZ(wx, wy, 1.0)
         # Calculate RGB to XYZ matrix from chromaticities and white
         mtx = colormath.rgb_to_xyz_matrix(rx, ry, gx, gy, bx, by, wXYZ)
@@ -7961,7 +7961,7 @@ class ICCProfile:
         cat="Bradford",
         profile_class=b"mntr",
     ) -> ICCProfile:
-        """Create an ICC Profile from XYZ values and return it"""
+        """Create an ICC Profile from XYZ values and return it."""
         profile = ICCProfile()
         profile.profileClass = profile_class
         D50 = colormath.get_whitepoint("D50")
@@ -8198,7 +8198,7 @@ class ICCProfile:
         self.set_blackpoint(XYZbp)
 
     def set_dicom_trc(self, XYZbp, white_cdm2=100, size=1024):
-        """Set the response to the DICOM Grayscale Standard Display Function
+        """Set the response to the DICOM Grayscale Standard Display Function.
 
         This response is special in that it depends on the actual black
         and white level of the display.
@@ -8223,7 +8223,7 @@ class ICCProfile:
         size=1024,
         blend_blackpoint=True,
     ):
-        """Set the response to the Hybrid Log-Gamma (HLG) function
+        """Set the response to the Hybrid Log-Gamma (HLG) function.
 
         This response is special in that it depends on the actual black
         and white level of the display, system gamma and ambient.
@@ -8254,7 +8254,7 @@ class ICCProfile:
         size=1024,
         blend_blackpoint=True,
     ):
-        """Set the response to the SMPTE 2084 perceptual quantizer (PQ) function
+        """Set the response to the SMPTE 2084 perceptual quantizer (PQ) function.
 
         This response is special in that it depends on the actual black
         and white level of the display.
@@ -9042,7 +9042,7 @@ class ICCProfile:
         return rgb_space
 
     def get_chardata_bkpt(self, illuminant_relative=False):
-        """Get blackpoint from embeded characterization data ('targ' tag)"""
+        """Get blackpoint from embeded characterization data ('targ' tag)."""
         if not isinstance(self.tags.get("targ"), Text):
             return None
 
@@ -9125,7 +9125,7 @@ class ICCProfile:
         self.__init__(profile)
 
     def set_edid_metadata(self, edid):
-        """Set metadata from EDID
+        """Set metadata from EDID.
 
         Key names follow the ICC meta Tag for Monitor Profiles specification
         http://www.oyranos.org/wiki/index.php?title=ICC_meta_Tag_for_Monitor_Profiles_0.1

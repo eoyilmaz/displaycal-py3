@@ -478,12 +478,12 @@ class CCXXPlot(wx.Frame):
         event.Skip()
 
     def OnWheel(self, event):
-        """Mousewheel zoom"""
+        """Mousewheel zoom."""
         direction = 1.0 if event.WheelRotation < 0 else -1.0
         self.canvas.zoom(direction)
 
     def key_handler(self, event):
-        """Keyboard zoom"""
+        """Keyboard zoom."""
         key = event.GetKeyCode()
         if key in (43, wx.WXK_NUMPAD_ADD):
             # + key zoom in
@@ -495,14 +495,14 @@ class CCXXPlot(wx.Frame):
             event.Skip()
 
     def draw(self, objects, title="", xlabel=" ", ylabel=" "):
-        """Draw objects to plot"""
+        """Draw objects to plot."""
         graphics = plot.PlotGraphics(objects, title, xlabel, ylabel)
         self.canvas.Draw(graphics, self.canvas.axis_x, self.canvas.axis_y)
         if self.is_ccss:
             self.canvas.OnMouseDoubleClick(None)
 
     def draw_ccxx(self):
-        """Spectra or matrix 'flower' plot"""
+        """Spectra or matrix 'flower' plot."""
         self.canvas.SetEnableLegend(False)
         self.canvas.proportional = not self.is_ccss
         self.canvas.axis_x = self.ccxx_axis_x
@@ -515,7 +515,7 @@ class CCXXPlot(wx.Frame):
         self.draw(self.gfx, " ")
 
     def draw_cie(self):
-        """CIE 1931 2° xy plot"""
+        """CIE 1931 2° xy plot."""
         self.canvas.SetEnableLegend(True)
         self.canvas.proportional = True
         gfx = []
@@ -578,7 +578,7 @@ class CCXXPlot(wx.Frame):
         self.draw(gfx, " ", "x", "y")
 
     def toggle_draw(self, event):
-        """Toggle between spectral and CIE plot"""
+        """Toggle between spectral and CIE plot."""
         if self.canvas.GetEnableLegend():
             self.draw_ccxx()
             self.toggle_btn.SetLabel(lang.getstr("spectral"))

@@ -474,7 +474,7 @@ def set_display_side(value):
 # Plotting classes...
 #
 class PolyPoints:
-    """Base Class for lines and markers
+    """Base Class for lines and markers.
 
     Args:
         points (list[tuple(float, float)]): Sequence (array, tuple or list) of
@@ -686,7 +686,7 @@ class PolyLine(PolyPoints):
             dc.DrawLines(coord)  # draw legend line
 
     def getSymExtent(self, printerScale):
-        """Width and Height of Marker"""
+        """Width and Height of Marker."""
         h = self.attributes["width"] * printerScale * self._pointSize[0]
         w = 7 * h
         return (w, h)
@@ -821,7 +821,7 @@ class PolyMarker(PolyPoints):
             self._drawmarkers(dc, coord, marker, size)  # draw legend marker
 
     def getSymExtent(self, printerScale):
-        """Width and Height of Marker"""
+        """Width and Height of Marker."""
         s = 7 * self.attributes["size"] * printerScale * self._pointSize[0]
         return (s, s)
 
@@ -1021,7 +1021,7 @@ class PlotGraphics:
             # print o, "time=", dt
 
     def getSymExtent(self, printerScale):
-        """Get max width and height of lines and markers symbols for legend"""
+        """Get max width and height of lines and markers symbols for legend."""
         self.objects[0]._pointSize = self._pointSize
         symExt = self.objects[0].getSymExtent(printerScale)
         for o in self.objects[1:]:
@@ -1031,7 +1031,7 @@ class PlotGraphics:
         return symExt
 
     def getLegendNames(self):
-        """Return list of legend names"""
+        """Return list of legend names."""
         lst = []
         for obj in self.objects:
             legend = obj.getLegend()
@@ -1286,7 +1286,7 @@ class PlotCanvas(wx.Panel):
 
     @property
     def tickLengthScale(self):
-        """Scale tick length for hires antialiased mode and printing"""
+        """Scale tick length for hires antialiased mode and printing."""
         return (
             3 * self.printerScale * self._tickLength[0] * self._pointSize[0],
             3 * self.printerScale * self._tickLength[1] * self._pointSize[1],
@@ -1467,31 +1467,31 @@ class PlotCanvas(wx.Panel):
         return self._logscale
 
     def SetFontSizeAxis(self, point=10):
-        """Set the tick and axis label font size (default is 10 point)"""
+        """Set the tick and axis label font size (default is 10 point)."""
         self._fontSizeAxis = point
 
     def GetFontSizeAxis(self):
-        """Get current tick and axis label font size in points"""
+        """Get current tick and axis label font size in points."""
         return self._fontSizeAxis
 
     def SetFontSizeTitle(self, point=15):
-        """Set Title font size (default is 15 point)"""
+        """Set Title font size (default is 15 point)."""
         self._fontSizeTitle = point
 
     def GetFontSizeTitle(self):
-        """Get current Title font size in points"""
+        """Get current Title font size in points."""
         return self._fontSizeTitle
 
     def SetFontSizeLegend(self, point=7):
-        """Set Legend font size (default is 7 point)"""
+        """Set Legend font size (default is 7 point)."""
         self._fontSizeLegend = point
 
     def GetFontSizeLegend(self):
-        """Get current Legend font size in points"""
+        """Get current Legend font size in points."""
         return self._fontSizeLegend
 
     def SetShowScrollbars(self, value):
-        """Set True to show scrollbars"""
+        """Set True to show scrollbars."""
         if value not in [True, False]:
             raise TypeError("Value should be True or False")
         if value == self.GetShowScrollbars():
@@ -1501,7 +1501,7 @@ class PlotCanvas(wx.Panel):
         wx.CallAfter(self.Layout)
 
     def GetShowScrollbars(self):
-        """Set True to show scrollbars"""
+        """Set True to show scrollbars."""
         return self.sb_vert.IsShown()
 
     def SetUseScientificNotation(self, useScientificNotation):
@@ -1722,7 +1722,7 @@ class PlotCanvas(wx.Panel):
         self._pointLabelFunc = func
 
     def GetPointLabelFunc(self):
-        """Return pointLabel Drawing Function"""
+        """Return pointLabel Drawing Function."""
         return self._pointLabelFunc
 
     def Reset(self):
@@ -1748,7 +1748,7 @@ class PlotCanvas(wx.Panel):
             self._Draw(graphics, xAxis, yAxis)
 
     def GetXY(self, event):
-        """Wrapper around _getXY, which handles log scales"""
+        """Wrapper around _getXY, which handles log scales."""
         x, y = self._getXY(event)
         if self.getLogScale()[0]:
             x = np.power(10, x)
@@ -1800,11 +1800,11 @@ class PlotCanvas(wx.Panel):
         self._ySpec = type_
 
     def GetXSpec(self):
-        """Return current XSpec for axis"""
+        """Return current XSpec for axis."""
         return self._xSpec
 
     def GetYSpec(self):
-        """Return current YSpec for axis"""
+        """Return current YSpec for axis."""
         return self._ySpec
 
     @property
@@ -2693,7 +2693,7 @@ class PlotCanvas(wx.Panel):
         dc.SetFont(self._getFont(self._fontSizeAxis))  # reset
 
     def _titleLablesWH(self, dc, graphics):
-        """Draw Title and labels and returns width and height for each"""
+        """Draw Title and labels and returns width and height for each."""
         # TextExtents for Title and Axis Labels
         dc.SetFont(self._getFont(self._fontSizeTitle))
         if self._titleEnabled:
@@ -2708,7 +2708,7 @@ class PlotCanvas(wx.Panel):
         return titleWH, xLabelWH, yLabelWH
 
     def _legendWH(self, dc, graphics):
-        """Return the size in screen units for legend box"""
+        """Return the size in screen units for legend box."""
         txtExt = (0, 0)
         if not self._legendEnabled:
             legendBoxWH = symExt = txtExt
@@ -2730,7 +2730,7 @@ class PlotCanvas(wx.Panel):
         return (legendBoxWH, symExt, txtExt)
 
     def _drawRubberBand(self, corner1, corner2):
-        """Draws/erases rect box from corner1 to corner2"""
+        """Draws/erases rect box from corner1 to corner2."""
         ptx, pty, rectWidth, rectHeight = self._point2ClientCoord(corner1, corner2)
         # draw rectangle
         dc = wx.ClientDC(self.canvas)
@@ -2744,7 +2744,7 @@ class PlotCanvas(wx.Panel):
             self.Update()
 
     def _getFont(self, size):
-        """Take font size, adjusts if printing and returns wx.Font"""
+        """Take font size, adjusts if printing and returns wx.Font."""
         s = size * self.printerScale * self._fontScale
         of = self.GetFont()
         # Linux speed up to get font from cache rather than X font server
@@ -2778,7 +2778,7 @@ class PlotCanvas(wx.Panel):
         return ptx, pty, rectWidth, rectHeight
 
     def _axisInterval(self, spec, lower, upper):
-        """Return sensible axis range for given spec"""
+        """Return sensible axis range for given spec."""
         if spec in {"none", "min"} or isinstance(spec, (float, int)):
             if lower == upper:
                 return lower - 0.5, upper + 0.5
@@ -2887,7 +2887,7 @@ class PlotCanvas(wx.Panel):
 
     @TempStyle("pen")
     def _drawTicks(self, dc, p1, p2, scale, shift, xticks, yticks):
-        """Draw the tick marks
+        """Draw the tick marks.
 
         Args:
             dc (wx.DC): The :class:`wx.DC` to draw on.
@@ -3990,7 +3990,7 @@ class TestFrame(wx.Frame):
         about.ShowModal()
 
     def resetDefaults(self):
-        """Just to reset the fonts back to the PlotCanvas defaults"""
+        """Just to reset the fonts back to the PlotCanvas defaults."""
         self.client.SetFont(
             wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTWEIGHT_NORMAL, wx.FONTWEIGHT_NORMAL)
         )

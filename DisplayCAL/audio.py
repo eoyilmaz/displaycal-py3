@@ -49,7 +49,7 @@ _sounds = {}
 
 
 def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
-    """(Re-)Initialize sound subsystem"""
+    """(Re-)Initialize sound subsystem."""
     # Note on buffer size: Too high values cause crackling during fade, too low
     # values cause choppy playback of ogg files when using pyo (good value for
     # pyo is >= 2048)
@@ -214,7 +214,7 @@ def init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
 
 
 def safe_init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=False):
-    """Like init(), but catch any exceptions"""
+    """Like init(), but catch any exceptions."""
     global _initialized
     try:
         return init(lib, samplerate, channels, buffersize, reinit)
@@ -225,7 +225,7 @@ def safe_init(lib=None, samplerate=22050, channels=2, buffersize=2048, reinit=Fa
 
 
 def Sound(filename, loop=False, raise_exceptions=False):
-    """Sound caching mechanism"""
+    """Sound caching mechanism."""
     if (filename, loop) in _sounds:
         # Cache hit
         return _sounds[(filename, loop)]
@@ -542,7 +542,7 @@ class _Sound:
         return self._play_count
 
     def safe_fade(self, fade_ms, fade_in=None):
-        """Like fade(), but catch any exceptions"""
+        """Like fade(), but catch any exceptions."""
         if not _initialized:
             safe_init()
         try:
@@ -551,7 +551,7 @@ class _Sound:
             return exception
 
     def safe_play(self, fade_ms=0):
-        """Like play(), but catch any exceptions"""
+        """Like play(), but catch any exceptions."""
         if not _initialized:
             safe_init()
         try:
@@ -560,7 +560,7 @@ class _Sound:
             return exception
 
     def safe_stop(self, fade_ms=0):
-        """Like stop(), but catch any exceptions"""
+        """Like stop(), but catch any exceptions."""
         try:
             return self.stop(fade_ms)
         except Exception as exception:

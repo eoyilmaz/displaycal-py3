@@ -10,7 +10,7 @@ from DisplayCAL.lazydict import LazyDict
 
 
 class JSONDict(LazyDict):
-    """JSON lazy dictionary"""
+    """JSON lazy dictionary."""
 
     def parse(self, fileobj):
         """Parse the JSON data from the given file object.

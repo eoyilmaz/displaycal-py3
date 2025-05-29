@@ -598,15 +598,15 @@ class TaskScheduler:
         return self.create_task(**kwargs)
 
     def delete(self, name):
-        """Delete existing task"""
+        """Delete existing task."""
         self._ts.Delete(name)
 
     def disable(self, name, echo=False):
-        """Disable (deactivate) existing task"""
+        """Disable (deactivate) existing task."""
         self._schtasks(["/Change", "/TN", name, "/DISABLE"], echo=echo)
 
     def enable(self, name, echo=False):
-        """Enable (activate) existing task"""
+        """Enable (activate) existing task."""
         self._schtasks(["/Change", "/TN", name, "/ENABLE"], echo=echo)
 
     def get(self, name, default=None):

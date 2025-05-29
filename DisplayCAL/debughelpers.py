@@ -133,7 +133,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
 
 
 def print_callstack():
-    """Print call stack"""
+    """Print call stack."""
     import inspect
 
     stack = inspect.stack()

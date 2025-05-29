@@ -1,4 +1,4 @@
-"""Drop-In replacement for wx.TaskBarIcon
+"""Drop-In replacement for wx.TaskBarIcon.
 
 This one won't stop showing updates to the icon like wx.TaskBarIcon
 

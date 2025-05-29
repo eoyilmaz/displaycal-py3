@@ -440,7 +440,7 @@ def normalencode(unistr, form="NFKD", encoding="ASCII", errors="ignore"):
 
 
 def box(text, width=80, collapse=False):
-    """Create a box around text (monospaced font required for display)"""
+    """Create a box around text (monospaced font required for display)."""
     content_width = width - 4
     text = wrap(str(text), content_width)
     lines = text.splitlines()
@@ -474,7 +474,7 @@ def center(text, width=None):
 
 
 def create_replace_function(template, values):
-    """Create a replace function for use with e.g. re.sub"""
+    """Create a replace function for use with e.g. re.sub."""
 
     def replace_function(match, template=template, values=values):
         template = match.expand(template)
@@ -514,7 +514,7 @@ def ellipsis_(text: str | bytes, maxlen: int = 64, pos: str = "r") -> str | byte
 
 
 def hexunescape(match):
-    """To be used with re.sub"""
+    """To be used with re.sub."""
     return chr(int(match.group(1), 16))
 
 
@@ -639,7 +639,7 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
 
 
 def safe_str(obj, enc=fs_enc, errors="replace"):
-    """Return string representation of obj"""
+    """Return string representation of obj."""
     return safe_basestring(obj, enc=enc, errors=errors)
 
 

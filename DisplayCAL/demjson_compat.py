@@ -1,4 +1,4 @@
-"""demjson 1.3 compatibility module"""
+"""demjson 1.3 compatibility module."""
 
 import json
 import sys

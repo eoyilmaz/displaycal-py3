@@ -29,7 +29,7 @@ class VRMLParseError(Exception):
 
 
 class Tag:
-    """X3D Tag"""
+    """X3D Tag."""
 
     def __init__(self, tagname, **attributes):
         self.parent = None
@@ -108,7 +108,7 @@ class Tag:
         self.children.append(child)
 
     def html(self, title="Untitled", xhtml=False, embed=False, force=False, cache=True):
-        """Convert X3D to HTML
+        """Convert X3D to HTML.
 
         This will generate HTML5 by default unless you set xhtml=True.
 
@@ -410,7 +410,7 @@ def safe_print(*args, **kwargs):
 
 
 def update_vrml(vrml, colorspace):
-    """Update color and axes in VRML"""
+    """Update color and axes in VRML."""
     offsetx, offsety = 0, 0
     maxz = scale = 100
     maxxy = 200
@@ -626,7 +626,7 @@ Transform {{
 
 
 def vrml2x3dom(vrml, worker=None):
-    """Convert VRML to X3D"""
+    """Convert VRML to X3D."""
     x3d = Tag(
         "X3D",
         **{
@@ -741,7 +741,7 @@ def vrml2x3dom(vrml, worker=None):
 def vrmlfile2x3dfile(
     vrmlpath, x3dpath, html=True, embed=False, force=False, cache=True, worker=None
 ):
-    """Convert VRML file located at vrmlpath to HTML and write to x3dpath"""
+    """Convert VRML file located at vrmlpath to HTML and write to x3dpath."""
     filename, ext = os.path.splitext(vrmlpath)
     reader = open
     if ext.lower() in (".gz", ".wrz"):

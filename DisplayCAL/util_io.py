@@ -222,7 +222,7 @@ class GzipFileProper(gzip.GzipFile):
 
 
 class LineBufferedStream:
-    """Buffer lines and only write them to stream if line separator is detected"""
+    """Buffer lines and only write them to stream if line separator is detected."""
 
     def __init__(
         self,
@@ -418,7 +418,7 @@ class Tee(Files):
 
 
 class TarFileProper(tarfile.TarFile):
-    """Support extracting to unicode location and using base name"""
+    """Support extracting to unicode location and using base name."""
 
     def extract(self, member, path="", full=True):
         """Extract a member from the archive to the current working directory.

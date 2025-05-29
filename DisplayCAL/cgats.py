@@ -68,7 +68,7 @@ def rpad(value, width) -> bytes:
                 fmt = b"%%%i.%if" % (width, width - i - 1)
                 strval = fmt % value
             else:
-                strval = bytes(str(int(round(value))), "UTF-8")
+                strval = bytes(str(round(value)), "UTF-8")
     return strval
 
 
@@ -1198,7 +1198,7 @@ class CGATS(dict):
         for valueslist in [gray, color]:
             if not valueslist:
                 continue
-            split = int(round(len(valueslist) / 2.0))
+            split = round(len(valueslist) / 2.0)
             valueslist1 = valueslist[:split]
             valueslist2 = valueslist[split:]
             if shift:

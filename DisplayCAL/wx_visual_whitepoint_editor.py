@@ -161,7 +161,7 @@ def Distance(pt1, pt2):
         pt2: another instance of :class:`Point`.
     """
     distance = sqrt((pt1.x - pt2.x) ** 2.0 + (pt1.y - pt2.y) ** 2.0)
-    return int(round(distance))
+    return round(distance)
 
 
 def AngleFromPoint(pt, center):
@@ -570,40 +570,40 @@ class Colour:
             self.r = maxVal
 
             if self.h > 300:
-                self.g = int(round(minVal))
+                self.g = round(minVal)
                 hue = (hue - 360.0) / 60.0
-                self.b = int(round(-(hue * delta - minVal)))
+                self.b = round(-(hue * delta - minVal))
 
             else:
-                self.b = int(round(minVal))
+                self.b = round(minVal)
                 hue = hue / 60.0
-                self.g = int(round(hue * delta + minVal))
+                self.g = round(hue * delta + minVal)
 
         elif 60 < self.h < 180:
-            self.g = int(round(maxVal))
+            self.g = round(maxVal)
 
             if self.h < 120:
-                self.b = int(round(minVal))
+                self.b = round(minVal)
                 hue = (hue / 60.0 - 2.0) * delta
-                self.r = int(round(minVal - hue))
+                self.r = round(minVal - hue)
 
             else:
-                self.r = int(round(minVal))
+                self.r = round(minVal)
                 hue = (hue / 60.0 - 2.0) * delta
-                self.b = int(round(minVal + hue))
+                self.b = round(minVal + hue)
 
         else:
-            self.b = int(round(maxVal))
+            self.b = round(maxVal)
 
             if self.h < 240:
-                self.r = int(round(minVal))
+                self.r = round(minVal)
                 hue = (hue / 60.0 - 4.0) * delta
-                self.g = int(round(minVal - hue))
+                self.g = round(minVal - hue)
 
             else:
-                self.g = int(round(minVal))
+                self.g = round(minVal)
                 hue = (hue / 60.0 - 4.0) * delta
-                self.r = int(round(minVal + hue))
+                self.r = round(minVal + hue)
 
     def ToHSV(self) -> None:
         """Convert a RGB triplet into a HSV triplet."""
@@ -611,19 +611,19 @@ class Colour:
         maxVal = float(max(self.r, max(self.g, self.b)))
         delta = maxVal - minVal
 
-        self.v = int(round(maxVal))
+        self.v = round(maxVal)
 
         if abs(delta) < 1e-6:
             self.h = self.s = 0
             return
 
         temp = delta / maxVal
-        self.s = int(round(temp * 255.0))
+        self.s = round(temp * 255.0)
 
-        if self.r == int(round(maxVal)):
+        if self.r == round(maxVal):
             temp = float(self.g - self.b) / delta
 
-        elif self.g == int(round(maxVal)):
+        elif self.g == round(maxVal):
             temp = 2.0 + (float(self.b - self.r) / delta)
 
         else:
@@ -636,7 +636,7 @@ class Colour:
         elif temp >= 360.0:
             temp = 0
 
-        self.h = int(round(temp))
+        self.h = round(temp)
 
     def GetPyColour(self):
         """Return the wxPython :class:`Colour` associated with this instance."""
@@ -995,17 +995,15 @@ class HSVWheel(BasePyControl):
         mainFrame = self._mainFrame
         colour = mainFrame._colour
 
-        colour.h = int(round(rad2deg(AngleFromPoint(pt, mainFrame._centre))))
+        colour.h = round(rad2deg(AngleFromPoint(pt, mainFrame._centre)))
         if colour.h < 0:
             colour.h += 360
 
-        colour.s = int(
-            round(
-                Distance(pt, mainFrame._centre)
-                * 255.0
-                / ((self._bitmap.Size[0] - s(12)) / 2)
-                * 0.2
-            )
+        colour.s = round(
+            Distance(pt, mainFrame._centre)
+            * 255.0
+            / ((self._bitmap.Size[0] - s(12)) / 2)
+            * 0.2
         )
         colour.s = min(colour.s, 255)
 
@@ -1213,7 +1211,7 @@ class BrightCtrl(BaseLineCtrl):
         mainFrame = self._mainFrame
         colour = self._colour
 
-        colour.v = int(round(d))
+        colour.v = round(d)
         mainFrame.DrawMarkers()
 
         colour.ToRGB()
@@ -1234,7 +1232,7 @@ class BrightCtrl(BaseLineCtrl):
         colour = self._colour
         brightRect = self.BuildRect()
 
-        y = int(round(colour.v / 255.0 * (brightRect.height - s(6))))
+        y = round(colour.v / 255.0 * (brightRect.height - s(6)))
         y = brightRect.height - s(4) - 1 - y
         h = s(8)
         darkMarkOuter = wx.Rect(brightRect.x - 2, y - 1, brightRect.width + 4, h)
@@ -1380,12 +1378,10 @@ class HSlider(BaseLineCtrl):
         brightRect = self.BuildRect()
 
         w = s(8)
-        x = int(
-            round(
-                (self.value - self.minval)
-                / float(self.maxval - self.minval)
-                * (brightRect.width - w)
-            )
+        x = round(
+            (self.value - self.minval)
+            / float(self.maxval - self.minval)
+            * (brightRect.width - w)
         )
         brightMark = wx.Rect(x, brightRect.y, w, brightRect.height)
 
@@ -1766,7 +1762,7 @@ class ProfileManager:
                             self._window._colour.r,
                             self._window._colour.g,
                             self._window._colour.b,
-                        ) = (int(round(values[-1][i] * 255)) for i in range(3))
+                        ) = (round(values[-1][i] * 255) for i in range(3))
                         self._window._colour.ToHSV()
                         wx.CallAfter(self._window.DrawAll)
                     # Remember profile, but discard profile filename
@@ -2069,7 +2065,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.zoomnormal_handler, self.zoomnormalbutton)
         self.zoomnormalbutton.SetToolTipString(lang.getstr("measureframe.zoomnormal"))
         self.area_x_slider = HSlider(
-            self.mainPanel, int(round(x * 1000)), 0, 1000, self.area_handler
+            self.mainPanel, round(x * 1000), 0, 1000, self.area_handler
         )
         self.area_x_slider.BackgroundColour = self.mainPanel.BackgroundColour
         self.center_x_button = BitmapButton(
@@ -2083,7 +2079,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.center_x_handler, self.center_x_button)
         self.center_x_button.SetToolTipString(lang.getstr("measureframe.center"))
         self.area_y_slider = HSlider(
-            self.mainPanel, int(round(y * 1000)), 0, 1000, self.area_handler
+            self.mainPanel, round(y * 1000), 0, 1000, self.area_handler
         )
         self.area_y_slider.BackgroundColour = self.mainPanel.BackgroundColour
         self.center_y_button = BitmapButton(
@@ -2178,7 +2174,7 @@ class VisualWhitepointEditor(wx.Frame):
                 correction = s(40)
             else:
                 correction = 0
-            w, h = (int(round(self.default_size)),) * 2
+            w, h = (round(self.default_size),) * 2
             minClientSize = (
                 mainPanelSize[0] + max(minClientSize[1], w + s(26)),
                 max(minClientSize[1], h + s(26)) + correction,
@@ -2507,7 +2503,7 @@ class VisualWhitepointEditor(wx.Frame):
         x = sat * cos(angle)
         y = sat * sin(angle)
 
-        pt = wx.Point(int(round(x)), -int(round(y)))
+        pt = wx.Point(round(x), -round(y))
         pt.x += center.x
         pt.y += center.y
 
@@ -2640,7 +2636,7 @@ class VisualWhitepointEditor(wx.Frame):
         scale = self.area_size_slider.Value / 100.0
         x = self.area_x_slider.Value / 1000.0
         y = self.area_y_slider.Value / 1000.0
-        w, h = (int(round(self.default_size * scale)),) * 2
+        w, h = (round(self.default_size * scale),) * 2
         self.bgPanel.MinSize = -1, -1
         self.newColourPanel.Size = w, h
         self.bgPanel.MinSize = w + s(24), h + s(24)
@@ -2833,7 +2829,7 @@ class VisualWhitepointEditor(wx.Frame):
                 size_mm = real_display_size_mm.RealDisplaySizeMM(display_no)
                 if 0 not in size_mm:
                     self.display_size_mm[geometry] = [float(v) for v in size_mm]
-                    maxv = int(round(max(size_mm) / 100.0 * 100))
+                    maxv = round(max(size_mm) / 100.0 * 100)
         if maxv > 100:
             self.area_size_slider.SetMax(maxv)
             if self.area_size_slider.GetValue() > self.area_size_slider.GetMax():
@@ -2880,7 +2876,7 @@ class VisualWhitepointEditor(wx.Frame):
         scale = float(
             DEFAULTS["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
         )
-        self.area_size_slider.SetValue(int(round(scale * 100)))
+        self.area_size_slider.SetValue(round(scale * 100))
         self.area_handler()
 
 

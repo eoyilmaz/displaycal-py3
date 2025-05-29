@@ -4819,7 +4819,7 @@ END_DATA
                                     for v in RGB
                                 ]
                             RGB = [min(max(v, 0), 1) * 255 for v in RGB]
-                            seenkey = tuple(int(round(v * 257)) for v in RGB)
+                            seenkey = tuple(round(v * 257) for v in RGB)
                             seenkeys[abc] = seenkey
                             if seenkey in seen:
                                 continue
@@ -5418,7 +5418,7 @@ END_DATA
             # Note: We only round up for the input values, output values
             # are rounded to nearest integer
             def quantizer(v):
-                return int(math.ceil(v * (2**input_bits - 1)))
+                return math.ceil(v * (2**input_bits - 1))
 
             scale = quantizer(1.0)
         else:
@@ -5508,7 +5508,7 @@ END_DATA
                 lut.append([])
                 for component in (0, 1, 2):
                     lut[-1].append(
-                        f"{int(round(RGB_triplet[component] / scale * maxval)):d}"
+                        f"{round(RGB_triplet[component] / scale * maxval):d}"
                     )
         elif file_format == "cube":
             if maxval is None:
@@ -5575,7 +5575,7 @@ END_DATA
             for i, RGB_triplet in enumerate(RGB_out):
                 lut.append([f"{i:d}"])
                 for component in (0, 1, 2):
-                    lut[-1].append(f"{int(round(RGB_triplet[component] * maxval))}")
+                    lut[-1].append(f"{round(RGB_triplet[component] * maxval)}")
             valsep = "\t"
         elif file_format == "png":
             lut = [[]]
@@ -5587,7 +5587,7 @@ END_DATA
                 if len(lut[-1]) == size:
                     # Append new scanline
                     lut.append([])
-                lut[-1].append([int(round(v * maxval)) for v in RGB_triplet])
+                lut[-1].append([round(v * maxval) for v in RGB_triplet])
             # Current layout is vertical
             if getcfg("3dlut.image.layout") == "h":
                 # Change layout to horizontal
@@ -6577,8 +6577,8 @@ BEGIN_DATA
                             ramp = ((ctypes.c_ushort * 256) * 3)()
                             for i in range(256):
                                 for j, channel in enumerate("RGB"):
-                                    ramp[j][i] = int(
-                                        round(cal.DATA[i]["RGB_" + channel] * 65535)
+                                    ramp[j][i] = round(
+                                        cal.DATA[i][f"RGB_{channel}"] * 65535
                                     )
                     else:
                         ramp = None
@@ -8657,7 +8657,7 @@ BEGIN_DATA
                 logfile.write("Forcing B2A input curve blackpoint...\n")
             XYZbp_m = m2 * XYZbp
             for i in range(3):
-                black_index = int(math.ceil(maxval * XYZbp_m[i]))
+                black_index = math.ceil(maxval * XYZbp_m[i])
                 if logfile:
                     logfile.write(f"Channel #{i:d}\n")
                 for j in range(black_index + 1):
@@ -16231,7 +16231,7 @@ BEGIN_DATA
             # Generate RGB input values
             # Reduce interpolation res as target whitepoint moves farther away
             # from profile whitepoint in RGB
-            res = max(int(round((min(RGBclip[:3]) / 1.0) * 33)), 9)
+            res = max(round((min(RGBclip[:3]) / 1.0) * 33), 9)
             logfiles.write(f"Interpolation res {res:d}\n")
             RGBscaled = []
             for i in range(res):
@@ -17424,9 +17424,7 @@ BEGIN_DATA
                             bps_unit_size = 1024.0
 
                         if total_size:
-                            percent = int(
-                                math.floor(float(bytes_so_far) / total_size * 100)
-                            )
+                            percent = math.floor(float(bytes_so_far) / total_size * 100)
                             if (
                                 percent > prev_percent
                                 or time() >= update_ts + frametime

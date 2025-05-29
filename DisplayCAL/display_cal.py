@@ -1151,12 +1151,10 @@ def get_header(
     w, h = 222, 64
     scale = getcfg("app.dpi") / config.get_default_dpi()
     if scale > 1:
-        size = tuple(int(math.floor(v * scale)) if v > 0 else v for v in size)
-        x, y = [int(round(v * scale)) if v else v for v in (x, y)]
-        repeat_sub_bitmap_h = tuple(
-            int(math.floor(v * scale)) for v in repeat_sub_bitmap_h
-        )
-        w, h = [int(round(v * scale)) for v in (w, h)]
+        size = tuple(math.floor(v * scale) if v > 0 else v for v in size)
+        x, y = [round(v * scale) if v else v for v in (x, y)]
+        repeat_sub_bitmap_h = tuple(math.floor(v * scale) for v in repeat_sub_bitmap_h)
+        w, h = [round(v * scale) for v in (w, h)]
     header = BitmapBackgroundPanelText(parent)
     header.label_x = x
     header.label_y = y
@@ -2161,7 +2159,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         h = 120
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
         if scale > 1:
-            y, w, h = [int(math.floor(v * scale)) for v in (y, w, h)]
+            y, w, h = [math.floor(v * scale) for v in (y, w, h)]
         self.header_btm = BitmapBackgroundPanel(self.headerpanel, size=(w, -1))
         self.header_btm.BackgroundColour = "#0e59a9"
         self.header_btm.scalebitmap = False, False
@@ -2694,7 +2692,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         margin = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         header_min_h = 64
         if scale > 1:
-            header_min_h = int(round(header_min_h * scale))
+            header_min_h = round(header_min_h * scale)
         self.mr_settings_panel.Freeze()
         sim_show = self.simulation_profile_cb.IsShown()
         self.simulation_profile_cb.Show()
@@ -5881,7 +5879,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # This helps estimation for instruments with fixed
                 # integration time (e.g. SpyderX)
                 patches *= float(integration_time[0]) / 2.45
-                patches = int(round(patches))
+                patches = round(patches)
         elif which == "chart":
             patches = int(self.chart_patches_amount.Label)
         ReportFrame.update_estimated_measurement_time(self, which, patches)
@@ -6990,7 +6988,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             )
         if event.GetId() == self.black_point_rate_floatctrl.GetId():
             self.black_point_rate_ctrl.SetValue(
-                int(round(self.black_point_rate_floatctrl.GetValue() * 100))
+                round(self.black_point_rate_floatctrl.GetValue() * 100)
             )
         else:
             self.black_point_rate_floatctrl.SetValue(
@@ -8387,7 +8385,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         ctrls.append(ctrl)
                         display_settings_ctrls.append(ctrl)
             # Add the controls to the sizer
-            rows = int(math.ceil(len(ctrls) / float(settings[1])))
+            rows = math.ceil(len(ctrls) / float(settings[1]))
             for row_num in range(rows):
                 for column_num in range(settings[1]):
                     ctrl_index = row_num + column_num * rows
@@ -14993,9 +14991,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # Adapt from reference white to D65
                         X, Y, Z = colormath.adapt(X, Y, Z, white_ref, "D65")
                         # Convert XYZ to sRGB
-                        RGB = [
-                            int(round(v)) for v in colormath.XYZ2RGB(X, Y, Z, scale=255)
-                        ]
+                        RGB = [round(v) for v in colormath.XYZ2RGB(X, Y, Z, scale=255)]
                         grid.SetCellBackgroundColour(row, 3 + j, wx.Colour(*RGB))
                     if DEBUG or VERBOSE > 1:
                         print(
@@ -16606,7 +16602,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "testchart.auto_optimize",
             max(
                 config.VALID_VALUES["testchart.auto_optimize"][1],
-                int(round(colormath.cbrt(recommended))),
+                round(colormath.cbrt(recommended)),
             ),
         )
         self.set_testchart("auto")
@@ -20262,9 +20258,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         )
         items = []
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
-        items.append(
-            wx_Panel(self.aboutdialog.panel, -1, size=(-1, int(round(6 * scale))))
-        )
+        items.append(wx_Panel(self.aboutdialog.panel, -1, size=(-1, round(6 * scale))))
         items[-1].BackgroundColour = "#66CC00"
         items.append(
             get_header(
@@ -20903,17 +20897,12 @@ class StartupFrame(start_cls):
                     ):
                         # Retina
                         img.Rescale(
-                            int(
-                                round(
-                                    img.Width
-                                    * (self.splash_bmp.Size[0] / float(img.Width))
-                                )
+                            round(
+                                img.Width * (self.splash_bmp.Size[0] / float(img.Width))
                             ),
-                            int(
-                                round(
-                                    img.Height
-                                    * (self.splash_bmp.Size[1] / float(img.Height))
-                                )
+                            round(
+                                img.Height
+                                * (self.splash_bmp.Size[1] / float(img.Height))
                             ),
                             quality,
                         )
@@ -20922,8 +20911,8 @@ class StartupFrame(start_cls):
                     ):
                         # Wayland + HiDPI
                         img.Rescale(
-                            int(round(img.Width * (geometry[2] / float(img.Width)))),
-                            int(round(img.Height * (geometry[3] / float(img.Height)))),
+                            round(img.Width * (geometry[2] / float(img.Width))),
+                            round(img.Height * (geometry[3] / float(img.Height))),
                             quality,
                         )
                     if (
@@ -21142,7 +21131,7 @@ class StartupFrame(start_cls):
         yoff = 10
         scale = getcfg("app.dpi") / config.get_default_dpi()
         if scale > 1:
-            yoff = int(round(yoff * scale))
+            yoff = round(yoff * scale)
         yoff -= 10
         dc.DrawLabel(
             label_str,
@@ -21184,21 +21173,21 @@ class StartupFrame(start_cls):
             frame = bufferbitmap.ConvertToImage()
             frame.SetAlphaData(self.splash_alpha)
             if scale < 1:
-                frame = frame.Blur(int(round(1 * (1 - scale))))
+                frame = frame.Blur(round(1 * (1 - scale)))
             if wx.VERSION > (3,):
                 quality = wx.IMAGE_QUALITY_BILINEAR
             else:
                 quality = wx.IMAGE_QUALITY_HIGH
             frame.Rescale(
-                max(int(round(self.splash_bmp.Size[0] * scale)), 1),
-                max(int(round(self.splash_bmp.Size[1] * scale)), 1),
+                max(round(self.splash_bmp.Size[0] * scale), 1),
+                max(round(self.splash_bmp.Size[1] * scale), 1),
                 quality,
             )
             frame.Resize(
                 self.splash_bmp.Size,
                 (
-                    int(round(self.splash_bmp.Size[0] / 2 - frame.Width / 2)),
-                    int(round(self.splash_bmp.Size[1] / 2 - frame.Height / 2)),
+                    round(self.splash_bmp.Size[0] / 2 - frame.Width / 2),
+                    round(self.splash_bmp.Size[1] / 2 - frame.Height / 2),
                 ),
             )
             pdc.DrawBitmap(frame.ConvertToBitmap(), x, y)
@@ -21321,7 +21310,7 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
         grid.draw_horizontal_grid_lines = False
         grid.draw_vertical_grid_lines = False
         grid.CreateGrid(0, 15)
-        grid.SetColLabelSize(int(round(self.grid.GetDefaultRowSize() * 2.4)))
+        grid.SetColLabelSize(round(self.grid.GetDefaultRowSize() * 2.4))
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
         dc.SetFont(grid.GetLabelFont())
         w, h = dc.GetTextExtent(
@@ -21632,12 +21621,12 @@ class MeasurementFileCheckSanityDialog(ConfirmDialog):
         # XXX: Careful when rounding floats!
         # Incorrect: int(round(50 * 2.55)) = 127 (127.499999)
         # Correct: int(round(50 / 100.0 * 255)) = 128 (127.5)
-        RGB255 = [int(round(v / 100.0 * 255)) for v in RGB]
+        RGB255 = [round(v / 100.0 * 255) for v in RGB]
         dlg.grid.SetCellBackgroundColour(row, 4, wx.Colour(*RGB255))
         if dlg.white:
             XYZ = colormath.adapt(XYZ[0], XYZ[1], XYZ[2], dlg.white, "D65")
         RGB255 = [
-            int(round(v))
+            round(v)
             for v in colormath.XYZ2RGB(
                 XYZ[0] / 100.0, XYZ[1] / 100.0, XYZ[2] / 100.0, scale=255
             )

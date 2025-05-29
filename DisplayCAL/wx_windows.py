@@ -307,7 +307,7 @@ class AnimatedBitmap(wx.PyControl):
         """
         self.dpiscale = getcfg("app.dpi") / get_default_dpi()
         if self.dpiscale > 1:
-            size = tuple(int(round(v * self.dpiscale)) if v != -1 else v for v in size)
+            size = tuple(round(v * self.dpiscale) if v != -1 else v for v in size)
         wx.PyControl.__init__(self, parent, id, pos, size, style)
         self._minsize = size
         self.SetBitmaps(bitmaps or [], range_, loop)
@@ -3113,10 +3113,8 @@ class HtmlWindow(wx.html.HtmlWindow):
         wx.html.HtmlWindow.__init__(self, *args, **kwargs)
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
         if "gtk3" in wx.PlatformInfo:
-            size = int(
-                round(
-                    wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).PointSize * scale
-                )
+            size = round(
+                wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).PointSize * scale
             )
         else:
             size = -1
@@ -3282,14 +3280,12 @@ class BitmapBackgroundPanel(wx.PyPanel):
                         alphabuffer = image.GetAlphaBuffer()
                         for i, byte in enumerate(alphabuffer):
                             if byte > 0:
-                                alphabuffer[i] = int(round(byte * self.alpha))
+                                alphabuffer[i] = round(byte * self.alpha)
                     if self.blend:
                         databuffer = image.GetDataBuffer()
                         for i, byte in enumerate(databuffer):
                             if byte > 0:
-                                databuffer[i] = int(
-                                    round(byte * (bgcolor[i % 3] / 255.0))
-                                )
+                                databuffer[i] = round(byte * (bgcolor[i % 3] / 255.0))
                     bmp = image.ConvertToBitmap()
                     bitmaps[key] = bmp
             if True in self.scalebitmap:
@@ -3421,9 +3417,9 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
                 bgblend = 1.0 - self.textalpha
                 blend = self.textalpha
                 color = wx.Colour(
-                    int(round(bgblend * bgcolor.Red() + blend * color.Red())),
-                    int(round(bgblend * bgcolor.Green() + blend * color.Green())),
-                    int(round(bgblend * bgcolor.Blue() + blend * color.Blue())),
+                    round(bgblend * bgcolor.Red() + blend * color.Red()),
+                    round(bgblend * bgcolor.Green() + blend * color.Green()),
+                    round(bgblend * bgcolor.Blue() + blend * color.Blue()),
                 )
             dc.SetTextForeground(color)
             dc.DrawText(line, int(x), int(y))
@@ -4443,7 +4439,7 @@ class BorderGradientButton(GradientButton):
                 bordercolor.red,
                 bordercolor.green,
                 bordercolor.blue,
-                int(round(bordercolor.alpha * 153 / 255.0)),
+                round(bordercolor.alpha * 153 / 255.0),
             )
 
         brush = gc.CreateLinearGradientBrush(0, 1, 0, height - 1, topStart, topEnd)
@@ -5255,9 +5251,9 @@ class CustomCheckBox(wx.Panel):
                 bgblend = 0.5
                 blend = 0.5
                 color = wx.Colour(
-                    int(round(bgblend * bgcolor.Red() + blend * color.Red())),
-                    int(round(bgblend * bgcolor.Green() + blend * color.Green())),
-                    int(round(bgblend * bgcolor.Blue() + blend * color.Blue())),
+                    round(bgblend * bgcolor.Red() + blend * color.Red()),
+                    round(bgblend * bgcolor.Green() + blend * color.Green()),
+                    round(bgblend * bgcolor.Blue() + blend * color.Blue()),
                 )
             self._label.ForegroundColour = color
 
@@ -5607,7 +5603,7 @@ class CustomCellRenderer(wx.grid.PyGridCellRenderer):
         if not special and mavericks and bgcolor.Red() < 255:
             # Use Mavericks-like color scheme
             newcolor = [
-                int(round(min(bgcolor.Get()[i] * (v / 102.0), 255)))
+                round(min(bgcolor.Get()[i] * (v / 102.0), 255))
                 for i, v in enumerate((98, 100, 102))
             ]
             bgcolor.Set(*newcolor)
@@ -5651,9 +5647,9 @@ class CustomCellRenderer(wx.grid.PyGridCellRenderer):
                     bgblend = (255 - alpha) / 255.0
                     blend = alpha / 255.0
                     color = wx.Colour(
-                        int(round(bgblend * bgcolor.Red() + blend * color.Red())),
-                        int(round(bgblend * bgcolor.Green() + blend * color.Green())),
-                        int(round(bgblend * bgcolor.Blue() + blend * color.Blue())),
+                        round(bgblend * bgcolor.Red() + blend * color.Red()),
+                        round(bgblend * bgcolor.Green() + blend * color.Green()),
+                        round(bgblend * bgcolor.Blue() + blend * color.Blue()),
                     )
         else:
             color = bgcolor
@@ -5964,7 +5960,7 @@ class CustomRowLabelRenderer:
             if getattr(grid, "style", None) == "Mavericks" and color.Red() < 255:
                 # Use Mavericks-like color scheme
                 newcolor = [
-                    int(round(color.Get()[i] * (v / 102.0)))
+                    round(color.Get()[i] * (v / 102.0))
                     for i, v in enumerate((98, 100, 102))
                 ]
                 color.Set(*newcolor)
@@ -6174,7 +6170,7 @@ class BetterPyGauge(pygauge.PyGauge):
         self.pd = pd
         self.dpiscale = getcfg("app.dpi") / get_default_dpi()
         if self.dpiscale > 1:
-            size = tuple(int(round(v * self.dpiscale)) if v != -1 else v for v in size)
+            size = tuple(round(v * self.dpiscale) if v != -1 else v for v in size)
         pygauge.PyGauge.__init__(self, parent, id, range_, pos, size, style)
         self._indeterminate = False
         self.gradientindex = 0
@@ -6282,7 +6278,7 @@ class BetterPyGauge(pygauge.PyGauge):
                 else:
                     stop = False
             if self.pd and self.pd.taskbar:
-                self.pd.taskbar.set_progress_value(int(round(self.GetValue())))
+                self.pd.taskbar.set_progress_value(round(self.GetValue()))
             if stop:
                 del self._update_step
             updated = True
@@ -7532,7 +7528,7 @@ class ProgressDialog(wx.Dialog):
         if value == prev_value:
             return self.keepGoing, self.skip
         self._fpprogress = value
-        value = int(round(value))
+        value = round(value)
         if hasattr(self, "time2"):
             t = time()
             if not self.time2:
@@ -8682,7 +8678,7 @@ class TooltipWindow(InvincibleFrame):
                 break
         self.sizer3 = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer2.Add(self.sizer3, flag=wx.EXPAND)
-        rowspercol = int(math.ceil(len(msg) / float(cols)))
+        rowspercol = math.ceil(len(msg) / float(cols))
         msgs = []
         while msg:
             msgs.append(msg[:rowspercol])
@@ -8913,20 +8909,16 @@ class TwoWaySplitter(FourWaySplitter):
         self.SetExpanded(-1 if self._expanded > -1 else 0)
         if self._expanded < 0:
             if self.GetExpandedSize()[0] < self.GetSplitSize()[0]:
-                self._fhor = int(
-                    math.ceil(
-                        (self.GetExpandedSize()[0] - barSize - winborder * 2)
-                        / float(self.GetSplitSize()[0] - barSize - winborder * 2)
-                        * 10000
-                    )
+                self._fhor = math.ceil(
+                    (self.GetExpandedSize()[0] - barSize - winborder * 2)
+                    / float(self.GetSplitSize()[0] - barSize - winborder * 2)
+                    * 10000
                 )
             else:
-                self._fhor = int(
-                    math.ceil(
-                        self._minimum_pane_size
-                        / float(self.GetSplitSize()[0] - barSize - winborder * 2)
-                        * 10000
-                    )
+                self._fhor = math.ceil(
+                    self._minimum_pane_size
+                    / float(self.GetSplitSize()[0] - barSize - winborder * 2)
+                    * 10000
                 )
         self.Thaw()
 
@@ -9105,7 +9097,7 @@ def get_gradient_panel(parent, label, x=16):
         databuffer = image.GetDataBuffer()
         for i, byte in enumerate(databuffer):
             if byte > 0:
-                databuffer[i] = int(round(ord(byte) * (255.0 / 223.0)))
+                databuffer[i] = round(ord(byte) * (255.0 / 223.0))
         bitmap = image.ConvertToBitmap()
         bitmaps["gradient_panel"] = bitmap
     gradientpanel.SetBitmap(bitmap)

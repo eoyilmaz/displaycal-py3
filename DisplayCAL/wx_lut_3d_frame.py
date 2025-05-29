@@ -1551,9 +1551,9 @@ class LUT3DMixin:
         else:
             i = self.lut3d_content_colorspace_ctrl.Count - 1
         self.lut3d_content_colorspace_ctrl.SetSelection(i)
-        self.lut3d_hdr_sat_ctrl.SetValue(int(round(self.getcfg("3dlut.hdr_sat") * 100)))
+        self.lut3d_hdr_sat_ctrl.SetValue(round(self.getcfg("3dlut.hdr_sat") * 100))
         self.lut3d_hdr_update_sat_val()
-        hue = int(round(self.getcfg("3dlut.hdr_hue") * 100))
+        hue = round(self.getcfg("3dlut.hdr_hue") * 100)
         self.lut3d_hdr_hue_ctrl.SetValue(hue)
         self.lut3d_hdr_hue_intctrl.SetValue(hue)
 

@@ -60,7 +60,7 @@ CRT = True
 def get_panel(parent, size=wx.DefaultSize):
     """Get a panel with the specified size."""
     scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
-    size = tuple(int(round(v * scale)) for v in size)
+    size = tuple(round(v * scale) for v in size)
     panel = wx_Panel(parent, wx.ID_ANY, size=size)
     if DEBUG:
         from random import randint
@@ -527,7 +527,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
             scale = getcfg("app.dpi") / get_default_dpi()
             scale = max(scale, 1)
             if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
-                border = int(round(24 * scale))
+                border = round(24 * scale)
                 self._pages.SetSizeHints(self._pages._nImgSize + border, -1)
             else:
                 self._pages.SetSizeHints(-1, self._pages._nImgSize)
@@ -678,9 +678,7 @@ class DisplayAdjustmentPanel(wx_Panel):
                 "L": (wx.Colour(153, 153, 153), wx.Colour(255, 255, 255)),
             }
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
-        self.gauges[name] = PyGauge(
-            self, size=(int(round(200 * scale)), int(round(8 * scale)))
-        )
+        self.gauges[name] = PyGauge(self, size=(round(200 * scale), round(8 * scale)))
         self.gauges[name].SetBackgroundColour(BORDERCOLOUR)
         self.gauges[name].SetBarGradient(gaugecolors[name])
         self.gauges[name].SetBorderColour(BORDERCOLOUR)
@@ -712,7 +710,7 @@ class DisplayAdjustmentPanel(wx_Panel):
                 self,
                 -1,
                 getbitmap(f"theme/marker_{direction}"),
-                size=(int(round(200 * scale)), int(round(10 * scale))),
+                size=(round(200 * scale), round(10 * scale)),
             )
         )
 
@@ -912,7 +910,7 @@ class DisplayAdjustmentFrame(windowcls):
             self.indicator_panel,
             wx.ID_ANY,
             geticon(10, "empty", use_mask=True),
-            size=(int(round(10 * scale)), int(round(10 * scale))),
+            size=(round(10 * scale), round(10 * scale)),
         )
         self.indicator_ctrl.SetForegroundColour(FGCOLOUR)
         self.indicator_panel.GetSizer().Add(
@@ -1607,7 +1605,7 @@ class DisplayAdjustmentFrame(windowcls):
             lstr = (compare_br[0]).lower()
             percent = 100.0 / compare_br[1] if compare_br[1] else 100.0
             l_diff = float(current_br.groups()[0]) - compare_br[1]
-            l = int(round(50 + l_diff * percent))
+            l = round(50 + l_diff * percent)
             if self.lb.GetCurrentPage().gauges.get("L"):
                 self.lb.GetCurrentPage().gauges["L"].SetValue(min(max(l, 1), 100))
                 self.lb.GetCurrentPage().gauges["L"].Refresh()
@@ -1684,35 +1682,20 @@ class DisplayAdjustmentFrame(windowcls):
         # groups()[6] = B +-
         if xy_dE_rgb:
             x, y, vdt, dE = get_xy_vt_dE(xy_dE_rgb.groups())
-            r = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[4].count("+")
-                        - xy_dE_rgb.groups()[4].count("-")
-                    )
-                    * dE
-                )
+            r = round(
+                50
+                - (xy_dE_rgb.groups()[4].count("+") - xy_dE_rgb.groups()[4].count("-"))
+                * dE
             )
-            g = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[5].count("+")
-                        - xy_dE_rgb.groups()[5].count("-")
-                    )
-                    * dE
-                )
+            g = round(
+                50
+                - (xy_dE_rgb.groups()[5].count("+") - xy_dE_rgb.groups()[5].count("-"))
+                * dE
             )
-            b = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[6].count("+")
-                        - xy_dE_rgb.groups()[6].count("-")
-                    )
-                    * dE
-                )
+            b = round(
+                50
+                - (xy_dE_rgb.groups()[6].count("+") - xy_dE_rgb.groups()[6].count("-"))
+                * dE
             )
             if self.lb.GetCurrentPage().gauges.get("R"):
                 self.lb.GetCurrentPage().gauges["R"].SetValue(min(max(r, 1), 100))

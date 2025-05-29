@@ -1749,9 +1749,9 @@ class ProfileInfoFrame(LUTFrame):
             bgblend = (255 - alpha) / 255.0
             blend = alpha / 255.0
             textcolor = wx.Colour(
-                int(round(bgblend * bgcolor.Red() + blend * labelcolor.Red())),
-                int(round(bgblend * bgcolor.Green() + blend * labelcolor.Green())),
-                int(round(bgblend * bgcolor.Blue() + blend * labelcolor.Blue())),
+                round(bgblend * bgcolor.Red() + blend * labelcolor.Red()),
+                round(bgblend * bgcolor.Green() + blend * labelcolor.Green()),
+                round(bgblend * bgcolor.Blue() + blend * labelcolor.Blue()),
             )
             if label == lang.getstr("named_colors"):
                 namedcolor = True
@@ -1773,7 +1773,7 @@ class ProfileInfoFrame(LUTFrame):
                         *[float(v) for v in color.groups()[1].strip().split()],
                         scale=255,
                     )
-                labelbgcolor = wx.Colour(*[int(round(v)) for v in color])
+                labelbgcolor = wx.Colour(*[round(v) for v in color])
                 rowlabelrenderer = CustomRowLabelRenderer(labelbgcolor)
             else:
                 rowlabelrenderer = None

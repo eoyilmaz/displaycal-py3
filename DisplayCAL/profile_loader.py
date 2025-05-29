@@ -317,7 +317,7 @@ class DisplayIdentificationFrame(wx.Frame):
             panel_inner,
             1,
             flag=wx.ALL | wx.EXPAND,
-            border=int(math.ceil(size[0] / 12.0 / 40)),
+            border=math.ceil(size[0] / 12.0 / 40),
         )
         display_parts = display.split("@", 1)
         if len(display_parts) > 1:
@@ -508,7 +508,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
         if font.PointSize > 11:
             font.PointSize = 11
             grid.SetDefaultCellFont(font)
-        grid.SetColLabelSize(int(round(self.grid.GetDefaultRowSize() * 1.4)))
+        grid.SetColLabelSize(round(self.grid.GetDefaultRowSize() * 1.4))
         dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
         dc.SetFont(grid.GetLabelFont())
         grid.SetRowLabelSize(max(dc.GetTextExtent("99")[0], grid.GetDefaultRowSize()))
@@ -2899,10 +2899,8 @@ class ProfileLoader:
                                             )
                                         ]
                                     for k, point in enumerate(points):
-                                        point[1] = int(
-                                            math.ceil(
-                                                quantized[k] / self._quantize * 65535
-                                            )
+                                        point[1] = math.ceil(
+                                            quantized[k] / self._quantize * 65535
                                         )
                     if len(vcgt_values[0]) != 256:
                         # Hmm. Do we need to deal with this?

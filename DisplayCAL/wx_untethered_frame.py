@@ -448,7 +448,7 @@ class UntetheredFrame(BaseFrame):
                     # Is white close enough to daylight or planckian locus?
                     XYZ = colormath.adapt(XYZ[0], XYZ[1], XYZ[2], white_XYZ_Y100, "D65")
         X, Y, Z = [v / 100.0 for v in XYZ]
-        color = [int(round(v)) for v in colormath.XYZ2RGB(X, Y, Z, scale=255)]
+        color = [round(v) for v in colormath.XYZ2RGB(X, Y, Z, scale=255)]
         return Lab, color
 
     def grid_left_click_handler(self, event):
@@ -628,7 +628,7 @@ class UntetheredFrame(BaseFrame):
                 row = self.cgats[0].DATA[i]
                 RGB = []
                 for j, label in enumerate("RGB"):
-                    value = int(round(row[f"RGB_{label}"] / 100.0 * 255))
+                    value = round(row[f"RGB_{label}"] / 100.0 * 255)
                     self.grid.SetCellValue(row.SAMPLE_ID - 1, j, f"{value}")
                     RGB.append(value)
                 self.grid.SetCellBackgroundColour(row.SAMPLE_ID - 1, 3, wx.Colour(*RGB))
@@ -853,8 +853,7 @@ class UntetheredFrame(BaseFrame):
             )
         )
         color = [
-            int(round(v / 100.0 * 255))
-            for v in (row["RGB_R"], row["RGB_G"], row["RGB_B"])
+            round(v / 100.0 * 255) for v in (row["RGB_R"], row["RGB_G"], row["RGB_B"])
         ]
         self.panel_RGB.SetBackgroundColour(wx.Colour(*color))
         self.panel_RGB.SetBitmap(None)

@@ -2959,7 +2959,7 @@ def s15Fixed16Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 4-byte hex representation of the number.
     """
-    return struct.pack(">i", int(round(num * 65536)))
+    return struct.pack(">i", round(num * 65536))
 
 
 def s15f16_is_equal(a: bytes, b: bytes, quantizer: None | Callable = None):
@@ -3003,7 +3003,7 @@ def u16Fixed16Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 2-byte hex representation of the number.
     """
-    return struct.pack(">I", int(round(num * 65536)) & 0xFFFFFFFF)
+    return struct.pack(">I", round(num * 65536) & 0xFFFFFFFF)
 
 
 def u8Fixed8Number(binaryString: bytes) -> int:
@@ -3027,7 +3027,7 @@ def u8Fixed8Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 1-byte hex representation of the number.
     """
-    return struct.pack(">H", int(round(num * 256)))
+    return struct.pack(">H", round(num * 256))
 
 
 def uInt16Number(binaryString: bytes) -> int:
@@ -3051,7 +3051,7 @@ def uInt16Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 2-byte hex representation of the number.
     """
-    return struct.pack(">H", int(round(num)))
+    return struct.pack(">H", round(num))
 
 
 def uInt32Number(binaryString: bytes) -> int:
@@ -3075,7 +3075,7 @@ def uInt32Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 4-byte hex representation of the number.
     """
-    return struct.pack(">I", int(round(num)))
+    return struct.pack(">I", round(num))
 
 
 def uInt64Number(binaryString: bytes) -> int:
@@ -3099,7 +3099,7 @@ def uInt64Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 8-byte hex representation of the number.
     """
-    return struct.pack(">Q", int(round(num)))
+    return struct.pack(">Q", round(num))
 
 
 def uInt8Number(binaryString: bytes) -> int:
@@ -3123,7 +3123,7 @@ def uInt8Number_tohex(num: int) -> bytes:
     Returns:
         bytes: The 1-byte hex representation of the number.
     """
-    return struct.pack(">H", int(round(num)))[1:2]
+    return struct.pack(">H", round(num))[1:2]
 
 
 def videoCardGamma(tagData, tagSignature):
@@ -4537,8 +4537,8 @@ class CurveType(ICCProfileTag, list):
         else:
             maxv = len(self) - 1.0
             maxi = int(maxv)
-            starti = int(round(slice_[0] * maxi))
-            endi = int(round(slice_[1] * maxi)) + 1
+            starti = round(slice_[0] * maxi)
+            endi = round(slice_[1] * maxi) + 1
             values = list(
                 zip(
                     [(v / maxv) * 65535 for v in range(starti, endi)], self[starti:endi]
@@ -4581,8 +4581,8 @@ class CurveType(ICCProfileTag, list):
         black_cdm2 = black_Y * white_cdm2
         maxv = len(otrc) - 1.0
         maxi = int(maxv)
-        _starti = int(round(0.4 * maxi))
-        _endi = int(round(0.6 * maxi))
+        _starti = round(0.4 * maxi)
+        _endi = round(0.6 * maxi)
         gamma = otrc.get_gamma(True, slice_=(0.4, 0.6), lstar_slice=False)
         egamma = colormath.get_gamma([(0.5, 0.5**gamma)], vmin=-black_Y)
         outoffset_unspecified = outoffset is None
@@ -5270,7 +5270,7 @@ class DictType(ICCProfileTag, AODict):
                         offsets.append((offset, size))
                     # Pad all data with binary zeros so it lies on
                     # 4-byte boundaries
-                    padding = int(math.ceil(size / 4.0)) * 4 - size
+                    padding = math.ceil(size / 4.0) * 4 - size
                     data += b"\0" * padding
                     storage.append(data)
                 tagData.append(uInt32Number_tohex(offset))
@@ -5948,16 +5948,16 @@ class VideoCardGammaType(ICCProfileTag, ADict):
             for i in irange:
                 j = i * (255.0 / (vcgt["entryCount"] - 1))
                 linear_points.append(
-                    [j, int(round(i / float(vcgt["entryCount"] - 1) * 65535))]
+                    [j, round(i / float(vcgt["entryCount"] - 1) * 65535)]
                 )
                 if r:
-                    n = int(round(float(data[0][i]) / vmax * 65535))
+                    n = round(float(data[0][i]) / vmax * 65535)
                     r_points.append([j, n])
                 if g:
-                    n = int(round(float(data[1][i]) / vmax * 65535))
+                    n = round(float(data[1][i]) / vmax * 65535)
                     g_points.append([j, n])
                 if b:
-                    n = int(round(float(data[2][i]) / vmax * 65535))
+                    n = round(float(data[2][i]) / vmax * 65535)
                     b_points.append([j, n])
         else:  # formula
             irange = list(range(256))
@@ -5968,17 +5968,17 @@ class VideoCardGammaType(ICCProfileTag, ADict):
                     vmin = vcgt["redMin"] * 65535
                     v = math.pow(step * i / 100.0, vcgt["redGamma"])
                     vmax = vcgt["redMax"] * 65535
-                    r_points.append([i, int(round(vmin + v * (vmax - vmin)))])
+                    r_points.append([i, round(vmin + v * (vmax - vmin))])
                 if g:
                     vmin = vcgt["greenMin"] * 65535
                     v = math.pow(step * i / 100.0, vcgt["greenGamma"])
                     vmax = vcgt["greenMax"] * 65535
-                    g_points.append([i, int(round(vmin + v * (vmax - vmin)))])
+                    g_points.append([i, round(vmin + v * (vmax - vmin))])
                 if b:
                     vmin = vcgt["blueMin"] * 65535
                     v = math.pow(step * i / 100.0, vcgt["blueGamma"])
                     vmax = vcgt["blueMax"] * 65535
-                    b_points.append([i, int(round(vmin + v * (vmax - vmin)))])
+                    b_points.append([i, round(vmin + v * (vmax - vmin))])
         return r_points, g_points, b_points, linear_points
 
     def printNormalizedValues(self, amount=None, digits=12):
@@ -6158,8 +6158,8 @@ class VideoCardGammaTableType(VideoCardGammaType):
             data.append(data[0])
         for channel in data:
             channel_length = (len(channel) - 1) / 2.0
-            floor = float(channel[int(math.floor(channel_length))])
-            ceil = float(channel[int(math.ceil(channel_length))])
+            floor = float(channel[math.floor(channel_length)])
+            ceil = float(channel[math.ceil(channel_length)])
             vmin = channel[0] / maxValue
             vmax = channel[-1] / maxValue
             v = (vmin + ((floor + ceil) / 2.0) * (vmax - vmin)) / maxValue
@@ -6198,11 +6198,11 @@ class VideoCardGammaTableType(VideoCardGammaType):
             for j in range(length):
                 j *= (len(channel) - 1) / float(length - 1)
                 if int(j) != j:
-                    floor = channel[int(math.floor(j))]
-                    ceil = channel[min(int(math.ceil(j)), len(channel) - 1)]
+                    floor = channel[math.floor(j)]
+                    ceil = channel[min(math.ceil(j), len(channel) - 1)]
                     interpolated = range(floor, ceil + 1)
                     fraction = j - int(j)
-                    index = int(round(fraction * (ceil - floor)))
+                    index = round(fraction * (ceil - floor))
                     v = interpolated[index]
                 else:
                     v = channel[int(j)]
@@ -7425,7 +7425,7 @@ class ICCProfile:
                 tagData = tag[3]
             tagDataSize = len(tagData)
             # Pad all data with binary zeros, so it lies on 4-byte boundaries
-            padding = int(math.ceil(tagDataSize / 4.0)) * 4 - tagDataSize
+            padding = math.ceil(tagDataSize / 4.0) * 4 - tagDataSize
             tagData += b"\0" * padding
             if (
                 tagDataOffset,

@@ -2411,7 +2411,8 @@ END_DATA"""
                 return cwd
             size = 70.0
             scale = math.sqrt((img.Width * img.Height) / (size * size))
-            w, h = int(round(img.Width / scale)), int(round(img.Height / scale))
+            w = round(img.Width / scale)
+            h = round(img.Height / scale)
             loresimg = img.Scale(w, h, wx.IMAGE_QUALITY_NORMAL)
             if loresimg.CountColours() < img.CountColours(size * size):
                 # Assume a photo
@@ -3229,8 +3230,8 @@ END_DATA"""
             x = (display_size[0] - size) * x / display_size[0]
             y = (display_size[1] - size) * y / display_size[1]
             x, y, w, h = [max(v, 0) for v in (x, y, w, h)]
-            x, w = [int(round(v * sw)) for v in (x, w)]
-            y, h = [int(round(v * sh)) for v in (y, h)]
+            x, w = [round(v * sw) for v in (x, w)]
+            y, h = [round(v * sh) for v in (y, h)]
             dimensions = w, h
         else:
             # CSV
@@ -3250,9 +3251,11 @@ END_DATA"""
                 # CSV
                 if vscale != 100:
                     # XXX: Careful when rounding floats!
-                    # Incorrect: int(round(50 * 2.55)) = 127 (127.499999)
-                    # Correct: int(round(50 / 100.0 * 255)) = 128 (127.5)
-                    R, G, B = [int(round(v / 100.0 * vscale)) for v in [R, G, B]]
+                    # Incorrect: round(50 * 2.55) = 127 (127.499999)
+                    # Correct: round(50 / 100.0 * 255) = 128 (127.5)
+                    #
+                    # Wouldn't it be better to use: round(50 * 255.0 / 100.0)
+                    R, G, B = [round(v / 100.0 * vscale) for v in [R, G, B]]
                 target.writerow([str(v) for v in [i, R, G, B]])
                 continue
             # Image format
@@ -3262,15 +3265,13 @@ END_DATA"""
             # Incorrect: int(round(50 * 2.55)) = 127 (127.499999)
             # Correct: int(round(50 / 100.0 * 255)) = 128 (127.5)
             color = (
-                int(round(R / 100.0 * vscale)),
-                int(round(G / 100.0 * vscale)),
-                int(round(B / 100.0 * vscale)),
+                round(R / 100.0 * vscale),
+                round(G / 100.0 * vscale),
+                round(B / 100.0 * vscale),
             )
             count += 1
             filename = filename_format.format(name, count, ext)
-            repeat = int(
-                round(repeatmin + ((repeatmax - repeatmin) / 100.0 * (100 - L)))
-            )
+            repeat = round(repeatmin + ((repeatmax - repeatmin) / 100.0 * (100 - L)))
             imfile.write(
                 [[color]],
                 filename,
@@ -3862,7 +3863,7 @@ END_DATA"""
                         round(v / 100.0 * 255, vmaxlen)
                         for v in (data[i]["RGB_R"], data[i]["RGB_G"], data[i]["RGB_B"])
                     ]  # normalize to 0...255 range
-                    strpatch = [str(int(round(round(v, 1)))) for v in patch]
+                    strpatch = [str(round(round(v, 1))) for v in patch]
                     if patch[0] == patch[1] == patch[2] == 255:  # white
                         white_patches += 1
                         if 255 not in gray_channel:
@@ -3964,32 +3965,33 @@ END_DATA"""
                         for inc in RGB_inc:
                             if self.worker.thread_abort:
                                 return False
-                            if inc != "0":
-                                finc = float(inc)
-                                n = int(round(float(str(255.0 / finc))))
-                                finc = 255.0 / n
-                                n += 1
+                            if inc == "0":
+                                continue
+                            finc = float(inc)
+                            n = round(float(str(255.0 / finc)))
+                            finc = 255.0 / n
+                            n += 1
+                            if DEBUG >= 9:
+                                print("[D] inc:", inc)
+                                print("[D] n:", n)
+                            for i in range(n):
+                                if self.worker.thread_abort:
+                                    return False
+                                v = str(round(float(str(i * finc))))
                                 if DEBUG >= 9:
-                                    print("[D] inc:", inc)
-                                    print("[D] n:", n)
-                                for i in range(n):
-                                    if self.worker.thread_abort:
-                                        return False
-                                    v = str(int(round(float(str(i * finc)))))
+                                    print("[D] Searching for", v)
+                                if (
+                                    [v, "0", "0"] in uniqueRGB
+                                    and ["0", v, "0"] in uniqueRGB
+                                    and ["0", "0", v] in uniqueRGB
+                                ):
+                                    if inc not in single_inc:
+                                        single_inc[inc] = 0
+                                    single_inc[inc] += 1
+                                else:
                                     if DEBUG >= 9:
-                                        print("[D] Searching for", v)
-                                    if (
-                                        [v, "0", "0"] in uniqueRGB
-                                        and ["0", v, "0"] in uniqueRGB
-                                        and ["0", "0", v] in uniqueRGB
-                                    ):
-                                        if inc not in single_inc:
-                                            single_inc[inc] = 0
-                                        single_inc[inc] += 1
-                                    else:
-                                        if DEBUG >= 9:
-                                            print("[D] Not found!")
-                                        break
+                                        print("[D] Not found!")
+                                    break
                         single_channel_patches = max(single_inc.values())
                     if DEBUG:
                         print("[D] single_channel_patches:", single_channel_patches)
@@ -4015,28 +4017,29 @@ END_DATA"""
                         for inc in RGB_inc:
                             if self.worker.thread_abort:
                                 return False
-                            if inc != "0":
-                                finc = float(inc)
-                                n = int(round(float(str(255.0 / finc))))
-                                finc = 255.0 / n
-                                n += 1
+                            if inc == "0":
+                                continue
+                            finc = float(inc)
+                            n = round(float(str(255.0 / finc)))
+                            finc = 255.0 / n
+                            n += 1
+                            if DEBUG >= 9:
+                                print("[D] inc:", inc)
+                                print("[D] n:", n)
+                            for i in range(n):
+                                if self.worker.thread_abort:
+                                    return False
+                                v = str(round(float(str(i * finc))))
                                 if DEBUG >= 9:
-                                    print("[D] inc:", inc)
-                                    print("[D] n:", n)
-                                for i in range(n):
-                                    if self.worker.thread_abort:
-                                        return False
-                                    v = str(int(round(float(str(i * finc)))))
+                                    print("[D] Searching for", v)
+                                if [v, v, v] in uniqueRGB:
+                                    if inc not in gray_inc:
+                                        gray_inc[inc] = 0
+                                    gray_inc[inc] += 1
+                                else:
                                     if DEBUG >= 9:
-                                        print("[D] Searching for", v)
-                                    if [v, v, v] in uniqueRGB:
-                                        if inc not in gray_inc:
-                                            gray_inc[inc] = 0
-                                        gray_inc[inc] += 1
-                                    else:
-                                        if DEBUG >= 9:
-                                            print("[D] Not found!")
-                                        break
+                                        print("[D] Not found!")
+                                    break
                         gray_patches = max(gray_inc.values())
                     if DEBUG:
                         print("[D] gray_patches:", gray_patches)
@@ -4090,46 +4093,45 @@ END_DATA"""
                     for inc in RGB_inc:
                         if self.worker.thread_abort:
                             return False
-                        if inc != "0":
-                            finc = float(inc)
-                            n = int(round(float(str(255.0 / finc))))
-                            finc = 255.0 / n
-                            n += 1
-                            if DEBUG >= 9:
-                                print("[D] inc:", inc)
-                                print("[D] n:", n)
-                            for i in range(n):
+                        if inc == "0":
+                            continue
+                        finc = float(inc)
+                        n = round(float(str(255.0 / finc)))
+                        finc = 255.0 / n
+                        n += 1
+                        if DEBUG >= 9:
+                            print("[D] inc:", inc)
+                            print("[D] n:", n)
+                        for i in range(n):
+                            if self.worker.thread_abort:
+                                return False
+                            r = str(round(float(str(i * finc))))
+                            for j in range(n):
                                 if self.worker.thread_abort:
                                     return False
-                                r = str(int(round(float(str(i * finc)))))
-                                for j in range(n):
+                                g = str(round(float(str(j * finc))))
+                                for k in range(n):
                                     if self.worker.thread_abort:
                                         return False
-                                    g = str(int(round(float(str(j * finc)))))
-                                    for k in range(n):
-                                        if self.worker.thread_abort:
-                                            return False
-                                        b = str(int(round(float(str(k * finc)))))
+                                    b = str(round(float(str(k * finc))))
+                                    if DEBUG >= 9:
+                                        print("[D] Searching for", i, j, k, [r, g, b])
+                                    if [r, g, b] in uniqueRGB:
+                                        if inc not in multi_inc:
+                                            multi_inc[inc] = 0
+                                        multi_inc[inc] += 1
+                                    else:
                                         if DEBUG >= 9:
-                                            print(
-                                                "[D] Searching for", i, j, k, [r, g, b]
-                                            )
-                                        if [r, g, b] in uniqueRGB:
-                                            if inc not in multi_inc:
-                                                multi_inc[inc] = 0
-                                            multi_inc[inc] += 1
-                                        else:
-                                            if DEBUG >= 9:
-                                                print("[D] Not found! (b loop)")
-                                            break
-                                    if [r, g, b] not in uniqueRGB:
-                                        if DEBUG >= 9:
-                                            print("[D] Not found! (g loop)")
+                                            print("[D] Not found! (b loop)")
                                         break
                                 if [r, g, b] not in uniqueRGB:
                                     if DEBUG >= 9:
-                                        print("[D] Not found! (r loop)")
+                                        print("[D] Not found! (g loop)")
                                     break
+                            if [r, g, b] not in uniqueRGB:
+                                if DEBUG >= 9:
+                                    print("[D] Not found! (r loop)")
+                                break
                     multi_patches = max(multi_inc.values())
                     multi_steps = int(float(str(math.pow(multi_patches, 1 / 3.0))))
                     if DEBUG:
@@ -4630,7 +4632,7 @@ END_DATA"""
         """
         colour = wx.Colour(
             *[
-                int(round(value / 100.0 * 255))
+                round(value / 100.0 * 255)
                 for value in (sample.RGB_R, sample.RGB_G, sample.RGB_B)
             ]
         )

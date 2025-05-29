@@ -759,9 +759,9 @@ if sys.platform == "darwin":
             bgblend = 0.5
             blend = 0.5
             color = wx.Colour(
-                int(round(bgblend * bgcolor.Red() + blend * color.Red())),
-                int(round(bgblend * bgcolor.Green() + blend * color.Green())),
-                int(round(bgblend * bgcolor.Blue() + blend * color.Blue())),
+                round(bgblend * bgcolor.Red() + blend * color.Red()),
+                round(bgblend * bgcolor.Green() + blend * color.Green()),
+                round(bgblend * bgcolor.Blue() + blend * color.Blue()),
             )
         self.ForegroundColour = color
 
@@ -796,7 +796,7 @@ def _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs):
     if scale > 1:
         args = list(args)
         if kwargs.get("border"):
-            kwargs["border"] = int(round(kwargs["border"] * scale))
+            kwargs["border"] = round(kwargs["border"] * scale)
         elif "border" not in kwargs:
             if (
                 isinstance(args[0], (tuple, wx.Size, wx.Sizer, wx.Window))
@@ -804,16 +804,16 @@ def _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs):
                 and args[3]
             ):
                 # item, proportion, flag, border, ...
-                args[3] = int(round(args[3] * scale))
+                args[3] = round(args[3] * scale)
             elif isinstance(args[0], int) and len(args) > 4 and args[4]:
                 # width, height, proportion, flag, border, ...
-                args[4] = int(round(args[4] * scale))
+                args[4] = round(args[4] * scale)
         if args and isinstance(args[0], (tuple, wx.Size)):
             spacer = list(args[0])
             # print(spacer, '->')
             for i, dimension in enumerate(spacer):
                 if dimension > 0:
-                    spacer[i] = int(round(dimension * scale))
+                    spacer[i] = round(dimension * scale)
             # print(spacer)
             args = [tuple(spacer)] + args[1:]
     return args, kwargs
@@ -875,7 +875,7 @@ class GridSizer(wx._GridSizer):
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
                 # print(vgap, hgap, '->')
-                vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
+                vgap, hgap = [round(v * scale) for v in (vgap, hgap)]
             # print(vgap, hgap)
         super().__init__(rows, cols, vgap, hgap)
 
@@ -899,7 +899,7 @@ class FlexGridSizer(wx._FlexGridSizer):
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
                 # print vgap, hgap, '->',
-                vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
+                vgap, hgap = [round(v * scale) for v in (vgap, hgap)]
             # print vgap, hgap
         super().__init__(rows, cols, vgap, hgap)
 
@@ -1002,7 +1002,7 @@ def get_bitmap_disabled(bitmap):
         alphabuffer = image.GetAlphaBuffer()
         for i, byte in enumerate(alphabuffer):
             if byte > 0:
-                alphabuffer[i] = int(round(byte * 0.3))
+                alphabuffer[i] = round(byte * 0.3)
     return image.ConvertToBitmap()
 
 
@@ -1040,7 +1040,7 @@ def get_bitmap_hover(bitmap, ctrl=None):
                     newmin = 0
                     newmax = bglum ** (1 / 2.2) * 153  # 60%
                 for i, v in enumerate(color):
-                    color[i] = int(round(convert_range(v, 0, 255, newmin, newmax)))
+                    color[i] = round(convert_range(v, 0, 255, newmin, newmax))
     databuffer = image.GetDataBuffer()
     alphabuffer = image.GetAlphaBuffer()
     minv = 256  # Intentionally above max possible value
@@ -1076,7 +1076,7 @@ def get_bitmap_hover(bitmap, ctrl=None):
                         # graphics with a black outline get the hilight color
                         # at black.
                         v = convert_range(v, 0, 255, color[k], 255)
-                    v = int(round(v))
+                    v = round(v)
                 databuffer[i - 2 + k] = v
             j += 1
     if isinstance(ctrl, wx.BitmapButton) and sys.platform == "win32":
@@ -1104,7 +1104,7 @@ def get_bitmap_pressed(bitmap):
     databuffer = image.GetDataBuffer()
     for i, byte in enumerate(databuffer):
         if byte > 0:
-            databuffer[i] = int(round(byte * 0.85))
+            databuffer[i] = round(byte * 0.85)
     return image.ConvertToBitmap()
 
 
@@ -1116,7 +1116,7 @@ def get_bitmap_focus(bitmap):
     databuffer = image.GetDataBuffer()
     for i, byte in enumerate(databuffer):
         if byte > 0:
-            databuffer[i] = int(round((byte / 255.0) ** 0.8 * 255))
+            databuffer[i] = round((byte / 255.0) ** 0.8 * 255)
     return image.ConvertToBitmap()
 
 

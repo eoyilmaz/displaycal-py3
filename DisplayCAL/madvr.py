@@ -609,8 +609,8 @@ class MadTPGBase:
         cfg = self.get_pattern_config()
         if cfg:
             self.set_pattern_config(
-                int(round((w + h) / 2.0 * 100)),
-                int(round(sum(bgrgb) / 3.0 * 100)),
+                round((w + h) / 2.0 * 100),
+                round(sum(bgrgb) / 3.0 * 100),
                 cfg[2],
                 cfg[3],
             )
@@ -1694,9 +1694,7 @@ class MadTPGNet(MadTPGBase):
                     if len(params) == 1536:
                         for j in range(3):
                             for i in range(256):
-                                ramp[j][i] = int(
-                                    round(struct.unpack("<H", params[:2])[0])
-                                )
+                                ramp[j][i] = round(struct.unpack("<H", params[:2])[0])
                                 params = params[2:]
                         params = ramp
                     else:

@@ -808,8 +808,8 @@ class MeasureFrame(InvincibleFrame):
             minv = 0
             maxv = 255
         rgb = tuple(minv + v * (maxv - minv) for v in rgb)
-        floor = tuple(int(math.floor(v)) for v in rgb)
-        ceil = tuple(int(math.ceil(v)) for v in rgb)
+        floor = tuple(math.floor(v) for v in rgb)
+        ceil = tuple(math.ceil(v) for v in rgb)
         if floor != ceil:
             # Dither using simple ordered pattern
             print(

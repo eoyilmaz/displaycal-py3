@@ -985,11 +985,8 @@ class FloatSpin(wx.PyControl):
         min_val = self._min if self._min is not None else self._spinbutton.Min
         max_val = self._max if self._max is not None else self._spinbutton.Max
         # Scale the value to the spinbutton range
-        spinvalue = int(
-            round(
-                (float(value - min_val) / float(max_val - min_val))
-                * self._spinbutton.Max
-            )
+        spinvalue = round(
+            (float(value - min_val) / float(max_val - min_val)) * self._spinbutton.Max
         )
         # Setting the spin button value causes a EVT_SPIN event to be generated
         # under GTK, which we need to ignore

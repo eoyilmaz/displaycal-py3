@@ -125,7 +125,7 @@ def _xicclu_mp(
         if thread_abort_event is not None and thread_abort_event.is_set():
             xicclu.exit(raise_exception=False)
             return Info(abortmessage)
-        end = int(math.ceil(subchunksize * (i + 1)))
+        end = math.ceil(subchunksize * (i + 1))
         xicclu(chunk[start:end])
         start = end
         perc = round((i + 1.0) / num_subchunks * 100)
@@ -911,7 +911,7 @@ class Xicclu(WorkerBase):
                     out.append(clip)
             else:
                 out = b"".join(
-                    struct.pack(fmt, int(round(devop_devo(float(v) / scale) * maxv)))
+                    struct.pack(fmt, round(devop_devo(float(v) / scale) * maxv))
                     for v in parts
                 )
             parsed.append(out)

@@ -28,7 +28,7 @@ def AdjustMinMax(self, minvalue=0.0, maxvalue=1.0):  # noqa: D417
     """
     buffer = self.GetDataBuffer()
     for i, byte in enumerate(buffer):
-        buffer[i] = min(int(round(minvalue * 255 + byte * (maxvalue - minvalue))), 255)
+        buffer[i] = min(round(minvalue * 255 + byte * (maxvalue - minvalue)), 255)
 
 
 wx.Image.AdjustMinMax = AdjustMinMax
@@ -70,8 +70,8 @@ def GammaCorrect(self, from_gamma=-2.4, to_gamma=1.8):  # noqa: D417
     """
     buffer = self.GetDataBuffer()
     for i, byte in enumerate(buffer):
-        buffer[i] = int(
-            round(specialpow(byte / 255.0, from_gamma) ** (1.0 / to_gamma) * 255)
+        buffer[i] = round(
+            specialpow(byte / 255.0, from_gamma) ** (1.0 / to_gamma) * 255
         )
 
 
@@ -340,8 +340,7 @@ def gamma_encode(R, G, B, alpha=wx.ALPHA_OPAQUE):
         # re-encode to gamma = 1.0 / 1.8 so that when decoded with gamma = 1.8
         # we get the correct sRGB color
         RGBa = [
-            int(round(specialpow(v / 255.0, -2.4) ** (1.0 / 1.8) * 255))
-            for v in (R, G, B)
+            round(specialpow(v / 255.0, -2.4) ** (1.0 / 1.8) * 255) for v in (R, G, B)
         ]
         RGBa.append(alpha)
         return RGBa

@@ -388,8 +388,8 @@ def create_bitmap(
     scale = getcfg("app.dpi") / get_default_dpi() if scale else 1
     if scale > 1:
         # HighDPI support
-        w = int(round(w * scale))
-        h = int(round(h * scale))
+        w = round(w * scale)
+        h = round(h * scale)
     if parts[-1] == "empty":
         return create_empty_bitmap(w, h, use_mask)
     return load_bitmap(name, parts, ow, oh, w, h, scale, use_mask, display_missing_icon)
@@ -532,7 +532,7 @@ def load_bitmap(
             rescale = False
             if i in (1, 2):
                 # HighDPI support. 4x/2x version, determine scaled size
-                w, h = [int(round(v / (2 * (3 - i)) * scale)) for v in bmp.Size]
+                w, h = [round(v / (2 * (3 - i)) * scale) for v in bmp.Size]
                 rescale = True
             elif len(size) == 2:
                 # HighDPI support. Icon
@@ -2251,7 +2251,7 @@ def set_default_app_dpi():
                     txt_scale = float(factor)
             dpi = get_default_dpi()
             if txt_scale:
-                dpi = int(round(dpi * txt_scale))
+                dpi = round(dpi * txt_scale)
         DEFAULTS["app.dpi"] = dpi
     DPISET = True
 

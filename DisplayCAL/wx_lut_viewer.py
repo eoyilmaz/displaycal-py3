@@ -356,7 +356,7 @@ class LUTCanvas(plot.PlotCanvas):
                                     axis_x / 100.0
                                 )
                             points[channel].append([n, y])
-                            idx = int(round(n / 255.0 * 4095))
+                            idx = round(n / 255.0 * 4095)
                             self.point_grid[channel][idx] = y
                         set_linear_points = False
             else:
@@ -389,11 +389,11 @@ class LUTCanvas(plot.PlotCanvas):
                                 )
                             if connection_colorspace in (b"Lab", b"XYZ"):
                                 values.append([n, j])
-                                idx = int(round(n / 255.0 * 4095))
+                                idx = round(n / 255.0 * 4095)
                                 self.point_grid[channel][idx] = j
                             else:
                                 values.append([j, n])
-                                idx = int(round(j / 255.0 * 4095))
+                                idx = round(j / 255.0 * 4095)
                                 self.point_grid[channel][idx] = n
         else:  # formula
             irange = list(range(256))
@@ -416,11 +416,11 @@ class LUTCanvas(plot.PlotCanvas):
                         )
                     if connection_colorspace in (b"Lab", b"XYZ"):
                         points[channel].append([n, i])
-                        idx = int(round(float(n) / 255.0 * 4095))
+                        idx = round(float(n) / 255.0 * 4095)
                         self.point_grid[channel][idx] = i
                     else:
                         points[channel].append([i, n])
-                        idx = int(round(i / 255.0 * 4095))
+                        idx = round(i / 255.0 * 4095)
                         self.point_grid[channel][idx] = float(n)
 
         # for n in sorted(self.point_grid[0]):
@@ -474,7 +474,7 @@ class LUTCanvas(plot.PlotCanvas):
         legend.extend(
             channel_name for channel_name in list(channels.values()) if channel_name
         )
-        linear_points = [(i, int(round(v / axis_y * maxv))) for i, v in linear_points]
+        linear_points = [(i, round(v / axis_y * maxv)) for i, v in linear_points]
         seen_values = []
         seen_labels = []
         for channel in points:
@@ -486,9 +486,7 @@ class LUTCanvas(plot.PlotCanvas):
                 )
             # Note: We need to make sure each point is a float because it
             # might be a decimal.Decimal, which can't be divided by floats!
-            points_quantized = [
-                (i, int(round(float(v) / axis_y * maxv))) for i, v in values
-            ]
+            points_quantized = [(i, round(float(v) / axis_y * maxv)) for i, v in values]
             line2 = None
             if identical:
                 label = "=".join(legend)
@@ -512,7 +510,7 @@ class LUTCanvas(plot.PlotCanvas):
                         values.insert(0, center)
                     if values2[-1] != center:
                         values2.append(center)
-                    idx = int(round(center_x / 255.0 * 4095))
+                    idx = round(center_x / 255.0 * 4095)
                     self.point_grid[channel][idx] = center_y
                     color2 = self.colors[f"Lab_{channel_label}-"]
                     line2 = Plot(values2, legend=label + suffix, colour=color2)
@@ -2598,7 +2596,7 @@ class LUTFrame(BaseFrame):
         for channel in self.client.point_grid:
             toggle = self.toggles[channel]
             channels[channel] = toggle.Label or ""
-            x = int(round(pointXY[0] / 255.0 * 4095))
+            x = round(pointXY[0] / 255.0 * 4095)
             v = self.client.point_grid[channel].get(x, 0)
             if toggle.Label in ("a*", "b*"):
                 v = -128 + v / 100.0 * (255 + 255 / 256.0)

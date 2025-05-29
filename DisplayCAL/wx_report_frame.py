@@ -1173,7 +1173,7 @@ class ReportFrame(BaseFrame):
             timestamp = gmtime(seconds)
             hours = int(strftime("%H", timestamp))
             minutes = int(strftime("%M", timestamp))
-            minutes += int(math.ceil(int(strftime("%S", timestamp)) / 60.0))
+            minutes += math.ceil(int(strftime("%S", timestamp)) / 60.0)
             if minutes > 59:
                 minutes = 0
                 hours += 1

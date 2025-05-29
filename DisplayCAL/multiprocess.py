@@ -153,7 +153,7 @@ def pool_slice(
     start = 0
     for batch in range(num_batches):
         for i in range(batch * num_workers, (batch + 1) * num_workers):
-            end = int(math.ceil(chunksize * (i + 1)))
+            end = math.ceil(chunksize * (i + 1))
             results.append(
                 pool.apply_async(
                     WorkerFunc(func, batch == num_batches - 1),

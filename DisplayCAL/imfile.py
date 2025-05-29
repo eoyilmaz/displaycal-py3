@@ -149,7 +149,7 @@ class Image:
         self.extrainfo = extrainfo or {}
 
     def _pack(self, n):
-        n = int(round(n))
+        n = round(n)
         if self.bitdepth == 16:
             data = struct.pack(">H", n)
         elif self.bitdepth == 8:
@@ -190,16 +190,14 @@ class Image:
                 )
             if not optimize:
                 # Pad lines with binary zeros so they end on 4-byte boundaries
-                scanline = scanline.ljust(
-                    int(math.ceil(len(scanline) / 4.0)) * 4, b"\0"
-                )
+                scanline = scanline.ljust(math.ceil(len(scanline) / 4.0) * 4, b"\0")
             imgdata.append(scanline)
         imgdata = "".join(imgdata)
         if optimize:
             # Optimize for single color
             imgdata *= dimensions[0]
             # Pad lines with binary zeros so they end on 4-byte boundaries
-            imgdata = imgdata.ljust(int(math.ceil(len(imgdata) / 4.0)) * 4, b"\0")
+            imgdata = imgdata.ljust(math.ceil(len(imgdata) / 4.0) * 4, b"\0")
             imgdata *= dimensions[1]
             w, h = dimensions
         else:

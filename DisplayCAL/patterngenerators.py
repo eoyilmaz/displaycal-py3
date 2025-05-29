@@ -443,8 +443,8 @@ class PrismaPatternGeneratorClient(GenHTTPPatternGeneratorClient):
         rgb, bgrgb, bits = _get_rgb(self, rgb, bgrgb, 8, use_video_levels)
         # Encode RGB values for Prisma HTTP REST interface
         # See prisma-sdk/prisma.cpp, PrismaIo::wincolor
-        rgb = [int(round(v)) for v in rgb]
-        bgrgb = [int(round(v)) for v in bgrgb]
+        rgb = [round(v) for v in rgb]
+        bgrgb = [round(v) for v in bgrgb]
         rgb = (rgb[0] & 0xFF) << 16 | (rgb[1] & 0xFF) << 8 | (rgb[2] & 0xFF) << 0
         bgrgb = (
             (bgrgb[0] & 0xFF) << 16 | (bgrgb[1] & 0xFF) << 8 | (bgrgb[2] & 0xFF) << 0

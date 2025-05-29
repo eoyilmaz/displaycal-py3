@@ -434,7 +434,7 @@ class _Sound:
             elif self._lib == "pyglet":
                 self._ch.volume = volume
             elif self._lib == "SDL":
-                self._server.Mix_VolumeChunk(self._snd, int(round(volume * 128)))
+                self._server.Mix_VolumeChunk(self._snd, round(volume * 128))
             return True
         return False
 

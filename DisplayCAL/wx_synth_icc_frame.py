@@ -1449,9 +1449,9 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         self.lut3d_hdr_maxmll_alt_clip_cb.SetValue(
             not bool(self.getcfg("3dlut.hdr_maxmll_alt_clip"))
         )
-        self.lut3d_hdr_sat_ctrl.SetValue(int(round(self.getcfg("3dlut.hdr_sat") * 100)))
+        self.lut3d_hdr_sat_ctrl.SetValue(round(self.getcfg("3dlut.hdr_sat") * 100))
         self.lut3d_hdr_update_sat_val()
-        hue = int(round(self.getcfg("3dlut.hdr_sat") * 100))
+        hue = round(self.getcfg("3dlut.hdr_sat") * 100)
         self.lut3d_hdr_hue_ctrl.SetValue(hue)
         self.lut3d_hdr_hue_intctrl.SetValue(hue)
         self.setcfg("3dlut.hdr_peak_luminance", self.getcfg("synthprofile.luminance"))

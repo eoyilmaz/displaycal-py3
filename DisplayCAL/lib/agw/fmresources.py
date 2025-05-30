@@ -631,7 +631,7 @@ MENU_DOWN_ARROW_XPM = [
 ]
 
 
-def getMenuUpArrowBitmap() -> wx.Bitmap:
+def get_menu_up_arrow_bitmap() -> wx.Bitmap:
     """Return a wx.Bitmap object representing a menu up arrow with a white mask.
 
     Returns:
@@ -642,7 +642,7 @@ def getMenuUpArrowBitmap() -> wx.Bitmap:
     return bmp
 
 
-def getMenuDownArrowBitmap() -> wx.Bitmap:
+def get_menu_down_arow_bitmap() -> wx.Bitmap:
     """Return a wx.Bitmap object representing a menu down arrow with a white mask.
 
     Returns:

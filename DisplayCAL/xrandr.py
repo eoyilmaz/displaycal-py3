@@ -110,7 +110,7 @@ class XDisplay:
     """Class to manage an X display connection and perform operations on it.
 
     Args:
-        name (str | None): The name of the display to connect to. If None, it
+        name (None | str): The name of the display to connect to. If None, it
             will use the DISPLAY environment variable. Defaults to None.
     """
 

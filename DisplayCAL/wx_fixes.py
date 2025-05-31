@@ -1778,7 +1778,7 @@ class PlateButton(platebtn.PlateButton):
         """Get the label bitmap.
 
         Returns:
-            wx.Bitmap | None: wx.Bitmap or None.
+            None | wx.Bitmap: wx.Bitmap or None.
         """
         return self._bmp["enable"]
 

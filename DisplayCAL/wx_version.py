@@ -298,7 +298,7 @@ def get_installed() -> list[str]:
 
 def _get_best_match(
     installed: list[WxPackageInfo], versions: list[str], options_required: bool
-) -> WxPackageInfo | None:
+) -> None | WxPackageInfo:
     """Find the best match for the given versions in the installed wxPython packages.
 
     Args:

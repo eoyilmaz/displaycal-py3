@@ -50,7 +50,7 @@ import wx.lib.agw.gradientbutton as GB
 
 class MyFrame(wx.Frame):
 
-    def __init__(self, parent: wx.Window | None) -> None:
+    def __init__(self, parent: None | wx.Window) -> None:
         wx.Frame.__init__(self, parent, -1, "GradientButton Demo")
 
         panel = wx.Panel(self, -1)

@@ -2717,7 +2717,7 @@ Transform {
         """Check if DATA_FORMAT defines any CIE XYZ or LAB columns.
 
         Returns:
-            bytes | None: The DATA_FORMAT on success or None on failure.
+            None | bytes: The DATA_FORMAT on success or None on failure.
         """
         if data_format := self.queryv1("DATA_FORMAT"):
             cie = {}

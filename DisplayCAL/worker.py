@@ -1150,7 +1150,7 @@ def _applycal_bug_workaround(profile):
 def get_current_profile_path(
     include_display_profile: bool = True,
     save_profile_if_no_path: bool = False,
-) -> str | None:
+) -> None | str:
     """Get the current profile path from the configuration.
 
     Args:
@@ -1158,7 +1158,7 @@ def get_current_profile_path(
         save_profile_if_no_path (bool): Whether to save the profile if it has no path.
 
     Returns:
-        NOne | str: The profile path or None if not found.
+        None | str: The profile path or None if not found.
     """
     profile = None
     profile_path = getcfg("calibration.file", False)
@@ -1394,7 +1394,7 @@ def get_python_and_pythonpath():
     return (python, pythonpath)
 
 
-def get_arg(argmatch, args, whole=False) -> tuple[int, str] | None:
+def get_arg(argmatch, args, whole=False) -> None | tuple[int, str]:
     """Return first found entry beginning with the argmatch string or None.
 
     Returns:
@@ -15215,7 +15215,7 @@ BEGIN_DATA
         """Set the session logfile for the current session.
 
         Args:
-            sessionlogfile (LogFile | None): LogFile object for the session
+            sessionlogfile (None | LogFile): LogFile object for the session
                 log, or None to create a new one.
             basename (str): Basename for the session log file.
             dirname (str): Directory where the session log file will be stored.
@@ -15255,7 +15255,7 @@ BEGIN_DATA
         """Setup in/outfile basename and session logfile.
 
         Args:
-            basename (str | None): Basename for the in/output file(s). If None,
+            basename (None | str): Basename for the in/output file(s). If None,
                 it will use the expanded profile name from the configuration.
 
         Returns:
@@ -15336,7 +15336,7 @@ BEGIN_DATA
         """Check if the Spyder 2 firmware file exists for the current Argyll version.
 
         Args:
-            scope (str | None): Scope can be 'u' (user), 'l' (local system) or
+            scope (None | str): Scope can be 'u' (user), 'l' (local system) or
                 None (both).
 
         Returns:

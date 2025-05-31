@@ -549,7 +549,7 @@ class DisplayAdjustmentPanel(wx_Panel):
     """Panel for interactive display adjustment.
 
     Args:
-        parent (wx.Window | None): The parent window.
+        parent (None | wx.Window): The parent window.
         id (int): The identifier for the panel.
         title (str): The title of the panel.
         ctrltype (str): The type of control to display, e.g., "luminance",
@@ -659,9 +659,9 @@ class DisplayAdjustmentPanel(wx_Panel):
 
         Args:
             name (str): The name of the gauge, e.g., "R", "G", "B", or "L".
-            bitmap_name (str | None): The name of the bitmap to use for the
+            bitmap_name (None | str): The name of the bitmap to use for the
                 gauge label.
-            tooltip (str | None): An optional tooltip for the gauge label.
+            tooltip (None | str): An optional tooltip for the gauge label.
         """
         if bitmap_name == "black_level" or bitmap_name.startswith("rgb_offset"):
             gaugecolors = {
@@ -719,7 +719,7 @@ class DisplayAdjustmentPanel(wx_Panel):
 
         Args:
             name (str): The name of the text control.
-            spacer (wx.Window | None): An optional spacer window to add before
+            spacer (None | wx.Window): An optional spacer window to add before
                 the checkmark.
             border (int): The border size around the text control.
         """

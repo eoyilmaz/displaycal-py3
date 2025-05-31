@@ -1,5 +1,7 @@
 """This script is used by the py2exe to freeze the library into executables."""
 
+from __future__ import annotations
+
 import ctypes.util
 import functools
 import os

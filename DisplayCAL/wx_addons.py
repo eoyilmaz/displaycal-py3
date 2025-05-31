@@ -486,7 +486,7 @@ def get_parent_frame(window):
         window (wx.Window): The wx.Window object to start searching from.
 
     Returns:
-        wx.Frame | None: The parent frame of the window, or None if no parent
+        None | wx.Frame: The parent frame of the window, or None if no parent
             frame is found.
     """
     parent = window.Parent

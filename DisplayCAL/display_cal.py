@@ -9771,7 +9771,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ti1 (CGATS): The CGATS data to measure.
             oprof (ICCProfile): The original profile used for the measurement.
             profile (ICCProfile): The profile used for the measurement.
-            sim_profile (ICCProfile | None): The simulation profile used, if
+            sim_profile (None | ICCProfile): The simulation profile used, if
                 any.
             intent (str): Rendering intent used for the measurement.
             sim_intent (None | str): Simulation rendering intent, if any.
@@ -9911,7 +9911,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             result (bool | Exception): Result of the measurement.
             ti3_path (str): Path to the resulting ti3 file.
             profile (ICCProfile): The profile used for the measurement.
-            sim_profile (ICCProfile | None): The simulation profile used, if any.
+            sim_profile (None | ICCProfile): The simulation profile used, if any.
             intent (str): Rendering intent used for the measurement.
             sim_intent (None | str): Simulation rendering intent, if any.
             devlink (None | ICCProfile): Device link profile used, if any.
@@ -16971,7 +16971,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             archive_path (str): The path where the archive will be saved.
             exclude_ext (list): List of file extensions to exclude from the
                 archive.
-            sevenzip (str | None): Path to the 7-Zip executable, or None to
+            sevenzip (None | str): Path to the 7-Zip executable, or None to
                 create a ZIP archive.
 
         Returns:

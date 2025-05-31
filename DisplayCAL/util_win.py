@@ -1,34 +1,26 @@
-# -*- coding: utf-8 -*-
-"""This module provides utility functions for interacting with Windows-specific
-features, such as display devices, process management, and color management.
-"""
+"""Windows utility functions for display, process, and color management."""
 
-import ctypes
-from ctypes import POINTER, byref, sizeof, windll, wintypes
-from ctypes.wintypes import DWORD, HANDLE, LPWSTR
+from __future__ import annotations
+
 import _ctypes
+import ctypes
 import platform
 import struct
 import sys
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-
+import winreg
+from ctypes import POINTER, byref, sizeof, windll, wintypes
+from ctypes.wintypes import DWORD, HANDLE, LPWSTR
+from typing import TYPE_CHECKING, Any
 
 import pywintypes
-
 import win32api
-
-from win32comext.shell import shell as win32com_shell
-
 import win32con
-
 import win32process
-
 import winerror
-import winreg
+from win32comext.shell import shell as win32com_shell
 
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.win_structs import UNICODE_STRING
-
 
 if TYPE_CHECKING:
     from _win32typing import PyDISPLAY_DEVICE
@@ -48,7 +40,7 @@ if sys.getwindowsversion() >= (6,):
 
 try:
     psapi = ctypes.windll.psapi
-except WindowsError:
+except OSError:
     psapi = None
 
 
@@ -126,8 +118,8 @@ def _get_icm_display_device_key(devicekey):
             "ICM",
             "ProfileAssociations",
             "Display",
+            *monkey,
         ]
-        + monkey
     )
     return winreg.CreateKey(winreg.HKEY_CURRENT_USER, subkey)
 
@@ -138,7 +130,7 @@ class MSCMSLoader:
     _windll = None
 
     @classmethod
-    def get_mscms_windll(cls):
+    def get_mscms_windll(cls) -> MSCMS:
         """Get the MSCMS windll instance.
 
         Returns:
@@ -175,7 +167,7 @@ def calibration_management_isenabled() -> bool:
         mscms = _get_mscms_windll()
         pbool = ctypes.pointer(ctypes.c_bool())
         if not mscms or not mscms.WcsGetCalibrationManagementState(pbool):
-            return
+            return None
         return bool(pbool.contents)
 
 
@@ -222,18 +214,18 @@ def enable_calibration_management(enable: bool = True) -> bool:
             winreg.SetValueEx(
                 key, "CalibrationManagementEnabled", 0, winreg.REG_DWORD, int(enable)
             )
-    else:
-        # Using ctypes (must be called with elevated permissions)
-        mscms = _get_mscms_windll()
-        if not mscms:
-            return False
-        if not mscms.WcsSetCalibrationManagementState(enable):
-            raise get_windows_error(ctypes.windll.kernel32.GetLastError())
         return True
+    # Using ctypes (must be called with elevated permissions)
+    mscms = _get_mscms_windll()
+    if not mscms:
+        return False
+    if not mscms.WcsSetCalibrationManagementState(enable):
+        raise get_windows_error(ctypes.windll.kernel32.GetLastError())
+    return True
 
 
 def enable_per_user_profiles(
-    enable: bool = True, display_no: int = 0, devicekey: str = None
+    enable: bool = True, display_no: int = 0, devicekey: None | str = None
 ) -> bool:
     """Enable per user profiles under Vista/Windows 7.
 
@@ -259,26 +251,25 @@ def enable_per_user_profiles(
         device = get_display_device(display_no)
         if device:
             devicekey = device.DeviceKey
-    if devicekey:
-        if USE_REGISTRY:
-            with _get_icm_display_device_key(devicekey) as key:
-                winreg.SetValueEx(
-                    key, "UsePerUserProfiles", 0, winreg.REG_DWORD, int(enable)
-                )
-        else:
-            # Using ctypes - this leaks registry key handles internally in
-            # WcsSetUsePerUserProfiles since Windows 10 1903
-            mscms = _get_mscms_windll()
-            if not mscms:
-                return False
-            if not mscms.WcsSetUsePerUserProfiles(
-                str(devicekey), CLASS_MONITOR, enable
-            ):
-                raise get_windows_error(ctypes.windll.kernel32.GetLastError())
-        return True
+    if not devicekey:
+        return False
+    if USE_REGISTRY:
+        with _get_icm_display_device_key(devicekey) as key:
+            winreg.SetValueEx(
+                key, "UsePerUserProfiles", 0, winreg.REG_DWORD, int(enable)
+            )
+    else:
+        # Using ctypes - this leaks registry key handles internally in
+        # WcsSetUsePerUserProfiles since Windows 10 1903
+        mscms = _get_mscms_windll()
+        if not mscms:
+            return False
+        if not mscms.WcsSetUsePerUserProfiles(str(devicekey), CLASS_MONITOR, enable):
+            raise get_windows_error(ctypes.windll.kernel32.GetLastError())
+    return True
 
 
-def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
+def get_display_devices(devicename: str) -> list[PyDISPLAY_DEVICE]:
     r"""Get all display devices of an output (there can be several).
 
     Example usage:
@@ -289,7 +280,7 @@ def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
         devicename (str): The device name.
 
     Returns:
-        List[PyDISPLAY_DEVICE]: List of display devices.
+        list[PyDISPLAY_DEVICE]: List of display devices.
     """
     devices = []
     n = 0
@@ -304,7 +295,7 @@ def get_display_devices(devicename: str) -> List["PyDISPLAY_DEVICE"]:
 
 def get_first_display_device(
     devicename: str, exception_cls: Exception = pywintypes.error
-) -> "PyDISPLAY_DEVICE":
+) -> PyDISPLAY_DEVICE:
     """Get the first display of device <devicename>.
 
     Args:
@@ -321,8 +312,8 @@ def get_first_display_device(
 
 
 def get_active_display_device(
-    devicename: str, devices: Optional[List["PyDISPLAY_DEVICE"]] = None
-) -> "PyDISPLAY_DEVICE":
+    devicename: str, devices: None | list[PyDISPLAY_DEVICE] = None
+) -> PyDISPLAY_DEVICE:
     r"""Get active display device of an output (there can only be one per output).
 
     Return value: display device object or None.
@@ -333,7 +324,7 @@ def get_active_display_device(
 
     Args:
         devicename (str): The device name.
-        devices (Optional[List[PyDISPLAY_DEVICE]]): List of devices.
+        devices (None | list[PyDISPLAY_DEVICE]): List of devices.
 
     Returns:
         PyDISPLAY_DEVICE: The active display device (display device object) or None.
@@ -345,18 +336,19 @@ def get_active_display_device(
             len(devices) == 1 or device.StateFlags & DISPLAY_DEVICE_ATTACHED
         ):
             return device
+    return None
 
 
 def get_active_display_devices(
-    attrname: Optional[str] = None,
-) -> List["PyDISPLAY_DEVICE"]:
+    attrname: None | str = None,
+) -> list[PyDISPLAY_DEVICE]:
     """Return active display devices.
 
     Args:
-        attrname (Optional[str]): The attribute name to get from the display device.
+        attrname (None | str): The attribute name to get from the display device.
 
     Returns:
-        List[PyDISPLAY_DEVICE]: List of active display devices.
+        list[PyDISPLAY_DEVICE]: List of active display devices.
     """
     devices = []
     for moninfo in get_real_display_devices_info():
@@ -372,7 +364,7 @@ def get_display_device(
     display_no: int = 0,
     use_active_display_device: bool = False,
     exception_cls: Exception = pywintypes.error,
-) -> "PyDISPLAY_DEVICE":
+) -> PyDISPLAY_DEVICE:
     """Get the display device for a given display number.
 
     Args:
@@ -388,8 +380,7 @@ def get_display_device(
     moninfo = monitors[display_no]
     if use_active_display_device:
         return get_active_display_device(moninfo["Device"])
-    else:
-        return get_first_display_device(moninfo["Device"], exception_cls)
+    return get_first_display_device(moninfo["Device"], exception_cls)
 
 
 def get_process_filename(pid: int, handle: int = 0) -> str:
@@ -440,14 +431,14 @@ def get_process_filename(pid: int, handle: int = 0) -> str:
     return filename
 
 
-def get_file_info(filename: str) -> Dict:
+def get_file_info(filename: str) -> dict:
     """Get exe/dll file information.
 
     Args:
         filename (str): The filename.
 
     Returns:
-        Dict: The file information.
+        dict: The file information.
     """
     info = {"FileInfo": None, "StringFileInfo": {}, "FileVersion": None}
 
@@ -486,7 +477,7 @@ def get_file_info(filename: str) -> Dict:
     return info
 
 
-def get_pids() -> List[int]:
+def get_pids() -> list[int]:
     """Get PIDs of all running processes.
 
     Raises:
@@ -494,31 +485,32 @@ def get_pids() -> List[int]:
         get_windows_error: If an error occurs while enumerating processes.
 
     Returns:
-        List[int]: List of PIDs.
+        list[int]: List of PIDs.
     """
     if psapi is None:
         raise ImportError(
-            "psapi module is not available. Please ensure it is installed and accessible."  # noqa: B950
+            "psapi module is not available. "
+            "Please ensure it is installed and accessible."
         )
     pids_count = 1024
     while True:
         pids = (DWORD * pids_count)()
         pids_size = sizeof(pids)
-        bytes = DWORD()
-        if not psapi.EnumProcesses(byref(pids), pids_size, byref(bytes)):
+        byte_words = DWORD()
+        if not psapi.EnumProcesses(byref(pids), pids_size, byref(byte_words)):
             raise get_windows_error(ctypes.windll.kernel32.GetLastError())
-        if bytes.value >= pids_size:
+        if byte_words.value >= pids_size:
             pids_count *= 2
             continue
-        count = bytes.value / (pids_size / pids_count)
+        count = byte_words.value / (pids_size / pids_count)
         return [_f for _f in pids[:count] if _f]
 
 
-def get_real_display_devices_info() -> List[Dict]:
+def get_real_display_devices_info() -> list[dict]:
     """Return info for real (non-virtual) devices.
 
     Returns:
-        List[Dict]: List of monitor info.
+        list[dict]: List of monitor info.
     """
     # See Argyll source spectro/dispwin.c MonitorEnumProc, get_displays
     monitors = []
@@ -548,7 +540,7 @@ def get_windows_error(errorcode: int) -> ctypes.WinError:
 
 
 def per_user_profiles_isenabled(
-    display_no: int = 0, devicekey: Optional[str] = None
+    display_no: int = 0, devicekey: None | str = None
 ) -> bool:
     """Check if per user profiles is enabled under Vista/Windows 7.
 
@@ -569,62 +561,63 @@ def per_user_profiles_isenabled(
         device = get_display_device(display_no)
         if device:
             devicekey = device.DeviceKey
-    if devicekey:
-        if USE_REGISTRY:
-            with _get_icm_display_device_key(devicekey) as key:
-                try:
-                    return bool(winreg.QueryValueEx(key, "UsePerUserProfiles")[0])
-                except WindowsError as exception:
-                    if exception.args[0] == winerror.ERROR_FILE_NOT_FOUND:
-                        return False
-                    raise
-        else:
-            # Using ctypes - this leaks registry key handles internally in
-            # WcsGetUsePerUserProfiles since Windows 10 1903
-            mscms = _get_mscms_windll()
-            pbool = ctypes.pointer(ctypes.c_bool())
-            if not mscms or not mscms.WcsGetUsePerUserProfiles(
-                str(devicekey), CLASS_MONITOR, pbool
-            ):
-                return
-            return bool(pbool.contents)
+    if not devicekey:
+        return None
+    if USE_REGISTRY:
+        with _get_icm_display_device_key(devicekey) as key:
+            try:
+                return bool(winreg.QueryValueEx(key, "UsePerUserProfiles")[0])
+            except OSError as exception:
+                if exception.args[0] == winerror.ERROR_FILE_NOT_FOUND:
+                    return False
+                raise
+    else:
+        # Using ctypes - this leaks registry key handles internally in
+        # WcsGetUsePerUserProfiles since Windows 10 1903
+        mscms = _get_mscms_windll()
+        pbool = ctypes.pointer(ctypes.c_bool())
+        if not mscms or not mscms.WcsGetUsePerUserProfiles(
+            str(devicekey), CLASS_MONITOR, pbool
+        ):
+            return None
+        return bool(pbool.contents)
 
 
 def run_as_admin(
     cmd: str,
-    args: List[Any],
+    args: list[Any],
     close_process: bool = True,
     async_: bool = False,
     wait_for_idle: bool = False,
     show: bool = True,
-) -> Dict:
+) -> dict:
     """Run command with elevated privileges.
 
     This is a wrapper around ShellExecuteEx.
 
     Args:
         cmd (str): The command to run.
-        args (List[Any]): The arguments for the command.
+        args (list[Any]): The arguments for the command.
         close_process (bool): Whether to close the process after execution.
         async_ (bool): Whether to run the command asynchronously.
         wait_for_idle (bool): Whether to wait for the process to be idle.
         show (bool): Whether to show the command window.
 
     Returns:
-        Dict: A dictionary with hInstApp and hProcess members.
+        dict: A dictionary with hInstApp and hProcess members.
     """
     return shell_exec(cmd, args, "runas", close_process, async_, wait_for_idle, show)
 
 
 def shell_exec(
     filename: str,
-    args: List[Any],
+    args: list[Any],
     operation: str = "open",
     close_process: bool = True,
     async_: bool = False,
     wait_for_idle: bool = False,
     show: bool = True,
-) -> Dict:
+) -> dict:
     """Run command.
 
     This is a wrapper around ShellExecuteEx.
@@ -639,7 +632,7 @@ def shell_exec(
         show (bool): Whether to show the command window.
 
     Returns:
-        Dict: A dictionary with hInstApp and hProcess members.
+        dict: A dictionary with hInstApp and hProcess members.
     """
     flags = SEE_MASK_FLAG_NO_UI
     if not close_process:
@@ -649,20 +642,17 @@ def shell_exec(
     if wait_for_idle:
         flags |= SEE_MASK_WAITFORINPUTIDLE
     params = " ".join(quote_args(args))
-    if show:
-        show = win32con.SW_SHOWNORMAL
-    else:
-        show = win32con.SW_HIDE
+    show = win32con.SW_SHOWNORMAL if show else win32con.SW_HIDE
     return win32com_shell.ShellExecuteEx(
         fMask=flags, lpVerb=operation, lpFile=filename, lpParameters=params, nShow=show
     )
 
 
-def win_ver() -> Tuple[str, int, str, str]:
+def win_ver() -> tuple[str, int, str, str]:
     """Get Windows version info.
 
     Returns:
-        Tuple[str, int, str, str]: A tuple containing the product name, CSD
+        tuple[str, int, str, str]: A tuple containing the product name, CSD
             version, release, and build.
     """
     csd = sys.getwindowsversion()[-1]
@@ -699,10 +689,7 @@ USE_NTDLL_LDR = False
 
 
 def _free_library(handle):
-    if USE_NTDLL_LDR:
-        fn = ctypes.windll.ntdll.LdrUnloadDll
-    else:
-        fn = _ctypes.FreeLibrary
+    fn = ctypes.windll.ntdll.LdrUnloadDll if USE_NTDLL_LDR else _ctypes.FreeLibrary
     fn(handle)
 
 
@@ -714,7 +701,7 @@ class UnloadableWinDLL:
         self._windll = None
         self.load()
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401
         """Get an attribute from the loaded DLL.
 
         Args:
@@ -792,7 +779,7 @@ class MSCMS(UnloadableWinDLL):
                 # Need to free icm32 first, otherwise mscms won't unload
                 try:
                     _free_library(self._icm32_handle)
-                except WindowsError as exception:
+                except OSError as exception:
                     if exception.args[0] != winerror.ERROR_MOD_NOT_FOUND:
                         raise
             UnloadableWinDLL.unload(self)

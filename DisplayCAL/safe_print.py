@@ -1,25 +1,28 @@
-# -*- coding: utf-8 -*-
+"""Safely print to streams, avoiding Unicode errors.
 
-import locale
+It ensures compatibility with various encodings and allows customization of
+padding, separators, and output formatting. A global `safe_print` instance is
+also provided for convenience.
+"""
+
 import os
 import sys
 
 from DisplayCAL.encoding import get_encodings
 
-
-original_codepage = None
-enc, fs_enc = get_encodings()
-_conwidth = None
+ORIGINAL_CODEPAGE = None
+ENC, FS_ENC = get_encodings()
+_CONWIDTH = None
 
 
 def _get_console_width():
-    global _conwidth
-    if _conwidth is None:
-        _conwidth = 80
+    global _CONWIDTH
+    if _CONWIDTH is None:
+        _CONWIDTH = 80
         try:
             if sys.platform == "win32":
-                from ctypes import windll, create_string_buffer
                 import struct
+                from ctypes import create_string_buffer, windll
 
                 # Use stderr handle so that pipes don't affect the reported size
                 stderr_handle = windll.kernel32.GetStdHandle(-12)
@@ -28,15 +31,38 @@ def _get_console_width():
                     stderr_handle, buf
                 )
                 if consinfo:
-                    _conwidth = struct.unpack("hhhhHhhhhhh", buf.raw)[0]
+                    _CONWIDTH = struct.unpack("hhhhHhhhhhh", buf.raw)[0]
             else:
-                _conwidth = int(os.getenv("COLUMNS"))
+                _CONWIDTH = int(os.getenv("COLUMNS"))
         except Exception:
             pass
-    return _conwidth
+    return _CONWIDTH
 
 
 class SafePrinter:
+    r"""A class for safely printing to a stream, avoiding Unicode errors.
+
+    Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
+    converting all other objects to safe string representations.
+
+    sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end=r'\n',
+                            file=sys.stdout, fn=None)
+    sprint(value, ..., pad=False, padchar=' ', sep=' ', end=r'\n',
+            file=sys.stdout, fn=None)
+
+    Writes the values to a stream (default sys.stdout), honoring its
+    encoding and replacing characters not present in the encoding with
+    question marks silently.
+
+    Optional keyword arguments:
+    pad:     pad the lines to n chars, or os.getenv('COLUMNS') if True.
+    padchar: character to use for padding, default a space.
+    sep:     string inserted between values, default a space.
+    end:     string appended after the last value, default a newline.
+    file:    a file-like object (stream); defaults to the sys.stdout.
+    fn:      a function to execute instead of printing.
+    """
+
     def __init__(
         self,
         pad=False,
@@ -47,25 +73,6 @@ class SafePrinter:
         fn=None,
         encoding=None,
     ):
-        """Write safely, avoiding any UnicodeDe-/EncodingErrors on strings and
-        converting all other objects to safe string representations.
-
-        sprint = SafePrinter(pad=False, padchar=' ', sep=' ', end='\\n',
-                             file=sys.stdout, fn=None)
-        sprint(value, ..., pad=False, padchar=' ', sep=' ', end='\\n',
-               file=sys.stdout, fn=None)
-
-        Writes the values to a stream (default sys.stdout), honoring its encoding and
-        replacing characters not present in the encoding with question marks silently.
-
-        Optional keyword arguments:
-        pad:     pad the lines to n chars, or os.getenv('COLUMNS') if True.
-        padchar: character to use for padding, default a space.
-        sep:     string inserted between values, default a space.
-        end:     string appended after the last value, default a newline.
-        file:    a file-like object (stream); defaults to the sys.stdout.
-        fn:      a function to execute instead of printing.
-        """
         self.pad = pad
         self.padchar = padchar
         self.sep = sep
@@ -75,13 +82,16 @@ class SafePrinter:
         self.encoding = "utf-8"
 
     def __call__(self, *args, **kwargs):
+        """Call the instance to write the given arguments to the stream."""
         # TODO: Why calling the instance writes it, this is not a good practice.
         self.write(*args, **kwargs)
 
     def flush(self):
+        """Flush the output stream."""
         self.file and self.file.flush()
 
     def write(self, *args, **kwargs):
+        """Write the given arguments to the stream, formatted and encoded."""
         pad = kwargs.get("pad", self.pad)
         padchar = kwargs.get("padchar", self.padchar)
         sep = kwargs.get("sep", self.sep)
@@ -105,10 +115,7 @@ class SafePrinter:
             strargs.append(arg)
         line = sep.join(strargs).rstrip(end)
         if pad is not False:
-            if pad is True:
-                width = _get_console_width()
-            else:
-                width = int(pad)
+            width = _get_console_width() if pad is True else int(pad)
             line = line.ljust(width, padchar)
         if fn:
             fn(line)
@@ -121,7 +128,7 @@ class SafePrinter:
                 file_.write(line)
                 if end:
                     file_.write(end)
-            except IOError:
+            except OSError:
                 pass
 
 

@@ -1,15 +1,20 @@
-# -*- coding: utf-8 -*-
+"""Post-install and uninstall tasks for DisplayCAL on Windows, macOS, and Linux.
 
-from io import StringIO
-from subprocess import call
-from os.path import basename, splitext
+It includes functions to create shortcuts, manage installed files, and update
+system resources such as icons and desktop menu entries.
+"""
+
+import contextlib
 import os
 import shutil
 import sys
 import traceback
+from io import StringIO
+from os.path import basename, splitext
+from subprocess import call
 
-from DisplayCAL.meta import name
-from DisplayCAL.util_os import relpath, safe_glob, which
+from DisplayCAL.meta import NAME
+from DisplayCAL.util_os import safe_glob, which
 
 recordfile_name = "INSTALLED_FILES"
 
@@ -17,26 +22,25 @@ if sys.stdout and hasattr(sys.stdout, "isatty") and not sys.stdout.isatty():
     sys.stdout = StringIO()
 
 if sys.platform == "win32":
-    try:
-        create_shortcut
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "create_shortcut" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
+            import win32con
             from pythoncom import (
-                CoCreateInstance,
                 CLSCTX_INPROC_SERVER,
+                CoCreateInstance,
                 IID_IPersistFile,
             )
             from win32com.shell import shell
-            import win32con
         except ImportError:
 
             def create_shortcut(*args):
-                pass
+                """Dummy function to create a Windows shortcut."""
 
         else:
 
-            def create_shortcut(*args):
+            def create_shortcut(*args) -> None:
+                """Create a Windows shortcut."""
                 shortcut = CoCreateInstance(
                     shell.CLSID_ShellLink,
                     None,
@@ -54,62 +58,81 @@ if sys.platform == "win32":
                 shortcut.SetShowCmd(win32con.SW_SHOWNORMAL)
                 shortcut.QueryInterface(IID_IPersistFile).Save(args[2], 0)
 
-    try:
-        directory_created
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "directory_created" not in globals():
+        # this function is only available within bdist_wininst installers
 
         def directory_created(path):
-            pass
+            """Dummy function to record directory creation."""
 
-    try:
-        file_created
-    # this function is only available within bdist_wininst installers
-    except NameError:
+    if "file_created" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
             import win32api
         except ImportError:
 
-            def file_created(path):
-                pass
+            def file_created(path) -> None:
+                """Dummy function to record file creation.
+
+                Args:
+                    path (str): The path of the file that was created.
+                """
 
         else:
 
-            def file_created(path):
-                if os.path.exists(recordfile_name):
-                    installed_files = []
-                    if os.path.exists(recordfile_name):
-                        recordfile = open(recordfile_name, "r")
-                        installed_files.extend(line.rstrip("\n") for line in recordfile)
-                        recordfile.close()
-                    try:
-                        path.encode("ASCII")
-                    except (UnicodeDecodeError, UnicodeEncodeError):
-                        # the contents of the record file used by distutils
-                        # must be ASCII GetShortPathName allows us to avoid
-                        # any issues with encoding because it returns the
-                        # short path as 7-bit string (while still being a
-                        # valid path)
-                        path = win32api.GetShortPathName(path)
-                    installed_files.append(path)
-                    recordfile = open(recordfile_name, "w")
-                    recordfile.write("\n".join(installed_files))
-                    recordfile.close()
+            def file_created(path) -> None:
+                """Record the file creation in the installed files record.
 
-    try:
-        get_special_folder_path
-    # this function is only available within bdist_wininst installers
-    except NameError:
+                Args:
+                    path (str): The path of the file that was created.
+                """
+                if not os.path.exists(recordfile_name):
+                    return
+                installed_files = []
+                if os.path.exists(recordfile_name):
+                    with open(recordfile_name) as recordfile:
+                        installed_files.extend(line.rstrip("\n") for line in recordfile)
+                try:
+                    path.encode("ASCII")
+                except (UnicodeDecodeError, UnicodeEncodeError):
+                    # the contents of the record file used by distutils
+                    # must be ASCII GetShortPathName allows us to avoid
+                    # any issues with encoding because it returns the
+                    # short path as 7-bit string (while still being a
+                    # valid path)
+                    path = win32api.GetShortPathName(path)
+                installed_files.append(path)
+                with open(recordfile_name, "w") as recordfile:
+                    recordfile.write("\n".join(installed_files))
+
+    if "get_special_folder_path" not in globals():
+        # this function is only available within bdist_wininst installers
         try:
             from win32com.shell import shell, shellcon
         except ImportError:
 
-            def get_special_folder_path(csidl_string):
-                pass
+            def get_special_folder_path(csidl_string: str) -> None:
+                """Implement the dummy version of getting the path to a special folder.
+
+                Args:
+                    csidl_string (str): The CSIDL string representing the
+                        special folder.
+
+                Returns:
+                    None: Returns None.
+                """
 
         else:
 
-            def get_special_folder_path(csidl_string):
+            def get_special_folder_path(csidl_string: str) -> str:
+                """Get the path to a special folder.
+
+                Args:
+                    csidl_string (str): The CSIDL string representing the
+                        special folder.
+
+                Returns:
+                    str: The path to the special folder.
+                """
                 return shell.SHGetSpecialFolderPath(
                     0, getattr(shellcon, csidl_string), 1
                 )
@@ -118,19 +141,13 @@ if sys.platform == "win32":
 def postinstall_macos(prefix=None):
     """Do postinstall actions for macOS."""
     # TODO: implement
-    pass
 
 
 def postinstall_windows(prefix):
     """Do postinstall actions for Windows."""
-    if prefix is None:
-        # assume we are running from bdist_wininst installer
-        modpath = os.path.dirname(os.path.abspath(__file__))
-    else:
-        # assume we are running from source dir,
-        # or from install dir
-        modpath = prefix
-
+    # assume we are running from bdist_wininst installer if prefix is None,
+    # otherwise assume we are running from source dir, or from install dir
+    modpath = os.path.dirname(os.path.abspath(__file__)) if prefix is None else prefix
     if not os.path.exists(modpath):
         print("warning - '{}' not found".format(modpath.encode("MBCS", "replace")))
         return
@@ -142,9 +159,9 @@ def postinstall_windows(prefix):
         file_created(irecordfile_name)
         shutil.copy2(recordfile_name, irecordfile_name)
 
-    mainicon = os.path.join(modpath, "theme", "icons", f"{name}.ico")
+    mainicon = os.path.join(modpath, "theme", "icons", f"{NAME}.ico")
     if not os.path.exists(mainicon):
-        print("warning - '{}' not found".format(icon.encode("MBCS", "replace")))
+        print("warning - '{}' not found".format(mainicon.encode("MBCS", "replace")))
         return
 
     try:
@@ -158,7 +175,7 @@ def postinstall_windows(prefix):
 
     filenames = [
         filename
-        for filename in safe_glob(os.path.join(sys.prefix, "Scripts", f"{name}*"))
+        for filename in safe_glob(os.path.join(sys.prefix, "Scripts", f"{NAME}*"))
         if not filename.endswith("-script.py")
         and not filename.endswith("-script.pyw")
         and not filename.endswith(".manifest")
@@ -170,34 +187,36 @@ def postinstall_windows(prefix):
     for path in (startmenu_programs_common, startmenu_programs):
         if not path:
             continue
-        grppath = os.path.join(path, name)
+        grppath = os.path.join(path, NAME)
         if path == startmenu_programs:
-            group = relpath(grppath, startmenu)
+            group = os.path.relpath(grppath, startmenu)
         else:
-            group = relpath(grppath, startmenu_common)
+            group = os.path.relpath(grppath, startmenu_common)
 
         if not os.path.exists(grppath):
-            try:
+            with contextlib.suppress(Exception):
                 os.makedirs(grppath)
-            except Exception:
                 # maybe insufficient privileges?
-                pass
 
         if os.path.exists(grppath):
             print(
                 ("Created start menu group '{}' in {}").format(
-                    name,
+                    NAME,
                     (
-                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
+                        str(path, "MBCS", "replace")
+                        if not isinstance(path, str)
+                        else path
                     ).encode("MBCS", "replace"),
                 )
             )
         else:
             print(
                 ("Failed to create start menu group '{}' in {}").format(
-                    name,
+                    NAME,
                     (
-                        str(path, "MBCS", "replace") if not isinstance(path, str) else path
+                        str(path, "MBCS", "replace")
+                        if not isinstance(path, str)
+                        else path
                     ).encode("MBCS", "replace"),
                 )
             )
@@ -227,21 +246,19 @@ def postinstall_windows(prefix):
                     tgtpath = os.path.join(modpath, filename)
                 try:
                     if lnkname == "Uninstall":
-                        uninstaller = os.path.join(sys.prefix, f"Remove{name}.exe")
+                        uninstaller = os.path.join(sys.prefix, f"Remove{NAME}.exe")
                         if os.path.exists(uninstaller):
                             create_shortcut(
                                 uninstaller,
                                 lnkname,
                                 lnkpath,
-                                '-u "{}-wininst.log"'.format(
-                                    os.path.join(sys.prefix, name)
-                                ),
+                                f'-u "{os.path.join(sys.prefix, NAME)}-wininst.log"',
                                 sys.prefix,
                                 os.path.join(
                                     modpath,
                                     "theme",
                                     "icons",
-                                    f"{name}-uninstall.ico",
+                                    f"{NAME}-uninstall.ico",
                                 ),
                             )
                         else:
@@ -263,10 +280,10 @@ def postinstall_windows(prefix):
                                     modpath,
                                     "theme",
                                     "icons",
-                                    f"{name}-uninstall.ico",
+                                    f"{NAME}-uninstall.ico",
                                 ),
                             )
-                    elif lnkname.startswith(name):
+                    elif lnkname.startswith(NAME):
                         # When running from a
                         # bdist_wininst or bdist_msi
                         # installer, sys.executable
@@ -330,7 +347,7 @@ def postinstall_linux(prefix=None):
     if prefix is None:
         prefix = sys.prefix
     if which("touch"):
-        call(["touch", "--no-create", f"{prefix}/share/icons/hicolor"])
+        call(["touch", "--no-create", f"{prefix}/share/icons/hicolor"])  # noqa: S607
     if which("xdg-icon-resource"):
         # print("installing icon resources...")
         # for size in [16, 22, 24, 32, 48, 256]:
@@ -343,7 +360,7 @@ def postinstall_linux(prefix=None):
         #     str(size),
         #     f"{prefix}/share/{name}/theme/icons/{size}x{size}/{name}.png"
         # ])
-        call(["xdg-icon-resource", "forceupdate"])
+        call(["xdg-icon-resource", "forceupdate"])  # noqa: S607
     if which("xdg-desktop-menu"):
         # print("installing desktop menu entry...")
         # call([
@@ -352,10 +369,11 @@ def postinstall_linux(prefix=None):
         #     "--novendor",
         #     f"{prefix}/share/{name}/{name}.desktop"
         # ])
-        call(["xdg-desktop-menu", "forceupdate"])
+        call(["xdg-desktop-menu", "forceupdate"])  # noqa: S607
 
 
 def postinstall(prefix=None):
+    """Do postinstall actions."""
     if sys.platform == "darwin":
         postinstall_macos()
     elif sys.platform == "win32":
@@ -365,6 +383,7 @@ def postinstall(prefix=None):
 
 
 def postuninstall(prefix=None):
+    """Do postuninstall actions."""
     if sys.platform == "darwin":
         # TODO: implement
         pass
@@ -379,22 +398,22 @@ def postuninstall(prefix=None):
             # print("uninstalling desktop menu entry...")
             # call(["xdg-desktop-menu", "uninstall", prefix +
             # (f"/share/applications/{name}.desktop")])
-            call(["xdg-desktop-menu", "forceupdate"])
+            call(["xdg-desktop-menu", "forceupdate"])  # noqa: S607
         if which("xdg-icon-resource"):
             # print("uninstalling icon resources...")
             # for size in [16, 22, 24, 32, 48, 256]:
             # call(["xdg-icon-resource", "uninstall", "--noupdate", "--size",
             # str(size), name])
-            call(["xdg-icon-resource", "forceupdate"])
+            call(["xdg-icon-resource", "forceupdate"])  # noqa: S607
 
 
 def main():
+    """Main function to handle post-installation and uninstallation tasks."""
     prefix = None
     for arg in sys.argv[1:]:
         arg = arg.split("=")
-        if len(arg) == 2:
-            if arg[0] == "--prefix":
-                prefix = arg[1]
+        if len(arg) == 2 and arg[0] == "--prefix":
+            prefix = arg[1]
     try:
         if "-remove" in sys.argv[1:]:
             postuninstall(prefix)

@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
+"""Convert iColorDisplay DeviceCorrections.txt to Argyll CCMX files.
 
-# Python 2.5
+It parses the input file, extracts relevant data, and generates CCMX files in
+the specified format for use with color calibration tools.
+"""
+
 import codecs
 import json
 import os
 import sys
 import time
-
 
 CCMX_TEMPLATE = """CCMX
 
@@ -37,7 +39,7 @@ END_DATA
 
 
 def convert_devicecorrections_to_ccmx(path, target_dir):
-    """Convert iColorDisplay DeviceCorrections.txt to individual Argyll CCMX files"""
+    """Convert iColorDisplay DeviceCorrections.txt to individual Argyll CCMX files."""
     with codecs.open(path, "r", "utf8") as devcorrections_file:
         lines = devcorrections_file.read().strip().splitlines()
     # Convert to JSON
@@ -67,11 +69,11 @@ def convert_devicecorrections_to_ccmx(path, target_dir):
             for j, part in enumerate(parts):
                 part = part.strip()
                 if part and not part.startswith('"') and not part.endswith('"'):
-                    parts[j] = '"%s"' % part
+                    parts[j] = f'"{part}"'
         if parts[-1].strip() not in ("", "{") and i < len(lines) - 1:
             parts[-1] += ","
         lines[i] = ":".join(parts)
-    devcorrections_data = "{%s}" % "".join(lines).replace(",}", "}")
+    devcorrections_data = "{{{}}}".format("".join(lines).replace(",}", "}"))
     # Parse JSON
     devcorrections = json.loads(devcorrections_data)
     # Convert to ccmx
@@ -82,8 +84,9 @@ def convert_devicecorrections_to_ccmx(path, target_dir):
         values = {
             "DateTime": time.strftime("%a %b %d %H:%M:%S %Y"),
             "Originator": "Quato iColorDisplay",
-            "Name": "%s & %s"
-            % (devcorrection.get("Device"), devcorrection.get("Display")),
+            "Name": "{} & {}".format(
+                devcorrection.get("Device"), devcorrection.get("Display")
+            ),
         }
         for key in ("Device", "Display", "ReferenceDevice", "MatrixXYZ"):
             value = devcorrection.get(key)

@@ -1,26 +1,48 @@
-# -*- coding: utf-8 -*-
+"""Custom XML handler for wxPython FloatSpin controls.
+
+It processes XML parameters such as minimum/maximum values, increment, and
+initial value, and configures the FloatSpin control accordingly.
+"""
+
+import contextlib
 
 import wx
-import wx.xrc as xrc
+from wx import xrc
+
 from DisplayCAL.log import safe_print
 
 try:
     from DisplayCAL import floatspin
 except ImportError:
-    import wx.lib.agw.floatspin as floatspin
+    from wx.lib.agw import floatspin
 
 
 class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
+    """Custom XML resource handler for FloatSpin controls."""
+
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Standard styles
         self.AddWindowStyles()
 
     def CanHandle(self, node):
+        """Check if the node can be handled by this handler.
+
+        Args:
+            node (xrc.XmlNode): The XML node to check.
+
+        Returns:
+            bool: True if the node is of class FloatSpin, False otherwise.
+        """
         return self.IsOfClass(node, "FloatSpin")
 
     # Process XML parameters and create the object
-    def DoCreateResource(self):
+    def DoCreateResource(self) -> floatspin.FloatSpin:
+        """Create the FloatSpin control from XML parameters.
+
+        Returns:
+            FloatSpin: The created FloatSpin control.
+        """
         try:
             min_val = float(self.GetText("min_val"))
         except Exception:
@@ -36,10 +58,7 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
         is_spinctrldbl = hasattr(wx, "SpinCtrlDouble") and issubclass(
             floatspin.FloatSpin, wx.SpinCtrlDouble
         )
-        if is_spinctrldbl:
-            defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT
-        else:
-            defaultstyle = 0
+        defaultstyle = wx.SP_ARROW_KEYS | wx.ALIGN_RIGHT if is_spinctrldbl else 0
         w = floatspin.FloatSpin(
             parent=self.GetParentAsWindow(),
             id=self.GetID(),
@@ -52,15 +71,11 @@ class FloatSpinCtrlXmlHandler(xrc.XmlResourceHandler):
             name=self.GetName(),
         )
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetValue(float(self.GetText("value")))
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             w.SetDigits(int(self.GetText("digits")))
-        except Exception:
-            pass
 
         self.SetupWindow(w)
         if self.GetBool("hidden") and w.Shown:

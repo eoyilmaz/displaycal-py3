@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-c
-"""demjson 1.3 compatibility module"""
+"""demjson 1.3 compatibility module."""
 
-from io import StringIO
 import json
 import sys
-
+from io import StringIO
 
 DEBUG = False
 
 
 def decode(txt, strict=False, encoding=None, **kw):
-    """Decodes a JSON-encoded string into a Python object.
+    """Decode a JSON-encoded string into a Python object.
 
     If 'strict' is set to True, then only strictly-conforming JSON
     output will be produced.  Note that this means that some types
@@ -37,7 +35,6 @@ def decode(txt, strict=False, encoding=None, **kw):
     Optional keywords arguments are ignored.
 
     """
-
     if not strict:
         # Remove comments
         io = StringIO()
@@ -117,7 +114,7 @@ def decode(txt, strict=False, encoding=None, **kw):
 
 
 def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=None):
-    """Encodes a Python object into a JSON-encoded string.
+    """Encode a Python object into a JSON-encoded string.
 
     'strict' is ignored.
 
@@ -140,7 +137,6 @@ def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=Non
     you should almost always pass in encoding='utf8'.
 
     """
-
     if compactly:
         indent = None
         separators = (",", ":")

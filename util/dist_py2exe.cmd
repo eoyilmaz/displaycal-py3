@@ -16,7 +16,6 @@ if not exist dist\py2exe.win32-py%python_version%\DisplayCAL-%version% (
     python setup.py bdist_standalone inno 2>&1 | tee DisplayCAL-%version%.bdist_standalone-py%python_version%.log
     if exist codesigning\sign.cmd (
     call codesigning\sign.cmd dist\py2exe.win32-py%python_version%\DisplayCAL-%version%\*.exe
-    call codesigning\sign.cmd dist\py2exe.win32-py%python_version%\DisplayCAL-%version%\lib\DisplayCAL.lib*.python*.RealDisplaySizeMM.pyd
     )
 )
 

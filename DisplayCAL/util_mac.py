@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
+"""macOS utility functions for AppleScript, system info, and Terminal settings."""
 
 import os
 import re
 import subprocess as sp
 from time import sleep
 
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import verbose
-
 
 def get_osascript_args(applescript):
-    """Return arguments ready to use for osascript"""
+    """Return arguments ready to use for osascript."""
     if isinstance(applescript, str):
         applescript = applescript.splitlines()
     args = []
@@ -20,20 +17,19 @@ def get_osascript_args(applescript):
 
 
 def get_osascript_args_or_run(applescript, run=True):
-    """Return arguments ready to use for osascript or run the AppleScript"""
+    """Return arguments ready to use for osascript or run the AppleScript."""
     if run:
         return osascript(applescript)
-    else:
-        return get_osascript_args(applescript)
+    return get_osascript_args(applescript)
 
 
 def mac_app_activate(delay=0, mac_app_name="Finder"):
     """Activate (show & bring to front) an application if it is running."""
     applescript = [
-        'if app "%s" is running then' % mac_app_name,
+        f'if app "{mac_app_name}" is running then',
         # Use 'run script' to prevent the app activating upon script
         # compilation even if not running
-        r'run script "tell app \"%s\" to activate"' % mac_app_name,
+        rf'run script "tell app \"{mac_app_name}\" to activate"',
         "end if",
     ]
     if delay:
@@ -60,7 +56,7 @@ def mac_terminal_do_script(script=None, do=True):
         applescript.extend(
             [
                 'tell app "Terminal"',
-                'do script "%s" in first window' % script.replace('"', '\\"'),
+                'do script "{}" in first window'.format(script.replace('"', '\\"')),
                 "end tell",
             ]
         )
@@ -73,30 +69,35 @@ def mac_terminal_set_colors(
     """Set Terminal colors."""
     applescript = [
         'tell app "Terminal"',
-        'set background color of first window to "%s"' % background,
-        'set cursor color of first window to "%s"' % cursor,
-        'set normal text color of first window to "%s"' % text,
-        'set bold text color of first window to "%s"' % text_bold,
+        f'set background color of first window to "{background}"',
+        f'set cursor color of first window to "{cursor}"',
+        f'set normal text color of first window to "{text}"',
+        f'set bold text color of first window to "{text_bold}"',
         "end tell",
     ]
     return get_osascript_args_or_run(applescript, do)
 
 
 def osascript(applescript):
-    """Run AppleScript with the 'osascript' command
+    """Run AppleScript with the 'osascript' command.
 
     Return osascript's exit code.
 
     """
     args = get_osascript_args(applescript)
-    p = sp.Popen(["osascript"] + args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    p = sp.Popen(
+        ["osascript", *args],  # noqa: S607
+        stdin=sp.PIPE,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+    )
     output, errors = p.communicate()
     retcode = p.wait()
     return retcode, output, errors
 
 
 def get_model_code(serial=None):
-    """Given a mac serial number, return the model code
+    """Given a mac serial number, return the model code.
 
     If serial is None, this mac's serial number is used.
 
@@ -116,10 +117,10 @@ def get_model_code(serial=None):
 
 
 def get_serial():
-    """Return this mac's serial number"""
+    """Return this mac's serial number."""
     try:
         p = sp.Popen(
-            ["ioreg", "-c", "IOPlatformExpertDevice", "-d", "2"],
+            ["ioreg", "-c", "IOPlatformExpertDevice", "-d", "2"],  # noqa: S607
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
@@ -130,13 +131,17 @@ def get_serial():
     match = re.search(r'"IOPlatformSerialNumber"\s*=\s*"([^"]*)"', output.decode())
     if match:
         return match.group(1)
+    return None
 
 
 def get_model_id():
-    """Return this mac's model id"""
+    """Return this mac's model id."""
     try:
         p = sp.Popen(
-            ["sysctl", "hw.model"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE
+            ["sysctl", "hw.model"],  # noqa: S607
+            stdin=sp.PIPE,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
         )
         output, errors = p.communicate()
     except BaseException:
@@ -147,7 +152,7 @@ def get_model_id():
 
 
 def get_machine_attributes(model_id=None):
-    """Given a mac model ID, return the machine attributes
+    """Given a mac model ID, return the machine attributes.
 
     If model_code is None, this mac's model code is used.
 
@@ -158,17 +163,14 @@ def get_machine_attributes(model_id=None):
             return None
     pf = "/System/Library/PrivateFrameworks"
     f = ".framework/Versions/A/Resources/English.lproj"
-    sk = "%s/ServerKit%s/XSMachineAttributes" % (pf, f)
-    si = "%s/ServerInformation%s/SIMachineAttributes" % (pf, f)
-    if os.path.isfile(si + ".plist"):
-        # Mac OS X 10.8 or newer
-        filename = si
-    else:
-        # Mac OS X 10.6/10.7
-        filename = sk
+    sk = f"{pf}/ServerKit{f}/XSMachineAttributes"
+    si = f"{pf}/ServerInformation{f}/SIMachineAttributes"
+    # Mac OS X 10.8 or newer use "ServerInformation",
+    # Mac OS X 10.6/10.7 "ServerKit"
+    filename = si if os.path.isfile(f"{si}.plist") else sk
     try:
         p = sp.Popen(
-            ["defaults", "read", filename, model_id],
+            ["defaults", "read", filename, model_id],  # noqa: S607
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.PIPE,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import sys
@@ -7,7 +6,7 @@ from unittest import mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from DisplayCAL import RealDisplaySizeMM, argyll, config
+from DisplayCAL import real_display_size_mm, argyll, config
 from DisplayCAL.dev.mocks import check_call
 from tests.data.display_data import DisplayData
 
@@ -19,18 +18,18 @@ except ImportError:
 
 @pytest.fixture(scope="function")
 def patch_subprocess_on_rdsmm(monkeypatch, patch_subprocess):
-    """Patch DisplayCAL.RealDisplaySizeMM.subprocess to return whatever we want."""
-    monkeypatch.setattr("DisplayCAL.RealDisplaySizeMM.subprocess", patch_subprocess)
+    """Patch DisplayCAL.real_display_size_mm.subprocess to return whatever we want."""
+    monkeypatch.setattr("DisplayCAL.real_display_size_mm.subprocess", patch_subprocess)
     yield patch_subprocess
 
 
 def test_real_display_size_mm(clear_displays):
-    """Test RealDisplaySizeMM() function."""
+    """Test real_display_size_mm() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
         with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-            display_size = RealDisplaySizeMM.RealDisplaySizeMM(0)
+            display_size = real_display_size_mm.RealDisplaySizeMM(0)
     assert display_size != (0, 0)
     assert display_size[0] > 1
     assert display_size[1] > 1
@@ -39,19 +38,19 @@ def test_real_display_size_mm(clear_displays):
 def test_xrandr_output_x_id_1(clear_displays):
     """Test GetXRandROutputXID() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
         with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-            result = RealDisplaySizeMM.GetXRandROutputXID(0)
+            result = real_display_size_mm.GetXRandROutputXID(0)
     assert result != 0
 
 
 def test_enumerate_displays(clear_displays):
     """Test enumerate_displays() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
-        result = RealDisplaySizeMM.enumerate_displays()
+        result = real_display_size_mm.enumerate_displays()
     assert result[0]["description"] != ""
     assert result[0]["edid"] != ""
     assert result[0]["icc_profile_atom_id"] != ""
@@ -69,15 +68,15 @@ def test_enumerate_displays(clear_displays):
     assert isinstance(result[0]["size_mm"][1], int)
     assert result[0]["x11_screen"] != ""
     # assert result[0]["xrandr_name"] != ""
-    assert RealDisplaySizeMM._displays is not None
+    assert real_display_size_mm._displays is not None
 
 
 def test__enumerate_displays_dispwin_path_is_none(monkeypatch, clear_displays):
     """_enumerate_displays() dispwin path is None returns empty list."""
     monkeypatch.setattr(
-        "DisplayCAL.RealDisplaySizeMM.argyll.get_argyll_util", lambda x: None
+        "DisplayCAL.real_display_size_mm.argyll.get_argyll_util", lambda x: None
     )
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert result == []
 
 
@@ -90,7 +89,7 @@ def test__enumerate_displays_uses_argyll_dispwin(
     PatchedArgyll = patch_argyll_util
     assert PatchedSubprocess.passed_args == []
     assert PatchedSubprocess.passed_kwargs == {}
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     # assert result == DisplayData.DISPWIN_OUTPUT_1
     assert PatchedSubprocess.passed_args != []
     assert "dispwin" in PatchedSubprocess.passed_args[0][0]
@@ -103,7 +102,7 @@ def test__enumerate_displays_uses_argyll_dispwin_output_1(
 ):
     """_enumerate_displays() uses dispwin."""
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_1
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 1
     assert (
@@ -120,7 +119,7 @@ def test__enumerate_displays_uses_argyll_dispwin_output_2(
 ):
     """_enumerate_displays() uses dispwin."""
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_2
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 2
     assert (
@@ -144,7 +143,7 @@ def test__enumerate_displays_uses_argyll_dispwin_output_6(
 ):
     """_enumerate_displays() uses dispwin."""
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_7
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 2
     assert (
@@ -168,7 +167,7 @@ def test__enumerate_displays_without_a_proper_dispwin_output_missing_lines(
 ):
     """_enumerate_displays() return empty list when dispwin returns no usable data."""
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_3
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert isinstance(result, list)
     assert len(result) == 0
 
@@ -181,7 +180,7 @@ def test__enumerate_displays_with_argyll_3_1_style_output(
 
     lang.init()
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_6
-    result = RealDisplaySizeMM._enumerate_displays()
+    result = real_display_size_mm._enumerate_displays()
     assert result[0]["name"] == b"Monitor 1, Output Virtual-1"
     assert (
         result[0]["description"]
@@ -200,7 +199,7 @@ def test__enumerate_displays_without_a_proper_dispwin_output_with_partial_match(
     lang.init()
     patch_subprocess_on_rdsmm.output["dispwin-v-d0"] = DisplayData.DISPWIN_OUTPUT_5
     with pytest.raises(ValueError) as cm:
-        result = RealDisplaySizeMM._enumerate_displays()
+        result = real_display_size_mm._enumerate_displays()
     assert str(cm.value) == (
         "An internal error occurred.\n"
         "Error code: -1\n"
@@ -209,23 +208,23 @@ def test__enumerate_displays_without_a_proper_dispwin_output_with_partial_match(
 
 
 def test_get_display(clear_displays):
-    """Test DisplayCAL.RealDisplaySizeMM.get_display() function."""
+    """Test DisplayCAL.real_display_size_mm.get_display() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
         with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-            display = RealDisplaySizeMM.get_display()
-    assert RealDisplaySizeMM._displays is not None
+            display = real_display_size_mm.get_display()
+    assert real_display_size_mm._displays is not None
     assert isinstance(display, dict)
 
 
 def test_get_x_display(clear_displays):
-    """Test DisplayCAL.RealDisplaySizeMM.get_x_display() function."""
+    """Test DisplayCAL.real_display_size_mm.get_x_display() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
         with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
-            display = RealDisplaySizeMM.get_x_display(0)
+            display = real_display_size_mm.get_x_display(0)
     assert isinstance(display, tuple)
     assert len(display) == 3
 
@@ -233,14 +232,14 @@ def test_get_x_display(clear_displays):
 @pytest.mark.parametrize(
     "function",
     (
-        RealDisplaySizeMM.get_x_icc_profile_atom_id,
-        RealDisplaySizeMM.get_x_icc_profile_output_atom_id,
+        real_display_size_mm.get_x_icc_profile_atom_id,
+        real_display_size_mm.get_x_icc_profile_output_atom_id,
     ),
 )
 def test_get_x_icc_profile_atom_id(clear_displays, function) -> None:
-    """Test DisplayCAL.RealDisplaySizeMM.get_x_icc_profile_atom_id() function."""
+    """Test DisplayCAL.real_display_size_mm.get_x_icc_profile_atom_id() function."""
     with check_call(
-        RealDisplaySizeMM, "_enumerate_displays", DisplayData.enumerate_displays()
+        real_display_size_mm, "_enumerate_displays", DisplayData.enumerate_displays()
     ):
         with check_call(config, "getcfg", DisplayData.CFG_DATA, call_count=2):
             result = function(0)
@@ -251,8 +250,8 @@ def test_get_x_icc_profile_atom_id(clear_displays, function) -> None:
 @pytest.mark.skipif("fake_dbus" not in sys.modules, reason="requires the DBus library")
 def test_get_wayland_display(monkeypatch: MonkeyPatch) -> None:
     """Test if wayland display is returned."""
-    with mock.patch.object(RealDisplaySizeMM, "DBusObject", new=FakeDBusObject):
-        display = RealDisplaySizeMM.get_wayland_display(0, 0, 0, 0)
+    with mock.patch.object(real_display_size_mm, "DBusObject", new=FakeDBusObject):
+        display = real_display_size_mm.get_wayland_display(0, 0, 0, 0)
     assert display["xrandr_name"] == "DP-2"
     assert display["size_mm"] == (597, 336)
 
@@ -266,9 +265,9 @@ def test_get_dispwin_output_dispwin_path_is_none_returns_empty_bytes(
         return None
 
     monkeypatch.setattr(
-        "DisplayCAL.RealDisplaySizeMM.argyll.get_argyll_util", patched_get_argyll_util
+        "DisplayCAL.real_display_size_mm.argyll.get_argyll_util", patched_get_argyll_util
     )
-    assert RealDisplaySizeMM.get_dispwin_output() == b""
+    assert real_display_size_mm.get_dispwin_output() == b""
 
 
 @pytest.mark.parametrize(
@@ -289,5 +288,5 @@ def test_get_dispwin_output_returns_dispwin_output_as_bytes(
     dispwin_path = argyll.get_argyll_util("dispwin")
     patch_subprocess_on_rdsmm.output[f"{dispwin_path}-v-d0"] = dispwin_data
 
-    result = RealDisplaySizeMM.get_dispwin_output()
+    result = real_display_size_mm.get_dispwin_output()
     assert isinstance(result, bytes)

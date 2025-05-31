@@ -31,7 +31,8 @@ the `ctypes` library for interacting with the Windows API.
 # I explicitly permit the knownpaths.py source code to be licensed by anyone
 # under the terms of the GNU GPL v3, as an alternative to the X11/MIT license.
 
-# Python 2.6/2.7 compatibility
+from __future__ import annotations
+
 import ctypes
 import sys
 from ctypes import windll, wintypes

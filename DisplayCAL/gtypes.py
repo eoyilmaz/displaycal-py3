@@ -1,4 +1,5 @@
 """Custom ctypes types and structures for GLib interoperability."""
+from __future__ import annotations
 
 from ctypes import Structure, c_char_p, c_int, c_uint
 from typing import ClassVar

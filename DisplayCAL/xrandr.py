@@ -5,6 +5,8 @@ window and output properties. The module is useful for working with X server
 configurations and display outputs programmatically.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 from ctypes import (

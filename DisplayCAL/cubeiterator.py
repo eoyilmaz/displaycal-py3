@@ -4,6 +4,8 @@ It includes functionality to define a cube, access its elements, and iterate
 through its contents.
 """
 
+from __future__ import annotations
+
 
 class Cube3D:
     """A 3D cube of data.

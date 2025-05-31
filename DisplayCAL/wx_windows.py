@@ -7943,11 +7943,11 @@ class SimpleBook(labelbook.FlatBookBase):
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="SimpleBook",
     ):
         labelbook.FlatBookBase.__init__(
-            self, parent, id, pos, size, style, agwStyle, name
+            self, parent, id, pos, size, style, agw_style, name
         )
 
         self._pages = self.CreateImageContainer()
@@ -7966,7 +7966,7 @@ class SimpleBook(labelbook.FlatBookBase):
     def CreateImageContainer(self):
         """Create the image container (LabelContainer) class for FlatImageBook."""
         return labelbook.ImageContainerBase(
-            self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
+            self, wx.ID_ANY, agw_style=self.GetAGWWindowStyleFlag()
         )
 
 

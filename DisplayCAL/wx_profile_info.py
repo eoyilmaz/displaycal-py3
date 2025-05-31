@@ -1250,7 +1250,7 @@ class ProfileInfoFrame(LUTFrame):
         self.SetSizer(self.sizer)
 
         self.splitter = PIFrame2WaySplitter(
-            self, -1, agwStyle=wx.SP_LIVE_UPDATE | wx.SP_NOSASH
+            self, -1, agw_style=wx.SP_LIVE_UPDATE | wx.SP_NOSASH
         )
         self.sizer.Add(self.splitter, 1, flag=wx.EXPAND)
 

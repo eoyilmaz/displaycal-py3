@@ -113,11 +113,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="ImageContainer",
     ):
         labelbook.ImageContainer.__init__(
-            self, parent, id, pos, size, style, agwStyle, name
+            self, parent, id, pos, size, style, agw_style, name
         )
         imagelist = None
         for img in ("tab_hilite", "tab_selected"):
@@ -442,7 +442,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         pos (wx.Point): The position of the FlatImageBook.
         size (wx.Size): The size of the FlatImageBook.
         style (int): The style of the FlatImageBook.
-        agwStyle (int): The advanced GUI window style flags.
+        agw_style (int): The advanced GUI window style flags.
         name (str): The name of the FlatImageBook.
     """
 
@@ -453,11 +453,11 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="FlatImageBook",
     ):
         labelbook.FlatImageBook.__init__(
-            self, parent, id, pos, size, style, agwStyle, name
+            self, parent, id, pos, size, style, agw_style, name
         )
 
     def CreateImageContainer(self):
@@ -467,14 +467,14 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
             DisplayAdjustmentImageContainer: An instance of the custom image.
         """
         return DisplayAdjustmentImageContainer(
-            self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
+            self, wx.ID_ANY, agw_style=self.GetAGWWindowStyleFlag()
         )
 
-    def SetAGWWindowStyleFlag(self, agwStyle):
+    def SetAGWWindowStyleFlag(self, agw_style):
         """Set the window style.
 
         Args:
-            agwStyle: Can be a combination of the following bits.
+            agw_style: Can be a combination of the following bits.
 
          =========================== =========== ==================================================
          Window Styles               Hex Value   Description
@@ -495,7 +495,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
          ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
          =========================== =========== ==================================================
         """  # noqa: E501
-        self._agwStyle = agwStyle
+        self._agw_style = agw_style
 
         # Check that we are not in initialization process
         if self._bInitializing:
@@ -513,7 +513,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         # Create new sizer with the requested orientaion
         className = self.GetName()
 
-        if className == "LabelBook" or agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+        if className == "LabelBook" or agw_style & INB_LEFT or agw_style & INB_RIGHT:
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
             self._mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -526,7 +526,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         if className == "FlatImageBook":
             scale = getcfg("app.dpi") / get_default_dpi()
             scale = max(scale, 1)
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
+            if agw_style & INB_LEFT or agw_style & INB_RIGHT:
                 border = round(24 * scale)
                 self._pages.SetSizeHints(self._pages._nImgSize + border, -1)
             else:
@@ -536,7 +536,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         if self.GetSelection() >= 0:
             self.DoSetSelection(self._windows[self.GetSelection()])
 
-        if agwStyle & INB_FIT_LABELTEXT:
+        if agw_style & INB_FIT_LABELTEXT:
             self.ResizeTabArea()
 
         self._mainSizer.Layout()
@@ -822,7 +822,7 @@ class DisplayAdjustmentFrame(windowcls):
 
         # FlatImageNotebook
         self.lb = DisplayAdjustmentFlatImageBook(
-            self, agwStyle=INB_LEFT | INB_SHOW_ONLY_IMAGES
+            self, agw_style=INB_LEFT | INB_SHOW_ONLY_IMAGES
         )
         self.lb.SetBackgroundColour(BGCOLOUR)
         self.add_panel((12, 12), flag=wx.EXPAND)

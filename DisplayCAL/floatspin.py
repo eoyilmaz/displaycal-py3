@@ -70,7 +70,7 @@ Usage example::
             panel = wx.Panel(self)
 
             floatspin = FS.FloatSpin(panel, -1, pos=(50, 50), min_val=0, max_val=1,
-                                     increment=0.01, value=0.1, agwStyle=FS.FS_LEFT)
+                                     increment=0.01, value=0.1, agw_style=FS.FS_LEFT)
             floatspin.SetFormat("%f")
             floatspin.SetDigits(2)
 
@@ -380,7 +380,7 @@ class FloatSpin(wx.PyControl):
         max_val=None,
         increment=1.0,
         digits=-1,
-        agwStyle=FS_LEFT,
+        agw_style=FS_LEFT,
         name="FloatSpin",
     ):
         """Default class constructor.
@@ -401,7 +401,7 @@ class FloatSpin(wx.PyControl):
             max_val: the maximum value, ignored if ``None``.
             increment: the increment for every :class:`FloatSpinEvent` event.
             digits: number of representative digits for your floating point numbers.
-            agwStyle: one of the following bits:
+            agw_style: one of the following bits:
 
                 =============== =========== ==================================================
                 Window Styles   Hex Value   Description
@@ -522,12 +522,12 @@ class FloatSpin(wx.PyControl):
 
         txtstyle = wx.TE_NOHIDESEL | wx.TE_PROCESS_ENTER
 
-        if agwStyle & FS_RIGHT:
+        if agw_style & FS_RIGHT:
             txtstyle = txtstyle | wx.TE_RIGHT
-        elif agwStyle & FS_CENTRE:
+        elif agw_style & FS_CENTRE:
             txtstyle = txtstyle | wx.TE_CENTER
 
-        if agwStyle & FS_READONLY:
+        if agw_style & FS_READONLY:
             txtstyle = txtstyle | wx.TE_READONLY
 
         self._textctrl = FloatTextCtrl(
@@ -568,7 +568,7 @@ class FloatSpin(wx.PyControl):
 
         self.SetFormat()
 
-        if not (agwStyle & FS_READONLY):
+        if not (agw_style & FS_READONLY):
             self.Bind(wx.EVT_SPIN_UP, self.OnSpinUp)
             self.Bind(wx.EVT_SPIN_DOWN, self.OnSpinDown)
             self._spinbutton.Bind(wx.EVT_LEFT_DOWN, self.OnSpinMouseDown)
@@ -1330,7 +1330,7 @@ if wx.VERSION >= (3,):
             max_val=None,
             increment=1.0,
             digits=-1,
-            agwStyle=FS_LEFT,
+            agw_style=FS_LEFT,
             name="FloatSpin",
         ):
             if "gtk3" in wx.PlatformInfo:
@@ -1342,12 +1342,12 @@ if wx.VERSION >= (3,):
                     text.Destroy()
                 size = size[0] + FloatSpin._spinwidth, size[1]
 
-            if agwStyle & FS_RIGHT:
+            if agw_style & FS_RIGHT:
                 style = style | wx.TE_RIGHT
-            elif agwStyle & FS_CENTRE:
+            elif agw_style & FS_CENTRE:
                 style = style | wx.TE_CENTER
 
-            if agwStyle & FS_READONLY:
+            if agw_style & FS_READONLY:
                 style = style | wx.TE_READONLY
 
             wx.SpinCtrlDouble.__init__(

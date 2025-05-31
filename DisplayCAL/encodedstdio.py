@@ -12,6 +12,12 @@ from typing import Any
 
 from DisplayCAL.encoding import get_encoding
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+
 _codecs = {}
 _stdio = {}
 
@@ -178,7 +184,7 @@ class EncodedStream:
             for line in self.stream.readlines(size)
         ]
 
-    def xreadlines(self):
+    def xreadlines(self) -> Self:
         """Return an iterator that reads lines from the stream.
 
         Returns:

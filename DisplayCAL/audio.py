@@ -11,6 +11,7 @@ Example:
 sound = Sound("test.wav", loop=True)
 sound.Play(fade_ms=1000)
 """
+
 from __future__ import annotations
 
 import contextlib

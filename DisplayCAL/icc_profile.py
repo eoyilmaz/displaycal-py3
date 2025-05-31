@@ -6555,7 +6555,7 @@ class XYZType(ICCProfileTag, XYZNumber):
         return XYZ
 
     @property
-    def ir(self):
+    def ir(self) -> Self | XYZType:
         """Get illuminant-relative values."""
         pcs_illuminant = list(self.profile.illuminant.values())
         if b"chad" in self.profile.tags and self.profile.creator != b"appl":
@@ -6592,7 +6592,7 @@ class XYZType(ICCProfileTag, XYZNumber):
         return self.adapt(pcs_illuminant, list(self.profile.tags.wtpt.values()))
 
     @property
-    def pcs(self):
+    def pcs(self) -> Self | XYZType:
         """Get PCS-relative values."""
         if self in (self.profile.tags.wtpt, self.profile.tags.get("bkpt")) and (
             "chad" not in self.profile.tags or self.profile.creator == b"appl"

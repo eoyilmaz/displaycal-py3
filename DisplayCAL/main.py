@@ -12,6 +12,10 @@ import threading
 import sys
 from time import sleep
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 # Python version check
 from DisplayCAL.meta import PY_MAXVERSION, PY_MINVERSION
@@ -681,7 +685,7 @@ class AppLock:
         self._blocking = blocking
         self.lock()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, etype, value, traceback):

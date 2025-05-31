@@ -19,6 +19,7 @@ uninstall (setup.py uninstall --record=INSTALLED_FILES), otherwise use
 the wrapper script in the root directory of the source tar.gz/zip
 
 """
+
 from __future__ import annotations
 
 import codecs

@@ -18,6 +18,11 @@ import textwrap
 import traceback
 from binascii import hexlify
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 if sys.platform == "win32":
     import win32api
 
@@ -764,7 +769,7 @@ class Xicclu(WorkerBase):
                 break
             i += 1
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Enter the runtime context related to this object.
 
         Returns:

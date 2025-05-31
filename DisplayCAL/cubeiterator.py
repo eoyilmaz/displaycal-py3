@@ -6,6 +6,13 @@ through its contents.
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 class Cube3D:
     """A 3D cube of data.
@@ -170,7 +177,7 @@ class Cube3DIterator(Cube3D):
         Cube3D.__init__(self, *args, **kwargs)
         self._next = 0
 
-    def __iter__(self) -> "Cube3DIterator":
+    def __iter__(self) -> Self:
         """Return the object itself as an iterator."""
         return self
 

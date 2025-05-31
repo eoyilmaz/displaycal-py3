@@ -2,6 +2,7 @@
 
 It uses the Windows API through the `ctypes` library.
 """
+
 from __future__ import annotations
 
 import ctypes

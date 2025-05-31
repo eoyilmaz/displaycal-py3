@@ -5095,7 +5095,7 @@ class Matrix3x3(list):
     @overload
     def __imul__(self, matrix: Matrix3x3) -> Self: ...
 
-    def __imul__(self, matrix):
+    def __imul__(self, matrix) -> Self:
         """Matrix multiplication.
 
         Args:

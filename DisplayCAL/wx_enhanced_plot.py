@@ -105,7 +105,14 @@ from __future__ import annotations
 import contextlib
 import functools
 import string as _string
+import sys
 from typing import ClassVar
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 import numpy as np
 import wx
@@ -341,7 +348,7 @@ class TempStyle:
 
         return wrapper
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Enter the context manager.
 
         Returns:

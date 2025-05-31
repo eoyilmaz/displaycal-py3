@@ -22,6 +22,12 @@ from ctypes import (
 )
 from typing import ClassVar
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+
 libx11pth = util.find_library("X11")
 if not libx11pth:
     raise ImportError("Couldn't find libX11")
@@ -111,7 +117,7 @@ class XDisplay:
     def __init__(self, name=None):
         self.name = name or os.getenv("DISPLAY")
 
-    def __enter__(self) -> "XDisplay":
+    def __enter__(self) -> Self:
         """Enter the runtime context related to this object."""
         self.open()
         return self

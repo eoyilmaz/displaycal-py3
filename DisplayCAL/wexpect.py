@@ -76,6 +76,12 @@ import sys
 import time
 import traceback
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+
 if sys.platform != "win32":
     import fcntl
     import pty
@@ -1067,7 +1073,7 @@ class SpawnUnix:
             return self.before + "\r\n"
         return self.before
 
-    def __iter__(self):  # File-like object.
+    def __iter__(self) -> Self:  # File-like object.
         """Support iterators over a file-like object."""
         return self
 

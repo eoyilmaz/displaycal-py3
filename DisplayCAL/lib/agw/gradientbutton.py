@@ -147,12 +147,12 @@ class GradientButtonEvent(wx.PyCommandEvent):
         eventId (int): the event identifier.
     """
 
-    def __init__(self, eventType: int, eventId: int) -> None:
-        wx.PyCommandEvent.__init__(self, eventType, eventId)
+    def __init__(self, event_type: int, event_id: int) -> None:
+        wx.PyCommandEvent.__init__(self, event_type, event_id)
         self.isDown = False
         self.theButton: None | GradientButton = None
 
-    def SetButtonObj(self, btn: GradientButton) -> None:
+    def SetButtonObj(self, btn: GradientButton) -> None:  # noqa: N802
         """Set the event object for the event.
 
         Args:
@@ -160,7 +160,7 @@ class GradientButtonEvent(wx.PyCommandEvent):
         """
         self.theButton = btn
 
-    def GetButtonObj(self) -> None | GradientButton:
+    def GetButtonObj(self) -> None | GradientButton:  # noqa: N802
         """Return the object associated with this event.
 
         Returns:
@@ -229,7 +229,7 @@ class GradientButton(wx.Control):
 
         self.SetBaseColours()
 
-    def SetBitmapLabel(self, bitmap: None | wx.Bitmap) -> None:
+    def SetBitmapLabel(self, bitmap: None | wx.Bitmap) -> None:  # noqa: N802
         """Set the bitmap label for the button.
 
         Args:
@@ -238,7 +238,7 @@ class GradientButton(wx.Control):
         self._bitmap = bitmap
         self.Refresh()
 
-    def SetBaseColours(
+    def SetBaseColours(  # noqa: N802
         self,
         startcolour: None | wx.Colour = None,
         foregroundcolour: None | wx.Colour = None,
@@ -269,7 +269,7 @@ class GradientButton(wx.Control):
         self._pressedBottomColour = wx.Colour(*rgba)
         self.SetForegroundColour(foregroundcolour)
 
-    def LightColour(self, colour: wx.Colour, percent: int) -> wx.Colour:
+    def LightColour(self, colour: wx.Colour, percent: int) -> wx.Colour:  # noqa: N802
         """Return light contrast of `colour`.
 
         The colour returned is from the scale of `colour` ==> white.
@@ -297,7 +297,7 @@ class GradientButton(wx.Control):
 
         return wx.Colour(int(r), int(g), int(b), int(a))
 
-    def OnSize(self, event: wx.SizeEvent) -> None:
+    def OnSize(self, event: wx.SizeEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_SIZE`` event for :class:`GradientButton`.
 
         Args:
@@ -306,7 +306,7 @@ class GradientButton(wx.Control):
         event.Skip()
         self.Refresh()
 
-    def OnLeftDown(self, event: wx.MouseEvent) -> None:
+    def OnLeftDown(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEFT_DOWN`` event for :class:`GradientButton`.
 
         Args:
@@ -320,7 +320,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         event.Skip()
 
-    def OnLeftUp(self, event: wx.MouseEvent) -> None:
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEFT_UP`` event for :class:`GradientButton`.
 
         Args:
@@ -344,7 +344,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         event.Skip()
 
-    def OnMouseEnter(self, event: wx.MouseEvent) -> None:
+    def OnMouseEnter(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_ENTER_WINDOW`` event for :class:`GradientButton`.
 
         Args:
@@ -357,7 +357,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         event.Skip()
 
-    def OnMouseLeave(self, event: wx.MouseEvent) -> None:
+    def OnMouseLeave(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEAVE_WINDOW`` event for :class:`GradientButton`.
 
         Args:
@@ -367,7 +367,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         event.Skip()
 
-    def OnGainFocus(self, event: wx.FocusEvent) -> None:
+    def OnGainFocus(self, event: wx.FocusEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_SET_FOCUS`` event for :class:`GradientButton`.
 
         Args:
@@ -377,7 +377,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         self.Update()
 
-    def OnLoseFocus(self, event: wx.FocusEvent) -> None:
+    def OnLoseFocus(self, event: wx.FocusEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_KILL_FOCUS`` event for :class:`GradientButton`.
 
         Args:
@@ -387,7 +387,7 @@ class GradientButton(wx.Control):
         self.Refresh()
         self.Update()
 
-    def OnKeyDown(self, event: wx.KeyEvent) -> None:
+    def OnKeyDown(self, event: wx.KeyEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_KEY_DOWN`` event for :class:`GradientButton`.
 
         Args:
@@ -398,7 +398,7 @@ class GradientButton(wx.Control):
             self.Refresh()
         event.Skip()
 
-    def OnKeyUp(self, event: wx.KeyEvent) -> None:
+    def OnKeyUp(self, event: wx.KeyEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_KEY_UP`` event for :class:`GradientButton`.
 
         Args:
@@ -410,7 +410,7 @@ class GradientButton(wx.Control):
             self.Refresh()
         event.Skip()
 
-    def OnPaint(self, event: wx.PaintEvent) -> None:
+    def OnPaint(self, event: wx.PaintEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_PAINT`` event for :class:`GradientButton`.
 
         Args:
@@ -421,26 +421,26 @@ class GradientButton(wx.Control):
         dc.SetBackground(wx.Brush(self.GetParent().GetBackgroundColour()))
         dc.Clear()
 
-        clientRect = self.GetClientRect()
-        gradientRect = wx.Rect(*clientRect)
+        client_rect = self.GetClientRect()
+        gradient_rect = wx.Rect(*client_rect)
         capture = wx.Window.GetCapture()
 
-        x, y, width, height = clientRect
+        x, y, width, height = client_rect
 
-        gradientRect.SetHeight(
-            gradientRect.GetHeight() // 2 + (((capture == self and [1]) or [0])[0])
+        gradient_rect.SetHeight(
+            gradient_rect.GetHeight() // 2 + (((capture == self and [1]) or [0])[0])
         )
         if capture != self:
             if self._mouseAction == HOVER:
-                topStart = self.LightColour(self._topStartColour, 10)
-                topEnd = self.LightColour(self._topEndColour, 10)
+                top_start = self.LightColour(self._topStartColour, 10)
+                top_end = self.LightColour(self._topEndColour, 10)
             else:
-                topStart, topEnd = self._topStartColour, self._topEndColour
+                top_start, top_end = self._topStartColour, self._topEndColour
 
             rc1 = wx.Rect(x, y, width, height // 2)
             path1 = self.GetPath(gc, rc1, 8)
             br1 = gc.CreateLinearGradientBrush(
-                x, y, x, y + height / 2, topStart, topEnd
+                x, y, x, y + height / 2, top_start, top_end
             )
             gc.SetBrush(br1)
             gc.FillPath(path1)  # draw main
@@ -458,19 +458,22 @@ class GradientButton(wx.Control):
             gc.SetBrush(wx.Brush(self._pressedTopColour))
             gc.FillPath(path1)
 
-        gradientRect.Offset((0, gradientRect.GetHeight()))
+        gradient_rect.Offset((0, gradient_rect.GetHeight()))
 
         if capture != self:
             if self._mouseAction == HOVER:
-                bottomStart = self.LightColour(self._bottomStartColour, 10)
-                bottomEnd = self.LightColour(self._bottomEndColour, 10)
+                bottom_start = self.LightColour(self._bottomStartColour, 10)
+                bottom_end = self.LightColour(self._bottomEndColour, 10)
             else:
-                bottomStart, bottomEnd = self._bottomStartColour, self._bottomEndColour
+                bottom_start, bottom_end = (
+                    self._bottomStartColour,
+                    self._bottomEndColour,
+                )
 
             rc3 = wx.Rect(x, y + height // 2, width, height // 2)
             path3 = self.GetPath(gc, rc3, 8)
             br3 = gc.CreateLinearGradientBrush(
-                x, y + height / 2, x, y + height, bottomStart, bottomEnd
+                x, y + height / 2, x, y + height, bottom_start, bottom_end
             )
             gc.SetBrush(br3)
             gc.FillPath(path3)  # draw main
@@ -481,16 +484,19 @@ class GradientButton(wx.Control):
             gc.SetBrush(br3)
             gc.FillPath(path4)
 
-            shadowOffset = 0
+            shadow_offset = 0
         else:
             rc2 = wx.Rect(
-                x + 1, gradientRect.height // 2, gradientRect.width, gradientRect.height
+                x + 1,
+                gradient_rect.height // 2,
+                gradient_rect.width,
+                gradient_rect.height,
             )
             path2 = self.GetPath(gc, rc2, 8)
             gc.SetPen(wx.Pen(self._pressedBottomColour))
             gc.SetBrush(wx.Brush(self._pressedBottomColour))
             gc.FillPath(path2)
-            shadowOffset = 1
+            shadow_offset = 1
 
         # Create a ClientDC to get the text extent
         client_dc = wx.ClientDC(self)
@@ -507,28 +513,28 @@ class GradientButton(wx.Control):
 
         # Set default values for pos_x and pos_y
         pos_x: float = 0.0
-        pos_y: float = (height - th) / 2 + shadowOffset
+        pos_y: float = (height - th) / 2 + shadow_offset
 
         if self._alignment == wx.CENTER:
             # adjust for bitmap and text to centre
-            pos_x = (width - bw - tw) / 2 + shadowOffset
-            pos_y = (height - bh) / 2 + shadowOffset
+            pos_x = (width - bw - tw) / 2 + shadow_offset
+            pos_y = (height - bh) / 2 + shadow_offset
             if self._bitmap:
                 # draw bitmap if available
                 gc.DrawBitmap(self._bitmap, pos_x, pos_y, bw, bh)
                 pos_x += bw + 2  # extra spacing from bitmap
         elif self._alignment == wx.LEFT:
             pos_x = 3  # adjust for bitmap and text to left
-            pos_y = (height - bh) / 2 + shadowOffset
+            pos_y = (height - bh) / 2 + shadow_offset
             if self._bitmap:
                 gc.DrawBitmap(
                     self._bitmap, pos_x, pos_y, bw, bh
                 )  # draw bitmap if available
                 pos_x += bw + 3  # extra spacing from bitmap
 
-        gc.DrawText(label, pos_x + shadowOffset, pos_y)
+        gc.DrawText(label, pos_x + shadow_offset, pos_y)
 
-    def GetPath(self, gc: wx.GraphicsContext, rc: wx.Rect, r: int) -> wx.GraphicsPath:
+    def GetPath(self, gc: wx.GraphicsContext, rc: wx.Rect, r: int) -> wx.GraphicsPath:  # noqa: N802
         """Return a rounded :class:`GraphicsPath` rectangle.
 
         Args:
@@ -545,7 +551,7 @@ class GradientButton(wx.Control):
         path.CloseSubpath()
         return path
 
-    def SetInitialSize(self, size: None | wx.Size = None) -> None:
+    def SetInitialSize(self, size: None | wx.Size = None) -> None:  # noqa: N802
         """Calculate and set a suitable size based on font and bezel width.
 
         Args:
@@ -557,7 +563,7 @@ class GradientButton(wx.Control):
 
     SetBestSize = SetInitialSize
 
-    def AcceptsFocus(self) -> bool:
+    def AcceptsFocus(self) -> bool:  # noqa: N802
         """Return True if this window can be given focus by mouse click.
 
         Note:
@@ -568,7 +574,7 @@ class GradientButton(wx.Control):
         """
         return self.IsShown() and self.IsEnabled()
 
-    def GetDefaultAttributes(self) -> wx.VisualAttributes:
+    def GetDefaultAttributes(self) -> wx.VisualAttributes:  # noqa: N802
         """Overridden base class virtual.
 
         By default we should use the same font/colour attributes as the native
@@ -579,7 +585,7 @@ class GradientButton(wx.Control):
         """
         return wx.Button.GetClassDefaultAttributes()
 
-    def ShouldInheritColours(self) -> bool:
+    def ShouldInheritColours(self) -> bool:  # noqa: N802
         """Overridden base class virtual.
 
         Buttons usually don't inherit the parent's colours.
@@ -593,7 +599,7 @@ class GradientButton(wx.Control):
         """
         return False
 
-    def Enable(self, enable: bool = True) -> None:
+    def Enable(self, enable: bool = True) -> None:  # noqa: N802
         """Enable/disable the button.
 
         Args:
@@ -605,7 +611,7 @@ class GradientButton(wx.Control):
         wx.Control.Enable(self, enable)
         self.Refresh()
 
-    def SetTopStartColour(self, colour: wx.Colour) -> None:
+    def SetTopStartColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the top start colour for the gradient shading.
 
         Args:
@@ -614,7 +620,7 @@ class GradientButton(wx.Control):
         self._topStartColour = colour
         self.Refresh()
 
-    def GetTopStartColour(self) -> wx.Colour:
+    def GetTopStartColour(self) -> wx.Colour:  # noqa: N802
         """Return the top start colour for the gradient shading.
 
         Returns:
@@ -622,7 +628,7 @@ class GradientButton(wx.Control):
         """
         return self._topStartColour
 
-    def SetTopEndColour(self, colour: wx.Colour) -> None:
+    def SetTopEndColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the top end colour for the gradient shading.
 
         Args:
@@ -631,7 +637,7 @@ class GradientButton(wx.Control):
         self._topEndColour = colour
         self.Refresh()
 
-    def GetTopEndColour(self) -> wx.Colour:
+    def GetTopEndColour(self) -> wx.Colour:  # noqa: N802
         """Return the top end colour for the gradient shading.
 
         Returns:
@@ -639,7 +645,7 @@ class GradientButton(wx.Control):
         """
         return self._topEndColour
 
-    def SetBottomStartColour(self, colour: wx.Colour) -> None:
+    def SetBottomStartColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the top bottom colour for the gradient shading.
 
         Args:
@@ -648,7 +654,7 @@ class GradientButton(wx.Control):
         self._bottomStartColour = colour
         self.Refresh()
 
-    def GetBottomStartColour(self) -> wx.Colour:
+    def GetBottomStartColour(self) -> wx.Colour:  # noqa: N802
         """Return the bottom start colour for the gradient shading.
 
         Returns:
@@ -656,7 +662,7 @@ class GradientButton(wx.Control):
         """
         return self._bottomStartColour
 
-    def SetBottomEndColour(self, colour: wx.Colour) -> None:
+    def SetBottomEndColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the bottom end colour for the gradient shading.
 
         Args:
@@ -665,7 +671,7 @@ class GradientButton(wx.Control):
         self._bottomEndColour = colour
         self.Refresh()
 
-    def GetBottomEndColour(self) -> wx.Colour:
+    def GetBottomEndColour(self) -> wx.Colour:  # noqa: N802
         """Return the bottom end colour for the gradient shading.
 
         Returns:
@@ -673,7 +679,7 @@ class GradientButton(wx.Control):
         """
         return self._bottomEndColour
 
-    def SetPressedTopColour(self, colour: wx.Colour) -> None:
+    def SetPressedTopColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the pressed top start colour for the gradient shading.
 
         Args:
@@ -682,7 +688,7 @@ class GradientButton(wx.Control):
         self._pressedTopColour = colour
         self.Refresh()
 
-    def GetPressedTopColour(self) -> wx.Colour:
+    def GetPressedTopColour(self) -> wx.Colour:  # noqa: N802
         """Return the pressed top start colour for the gradient shading.
 
         Returns:
@@ -690,7 +696,7 @@ class GradientButton(wx.Control):
         """
         return self._pressedTopColour
 
-    def SetPressedBottomColour(self, colour: wx.Colour) -> None:
+    def SetPressedBottomColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the pressed bottom start colour for the gradient shading.
 
         Args:
@@ -699,7 +705,7 @@ class GradientButton(wx.Control):
         self._pressedBottomColour: wx.Colour = colour
         self.Refresh()
 
-    def GetPressedBottomColour(self) -> wx.Colour:
+    def GetPressedBottomColour(self) -> wx.Colour:  # noqa: N802
         """Return the pressed bottom start colour for the gradient shading.
 
         Returns:
@@ -707,7 +713,7 @@ class GradientButton(wx.Control):
         """
         return self._pressedBottomColour
 
-    def SetForegroundColour(self, colour: wx.Colour) -> None:
+    def SetForegroundColour(self, colour: wx.Colour) -> None:  # noqa: N802
         """Set the :class:`GradientButton` foreground (text) colour.
 
         Args:
@@ -719,7 +725,7 @@ class GradientButton(wx.Control):
         wx.Control.SetForegroundColour(self, colour)
         self.Refresh()
 
-    def DoGetBestSize(self) -> wx.Size:
+    def DoGetBestSize(self) -> wx.Size:  # noqa: N802
         """Overridden base class virtual.
 
         Determines the best size of the button based on the label and bezel size.
@@ -736,20 +742,23 @@ class GradientButton(wx.Control):
 
         dc = wx.ClientDC(self)
         dc.SetFont(self.GetFont())
-        retWidth, retHeight = dc.GetTextExtent(label)
+        ret_width, ret_height = dc.GetTextExtent(label)
 
-        bmpWidth = 0
-        bmpHeight = 0
+        bmp_width = 0
+        bmp_height = 0
         constant = 15
         if self._bitmap:
-            bmpWidth, bmpHeight = self._bitmap.GetWidth() + 10, self._bitmap.GetHeight()
-            retWidth += bmpWidth
-            retHeight = max(bmpHeight, retHeight)
+            bmp_width, bmp_height = (
+                self._bitmap.GetWidth() + 10,
+                self._bitmap.GetHeight(),
+            )
+            ret_width += bmp_width
+            ret_height = max(bmp_height, ret_height)
             constant = 15
 
-        return wx.Size(retWidth + constant, retHeight + constant)
+        return wx.Size(ret_width + constant, ret_height + constant)
 
-    def SetDefault(self) -> None:
+    def SetDefault(self) -> None:  # noqa: N802
         """Set the default button."""
         tlw = wx.GetTopLevelParent(self)
         if isinstance(tlw, (wx.Dialog, wx.Frame)) and hasattr(tlw, "SetDefaultItem"):
@@ -758,7 +767,7 @@ class GradientButton(wx.Control):
             # Fallback: Set the button as the default in a different way if possible
             self.SetDefault()
 
-    def Notify(self) -> None:
+    def Notify(self) -> None:  # noqa: N802
         """Actually send a ``wx.EVT_BUTTON`` event to the listener (if any)."""
         evt = GradientButtonEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.GetId())
         evt.SetButtonObj(self)

@@ -642,7 +642,7 @@ def get_menu_up_arrow_bitmap() -> wx.Bitmap:
     return bmp
 
 
-def get_menu_down_arow_bitmap() -> wx.Bitmap:
+def get_menu_down_arrow_bitmap() -> wx.Bitmap:
     """Return a wx.Bitmap object representing a menu down arrow with a white mask.
 
     Returns:

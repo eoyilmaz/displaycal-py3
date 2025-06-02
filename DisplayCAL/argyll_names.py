@@ -62,7 +62,7 @@ ALTNAMES = {
 }
 
 
-def add_prefixes_suffixes(name, altname) -> None:
+def add_prefixes_suffixes(name: str, altname: str) -> None:
     """Add prefixes and suffixes to the alternative tool names.
 
     Args:

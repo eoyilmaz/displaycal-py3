@@ -45,60 +45,60 @@ for e in range(3):
 NORMALISATION_FACTOR["Ynorm"] = 1.0 / NORMALISATION_FACTOR["Ynorm"]
 
 
-def XYZ_denormalize_remove_glare(X, Y, Z):
+def xyz_denormalize_remove_glare(x: float, y: float, z:float) -> tuple:
     """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
 
     Args:
-        X (float): The X component of the XYZ color.
-        Y (float): The Y component of the XYZ color.
-        Z (float): The Z component of the XYZ color.
+        x (float): The X component of the XYZ color.
+        y (float): The Y component of the XYZ color.
+        z (float): The Z component of the XYZ color.
 
     Returns:
         tuple: A tuple containing the X, Y, and Z components of the XYZ color.
     """
-    XYZ = [X, Y, Z]
-    # De-Normalise Y from 1.0, & remove black glare
+    xyz = [x, y, z]
+    # De-Normalize Y from 1.0, & remove black glare
     for j in range(3):
-        XYZ[j] = (XYZ[j] - ICX_INK_TABLE["K"][0][j]) / (1.0 - ICX_INK_TABLE["K"][0][j])
-        XYZ[j] /= NORMALISATION_FACTOR["Ynorm"]
-    return tuple(XYZ)
+        xyz[j] = (xyz[j] - ICX_INK_TABLE["K"][0][j]) / (1.0 - ICX_INK_TABLE["K"][0][j])
+        xyz[j] /= NORMALISATION_FACTOR["Ynorm"]
+    return tuple(xyz)
 
 
-def XYZ_normalize_add_glare(X, Y, Z):
+def xyz_normalize_add_glare(x: float, y: float, z: float) -> tuple:
     """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
 
     Args:
-        X (float): The X component of the XYZ color.
-        Y (float): The Y component of the XYZ color.
-        Z (float): The Z component of the XYZ color.
+        x (float): The X component of the XYZ color.
+        y (float): The Y component of the XYZ color.
+        z (float): The Z component of the XYZ color.
 
     Returns:
         tuple: A tuple containing the X, Y, and Z components of the XYZ color.
     """
-    XYZ = [X, Y, Z]
-    # Normalise Y to 1.0, & add black glare
+    xyz = [x, y, z]
+    # Normalize Y to 1.0, & add black glare
     for j in range(3):
-        XYZ[j] *= NORMALISATION_FACTOR["Ynorm"]
-        XYZ[j] = XYZ[j] * (1.0 - ICX_INK_TABLE["K"][0][j]) + ICX_INK_TABLE["K"][0][j]
-    return tuple(XYZ)
+        xyz[j] *= NORMALISATION_FACTOR["Ynorm"]
+        xyz[j] = xyz[j] * (1.0 - ICX_INK_TABLE["K"][0][j]) + ICX_INK_TABLE["K"][0][j]
+    return tuple(xyz)
 
 
-def RGB2XYZ(R, G, B):
+def rgb2xyz(r: float, g: float, b: float) -> tuple:
     """Convert RGB to XYZ using the RGB to XYZ conversion.
 
     from xcolorants.c -> icxColorantLu_to_XYZ
 
     Args:
-        R (float): The red component of the RGB color.
-        G (float): The green component of the RGB color.
-        B (float): The blue component of the RGB color.
+        r (float): The red component of the RGB color.
+        g (float): The green component of the RGB color.
+        b (float): The blue component of the RGB color.
 
     Returns:
         tuple: A tuple containing the X, Y, and Z components of the XYZ color.
     """
-    d = (R, G, B)
+    d = (r, g, b)
     # We assume a simple additive model with gamma
-    XYZ = [0.0, 0.0, 0.0]
+    xyz = [0.0, 0.0, 0.0]
     for e in range(3):
         v = d[e]
         if v < 0.0:
@@ -110,19 +110,19 @@ def RGB2XYZ(R, G, B):
         else:
             v = math.pow((0.055 + v) / 1.055, 2.4)  # Gamma
         for j in range(3):
-            XYZ[j] += v * ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][j]
-    return XYZ_normalize_add_glare(*XYZ)
+            xyz[j] += v * ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][j]
+    return xyz_normalize_add_glare(*xyz)
 
 
-def XYZ2RGB(X, Y, Z):
+def xyz2rgb(x: float, y: float, z: float) -> tuple:
     """Convert XYZ to RGB using the inverse of the RGB to XYZ conversion.
 
     Args:
-        X (float): The X component of the XYZ color.
-        Y (float): The Y component of the XYZ color.
-        Z (float): The Z component of the XYZ color.
+        x (float): The X component of the XYZ color.
+        y (float): The Y component of the XYZ color.
+        z (float): The Z component of the XYZ color.
 
     Returns:
         tuple: A tuple containing the R, G, and B components of the RGB color.
     """
-    return colormath.XYZ2RGB(*XYZ_denormalize_remove_glare(X, Y, Z))
+    return colormath.XYZ2RGB(*xyz_denormalize_remove_glare(x, y, z))

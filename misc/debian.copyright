@@ -60,11 +60,6 @@ Files: ${APPNAME}/theme/icons/16x16/checkmark.png ${APPNAME}/theme/icons/16x16/d
 Copyright: 2017-${YEAR}, Sam Hewitt
 License: GPL-3+
 
-Files: ${APPNAME}/RealDisplaySizeMM.c
-Copyright: 1995-${YEAR}, Graeme W. Gill <Graeme@argyllcms.com>
-           2008-${YEAR}, Florian Höch <${AUTHOR_EMAIL}>
-License: GPL-3+
-
 Files: ${APPNAME}/cacert.pem
 Copyright: Kenneth Reitz me@kennethreitz.com
 License: MPL-2
@@ -93,7 +88,7 @@ Files: ${APPNAME}/win_knownpaths.py
 Copyright: 2014-${YEAR}, Michael Kropat
 License: MIT-style or GPL-3+
 
-Files: ${APPNAME}/wxenhancedplot.py
+Files: ${APPNAME}/wx_enhanced_plot.py
 Copyright: 2003-2004, Gordon Williams <g_will@cyberus.ca>
            2003, Jeff Grimmett <grimmtooth@softhome.net>
            2009-${YEAR}, Florian Höch <${AUTHOR_EMAIL}>

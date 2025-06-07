@@ -1,4 +1,9 @@
-# -*- coding: utf-8 -*-
+"""Visualize CCMX/CCSS data with wxPython.
+
+It includes tools for plotting spectral data, matrix 'flower' plots, and CIE
+1931 chromaticity diagrams, with support for interactive zooming, toggling
+views, and customized graph rendering.
+"""
 
 import math
 import os
@@ -7,20 +12,20 @@ import sys
 from DisplayCAL import (
     colormath,
     config,
-    localization as lang,
-    wxenhancedplot as plot,
 )
-from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL import localization as lang
+from DisplayCAL import wx_enhanced_plot as plot
+from DisplayCAL.argyll_instruments import get_canonical_instrument_name
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError
 from DisplayCAL.icc_profile import CRInterpolation
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_str import make_filename_safe
 from DisplayCAL.worker_base import get_argyll_util
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxLUTViewer import LUTCanvas
-from DisplayCAL.wxwindows import FlatShadedButton, show_result_dialog
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_lut_viewer import LUTCanvas
+from DisplayCAL.wx_windows import FlatShadedButton, show_result_dialog
 
 BGCOLOUR = "#101010"
 FGCOLOUR = "#999999"
@@ -41,10 +46,12 @@ NTICK = 10
 
 
 def expt(a, n):
+    """Return a**n."""
     return math.pow(a, n)
 
 
 def nicenum(x, do_round):
+    """Return nice number for axis labeling."""
     if x < 0.0:
         x = -x
     ex = math.floor(math.log10(x))
@@ -58,20 +65,25 @@ def nicenum(x, do_round):
             nf = 5.0
         else:
             nf = 10.0
+    elif f < 1.0:
+        nf = 1.0
+    elif f < 2.0:
+        nf = 2.0
+    elif f < 5.0:
+        nf = 5.0
     else:
-        if f < 1.0:
-            nf = 1.0
-        elif f < 2.0:
-            nf = 2.0
-        elif f < 5.0:
-            nf = 5.0
-        else:
-            nf = 10.0
+        nf = 10.0
     return nf * expt(10.0, ex)
 
 
 class CCXXPlot(wx.Frame):
-    """CCMX/CCSS plot and information"""
+    """CCMX/CCSS plot and information.
+
+    Args:
+        parent (wx.Window): Parent window (only used for error dialogs).
+        cgats (CGATS): A CCMX/CCSS CGATS instance.
+        worker (Worker, optional): Worker instance for executing commands.
+    """
 
     def __init__(self, parent, cgats, worker=None):
         """Init new CCXPlot window.
@@ -89,22 +101,14 @@ class CCXXPlot(wx.Frame):
             fn, ext = os.path.splitext(os.path.basename(cgats.filename))
         else:
             fn = desc
-            if self.is_ccss:
-                ext = ".ccss"
-            else:
-                ext = ".ccmx"
+            ext = ".ccss" if self.is_ccss else ".ccmx"
 
         if isinstance(fn, bytes):
             fn = fn.decode("utf-8")
 
         desc = lang.getstr(f"{ext[1:]}.{fn}", default=desc)
-
-        if self.is_ccss:
-            ccxx_type = "spectral"
-        else:
-            ccxx_type = "matrix"
-
-        title = "%s: %s" % (
+        ccxx_type = "spectral" if self.is_ccss else "matrix"
+        title = "{}: {}".format(
             lang.getstr(ccxx_type),
             desc if isinstance(desc, str) else desc.decode("utf-8"),
         )
@@ -312,11 +316,10 @@ class CCXXPlot(wx.Frame):
                     else:
                         # Colorimeter dimmer than ref
                         XYZ[:] = [v * Y_max for v in XYZ]
-                else:
-                    # Ref XYZ
-                    if Y_max > 1:
-                        # Colorimeter brighter than ref
-                        XYZ[:] = [v / Y_max for v in XYZ]
+                # Ref XYZ
+                elif Y_max > 1:
+                    # Colorimeter brighter than ref
+                    XYZ[:] = [v / Y_max for v in XYZ]
                 RGB = tuple(
                     int(v) for v in colormath.XYZ2RGB(*XYZ, scale=255, round_=True)
                 )
@@ -341,10 +344,12 @@ class CCXXPlot(wx.Frame):
 
         if not self.is_ccss:
             observers_ab = {}
-            for observer in config.valid_values["observer"]:
+            for observer in config.VALID_VALUES["observer"]:
                 observers_ab[observer] = lang.getstr("observer." + observer)
             x_label = [lang.getstr("matrix")]
-            x_label.extend(["%9.6f %9.6f %9.6f" % tuple(row) for row in mtx])
+            x_label.extend(
+                ["{:9.6f} {:9.6f} {:9.6f}".format(*tuple(row)) for row in mtx]
+            )
             if ref:
                 ref_observer = cgats.queryv1("REFERENCE_OBSERVER")
                 if ref_observer:
@@ -372,13 +377,11 @@ class CCXXPlot(wx.Frame):
             fit_de00 = []
             if fit_de00_avg:
                 fit_de00.append(
-                    "ΔE*00 %s %.4f"
-                    % (lang.getstr("profile.self_check.avg"), fit_de00_avg)
+                    f"ΔE*00 {lang.getstr('profile.self_check.avg')} {fit_de00_avg:.4f}"
                 )
             if fit_de00_max:
                 fit_de00.append(
-                    "ΔE*00 %s %.4f"
-                    % (lang.getstr("profile.self_check.max"), fit_de00_max)
+                    f"ΔE*00 {lang.getstr('profile.self_check.max')} {fit_de00_max:.4f}"
                 )
             if fit_de00:
                 x_label.append("\n".join(fit_de00))
@@ -387,18 +390,14 @@ class CCXXPlot(wx.Frame):
             x_label = ""
             if ref:
                 x_label += ref + ", "
-            x_label += "%.1fnm, %i-%inm" % (
-                (x_max - x_min) / (bands - 1.0),
-                x_min,
-                x_max,
-            )
+            x_label += f"{(x_max - x_min) / (bands - 1.0):.1f}nm, {x_min}-{x_max}nm"
 
         scale = max(getcfg("app.dpi") / config.get_default_dpi(), 1)
 
         style = wx.DEFAULT_FRAME_STYLE
 
         wx.Frame.__init__(self, None, -1, title, style=style)
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.Sizer = wx.GridSizer(1, 1, 0, 0)
         bg = wx.Panel(self)
@@ -468,20 +467,23 @@ class CCXXPlot(wx.Frame):
         self.Sizer.Layout()
 
     def OnSize(self, event):
+        """Resize the canvas.
+
+        Args:
+            event (wx.SizeEvent): The size event triggered by resizing the
+                window.
+        """
         if self.canvas.last_draw:
             wx.CallAfter(self.canvas._DrawCanvas, self.canvas.last_draw[0])
         event.Skip()
 
     def OnWheel(self, event):
-        """Mousewheel zoom"""
-        if event.WheelRotation < 0:
-            direction = 1.0
-        else:
-            direction = -1.0
+        """Mousewheel zoom."""
+        direction = 1.0 if event.WheelRotation < 0 else -1.0
         self.canvas.zoom(direction)
 
     def key_handler(self, event):
-        """Keyboard zoom"""
+        """Keyboard zoom."""
         key = event.GetKeyCode()
         if key in (43, wx.WXK_NUMPAD_ADD):
             # + key zoom in
@@ -493,14 +495,14 @@ class CCXXPlot(wx.Frame):
             event.Skip()
 
     def draw(self, objects, title="", xlabel=" ", ylabel=" "):
-        """Draw objects to plot"""
+        """Draw objects to plot."""
         graphics = plot.PlotGraphics(objects, title, xlabel, ylabel)
         self.canvas.Draw(graphics, self.canvas.axis_x, self.canvas.axis_y)
         if self.is_ccss:
             self.canvas.OnMouseDoubleClick(None)
 
     def draw_ccxx(self):
-        """Spectra or matrix 'flower' plot"""
+        """Spectra or matrix 'flower' plot."""
         self.canvas.SetEnableLegend(False)
         self.canvas.proportional = not self.is_ccss
         self.canvas.axis_x = self.ccxx_axis_x
@@ -513,7 +515,7 @@ class CCXXPlot(wx.Frame):
         self.draw(self.gfx, " ")
 
     def draw_cie(self):
-        """CIE 1931 2° xy plot"""
+        """CIE 1931 2° xy plot."""
         self.canvas.SetEnableLegend(True)
         self.canvas.proportional = True
         gfx = []
@@ -534,10 +536,10 @@ class CCXXPlot(wx.Frame):
         )
         # Add comparison gamuts
         for rgb_space, pen_style in [
-            ("Rec. 2020", wx.SOLID),
-            ("Adobe RGB (1998)", wx.SHORT_DASH),
-            ("DCI P3", wx.DOT_DASH),
-            ("Rec. 709", wx.DOT),
+            ("Rec. 2020", wx.PENSTYLE_SOLID),
+            ("Adobe RGB (1998)", wx.PENSTYLE_SHORT_DASH),
+            ("DCI P3", wx.PENSTYLE_DOT_DASH),
+            ("Rec. 709", wx.PENSTYLE_DOT),
         ]:
             values = []
             for R, G, B in [(1, 0, 0), (0, 1, 0), (0, 0, 1)]:
@@ -564,7 +566,7 @@ class CCXXPlot(wx.Frame):
                     size=2,
                     width=1.75,
                     marker="plus",
-                    legend="%.4f\u2009x\u2002%.4f\u2009y" % xy,
+                    legend="{:.4f}\u2009x\u2002{:.4f}\u2009y".format(*xy),
                 )
             )
         self.canvas.axis_x = 0, 1
@@ -576,7 +578,7 @@ class CCXXPlot(wx.Frame):
         self.draw(gfx, " ", "x", "y")
 
     def toggle_draw(self, event):
-        """Toggle between spectral and CIE plot"""
+        """Toggle between spectral and CIE plot."""
         if self.canvas.GetEnableLegend():
             self.draw_ccxx()
             self.toggle_btn.SetLabel(lang.getstr("spectral"))

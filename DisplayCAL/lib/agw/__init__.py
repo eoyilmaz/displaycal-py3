@@ -1,3 +1,4 @@
+# noqa: N999
 """This is the Advanced Generic Widgets package (AGW).
 
 It provides many custom-drawn wxPython controls:

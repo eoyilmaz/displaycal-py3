@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 import pytest
 
-from DisplayCAL.argyll_RGB2XYZ import RGB2XYZ, XYZ2RGB
+from DisplayCAL.argyll_rgb2xyz import rgb2xyz, xyz2rgb
 
 
 @pytest.mark.parametrize("colorspace", ("RGB", "XYZ"))
@@ -39,9 +38,9 @@ def test_agryll_colorspace_conversion(colorspace: str) -> None:
         )
     ):
         if colorspace == "RGB":
-            conversion = tuple(str(round(c, 6)) for c in RGB2XYZ(*RGB))
+            conversion = tuple(str(round(c, 6)) for c in rgb2xyz(*RGB))
             result = tuple(str(c) for c in XYZ)
         else:
-            conversion = tuple(str(round(c, 1)) for c in XYZ2RGB(*XYZ))
+            conversion = tuple(str(round(c, 1)) for c in xyz2rgb(*XYZ))
             result = tuple(str(c) for c in RGB)
         assert conversion == result

@@ -1,8 +1,15 @@
-# -*- coding: utf-8 -*-
+"""Utilities for querying Windows system handles and their information.
 
-from ctypes import wintypes
+It uses the Windows API through the `ctypes` library.
+"""
+
+from __future__ import annotations
+
 import ctypes
 import os
+import sys
+from ctypes import wintypes
+from typing import ClassVar
 
 from DisplayCAL.win_structs import NTSTATUS, UNICODE_STRING
 
@@ -13,16 +20,26 @@ ACCESS_MASK = wintypes.DWORD
 STATUS_INFO_LENGTH_MISMATCH = NTSTATUS(0xC0000004)
 
 
-class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
-    def __repr__(self):
+class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):  # noqa: N801
+    """Class representing SYSTEM_INFORMATION_CLASS values."""
+
+    def __repr__(self) -> str:
+        """Return a string representation of the SYSTEM_INFORMATION_CLASS.
+
+        Returns:
+            str: A string representation of the SYSTEM_INFORMATION_CLASS in
+                hexadecimal format.
+        """
         return f"{self.__class__.__name__}({self.value})"
 
 
 SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 
-class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
-    _fields_ = [
+class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
+    """Class representing SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structure."""
+
+    _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
         ("HandleValue", wintypes.HANDLE),
@@ -34,15 +51,17 @@ class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):
     ]
 
 
-class SYSTEM_INFORMATION(ctypes.Structure):
-    pass
+class SYSTEM_INFORMATION(ctypes.Structure):  # noqa: N801
+    """Class representing SYSTEM_INFORMATION structure."""
 
 
 PSYSTEM_INFORMATION = ctypes.POINTER(SYSTEM_INFORMATION)
 
 
-class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
-    _fields_ = [
+class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
+    """Class representing SYSTEM_HANDLE_INFORMATION_EX structure."""
+
+    _fields_: ClassVar[list[tuple]] = [
         ("NumberOfHandles", ULONG_PTR),
         ("Reserved", ULONG_PTR),
         ("_Handles", SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * 1),
@@ -50,6 +69,12 @@ class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):
 
     @property
     def Handles(self):
+        """Return a list of handles.
+
+        Returns:
+            list[SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX]: A list of handles
+                represented by SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structures.
+        """
         arr_t = SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * self.NumberOfHandles
         return ctypes.POINTER(arr_t)(self._Handles)[0]
 
@@ -63,7 +88,7 @@ try:
         wintypes.ULONG,  # SystemInformationLength
         PULONG,
     )  # ReturnLength
-except WindowsError:
+except OSError:
     # Just in case
     ntdll = None
 
@@ -89,14 +114,17 @@ def _get_handle_info(handle, info_class):
 
 
 def get_handle_name(handle):
+    """Get the name of a handle."""
     return _get_handle_info(handle, ObjectNameInformation)
 
 
 def get_handle_type(handle):
+    """Get the type of a handle."""
     return _get_handle_info(handle, ObjectTypeInformation)
 
 
 def get_handles():
+    """Get all handles in the system."""
     info = SYSTEM_HANDLE_INFORMATION_EX()
     length = wintypes.ULONG()
     while True:
@@ -115,7 +143,7 @@ def get_handles():
 
 
 def get_process_handles(pid=None):
-    """Get handles of process <pid> (current process if not specified)"""
+    """Get handles of process <pid> (current process if not specified)."""
     if not pid:
         pid = os.getpid()
     handles = []
@@ -127,22 +155,11 @@ def get_process_handles(pid=None):
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        pid = int(sys.argv[1])
-    else:
-        pid = None
+    pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
     for handle in get_process_handles(pid):
         print(
-            (
-                "Handle = 0x%04x, Type = 0x%02x %r, Access = 0x%06x, Name = %r"
-                % (
-                    handle.HandleValue,
-                    handle.ObjectTypeIndex,
-                    get_handle_type(handle),
-                    handle.GrantedAccess,
-                    get_handle_name(handle),
-                )
-            )
+            f"Handle = 0x{handle.HandleValue:04x}, "
+            f"Type = 0x{handle.ObjectTypeIndex:02x} {get_handle_type(handle)!r}, "
+            f"Access = 0x{handle.GrantedAccess:06x}, "
+            f"Name = {get_handle_name(handle)!r}"
         )

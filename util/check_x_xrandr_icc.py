@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from DisplayCAL import xrandr
 from DisplayCAL.icc_profile import ICCProfile
-from DisplayCAL.RealDisplaySizeMM import RealDisplaySizeMM as RDSMM
+from DisplayCAL.real_display_size_mm import RealDisplaySizeMM
 
 for i in range(5):
     # Show ICC info for first five screens / outputs

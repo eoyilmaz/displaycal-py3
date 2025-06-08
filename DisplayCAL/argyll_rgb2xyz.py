@@ -37,12 +37,12 @@ ICX_INK_TABLE = {
     "": [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
 }
 
-NORMALISATION_FACTOR = {"Ynorm": 0.0}
+NORMALIZATION_FACTOR = {"Ynorm": 0.0}
 IIX_CHANNEL_MAPPING = {"iix": {0: "R", 1: "G", 2: "B"}}
 
 for e in range(3):
-    NORMALISATION_FACTOR["Ynorm"] += ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][1]
-NORMALISATION_FACTOR["Ynorm"] = 1.0 / NORMALISATION_FACTOR["Ynorm"]
+    NORMALIZATION_FACTOR["Ynorm"] += ICX_INK_TABLE[IIX_CHANNEL_MAPPING["iix"][e]][0][1]
+NORMALIZATION_FACTOR["Ynorm"] = 1.0 / NORMALIZATION_FACTOR["Ynorm"]
 
 
 def xyz_denormalize_remove_glare(x: float, y: float, z:float) -> tuple:
@@ -60,7 +60,7 @@ def xyz_denormalize_remove_glare(x: float, y: float, z:float) -> tuple:
     # De-Normalize Y from 1.0, & remove black glare
     for j in range(3):
         xyz[j] = (xyz[j] - ICX_INK_TABLE["K"][0][j]) / (1.0 - ICX_INK_TABLE["K"][0][j])
-        xyz[j] /= NORMALISATION_FACTOR["Ynorm"]
+        xyz[j] /= NORMALIZATION_FACTOR["Ynorm"]
     return tuple(xyz)
 
 
@@ -78,7 +78,7 @@ def xyz_normalize_add_glare(x: float, y: float, z: float) -> tuple:
     xyz = [x, y, z]
     # Normalize Y to 1.0, & add black glare
     for j in range(3):
-        xyz[j] *= NORMALISATION_FACTOR["Ynorm"]
+        xyz[j] *= NORMALIZATION_FACTOR["Ynorm"]
         xyz[j] = xyz[j] * (1.0 - ICX_INK_TABLE["K"][0][j]) + ICX_INK_TABLE["K"][0][j]
     return tuple(xyz)
 

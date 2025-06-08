@@ -112,6 +112,9 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     from DisplayCAL.wx_addons import wx
     from DisplayCAL.wx_windows import ConfirmDialog, InfoDialog
 
+    # Tests fails if wx.App is not initialized...
+    _ = wx.GetApp() or wx.App()
+
     if parent and not parent.IsShownOnScreen():
         parent = None  # do not center on parent if not visible
     # Check if Argyll version on PATH is newer than configured Argyll version

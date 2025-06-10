@@ -17456,7 +17456,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not path:
             return
 
-        if getcfg("settings.changed") and not self.settings_confirm_discard():
+        if getcfg("settings.changed"):
             return
 
         if not os.path.exists(path):

@@ -1,7 +1,4 @@
-"""This module provides utility functions for retrieving encoding information
-used by the system and Python runtime. It includes functions to determine the
-default encoding for streams and the filesystem.
-"""
+"""Utility functions for retrieving system and filesystem encodings."""
 
 import sys
 

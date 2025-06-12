@@ -1,8 +1,4 @@
-"""This module provides classes and utilities for working with lazy-loading
-dictionaries. Lazy dictionaries defer loading their contents from external
-files (e.g., JSON or YAML) until accessed, improving performance and memory
-usage for large datasets.
-"""
+"""Lazy-loading dictionaries that defer loading from files (JSON/YAML) until accessed."""  # noqa: E501
 
 import codecs
 import json
@@ -16,12 +12,10 @@ from DisplayCAL.util_str import safe_str
 
 
 def unquote(string, raise_exception=True):
-    """Remove single or double quote at start and end of string and unescape
-    escaped chars, YAML-style
+    """Remove outer single/double quotes and unescape YAML-style escapes.
 
     Unlike 'string'.strip("'"'"'), only removes the outermost quote pair.
     Raises ValueError on missing end quote if there is a start quote.
-
     """
     if len(string) > 1 and string[0] in "'\"":
         if string[-1] == string[0]:
@@ -232,39 +226,104 @@ class LazyDict(dict):
         return super().__sizeof__()
 
     def clear(self):
+        """Clear the dictionary."""
         if not self._is_loaded:
             self._is_loaded = True
         super().clear()
 
     def copy(self):
+        """Return a shallow copy of the dictionary.
+
+        Returns:
+            LazyDict: A shallow copy of the dictionary.
+        """
         self.load()
         return super().copy()
 
     def get(self, name, fallback=None):
+        """Get the value for a given key in the dictionary.
+
+        Args:
+            name (str): The key to get the value for.
+            fallback (Any, optional): The value to return if the key does not
+                exist. Defaults to None.
+
+        Returns:
+            Any: The value associated with the key, or the fallback value if
+                the key does not exist.
+        """
         self.load()
         return super().get(name, fallback)
 
     def items(self):
+        """Return a view of the dictionary's items.
+
+        Returns:
+            dict_items: A view of the dictionary's items, where each item is a
+                tuple of (key, value).
+        """
         self.load()
         return super().items()
 
     def iteritems(self):
+        """Return an iterator over the dictionary's items.
+
+        Returns:
+            Iterator: An iterator over the dictionary's items, where each item
+                is a tuple of (key, value).
+        """
         self.load()
         return super().items()
 
     def iterkeys(self):
+        """Return an iterator over the dictionary's keys.
+
+        Returns:
+            Iterator: An iterator over the dictionary's keys.
+        """
         self.load()
         return super().keys()
 
     def itervalues(self):
+        """Return an iterator over the dictionary's values.
+
+        Returns:
+            Iterator: An iterator over the dictionary's values.
+        """
         self.load()
         return super().values()
 
     def keys(self):
+        """Return a view of the dictionary's keys.
+
+        Returns:
+            dict_keys: A view of the dictionary's keys.
+        """
         self.load()
         return super().keys()
 
     def load(self, path=None, encoding=None, errors=None, raise_exceptions=False):
+        """Load the dictionary from a file.
+
+        Args:
+            path (str, optional): The path to the file to load the dictionary
+                from. If not provided, the path set during initialization will
+                be used.
+            encoding (str, optional): The encoding to use when reading the
+                file. Defaults to "UTF-8".
+            errors (str, optional): The error handling scheme to use for
+                decoding. Defaults to "strict".
+            raise_exceptions (bool, optional): If True, exceptions will be
+                raised instead of handled. Defaults to False.
+
+        Raises:
+            UserWarning: If the file is not found or if there is an error
+                parsing the file, a UserWarning will be raised.
+            OSError: If there is an OS error while opening the file and
+                raise_exceptions is True.
+            Exception: If there is an error parsing the file and
+                raise_exceptions is True.
+        """
         if self._is_loaded or (not path and not self.path):
             return
 
@@ -298,26 +357,70 @@ class LazyDict(dict):
             )
 
     def parse(self, iterable):
+        """Parse the iterable and update the dictionary.
+
+        Args:
+            iterable (iterable): An iterable object (e.g., file object) to parse
+                and update the dictionary with.
+        """
         # Override this in subclass
-        pass
 
     def pop(self, key, *args):
+        """Remove a key from the dictionary and return its value.
+
+        Args:
+            key (str): The key to remove.
+            *args: Optional arguments to pass to the pop method.
+
+        Returns:
+            Any: The value associated with the key that was removed.
+        """
         self.load()
         return super().pop(key, *args)
 
     def popitem(self, name, value):
+        """Remove and return a (key, value) pair from the dictionary.
+
+        Args:
+            name (str): The key to remove.
+            value (Any): The value to return if the key does not exist.
+
+        Returns:
+            tuple: The (key, value) pair removed from the dictionary.
+        """
         self.load()
         return super().popitem(name, value)
 
     def setdefault(self, name, value=None):
+        """Set the default value for a key in the dictionary.
+
+        Args:
+            name (str): The key to set the default value for.
+            value (Any, optional): The default value to set if the key does
+                not exist. Defaults to None.
+
+        Returns:
+            Any: The value associated with the key after setting the default.
+        """
         self.load()
         return super().setdefault(name, value)
 
     def update(self, other):
+        """Update the dictionary with another dictionary or iterable of key-value pairs.
+
+        Args:
+            other (dict or iterable): The dictionary or iterable of key-value
+                pairs to update the dictionary with.
+        """
         self.load()
         super().update(other)
 
     def values(self):
+        """Return a view of the dictionary's values.
+
+        Returns:
+            dict_values: A view of the dictionary's values.
+        """
         self.load()
         return super().values()
 
@@ -326,11 +429,12 @@ class LazyDictJSON(LazyDict):
     """JSON lazy dictionary."""
 
     def parse(self, fileobj):
+        """Parse fileobj and update dict."""
         super().update(json.load(fileobj))
 
 
 class LazyDictYAMLUltraLite(LazyDict):
-    """'YAML Ultra Lite' lazy dictionary
+    """'YAML Ultra Lite' lazy dictionary.
 
     YAML Ultra Lite is a restricted subset of YAML. It only supports the
     following notations:
@@ -355,7 +459,7 @@ class LazyDictYAMLUltraLite(LazyDict):
         self.debug = debug
 
     def parse(self, fileobj):
-        """Parse fileobj and update dict"""
+        """Parse fileobj and update dict."""
         block = False
         value = []
         key = None
@@ -465,7 +569,7 @@ class LazyDictYAMLUltraLite(LazyDict):
 
 
 class LazyDictYAMLLite(LazyDictYAMLUltraLite):
-    """'YAML Lite' lazy dictionary
+    """'YAML Lite' lazy dictionary.
 
     YAML Lite is a restricted subset of YAML. It only supports the
     following notations:
@@ -490,7 +594,7 @@ class LazyDictYAMLLite(LazyDictYAMLUltraLite):
     """
 
     def parse(self, fileobj):
-        """Parse fileobj and update dict"""
+        """Parse fileobj and update dict."""
         style = None
         value = []
         block_styles = ("|", ">", "|-", ">-", "|+", ">+")

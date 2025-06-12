@@ -1,7 +1,8 @@
-"""This module provides functionality for visualizing CCMX/CCSS data using
-wxPython. It includes tools for plotting spectral data, matrix 'flower' plots,
-and CIE 1931 chromaticity diagrams, with support for interactive zooming,
-toggling views, and customized graph rendering.
+"""Visualize CCMX/CCSS data with wxPython.
+
+It includes tools for plotting spectral data, matrix 'flower' plots, and CIE
+1931 chromaticity diagrams, with support for interactive zooming, toggling
+views, and customized graph rendering.
 """
 
 import math
@@ -45,10 +46,12 @@ NTICK = 10
 
 
 def expt(a, n):
+    """Return a**n."""
     return math.pow(a, n)
 
 
 def nicenum(x, do_round):
+    """Return nice number for axis labeling."""
     if x < 0.0:
         x = -x
     ex = math.floor(math.log10(x))
@@ -74,7 +77,13 @@ def nicenum(x, do_round):
 
 
 class CCXXPlot(wx.Frame):
-    """CCMX/CCSS plot and information"""
+    """CCMX/CCSS plot and information.
+
+    Args:
+        parent (wx.Window): Parent window (only used for error dialogs).
+        cgats (CGATS): A CCMX/CCSS CGATS instance.
+        worker (Worker, optional): Worker instance for executing commands.
+    """
 
     def __init__(self, parent, cgats, worker=None):
         """Init new CCXPlot window.
@@ -458,17 +467,23 @@ class CCXXPlot(wx.Frame):
         self.Sizer.Layout()
 
     def OnSize(self, event):
+        """Resize the canvas.
+
+        Args:
+            event (wx.SizeEvent): The size event triggered by resizing the
+                window.
+        """
         if self.canvas.last_draw:
             wx.CallAfter(self.canvas._DrawCanvas, self.canvas.last_draw[0])
         event.Skip()
 
     def OnWheel(self, event):
-        """Mousewheel zoom"""
+        """Mousewheel zoom."""
         direction = 1.0 if event.WheelRotation < 0 else -1.0
         self.canvas.zoom(direction)
 
     def key_handler(self, event):
-        """Keyboard zoom"""
+        """Keyboard zoom."""
         key = event.GetKeyCode()
         if key in (43, wx.WXK_NUMPAD_ADD):
             # + key zoom in
@@ -480,14 +495,14 @@ class CCXXPlot(wx.Frame):
             event.Skip()
 
     def draw(self, objects, title="", xlabel=" ", ylabel=" "):
-        """Draw objects to plot"""
+        """Draw objects to plot."""
         graphics = plot.PlotGraphics(objects, title, xlabel, ylabel)
         self.canvas.Draw(graphics, self.canvas.axis_x, self.canvas.axis_y)
         if self.is_ccss:
             self.canvas.OnMouseDoubleClick(None)
 
     def draw_ccxx(self):
-        """Spectra or matrix 'flower' plot"""
+        """Spectra or matrix 'flower' plot."""
         self.canvas.SetEnableLegend(False)
         self.canvas.proportional = not self.is_ccss
         self.canvas.axis_x = self.ccxx_axis_x
@@ -500,7 +515,7 @@ class CCXXPlot(wx.Frame):
         self.draw(self.gfx, " ")
 
     def draw_cie(self):
-        """CIE 1931 2° xy plot"""
+        """CIE 1931 2° xy plot."""
         self.canvas.SetEnableLegend(True)
         self.canvas.proportional = True
         gfx = []
@@ -563,7 +578,7 @@ class CCXXPlot(wx.Frame):
         self.draw(gfx, " ", "x", "y")
 
     def toggle_draw(self, event):
-        """Toggle between spectral and CIE plot"""
+        """Toggle between spectral and CIE plot."""
         if self.canvas.GetEnableLegend():
             self.draw_ccxx()
             self.toggle_btn.SetLabel(lang.getstr("spectral"))

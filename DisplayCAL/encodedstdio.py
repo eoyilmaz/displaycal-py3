@@ -1,8 +1,7 @@
-"""This module provides utilities for handling encoded input and output
-streams, allowing seamless encoding and decoding of text data in Python
-applications. It includes functionality to register custom codec aliases,
-conditionally encode or decode text, and wrap standard input/output streams
-with automatic encoding/decoding support.
+"""Utilities for handling encoded input/output streams.
+
+Includes codec alias registration and automatic encoding/decoding for standard
+streams.
 """
 
 import codecs
@@ -13,12 +12,18 @@ from typing import Any
 
 from DisplayCAL.encoding import get_encoding
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+
 _codecs = {}
 _stdio = {}
 
 
 def codec_register_alias(alias, name):
-    """Register an alias for encoding 'name'"""
+    """Register an alias for encoding 'name'."""
     _codecs[alias] = codecs.CodecInfo(
         name=alias,
         encode=codecs.getencoder(name),
@@ -31,23 +36,25 @@ def codec_register_alias(alias, name):
 
 
 def conditional_decode(text, encoding="UTF-8", errors="strict"):
-    """Decode text if not unicode"""
+    """Decode text if not unicode."""
     if not isinstance(text, str):
         text = text.decode(encoding, errors)
     return text
 
 
 def conditional_encode(text, encoding="UTF-8", errors="strict"):
-    """Encode text if unicode"""
+    """Encode text if unicode."""
     if isinstance(text, str):
         text = text.encode(encoding, errors)
     return text
 
 
 def encodestdio(encodings=None, errors=None):
-    """After this function is called, Unicode strings written to
-    stdout/stderr are automatically encoded and strings read from stdin
-    automatically decoded with the given encodings and error handling.
+    """Wrap sys.stdin, sys.stdout, and sys.stderr with EncodedStream.
+
+    After this function is called, Unicode strings written to stdout/stderr are
+    automatically encoded and strings read from stdin automatically decoded
+    with the given encodings and error handling.
 
     encodings and errors can be a dict with mappings for stdin/stdout/stderr,
     e.g. encodings={'stdin': 'UTF-8', 'stdout': 'UTF-8', 'stderr': 'UTF-8'}
@@ -74,14 +81,18 @@ def encodestdio(encodings=None, errors=None):
 
 
 def read(stream, size=-1):
-    """Read from stream. Uses os.read() if stream is a tty,
-    stream.read() otherwise."""
+    """Read from stream.
+
+    Uses os.read() if stream is a tty, stream.read() otherwise.
+    """
     return os.read(stream.fileno(), size) if stream.isatty() else stream.read(size)
 
 
 def write(stream, data):
-    """Write to stream. Uses os.write() if stream is a tty,
-    stream.write() otherwise."""
+    """Write to stream.
+
+    Uses os.write() if stream is a tty, stream.write() otherwise.
+    """
     if stream.isatty():
         os.write(stream.fileno(), data)
     else:
@@ -89,12 +100,11 @@ def write(stream, data):
 
 
 class EncodedStream:
-    """Unicode strings written to an EncodedStream are automatically encoded
-    and strings read from it automtically decoded with the given encoding
-    and error handling.
+    """Automatically encodes writes and decodes reads using the given encoding.
 
-    Uses os.read() and os.write() for proper handling of unicode codepages
-    for stdout/stderr under Windows"""
+    This class also does error handling. Uses os.read() and os.write() for
+    proper handling of unicode codepages for stdout/stderr under Windows.
+    """
 
     def __init__(self, stream, encoding="UTF-8", errors="strict"):
         self.stream = stream
@@ -126,30 +136,76 @@ class EncodedStream:
             object.__setattr__(self, name, value)
 
     def __next__(self):
-        """Read the next line from the stream."""
+        """Read the next line from the stream.
+
+        Returns:
+            str: The next line read from the stream, decoded.
+        """
         return self.readline()
 
     def read(self, size=-1):
+        """Read from the stream and decode it.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads the entire stream.
+
+        Returns:
+            str: The decoded text read from the stream.
+        """
         return conditional_decode(read(self.stream, size), self.encoding, self.errors)
 
     def readline(self, size=-1):
+        """Read a single line from the stream and decode it.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads the entire line.
+
+        Returns:
+            str: The decoded line read from the stream.
+        """
         return conditional_decode(
             self.stream.readline(size), self.encoding, self.errors
         )
 
     def readlines(self, size=-1):
+        """Read lines from the stream and decode them.
+
+        Args:
+            size (int): The number of bytes to read. Defaults to -1, which
+                reads all lines.
+
+        Returns:
+            list: A list of decoded lines read from the stream.
+        """
         return [
             conditional_decode(line, self.encoding, self.errors)
             for line in self.stream.readlines(size)
         ]
 
-    def xreadlines(self):
+    def xreadlines(self) -> Self:
+        """Return an iterator that reads lines from the stream.
+
+        Returns:
+            Iterator[str]: An iterator that yields lines from the stream.
+        """
         return self
 
     def write(self, text):
+        """Write text to the stream, encoding it if necessary.
+
+        Args:
+            text (str): The text to write to the stream.
+        """
         write(self.stream, conditional_encode(text, self.encoding, self.errors))
 
     def writelines(self, lines):
+        """Write a list of lines to the stream.
+
+        Args:
+            lines (list): A list of strings to write to the stream.
+        """
         for line in lines:
             self.write(line)
 

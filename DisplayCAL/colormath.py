@@ -33,6 +33,15 @@ else:
 
 
 def get_transfer_function_phi(alpha, gamma):
+    """Get transfer function phi.
+
+    Args:
+        alpha (float): Alpha value.
+        gamma (float): Gamma value.
+
+    Returns:
+        float: Transfer function phi value.
+    """
     return (math.pow(1 + alpha, gamma) * math.pow(gamma - 1, gamma - 1)) / (
         math.pow(alpha, gamma - 1) * math.pow(gamma, gamma)
     )
@@ -54,7 +63,7 @@ SRGB_P = 12.92  # get_transfer_function_phi(0.055, 2.4)
 
 
 def specialpow(a, b, slope_limit=0):
-    """Wrapper for power, Rec. 601/709, SMPTE 240M, sRGB and L* functions
+    """Wrapper for power, Rec. 601/709, SMPTE 240M, sRGB and L* functions.
 
     Positive b = power, -2.4 = sRGB, -3.0 = L*, -240 = SMPTE 240M,
     -601 = Rec. 601, -709 = Rec. 709 (Rec. 601 and 709 transfer functions are
@@ -131,6 +140,15 @@ def specialpow(a, b, slope_limit=0):
 
 
 def DICOM(j, inverse=False):
+    """DICOM TRC.
+
+    Args:
+        j (float): Input value.
+        inverse (bool): If True, apply inverse DICOM TRC.
+
+    Returns:
+        float: Output value.
+    """
     if inverse:
         log10Y = math.log10(j)
         A = 71.498068
@@ -181,10 +199,7 @@ def DICOM(j, inverse=False):
 
 
 class HLG:
-    """Hybrid Log Gamma (HLG) as defined in Rec BT.2100
-    and BT.2390-4
-
-    """
+    """Hybrid Log Gamma (HLG) as defined in Rec BT.2100 and BT.2390-4."""
 
     def __init__(
         self,
@@ -202,7 +217,7 @@ class HLG:
 
     @property
     def gamma(self):
-        """System gamma for nominal peak luminance and ambient"""
+        """System gamma for nominal peak luminance and ambient."""
         # Adjust system gamma for peak luminance != 1000 cd/m2 (extended model
         # described in BT.2390-4)
         K = 1.111
@@ -214,7 +229,7 @@ class HLG:
         return gamma
 
     def oetf(self, v, inverse=False):
-        """Hybrid Log Gamma (HLG) OETF
+        """Hybrid Log Gamma (HLG) OETF.
 
         Relative scene linear light to non-linear HLG signal, or inverse
 
@@ -239,7 +254,7 @@ class HLG:
         return v
 
     def eotf(self, RGB, inverse=False, apply_black_offset=True):
-        """Hybrid Log Gamma (HLG) EOTF
+        """Hybrid Log Gamma (HLG) EOTF.
 
         Non-linear HLG signal to display light, or inverse
 
@@ -264,7 +279,7 @@ class HLG:
         return G if isinstance(RGB, (float, int)) else (R, G, B)
 
     def ootf(self, RGB, inverse=False, apply_black_offset=True):
-        """Hybrid Log Gamma (HLG) OOTF
+        """Hybrid Log Gamma (HLG) OOTF.
 
         Relative scene linear light to display light, or inverse
 
@@ -293,7 +308,7 @@ class HLG:
         return G if isinstance(RGB, (float, int)) else (R, G, B)
 
     def RGB2XYZ(self, R, G, B, apply_black_offset=True):
-        """Non-linear HLG signal to display XYZ"""
+        """Non-linear HLG signal to display XYZ."""
         X, Y, Z = self.rgb_space[-1] * [self.oetf(v, True) for v in (R, G, B)]
         X, Y, Z = (max(v, 0) for v in (X, Y, Z))
         Yy = self.ootf(Y, apply_black_offset=False)
@@ -308,7 +323,7 @@ class HLG:
         return X, Y, Z
 
     def XYZ2RGB(self, X, Y, Z, apply_black_offset=True):
-        """Display XYZ to non-linear HLG signal"""
+        """Display XYZ to non-linear HLG signal."""
         if apply_black_offset:
             beta = self.ootf(0)
             bp_in = [v * beta for v in self.rgb_space[1]]
@@ -512,7 +527,19 @@ name              gamma             white                     primaries
 """  # noqa: E501
 
 
-def get_cat_matrix(cat="Bradford"):
+def get_cat_matrix(cat: None | str | bytes | Matrix3x3 = None) -> Matrix3x3:
+    """Get chromatic adaption matrix.
+
+    Args:
+        cat (str or Matrix3x3): Chromatic adaption matrix name or instance.
+            Defaults to "Bradford".
+
+    Returns:
+        Matrix3x3: Chromatic adaption matrix.
+    """
+    if cat is None:
+        cat = "Bradford"
+
     if isinstance(cat, str):
         cat = cat_matrices[cat]
     elif isinstance(cat, bytes):
@@ -523,11 +550,19 @@ def get_cat_matrix(cat="Bradford"):
 
 
 def cbrt(x):
+    """Cube root.
+
+    Args:
+        x (float): Input value.
+
+    Returns:
+        float: Cube root of x.
+    """
     return math.pow(x, 1.0 / 3.0) if x >= 0 else -math.pow(-x, 1.0 / 3.0)
 
 
 def var(a):
-    """Variance"""
+    """Variance."""
     s = 0.0
     l = len(a)
     while l:
@@ -543,7 +578,7 @@ def var(a):
 
 
 def XYZ2LMS(X, Y, Z, cat="Bradford"):
-    """Convert from XYZ to cone response domain
+    """Convert from XYZ to cone response domain.
 
     :param X:
     :param Y:
@@ -558,7 +593,7 @@ def XYZ2LMS(X, Y, Z, cat="Bradford"):
 def LMS_wp_adaption_matrix(
     whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
 ):
-    """Prepare a matrix to match the whitepoints in cone response domain"""
+    """Prepare a matrix to match the whitepoints in cone response domain."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -580,10 +615,7 @@ def LMS_wp_adaption_matrix(
 def wp_adaption_matrix(
     whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
 ):
-    """Prepare a matrix to match the whitepoints in cone response doamin and
-    transform back to XYZ
-
-    """
+    """Return matrix to adapt source whitepoint to destination in XYZ."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -617,7 +649,7 @@ wp_adaption_matrix.cache = {}
 
 
 def adapt(X, Y, Z, whitepoint_source=None, whitepoint_destination=None, cat="Bradford"):
-    """Transform XYZ under source illuminant to XYZ under destination illuminant"""
+    """Transform XYZ under source illuminant to XYZ under destination illuminant."""
     # chromatic adaption
     # based on formula http://brucelindbloom.com/Eqn_ChromAdapt.html
     # cat = adaption matrix or predefined choice ('CAT02', 'Bradford',
@@ -632,7 +664,21 @@ def adapt(X, Y, Z, whitepoint_source=None, whitepoint_destination=None, cat="Bra
 def apply_bpc(
     X, Y, Z, bp_in=None, bp_out=None, wp_out="D50", weight=False, pin_chromaticity=False
 ):
-    """Apply black point compensation"""
+    """Apply black point compensation.
+
+    Args:
+        X (float): X value
+        Y (float): Y value
+        Z (float): Z value
+        bp_in (tuple): Input black point
+        bp_out (tuple): Output black point
+        wp_out (str or tuple): Output white point
+        weight (bool): Whether to apply weight
+        pin_chromaticity (bool): Whether to pin chromaticity
+
+    Returns:
+        tuple[float, float, float]: Adjusted X, Y, Z values.
+    """
     if not bp_in:
         bp_in = (0, 0, 0)
     if not bp_out:
@@ -669,10 +715,32 @@ def apply_bpc(
 
 
 def avg(*args):
+    """Average of a list of numbers.
+
+    Args:
+        *args (list[float]): A list of numbers.
+
+    Returns:
+        float: Average of the numbers.
+    """
     return float(sum(args)) / len(args)
 
 
 def blend_ab(X, Y, Z, bp, wp, power=40.0, signscale=1):
+    """Blend to destination black as L approaches black.
+
+    Args:
+        X (float): X value
+        Y (float): Y value
+        Z (float): Z value
+        bp (tuple): Black point
+        wp (tuple): White point
+        power (float): Power for blending
+        signscale (int): Sign scale for blending
+
+    Returns:
+        tuple[float, float, float]: Blended X, Y, Z values
+    """
     if Y < 0:
         return 0, 0, 0
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint=wp)
@@ -694,10 +762,21 @@ def blend_ab(X, Y, Z, bp, wp, power=40.0, signscale=1):
 def blend_blackpoint(
     X, Y, Z, bp_in=None, bp_out=None, wp=None, power=40.0, pin_chromaticity=False
 ):
-    """Blend to destination black as L approaches black, optionally compensating
-    for input black first
+    """Blend to destination black as L approaches black, with optional input black compensation.
 
-    """
+    Args:
+        X (float): X value
+        Y (float): Y value
+        Z (float): Z value
+        bp_in (tuple): Input black point
+        bp_out (tuple): Output black point
+        wp (str or tuple): White point, defaults to "D50"
+        power (float): Power for blending, defaults to 40.0
+        pin_chromaticity (bool): Whether to pin chromaticity, defaults to False.
+
+    Returns:
+        tuple[float, float, float]: Adjusted X, Y, Z values.
+    """  # noqa: E501
     wp = get_whitepoint(wp)
 
     for i, bp in enumerate((bp_in, bp_out)):
@@ -715,7 +794,7 @@ def blend_blackpoint(
 
 
 def interp_old(x, xp, fp, left=None, right=None):
-    """One-dimensional linear interpolation similar to numpy.interp
+    """One-dimensional linear interpolation similar to numpy.interp.
 
     Values do NOT have to be monotonically increasing
     interp(0, [0, 0], [0, 1]) will return 0
@@ -744,7 +823,7 @@ def interp_old(x, xp, fp, left=None, right=None):
 
 # This is much faster than the old implementation
 def interp(x, xp, fp, left=None, right=None, period=None):
-    """One-dimensional linear interpolation similar to numpy.interp
+    """One-dimensional linear interpolation similar to numpy.interp.
 
     Values do NOT have to be monotonically increasing
     interp(0, [0, 0], [0, 1]) will return 0
@@ -904,7 +983,6 @@ def compute_bpc(bp_in, bp_out):
 
     [matrix]*bp_in + offset = bp_out
     [matrix]*D50  + offset = D50
-
     """
     # This is a linear scaling in the form ax+b, where
     # a = (bp_out - D50) / (bp_in - D50)
@@ -942,7 +1020,7 @@ def delta(
     p3=None,
     cie94_use_symmetric_chrominance=True,
 ):
-    """Compute the delta of two samples
+    """Compute the delta of two samples.
 
     CIE 1994 & CMC calculation code derived from formulas on
      www.brucelindbloom.com
@@ -1128,6 +1206,27 @@ def XYZ2Lab_delta(
     whitepoint_reference="D50",
     cat="Bradford",
 ):
+    """Compute the delta of two samples in XYZ space.
+
+    Args:
+        X1 (float): XYZ values of the first sample.
+        Y1 (float): XYZ values of the first sample.
+        Z1 (float): XYZ values of the first sample.
+        X2 (float): XYZ values of the second sample.
+        Y2 (float): XYZ values of the second sample.
+        Z2 (float): XYZ values of the second sample.
+        method (str): Method to use for delta calculation. Defaults to "76".
+        whitepoint1 (None | int | float | str | list | tuple): Whitepoint of
+            the first sample. Defaults to "D50".
+        whitepoint2 (None | int | float | str | list | tuple): Whitepoint of
+            the second sample. Defaults to "D50".
+        whitepoint_reference (None | int | float | str | list | tuple): Reference
+            whitepoint. Defaults to "D50".
+        cat (str): Chromatic adaptation transform. Defaults to "Bradford".
+
+    Returns:
+        dict: Dictionary containing the delta values.
+    """
     whitepoint1 = get_whitepoint(whitepoint1)
     whitepoint2 = get_whitepoint(whitepoint2)
     whitepoint_reference = get_whitepoint(whitepoint_reference)
@@ -1144,14 +1243,12 @@ def XYZ2Lab_delta(
 
 
 def is_similar_matrix(matrix1, matrix2, digits=3):
-    """Compare two matrices and check if they are the same
-    up to n digits after the decimal point"""
+    """Check if two matrices are equal up to n decimal digits."""
     return matrix1.rounded(digits) == matrix2.rounded(digits)
 
 
 def is_equal(values1, values2, quantizer=lambda v: round(v, 4)):
-    """Compare two sets of values and check if they are the same
-    after applying quantization"""
+    """Check if two value sets are equal after quantization."""
     return [quantizer(v) for v in values1] == [quantizer(v) for v in values2]
 
 
@@ -1182,11 +1279,40 @@ def four_color_matrix(
     ZmW,
     Y_correction=True,
 ):
-    """Four-Color Matrix Method for Correction of Tristimulus Colorimeters
+    """Four-Color Matrix Method for Correction of Tristimulus Colorimeters.
 
     Based on paper published in Proc., IS&T Fifth Color Imaging Conference,
     301-305 (1997) and IS&T Sixth Color Imaging Conference (1998).
 
+    Args:
+        XrR (float): Reference RGB values for red.
+        YrR (float): Reference RGB values for red.
+        ZrR (float): Reference RGB values for red.
+        XrG (float): Reference RGB values for green.
+        YrG (float): Reference RGB values for green.
+        ZrG (float): Reference RGB values for green.
+        XrB (float): Reference RGB values for blue.
+        YrB (float): Reference RGB values for blue.
+        ZrB (float): Reference RGB values for blue.
+        XrW (float): Reference RGB values for white.
+        YrW (float): Reference RGB values for white.
+        ZrW (float): Reference RGB values for white.
+        XmR (float): Measured RGB values for red.
+        YmR (float): Measured RGB values for red.
+        ZmR (float): Measured RGB values for red.
+        XmG (float): Measured RGB values for green.
+        YmG (float): Measured RGB values for green.
+        ZmG (float): Measured RGB values for green.
+        XmB (float): Measured RGB values for blue.
+        YmB (float): Measured RGB values for blue.
+        ZmB (float): Measured RGB values for blue.
+        XmW (float): Measured RGB values for white.
+        YmW (float): Measured RGB values for white.
+        ZmW (float): Measured RGB values for white.
+        Y_correction (bool): If True, apply Y correction. Defaults to True.
+
+    Returns:
+        Matrix3x3: The four-color matrix.
     """
     XYZ = locals()
     xyz = {}
@@ -1216,7 +1342,20 @@ def four_color_matrix(
 
 
 def get_gamma(values, scale=1.0, vmin=0.0, vmax=1.0, average=True, least_squares=False):
-    """Return average or least squares gamma or a list of gamma values"""
+    """Return average or least squares gamma or a list of gamma values.
+
+    Args:
+        values (list): A list of tuples containing x and y values.
+        scale (float): The scale factor. Defaults to 1.0.
+        vmin (float): Minimum value. Defaults to 0.0.
+        vmax (float): Maximum value. Defaults to 1.0.
+        average (bool): If True, return the average gamma. Defaults to True.
+        least_squares (bool): If True, return the least squares gamma. Defaults
+            to False.
+
+    Returns:
+        float or list: The average or least squares gamma, or a list of gamma values.
+    """
     if least_squares:
         logxy = []
         logx2 = []
@@ -1245,8 +1384,18 @@ def get_gamma(values, scale=1.0, vmin=0.0, vmax=1.0, average=True, least_squares
 
 
 def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
-    """Try and guess the chromatic adaption transform used in a chromatic
-    adaption matrix as found in an ICC profile's 'chad' tag"""
+    """Guess the chromatic adaption transform used in a chromatic adaption matrix.
+
+    ...as found in an ICC profile's 'chad' tag
+
+    Args:
+        chad (Matrix3x3): The chromatic adaption matrix.
+        whitepoint_source (tuple): The source whitepoint.
+        whitepoint_destination (tuple): The destination whitepoint.
+
+    Returns:
+        str: The guessed chromatic adaption transform.
+    """
     if chad == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]:
         # Cannot figure out CAT from identity chad
         return None
@@ -1267,10 +1416,14 @@ def guess_cat(chad, whitepoint_source=None, whitepoint_destination=None):
 def CIEDCCT2xyY(T, scale=1.0):
     """Convert from CIE correlated daylight temperature to xyY.
 
-    T = temperature in Kelvin.
-
     Based on formula from http://brucelindbloom.com/Eqn_T_to_xy.html
 
+    Args:
+        T (float): The temperature in Kelvin.
+        scale (float): The scale factor. Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The xyY values.
     """
     if isinstance(T, str):
         # Assume standard illuminant, e.g. "D50"
@@ -1307,16 +1460,30 @@ def CIEDCCT2xyY(T, scale=1.0):
 def CIEDCCT2XYZ(T, scale=1.0):
     """Convert from CIE correlated daylight temperature to XYZ.
 
-    T = temperature in Kelvin.
+    Args:
+        T (float): The temperature in Kelvin.
+        scale (float): The scale factor. Defaults to 1.0.
 
+    Returns:
+        tuple[float, float, float]: The XYZ values.
     """
     xyY = CIEDCCT2xyY(T, scale)
     return xyY2XYZ(*xyY) if xyY else None
 
 
-# cLUT Input value tweaks to make Video encoded black land on
-# 65 res grid nodes, which should help 33 and 17 res cLUTs too
 def cLUT65_to_VidRGB(v, size=65):
+    """cLUT65 to VidRGB conversion.
+
+    cLUT Input value tweaks to make Video encoded black land on
+    65 res grid nodes, which should help 33 and 17 res cLUTs too.
+
+    Args:
+        v (float): The value to convert.
+        size (int): The size of the LUT. Defaults to 65.
+
+    Returns:
+        float: The converted value.
+    """
     if v <= 236.0 / 256:
         # Scale up to near black point
         return v * 256.0 / 255
@@ -1324,20 +1491,57 @@ def cLUT65_to_VidRGB(v, size=65):
 
 
 def VidRGB_to_cLUT65(v, size=65):
+    """Convert from VidRGB to cLUT65.
+
+    Args:
+        v (float): The value to convert.
+        size (int): The size of the LUT. Defaults to 65.
+
+    Returns:
+        float: The converted value.
+    """
     if v <= 236.0 / 255.0:
         return v * 255.0 / 256
     return 1 - (1 - v) * (1 - 236.0 / 256) / (1 - 236.0 / 255)
 
 
 def VidRGB_to_eeColor(v):
+    """Convert from VidRGB to eeColor.
+
+    Args:
+        v (float): The value to convert.
+
+    Returns:
+        float: The converted value.
+    """
     return v * 255.0 / 256.0
 
 
 def eeColor_to_VidRGB(v):
+    """Convert from eeColor to VidRGB.
+
+    Args:
+        v (float): The value to convert.
+
+    Returns:
+        float: The converted value.
+    """
     return v * 256.0 / 255.0
 
 
 def DIN992Lab(L99, a99, b99, kCH=1.0, kE=1.0):
+    """Convert from DIN99 to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+        kCH (float, optional): The kCH value of the color. Defaults to 1.0.
+        kE (float, optional): The kE value of the color. Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     C99, H99 = DIN99familyab2DIN99CH(a99, b99)
     return DIN99familyLCH2Lab(
         L99, C99, H99, 0, 105.51, 0.0158, 16, 0.7, 1 / (0.045 * kCH * kE), 0.045, kE, 0
@@ -1345,11 +1549,33 @@ def DIN992Lab(L99, a99, b99, kCH=1.0, kE=1.0):
 
 
 def DIN99b2Lab(L99, a99, b99):
+    """Convert from DIN99b to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     C99, H99 = DIN99familyab2DIN99CH(a99, b99)
     return DIN99familyLCH2Lab(L99, C99, H99, 0, 303.67, 0.0039, 26, 0.83, 23, 0.075)
 
 
 def DIN99o2Lab(L99, a99, b99, kCH=1.0, kE=1.0):
+    """Convert from DIN99o to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+        kCH (float, optional): The kCH value of the color. Defaults to 1.0.
+        kE (float, optional): The kE value of the color. Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     C99, H99 = DIN99familyab2DIN99CH(a99, b99)
     return DIN99familyLCH2Lab(
         L99, C99, H99, 0, 303.67, 0.0039, 26, 0.83, 1 / (0.0435 * kCH * kE), 0.075, kE
@@ -1357,10 +1583,32 @@ def DIN99o2Lab(L99, a99, b99, kCH=1.0, kE=1.0):
 
 
 def DIN99bLCH2Lab(L99, C99, H99):
+    """Convert from DIN99bLCH to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        C99 (float): The C value of the color.
+        H99 (float): The H value of the color.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     return DIN99familyLCH2Lab(L99, C99, H99, 0, 303.67, 0.0039, 26, 0.83, 23, 0.075)
 
 
 def DIN99c2Lab(L99, a99, b99, whitepoint=None):
+    """Convert from DIN99c to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     C99, H99 = DIN99familyab2DIN99CH(a99, b99)
     return DIN99familyLCH2Lab(
         L99, C99, H99, 0.1, 317.651, 0.0037, 0, 0.94, 23, 0.066, whitepoint
@@ -1368,6 +1616,18 @@ def DIN99c2Lab(L99, a99, b99, whitepoint=None):
 
 
 def DIN99d2Lab(L99, a99, b99, whitepoint=None):
+    """Convert from DIN99d to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     C99, H99 = DIN99familyab2DIN99CH(a99, b99)
     return DIN99familyLCH2Lab(
         L99, C99, H99, 0.12, 325.221, 0.0036, 50, 1.14, 22.5, 0.06, whitepoint
@@ -1375,6 +1635,18 @@ def DIN99d2Lab(L99, a99, b99, whitepoint=None):
 
 
 def DIN99dLCH2Lab(L99, C99, H99, whitepoint=None):
+    """Convert from DIN99dLCH to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        C99 (float): The C value of the color.
+        H99 (float): The H value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     return DIN99familyLCH2Lab(
         L99, C99, H99, 0.12, 325.221, 0.0036, 50, 1.14, 22.5, 0.06, whitepoint
     )
@@ -1383,6 +1655,27 @@ def DIN99dLCH2Lab(L99, C99, H99, whitepoint=None):
 def DIN99familyLCH2Lab(
     L99, C99, H99, x, l1, l2, deg, f1, c1, c2, whitepoint=None, kE=1.0, hdeg=None
 ):
+    """Convert from DIN99LCH to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        C99 (float): The C value of the color.
+        H99 (float): The H value of the color.
+        x (float): The x value of the color.
+        l1 (float): The l1 value of the color.
+        l2 (float): The l2 value of the color.
+        deg (float): The degree value of the color.
+        f1 (float): The f1 value of the color.
+        c1 (float): The c1 value of the color.
+        c2 (float): The c2 value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+        kE (float, optional): The kE value of the color. Defaults to 1.0.
+        hdeg (float, optional): The hdeg value of the color. Defaults to None.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     G = (math.exp(C99 / c1) - 1) / c2
     if hdeg is None:
         hdeg = deg
@@ -1397,11 +1690,38 @@ def DIN99familyLCH2Lab(
 
 
 def DIN99cdXYZ2XYZ(X, Y, Z, x):
+    """Convert from DIN99cdXYZ to XYZ.
+
+    Args:
+        X (float): The X value of the color.
+        Y (float): The Y value of the color.
+        Z (float): The Z value of the color.
+        x (float): The x value of the color.
+
+    Returns:
+        tuple[float, float, float]: The X, Y, Z values.
+    """
     X = (X + x * Z) / (1 + x)
     return X, Y, Z
 
 
 def DIN99familyLHCG2Lab(L99, H99, C99, G, kE, l1, l2, deg, f1):
+    """Convert from DIN99LCH to Lab.
+
+    Args:
+        L99 (float): The L value of the color.
+        H99 (float): The H value of the color.
+        C99 (float): The C value of the color.
+        G (float): The G value of the color.
+        kE (float): The kE value of the color.
+        l1 (float): The l1 value of the color.
+        l2 (float): The l2 value of the color.
+        deg (float): The degree value of the color.
+        f1 (float): The f1 value of the color.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     L = (math.exp((L99 * kE) / l1) - 1) / l2
     h99ef = H99 * math.pi / 180
     e = G * math.cos(h99ef)
@@ -1413,11 +1733,29 @@ def DIN99familyLHCG2Lab(L99, H99, C99, G, kE, l1, l2, deg, f1):
 
 
 def DIN99familyCH2DIN99ab(C99, H99):
+    """Convert from DIN99CH to DIN99ab.
+
+    Args:
+        C99 (float): The C value of the color.
+        H99 (float): The H value of the color.
+
+    Returns:
+        tuple[float, float]: The a99 and b99 values.
+    """
     h99ef = H99 * math.pi / 180
     return C99 * math.cos(h99ef), C99 * math.sin(h99ef)
 
 
 def DIN99familyab2DIN99CH(a99, b99):
+    """Convert from DIN99ab to DIN99CH.
+
+    Args:
+        a99 (float): The a value of the color.
+        b99 (float): The b value of the color.
+
+    Returns:
+        tuple[float, float]: The C99 and H99 values.
+    """
     C99 = math.sqrt(math.pow(a99, 2) + math.pow(b99, 2))
     if a99 > 0:
         h99ef = math.atan2(b99, a99) if b99 >= 0 else 2 * math.pi + math.atan2(b99, a99)
@@ -1434,6 +1772,17 @@ def DIN99familyab2DIN99CH(a99, b99):
 
 
 def HSI2RGB(H, S, I, scale=1.0):
+    """Convert from HSI to RGB.
+
+    Args:
+        H (float): The hue value of the color.
+        S (float): The saturation value of the color.
+        I (float): The intensity value of the color.
+        scale (float): The scale factor to apply to the RGB values.
+
+    Returns:
+        tuple[float, float, float]: The R, G, B values.
+    """
     H *= 360
 
     h = H
@@ -1464,14 +1813,41 @@ def HSI2RGB(H, S, I, scale=1.0):
 
 
 def HSL2RGB(H, S, L, scale=1.0):
+    """Convert from HSL to RGB.
+
+    Args:
+        H (float): The hue value of the color.
+        S (float): The saturation value of the color.
+        L (float): The lightness value of the color.
+        scale (float): The scale factor to apply to the RGB values.
+
+    Returns:
+        tuple[float, float, float]: The R, G, B values.
+    """
     return tuple(v * scale for v in colorsys.hls_to_rgb(H, L, S))
 
 
 def HSV2RGB(H, S, V, scale=1.0):
+    """Convert from HSV to RGB.
+
+    Args:
+        H (float): The hue value of the color.
+        S (float): The saturation value of the color.
+        V (float): The value (brightness) of the color.
+        scale (float): The scale factor to apply to the RGB values.
+
+    Returns:
+        tuple[float, float, float]: The R, G, B values.
+    """
     return tuple(v * scale for v in colorsys.hsv_to_rgb(H, S, V))
 
 
 def get_DBL_MIN():
+    """Get the smallest positive normalized double value.
+
+    Returns:
+        float: The smallest positive normalized double value.
+    """
     t = "0.0"
     i = 10
     n = 0
@@ -1498,56 +1874,180 @@ DBL_MIN = get_DBL_MIN()
 
 
 def LCHab2Lab(L, C, H):
+    """Convert from LCHab to Lab.
+
+    Args:
+        L (float): The L value of the color.
+        C (float): The C value of the color.
+        H (float): The H value of the color.
+
+    Returns:
+        tuple[float, float, float]: The L, a, b values.
+    """
     a = C * math.cos(H * math.pi / 180.0)
     b = C * math.sin(H * math.pi / 180.0)
     return L, a, b
 
 
 def Lab2DIN99(L, a, b, kCH=1.0, kE=1.0):
+    """Convert from Lab to DIN99.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kCH (float): The kCH value.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, a99, b99 values.
+    """
     L99, C99, H99 = Lab2DIN99LCH(L, a, b, kCH, kE)
     a99, b99 = DIN99familyCH2DIN99ab(C99, H99)
     return L99, a99, b99
 
 
 def Lab2DIN99b(L, a, b, kE=1.0):
+    """Convert from Lab to DIN99b.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, a99, b99 values.
+    """
     L99, C99, H99 = Lab2DIN99bLCH(L, a, b, kE)
     a99, b99 = DIN99familyCH2DIN99ab(C99, H99)
     return L99, a99, b99
 
 
 def Lab2DIN99o(L, a, b, kCH=1.0, kE=1.0):
+    """Convert from Lab to DIN99o.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kCH (float): The kCH value.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, a99, b99 values.
+    """
     L99, C99, H99 = Lab2DIN99oLCH(L, a, b, kCH, kE)
     a99, b99 = DIN99familyCH2DIN99ab(C99, H99)
     return L99, a99, b99
 
 
 def Lab2DIN99c(L, a, b, kE=1.0, whitepoint=None):
+    """Convert from Lab to DIN99c.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kE (float): The kE value.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The L99, a99, b99 values.
+    """
     X, Y, Z = Lab2XYZ(L, a, b, whitepoint, scale=100)
     return XYZ2DIN99c(X, Y, Z, whitepoint)
 
 
 def Lab2DIN99d(L, a, b, kE=1.0, whitepoint=None):
+    """Convert from Lab to DIN99d.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kE (float): The kE value.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The L99, a99, b99 values.
+    """
     X, Y, Z = Lab2XYZ(L, a, b, whitepoint, scale=100)
     return XYZ2DIN99d(X, Y, Z, whitepoint)
 
 
 def Lab2DIN99LCH(L, a, b, kCH=1.0, kE=1.0):
+    """Convert from Lab to DIN99 LCH.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kCH (float): The kCH value.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, C99, H99 values.
+    """
     return Lab2DIN99familyLCH(
         L, a, b, 105.51, 0.0158, 16, 0.7, 1 / (0.045 * kCH * kE), 0.045, kE, 0
     )
 
 
 def Lab2DIN99bLCH(L, a, b, kE=1.0):
+    """Convert from Lab to DIN99b LCH.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, C99, H99 values.
+    """
     return Lab2DIN99familyLCH(L, a, b, 303.67, 0.0039, 26, 0.83, 23, 0.075)
 
 
 def Lab2DIN99oLCH(L, a, b, kCH=1.0, kE=1.0):
+    """Convert from Lab to DIN99o LCH.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kCH (float): The kCH value.
+        kE (float): The kE value.
+
+    Returns:
+        tuple[float, float, float]: The L99, C99, H99 values.
+    """
     return Lab2DIN99familyLCH(
         L, a, b, 303.67, 0.0039, 26, 0.83, 1 / (0.0435 * kCH * kE), 0.075, kE
     )
 
 
 def Lab2DIN99familyLCH(L, a, b, l1, l2, deg, f1, c1, c2, kE=1.0, hdeg=None):
+    """Convert from Lab to DIN99 family LCH.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        l1 (float): The l1 value.
+        l2 (float): The l2 value.
+        deg (float): The degree value.
+        f1 (float): The f1 value.
+        c1 (float): The c1 value.
+        c2 (float): The c2 value.
+        kE (float): The kE value.
+        hdeg (None | float): The hdeg value. Defaults to None.
+
+    Returns:
+        tuple[float, float, float]: The L99, C99, H99 values.
+    """
     L99, G, h99ef, rad = Lab2DIN99familyLGhrad(L, a, b, kE, l1, l2, deg, f1)
     C99 = c1 * math.log(1 + c2 * G)
     if hdeg is None:
@@ -1557,9 +2057,24 @@ def Lab2DIN99familyLCH(L, a, b, l1, l2, deg, f1, c1, c2, kE=1.0, hdeg=None):
 
 
 def Lab2DIN99familyLGhrad(L, a, b, kE, l1, l2, deg, f1):
+    """Convert from Lab to DIN99 family LCH.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        kE (float): The kE value.
+        l1 (float): The l1 value.
+        l2 (float): The l2 value.
+        deg (float): The degree value.
+        f1 (float): The f1 value.
+
+    Returns:
+        tuple[float, float, float, float]: The L99, G, h99ef values.
+    """
     L99 = (1.0 / kE) * l1 * math.log(1 + l2 * L)
     rad = deg * math.pi / 180
-    if rad:
+    if rad != 0:
         ar = math.cos(rad)  # a rotation term
         br = math.sin(rad)  # b rotation term
         e = a * ar + b * br
@@ -1573,6 +2088,16 @@ def Lab2DIN99familyLGhrad(L, a, b, kE, l1, l2, deg, f1):
 
 
 def Lab2LCHab(L, a, b):
+    """Convert from Lab to LCHab.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+
+    Returns:
+        tuple[float, float, float]: The LCHab values.
+    """
     C = math.sqrt(math.pow(a, 2) + math.pow(b, 2))
     H = 180.0 * math.atan2(b, a) / math.pi
     if H < 0.0:
@@ -1581,6 +2106,20 @@ def Lab2LCHab(L, a, b):
 
 
 def Lab2Luv(L, a, b, whitepoint=None, scale=100):
+    """Convert from Lab to Luv.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 100.
+
+    Returns:
+        tuple[float, float, float]: The Luv values.
+    """
     X, Y, Z = Lab2XYZ(L, a, b, whitepoint, scale)
     return XYZ2Luv(X, Y, Z, whitepoint)
 
@@ -1598,7 +2137,28 @@ def Lab2RGB(
     noadapt=False,
     cat="Bradford",
 ):
-    """Convert from Lab to RGB"""
+    """Convert from Lab to RGB.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        rgb_space (str or tuple): The RGB space to use. Defaults to sRGB.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+        round_ (bool): Whether to round the output values. Defaults to False.
+        clamp (bool): Whether to clamp the output values. Defaults to True.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+        whitepoint_source (None | int | float | str | list | tuple): The source
+            whitepoint to use. Defaults to D50.
+        noadapt (bool): Whether to skip chromatic adaptation. Defaults to False.
+        cat (str): The chromatic adaptation transform to use. Defaults to
+            "Bradford".
+
+    Returns:
+        tuple[float, float, float]: The RGB values.
+    """
     X, Y, Z = Lab2XYZ(L, a, b, whitepoint)
     if not noadapt:
         rgb_space = get_rgb_space(rgb_space)
@@ -1618,6 +2178,17 @@ def Lab2XYZ(L, a, b, whitepoint=None, scale=1.0):
 
     Based on formula from http://brucelindbloom.com/Eqn_Lab_to_XYZ.html
 
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The XYZ values.
     """
     fy = (L + 16) / 116.0
     fx = a / 500.0 + fy
@@ -1645,11 +2216,35 @@ def Lab2XYZ(L, a, b, whitepoint=None, scale=1.0):
 
 
 def Lab2xyY(L, a, b, whitepoint=None, scale=1.0):
+    """Convert from Lab to xyY.
+
+    Args:
+        L (float): The L value of the color.
+        a (float): The a value of the color.
+        b (float): The b value of the color.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The xyY values.
+    """
     X, Y, Z = Lab2XYZ(L, a, b, whitepoint, scale)
     return XYZ2xyY(X, Y, Z, whitepoint)
 
 
 def Luv2LCHuv(L, u, v):
+    """Convert from Luv to LCHuv.
+
+    Args:
+        L (float): The L value of the color.
+        u (float): The u' value of the color.
+        v (float): The v' value of the color.
+
+    Returns:
+        tuple[float, float, float]: The LCHuv values.
+    """
     C = math.sqrt(math.pow(u, 2) + math.pow(v, 2))
     H = 180.0 * math.atan2(v, u) / math.pi
     if H < 0.0:
@@ -1660,13 +2255,37 @@ def Luv2LCHuv(L, u, v):
 def Luv2RGB(
     L, u, v, rgb_space=None, scale=1.0, round_=False, clamp=True, whitepoint=None
 ):
-    """Convert from Luv to RGB"""
+    """Convert from Luv to RGB.
+
+    Args:
+        L (float): The L value of the color.
+        u (float): The u' value of the color.
+        v (float): The v' value of the color.
+        rgb_space (str or tuple): The RGB space to use. Defaults to sRGB.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+        round_ (bool): Whether to round the output values. Defaults to False.
+        clamp (bool): Whether to clamp the output values. Defaults to True.
+        whitepoint (None | int | float | str | list | tuple): The whitepoint to
+            use. Defaults to D50.
+
+    Returns:
+        tuple[float, float, float]: The RGB values.
+    """
     X, Y, Z = Luv2XYZ(L, u, v, whitepoint)
     return XYZ2RGB(X, Y, Z, rgb_space, scale, round_, clamp)
 
 
 def u_v_2xy(u, v):
-    """Convert from u'v' to xy"""
+    """Convert from u'v' to xy.
+
+    Args:
+        u (float): The u' value of the color.
+        v (float): The v' value of the color.
+
+    Returns:
+        tuple[float, float]: The xy values.
+    """
     x = (9.0 * u) / (6 * u - 16 * v + 12)
     y = (4 * v) / (6 * u - 16 * v + 12)
 
@@ -1674,7 +2293,19 @@ def u_v_2xy(u, v):
 
 
 def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
-    """Convert from Luv to XYZ"""
+    """Convert from Luv to XYZ.
+
+    Args:
+        L (float): The L value of the color.
+        u (float): The u' value of the color.
+        v (float): The v' value of the color.
+        whitepoint (str or tuple): The whitepoint to use. Defaults to D50.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The XYZ values.
+    """
     Xr, Yr, Zr = get_whitepoint(whitepoint)
 
     Y = math.pow((L + 16.0) / 116.0, 3) if L > LSTAR_K * LSTAR_E else L / LSTAR_K
@@ -1694,6 +2325,21 @@ def Luv2XYZ(L, u, v, whitepoint=None, scale=1.0):
 
 
 def RGB2HSI(R, G, B, scale=1.0):
+    """Convert from RGB to HSI.
+
+    The input RGB values need to be in the nominal range [0.0, 1.0] and
+    the output HSI values are in the nominal range [0.0, scale].
+
+    Args:
+        R (float): The red value of the color.
+        G (float): The green value of the color.
+        B (float): The blue value of the color.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The HSI values.
+    """
     I = (R + G + B) / 3.0
     S = 1 - min(R, G, B) / I if I else 0
     if not R == G == B:
@@ -1708,16 +2354,46 @@ def RGB2HSI(R, G, B, scale=1.0):
 
 
 def RGB2HSL(R, G, B, scale=1.0):
+    """Convert from RGB to HSL.
+
+    The input RGB values need to be in the nominal range [0.0, 1.0] and
+    the output HSL values are in the nominal range [0.0, scale].
+
+    Args:
+        R (float): The red value of the color.
+        G (float): The green value of the color.
+        B (float): The blue value of the color.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The HSL values.
+    """
     H, L, S = colorsys.rgb_to_hls(R, G, B)
     return tuple(v * scale for v in (H, S, L))
 
 
 def RGB2HSV(R, G, B, scale=1.0):
+    """Convert from RGB to HSV.
+
+    The input RGB values need to be in the nominal range [0.0, 1.0] and
+    the output HSV values are in the nominal range [0.0, scale].
+
+    Args:
+        R (float): The red value of the color.
+        G (float): The green value of the color.
+        B (float): The blue value of the color.
+        scale (float): The scale factor to apply to the output values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple[float, float, float]: The HSV values.
+    """
     return tuple(v * scale for v in colorsys.rgb_to_hsv(R, G, B))
 
 
 def LinearRGB2ICtCp(R, G, B, oetf=lambda FD: specialpow(FD, 1.0 / -2084)):
-    """Rec. 2020 linear RGB to non-linear ICtCp"""
+    """Rec. 2020 linear RGB to non-linear ICtCp."""
     # http://www.dolby.com/us/en/technologies/dolby-vision/ICtCp-white-paper.pdf
     LMS = LinearRGB2LMS_matrix * (R, G, B)
     L_, M_, S_ = (oetf(FD) for FD in LMS)
@@ -1725,9 +2401,29 @@ def LinearRGB2ICtCp(R, G, B, oetf=lambda FD: specialpow(FD, 1.0 / -2084)):
     return I, Ct, Cp
 
 
-def ICtCp2LinearRGB(I, Ct, Cp, eotf=lambda v: specialpow(v, -2084)):
-    """Non-linear ICtCp to Rec. 2020 linear RGB"""
-    # http://www.dolby.com/us/en/technologies/dolby-vision/ICtCp-white-paper.pdf
+def ICtCp2LinearRGB(I, Ct, Cp, eotf=None):
+    """Non-linear ICtCp to Rec. 2020 linear RGB.
+
+    http://www.dolby.com/us/en/technologies/dolby-vision/ICtCp-white-paper.pdf
+
+    Args:
+        I (float): The I value of the color.
+        Ct (float): The Ct value of the color.
+        Cp (float): The Cp value of the color.
+        eotf (function): The electro-optical transfer function to use.
+            Defaults to the Rec. 2020 EOTF.
+            This function should take a single argument and return a float.
+            The default function is the Rec. 2020 OETF.
+            See the `specialpow` function for more details.
+
+    Returns:
+        tuple: The RGB values.
+    """
+    if eotf is None:
+
+        def eotf(v):
+            return specialpow(v, -2084)
+
     L_M_S_ = ICtCp2L_M_S__matrix * (I, Ct, Cp)
     L, M, S = (eotf(v) for v in L_M_S_)
     R, G, B = LMS2LinearRGB_matrix * (L, M, S)
@@ -1739,11 +2435,44 @@ def RGB2ICtCp(
     G,
     B,
     rgb_space="Rec. 2020",
-    eotf=lambda v: specialpow(v, -2084),
+    eotf=None,
     clamp=False,
-    oetf=lambda E: specialpow(E, 1.0 / -2084),
+    oetf=None,
 ):
-    """R'G'B' to ICtCp"""
+    """R'G'B' to ICtCp.
+
+    Args:
+        R (float): The R' value of the color.
+        G (float): The G' value of the color.
+        B (float): The B' value of the color.
+        rgb_space (str): The RGB space to use for conversion. Defaults to
+            "Rec. 2020".
+        eotf (None | callable): The electro-optical transfer function to use.
+            Defaults to the Rec. 2020 EOTF.
+            This function should take a single argument and return a float.
+            The default function is the inverse of the Rec. 2020 EOTF.
+            See the `specialpow` function for more details.
+        clamp (bool): If True, clamp the output values to [0, 1].
+            Defaults to False.
+        oetf (None | callable): The opto-electrical transfer function to use.
+            Defaults to the Rec. 2020 OETF.
+            This function should take a single argument and return a float.
+            The default function is the Rec. 2020 OETF.
+            See the `specialpow` function for more details.
+
+    Returns:
+        tuple: The ICtCp values.
+    """
+    if eotf is None:
+
+        def eotf(v):
+            return specialpow(v, -2084)
+
+    if oetf is None:
+
+        def oetf(E):
+            return specialpow(E, 1.0 / -2084)
+
     X, Y, Z = RGB2XYZ(R, G, B, rgb_space, eotf=eotf)
     return XYZ2ICtCp(X, Y, Z, clamp, oetf)
 
@@ -1753,26 +2482,132 @@ def ICtCp2RGB(
     Ct,
     Cp,
     rgb_space="Rec. 2020",
-    eotf=lambda v: specialpow(v, -2084),
+    eotf=None,
     clamp=False,
-    oetf=lambda E: specialpow(E, 1.0 / -2084),
+    oetf=None,
 ):
-    """ICtCp to R'G'B'"""
+    """ICtCp to R'G'B'.
+
+    Args:
+        I (float): The I value of the color.
+        Ct (float): The Ct value of the color.
+        Cp (float): The Cp value of the color.
+        rgb_space (str): The RGB space to use for conversion. Defaults to
+            "Rec. 2020".
+        eotf (None | callable): The electro-optical transfer function to use.
+            Defaults to the Rec. 2020 EOTF.
+            This function should take a single argument and return a float.
+            The default function is the inverse of the Rec. 2020 EOTF.
+            See the `specialpow` function for more details.
+        clamp (bool): If True, clamp the output values to [0, 1].
+            Defaults to False.
+        oetf (None | callable): The opto-electrical transfer function to use.
+            Defaults to the Rec. 2020 OETF.
+            This function should take a single argument and return a float.
+            The default function is the Rec. 2020 OETF.
+            See the `specialpow` function for more details.
+
+    Returns:
+        tuple: The RGB values.
+    """
+    if eotf is None:
+
+        def eotf(v):
+            return specialpow(v, -2084)
+
+    if oetf is None:
+
+        def oetf(E):
+            return specialpow(E, 1.0 / -2084)
+
     X, Y, Z = ICtCp2XYZ(I, Ct, Cp, eotf)
     return XYZ2RGB(X, Y, Z, rgb_space, clamp=clamp, oetf=oetf)
 
 
-def XYZ2ICtCp(X, Y, Z, clamp=False, oetf=lambda E: specialpow(E, 1.0 / -2084)):
+def XYZ2ICtCp(X, Y, Z, clamp=False, oetf=None):
+    """XYZ to ICtCp.
+
+    Args:
+        X (float): The X value of the color.
+        Y (float): The Y value of the color.
+        Z (float): The Z value of the color.
+        clamp (bool): If True, clamp the output values to [0, 1].
+            Defaults to False.
+        oetf (function): The opto-electrical transfer function to use.
+            Defaults to the Rec. 2020 OETF.
+            This function should take a single argument and return a float.
+            The default function is the Rec. 2020 OETF.
+            See the `specialpow` function for more details.
+
+    Returns:
+        tuple: The ICtCp values.
+    """
+    if oetf is None:
+
+        def oetf(E):
+            return specialpow(E, 1.0 / -2084)
+
     R, G, B = XYZ2RGB(X, Y, Z, "Rec. 2020", clamp=clamp, oetf=lambda v: v)
     return LinearRGB2ICtCp(R, G, B, oetf)
 
 
-def ICtCp2XYZ(I, Ct, Cp, eotf=lambda v: specialpow(v, -2084)):
+def ICtCp2XYZ(I, Ct, Cp, eotf=None) -> tuple:
+    """ICtCp to XYZ.
+
+    Args:
+        I (float): The I value of the color.
+        Ct (float): The Ct value of the color.
+        Cp (float): The Cp value of the color.
+        eotf (function): The electro-optical transfer function to use.
+            Defaults to the Rec. 2020 EOTF.
+            This function should take a single argument and return a float.
+            The default function is the inverse of the Rec. 2020 EOTF.
+            See the `specialpow` function for more details.
+
+    Returns:
+        tuple: The XYZ values.
+    """
+    if eotf is None:
+
+        def eotf(v):
+            return specialpow(v, -2084)
+
     R, G, B = ICtCp2LinearRGB(I, Ct, Cp, eotf)
     return RGB2XYZ(R, G, B, "Rec. 2020", eotf=lambda v: v)
 
 
 def RGB2Lab(R, G, B, rgb_space=None, whitepoint=None, noadapt=False, cat="Bradford"):
+    """Convert from RGB to Lab.
+
+    Args:
+        R (float): The R' value of the color.
+        G (float): The G' value of the color.
+        B (float): The B' value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or
+            int). The gamma should be a float. The RGB primaries red,
+            green, blue should be lists or tuples of xyY coordinates
+            (only x and y will be used, so Y can be zero or None).
+        whitepoint (None | str | tuple): The whitepoint to use for conversion.
+            If None, the whitepoint of the RGB space will be used.
+            If a string is given, it must be a valid whitepoint name.
+            If a tuple is given, it must be in the format (X, Y, Z).
+            The whitepoint can also be a color temperature in degrees K
+            (float or int).
+        noadapt (bool): If True, no chromatic adaptation will be applied.
+            Defaults to False.
+        cat (str): The chromatic adaptation transform to use. Defaults to
+            "Bradford". Other options include "VonKries" and "CAT02".
+            See the `adapt` function for more details.
+
+    Returns:
+        tuple: The Lab values.
+    """
     X, Y, Z = RGB2XYZ(R, G, B, rgb_space, scale=100)
     if not noadapt:
         rgb_space = get_rgb_space(rgb_space)
@@ -1836,7 +2671,28 @@ def RGB2XYZ(R, G, B, rgb_space=None, scale=1.0, eotf=None):
 
 
 def RGB2xyY(R, G, B, rgb_space=None, scale=1.0, eotf=None):
-    """Convert RGB to xyY"""
+    """Convert RGB to xyY.
+
+    Args:
+        R (float): The R' value of the color.
+        G (float): The G' value of the color.
+        B (float): The B' value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or
+            int). The gamma should be a float. The RGB primaries red,
+            green, blue should be lists or tuples of xyY coordinates
+            (only x and y will be used, so Y can be zero or None).
+        scale (float): The scale factor for the output values. Defaults to 1.0.
+        eotf (function): A function to apply to the RGB values before conversion.
+
+    Returns:
+        tuple: The xyY values.
+    """
     return XYZ2xyY(
         *RGB2XYZ(R, G, B, rgb_space, scale, eotf),
         whitepoint=RGB2XYZ(1, 1, 1, rgb_space, scale, eotf),
@@ -1844,16 +2700,73 @@ def RGB2xyY(R, G, B, rgb_space=None, scale=1.0, eotf=None):
 
 
 def RGB2YCbCr(R, G, B, rgb_space="NTSC 1953", bits=8, fullrange=False):
-    """R'G'B' to Y'CbCr quantized to n bits"""
+    """R'G'B' to Y'CbCr quantized to n bits.
+
+    Args:
+        R (float): The R' value of the color.
+        G (float): The G' value of the color.
+        B (float): The B' value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or
+            int). The gamma should be a float. The RGB primaries red,
+            green, blue should be lists or tuples of xyY coordinates
+            (only x and y will be used, so Y can be zero or None).
+        bits (int): The number of bits to quantize to. Defaults to 8.
+        fullrange (bool): Whether to use full range or limited range. Defaults to False.
+
+    Returns:
+        tuple: The Y'CbCr values.
+    """
     return YPbPr2YCbCr(*RGB2YPbPr(R, G, B, rgb_space), bits=bits, fullrange=fullrange)
 
 
 def RGB2YPbPr(R, G, B, rgb_space="NTSC 1953"):
-    """R'G'B' to Y'PbPr"""
+    """R'G'B' to Y'PbPr.
+
+    Args:
+        R (float): The R' value of the color.
+        G (float): The G' value of the color.
+        B (float): The B' value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+
+    Returns:
+        tuple: The Y'PbPr values.
+    """
     return RGB2YPbPr_matrix(rgb_space) * (R, G, B)
 
 
 def RGB2YPbPr_matrix(rgb_space="NTSC 1953"):
+    """Get the RGB to Y'PbPr matrix for the given RGB space.
+
+    Args:
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+
+    Returns:
+        Matrix3x3: The RGB to Y'PbPr matrix.
+    """
     (trc, whitepoint, (rx, ry, rY), (gx, gy, gY), (bx, by, bY), matrix) = get_rgb_space(
         rgb_space
     )
@@ -1873,7 +2786,18 @@ def RGB2YPbPr_matrix(rgb_space="NTSC 1953"):
 
 
 def YCbCr2YPbPr(Y, Cb, Cr, bits=8, fullrange=False):
-    """Y'CbCr to Y'PbPr"""
+    """Y'CbCr to Y'PbPr.
+
+    Args:
+        Y (float): The Y value of the color.
+        Cb (float): The Cb value of the color.
+        Cr (float): The Cr value of the color.
+        bits (int): The number of bits to quantize to. Defaults to 8.
+        fullrange (bool): Whether to use full range or limited range. Defaults to False.
+
+    Returns:
+        tuple: The Y'PbPr values.
+    """
     bitlevels = 2**bits
     if not fullrange:
         Yblack = 16
@@ -1906,13 +2830,63 @@ def YCbCr2RGB(
     round_=False,
     clamp=True,
 ):
-    """Y'CbCr to R'G'B'"""
+    """Y'CbCr to R'G'B'.
+
+    Args:
+        Y (float): The Y value of the color.
+        Cb (float): The Cb value of the color.
+        Cr (float): The Cr value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+        bits (int): The number of bits to quantize to. Defaults to 8.
+        fullrange (bool): Whether to use full range or limited range. Defaults to False.
+        scale (float): The scale factor to apply to the output values.
+        round_ (int | bool): The number of decimal places to round to.
+            If False, no rounding is applied. Defaults to False.
+        clamp (bool): Whether to clamp the output values to [0.0, 1.0].
+            Defaults to True.
+
+    Returns:
+        tuple: The R'G'B' values.
+    """
     Y, Pb, Pr = YCbCr2YPbPr(Y, Cb, Cr, bits, fullrange)
     return YPbPr2RGB(Y, Pb, Pr, rgb_space, scale, round_, clamp)
 
 
 def YPbPr2RGB(Y, Pb, Pr, rgb_space="NTSC 1953", scale=1.0, round_=False, clamp=True):
-    """Y'PbPr to R'G'B'"""
+    """Y'PbPr to R'G'B'.
+
+    Args:
+        Y (float): The Y value of the color.
+        Pb (float): The Pb value of the color.
+        Pr (float): The Pr value of the color.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+        scale (float): The scale factor to apply to the output values.
+        round_ (int | bool): The number of decimal places to round to.
+            If False, no rounding is applied. Defaults to False.
+        clamp (bool): Whether to clamp the output values to [0.0, 1.0].
+            Defaults to True.
+
+    Returns:
+        tuple: The R'G'B' values.
+    """
     RGB = RGB2YPbPr_matrix(rgb_space).inverted() * (Y, Pb, Pr)
     for i in range(3):
         if clamp:
@@ -1924,7 +2898,18 @@ def YPbPr2RGB(Y, Pb, Pr, rgb_space="NTSC 1953", scale=1.0, round_=False, clamp=T
 
 
 def YPbPr2YCbCr(Y, Pb, Pr, bits=8, fullrange=False):
-    """Y'PbPr to Y'CbCr quantized to n bits"""
+    """Y'PbPr to Y'CbCr quantized to n bits.
+
+    Args:
+        Y (float): The Y value of the color.
+        Pb (float): The Pb value of the color.
+        Pr (float): The Pr value of the color.
+        bits (int): The number of bits to quantize to. Defaults to 8.
+        fullrange (bool): Whether to use full range or limited range. Defaults to False.
+
+    Returns:
+        tuple: The Y'CbCr values.
+    """
     bitlevels = 2**bits
     if not fullrange:
         Yblack = 16
@@ -1942,12 +2927,35 @@ def YPbPr2YCbCr(Y, Pb, Pr, bits=8, fullrange=False):
     Cr = Cneutral + Cscale * Pr
     # In fullrange mode, Cb and Cr can reach 255.5, so we need to clamp
     # Follow ITU-T Rec. T.871 (JPEG)
-    Y, Cb, Cr = (min(max(int(round(v)), 0), bitlevels - 1) for v in (Y, Cb, Cr))
+    Y, Cb, Cr = (min(max(round(v), 0), bitlevels - 1) for v in (Y, Cb, Cr))
     return Y, Cb, Cr
 
 
 def RGBsaturation(R, G, B, saturation, rgb_space=None):
-    """(De)saturate a RGB color in CIE xy and return the RGB and xyY values"""
+    """(De)saturate a RGB color in CIE xy and return the RGB and xyY values.
+
+    Args:
+        R (float): The red value of the color.
+        G (float): The green value of the color.
+        B (float): The blue value of the color.
+        saturation (float): The saturation factor.
+            0.0 = grayscale, 1.0 = original color, >1.0 = oversaturated.
+            <0.0 = undersaturated.
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+
+    Returns:
+        tuple: The new RGB values after saturation adjustment.
+        tuple: The new xyY values after saturation adjustment.
+    """
     whitepoint = RGB2XYZ(1, 1, 1, rgb_space=rgb_space)
     X, Y, Z = RGB2XYZ(R, G, B, rgb_space=rgb_space)
     XYZ, xyY = XYZsaturation(X, Y, Z, saturation, whitepoint)
@@ -1955,7 +2963,21 @@ def RGBsaturation(R, G, B, saturation, rgb_space=None):
 
 
 def XYZsaturation(X, Y, Z, saturation, whitepoint=None):
-    """(De)saturate a XYZ color in CIE xy and return the RGB and xyY values"""
+    """(De)saturate a XYZ color in CIE xy and return the RGB and xyY values.
+
+    Args:
+        X (float): The X value of the color.
+        Y (float): The Y value of the color.
+        Z (float): The Z value of the color.
+        saturation (float): The saturation factor.
+            0.0 = grayscale, 1.0 = original color, >1.0 = oversaturated.
+            <0.0 = undersaturated.
+        whitepoint (None | int | float | str | list | tuple): The white point
+            to use for conversion. Defaults to D65 if not set.
+
+    Returns:
+        tuple: The new XYZ values after saturation adjustment.
+    """
     wx, wy, wY = XYZ2xyY(*get_whitepoint(whitepoint))
     x, y, Y = XYZ2xyY(X, Y, Z)
     x, y, Y = xyYsaturation(x, y, Y, wx, wy, saturation)
@@ -1963,11 +2985,37 @@ def XYZsaturation(X, Y, Z, saturation, whitepoint=None):
 
 
 def xyYsaturation(x, y, Y, wx, wy, saturation):
-    """(De)saturate a color in CIE xy and return the RGB and xyY values"""
+    """(De)saturate a color in CIE xy and return the RGB and xyY values.
+
+    Args:
+        x (float): The x coordinate of the color.
+        y (float): The y coordinate of the color.
+        Y (float): The Y value of the color.
+        wx (float): The x coordinate of the white point.
+        wy (float): The y coordinate of the white point.
+        saturation (float): The saturation factor.
+            0.0 = grayscale, 1.0 = original color, >1.0 = oversaturated.
+            <0.0 = undersaturated.
+
+    Returns:
+        tuple: The new x, y, and Y values after saturation adjustment.
+    """
     return wx + (x - wx) * saturation, wy + (y - wy) * saturation, Y
 
 
 def convert_range(v, oldmin=0, oldmax=1, newmin=0, newmax=1):
+    """Convert a value from one range to another.
+
+    Args:
+        v (float): The value to convert.
+        oldmin (float): The minimum of the old range.
+        oldmax (float): The maximum of the old range.
+        newmin (float): The minimum of the new range.
+        newmax (float): The maximum of the new range.
+
+    Returns:
+        float: The converted value in the new range.
+    """
     oldrange = float(oldmax - oldmin)
     newrange = newmax - newmin
     return (((v - oldmin) * newrange) / oldrange) + newmin
@@ -1992,9 +3040,18 @@ def rgb_to_xyz_matrix(rx, ry, gx, gy, bx, by, whitepoint=None, scale=1.0):
 
 
 def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
-    """Given primaries and whitepoint xy as list, find matching RGB space by
-    comparing primaries and whitepoint (fuzzy match rounded to n digits) and
-    return its name (or None if no match)
+    """Find the RGB space name matching given primaries and whitepoint xy.
+
+    Args:
+        xy (list | tuple): The xy coordinates of the primaries and whitepoint.
+        rgb_space_names (None | list | tuple): A list of RGB space names to
+            search in. If None, all RGB spaces will be searched.
+            Defaults to None.
+        digits (int): The number of digits to round to. Defaults to 4.
+
+    Returns:
+        None | str: The name of the RGB space matching the given xy
+            coordinates, or None if no match is found.
     """
     for _i, rgb_space_name in enumerate(rgb_space_names or iter(rgb_spaces.keys())):
         if not rgb_space_names and rgb_space_name in (
@@ -2012,7 +3069,7 @@ def find_primaries_wp_xy_rgb_space_name(xy, rgb_space_names=None, digits=4):
 
 
 def get_rgb_space(rgb_space=None, scale=1.0):
-    """Return gamma, whitepoint, primaries and RGB -> XYZ matrix"""
+    """Return gamma, whitepoint, primaries and RGB -> XYZ matrix."""
     if not rgb_space:
         rgb_space = "sRGB"
     if isinstance(rgb_space, str):
@@ -2032,9 +3089,20 @@ def get_rgb_space(rgb_space=None, scale=1.0):
 
 
 def get_rgb_space_primaries_wp_xy(rgb_space=None, digits=4):
-    """Given RGB space, get primaries and whitepoint xy, optionally rounded to n
-    digits (default 4)
+    """Return primaries and whitepoint xy for a given RGB space, rounded to n digits.
 
+    Args:
+        rgb_space (None | int | float | str | list | tuple): The RGB space
+            to use for conversion. Defaults to sRGB if not set.
+            If a string is given, it must be a valid RGB space name.
+            If a list or tuple is given, it must be in the format
+            (gamma, whitepoint, red, green, blue).
+            The whitepoint can be a string (e.g. "D50"), a tuple of XYZ
+            coordinates, or a color temperature in degrees K (float or int).
+            The gamma should be a float. The RGB primaries red, green,
+            blue should be lists or tuples of xyY coordinates (only x and
+            y will be used, so Y can be zero or None).
+        digits (int): The number of digits to round to. Defaults to 4.
     """
     rgb_space = get_rgb_space(rgb_space)
     xy = []
@@ -2075,8 +3143,40 @@ def get_standard_illuminant(
 get_standard_illuminant.cache = {}
 
 
-def get_whitepoint(whitepoint=None, scale=1.0, planckian=False):
-    """Return a whitepoint as XYZ coordinates"""
+@overload
+def get_whitepoint(
+    whitepoint: list,
+    scale: float = 1.0,
+    planckian: bool = False,
+) -> list: ...
+
+
+@overload
+def get_whitepoint(
+    whitepoint: None | float | str | tuple,
+    scale: float = 1.0,
+    planckian: bool = False,
+) -> tuple: ...
+
+
+def get_whitepoint(
+    whitepoint: None | float | str | list | tuple = None,
+    scale: float = 1.0,
+    planckian: bool = False,
+) -> tuple[float, float, float]:
+    """Return a whitepoint as XYZ coordinates.
+
+    Args:
+        whitepoint: A string (e.g. "D50"), a tuple of XYZ coordinates, or a
+            color temperature in degrees K (float or int). Defaults to D50 if
+            not set.
+        scale: Scale factor for the XYZ values. Defaults to 1.0.
+        planckian: If True, interpret the whitepoint as a Planckian color
+            temperature. Defaults to False.
+
+    Returns:
+        tuple: A tuple of XYZ coordinates scaled by the given scale factor.
+    """
     if isinstance(whitepoint, (list, tuple)):
         return whitepoint
     if not whitepoint:
@@ -2108,18 +3208,29 @@ def get_whitepoint(whitepoint=None, scale=1.0, planckian=False):
 
 
 get_whitepoint.cache = {}
+"""Cache for the get_whitepoint function."""
 
 
 def make_monotonically_increasing(iterable, passes=0, window=None):
-    """Given an iterable or sequence, make the values strictly monotonically
-    increasing (no repeated successive values) by linear interpolation.
+    """Make values in iterable strictly monotonically increasing by linear interpolation.
 
     If iterable is a dict, keep the keys of the original.
 
     If passes is non-zero, apply moving average smoothing to the values
     before making them monotonically increasing.
 
-    """
+    Args:
+        iterable (iterable): The input iterable or sequence.
+        passes (int): The number of smoothing passes to apply.
+            Defaults to 0 (no smoothing).
+        window (int): The window size for smoothing. Defaults to None.
+            If None, the window size is set to 3.
+            If passes is 0, this argument is ignored.
+
+    Returns:
+        list: A list of tuples containing the original keys and the
+            monotonically increasing values.
+    """  # noqa: E501
     if isinstance(iterable, dict):
         keys = list(iterable.keys())
         values = list(iterable.values())
@@ -2150,6 +3261,16 @@ def make_monotonically_increasing(iterable, passes=0, window=None):
 
 
 def matmul(XYZ, m1, m2):
+    """Matrix multiplication of two matrices.
+
+    Args:
+        XYZ (tuple): A tuple of XYZ coordinates (X, Y, Z).
+        m1 (Matrix3x3): The first matrix.
+        m2 (Matrix3x3): The second matrix.
+
+    Returns:
+        tuple: A tuple of the resulting coordinates (X', Y', Z').
+    """
     return m1 * (m2 * XYZ)
 
 
@@ -2158,6 +3279,13 @@ def planckianCT2XYZ(T, scale=1.0):
 
     T = temperature in Kelvin.
 
+    Args:
+        T (float): Temperature in Kelvin.
+        scale (float): Scale factor for the XYZ values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple: A tuple of XYZ coordinates (X, Y, Z).
     """
     xyY = planckianCT2xyY(T, scale)
     return xyY2XYZ(*xyY) if xyY else None
@@ -2170,6 +3298,13 @@ def planckianCT2xyY(T, scale=1.0):
 
     Formula from http://en.wikipedia.org/wiki/Planckian_locus
 
+    Args:
+        T (float): Temperature in Kelvin.
+        scale (float): Scale factor for the xyY values.
+            Defaults to 1.0.
+
+    Returns:
+        tuple: A tuple of xyY coordinates (x, y, Y).
     """
     if 1667 <= T <= 4000:
         x = (
@@ -2212,22 +3347,68 @@ def planckianCT2xyY(T, scale=1.0):
 
 
 def xyY2CCT(x, y, Y=1.0):
-    """Convert from xyY to correlated color temperature."""
+    """Convert from xyY to correlated color temperature.
+
+    Args:
+        x (float): x coordinate in xyY color space.
+        y (float): y coordinate in xyY color space.
+        Y (float): Y coordinate in xyY color space.
+
+    Returns:
+        float: Correlated color temperature in Kelvin.
+    """
     return XYZ2CCT(*xyY2XYZ(x, y, Y))
 
 
 def xyY2Lab(x, y, Y=1.0, whitepoint=None):
+    """Convert from xyY to Lab color space.
+
+    Args:
+        x (float): x coordinate in xyY color space.
+        y (float): y coordinate in xyY color space.
+        Y (float): Y coordinate in xyY color space.
+        whitepoint ( None | int | float | str | tuple | list): Whitepoint to
+            use for conversion. Defaults to D50 if not set.
+
+    Returns:
+        tuple: A tuple of Lab coordinates (L, a, b).
+    """
     X, Y, Z = xyY2XYZ(x, y, Y)
     return XYZ2Lab(X, Y, Z, whitepoint)
 
 
 def xyY2Lu_v_(x, y, Y=1.0, whitepoint=None):
+    """Convert from xyY to Lu'v' color space.
+
+    Args:
+        x (float): x coordinate in xyY color space.
+        y (float): y coordinate in xyY color space.
+        Y (float): Y coordinate in xyY color space.
+        whitepoint ( None | int | float | str | tuple | list): Whitepoint to
+            use for conversion. Defaults to D50 if not set.
+
+    Returns:
+        tuple: A tuple of Lu'v' coordinates (L, u', v').
+    """
     X, Y, Z = xyY2XYZ(x, y, Y)
     return XYZ2Lu_v_(X, Y, Z, whitepoint)
 
 
 def xyY2RGB(x, y, Y, rgb_space=None, scale=1.0, round_=False, clamp=True):
-    """Convert from xyY to RGB"""
+    """Convert from xyY to RGB.
+
+    Args:
+        x (float): x coordinate in xyY color space.
+        y (float): y coordinate in xyY color space.
+        Y (float): Y coordinate in xyY color space.
+        rgb_space (str | tuple): RGB color space to use for conversion.
+        scale (float): Scale factor for the RGB values.
+        round_ (bool): If True, round the RGB values to integers.
+        clamp (bool): If True, clamp the RGB values to [0, 1].
+
+    Returns:
+        tuple: A tuple of RGB coordinates (R, G, B).
+    """
     X, Y, Z = xyY2XYZ(x, y, Y)
     return XYZ2RGB(X, Y, Z, rgb_space, scale, round_, clamp)
 
@@ -2242,6 +3423,13 @@ def xyY2XYZ(x, y, Y=1.0):
        returned.
     2. The output XYZ values are in the nominal range [0.0, Y[xyY]].
 
+    Args:
+        x (float): x coordinate in xyY color space.
+        y (float): y coordinate in xyY color space.
+        Y (float): Y coordinate in xyY color space.
+
+    Returns:
+        tuple: A tuple of XYZ coordinates (X, Y, Z).
     """
     if y == 0:
         return 0, 0, 0
@@ -2254,6 +3442,14 @@ def LERP(a, b, c):
     """Linear interpolation macro.
 
     Is 'a' when c == 0.0 and 'b' when c == 1.0
+
+    Args:
+        a (float): Start value.
+        b (float): End value.
+        c (float): Interpolation factor (0.0 to 1.0).
+
+    Returns:
+        float: Interpolated value.
     """
     return (b - a) * c + a
 
@@ -2276,6 +3472,15 @@ def XYZ2CCT(X, Y, Z):
     Second Edition, Gunter Wyszecki and W. S. Stiles, John Wiley & Sons,
     1982, pp. 227, 228.
 
+
+    Args:
+        X (float): X coordinate in XYZ color space.
+        Y (float): Y coordinate in XYZ color space.
+        Z (float): Z coordinate in XYZ color space.
+
+    Returns:
+        None | float: Correlated color temperature in Kelvin if successful,
+            else None.
     """
     rt = [  # reciprocal temperature (K)
         DBL_MIN,
@@ -2368,42 +3573,152 @@ def XYZ2CCT(X, Y, Z):
 
 
 def XYZ2DIN99(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99 values.
+    """
     X, Y, Z = (max(v, 0) for v in (X, Y, Z))
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint)
     return Lab2DIN99(L, a, b)
 
 
 def XYZ2DIN99b(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99b.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99b values.
+    """
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint)
     return Lab2DIN99b(L, a, b)
 
 
 def XYZ2DIN99o(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99o.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99o values.
+    """
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint)
     return Lab2DIN99o(L, a, b)
 
 
 def XYZ2DIN99bLCH(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99b LCH.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99b LCH values.
+    """
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint)
     return Lab2DIN99bLCH(L, a, b)
 
 
 def XYZ2DIN99oLCH(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99o LCH.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99o LCH values.
+    """
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint)
     return Lab2DIN99oLCH(L, a, b)
 
 
 def XYZ2DIN99c(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99c.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        list[float]: DIN99c values.
+    """
     return XYZ2DIN99cd(X, Y, Z, 0.1, 317.651, 0.0037, 0, 0.94, 23, 0.066, whitepoint)
 
 
 def XYZ2DIN99cd(X, Y, Z, x, l1, l2, deg, f1, c1, c2, whitepoint=None):
+    """Convert from XYZ to DIN99cd.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        x (float): Chromatic adaptation factor.
+        l1 (float): L1 parameter.
+        l2 (float): L2 parameter.
+        deg (float): Deg parameter.
+        f1 (float): F1 parameter.
+        c1 (float): C1 parameter.
+        c2 (float): C2 parameter.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        list[float]: DIN99cd values.
+    """
     L99, C99, H99 = XYZ2DIN99cdLCH(X, Y, Z, x, l1, l2, deg, f1, c1, c2, whitepoint)
     a99, b99 = DIN99familyCH2DIN99ab(C99, H99)
     return L99, a99, b99
 
 
 def XYZ2DIN99cdLCH(X, Y, Z, x, l1, l2, deg, f1, c1, c2, whitepoint=None):
+    """Convert from XYZ to DIN99cd LCH.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        x (float): Chromatic adaptation factor.
+        l1 (float): L1 parameter.
+        l2 (float): L2 parameter.
+        deg (float): Deg parameter.
+        f1 (float): F1 parameter.
+        c1 (float): C1 parameter.
+        c2 (float): C2 parameter.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99cd LCH values.
+    """
     X, Y, Z = XYZ2DIN99cdXYZ(X, Y, Z, x)
     whitepoint99d = XYZ2DIN99cdXYZ(*get_whitepoint(whitepoint, 100), x=x)
     L, a, b = XYZ2Lab(X, Y, Z, whitepoint99d)
@@ -2411,21 +3726,70 @@ def XYZ2DIN99cdLCH(X, Y, Z, x, l1, l2, deg, f1, c1, c2, whitepoint=None):
 
 
 def XYZ2DIN99cdXYZ(X, Y, Z, x):
+    """Convert from XYZ to DIN99cd.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        x (float): Chromatic adaptation factor.
+
+    Returns:
+        tuple[float]: DIN99cd values.
+    """
     X = (1 + x) * X - x * Z
     return X, Y, Z
 
 
 def XYZ2DIN99d(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99d.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        list[float]: DIN99d values.
+    """
     return XYZ2DIN99cd(X, Y, Z, 0.12, 325.221, 0.0036, 50, 1.14, 22.5, 0.06, whitepoint)
 
 
 def XYZ2DIN99dLCH(X, Y, Z, whitepoint=None):
+    """Convert from XYZ to DIN99d LCH.
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        tuple[float]: DIN99d LCH values.
+    """
     return XYZ2DIN99cdLCH(
         X, Y, Z, 0.12, 325.221, 0.0036, 50, 1.14, 22.5, 0.06, whitepoint
     )
 
 
 def XYZ2IPT(X, Y, Z):
+    """Convert from XYZ to IPT.
+
+    The input Y value needs to be in the nominal range [0.0, 100.0] and
+    other input values scaled accordingly.
+    The output I value is in the nominal range [0.0, 100.0].
+
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+
+    Returns:
+        Matrix3x3: IPT values.
+    """
     XYZ2LMS_matrix = get_cat_matrix("IPT")
     LMS = XYZ2LMS_matrix * (X, Y, Z)
     for i, component in enumerate(LMS):
@@ -2436,7 +3800,17 @@ def XYZ2IPT(X, Y, Z):
     return LMS2IPT_matrix * LMS
 
 
-def IPT2XYZ(I, P, T):
+def IPT2XYZ(I: float, P: float, T: float) -> Matrix3x3:
+    """Convert from IPT to XYZ.
+
+    Args:
+        I (float): I value.
+        P (float): P value.
+        T (float): T value.
+
+    Returns:
+        Matrix3x3: XYZ values.
+    """
     XYZ2LMS_matrix = get_cat_matrix("IPT")
     LMS2XYZ_matrix = XYZ2LMS_matrix.inverted()
     LMS = IPT2LMS_matrix * (I, P, T)
@@ -2448,7 +3822,9 @@ def IPT2XYZ(I, P, T):
     return LMS2XYZ_matrix * LMS
 
 
-def XYZ2Lab(X, Y, Z, whitepoint=None, scale=100):
+def XYZ2Lab(
+    X: float, Y: float, Z: float, whitepoint: None | float = None, scale: float = 100
+) -> tuple[float]:
     """Convert from XYZ to Lab.
 
     The input Y value needs to be in the nominal range [0.0, scale] and
@@ -2460,6 +3836,16 @@ def XYZ2Lab(X, Y, Z, whitepoint=None, scale=100):
 
     Based on formula from http://brucelindbloom.com/Eqn_XYZ_to_Lab.html
 
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+        scale (float): Scale factor. Defaults to 100.
+
+    Returns:
+        tuple[float]: L, a, b values.
     """
     Xr, Yr, Zr = get_whitepoint(whitepoint, scale)
 
@@ -2477,7 +3863,7 @@ def XYZ2Lab(X, Y, Z, whitepoint=None, scale=100):
 
 
 def XYZ2Lpt(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to Lpt
+    """Convert from XYZ to Lpt.
 
     This is a modern update to L*a*b*, based on IPT space.
 
@@ -2496,6 +3882,15 @@ def XYZ2Lpt(X, Y, Z, whitepoint=None):
     whitepoint can be string (e.g. "D50"), a tuple of XYZ coordinates or
     color temperature as float or int. Defaults to D50 if not set.
 
+    Args:
+        X (float): X value.
+        Y (float): Y value.
+        Z (float): Z value.
+        whitepoint (None | int | float | str | tuple | list): Whitepoint.
+            Defaults to D50.
+
+    Returns:
+        Matrix3x3: Lpt values.
     """
     # Adapted from Argyll/icc/icc.c
 
@@ -2518,7 +3913,7 @@ def XYZ2Lpt(X, Y, Z, whitepoint=None):
 
 
 def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
-    """Convert from Lpt to XYZ
+    """Convert from Lpt to XYZ.
 
     This is a modern update to L*a*b*, based on IPT space.
 
@@ -2561,7 +3956,7 @@ def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
 
 
 def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to CIE Lu'v'"""
+    """Convert from XYZ to CIE Lu'v'."""
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -2581,7 +3976,7 @@ def XYZ2Lu_v_(X, Y, Z, whitepoint=None):
 
 
 def XYZ2Luv(X, Y, Z, whitepoint=None):
-    """Convert from XYZ to Luv"""
+    """Convert from XYZ to Luv."""
     if X + Y + Z == 0:
         # We can't check for X == Y == Z == 0 because they may actually add up
         # to 0, thus resulting in ZeroDivisionError later
@@ -2695,7 +4090,17 @@ def XYZ2xyY(X, Y, Z, whitepoint=None):
 
 
 def xy_CCT_delta(x, y, daylight=True, method=2000):
-    """Return CCT and delta to locus"""
+    """Return CCT and delta to locus.
+
+    Args:
+        x (float):  x chromaticity coordinate
+        y (float):  y chromaticity coordinate
+        daylight (bool):  True for daylight locus, False for planckian locus
+        method (int):  Method to use for delta calculation
+
+    Returns:
+        tuple[float, float]:  CCT and delta to locus.
+    """
     cct = xyY2CCT(x, y)
     d = None
     if cct:
@@ -2713,13 +4118,20 @@ def xy_CCT_delta(x, y, daylight=True, method=2000):
     return cct, d
 
 
-def dmatrixz(nrl, nrh, ncl, nch):
-    # Adapted from ArgyllCMS numlib/numsup.c
+def dmatrixz(nrl: int, nrh: int, ncl: int, nch: int) -> dict:
+    """Create a 2D matrix of dictionaries.
 
-    # nrl  # Row low index
-    # nrh  # Row high index
-    # ncl  # Col low index
-    # nch  # Col high index
+    Adapted from ArgyllCMS numlib/numsup.c
+
+    Args:
+        nrl (int):  Row low index
+        nrh (int):  Row high index
+        ncl (int):  Col low index
+        nch (int):  Col high index
+
+    Returns:
+        dict: A dictionary containing the matrix.
+    """
     m = {}
 
     nrh = max(nrh, nrl)  # Prevent failure for 0 dimension
@@ -2737,16 +4149,23 @@ def dmatrixz(nrl, nrh, ncl, nch):
 
 
 def dvector(nl, nh):
-    # Adapted from ArgyllCMS numlib/numsup.c
+    """Adapted from ArgyllCMS numlib/numsup.c.
 
-    # nl  # Lowest index
-    # nh  # Highest index
+    Args:
+        nl:  Lowest index
+        nh:  Highest index
+
+    Returns:
+        dict: Empty dictionary.
+    """
     return {}
 
 
 def gam_fit(gf, v):
-    # Adapted from ArgyllCMS xicc/xicc.c
-    """Gamma + input offset function handed to powell()"""
+    """Gamma + input offset function handed to powell().
+
+    Adapted from ArgyllCMS xicc/xicc.c
+    """
     gamma = v[0]
     rv = 0.0
 
@@ -3213,7 +4632,17 @@ class GammaFits:
 
 
 class Interp:
-    """Interpolation class."""
+    """Interpolation class.
+
+    Args:
+        xp (list): x values for interpolation.
+        fp (list): f(x) values for interpolation.
+        left (float, optional): Value to return for x < min(xp). Defaults to
+            None.
+        right (float, optional): Value to return for x > max(xp). Defaults to
+            None.
+        use_numpy (bool, optional): Use numpy for speed. Defaults to False.
+    """
 
     def __init__(self, xp, fp, left=None, right=None, use_numpy=False):
         if use_numpy:
@@ -3228,6 +4657,14 @@ class Interp:
         self.use_numpy = use_numpy
 
     def __call__(self, x):
+        """Return the interpolated value for x.
+
+        Args:
+            x (float): The x value to interpolate.
+
+        Returns:
+            float: The interpolated value at x.
+        """
         if x not in self.lookup:
             self.lookup[x] = self._interp(x)
         return self.lookup[x]
@@ -3245,7 +4682,7 @@ class BT1886:
     """
 
     def __init__(self, matrix, XYZbp, outoffset=0.0, gamma=2.4, apply_trc=True):
-        """Setup BT.1886 for the given target
+        """Setup BT.1886 for the given target.
 
         If apply_trc is False, apply only the black point blending portion of
         BT.1886 mapping. Note that this will only work correctly for an output
@@ -3295,6 +4732,13 @@ class BT1886:
         (i.e. BT.1886 viewing adjustment is assumed to be the mismatch between
         Rec709 curve and the output offset pure 2.4 gamma curve)
 
+        Args:
+            X (float): X value in XYZ
+            Y (float): Y value in XYZ
+            Z (float): Z value in XYZ
+
+        Returns:
+            tuple: Adjusted XYZ values as a tuple (X, Y, Z).
         """
         logger.debug(f"bt1886 XYZ in {X:f} {Y:f} {Z:f}")
 
@@ -3346,16 +4790,24 @@ class BT1886:
         out[2] += vv * self.tab[2]
 
         logger.debug(f"bt1886 Lab after wp adj. {out[0]:f} {out[1]:f} {out[2]:f}")
-
         out = Lab2XYZ(*out)
-
         logger.debug(f"bt1886 XYZ out {out[0]:f} {out[1]:f} {out[2]:f}")
-
         return out
 
 
 class BT2390:
-    """Roll-off for SMPTE 2084 (PQ) according to Report ITU-R BT.2390-2 HDR TV"""
+    """Roll-off for SMPTE 2084 (PQ) according to Report ITU-R BT.2390-2 HDR TV.
+
+    Args:
+        black_cdm2 (float): Black level in cd/m^2.
+        white_cdm2 (float): White level in cd/m^2.
+        master_black_cdm2 (float, optional): Mastering black level in cd/m^2.
+            Defaults to 0.
+        master_white_cdm2 (float, optional): Mastering white level in cd/m^2.
+            Defaults to 10000.
+        use_alternate_master_white_clip (bool, optional): If True, use an
+            alternate method for mastering white clipping. Defaults to True.
+    """
 
     def __init__(
         self,
@@ -3371,6 +4823,16 @@ class BT2390:
         the mastering white adjustment (allows to preserve more detail in
         rolled-off highlights)
 
+        Args:
+            black_cdm2 (float): Black level in cd/m^2.
+            white_cdm2 (float): White level in cd/m^2.
+            master_black_cdm2 (float, optional): Mastering black level in
+                cd/m^2. Defaults to 0.
+            master_white_cdm2 (float, optional): Mastering white level in
+                cd/m^2. Defaults to 10000.
+            use_alternate_master_white_clip (bool, optional): If True, use an
+                alternate method for mastering white clipping. Defaults to
+                True.
         """
         self.black_cdm2 = black_cdm2
         self.white_cdm2 = white_cdm2
@@ -3412,6 +4874,18 @@ class BT2390:
             self.s = (self.maxci - self.maxi) / diff
 
     def P(self, B, KS, maxi, maxci=1.0):
+        """Apply the roll-off function P(E1) to the input value E1.
+
+        Args:
+            B (float): Input value E1 to apply the roll-off to.
+            KS (float): The KS value.
+            maxi (float): The maximum input value.
+            maxci (float, optional): The maximum clip input value. Defaults to
+                1.0.
+
+        Returns:
+            float: The output value after applying the roll-off.
+        """  # noqa: D402
         T = (B - KS) / (1 - KS)
         E2 = (
             (2 * T**3 - 3 * T**2 + 1) * KS
@@ -3437,9 +4911,28 @@ class BT2390:
         bpc=False,
         normalize=True,
     ):
-        """Apply roll-off (E' in, E' out)
-        maxci if < 1.0 applies alterante clip.
+        """Apply roll-off (E' in, E' out) maxci if < 1.0 applies alterante clip.
 
+        Args:
+            v (float): Input value to apply roll-off to.
+            KS (float, optional): The KS value. Defaults to self.KS.
+            maxi (float, optional): The maximum input value. Defaults to
+                self.maxi.
+            maxci (float, optional): The maximum clip input value. Defaults to
+                self.maxci.
+            mini (float, optional): The minimum input value. Defaults to
+                self.mini.
+            mmaxi (float, optional): The mastering maximum input value.
+                Defaults to self.mmaxi.
+            mmini (float, optional): The mastering minimum input value.
+                Defaults to self.mmini.
+            bpc (bool, optional): If True, apply black point compensation.
+                Defaults to False.
+            normalize (bool, optional): If True, normalize PQ values based on
+                mastering display black/white levels. Defaults to True.
+
+        Returns:
+            float: The output value after applying the roll-off.
         """
         if KS is None:
             KS = self.KS
@@ -3508,7 +5001,12 @@ class BT2390:
 
 
 class Matrix3x3(list):
-    """Simple 3x3 matrix"""
+    """Simple 3x3 matrix.
+
+    Args:
+        matrix (list or tuple, optional): A 3x3 matrix to initialize with.
+            Defaults to None.
+    """
 
     def __init__(self, matrix=None):
         super().__init__()
@@ -3518,6 +5016,15 @@ class Matrix3x3(list):
             self._reset()
 
     def update(self, matrix):
+        """Update the matrix with a new 3x3 matrix.
+
+        Args:
+            matrix (list or tuple): A 3x3 matrix to update with.
+
+        Raises:
+            ValueError: If the matrix is not 3x3.
+            ValueError: If the rows or columns of the matrix are not of length 3.
+        """
         if len(matrix) != 3:
             raise ValueError(f"Invalid number of rows for 3x3 matrix: {len(matrix)}")
         self._reset()
@@ -3588,7 +5095,7 @@ class Matrix3x3(list):
     @overload
     def __imul__(self, matrix: Matrix3x3) -> Self: ...
 
-    def __imul__(self, matrix):
+    def __imul__(self, matrix) -> Self:
         """Matrix multiplication.
 
         Args:
@@ -3670,10 +5177,19 @@ class Matrix3x3(list):
         return instance
 
     def adjoint(self):
+        """Return adjoint matrix.
+
+        Returns:
+            Matrix3x3: Adjoint matrix.
+        """
         return self.cofactors().transposed()
 
     def applied(self, fn):
-        """Apply function to every element, return new matrix"""
+        """Apply function to every element, return new matrix.
+
+        Args:
+            fn (callable): Function to apply to each element of the matrix.
+        """
         if fn in self._applied:
             return self._applied[fn]
         matrix = self.__class__()
@@ -3685,6 +5201,7 @@ class Matrix3x3(list):
         return matrix
 
     def cofactors(self):
+        """Return cofactor matrix."""
         instance = self.__class__()
         instance.update(
             [
@@ -3708,6 +5225,11 @@ class Matrix3x3(list):
         return instance
 
     def determinant(self):
+        """Return determinant of the matrix.
+
+        Returns:
+            float: Determinant of the matrix.
+        """
         return (
             self[0][0] * self[1][1] * self[2][2]
             + self[1][0] * self[2][1] * self[0][2]
@@ -3719,10 +5241,16 @@ class Matrix3x3(list):
         )
 
     def invert(self):
+        """Invert the matrix in place."""
         # inplace
         self.update(self.inverted())
 
     def inverted(self):
+        """Return inverted matrix.
+
+        Returns:
+            Matrix3x3: Inverted matrix.
+        """
         if self._inverted:
             return self._inverted
         determinant = self.determinant()
@@ -3751,6 +5279,15 @@ class Matrix3x3(list):
         return instance
 
     def rounded(self, digits=3):
+        """Round each element of the matrix to the specified number of digits.
+
+        Args:
+            digits (int): Number of digits to round to. Default is 3.
+
+        Returns:
+            Matrix3x3: A new Matrix3x3 with each element rounded to the
+                specified number of digits.
+        """
         if digits in self._rounded:
             return self._rounded[digits]
         matrix = self.__class__()
@@ -3762,9 +5299,15 @@ class Matrix3x3(list):
         return matrix
 
     def transpose(self):
+        """Transpose the matrix in place."""
         self.update(self.transposed())
 
     def transposed(self):
+        """Return transposed matrix.
+
+        Returns:
+            Matrix3x3: Transposed matrix.
+        """
         if self._transposed:
             return self._transposed
         instance = self.__class__()
@@ -3793,6 +5336,15 @@ class NumberTuple(tuple):
         return "({})".format(", ".join(str(value) for value in self))
 
     def round(self, digits=4):
+        """Round each element of the tuple to the specified number of digits.
+
+        Args:
+            digits (int): Number of digits to round to. Default is 4.
+
+        Returns:
+            NumberTuple: A new NumberTuple with each element rounded to the
+                specified number of digits.
+        """
         return self.__class__(round(value, digits) for value in self)
 
 
@@ -4102,6 +5654,7 @@ OPTIMAL_COLORS_LAB = [
 
 
 def debug_caches():
+    """Debug caches for duplicate entries."""
     for cache in (
         "XYZ2RGB.interp",
         "wp_adaption_matrix.cache",
@@ -4132,47 +5685,3 @@ if "--debug-caches" in sys.argv[1:]:
     import atexit
 
     atexit.register(debug_caches)
-
-
-def test():
-    for i in range(4):
-        if i == 0:
-            wp = "native"
-        elif i == 1:
-            wp = "D50"
-            XYZ = get_standard_illuminant(wp)
-        elif i == 2:
-            wp = "D65"
-            XYZ = get_standard_illuminant(wp)
-        elif i == 3:
-            XYZ = get_standard_illuminant("D65", ("ASTM E308-01",))
-            wp = " ".join([str(v) for v in XYZ])
-        print(
-            f"RGB and corresponding XYZ (nominal range 0.0 - 1.0) with whitepoint {wp}"
-        )
-        for name in rgb_spaces:
-            spc = rgb_spaces[name]
-            if i == 0:
-                XYZ = CIEDCCT2XYZ(spc[1])
-            spc = spc[0], XYZ, spc[2], spc[3], spc[4]
-            print(
-                f"{name} 1.0, 1.0, 1.0 = XYZ",
-                [str(round(v, 4)) for v in RGB2XYZ(1.0, 1.0, 1.0, spc)],
-            )
-            print(
-                f"{name} 1.0, 0.0, 0.0 = XYZ",
-                [str(round(v, 4)) for v in RGB2XYZ(1.0, 0.0, 0.0, spc)],
-            )
-            print(
-                f"{name} 0.0, 1.0, 0.0 = XYZ",
-                [str(round(v, 4)) for v in RGB2XYZ(0.0, 1.0, 0.0, spc)],
-            )
-            print(
-                f"{name} 0.0, 0.0, 1.0 = XYZ",
-                [str(round(v, 4)) for v in RGB2XYZ(0.0, 0.0, 1.0, spc)],
-            )
-        print("")
-
-
-if __name__ == "__main__":
-    test()

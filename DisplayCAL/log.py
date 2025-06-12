@@ -1,7 +1,4 @@
-"""This module provides logging functionality for the application, including
-custom loggers, file-based logging with rotation, and safe logging mechanisms
-to handle Unicode and multiprocessing scenarios.
-"""
+"""Logging utilities for file-based, rotating, and safe Unicode logging."""
 
 import atexit
 import contextlib
@@ -15,6 +12,7 @@ from codecs import EncodedFile
 from hashlib import md5
 from io import BytesIO
 from time import localtime, strftime, time
+from typing import TYPE_CHECKING
 
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import script2pywname
@@ -23,6 +21,9 @@ from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import SafePrinter
 from DisplayCAL.safe_print import safe_print as _safe_print
 from DisplayCAL.util_os import safe_glob
+
+if TYPE_CHECKING:
+    import wx  # noqa: TC004
 
 logging.raiseExceptions = 0
 logging._warnings_showwarning = warnings.showwarning
@@ -70,7 +71,13 @@ warnings.showwarning = showwarning
 LOGBUFFER = EncodedFile(BytesIO(), "UTF-8", errors="replace")
 
 
-def wx_log(logwindow, msg):
+def wx_log(logwindow: "wx.Window", msg: str) -> None:
+    """Log a message to the wxPython log window.
+
+    Args:
+        logwindow (wx.Window): The wxPython log window to log to.
+        msg (str): The message to log.
+    """
     if logwindow.IsShownOnScreen() and LOGBUFFER.tell():
         # Check if log buffer has been emptied or not.
         # If it has, our log message is already included.
@@ -84,25 +91,68 @@ class DummyLogger:
     """
 
     def critical(self, msg, *args, **kwargs):
-        pass
+        """Log a critical message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def debug(self, msg, *args, **kwargs):
-        pass
+        """Log a debug message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def error(self, msg, *args, **kwargs):
-        pass
+        """Log an error message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def exception(self, msg, *args, **kwargs):
-        pass
+        """Log an exception message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def info(self, msg, *args, **kwargs):
-        pass
+        """Log an info message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def log(self, level, msg, *args, **kwargs):
-        pass
+        """Log a message with the specified level.
+
+        Args:
+            level (int): The logging level (e.g., logging.INFO).
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
     def warning(self, msg, *args, **kwargs):
-        pass
+        """Log a warning message.
+
+        Args:
+            msg (str): The message to log.
+            *args: Additional arguments to format the message.
+            **kwargs: Additional keyword arguments for logging.
+        """
 
 
 class Log:
@@ -146,9 +196,10 @@ class Log:
                 wx.CallAfter(wx_log, wx.GetApp().frame.infoframe, msg)
 
     def flush(self):
-        pass
+        """Flush the log."""
 
     def write(self, msg):
+        """Write a message to the log."""
         self(msg.rstrip())
 
 
@@ -169,23 +220,24 @@ class LogFile:
         )
 
     def close(self):
+        """Close the log file."""
         for handler in reversed(self._logger.handlers):
             handler.close()
             self._logger.removeHandler(handler)
 
     def flush(self):
+        """Flush the log file."""
         for handler in self._logger.handlers:
             handler.flush()
 
     def write(self, msg):
+        """Write a message to the log file."""
         for line in msg.rstrip().replace("\r\n", "\n").replace("\r", "").split("\n"):
             self._logger.info(line)
 
 
 class SafeLogger(SafePrinter):
-    """Print and log safely, avoiding any UnicodeDe-/EncodingErrors on strings
-    and converting all other objects to safe string representations.
-    """
+    """Safely print and log, avoiding Unicode errors."""
 
     def __init__(self, log=True, print_=None):
         SafePrinter.__init__(self)
@@ -197,6 +249,7 @@ class SafeLogger(SafePrinter):
         self.print_ = print_
 
     def write(self, *args, **kwargs):
+        """Write the given arguments to the stream, formatted and encoded."""
         if kwargs.get("print_", self.print_):
             _safe_print(*args, **kwargs)
         if kwargs.get("log", self.log):

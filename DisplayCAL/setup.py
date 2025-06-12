@@ -20,6 +20,8 @@ the wrapper script in the root directory of the source tar.gz/zip
 
 """
 
+from __future__ import annotations
+
 import codecs
 import ctypes.util
 import distutils.core
@@ -221,7 +223,14 @@ class Target:
         self.__dict__.update(kwargs)
 
 
-def create_app_symlinks(dist_dir, scripts):
+def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
+    """Create symlinks for the app bundle and standalone tools.
+
+    Args:
+        dist_dir (str): The distribution directory.
+        scripts (list[tuple[str, str]]): List of tuples containing script names
+            and their descriptions.
+    """
     maincontents_rel = os.path.join(f"{NAME}.app", "Contents")
     # Create ref, tests, ReadMe and license symlinks in directory
     # containing the app bundle
@@ -384,6 +393,16 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
 
 
 def get_scripts(excludes=None):
+    """Return a list of scripts with their descriptions.
+
+    Args:
+        excludes (None | list[str]): List of scripts to exclude. Default is
+            None.
+
+    Returns:
+        list[tuple[str, str]]: List of tuples containing script names and their
+            descriptions.
+    """
     # It is required that each script has an accompanying .desktop file
     scripts_with_desc = []
     scripts = safe_glob(os.path.join(pydir, "..", "scripts", appname.lower() + "*"))
@@ -417,6 +436,7 @@ def get_scripts(excludes=None):
 
 
 def setup():
+    """Setup function for DisplayCAL."""
     print("***", os.path.abspath(sys.argv[0]), " ".join(sys.argv[1:]))
 
     bdist_bbfreeze = "bdist_bbfreeze" in sys.argv[1:]
@@ -496,9 +516,6 @@ def setup():
         from distutils.core import setup
 
         print("using distutils")
-
-    if do_py2exe:
-        setup_do_py2exe()
 
     if do_uninstall:
         i = sys.argv.index("uninstall")
@@ -1657,41 +1674,6 @@ def setup():
                 postinstall(prefix=change_root(cmd.root, cmd.prefix))
             else:
                 postinstall(prefix=cmd.prefix)
-
-
-def setup_do_py2exe():
-    import py2exe
-
-    # ModuleFinder can't handle runtime changes to __path__, but win32com
-    # uses them
-    try:
-        # if this doesn't work, try import modulefinder
-        import py2exe.mf as modulefinder
-        import win32com
-
-        for p in win32com.__path__[1:]:
-            modulefinder.AddPackagePath("win32com", p)
-        for extra in ["win32com.shell"]:
-            __import__(extra)
-            m = sys.modules[extra]
-            for p in m.__path__[1:]:
-                modulefinder.AddPackagePath(extra, p)
-    except ImportError:
-        # no build path setup, no worries.
-        pass
-    _orig_is_system_dll = py2exe.build_exe.isSystemDLL
-    systemroot = os.getenv("SYSTEMROOT").lower()
-
-    def isSystemDLL(pathname):
-        if (
-            os.path.basename(pathname).lower() in ("gdiplus.dll", "mfc90.dll")
-            or os.path.basename(pathname).lower().startswith("python")
-            or os.path.basename(pathname).lower().startswith("pywintypes")
-        ):
-            return 0
-        return pathname.lower().startswith(systemroot + "\\")
-
-    py2exe.build_exe.isSystemDLL = isSystemDLL
 
 
 if __name__ == "__main__":

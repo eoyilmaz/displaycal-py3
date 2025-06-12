@@ -5,6 +5,8 @@ Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012
 License: wxPython license
 """
 
+from __future__ import annotations
+
 import colorsys
 import os
 import platform
@@ -109,11 +111,12 @@ def deg2rad(x: float) -> float:
 
 
 def s(i) -> int:
-    """Scale for HiDPI if necessary"""
+    """Scale for HiDPI if necessary."""
     return int(i * max(getcfg("app.dpi") / get_default_dpi(), 1))
 
 
 def update_patterngenerator(self):
+    """Update the Chromecast pattern generator."""
     while self and wx.App.IsMainLoopRunning():
         if self.update_patterngenerator_event.wait(0.05):
             self.update_patterngenerator_event.clear()
@@ -155,19 +158,20 @@ def _wait_thread(fn, *args, **kwargs):
 def Distance(pt1, pt2):
     """Return the distance between 2 points.
 
-    :param pt1: an instance of :class:`Point`;
-    :param pt2: another instance of :class:`Point`.
+    Args:
+        pt1: an instance of :class:`Point`;
+        pt2: another instance of :class:`Point`.
     """
     distance = sqrt((pt1.x - pt2.x) ** 2.0 + (pt1.y - pt2.y) ** 2.0)
-    return int(round(distance))
+    return round(distance)
 
 
 def AngleFromPoint(pt, center):
-    """Return the angle between the x-axis and the line connecting the center and
-    the point `pt`.
+    """Return angle between x-axis and line from center to pt.
 
-    :param pt: an instance of :class:`Point`;
-    :param center: a float value representing the center.
+    Args:
+        pt: an instance of :class:`Point`;
+        center: a float value representing the center.
     """
     y = -1 * (pt.y - center.y)
     x = pt.x - center.x
@@ -350,6 +354,7 @@ class AuiManagerLRDocking(aui.AuiManager):
     """
 
     def CreateGuideWindows(self):
+        """Create the guide windows for docking."""
         self.DestroyGuideWindows()
 
     def DoDrop(self, docks, panes, target, pt, offset=None):
@@ -537,16 +542,17 @@ class AuiManagerLRDocking(aui.AuiManager):
 
 
 class Colour:
-    """This is a class similar to :class:`Colour`, which adds Hue, Saturation and
+    """Colour class with RGB and HSV conversion methods.
+
+    This is a class similar to :class:`Colour`, which adds Hue, Saturation and
     Brightness capability. It contains also methods to convert RGB triplets
     into HSB triplets and vice-versa.
+
+    Args:
+        colour: a standard :class:`Colour`.
     """
 
     def __init__(self, colour):
-        """Default class constructor.
-
-        :param colour: a standard :class:`Colour`.
-        """
         self.r = colour.Red()
         self.g = colour.Green()
         self.b = colour.Blue()
@@ -566,40 +572,40 @@ class Colour:
             self.r = maxVal
 
             if self.h > 300:
-                self.g = int(round(minVal))
+                self.g = round(minVal)
                 hue = (hue - 360.0) / 60.0
-                self.b = int(round(-(hue * delta - minVal)))
+                self.b = round(-(hue * delta - minVal))
 
             else:
-                self.b = int(round(minVal))
+                self.b = round(minVal)
                 hue = hue / 60.0
-                self.g = int(round(hue * delta + minVal))
+                self.g = round(hue * delta + minVal)
 
         elif 60 < self.h < 180:
-            self.g = int(round(maxVal))
+            self.g = round(maxVal)
 
             if self.h < 120:
-                self.b = int(round(minVal))
+                self.b = round(minVal)
                 hue = (hue / 60.0 - 2.0) * delta
-                self.r = int(round(minVal - hue))
+                self.r = round(minVal - hue)
 
             else:
-                self.r = int(round(minVal))
+                self.r = round(minVal)
                 hue = (hue / 60.0 - 2.0) * delta
-                self.b = int(round(minVal + hue))
+                self.b = round(minVal + hue)
 
         else:
-            self.b = int(round(maxVal))
+            self.b = round(maxVal)
 
             if self.h < 240:
-                self.r = int(round(minVal))
+                self.r = round(minVal)
                 hue = (hue / 60.0 - 4.0) * delta
-                self.g = int(round(minVal - hue))
+                self.g = round(minVal - hue)
 
             else:
-                self.g = int(round(minVal))
+                self.g = round(minVal)
                 hue = (hue / 60.0 - 4.0) * delta
-                self.r = int(round(minVal + hue))
+                self.r = round(minVal + hue)
 
     def ToHSV(self) -> None:
         """Convert a RGB triplet into a HSV triplet."""
@@ -607,19 +613,19 @@ class Colour:
         maxVal = float(max(self.r, max(self.g, self.b)))
         delta = maxVal - minVal
 
-        self.v = int(round(maxVal))
+        self.v = round(maxVal)
 
         if abs(delta) < 1e-6:
             self.h = self.s = 0
             return
 
         temp = delta / maxVal
-        self.s = int(round(temp * 255.0))
+        self.s = round(temp * 255.0)
 
-        if self.r == int(round(maxVal)):
+        if self.r == round(maxVal):
             temp = float(self.g - self.b) / delta
 
-        elif self.g == int(round(maxVal)):
+        elif self.g == round(maxVal):
             temp = 2.0 + (float(self.b - self.r) / delta)
 
         else:
@@ -632,7 +638,7 @@ class Colour:
         elif temp >= 360.0:
             temp = 0
 
-        self.h = int(round(temp))
+        self.h = round(temp)
 
     def GetPyColour(self):
         """Return the wxPython :class:`Colour` associated with this instance."""
@@ -640,17 +646,14 @@ class Colour:
 
 
 class BasePyControl(wx.PyControl):
-    """Base class used to hold common code for the HSB colour wheel and the RGB
-    colour cube.
+    """Base class for HSB colour wheel and RGB colour cube.
+
+    Args:
+        parent (wx.Window): The control parent;
+        bitmap (wx.Bitmap): The background bitmap for this custom control.
     """
 
     def __init__(self, parent, bitmap=None):
-        """Default class constructor.
-        Used internally. Do not call it in your code!
-
-        :param parent: the control parent;
-        :param bitmap: the background bitmap for this custom control.
-        """
         wx.PyControl.__init__(self, parent, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -675,6 +678,11 @@ class BasePyControl(wx.PyControl):
         self.Draw(dc)
 
     def Draw(self, dc):
+        """Draw the background bitmap.
+
+        Args:
+            dc (wx.DC): an instance of :class:`DC`.
+        """
         if "gtk3" in wx.PlatformInfo:
             bgcolour = self.Parent.BackgroundColour
         else:
@@ -712,7 +720,9 @@ class BasePyControl(wx.PyControl):
         """
 
     def AcceptsFocusFromKeyboard(self):
-        """Can this window be given focus by keyboard navigation? If not, the
+        """Return whether this window can be given focus by keyboard navigation.
+
+        Can this window be given focus by keyboard navigation? If not, the
         only way to give it focus (provided it accepts it at all) is to click
         it.
 
@@ -736,7 +746,8 @@ class BasePyControl(wx.PyControl):
     def OnLeftDown(self, event):
         """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`BasePyControl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
 
         :note: This method must be overridden in derived classes.
         """
@@ -744,7 +755,8 @@ class BasePyControl(wx.PyControl):
     def OnLeftUp(self, event):
         """Handle the ``wx.EVT_LEFT_UP`` for :class:`BasePyControl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
 
         :note: This method must be overridden in derived classes.
         """
@@ -752,7 +764,8 @@ class BasePyControl(wx.PyControl):
     def OnMotion(self, event):
         """Handle the ``wx.EVT_MOTION`` for :class:`BasePyControl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
 
         :note: This method must be overridden in derived classes.
         """
@@ -760,13 +773,15 @@ class BasePyControl(wx.PyControl):
     def OnSize(self, event):
         """Handle the ``wx.EVT_SIZE`` for :class:`BasePyControl`.
 
-        :param event: a :class:`SizeEvent` event to be processed.
+        Args:
+            event: a :class:`SizeEvent` event to be processed.
         """
         self.Refresh()
 
     def DoGetBestSize(self):
-        """Overridden base class virtual. Determines the best size of the
-        control based on the bitmap size.
+        """Overridden base class virtual.
+
+        Determines the best size of the control based on the bitmap size.
 
         :note: Overridden from :class:`PyControl`.
         """
@@ -774,9 +789,7 @@ class BasePyControl(wx.PyControl):
 
 
 class BasePyButton(BasePyControl):
-    """Base class used to hold common code for the HSB colour wheel and the RGB
-    colour cube.
-    """
+    """Common base for HSB colour wheel and RGB colour cube."""
 
     def __init__(self, parent, bitmap):
         BasePyControl.__init__(self, parent, bitmap)
@@ -788,18 +801,33 @@ class BasePyButton(BasePyControl):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
 
     def OnLeftDown(self, event):
+        """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`BasePyButton`.
+
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
+        """
         if self.Enabled:
             self._bitmap = self._bitmap_pressed
             self.Refresh()
         event.Skip()
 
     def OnLeftUp(self, event):
+        """Handle the ``wx.EVT_LEFT_UP`` for :class:`BasePyButton`.
+
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
+        """
         if self.Enabled:
             self._bitmap = self._bitmap_hover
             self.Refresh()
         event.Skip()
 
     def OnMouseEnter(self, event):
+        """Handle the ``wx.EVT_ENTER_WINDOW`` for :class:`BasePyButton`.
+
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
+        """
         if self.Enabled:
             if self.HasCapture():
                 self._bitmap = self._bitmap_pressed
@@ -809,32 +837,44 @@ class BasePyButton(BasePyControl):
         event.Skip()
 
     def OnMouseLeave(self, event):
+        """Handle the ``wx.EVT_LEAVE_WINDOW`` for :class:`BasePyButton`.
+
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
+        """
         if self.Enabled:
             self._bitmap = self._bitmap_enabled
             self.Refresh()
         event.Skip()
 
     def Enable(self, enable=True):
-        if enable != self.Enabled:
-            BasePyControl.Enable(self, enable)
-            if self.Enabled:
-                self._bitmap = self._bitmap_enabled
-            else:
-                self._bitmap = self._bitmap_disabled
-            self.Refresh()
+        """Enable or disable the control.
+
+        Args:
+            enable (bool): If ``True``, the control will be enabled, otherwise
+                it will be disabled.
+        """
+        if enable == self.Enabled:
+            return
+        BasePyControl.Enable(self, enable)
+        if self.Enabled:
+            self._bitmap = self._bitmap_enabled
+        else:
+            self._bitmap = self._bitmap_disabled
+        self.Refresh()
 
 
 class HSVWheel(BasePyControl):
-    """Implement the drawing, mouse handling and sizing routines for the HSV
+    """Custom control to select a colour in the HSV colour space.
+
+    Implement the drawing, mouse handling and sizing routines for the HSV
     colour wheel.
+
+    Args:
+        parent: the control parent window.
     """
 
     def __init__(self, parent, bgcolour):
-        """Default class constructor.
-        Used internally. Do not call it in your code!
-
-        :param parent: the control parent window.
-        """
         BasePyControl.__init__(self, parent, bitmap=getbitmap("theme/colorwheel"))
         self._bitmap = (
             self._bitmap.ConvertToImage()
@@ -851,7 +891,8 @@ class HSVWheel(BasePyControl):
     def DrawMarkers(self, dc=None):
         """Draw the markers on top of the background bitmap.
 
-        :param dc: an instance of :class:`DC`.
+        Args:
+            dc (wx.DC): An :class:`DC` instance.
         """
         if dc is None:
             dc = wx.ClientDC(self)
@@ -889,7 +930,8 @@ class HSVWheel(BasePyControl):
     def OnLeftDown(self, event):
         """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`HSVWheel`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         point = wx.Point(event.GetX(), event.GetY())
         self._mouseIn = False
@@ -904,7 +946,8 @@ class HSVWheel(BasePyControl):
     def OnLeftUp(self, event):
         """Handle the ``wx.EVT_LEFT_UP`` for :class:`HSVWheel`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         if self.GetCapture():
             self.ReleaseMouse()
@@ -913,7 +956,8 @@ class HSVWheel(BasePyControl):
     def OnMotion(self, event):
         """Handle the ``wx.EVT_MOTION`` for :class:`HSVWheel`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         point = wx.Point(event.GetX(), event.GetY())
 
@@ -923,7 +967,8 @@ class HSVWheel(BasePyControl):
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` for :class:`BasePyControl`.
 
-        :param event: a :class:`PaintEvent` event to be processed.
+        Args:
+            event: a :class:`PaintEvent` event to be processed.
         """
         dc = wx.AutoBufferedPaintDC(self)
 
@@ -935,14 +980,16 @@ class HSVWheel(BasePyControl):
     def InCircle(self, pt):
         """Return whether a point is inside the HSV wheel or not.
 
-        :param pt: an instance of :class:`Point`.
+        Args:
+            pt: an instance of :class:`Point`.
         """
         return Distance(pt, self._mainFrame._centre) <= (self._bitmap.Size[0]) / 2
 
     def TrackPoint(self, pt):
         """Track a mouse event inside the HSV colour wheel.
 
-        :param pt: an instance of :class:`Point`.
+        Args:
+            pt: an instance of :class:`Point`.
         """
         if not self._mouseIn:
             return
@@ -950,17 +997,15 @@ class HSVWheel(BasePyControl):
         mainFrame = self._mainFrame
         colour = mainFrame._colour
 
-        colour.h = int(round(rad2deg(AngleFromPoint(pt, mainFrame._centre))))
+        colour.h = round(rad2deg(AngleFromPoint(pt, mainFrame._centre)))
         if colour.h < 0:
             colour.h += 360
 
-        colour.s = int(
-            round(
-                Distance(pt, mainFrame._centre)
-                * 255.0
-                / ((self._bitmap.Size[0] - s(12)) / 2)
-                * 0.2
-            )
+        colour.s = round(
+            Distance(pt, mainFrame._centre)
+            * 255.0
+            / ((self._bitmap.Size[0] - s(12)) / 2)
+            * 0.2
         )
         colour.s = min(colour.s, 255)
 
@@ -973,16 +1018,13 @@ class HSVWheel(BasePyControl):
 
 
 class BaseLineCtrl(wx.PyControl):
-    """Base class used to hold common code for the Alpha channel control and the
-    brightness palette control.
+    """Base class for alpha and brightness controls.
+
+    Args:
+        parent: the control parent window.
     """
 
     def __init__(self, parent, size=wx.DefaultSize):
-        """Default class constructor.
-        Used internally. Do not call it in your code!
-
-        :param parent: the control parent window.
-        """
         wx.PyControl.__init__(self, parent, size=size, style=wx.NO_BORDER)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -997,7 +1039,8 @@ class BaseLineCtrl(wx.PyControl):
     def OnEraseBackground(self, event):
         """Handle the ``wx.EVT_ERASE_BACKGROUND`` for :class:`BaseLineCtrl`.
 
-        :param event: a :class:`EraseEvent` event to be processed.
+        Args:
+            event: a :class:`EraseEvent` event to be processed.
 
         :note: This is intentionally empty to reduce flicker.
         """
@@ -1005,7 +1048,8 @@ class BaseLineCtrl(wx.PyControl):
     def OnLeftDown(self, event):
         """Handle the ``wx.EVT_LEFT_DOWN`` for :class:`BaseLineCtrl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         point = wx.Point(event.GetX(), event.GetY())
         theRect = self.GetClientRect()
@@ -1020,7 +1064,8 @@ class BaseLineCtrl(wx.PyControl):
     def OnLeftUp(self, event):
         """Handle the ``wx.EVT_LEFT_UP`` for :class:`BaseLineCtrl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         if self.GetCapture():
             self.ReleaseMouse()
@@ -1029,7 +1074,8 @@ class BaseLineCtrl(wx.PyControl):
     def OnMotion(self, event):
         """Handle the ``wx.EVT_MOTION`` for :class:`BaseLineCtrl`.
 
-        :param event: a :class:`MouseEvent` event to be processed.
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
         """
         point = wx.Point(event.GetX(), event.GetY())
 
@@ -1039,12 +1085,13 @@ class BaseLineCtrl(wx.PyControl):
     def OnSize(self, event):
         """Handle the ``wx.EVT_SIZE`` for :class:`BaseLineCtrl`.
 
-        :param event: a :class:`SizeEvent` event to be processed.
+        Args:
+            event: a :class:`SizeEvent` event to be processed.
         """
         self.Refresh()
 
     def BuildRect(self):
-        """Internal method."""
+        """Build a rectangle that is used to draw the brightness palette."""
         brightRect = wx.Rect(*self.GetClientRect())
         brightRect.x += s(2)
         brightRect.y += s(2)
@@ -1054,7 +1101,9 @@ class BaseLineCtrl(wx.PyControl):
         return brightRect
 
     def AcceptsFocusFromKeyboard(self):
-        """Can this window be given focus by keyboard navigation? If not, the
+        """Return whether this window can be given focus by keyboard navigation.
+
+        Can this window be given focus by keyboard navigation? If not, the
         only way to give it focus (provided it accepts it at all) is to click
         it.
 
@@ -1077,16 +1126,18 @@ class BaseLineCtrl(wx.PyControl):
 
 
 class BrightCtrl(BaseLineCtrl):
-    """Implement the drawing, mouse handling and sizing routines for the brightness
-    palette control.
+    """A control used to select the brightness of a colour.
+
+    Implement the drawing, mouse handling and sizing routines for the
+    brightness palette control.
+
+    Args:
+        parent (wx.Window): the control parent window.
+        colour (wx.Colour): an instance of :class:`Colour` to be used for the
+            palette.
     """
 
     def __init__(self, parent, colour=None):
-        """Default class constructor.
-        Used internally. Do not call it in your code!
-
-        :param parent: the control parent window.
-        """
         BaseLineCtrl.__init__(self, parent, size=(s(20), s(102)))
         self._colour = colour or self._mainFrame._colour
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -1095,7 +1146,8 @@ class BrightCtrl(BaseLineCtrl):
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
 
-        :param event: a :class:`PaintEvent` event to be processed.
+        Args:
+            event: a :class:`PaintEvent` event to be processed.
         """
         dc = wx.AutoBufferedPaintDC(self)
 
@@ -1109,6 +1161,11 @@ class BrightCtrl(BaseLineCtrl):
         return wx.Size(s(20), s(102))
 
     def Draw(self, dc):
+        """Draw the brightness palette control.
+
+        Args:
+            dc (wx.DC): an instance of :class:`DC`.
+        """
         if "gtk3" in wx.PlatformInfo:
             bgcolour = self.Parent.BackgroundColour
         else:
@@ -1143,7 +1200,8 @@ class BrightCtrl(BaseLineCtrl):
     def TrackPoint(self, pt):
         """Track a mouse action inside the palette control.
 
-        :param pt: an instance of :class:`Point`.
+        Args:
+            pt: an instance of :class:`Point`.
         """
         brightRect = self.BuildRect()
         d = brightRect.GetBottom() - pt.y
@@ -1155,7 +1213,7 @@ class BrightCtrl(BaseLineCtrl):
         mainFrame = self._mainFrame
         colour = self._colour
 
-        colour.v = int(round(d))
+        colour.v = round(d)
         mainFrame.DrawMarkers()
 
         colour.ToRGB()
@@ -1164,7 +1222,8 @@ class BrightCtrl(BaseLineCtrl):
     def DrawMarkers(self, dc=None):
         """Draw square markers used with mouse gestures.
 
-        :param dc: an instance of :class:`DC`.
+        Args:
+            dc: an instance of :class:`DC`.
         """
         if dc is None:
             dc = wx.ClientDC(self)
@@ -1175,7 +1234,7 @@ class BrightCtrl(BaseLineCtrl):
         colour = self._colour
         brightRect = self.BuildRect()
 
-        y = int(round(colour.v / 255.0 * (brightRect.height - s(6))))
+        y = round(colour.v / 255.0 * (brightRect.height - s(6)))
         y = brightRect.height - s(4) - 1 - y
         h = s(8)
         darkMarkOuter = wx.Rect(brightRect.x - 2, y - 1, brightRect.width + 4, h)
@@ -1193,6 +1252,11 @@ class BrightCtrl(BaseLineCtrl):
             dc.DrawRectangle(rect)
 
     def mousewheel_handler(self, event):
+        """Handle the ``wx.EVT_MOUSEWHEEL`` for :class:`BrightCtrl`.
+
+        Args:
+            event: a :class:`MouseEvent` event to be processed.
+        """
         self._spin(event.GetWheelRotation())
 
     def _spin(self, direction):
@@ -1209,16 +1273,18 @@ class BrightCtrl(BaseLineCtrl):
 
 
 class HSlider(BaseLineCtrl):
-    """Implement the drawing, mouse handling and sizing routines for the
-    slider control.
+    """A horizontal slider for selecting a value within a range.
+
+    Args:
+        parent (wx.Window): the control parent window.
+        value (int): The initial value of the slider.
+        minval (int): The minimum value of the slider.
+        maxval (int): The maximum value of the slider.
+        onchange (callable): A callback function to be called when the value
+            changes.
     """
 
     def __init__(self, parent, value=0, minval=0, maxval=100, onchange=None):
-        """Default class constructor.
-        Used internally. Do not call it in your code!
-
-        :param parent: the control parent window.
-        """
         BaseLineCtrl.__init__(self, parent, size=(s(140), s(8)))
         self.value = value
         self.minval = minval
@@ -1235,7 +1301,8 @@ class HSlider(BaseLineCtrl):
     def OnPaint(self, event):
         """Handle the ``wx.EVT_PAINT`` for :class:`BrightCtrl`.
 
-        :param event: a :class:`PaintEvent` event to be processed.
+        Args:
+            event: a :class:`PaintEvent` event to be processed.
         """
         dc = wx.AutoBufferedPaintDC(self)
 
@@ -1249,6 +1316,11 @@ class HSlider(BaseLineCtrl):
         return wx.Size(s(140), s(8))
 
     def BuildRect(self):
+        """Build the rectangle used to draw the slider.
+
+        Returns:
+            wx.Rect: The rectangle used to draw the slider.
+        """
         brightRect = self.GetClientRect()
         brightRect.y += int((brightRect.height - 8) / 2.0)
         brightRect.height = s(8)
@@ -1256,6 +1328,11 @@ class HSlider(BaseLineCtrl):
         return brightRect
 
     def Draw(self, dc):
+        """Draw the slider control.
+
+        Args:
+            dc (wx.DC): an instance of :class:`DC`.
+        """
         if "gtk3" in wx.PlatformInfo:
             bgcolour = self.Parent.BackgroundColour
         else:
@@ -1272,7 +1349,8 @@ class HSlider(BaseLineCtrl):
     def TrackPoint(self, pt):
         """Track a mouse action inside the palette control.
 
-        :param pt: an instance of :class:`Point`.
+        Args:
+            pt: an instance of :class:`Point`.
         """
         brightRect = self.BuildRect()
         d = pt.x
@@ -1290,7 +1368,8 @@ class HSlider(BaseLineCtrl):
     def DrawMarkers(self, dc=None):
         """Draw square markers used with mouse gestures.
 
-        :param dc: an instance of :class:`DC`.
+        Args:
+            dc: an instance of :class:`DC`.
         """
         if dc is None:
             dc = wx.ClientDC(self)
@@ -1301,12 +1380,10 @@ class HSlider(BaseLineCtrl):
         brightRect = self.BuildRect()
 
         w = s(8)
-        x = int(
-            round(
-                (self.value - self.minval)
-                / float(self.maxval - self.minval)
-                * (brightRect.width - w)
-            )
+        x = round(
+            (self.value - self.minval)
+            / float(self.maxval - self.minval)
+            * (brightRect.width - w)
         )
         brightMark = wx.Rect(x, brightRect.y, w, brightRect.height)
 
@@ -1314,42 +1391,97 @@ class HSlider(BaseLineCtrl):
         dc.DrawRectangle(brightMark)
 
     def GetValue(self):
+        """Get the value of the slider.
+
+        Returns:
+            int: The current value of the slider.
+        """
         return self.value
 
     def SetValue(self, value):
+        """Set the value of the slider.
+
+        Args:
+            value (int): The new value for the slider.
+        """
         self.value = value
         self.DrawMarkers()
 
     @property
     def Value(self):
+        """Get the value of the slider.
+
+        Returns:
+            int: The current value of the slider.
+        """
         return self.GetValue()
 
     @Value.setter
     def Value(self, value):
+        """Set the value of the slider.
+
+        Args:
+            value (int): The new value for the slider.
+        """
         self.SetValue(value)
 
     def GetMax(self):
+        """Get the maximum value of the slider.
+
+        Returns:
+            int: The maximum value of the slider.
+        """
         return self.maxval
 
     def GetMin(self):
+        """Get the minimum value of the slider.
+
+        Returns:
+            int: The minimum value of the slider.
+        """
         return self.minval
 
     def SetMax(self, maxval):
+        """Set the maximum value of the slider.
+
+        Args:
+            maxval (int): The new maximum value for the slider.
+        """
         self.maxval = maxval
         self.Refresh()
 
     @property
     def Max(self):
+        """Get the maximum value of the slider.
+
+        Returns:
+            int: The maximum value of the slider.
+        """
         return self.GetMax()
 
     @Max.setter
     def Max(self, value):
+        """Set the maximum value of the slider.
+
+        Args:
+            value (int): The new maximum value for the slider.
+        """
         self.SetMax(value)
 
     def focus_handler(self, event):
+        """Handle focus events to update the focus state.
+
+        Args:
+            event (wx.Event): The focus event that triggered the handler.
+        """
         self._hasfocus = event.GetEventType() == wx.EVT_SET_FOCUS.evtType[0]
 
     def key_handler(self, event):
+        """Handle key events to spin the slider value.
+
+        Args:
+            event (wx.Event): The key event that triggered the handler.
+        """
         if event.KeyCode in (wx.WXK_RIGHT, wx.WXK_NUMPAD_RIGHT):
             self._spin(1)
         elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_NUMPAD_LEFT):
@@ -1358,6 +1490,11 @@ class HSlider(BaseLineCtrl):
             event.Skip()
 
     def mousewheel_handler(self, event):
+        """Handle mouse wheel events to spin the slider value.
+
+        Args:
+            event (wx.Event): The mouse wheel event that triggered the handler.
+        """
         self._spin(event.GetWheelRotation())
 
     def _spin(self, direction):
@@ -1371,12 +1508,12 @@ class HSlider(BaseLineCtrl):
 
 
 class NumSpin(wx_Panel):
-    """A number spinner control that uses an IntCtrl and two buttons to
-    increment and decrement the value.
+    """A numeric spinner using IntCtrl and up/down buttons.
 
     It is a replacement for wx.SpinCtrl that uses a custom IntCtrl instead of
     the default one. It also supports mouse wheel scrolling and keyboard input.
     """
+
     def __init__(self, parent, id=-1, *args, **kwargs):  # noqa: A002
         wx_Panel.__init__(self, parent)
         self.BackgroundColour = "#404040"
@@ -1414,6 +1551,15 @@ class NumSpin(wx_Panel):
         return getattr(self.numctrl, name)
 
     def is_button_pressed(self, btn):
+        """Check if the button is pressed and the mouse is within its bounds.
+
+        Args:
+            btn (BasePyButton): The button to check.
+
+        Returns:
+            bool: True if the button is pressed and the mouse is within its bounds,
+                  False otherwise.
+        """
         return (
             btn.Enabled
             and btn.HasCapture()
@@ -1421,6 +1567,11 @@ class NumSpin(wx_Panel):
         )
 
     def left_down_handler(self, event):
+        """Handle the left button down event for the spin buttons.
+
+        Args:
+            event (wx.Event): The event that triggered the handler.
+        """
         self._left_down_count += 1
         if self._capture_mouse(event):
             if event.GetEventObject() is self.spinup:
@@ -1430,6 +1581,11 @@ class NumSpin(wx_Panel):
         event.Skip()
 
     def left_up_handler(self, event):
+        """Handle the left button up event for the spin buttons.
+
+        Args:
+            event (wx.Event): The event that triggered the handler.
+        """
         self._left_up_count += 1
         while self._left_up_count > self._left_down_count:
             # Broken platform (wxMac?) :-(
@@ -1441,6 +1597,11 @@ class NumSpin(wx_Panel):
         event.Skip()
 
     def key_handler(self, event):
+        """Handle key events to spin the IntCtrl value.
+
+        Args:
+            event (wx.Event): The key event that triggered the handler.
+        """
         if event.KeyCode in (wx.WXK_UP, wx.WXK_NUMPAD_UP):
             self._spin(1, event, bell=False)
         elif event.KeyCode in (wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN):
@@ -1449,12 +1610,25 @@ class NumSpin(wx_Panel):
             event.Skip()
 
     def mousewheel_handler(self, event):
+        """Handle mouse wheel events to spin the IntCtrl value.
+
+        Args:
+            event (wx.Event): The mouse wheel event that triggered the handler.
+        """
         if event.GetWheelRotation() > 0:
             self._spin(1, event, bell=False)
         else:
             self._spin(-1, event, bell=False)
 
     def _capture_mouse(self, event):
+        """Capture the mouse if the event is valid and the control is enabled.
+
+        Args:
+            event (wx.Event): The event that triggered the capture.
+
+        Returns:
+            bool: True if the mouse was captured, False otherwise.
+        """
         obj = event.GetEventObject()
         if obj.Enabled and not obj.HasCapture():
             point = wx.Point(event.GetX(), event.GetY())
@@ -1464,6 +1638,18 @@ class NumSpin(wx_Panel):
         return obj.Enabled and obj.HasCapture()
 
     def _spin(self, inc, event, n=None, delay=500, bell=True):
+        """Spin the IntCtrl value up or down.
+
+        Args:
+            inc (int): The increment value, positive for up, negative for down.
+            event (wx.Event): The event that triggered the spin.
+            n (int, optional): The target value to set. If None, it will be
+                calculated based on the current value and increment.
+            delay (int, optional): The delay in milliseconds before the next
+                spin action. Defaults to 500.
+            bell (bool, optional): Whether to ring the bell if the value cannot
+                be set. Defaults to True.
+        """
         current = self.numctrl.GetValue()
         if n is None:
             n = current + inc
@@ -1482,9 +1668,19 @@ class NumSpin(wx_Panel):
             wx.CallLater(delay, self._spin, inc, None, current + inc, 100)
 
     def GetValue(self):
+        """Get the value of the IntCtrl.
+
+        Returns:
+            int: The current value of the IntCtrl.
+        """
         return self.numctrl.GetValue()
 
     def SetValue(self, value):
+        """Set the value of the IntCtrl and update the spin buttons accordingly.
+
+        Args:
+            value (int): The value to set in the IntCtrl.
+        """
         self.numctrl.SetValue(value)
         if self.numctrl.GetMax() <= value:
             self.spinup.HasCapture() and self.spinup.ReleaseMouse()
@@ -1495,6 +1691,11 @@ class NumSpin(wx_Panel):
 
     @property
     def Value(self):
+        """Get or set the value of the IntCtrl.
+
+        Returns:
+            int: The current value of the IntCtrl.
+        """
         return self.GetValue()
 
     @Value.setter
@@ -1563,7 +1764,7 @@ class ProfileManager:
                             self._window._colour.r,
                             self._window._colour.g,
                             self._window._colour.b,
-                        ) = (int(round(values[-1][i] * 255)) for i in range(3))
+                        ) = (round(values[-1][i] * 255) for i in range(3))
                         self._window._colour.ToHSV()
                         wx.CallAfter(self._window.DrawAll)
                     # Remember profile, but discard profile filename
@@ -1627,9 +1828,14 @@ class ProfileManager:
             self._update_timer.Stop()
 
     def update(self, restore_display_profiles=True):
-        """Clear calibration on the current display, and restore it on
-        the previous one (if any)
+        """Update the display manager.
 
+        Clear calibration on the current display, and restore it on the
+        previous one (if any)
+
+        Args:
+            restore_display_profiles (bool): Whether to restore display
+                profiles when the display changes.
         """
         if restore_display_profiles:
             self.restore_display_profiles()
@@ -1658,7 +1864,7 @@ class ProfileManager:
             print(msg)
 
     def restore_display_profiles(self, wrapup=False, wait=False):
-        """Reinstall memorized display profiles, restore calibration"""
+        """Reinstall memorized display profiles, restore calibration."""
         while self._profiles:
             geometry, profile = self._profiles.popitem()
             display_no = get_argyll_display_number(geometry)
@@ -1678,6 +1884,12 @@ class ProfileManager:
                 print(msg)
 
     def display_changed_handler(self, event):
+        """Handle the ``wx.EVT_DISPLAY_CHANGED`` event.
+
+        Args:
+            event: a :class:`DisplayEvent` event to be processed.
+        """
+
         # Houston, we (may) have a problem! Memorized profile associations may
         # no longer be correct.
         def warn_update():
@@ -1694,10 +1906,14 @@ class ProfileManager:
         event.Skip()
 
     def window_move_handler(self, event):
-        """Clear calibration on the current display, and restore it on
-        the previous one (if any) when the window is moved from one to
-        another display.
+        """Handle the ``wx.EVT_MOVE`` event.
 
+        Clear calibration on the current display, and restore it on the
+        previous one (if any) when the window is moved from one to another
+        display.
+
+        Args:
+            event (wx.Event): The move event that triggered the handler.
         """
         display = self._window.GetDisplay()
         if not self._display or display.Geometry != self._display.Geometry:
@@ -1851,7 +2067,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.zoomnormal_handler, self.zoomnormalbutton)
         self.zoomnormalbutton.SetToolTipString(lang.getstr("measureframe.zoomnormal"))
         self.area_x_slider = HSlider(
-            self.mainPanel, int(round(x * 1000)), 0, 1000, self.area_handler
+            self.mainPanel, round(x * 1000), 0, 1000, self.area_handler
         )
         self.area_x_slider.BackgroundColour = self.mainPanel.BackgroundColour
         self.center_x_button = BitmapButton(
@@ -1865,7 +2081,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.center_x_handler, self.center_x_button)
         self.center_x_button.SetToolTipString(lang.getstr("measureframe.center"))
         self.area_y_slider = HSlider(
-            self.mainPanel, int(round(y * 1000)), 0, 1000, self.area_handler
+            self.mainPanel, round(y * 1000), 0, 1000, self.area_handler
         )
         self.area_y_slider.BackgroundColour = self.mainPanel.BackgroundColour
         self.center_y_button = BitmapButton(
@@ -1960,7 +2176,7 @@ class VisualWhitepointEditor(wx.Frame):
                 correction = s(40)
             else:
                 correction = 0
-            w, h = (int(round(self.default_size)),) * 2
+            w, h = (round(self.default_size),) * 2
             minClientSize = (
                 mainPanelSize[0] + max(minClientSize[1], w + s(26)),
                 max(minClientSize[1], h + s(26)) + correction,
@@ -2118,6 +2334,11 @@ class VisualWhitepointEditor(wx.Frame):
         wx.CallAfter(self.Refresh)
 
     def show_handler(self, event):
+        """Handle the ``wx.EVT_SHOW`` event for :class:`VisualWhitepointEditor`.
+
+        Args:
+            event: a :class:`ShowEvent` event to be processed.
+        """
         if (
             not self.patterngenerator
             and getattr(event, "IsShown", getattr(event, "GetShow", bool))()
@@ -2180,6 +2401,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.update_patterngenerator()
 
     def update_patterngenerator(self):
+        """Update the patterngenerator configuration if it is available."""
         if self.patterngenerator:
             size = min(
                 (
@@ -2217,7 +2439,8 @@ class VisualWhitepointEditor(wx.Frame):
     def OnCloseWindow(self, event):
         """Handle the ``wx.EVT_CLOSE`` event for :class:`VisualWhitepointEditor`.
 
-        :param event: a :class:`CloseEvent` event to be processed.
+        Args:
+            event: a :class:`CloseEvent` event to be processed.
         """
         if self.IsFullScreen():
             self.ShowFullScreen(False)
@@ -2226,7 +2449,8 @@ class VisualWhitepointEditor(wx.Frame):
     def OnKeyDown(self, event):
         """Handle the ``wx.EVT_CHAR_HOOK`` event for :class:`VisualWhitepointEditor`.
 
-        :param event: a :class:`KeyEvent` event to be processed.
+        Args:
+            event: a :class:`KeyEvent` event to be processed.
         """
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             if self.IsFullScreen():
@@ -2234,37 +2458,43 @@ class VisualWhitepointEditor(wx.Frame):
                 self.Restore()
             else:
                 self.Close()
-        # elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_UP,
-        # wx.WXK_DOWN):
-        # self._colour.h += {wx.WXK_LEFT: 1,
-        # wx.WXK_RIGHT: -1,
-        # wx.WXK_UP: 0,
-        # wx.WXK_DOWN: 0}[event.KeyCode]
-        # if self._colour.h > 359:
-        # self._colour.h = 0
-        # elif self._colour.h < 0:
-        # self._colour.h = 359
-        # self._colour.s += {wx.WXK_LEFT: 0,
-        # wx.WXK_RIGHT: 0,
-        # wx.WXK_UP: 1,
-        # wx.WXK_DOWN: -1}[event.KeyCode]
-        # if self._colour.s > 255:
-        # self._colour.s = 255
-        # elif self._colour.s < 0:
-        # self._colour.s = 0
-        # print self._colour.h, self._colour.s
-        # self._colour.ToRGB()
-        # self.DrawAll()
+        # elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_UP, wx.WXK_DOWN):
+        #     self._colour.h += {
+        #         wx.WXK_LEFT: 1,
+        #         wx.WXK_RIGHT: -1,
+        #         wx.WXK_UP: 0,
+        #         wx.WXK_DOWN: 0
+        #     }[event.KeyCode]
+        #     if self._colour.h > 359:
+        #         self._colour.h = 0
+        #     elif self._colour.h < 0:
+        #         self._colour.h = 359
+        #     self._colour.s += {
+        #       wx.WXK_LEFT: 0,
+        #       wx.WXK_RIGHT: 0,
+        #       wx.WXK_UP: 1,
+        #       wx.WXK_DOWN: -1
+        #     }[event.KeyCode]
+        #     if self._colour.s > 255:
+        #         self._colour.s = 255
+        #     elif self._colour.s < 0:
+        #         self._colour.s = 0
+        #     print(self._colour.h, self._colour.s)
+        #     self._colour.ToRGB()
+        #     self.DrawAll()
         else:
             event.Skip()
 
     def PtFromAngle(self, angle, sat, center):
-        """Given the angle with respect to the x-axis, returns the point based on
-        the saturation value.
+        """Return a point based on the angle and saturation.
 
-        :param angle: a float representing an angle;
-        :param sat: a float representing the colour saturation value;
-        :param center: a float value representing the center.
+        Args:
+            angle (float): a float representing an angle;
+            sat (float): a float representing the colour saturation value;
+            center (float): a float value representing the center.
+
+        Returns:
+            wx.Point: A point calculated from the angle and saturation.
         """
         angle = deg2rad(angle)
         sat = min(
@@ -2275,7 +2505,7 @@ class VisualWhitepointEditor(wx.Frame):
         x = sat * cos(angle)
         y = sat * sin(angle)
 
-        pt = wx.Point(int(round(x)), -int(round(y)))
+        pt = wx.Point(round(x), -round(y))
         pt.x += center.x
         pt.y += center.y
 
@@ -2284,7 +2514,8 @@ class VisualWhitepointEditor(wx.Frame):
     def OnSpinCtrl(self, event):
         """Handle the ``wx.EVT_SPINCTRL`` event for RGB and HSB colours.
 
-        :param event: a :class:`SpinEvent` event to be processed.
+        Args:
+            event: a :class:`SpinEvent` event to be processed.
         """
         obj = event.GetEventObject().Parent
         position = self.spinCtrls.index(obj)
@@ -2355,28 +2586,59 @@ class VisualWhitepointEditor(wx.Frame):
         return (self._colour.h, self._colour.s, self._colour.v, self._colour._alpha)
 
     def EndModal(self, returncode=wx.ID_OK):
+        """End the modal state of the :class:`VisualWhitepointEditor`.
+
+        Args:
+            returncode (int): The return code to be used when ending the modal state.
+        """
         return returncode
 
-    def MakeModal(self, makemodal=False):
-        pass
+    def MakeModal(self, modal=False):
+        """Make the VisualWhitepointEditor modal or not.
+
+        Args:
+            modal (bool): If ``True``, make the editor modal.
+        """
 
     def Pulse(self, msg=""):
+        """Pulse the progress of the operation.
+
+        Args:
+            msg (str): The message to be displayed during the pulse.
+        """
         return self.keepGoing, False
 
     def Resume(self):
+        """Resume the pulse operation."""
         self.keepGoing = True
 
     def UpdateProgress(self, value=None, msg=""):
+        """Update the progress of the pulse with a message.
+
+        Args:
+            value (int): The value to be set for the progress.
+            msg (str): The message to be displayed.
+        """
         return self.Pulse(msg)
 
     def UpdatePulse(self, msg=""):
+        """Update the pulse with a message.
+
+        Args:
+            msg (str): The message to be displayed.
+        """
         return self.Pulse(msg)
 
     def area_handler(self, event=None):
+        """Handle the area size and position sliders.
+
+        Args:
+            event (Event): An event to be processed, if any.
+        """
         scale = self.area_size_slider.Value / 100.0
         x = self.area_x_slider.Value / 1000.0
         y = self.area_y_slider.Value / 1000.0
-        w, h = (int(round(self.default_size * scale)),) * 2
+        w, h = (round(self.default_size * scale),) * 2
         self.bgPanel.MinSize = -1, -1
         self.newColourPanel.Size = w, h
         self.bgPanel.MinSize = w + s(24), h + s(24)
@@ -2391,24 +2653,45 @@ class VisualWhitepointEditor(wx.Frame):
         self.update_patterngenerator()
 
     def center_x_handler(self, event):
+        """Handle the centering of the X-axis area slider.
+
+        Args:
+            event (ButtonEvent): A ButtonEvent event to be processed.
+        """
         self.area_x_slider.SetValue(500)
         self.area_handler()
 
     def center_y_handler(self, event):
+        """Handle the centering of the Y-axis area slider.
+
+        Args:
+            event (ButtonEvent): A ButtonEvent event to be processed.
+        """
         self.area_y_slider.SetValue(500)
         self.area_handler()
 
     def close_pane_handler(self, event):
+        """Handle the closing of the main panel pane.
+
+        Args:
+            event (AuiEvent): An AuiEvent event to be processed.
+        """
         event.Veto()  # Prevent closing of pane
         self.dock_pane()
 
     def dock_pane(self):
+        """Dock the main panel pane."""
         self._mgr.GetPane("mainPanel").Dock().CloseButton(False)
         self._mgr.Update()
         self.mainPanel.Refresh()
         self.area_handler()
 
     def float_pane_handler(self, event):
+        """Handle the floating of the main panel pane.
+
+        Args:
+            event (AuiEvent): An AuiEvent event to be processed.
+        """
         if event.GetEventType() == aui.EVT_AUI_PANE_FLOATED.evtType[0]:
             pos = [
                 self.Position[i]
@@ -2424,10 +2707,14 @@ class VisualWhitepointEditor(wx.Frame):
             wx.CallAfter(self.dock_pane)
 
     def flush(self):
-        pass
+        """Flush the :class:`VisualWhitepointEditor`."""
 
     def maximize_handler(self, event):
-        """Handle maximize and fullscreen events"""
+        """Handle maximize and fullscreen events.
+
+        Args:
+            event (MaximizeEvent): A MaximizeEvent event to be processed.
+        """
         # print '_isfullscreen?', getattr(self, "_isfullscreen", False)
         if not getattr(self, "_isfullscreen", False):
             self._isfullscreen = True
@@ -2437,6 +2724,11 @@ class VisualWhitepointEditor(wx.Frame):
             wx.CallAfter(self.notify, lang.getstr("fullscreen.message"))
 
     def move_handler(self, event):
+        """Handle the move event for the :class:`VisualWhitepointEditor`.
+
+        Args:
+            event (MoveEvent): A MoveEvent event to be processed.
+        """
         event.Skip()
         display = self.GetDisplay()
         if not self._pm._display or display.Geometry != self._pm._display.Geometry:
@@ -2445,6 +2737,11 @@ class VisualWhitepointEditor(wx.Frame):
             self.area_handler()
 
     def measure(self, event):
+        """Handle the measure button click event.
+
+        Args:
+            event (ButtonEvent): A ButtonEvent event to be processed.
+        """
         if (
             not self.Parent
             or not hasattr(self.Parent, "ambient_measure_handler")
@@ -2458,6 +2755,14 @@ class VisualWhitepointEditor(wx.Frame):
         self.Parent.ambient_measure_handler(event)
 
     def notify(self, msg, title=None, icon=None, timeout=-1):
+        """Show a notification message.
+
+        Args:
+            msg (str): The message to be displayed.
+            title (str): The title of the notification.
+            icon (str): The icon to be displayed in the notification.
+            timeout (int): The timeout for the notification in milliseconds.
+        """
         # Notification needs to have this frame as toplevel parent so key events
         # bubble to parent
         # print 'Showing fullscreen notification'
@@ -2474,6 +2779,11 @@ class VisualWhitepointEditor(wx.Frame):
         self.notification.Center(wx.HORIZONTAL)
 
     def size_handler(self, event):
+        """Handle the resize event for the :class:`VisualWhitepointEditor`.
+
+        Args:
+            event (SizeEvent): A SizeEvent event to be processed.
+        """
         if getattr(self, "_isfullscreen", False) and getattr(
             self, "notification", None
         ):
@@ -2483,18 +2793,24 @@ class VisualWhitepointEditor(wx.Frame):
         self.area_handler(event)
 
     def _check_fullscreen(self):
+        """Check if the window is in fullscreen mode and update the state."""
         # print '_isfullscreen?', getattr(self, "_isfullscreen", False)
         if getattr(self, "_isfullscreen", False):
             self._isfullscreen = self.IsFullScreen()
             # print 'IsFullScreen()?', self._isfullscreen
 
     def start_timer(self, ms=50):
-        pass
+        """Start a timer to update the display.
+
+        Args:
+            ms (int): The interval in milliseconds to update the display.
+        """
 
     def stop_timer(self):
-        pass
+        """Stop the timer if it is running."""
 
     def reset_handler(self, event):
+        """Reset the colour and background colour to the default values."""
         RGB = [DEFAULTS[f"whitepoint.visual_editor.{attribute}"] for attribute in "rgb"]
         self._colourData.SetColour(wx.Colour(*RGB))
         self._colour.r, self._colour.g, self._colour.b = self._colourData.GetColour()[
@@ -2505,6 +2821,7 @@ class VisualWhitepointEditor(wx.Frame):
         self.DrawAll()
 
     def set_area_size_slider_max(self):
+        """Set the maximum value for the area size slider based on the display size."""
         # Set max value according to display size
         maxv = 1000
         if real_display_size_mm:
@@ -2514,13 +2831,14 @@ class VisualWhitepointEditor(wx.Frame):
                 size_mm = real_display_size_mm.RealDisplaySizeMM(display_no)
                 if 0 not in size_mm:
                     self.display_size_mm[geometry] = [float(v) for v in size_mm]
-                    maxv = int(round(max(size_mm) / 100.0 * 100))
+                    maxv = round(max(size_mm) / 100.0 * 100)
         if maxv > 100:
             self.area_size_slider.SetMax(maxv)
             if self.area_size_slider.GetValue() > self.area_size_slider.GetMax():
                 self.area_size_slider.SetValue(maxv)
 
     def set_default_size(self):
+        """Set the default size for the area based on the display size."""
         geometry = self.GetDisplay().Geometry.Get()
         size_mm = self.display_size_mm.get(geometry)
         if size_mm:
@@ -2530,6 +2848,7 @@ class VisualWhitepointEditor(wx.Frame):
             self.default_size = 300
 
     def setcfg(self):
+        """Store the current colour and area settings in the configuration."""
         for attribute in "rgb":
             value = getattr(self._colour, attribute)
             setcfg("whitepoint.visual_editor." + attribute, value)
@@ -2544,13 +2863,22 @@ class VisualWhitepointEditor(wx.Frame):
         )
 
     def write(self, txt):
-        pass
+        """Write text to the console or log.
+
+        Args:
+            txt (str): The text to be written.
+        """
 
     def zoomnormal_handler(self, event):
+        """Handle the zoom to normal button click event.
+
+        Args:
+            event (ButtonEvent): A ButtonEvent event to be processed.
+        """
         scale = float(
             DEFAULTS["dimensions.measureframe.whitepoint.visual_editor"].split(",")[2]
         )
-        self.area_size_slider.SetValue(int(round(scale * 100)))
+        self.area_size_slider.SetValue(round(scale * 100))
         self.area_handler()
 
 

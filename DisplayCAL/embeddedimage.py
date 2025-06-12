@@ -1,7 +1,8 @@
-"""This module provides the `PyEmbeddedImage` class, which allows embedding PNG
-image data directly into Python code. It is primarily used with the
-`wx.tools.img2py` code generator to simplify the distribution of image assets
-by embedding them as base64-encoded data within Python modules.
+"""Provides the `PyEmbeddedImage` class for embedding PNG image data in Python code.
+
+It is primarily used with the `wx.tools.img2py` code generator to simplify the
+distribution of image assets by embedding them as base64-encoded data within
+Python modules.
 """
 # ----------------------------------------------------------------------
 # Name:        wx.lib.embeddedimage
@@ -29,7 +30,9 @@ except AttributeError:
 
 
 class PyEmbeddedImage:
-    """PyEmbeddedImage is primarily intended to be used by code generated
+    """A class for embedding PNG images in Python code.
+
+    PyEmbeddedImage is primarily intended to be used by code generated
     by img2py as a means of embedding image data in a python module so
     the image can be used at runtime without needing to access the
     image from an image file.  This makes distributing icons and such
@@ -50,20 +53,40 @@ class PyEmbeddedImage:
         self.isBase64 = isBase64
 
     def GetBitmap(self):
+        """Return a wx.Bitmap object created from the embedded image data.
+
+        Returns:
+            wx.Bitmap: The bitmap created from the embedded data.
+        """
         return wx.BitmapFromImage(self.GetImage())
 
     def GetData(self):
+        """Return the raw image data, decoding it if necessary.
+
+        Returns:
+            bytes: The raw image data, decoded if it was base64 encoded.
+        """
         if self.isBase64:
             data = b64decode(self.data)
         # TODO: what is ``data`` if self.isBase64 is False
         return data
 
     def GetIcon(self):
+        """Return a wx.Icon object created from the embedded image data.
+
+        Returns:
+            wx.Icon: The icon created from the embedded data.
+        """
         icon = wx.EmptyIcon()
         icon.CopyFromBitmap(self.GetBitmap())
         return icon
 
     def GetImage(self):
+        """Return a wx.Image object created from the embedded image data.
+
+        Returns:
+            wx.Image: The image created from the embedded data.
+        """
         stream = io.BytesIO(self.GetData())
         return wx.ImageFromStream(stream)
 

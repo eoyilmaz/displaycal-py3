@@ -1,8 +1,7 @@
-"""This module implements a scripting client for DisplayCAL, providing a
-graphical interface for sending commands to and receiving responses from
-a connected application. It features a terminal-like interface built with
-wxPython, supporting command history, text highlighting, and basic scripting
-capabilities.
+"""Scripting client for DisplayCAL with a graphical command interface.
+
+It features a terminal-like interface built with wxPython, supporting command
+history, text highlighting, and basic scripting capabilities.
 """
 
 import errno
@@ -107,6 +106,11 @@ class ScriptingClientFrame(SimpleTerminal):
             self.connect_handler(ip_port)
 
     def OnActivate(self, event):
+        """Handle the activation of the console window.
+
+        Args:
+            event (wx.Event): The event triggered by activating the window.
+        """
         self.console.SetFocus()
         linecount = self.console.GetNumberOfLines()
         lastline = self.console.GetLineText(linecount - 1)
@@ -116,6 +120,11 @@ class ScriptingClientFrame(SimpleTerminal):
             self.console.SetInsertionPoint(lastpos)
 
     def OnClose(self, event):
+        """Handle the closing of the console window.
+
+        Args:
+            event (wx.Event): The event triggered by closing the window.
+        """
         # So we can send_command('close') ourselves without prematurely exiting
         # the wx main loop
         while self.busy:
@@ -137,6 +146,12 @@ class ScriptingClientFrame(SimpleTerminal):
         wx.CallAfter(self.Destroy)
 
     def OnMove(self, event=None):
+        """Handle the movement of the console window and save its position.
+
+        Args:
+            event (wx.Event, optional): The event triggered by moving the
+                window.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
             setcfg("position.scripting.x", x)
@@ -145,6 +160,12 @@ class ScriptingClientFrame(SimpleTerminal):
             event.Skip()
 
     def OnSize(self, event=None):
+        """Handle the resizing of the console window and save its size.
+
+        Args:
+            event (wx.Event, optional): The event triggered by resizing the
+                window.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             w, h = self.ClientSize
             setcfg("size.scripting.w", w)
@@ -153,16 +174,36 @@ class ScriptingClientFrame(SimpleTerminal):
             event.Skip()
 
     def add_error_text(self, text):
+        """Add error text to the console and highlight it in red.
+
+        Args:
+            text (str): The error text to add to the console.
+        """
         self.add_text(text)
         end = self.console.GetLastPosition()
         start = end - len(text)
         self.mark_text(start, end, ERRORCOLOR)
 
     def check_result(
-        self, delayedResult, get_response=False, additional_commands=None, colorize=True
+        self,
+        delayed_result,
+        get_response=False,
+        additional_commands=None,
+        colorize=True,
     ):
+        """Check the result of a delayed operation and update the console.
+
+        Args:
+            delayed_result (delayedresult.DelayedResult): The delayed result to
+                check.
+            get_response (bool): Whether to retrieve the response from the
+                application.
+            additional_commands (list): Additional commands to process after
+                the initial command.
+            colorize (bool): Whether to colorize the result text.
+        """
         try:
-            result = delayedResult.get()
+            result = delayed_result.get()
         except Exception as exception:
             if hasattr(exception, "originalTraceback"):
                 self.add_text(exception.originalTraceback)
@@ -195,11 +236,17 @@ class ScriptingClientFrame(SimpleTerminal):
             self.busy = False
 
     def clear(self):
+        """Clear the console and reset the input prompt."""
         self.console.Clear()
         self.add_text("> ")
         self.console.SetInsertionPoint(2)
 
     def connect_handler(self, ip_port):
+        """Handle connecting to a specified IP and port.
+
+        Args:
+            ip_port (str): The IP address and port in the format "ip:port".
+        """
         ip, port = ip_port.split(":", 1)
         try:
             port = int(port)
@@ -219,6 +266,11 @@ class ScriptingClientFrame(SimpleTerminal):
         )
 
     def copy_text_handler(self, event):
+        """Handle copying selected text from the console to the clipboard.
+
+        Args:
+            event (wx.Event): The event triggered by the copy action.
+        """
         # Override native copy to clipboard because reading the text back
         # from wx.TheClipboard results in wrongly encoded characters under
         # Mac OS X
@@ -232,6 +284,7 @@ class ScriptingClientFrame(SimpleTerminal):
         wx.TheClipboard.Close()
 
     def disconnect(self):
+        """Disconnect from the connected application, if any."""
         if self.conn:
             try:
                 peer = self.conn.getpeername()
@@ -249,6 +302,11 @@ class ScriptingClientFrame(SimpleTerminal):
             self.add_error_text(lang.getstr("not_connected") + "\n")
 
     def get_app_info(self):
+        """Retrieve application information from the connected application.
+
+        Returns:
+            OSError: If there is an error retrieving the application information.
+        """
         commands = ["setresponseformat plain", "getcommands", "getappname"]
         try:
             for command in commands:
@@ -268,6 +326,11 @@ class ScriptingClientFrame(SimpleTerminal):
             return exception
 
     def get_commands(self):
+        """Retrieve a list of commands available in the scripting client.
+
+        Returns:
+            list: A list of commands available in the scripting client.
+        """
         return [
             *self.get_common_commands(),
             "clear",
@@ -278,10 +341,21 @@ class ScriptingClientFrame(SimpleTerminal):
         ]
 
     def get_common_commands(self):
+        """Retrieve a list of common commands available in the scripting client.
+
+        Returns:
+            list: A list of common commands excluding those starting with "echo ".
+        """
         cmds = SimpleTerminal.get_common_commands(self)
         return [cmd for cmd in cmds if not cmd.startswith("echo ")]
 
     def get_last_line(self):
+        """Retrieve the last line of text in the console and its position.
+
+        Returns:
+            tuple: A tuple containing the last line of text, its last position,
+                   and the start and end column positions of the current selection.
+        """
         linecount = self.console.GetNumberOfLines()
         lastline = self.console.GetLineText(linecount - 1)
         lastpos = self.console.GetLastPosition()
@@ -297,12 +371,23 @@ class ScriptingClientFrame(SimpleTerminal):
         return lastline, lastpos, startcol, endcol
 
     def get_response(self):
+        """Retrieve the response from the connected application.
+
+        Returns:
+            str: The response from the application, formatted with a leading
+                "< " and each line prefixed with "< ".
+        """
         try:
             return b"< " + b"\n< ".join(self.conn.get_single_response().splitlines())
         except OSError as exception:
             return exception
 
     def key_handler(self, event):
+        """Custom key event handler for the console.
+
+        Args:
+            event (wx.KeyEvent): The key event triggered by the user.
+        """
         # safe_print("KeyCode", event.KeyCode, "UnicodeKey", event.UnicodeKey,
         # "AltDown:", event.AltDown(),
         # "CmdDown:", event.CmdDown(),
@@ -461,26 +546,51 @@ class ScriptingClientFrame(SimpleTerminal):
             self.console.SetInsertionPoint(lastpos)
 
     def mark_text(self, start, end, color):
+        """Mark a section of text in the console with a specific color.
+
+        Args:
+            start (int): The starting position of the text to mark.
+            end (int): The ending position of the text to mark.
+            color (str): The color to use for marking the text, in hex format.
+        """
         self.console.SetStyle(start, end, wx.TextAttr(color))
 
     def paste_text_handler(self, event):
+        """Handle pasting text from the clipboard into the console.
+
+        Args:
+            event (wx.Event): The event triggered by the paste action.
+        """
         do = wx.TextDataObject()
         wx.TheClipboard.Open()
         success = wx.TheClipboard.GetData(do)
         wx.TheClipboard.Close()
-        if success:
-            insertionpoint = self.console.GetInsertionPoint()
-            lastline, lastpos, startcol, endcol = self.get_last_line()
-            cliptext = universal_newlines(do.GetText())
-            lines = cliptext.replace("\n", "\n\0").split("\0")
-            command1 = lastline[2:startcol] + lines[0].rstrip("\n") + lastline[endcol:]
-            self.add_text("\r> " + command1)
-            if "\n" in cliptext:
-                self.send_command_handler(command1, lines[1:])
-            else:
-                self.console.SetInsertionPoint(insertionpoint + len(cliptext))
+        if not success:
+            return
+        insertionpoint = self.console.GetInsertionPoint()
+        lastline, lastpos, startcol, endcol = self.get_last_line()
+        cliptext = universal_newlines(do.GetText())
+        lines = cliptext.replace("\n", "\n\0").split("\0")
+        command1 = lastline[2:startcol] + lines[0].rstrip("\n") + lastline[endcol:]
+        self.add_text("\r> " + command1)
+        if "\n" in cliptext:
+            self.send_command_handler(command1, lines[1:])
+        else:
+            self.console.SetInsertionPoint(insertionpoint + len(cliptext))
 
     def process_data(self, data):
+        """Process the input data received from the connected application.
+
+        Handle commands and returns appropriate responses.
+
+        Args:
+            data (list): The input data split into command and arguments.
+
+        Returns:
+            str: "ok" if the command was processed successfully, "invalid" if
+                the command is not recognized, or a list of responses if
+                applicable.
+        """
         if data[0] == "echo" and len(data) > 1:
             linecount = self.console.GetNumberOfLines()
             lastline = self.console.GetLineText(linecount - 1)
@@ -495,6 +605,17 @@ class ScriptingClientFrame(SimpleTerminal):
         return "invalid"
 
     def process_data_local(self, data):
+        """Process the input data locally.
+
+        Handle commands and return appropriate responses.
+
+        Args:
+            data (list): The input data split into command and arguments.
+
+        Returns:
+            str: "ok" if the command was processed successfully, "invalid" if
+                the command is not recognized, or a list of responses if applicable.
+        """
         if data[0] == "clear" and len(data) == 1:
             self.clear()
         elif data[0] == "connect" and len(data) == 2 and len(data[1].split(":")) == 2:
@@ -512,6 +633,15 @@ class ScriptingClientFrame(SimpleTerminal):
         return "ok"
 
     def send_command(self, command):
+        """Send a command to the connected application.
+
+        Args:
+            command (str): The command to send.
+
+        Returns:
+            None | OSError: None if successful, or an OSError exception if
+                there was an error.
+        """
         try:
             self.conn.send_command(command)
         except OSError as exception:
@@ -521,6 +651,13 @@ class ScriptingClientFrame(SimpleTerminal):
         return None
 
     def send_command_handler(self, command, additional_commands=None):
+        """Handle sending a command to the connected application.
+
+        Args:
+            command (str): The command to send.
+            additional_commands (list, optional): Additional commands to process
+                after the initial command. Defaults to None.
+        """
         self.add_text("\n")
         command = command.strip()
         if not command:
@@ -551,6 +688,7 @@ class ScriptingClientFrame(SimpleTerminal):
 
 
 def main():
+    """Main function to run the wxPython application."""
     config.initcfg("scripting-client")
     lang.init()
     app = BaseApp(0)

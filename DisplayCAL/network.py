@@ -1,5 +1,5 @@
-"""This module provides utilities for network-related operations, including
-hostname resolution, network address retrieval, and custom socket handling.
+"""Network utilities: hostname resolution, address retrieval, and custom sockets.
+
 It also includes HTTP redirect handlers for logging or preventing redirections.
 """
 
@@ -64,7 +64,15 @@ def get_valid_host(hostname: None | str = None) -> tuple[str, str]:
 
 
 class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Like urllib2.HTTPRedirectHandler, but logs redirections"""
+    """Like urllib2.HTTPRedirectHandler, but logs redirections.
+
+    Args:
+        req (urllib.request.Request): The request object.
+        fp (file-like object): The file-like object containing the response.
+        code (int): The HTTP status code.
+        msg (str): The HTTP status message.
+        headers (dict): The response headers.
+    """
 
     # maximum number of redirections to any single URL
     # this is needed because of the state that cookies introduce
@@ -74,6 +82,20 @@ class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     max_redirections = 10
 
     def http_error_302(self, req, fp, code, msg, headers):
+        """Handle HTTP 302 redirection error.
+
+        Args:
+            req (urllib.request.Request): The request object.
+            fp (file-like object): The file-like object containing the
+                response.
+            code (int): The HTTP status code.
+            msg (str): The HTTP status message.
+            headers (dict): The response headers.
+
+        Returns:
+            None | urllib.request.HTTPRedirectHandler: The HTTP redirect
+                handler instance, or None if no redirection is needed.
+        """
         # Some servers (incorrectly) return multiple Location headers
         # (so probably same goes for URI).  Use first header.
         if "location" in headers:
@@ -101,9 +123,31 @@ class LoggingHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 class NoHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Like urllib2.HTTPRedirectHandler, but does not allow redirections"""
+    """Like urllib2.HTTPRedirectHandler, but does not allow redirections.
+
+    Args:
+        req (urllib.request.Request): The request object.
+        fp (file-like object): The file-like object containing the response.
+        code (int): The HTTP status code.
+        msg (str): The HTTP status message.
+        headers (dict): The response headers.
+    """
 
     def http_error_302(self, req, fp, code, msg, headers):
+        """Handle HTTP 302 redirection error.
+
+        Args:
+            req (urllib.request.Request): The request object.
+            fp (file-like object): The file-like object containing the
+                response.
+            code (int): The HTTP status code.
+            msg (str): The HTTP status message.
+            headers (dict): The response headers.
+
+        Raises:
+            urllib.error.HTTPError: If redirection is not allowed, raises an
+                HTTPError with the new URL and the original error message.
+        """
         # Some servers (incorrectly) return multiple Location headers
         # (so probably same goes for URI).  Use first header.
         if "location" in headers:
@@ -157,6 +201,7 @@ class ScriptingClientSocket(socket.socket):
         self.recv_buffer = b""
 
     def disconnect(self):
+        """Disconnect the socket and clean up resources."""
         try:
             # Will fail if the socket isn't connected, i.e. if there was an
             # error during the call to connect()
@@ -167,6 +212,11 @@ class ScriptingClientSocket(socket.socket):
         self.close()
 
     def get_single_response(self):
+        """Receive a single response from the socket.
+
+        Returns:
+            bytes: The single response received from the socket.
+        """
         # Buffer received data until EOT (response end marker) and return
         # single response (additional data will still be in the buffer)
         while b"\4" not in self.recv_buffer:
@@ -180,5 +230,10 @@ class ScriptingClientSocket(socket.socket):
         return single_response
 
     def send_command(self, command):
+        """Send a command to the socket.
+
+        Args:
+            command (str): The command to send.
+        """
         # Automatically append newline (command end marker)
         self.sendall((safe_str(command, "utf-8") + "\n").encode("utf-8"))

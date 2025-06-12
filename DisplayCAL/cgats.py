@@ -1,4 +1,4 @@
-"""Simple CGATS file parser class
+"""Simple CGATS file parser class.
 
 Copyright (C) 2008 Florian Hoech
 """
@@ -21,6 +21,14 @@ from DisplayCAL.util_io import GzipFileProper
 
 
 def get_device_value_labels(color_rep=None):
+    """Return a list of device value labels.
+
+    Args:
+        color_rep (str): Color representation. Default is None.
+
+    Returns:
+        list: List of device value labels.
+    """
     # TODO: Avoid using filter...
     return list(
         filter(
@@ -38,10 +46,10 @@ def get_device_value_labels(color_rep=None):
 
 def rpad(value, width) -> bytes:
     """If value isn't a number, return a quoted string representation.
+
     If value is greater or equal than 1e+16, return string in scientific
-    notation.
-    Otherwise, return string in decimal notation right-padded to given width
-    (using trailing zeros).
+    notation. Otherwise, return string in decimal notation right-padded to
+    given width (using trailing zeros).
     """
     strval = b""
     if not isinstance(value, bytes):
@@ -60,11 +68,20 @@ def rpad(value, width) -> bytes:
                 fmt = b"%%%i.%if" % (width, width - i - 1)
                 strval = fmt % value
             else:
-                strval = bytes(str(int(round(value))), "UTF-8")
+                strval = bytes(str(round(value)), "UTF-8")
     return strval
 
 
 def sort_RGB_gray_to_top(a, b):
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[0] == a[1] == a[2]:
         if b[0] == b[1] == b[2]:
             return 0
@@ -73,6 +90,18 @@ def sort_RGB_gray_to_top(a, b):
 
 
 def sort_RGB_to_top_factory(i1, i2, i3, i4):
+    """Return a function to sort RGB values to the top.
+
+    Args:
+        i1 (int): Index of the first RGB value.
+        i2 (int): Index of the second RGB value.
+        i3 (int): Index of the third RGB value.
+        i4 (int): Index of the fourth RGB value.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their values.
+    """
+
     def sort_RGB_to_top(a, b):
         if a[i1] == a[i2] and 0 <= a[i3] < a[i4]:
             if b[i1] == b[i2] and 0 <= b[i3] < b[i4]:
@@ -84,12 +113,30 @@ def sort_RGB_to_top_factory(i1, i2, i3, i4):
 
 
 def sort_RGB_white_to_top(a, b):
+    """Sort RGB values to the top.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1 = sum(a[:3])
     # sum2 = sum(b[:3])
     return -1 if sum1 == 300 else 0
 
 
 def sort_by_HSI(a, b):
+    """Sort by HSI value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSI(*a[:3]))
     b = list(colormath.RGB2HSI(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -102,6 +149,15 @@ def sort_by_HSI(a, b):
 
 
 def sort_by_HSL(a, b):
+    """Sort by HSL value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSL(*a[:3]))
     b = list(colormath.RGB2HSL(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -114,6 +170,15 @@ def sort_by_HSL(a, b):
 
 
 def sort_by_HSV(a, b):
+    """Sort by HSV value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     a = list(colormath.RGB2HSV(*a[:3]))
     b = list(colormath.RGB2HSV(*b[:3]))
     a[0] = round(math.degrees(a[0]))
@@ -126,6 +191,15 @@ def sort_by_HSV(a, b):
 
 
 def sort_by_RGB(a, b):
+    """Sort by RGB value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3] > b[:3]:
         return 1
     if a[:3] < b[:3]:
@@ -134,6 +208,15 @@ def sort_by_RGB(a, b):
 
 
 def sort_by_BGR(a, b):
+    """Sort by BGR value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     if a[:3][::-1] > b[:3][::-1]:
         return 1
     if a[:3] == b[:3]:
@@ -142,6 +225,15 @@ def sort_by_BGR(a, b):
 
 
 def sort_by_RGB_sum(a, b):
+    """Sort by RGB sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(a[:3]), sum(b[:3])
     if sum1 > sum2:
         return 1
@@ -151,6 +243,15 @@ def sort_by_RGB_sum(a, b):
 
 
 def sort_by_RGB_pow_sum(a, b):
+    """Sort by RGB power sum.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     sum1, sum2 = sum(v**2.2 for v in a[:3]), sum(v**2.2 for v in b[:3])
     if sum1 > sum2:
         return 1
@@ -160,10 +261,30 @@ def sort_by_RGB_pow_sum(a, b):
 
 
 def stable_sort_by_L(a, b):
+    """Stable sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
     return sort_by_L(a, b, stable=True)
 
 
 def sort_by_L(a, b, stable=False):
+    """Sort by L* value.
+
+    Args:
+        a (tuple): First RGB tuple.
+        b (tuple): Second RGB tuple.
+        stable (bool): If True, sort stably by L* value.
+
+    Returns:
+        int: 1 if a > b, -1 if a < b, 0 if equal.
+    """
+
     def sort(a1, b1):
         if a1 > b1:
             return 1
@@ -183,6 +304,18 @@ def sort_by_L(a, b, stable=False):
 
 
 def sort_by_luma_factory(RY, GY, BY, gamma=1):
+    """Return a function to sort by luma.
+
+    Args:
+        RY (float): Red Y value.
+        GY (float): Green Y value.
+        BY (float): Blue Y value.
+        gamma (float): Gamma correction value. Default is 1.
+
+    Returns:
+        function: A function that sorts two RGB tuples by their luma value.
+    """
+
     def sort_by_luma(a, b):
         a = RY * a[0] ** gamma + GY * a[1] ** gamma + BY * a[2] ** gamma
         b = RY * b[0] ** gamma + GY * b[1] ** gamma + BY * b[2] ** gamma
@@ -530,13 +663,33 @@ class CGATS(dict):
 
     @property
     def fileName(self):
+        """Return the filename for the CGATS object.
+
+        Returns:
+            str: The filename of the CGATS object.
+        """
         return self.filename
 
     @fileName.setter
     def fileName(self, filename):
+        """Set the filename for the CGATS object.
+
+        Args:
+            filename (str): The filename to set.
+        """
         self.filename = filename
 
     def get(self, name, default=None):
+        """Get item from CGATS dictionary.
+
+        Args:
+            name (str | int): The name or index of the item to get.
+            default (None | Any, optional): The value to return if the item is
+                not found.
+
+        Returns:
+            Any: The value of the item or the default value if not found.
+        """
         if name == -1:
             return dict.get(self, len(self) - 1, default)
         if name in ("NUMBER_OF_FIELDS", "NUMBER_OF_SETS"):
@@ -544,6 +697,11 @@ class CGATS(dict):
         return dict.get(self, name, default)
 
     def get_colorants(self):
+        """Return colorants from CGATS file.
+
+        Returns:
+            None | list: List of colorants if available, otherwise None.
+        """
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
         if len(color_rep) != 2:
             return None
@@ -769,7 +927,13 @@ class CGATS(dict):
         return b"\n".join(result)
 
     def add_keyword(self, keyword, value=None):
-        """Add a keyword to the list of keyword values."""
+        """Add a keyword to the list of keyword values.
+
+        Args:
+            keyword (str): The keyword to add.
+            value (str, optional): The value associated with the keyword.
+                Defaults to None.
+        """
         if isinstance(keyword, bytes):
             keyword = keyword.decode()
 
@@ -794,6 +958,12 @@ class CGATS(dict):
             context[keyword] = value
 
     def add_section(self, key, value):
+        """Add a section to the CGATS data.
+
+        Args:
+            key (str): The key for the section.
+            value (str): The value for the section.
+        """
         self[key] = CGATS()
         self[key].key = key
         self[key].parent = self
@@ -802,7 +972,13 @@ class CGATS(dict):
         self[key].add_data(value)
 
     def remove_keyword(self, keyword, remove_value=True):
-        """Remove a keyword from the list of keyword values."""
+        """Remove a keyword from the list of keyword values.
+
+        Args:
+            keyword (str): The keyword to remove.
+            remove_value (bool): If True, also remove the value associated
+                with the keyword. Defaults to True.
+        """
         if self.type in (b"DATA", b"DATA_FORMAT", b"KEYWORDS", b"SECTION"):
             context = self.parent
         elif self.type == b"SAMPLE":
@@ -816,14 +992,34 @@ class CGATS(dict):
             del context[keyword]
 
     def insert(self, key=None, data=None):
-        """Insert data at index key. Also see add_data method."""
+        """Insert data at index key. Also see add_data method.
+
+        Args:
+            key (int, optional): The index at which to insert the data.
+                If None, data is appended. Defaults to None.
+            data (CGATS, optional): The CGATS data to insert. If None,
+                the current CGATS instance is used. Defaults to None.
+        """
         self.add_data(data, key)
 
     def append(self, data):
-        """Append data. Also see add_data method."""
+        """Append data. Also see add_data method.
+
+        Args:
+            data (CGATS): The CGATS data to append.
+        """
         self.add_data(data)
 
     def get_data(self, field_names=None):
+        """Get CGATS data.
+
+        Args:
+            field_names (tuple, optional): A tuple of field names to query.
+                If None, all data is returned. Defaults to None.
+
+        Returns:
+            dict: A dictionary containing the CGATS data.
+        """
         data = self.queryv1("DATA")
         if not data:
             return False
@@ -832,6 +1028,15 @@ class CGATS(dict):
         return data
 
     def get_RGB_XYZ_values(self):
+        """Get RGB and XYZ values from the CGATS data.
+
+        Returns:
+            tuple: A tuple containing two elements:
+                - A dictionary with RGB and XYZ values.
+                - A list of lists containing RGB and XYZ values in the order:
+                  [R, G, B, X, Y, Z].
+            If no data is found, returns (False, False).
+        """
         field_names = ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z")
         data = self.get_data(field_names)
         if not data:
@@ -842,6 +1047,16 @@ class CGATS(dict):
         return data, valueslist
 
     def set_RGB_XYZ_values(self, valueslist):
+        """Set RGB and XYZ values in the CGATS data.
+
+        Args:
+            valueslist (list): A list of RGB and XYZ values, where each entry
+                is a list containing RGB and XYZ values in the order:
+                [R, G, B, X, Y, Z].
+
+        Returns:
+            bool: True if values were set successfully, False otherwise.
+        """
         field_names = ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z")
         for i, values in enumerate(valueslist):
             for j, field_name in enumerate(field_names):
@@ -855,6 +1070,17 @@ class CGATS(dict):
         split_grays=False,
         shift=False,
     ):
+        """Return a checkerboard of RGB values.
+
+        Args:
+            sort1 (function): Function to sort the first dimension.
+            sort2 (function): Function to sort the second dimension.
+            split_grays (bool): If True, split grays from colors.
+            shift (bool): If True, shift values in checkerboard.
+
+        Returns:
+            list: A list of RGB values arranged in a checkerboard pattern.
+        """
         data, valueslist = self.get_RGB_XYZ_values()
         if not valueslist:
             return False
@@ -972,7 +1198,7 @@ class CGATS(dict):
         for valueslist in [gray, color]:
             if not valueslist:
                 continue
-            split = int(round(len(valueslist) / 2.0))
+            split = round(len(valueslist) / 2.0)
             valueslist1 = valueslist[:split]
             valueslist2 = valueslist[split:]
             if shift:
@@ -1019,6 +1245,11 @@ class CGATS(dict):
         return data.set_RGB_XYZ_values(checkerboard)
 
     def sort_RGB_gray_to_top(self):
+        """Sort RGB values with gray at the top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_RGB_gray_to_top)
 
     def sort_RGB_to_top(
@@ -1029,6 +1260,13 @@ class CGATS(dict):
         Example: sort_RGB_to_top(True, False, False) - sort red values to top
         Example: sort_RGB_to_top(False, True, True) - sort cyan values to top
 
+        Args:
+            red (bool): If True, sort red values to top.
+            green (bool): If True, sort green values to top.
+            blue (bool): If True, sort blue values to top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
         """
         if red and green and blue:
             function = sort_RGB_gray_to_top
@@ -1049,37 +1287,96 @@ class CGATS(dict):
         return self.sort_data_RGB_XYZ(function)
 
     def sort_RGB_white_to_top(self):
+        """Sort RGB values with white at the top.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_RGB_white_to_top)
 
     def sort_by_HSI(self):
+        """Sort by HSI values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSI)
 
     def sort_by_HSL(self):
+        """Sort by HSL values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSL)
 
     def sort_by_HSV(self):
+        """Sort by HSV values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_HSV)
 
     def sort_by_L(self):
+        """Sort by L values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_L)
 
     def sort_by_RGB(self):
+        """Sort by RGB values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB)
 
     def sort_by_BGR(self):
+        """Sort by BGR values.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_BGR)
 
     def sort_by_RGB_pow_sum(self):
+        """Sort by RGB power sum.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB_pow_sum)
 
     def sort_by_RGB_sum(self):
+        """Sort by RGB sum.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_RGB_sum)
 
     def sort_by_rec709_luma(self):
+        """Sort by Rec. 709 luma.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         return self.sort_data_RGB_XYZ(sort_by_rec709_luma)
 
     def sort_data_RGB_XYZ(self, cmp=None, key=None, reverse=False):
-        """Sort RGB/XYZ data"""
+        """Sort RGB/XYZ data.
+
+        Args:
+            cmp (callable, optional): Comparison function to use for sorting.
+            key (callable, optional): Key function to use for sorting.
+            reverse (bool, optional): If True, sort in descending order.
+
+        Returns:
+            bool: True if sorting was successful, False otherwise.
+        """
         data, valueslist = self.get_RGB_XYZ_values()
         if not valueslist:
             return False
@@ -1088,6 +1385,11 @@ class CGATS(dict):
 
     @property
     def modified(self):
+        """Return whether the CGATS object has been modified.
+
+        Returns:
+            bool: True if modified, False otherwise.
+        """
         if self.root:
             return self.root._modified
         return self._modified
@@ -1335,6 +1637,22 @@ class CGATS(dict):
         compress=True,
         file_format="VRML",
     ):
+        """Export 3D data to a file in the specified colorspace.
+
+        Args:
+            filename (str): The name of the file to export to.
+            colorspace (str): The colorspace to use for the export.
+                Supported values are: "DIN99", "DIN99b", "DIN99c", "DIN99d",
+                "LCH(ab)", "LCH(uv)", "Lab", "Luv", "Lu'v'", "RGB", "xyY",
+                "HSI", "HSL", "HSV", "ICtCp", "IPT", and "Lpt".
+            RGB_black_offset (int): The offset for black in RGB space.
+            normalize_RGB_white (bool): Whether to normalize RGB white.
+            compress (bool): Whether to compress the output file.
+            file_format (str): The format of the output file, e.g., 'VRML'.
+
+        Raises:
+            ValueError: If the specified colorspace is not supported.
+        """
         if colorspace not in (
             "DIN99",
             "DIN99b",
@@ -1857,14 +2175,14 @@ Transform {
 
     @property
     def NUMBER_OF_FIELDS(self):
-        """Get number of fields"""
+        """Get number of fields."""
         if "DATA_FORMAT" in self:
             return len(self["DATA_FORMAT"])
         return 0
 
     @property
     def NUMBER_OF_SETS(self):
-        """Get number of sets"""
+        """Get number of sets."""
         if "DATA" in self:
             return len(self["DATA"])
         return 0
@@ -1980,7 +2298,7 @@ Transform {
         return result
 
     def convert_XYZ_to_Lab(self):
-        """Convert XYZ to D50 L*a*b* and add it as additional fields"""
+        """Convert XYZ to D50 L*a*b* and add it as additional fields."""
         color_rep = (self.queryv1("COLOR_REP") or b"").split(b"_")
 
         if color_rep[1] == b"LAB":
@@ -2035,7 +2353,7 @@ Transform {
                 sample[label] = Lab[i]
 
     def fix_zero_measurements(self, warn_only=False, logfile=safe_print):
-        """Fix (or warn about) <= zero measurements
+        """Fix (or warn about) <= zero measurements.
 
         If XYZ/Lab = 0, the sample gets removed. If only one component of
         XYZ/Lab is <= 0, it gets fudged so that the component is nonzero
@@ -2148,7 +2466,7 @@ Transform {
                 data.pop(sample)
 
     def fix_device_values_scaling(self, color_rep=None):
-        """Attempt to fix device value scaling so that max = 100
+        """Attempt to fix device value scaling so that max = 100.
 
         Return number of fixed DATA sections
 
@@ -2165,7 +2483,7 @@ Transform {
         return fixed
 
     def normalize_to_y_100(self):
-        """Scale XYZ values so that RGB 100 = Y 100"""
+        """Scale XYZ values so that RGB 100 = Y 100."""
         if "DATA" in self:
             white_cie = self.get_white_cie()
             if white_cie and "XYZ_Y" in white_cie:
@@ -2186,7 +2504,7 @@ Transform {
         return False
 
     def quantize_device_values(self, bits=8, quantizer=round):
-        """Quantize device values to n bits"""
+        """Quantize device values to n bits."""
         q = 2**bits - 1.0
         for data in self.queryv("DATA").values():
             if data.parent.type == b"CAL":
@@ -2217,7 +2535,7 @@ Transform {
     def adapt(
         self, whitepoint_source=None, whitepoint_destination=None, cat="Bradford"
     ):
-        """Perform chromatic adaptation if possible (needs XYZ or LAB)
+        """Perform chromatic adaptation if possible (needs XYZ or LAB).
 
         Return number of affected DATA sections.
 
@@ -2399,7 +2717,7 @@ Transform {
         """Check if DATA_FORMAT defines any CIE XYZ or LAB columns.
 
         Returns:
-            bytes | None: The DATA_FORMAT on success or None on failure.
+            None | bytes: The DATA_FORMAT on success or None on failure.
         """
         if data_format := self.queryv1("DATA_FORMAT"):
             cie = {}

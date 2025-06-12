@@ -84,8 +84,8 @@ def check_call(  # pylint: disable=too-many-arguments
     mock_class: type[Any] | ModuleType,
     method: str,
     return_value: Any = None,  # noqa: ANN401
-    call_args_list: list[tuple[Any, ...]] | None = None,
-    call_kwargs_list: list[dict[str, Any]] | None = None,
+    call_args_list: None | list[tuple[Any, ...]] = None,
+    call_kwargs_list: None | list[dict[str, Any]] = None,
     call_count: int = 1,
     as_property: bool = False,
 ) -> Generator[CallList, None, None]:
@@ -120,8 +120,8 @@ def check_call(  # pylint: disable=too-many-arguments
 def check_call_str(  # pylint: disable=too-many-arguments
     mock_class: str,
     return_value: Any = None,  # noqa: ANN401
-    call_args_list: list[tuple[Any, ...]] | None = None,
-    call_kwargs_list: list[dict[str, Any]] | None = None,
+    call_args_list: None | list[tuple[Any, ...]] = None,
+    call_kwargs_list: None | list[dict[str, Any]] = None,
     call_count: int = 1,
     as_property: bool = False,
 ) -> Generator[CallList, None, None]:
@@ -142,8 +142,8 @@ def check_call_str(  # pylint: disable=too-many-arguments
 
 def assert_calls(
     call_count: int,
-    call_args_list: list[tuple[Any, ...]] | None,
-    call_kwargs_list: list[dict[str, Any]] | None,
+    call_args_list: None | list[tuple[Any, ...]],
+    call_kwargs_list: None | list[dict[str, Any]],
     calls: CallList,
     m_name: str,
 ) -> None:

@@ -1,5 +1,6 @@
-"""Pexpect is a Python module for spawning child applications and controlling
-them automatically. Pexpect can be used for automating interactive applications
+"""Pexpect: spawn child applications and control them automatically in Python.
+
+Pexpect can be used for automating interactive applications
 such as ssh, ftp, passwd, telnet, etc. It can be used to a automate setup
 scripts for duplicating software package installations on different servers. It
 can be used for automated software testing. Pexpect is in the spirit of Don
@@ -74,6 +75,12 @@ import struct
 import sys
 import time
 import traceback
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 if sys.platform != "win32":
     import fcntl
@@ -356,6 +363,7 @@ def spawn(
     columns=None,
     rows=None,
 ):
+    """Create a new spawn instance."""
     if args is None:
         args = []
 
@@ -1065,7 +1073,7 @@ class SpawnUnix:
             return self.before + "\r\n"
         return self.before
 
-    def __iter__(self):  # File-like object.
+    def __iter__(self) -> Self:  # File-like object.
         """Support iterators over a file-like object."""
         return self
 
@@ -1753,8 +1761,10 @@ class SpawnUnix:
     # The following methods are no longer supported or allowed.
 
     def setmaxread(self, maxread):
-        """This method is no longer supported or allowed. I don't like getters
-        and setters without a good reason."""
+        """This method is no longer supported or allowed.
+
+        I don't like getters and setters without a good reason.
+        """
         raise ExceptionPexpect(
             "This method is no longer supported or allowed. "
             "Just assign a value to the maxread member variable."
@@ -2624,8 +2634,7 @@ class Wtty:
         return ret
 
     def getwinsize(self):
-        """Return the size of the child console as a tuple of
-        (rows, columns)."""
+        """Return the size of the child console as a tuple of (rows, columns)."""
         self.switchTo()
         try:
             size = self.__consout.GetConsoleScreenBufferInfo()["Size"]
@@ -2669,7 +2678,7 @@ class Wtty:
         self.switchBack()
 
     def isalive(self):
-        """True if the child is still alive, false otherwise"""
+        """True if the child is still alive, false otherwise."""
         return GetExitCodeProcess(self.__childProcess) == STILL_ACTIVE
 
     def __oproc_isalive(self):

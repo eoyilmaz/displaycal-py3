@@ -1,9 +1,9 @@
-"""This module provides the core functionality for managing display calibration
-and profiling workflows. It includes classes and methods for interacting with
-hardware instruments, handling pattern generators, managing profiles, and
-executing Argyll CMS utilities. The module also supports various
-platform-specific features and integrates with external tools like madVR and
-colord.
+"""Core functionality for display calibration and profiling workflows.
+
+It includes classes and methods for interacting with hardware instruments,
+handling pattern generators, managing profiles, and executing Argyll CMS
+utilities. The module also supports various platform-specific features and
+integrates with external tools like madVR and colord.
 """
 
 # stdlib
@@ -364,9 +364,73 @@ while True:
     time.sleep(0.001)
 """
 
+INSTRUMENT_MEASUREMENT_MODES_TEST_OUTPUT = """Measure spot values, Version 1.7.0_beta
+Author: Graeme W. Gill, licensed under the GPL Version 2 or later
+Diagnostic: Usage requested
+usage: spotread [-options] [logfile]
+ -v                   Verbose mode
+ -s                   Print spectrum for each reading
+ -S                   Plot spectrum for each reading
+ -c listno            Set communication port from the following list (default 1)
+    1 = 'COM13 (Klein K-10)'
+    2 = 'COM1'
+    3 = 'COM3'
+    4 = 'COM4'
+ -t                   Use transmission measurement mode
+ -e                   Use emissive measurement mode (absolute results)
+ -eb                  Use display white brightness relative measurement mode
+ -ew                  Use display white point relative chromatically adjusted mode
+ -p                   Use telephoto measurement mode (absolute results)
+ -pb                  Use projector white brightness relative measurement mode
+ -pw                  Use projector white point relative chromatically adjusted mode
+ -a                   Use ambient measurement mode (absolute results)
+ -f                   Use ambient flash measurement mode (absolute results)
+ -y F                  K-10: Factory Default [Default,CB1]
+    c                  K-10: Default CRT File
+    P                  K-10: Klein DLP Lux
+    E                  K-10: Klein SMPTE C
+    b                  K-10: TVL XVM245
+    d                  K-10: Klein LED Bk LCD
+    m                  K-10: Klein Plasma
+    p                  K-10: DLP Screen
+    o                  K-10: TVL LEM150
+    O                  K-10: Sony EL OLED
+    z                  K-10: Eizo CG LCD
+    L                  K-10: FSI 2461W
+    h                  K-10: HP DreamColor 2
+    1                  K-10: LCD CCFL Wide Gamut IPS (LCD2690WUXi)
+    l|c                Other: l = LCD, c = CRT
+ -I illum             Set simulated instrument illumination using FWA (def -i illum):
+                       M0, M1, M2, A, C, D50, D50M2, D65, F5, F8, F10 or file.sp]
+ -i illum             Choose illuminant for computation of CIE XYZ from spectral data & FWA:
+                       A, C, D50 (def.), D50M2, D65, F5, F8, F10 or file.sp
+ -Q observ            Choose CIE Observer for spectral data or CCSS instrument:
+                      1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+                      (Choose FWA during operation)
+ -F filter            Set filter configuration (if aplicable):
+    n                  None
+    p                  Polarising filter
+    6                  D65
+    u                  U.V. Cut
+ -E extrafilterfile   Apply extra filter compensation file
+ -x                   Display Yxy instead of Lab
+ -h                   Display LCh instead of Lab
+ -V                   Show running average and std. devation from ref.
+ -T                   Display correlated color temperatures and CRI
+ -N                   Disable auto calibration of instrument
+ -O                   Do one cal. or measure and exit
+ -H                   Start in high resolution spectrum mode (if available)
+ -X file.ccmx         Apply Colorimeter Correction Matrix
+ -Y r|n               Override refresh, non-refresh display mode
+ -Y R:rate            Override measured refresh rate with rate Hz
+ -Y A                 Use non-adaptive integration time mode (if available).
+ -W n|h|x             Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+ -D [level]           Print debug diagnostics to stderr
+ logfile              Optional file to save reading results as text"""  # noqa: E501
+
 
 def add_keywords_to_cgats(cgats, keywords):
-    """Add keywords to CGATS"""
+    """Add keywords to CGATS."""
     if not isinstance(cgats, CGATS):
         cgats = CGATS(cgats)
     for keyword in keywords:
@@ -437,6 +501,7 @@ def check_ti3_criteria1(
     delta_to_sRGB_threshold_H=75,
     print_debuginfo=True,
 ):
+    """Check if delta E between a patch and its sRGB equivalent is suspiciously high."""
     sRGBLab = colormath.RGB2Lab(
         RGB[0] / 100.0, RGB[1] / 100.0, RGB[2] / 100.0, noadapt=not white_XYZ
     )
@@ -530,6 +595,7 @@ def check_ti3_criteria1(
 def check_ti3_criteria2(
     prev_Lab, Lab, prev_sRGBLab, sRGBLab, prev_RGB, RGB, sRGB_delta_E_scale_factor=0.5
 ):
+    """Check if the delta E between two patches is suspiciously low."""
     delta = colormath.delta(*prev_Lab + Lab + (2000,))
     sRGB_delta = colormath.delta(*prev_sRGBLab + sRGBLab + (2000,))
     sRGB_delta["E"] *= sRGB_delta_E_scale_factor
@@ -555,8 +621,7 @@ def check_ti3_criteria2(
 
 
 def check_ti3(ti3, print_debuginfo=True):
-    """Check subsequent patches' expected vs real deltaE and collect patches
-    with different RGB values, but suspiciously low delta E
+    """Check for suspiciously low delta E between patches with different RGB values.
 
     Used as a means to find misreads.
 
@@ -660,7 +725,7 @@ def create_shaper_curves(
     optimize=False,
     cat="Bradford",
 ):
-    """Create input (device to PCS) shaper curves"""
+    """Create input (device to PCS) shaper curves."""
     RGB_XYZ = dict_sort(RGB_XYZ)
     R_R = []
     G_G = []
@@ -1085,7 +1150,7 @@ def _applycal_bug_workaround(profile):
 def get_current_profile_path(
     include_display_profile: bool = True,
     save_profile_if_no_path: bool = False,
-) -> str | None:
+) -> None | str:
     """Get the current profile path from the configuration.
 
     Args:
@@ -1093,7 +1158,7 @@ def get_current_profile_path(
         save_profile_if_no_path (bool): Whether to save the profile if it has no path.
 
     Returns:
-        NOne | str: The profile path or None if not found.
+        None | str: The profile path or None if not found.
     """
     profile = None
     profile_path = getcfg("calibration.file", False)
@@ -1218,7 +1283,11 @@ def get_options_from_cprt(cprt):
     return dispcal_args, colprof_args
 
 
-def get_options_from_cal(cal) -> ([str], [str]):
+def get_options_from_cal(cal) -> tuple[list, list]:
+    """Try and get options from calibration file.
+
+    First, try the 'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS' tags. If
+    either does not exist, fall back to the copyright tag."""
     if not isinstance(cal, CGATS):
         cal = CGATS(cal)
     if 0 in cal:
@@ -1230,10 +1299,12 @@ def get_options_from_cal(cal) -> ([str], [str]):
 
 
 def get_options_from_profile(profile):
-    """Try and get options from profile. First, try the 'targ' tag and
-    look for the special DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and
-    'ARGYLL_COLPROF_ARGS'. If either does not exist, fall back to the
-    copyright tag (DisplayCAL < 0.4.0.2)"""
+    """Try and get options from profile.
+
+    First, try the 'targ' tag and look for the special DisplayCAL sections of
+    'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS'. If either does not exist,
+    fall back to the copyright tag (DisplayCAL < 0.4.0.2)
+    """
     if not isinstance(profile, ICCProfile):
         profile = ICCProfile(profile)
     dispcal_args = None
@@ -1252,8 +1323,10 @@ def get_options_from_profile(profile):
 
 
 def get_options_from_ti3(ti3):
-    """Try and get options from TI3 file by looking for the special
-    DisplayCAL sections 'ARGYLL_DISPCAL_ARGS' and 'ARGYLL_COLPROF_ARGS'.
+    """Get dispcal and colprof options from TI3 file if present.
+
+    This looks for the special DisplayCAL sections of 'ARGYLL_DISPCAL_ARGS' and
+    'ARGYLL_COLPROF_ARGS'.
     """
     if not isinstance(ti3, CGATS):
         ti3 = CGATS(ti3)
@@ -1267,7 +1340,7 @@ def get_options_from_ti3(ti3):
 
 
 def get_pattern_geometry():
-    """Return pattern geometry for pattern generator"""
+    """Return pattern geometry for pattern generator."""
     x, y, size = [float(v) for v in getcfg("dimensions.measureframe").split(",")]
     if os.getenv("XDG_SESSION_TYPE") == "wayland":
         # No way to get coordinates under Wayland, default to center
@@ -1286,7 +1359,7 @@ def get_pattern_geometry():
 
 
 def get_python_and_pythonpath():
-    """Return (system) python and pythonpath"""
+    """Return (system) python and pythonpath."""
     # Determine the path of python, and python module search paths
     # If we are running 'frozen', expect python.exe in the same directory
     # as the packed executable.
@@ -1321,7 +1394,7 @@ def get_python_and_pythonpath():
     return (python, pythonpath)
 
 
-def get_arg(argmatch, args, whole=False) -> tuple[int, str] | None:
+def get_arg(argmatch, args, whole=False) -> None | tuple[int, str]:
     """Return first found entry beginning with the argmatch string or None.
 
     Returns:
@@ -1335,7 +1408,7 @@ def get_arg(argmatch, args, whole=False) -> tuple[int, str] | None:
 
 
 def get_default_headers():
-    """Get default headers for HTTP request"""
+    """Get default headers for HTTP request."""
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)
@@ -1370,7 +1443,7 @@ def http_request(
     failure_msg="",
     silent=False,
 ):
-    """HTTP request wrapper"""
+    """HTTP request wrapper."""
     if params is None:
         params = {}
     if files:
@@ -1462,9 +1535,11 @@ def http_request(
 
 
 def insert_ti_patches_omitting_RGB_duplicates(cgats1, cgats2_path, logfn=print):
-    """Insert patches from first TI file after first patch of second TI,
-    ignoring RGB duplicates. Return second TI as CGATS instance.
-    """
+    """Insert unique patches from the first TI file after the first patch of the second TI.
+
+    Returns:
+        CGATS: Second TI as CGATS instance.
+    """  # noqa: E501
     cgats2 = CGATS(cgats2_path)
     cgats1_data = cgats1.queryv1("DATA")
     data = cgats2.queryv1("DATA")
@@ -1534,25 +1609,40 @@ class DummyDialog:
         self.is_shown_on_screen = True
 
     def Close(self, force=False):
-        pass
+        """Simulate closing the dialog.
+
+        Args:
+            force (bool): Whether to force close the dialog. Defaults to False.
+        """
 
     def Destroy(self):
-        pass
+        """Simulate destroying the dialog."""
 
     def EndModal(self, id=-1):  # noqa: A002
+        """Simulate ending the modal dialog.
+
+        Args:
+            id (int): The ID of the dialog. Defaults to -1.
+        """
         return id
 
     def Hide(self):
-        pass
+        """Simulate hiding the dialog."""
 
     def IsShownOnScreen(self):
+        """Check if the dialog is shown on screen."""
         return self.is_shown_on_screen
 
     def Show(self, show=True):
+        """Simulate showing the dialog.
+
+        Args:
+            show (bool): Whether to show the dialog. Defaults to True.
+        """
         self.is_shown_on_screen = show
 
     def ShowModal(self):
-        pass
+        """Simulate showing the dialog modally."""
 
 
 class FilteredStream:
@@ -1675,7 +1765,14 @@ class FilteredStream:
 
 
 class Producer:
-    """Generic producer."""
+    """Generic producer.
+
+    Args:
+        worker (Worker): The worker instance that will run the producer.
+        producer (callable): The function to be called by the worker.
+        continue_next (bool): If True, the worker will continue to the next task
+            even if the producer raises an exception. Defaults to False.
+    """
 
     def __init__(self, worker, producer, continue_next=False):
         self.worker = worker
@@ -1683,6 +1780,15 @@ class Producer:
         self.continue_next = continue_next
 
     def __call__(self, *args, **kwargs):
+        """Call the producer function with the given arguments.
+
+        Args:
+            *args: Positional arguments to pass to the producer.
+            **kwargs: Keyword arguments to pass to the producer.
+
+        Returns:
+            The result of the producer function.
+        """
         try:
             result = self.producer(*args, **kwargs)
         except Exception as exception:
@@ -1726,7 +1832,7 @@ class StringWithLengthOverride(UserString):
 
 
 class Sudo:
-    """Determine if a command can be run via sudo"""
+    """Determine if a command can be run via sudo."""
 
     def __init__(self):
         self.availoptions = {}
@@ -1810,7 +1916,7 @@ class Sudo:
             print(subprocess_before)
 
     def authenticate(self, args, title, parent=None):
-        """Authenticate for a given command
+        """Authenticate for a given command.
 
         The return value will be a tuple (auth_successful, password).
 
@@ -1958,7 +2064,7 @@ class Sudo:
         return p.before.strip()
 
     def kill(self):
-        """Remove cached credentials"""
+        """Remove cached credentials."""
         kill_arg = None
         if self.availoptions.get("K"):
             kill_arg = "-K"
@@ -1984,10 +2090,27 @@ class WPopen(sp.Popen):
         self.timeout = 30
 
     def isalive(self):
+        """Check if the process is still alive.
+
+        Returns:
+            bool: True if the process is still running, False otherwise.
+        """
         self.exitstatus = self.poll()
         return self.exitstatus is None
 
     def expect(self, patterns, timeout=-1):
+        """Wait for one of the specified patterns in the process's stdout.
+
+        Args:
+            patterns (list or str): A list of patterns to match against the
+                process's stdout, or a single pattern.
+            timeout (int): The maximum time to wait for a match, in seconds.
+                If -1, the default timeout is used.
+
+        Returns:
+            str: The matched pattern if found, or None if no match is found
+                before the timeout.
+        """
         if not isinstance(patterns, list):
             patterns = [patterns]
         if timeout == -1:
@@ -2023,6 +2146,11 @@ class WPopen(sp.Popen):
         return None
 
     def send(self, s):
+        """Send a string to the process's stdin.
+
+        Args:
+            s (str): The string to send.
+        """
         self.stdin.write(s)
         self._stdout.seek(self._seekpos)
         buf = self._stdout.read()
@@ -2031,14 +2159,24 @@ class WPopen(sp.Popen):
             self.logfile_read.write(buf)
 
     def terminate(self, force=False):
+        """Terminate the process, optionally forcing it.
+
+        Args:
+            force (bool): If True, force termination of the process.
+        """
         sp.Popen.terminate(self)
 
 
 class Worker(WorkerBase):
-    """Worker class for ArgyllCMS."""
+    """Worker class for ArgyllCMS.
+
+    Args:
+        owner (wx.Frame, optional): The owner frame for dialogs. Defaults to
+            None. This is typically used to display dialogs or messages
+            related to the worker's operations.
+    """
 
     def __init__(self, owner=None):
-        """Create and return a new worker instance."""
         WorkerBase.__init__(self)
         self.argyll_bin_dir = None
         self.argyll_version = [0, 0, 0]
@@ -2139,7 +2277,13 @@ class Worker(WorkerBase):
         self._pwdstr = ""
         workers.append(self)
 
-    def _init_sounds(self, dummy=False):
+    def _init_sounds(self, dummy=False) -> None:
+        """Initialize sounds for measurement and commit actions.
+
+        Args:
+            dummy (bool): If True, use dummy sounds instead of actual sound
+                files.
+        """
         if dummy:
             self.measurement_sound = audio.DummySound()
             self.commit_sound = audio.DummySound()
@@ -2160,7 +2304,26 @@ class Worker(WorkerBase):
         quantize=False,
         cmd=None,
     ):
-        """Add common options and to dispcal, dispread and spotread arguments"""
+        """Add common options and to dispcal, dispread and spotread arguments.
+
+        Args:
+            args (list): The list of arguments to modify.
+            display (bool): Whether to add display-related arguments.
+            ignore_display_name (bool): Whether to ignore the display name
+                when adding display-related arguments.
+            allow_nondefault_observer (bool): Whether to allow non-default
+                observer settings.
+            ambient (bool): Whether to add ambient light measurement options.
+            allow_video_levels (bool): Whether to allow video levels
+                (e.g. for dispread).
+            quantize (bool): Whether to add quantization options.
+            cmd (str, optional): The command being run (e.g. "dispcal",
+                "dispread", "spotread"). If provided, it can be used to tailor
+                the arguments added based on the command type.
+
+        Returns:
+            None: The function modifies the args list in place.
+        """
         if display and not get_arg("-d", args):
             args.append("-d" + self.get_display())
         if display and allow_video_levels:
@@ -2398,6 +2561,12 @@ class Worker(WorkerBase):
         return True
 
     def add_video_levels_arg(self, args):
+        """Add -E option to args if video levels are used.
+
+        Args:
+            args (list): The list of arguments to which the -E option will be
+                added.
+        """
         if (
             config.get_display_name() not in ("madVR", "Resolve", "Prisma")
             and getcfg("patterngenerator.use_video_levels")
@@ -2408,12 +2577,23 @@ class Worker(WorkerBase):
             args.append("-E")
 
     def authenticate(self, cmd, title=APPNAME, parent=None):
-        """Athenticate (using sudo) for a given command
+        """Athenticate (using sudo) for a given command.
 
         The return value will either be True (authentication successful and
         command allowed), False (in case of the user cancelling the password
         dialog), None (Windows or running as root) or an error.
 
+        Args:
+            cmd (str): The command to authenticate for.
+            title (str): The title of the authentication dialog.
+            parent (wx.Window, optional): The parent window for the dialog.
+
+        Returns:
+            bool or None or Error: True if authentication was successful and
+                the command is allowed, False if the user cancelled the dialog,
+                None if running on Windows or as root, or an Error if the
+                command is not allowed or an error occurred during
+                authentication.
         """
         if sys.platform == "win32" or os.geteuid() == 0:
             return None
@@ -2480,11 +2660,43 @@ class Worker(WorkerBase):
         hdr_sat=0.5,
         hdr_hue=0.5,
         hdr_target_profile=None,
-    ):
+    ) -> None:
         """Apply BT.1886-like tone response to profile1 using profile2 blackpoint.
 
-        profile1 has to be a matrix profile
+        `profile1` has to be a matrix profile. The function modifies `profile1`
+        in place.
 
+        Args:
+            profile1 (Profile): The profile to apply the blackpoint to.
+            profile2 (Profile): The profile to get the blackpoint from.
+            XYZbp (tuple, optional): The blackpoint in XYZ coordinates. If not
+                provided, it will be read from profile2.
+            outoffset (float, optional): The output offset to apply. Defaults to 0.0.
+            gamma (float or str, optional): The gamma value or type to apply.
+                Defaults to 2.4.
+            gamma_type (str, optional): The gamma type to apply. Defaults to "B".
+            size (tuple, optional): The size of the output profile. Defaults to None.
+            apply_trc (bool, optional): Whether to apply the TRC. Defaults to True.
+            white_cdm2 (float, optional): The white luminance in cd/m².
+                Defaults to 100.
+            minmll (float, optional): The minimum mastering display luminance
+                level in cd/m². Defaults to 0.
+            maxmll (float, optional): The maximum mastering display luminance
+                level in cd/m². Defaults to 10000.
+            use_alternate_master_white_clip (bool, optional): Whether to use
+                the alternate master white clip. Defaults to True.
+            ambient_cdm2 (float, optional): The ambient luminance in cd/m².
+                Defaults to 5.
+            content_rgb_space (str, optional): The RGB space of the content.
+                Defaults to "DCI P3".
+            hdr_chroma_compression (bool, optional): Whether to apply HDR chroma
+                compression. Defaults to False.
+            hdr_sat (float, optional): The saturation for HDR chroma compression.
+                Defaults to 0.5.
+            hdr_hue (float, optional): The hue for HDR chroma compression.
+                Defaults to 0.5.
+            hdr_target_profile (Profile, optional): The target profile for HDR
+                chroma compression. Defaults to None.
         """
         odata = self.xicclu(profile2, (0, 0, 0), pcs="x")
         if len(odata) != 1 or len(odata[0]) != 3:
@@ -2722,6 +2934,13 @@ class Worker(WorkerBase):
             )
 
     def calibrate_instrument_producer(self):
+        """Calibrate the instrument using spotread.
+
+        Returns:
+            str or Error: The result of the calibration command, or an error if
+                the command could not be executed or the instrument is not
+                found.
+        """
         cmd, args = get_argyll_util("spotread"), ["-v", "-e"]
         if cmd:
             self.spotread_just_do_instrument_calibration = True
@@ -2737,9 +2956,15 @@ class Worker(WorkerBase):
     def instrument_can_use_ccxx(
         self, check_measurement_mode=True, instrument_name=None
     ):
-        """Return boolean whether the instrument in its current measurement mode
-        can use a CCMX or CCSS colorimeter correction
+        """Check if the instrument can use CCMX/CCSS in the current measurement mode.
 
+        Args:
+            check_measurement_mode (bool): If True, check the current measurement mode.
+            instrument_name (str, optional): The name of the instrument to check.
+
+        Returns:
+            bool: True if the instrument can use a CCMX or CCSS correction,
+                False otherwise.
         """
         # Special cases:
         # Spectrometer (not needed),
@@ -2796,6 +3021,15 @@ class Worker(WorkerBase):
         )
 
     def instrument_can_use_nondefault_observer(self, instrument_name=None):
+        """Return boolean whether the instrument can use a non-default observer.
+
+        Args:
+            instrument_name (str, optional): The name of the instrument to check.
+
+        Returns:
+            bool: True if the instrument can use a non-default observer, False
+                otherwise.
+        """
         if not instrument_name:
             instrument_name = self.get_instrument_name()
         return bool(
@@ -2805,6 +3039,12 @@ class Worker(WorkerBase):
 
     @property
     def progress_wnd(self):
+        """Return the main progress window.
+
+        Returns:
+            wx.Dialog: The main progress dialog window, or None if it is not
+                set.
+        """
         if not self._progress_wnd and (
             getattr(self, "progress_start_timer", None)
             and self.progress_start_timer.IsRunning()
@@ -2818,10 +3058,24 @@ class Worker(WorkerBase):
 
     @progress_wnd.setter
     def progress_wnd(self, progress_wnd):
+        """Set the main progress window.
+
+        Args:
+            progress_wnd (wx.Dialog): The progress dialog window to set.
+        """
         self._progress_wnd = progress_wnd
 
     @property
     def progress_wnds(self):
+        """Return a list of all progress windows.
+
+        This includes the main progress dialog and any additional dialogs
+        created for subprocesses or other tasks. If a terminal window is
+        present, it is also included.
+
+        Returns:
+            list: A list of progress dialog windows.
+        """
         progress_wnds = list(self._progress_dlgs.values())
         if hasattr(self, "terminal"):
             progress_wnds.append(self.terminal)
@@ -2829,6 +3083,11 @@ class Worker(WorkerBase):
 
     @property
     def pwd(self):
+        """Return the password for sudo authentication.
+
+        Returns:
+            str: The decoded password string.
+        """
         return codecs.decode(
             self._pwdstr[10:]
             .ljust(int(math.ceil(len(self._pwdstr[10:]) / 4.0) * 4), "=")
@@ -2838,6 +3097,11 @@ class Worker(WorkerBase):
 
     @pwd.setter
     def pwd(self, pwd):
+        """Set the password for sudo authentication.
+
+        Args:
+            pwd (str): The password to set.
+        """
         encoded_user_name = codecs.encode(
             md5(getpass.getuser().encode()).hexdigest().encode(),  # noqa: S324
             "base64",
@@ -2848,7 +3112,17 @@ class Worker(WorkerBase):
         self._pwdstr = f"/tmp/{encoded_user_name}{encoded_pwd}"  # noqa: S108
 
     def check_add_display_type_base_id(self, cgats, cfgname="measurement_mode"):
-        """Add DISPLAY_TYPE_BASE_ID to CCMX"""
+        """Add DISPLAY_TYPE_BASE_ID to CCMX.
+
+        Args:
+            cgats (CGATS): The CGATS object to modify.
+            cfgname (str): The configuration name to check for the display type.
+
+        Returns:
+            bool: True if DISPLAY_TYPE_BASE_ID was added, False if it was
+                already present. If the DISPLAY_TYPE_BASE_ID is not present, it
+                will be added based on the display type from the configuration.
+        """
         if cgats.queryv1("DISPLAY_TYPE_BASE_ID"):
             return False
         # c, l (most colorimeters)
@@ -2871,7 +3145,7 @@ class Worker(WorkerBase):
         return True
 
     def check_display_conf_oy_compat(self, display_no):
-        """Check the screen configuration for oyranos-monitor compatibility
+        """Check the screen configuration for oyranos-monitor compatibility.
 
         oyranos-monitor works off screen coordinates, so it will not handle
         overlapping screens (like separate X screens, which will usually
@@ -2882,22 +3156,22 @@ class Worker(WorkerBase):
         - The screens don't overlap
 
         """
-        oyranos = False
-        if wx.Display.GetCount() > 1 or display_no == 1:
-            oyranos = True
-            for display_rect_1 in self.display_rects:
-                for display_rect_2 in self.display_rects:
-                    if (
-                        display_rect_1 is not display_rect_2
-                        and display_rect_1.Intersects(display_rect_2)
-                    ):
-                        oyranos = False
-                        break
-                if not oyranos:
+        if wx.Display.GetCount() <= 1 and display_no != 1:
+            return False
+        oyranos = True
+        for display_rect_1 in self.display_rects:
+            for display_rect_2 in self.display_rects:
+                if display_rect_1 is not display_rect_2 and display_rect_1.Intersects(
+                    display_rect_2
+                ):
+                    oyranos = False
                     break
+            if not oyranos:
+                break
         return oyranos
 
     def check_is_single_measurement(self, txt):
+        """Check if we are doing a single measurement."""
         if (
             "ambient light measuring" in txt.lower()
             or "Will use emissive mode instead" in txt
@@ -2913,6 +3187,7 @@ class Worker(WorkerBase):
             self.is_ambient_measurement = False
 
     def do_single_measurement(self):
+        """Perform a single measurement, e.g. ambient light measurement."""
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -2941,131 +3216,157 @@ class Worker(WorkerBase):
         return None
 
     def check_instrument_calibration(self, txt):
-        """Check if current instrument needs sensor calibration by looking
-        at Argyll CMS command output"""
-        if not self.instrument_calibration_complete:
-            if "calibration complete" in txt.lower():
-                self.log(f"{APPNAME}: Detected instrument calibration complete message")
-                self.instrument_calibration_complete = True
-            else:
-                for calmsg in INST_CAL_MSGS:
-                    if calmsg in txt or "calibration failed" in txt.lower():
-                        self.log(f"{APPNAME}: Detected instrument calibration message")
-                        self.do_instrument_calibration(
-                            "calibration failed" in txt.lower()
-                        )
-                        break
+        """Check if instrument needs calibration from Argyll CMS output.
+
+        Args:
+            txt (str): The output text from Argyll CMS to check for calibration
+                messages.
+        """
+        if self.instrument_calibration_complete:
+            return
+        if "calibration complete" in txt.lower():
+            self.log(f"{APPNAME}: Detected instrument calibration complete message")
+            self.instrument_calibration_complete = True
+        else:
+            for calmsg in INST_CAL_MSGS:
+                if calmsg not in txt and "calibration failed" not in txt.lower():
+                    continue
+                self.log(f"{APPNAME}: Detected instrument calibration message")
+                self.do_instrument_calibration("calibration failed" in txt.lower())
+                break
 
     def check_instrument_calibration_file(self):
+        """Check if the instrument calibration file is valid.
+
+        This is done by checking the SpyderX calibration file for black
+        calibration offsets, which should not be higher than 15. If the offsets
+        are higher, we assume that the user has left the instrument on screen,
+        which is not allowed, and we remove the calibration file and return
+        False.
+
+        If the file is not present, we return True, as this means that the
+        instrument calibration is not done yet, or that the user has removed
+        the instrument from the screen.
+
+        If the instrument is not a SpyderX, we return True, as we don't have to
+        check the calibration file.
+
+        Returns:
+            bool: True if the calibration file is valid or not present,
+                  False if the calibration file is present but invalid.
+        """
         # XXX: Check instrument calibration for SpyderX. For some reason,
         # users tend to leave the instrument on screen despite being told
         # otherwise...
-        if self._detected_instrument and "SpyderX" in self._detected_instrument:
-            if sys.platform == "win32":
-                cachepath = os.path.join(defaultpaths.APPDATA, "Cache")
-            else:
-                cachepath = defaultpaths.CACHE
-            spydx_cal_fn = os.path.join(
-                cachepath,
-                "ArgyllCMS",
-                f".spydX_{self._detected_instrument_serial}.cal",
+        if not self._detected_instrument or "SpyderX" not in self._detected_instrument:
+            return True
+        if sys.platform == "win32":
+            cachepath = os.path.join(defaultpaths.APPDATA, "Cache")
+        else:
+            cachepath = defaultpaths.CACHE
+        spydx_cal_fn = os.path.join(
+            cachepath,
+            "ArgyllCMS",
+            f".spydX_{self._detected_instrument_serial}.cal",
+        )
+        if not os.path.isfile(spydx_cal_fn):
+            return True
+        # Argyll sensor cal file format offsets and lengths depend on
+        # the size of various C data types as seen by Argyll.
+        # We can determine the needed offset and length of the cal info
+        # (C 'int') by subtracting the length of the NULL-terminated
+        # serial string and size of time_t from the file size, then
+        # dividing by the number of C 'int's in the file.
+        # File structure for SpyderX cal:
+        # Argyll version (C 'int')
+        # Size of spydX (2x C 'int')
+        # NULL-terminated serial string (variable length)
+        # Black cal done (C 'int')
+        # Date & time (time_t)
+        # Calibration info (3x C 'int')
+        # Checksum (C 'int')
+        serial0 = self._detected_instrument_serial + "\0"
+        numints = 8
+        spydx_cal_size = os.stat(spydx_cal_fn).st_size
+        spydx_cal_int_bytes = 4  # C 'int'
+        # time_t might be 8 or 4 bytes, 0 is sentinel
+        for time_t_size in (8, 4, 0):
+            if (
+                spydx_cal_size - len(serial0) - time_t_size
+            ) == spydx_cal_int_bytes * numints:
+                break
+        if not time_t_size:
+            self.log(
+                f"{APPNAME}: Warning - could not determine SpyderX "
+                "sensor cal file format"
             )
-            if os.path.isfile(spydx_cal_fn):
-                # Argyll sensor cal file format offsets and lengths depend on
-                # the size of various C data types as seen by Argyll.
-                # We can determine the needed offset and length of the cal info
-                # (C 'int') by subtracting the length of the NULL-terminated
-                # serial string and size of time_t from the file size, then
-                # dividing by the number of C 'int's in the file.
-                # File structure for SpyderX cal:
-                # Argyll version (C 'int')
-                # Size of spydX (2x C 'int')
-                # NULL-terminated serial string (variable length)
-                # Black cal done (C 'int')
-                # Date & time (time_t)
-                # Calibration info (3x C 'int')
-                # Checksum (C 'int')
-                serial0 = self._detected_instrument_serial + "\0"
-                numints = 8
-                spydx_cal_size = os.stat(spydx_cal_fn).st_size
-                spydx_cal_int_bytes = 4  # C 'int'
-                # time_t might be 8 or 4 bytes, 0 is sentinel
-                for time_t_size in (8, 4, 0):
-                    if (
-                        spydx_cal_size - len(serial0) - time_t_size
-                    ) == spydx_cal_int_bytes * numints:
-                        break
-                if not time_t_size:
-                    self.log(
-                        f"{APPNAME}: Warning - could not determine SpyderX "
-                        "sensor cal file format"
-                    )
-                    self.exec_cmd_returnvalue = Error(
-                        "Could not determine SpyderX sensor cal file format"
-                    )
-                    self.abort_subprocess()
-                    return False
-                self.log(f"{APPNAME}: SpyderX cal time_t size =", time_t_size)
+            self.exec_cmd_returnvalue = Error(
+                "Could not determine SpyderX sensor cal file format"
+            )
+            self.abort_subprocess()
+            return False
+        self.log(f"{APPNAME}: SpyderX cal time_t size =", time_t_size)
+        try:
+            with open(spydx_cal_fn, "rb") as spydx_cal:
+                # Seek to cal entries offset
+                spydx_cal.seek(spydx_cal_int_bytes * 4 + len(serial0) + time_t_size)
+                # Read three entries black cal
+                spydx_bcal = spydx_cal.read(spydx_cal_int_bytes * 3)
+        except OSError as exception:
+            self.log(
+                f"{APPNAME}: Warning - could not read SpyderX sensor cal:",
+                exception,
+            )
+            self.exec_cmd_returnvalue = Error(
+                f"Could not read SpyderX sensor cal: {safe_str(exception)}"
+            )
+            self.abort_subprocess()
+            return False
+        else:
+            if len(spydx_bcal) < spydx_cal_int_bytes * 3:
+                self.log(
+                    f"{APPNAME}: Warning - SpyderX "
+                    "sensor cal has unexpected length: "
+                    f"{len(spydx_bcal)} != {spydx_cal_int_bytes * 3:d}"
+                )
+                self.exec_cmd_returnvalue = Error(
+                    "SpyderX sensor cal "
+                    "has unexpected "
+                    f"length: {len(spydx_bcal)} != {spydx_cal_int_bytes * 3:d}"
+                )
+                self.abort_subprocess()
+                return False
+            fmt = {2: "<HHH", 4: "<III", 8: "<QQQ"}[spydx_cal_int_bytes]
+            spydx_bcal = struct.unpack(fmt, spydx_bcal)
+            self.log(
+                f"{APPNAME}: SpyderX sensor cal "
+                f"{spydx_bcal[0]:d} {spydx_bcal[1]:d} {spydx_bcal[2]:d}"
+            )
+            if max(spydx_bcal) > 15:
+                # Black cal offsets too high - user error?
+                self.exec_cmd_returnvalue = Error(
+                    lang.getstr("error.spyderx.black_cal_offsets_too_high")
+                )
+                self.abort_subprocess()
+                # Nuke the cal file
                 try:
-                    with open(spydx_cal_fn, "rb") as spydx_cal:
-                        # Seek to cal entries offset
-                        spydx_cal.seek(
-                            spydx_cal_int_bytes * 4 + len(serial0) + time_t_size
-                        )
-                        # Read three entries black cal
-                        spydx_bcal = spydx_cal.read(spydx_cal_int_bytes * 3)
-                except OSError as exception:
+                    os.remove(spydx_cal_fn)
+                except OSError:
                     self.log(
-                        f"{APPNAME}: Warning - could not read SpyderX sensor cal:",
-                        exception,
+                        f"{APPNAME}: Warning - Could not remove "
+                        "SpyderX sensor cal file",
+                        spydx_cal_fn,
                     )
-                    self.exec_cmd_returnvalue = Error(
-                        f"Could not read SpyderX sensor cal: {safe_str(exception)}"
-                    )
-                    self.abort_subprocess()
-                    return False
-                else:
-                    if len(spydx_bcal) < spydx_cal_int_bytes * 3:
-                        self.log(
-                            f"{APPNAME}: Warning - SpyderX "
-                            "sensor cal has unexpected length: "
-                            f"{len(spydx_bcal)} != {spydx_cal_int_bytes * 3:d}"
-                        )
-                        self.exec_cmd_returnvalue = Error(
-                            "SpyderX sensor cal "
-                            "has unexpected "
-                            f"length: {len(spydx_bcal)} != {spydx_cal_int_bytes * 3:d}"
-                        )
-                        self.abort_subprocess()
-                        return False
-                    fmt = {2: "<HHH", 4: "<III", 8: "<QQQ"}[spydx_cal_int_bytes]
-                    spydx_bcal = struct.unpack(fmt, spydx_bcal)
-                    self.log(
-                        f"{APPNAME}: SpyderX sensor cal "
-                        f"{spydx_bcal[0]:d} {spydx_bcal[1]:d} {spydx_bcal[2]:d}"
-                    )
-                    if max(spydx_bcal) > 15:
-                        # Black cal offsets too high - user error?
-                        self.exec_cmd_returnvalue = Error(
-                            lang.getstr("error.spyderx.black_cal_offsets_too_high")
-                        )
-                        self.abort_subprocess()
-                        # Nuke the cal file
-                        try:
-                            os.remove(spydx_cal_fn)
-                        except OSError:
-                            self.log(
-                                f"{APPNAME}: Warning - Could not remove "
-                                "SpyderX sensor cal file",
-                                spydx_cal_fn,
-                            )
-                        return False
+                return False
         return True
 
     def check_instrument_place_on_screen(self, txt):
         """Check if instrument should be placed on screen.
 
         This is done by looking at Argyll CMS command output.
+
+        Args:
+            txt (str): The output text from the Argyll CMS command.
         """
         self.instrument_place_on_spot_msg = False
         if "place instrument on test window" in txt.lower():
@@ -3126,14 +3427,18 @@ class Worker(WorkerBase):
             self.instrument_on_screen = True
 
     def instrument_on_screen_continue(self):
+        """Continue after instrument on screen message."""
         self.log(f"{APPNAME}: Skipping place instrument on screen message...")
         self.safe_send(" ")
         self.pauseable_now = True
         self.instrument_on_screen = True
 
     def check_instrument_sensor_position(self, txt):
-        """Check instrument sensor position by looking
-        at Argyll CMS command output"""
+        """Check instrument sensor position by looking at Argyll CMS command output.
+
+        Args:
+            txt (str): The output text from the Argyll CMS command.
+        """
         if "read failed due to the sensor being in the wrong position" in txt.lower():
             self.instrument_sensor_position_msg = True
         if self.instrument_sensor_position_msg and " or q to " in txt.lower():
@@ -3142,6 +3447,11 @@ class Worker(WorkerBase):
             self.instrument_reposition_sensor()
 
     def check_retry_measurement(self, txt):
+        """Check if measurement should be retried based on Argyll CMS output.
+
+        Args:
+            txt (str): The output text from the Argyll CMS command.
+        """
         if (
             "key to retry:" in txt
             and "read stopped at user request!" not in self.recent.read()
@@ -3158,7 +3468,11 @@ class Worker(WorkerBase):
             self.safe_send(" ")
 
     def check_spotread_result(self, txt):
-        """Check if spotread returned a result"""
+        """Check if spotread returned a result.
+
+        Args:
+            txt (str): The output text from the Argyll CMS command.
+        """
         if (
             self.cmdname == get_argyll_utilname("spotread")
             and (
@@ -3178,7 +3492,12 @@ class Worker(WorkerBase):
             wx.CallLater(1000, self.quit_terminate_cmd)
 
     def get_skip_video_levels_detection(self):
-        """Should we skip video levels detection?"""
+        """Return True if we should skip video levels detection.
+
+        Returns:
+            bool: True if video levels detection should be skipped, False if it
+                should not be skipped.
+        """
         return (
             self._detected_output_levels
             or not getcfg("patterngenerator.detect_video_levels")
@@ -3187,7 +3506,12 @@ class Worker(WorkerBase):
         )
 
     def detect_video_levels(self):
-        """Detect wether we need video (16..235) or data (0..255) levels"""
+        """Detect wether we need video (16..235) or data (0..255) levels.
+
+        Returns:
+            bool: True if video levels were detected, False if data levels were
+                detected,
+        """
         if self.get_skip_video_levels_detection():
             return True
         self._detecting_video_levels = True
@@ -3200,7 +3524,13 @@ class Worker(WorkerBase):
             self._detecting_video_levels = False
 
     def _detect_video_levels(self):
-        """Detect black clipping due to incorrect levels"""
+        """Detect black clipping due to incorrect levels.
+
+        Returns:
+            bool: True if video levels were detected, False if data levels were
+                detected,
+            Exception: If an error occurred during detection.
+        """
         self.log("Detecting output levels range...")
         tempdir = self.create_tempdir()
         if isinstance(tempdir, Exception):
@@ -3316,6 +3646,7 @@ END_DATA
         return True
 
     def detected_levels_issue_confirm(self):
+        """Show a confirmation dialog to the user if a levels issue was detected."""
         dlg = ConfirmDialog(
             None,
             msg=lang.getstr("display.levels_issue_detected"),
@@ -3337,7 +3668,18 @@ END_DATA
 
     def do_instrument_calibration(self, failed=False):
         """Ask user to initiate sensor calibration and execute.
-        Give an option to cancel."""
+
+        Give an option to cancel.
+
+        Args:
+            failed (bool): If True, the calibration failed and the user should
+                be informed about it. If False, the calibration was successful
+                and the user should be prompted to calibrate the instrument.
+
+        Returns:
+            None | bool: None if the calibration was initiated, False if the
+                user canceled
+        """
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -3420,6 +3762,15 @@ END_DATA
         return None
 
     def abort_all(self, confirm=False):
+        """Abort all worker threads and subprocesses.
+
+        Args:
+            confirm (bool): If True, show a confirmation dialog before
+                aborting.
+
+        Returns:
+            bool: True if at least one worker was aborted, False otherwise.
+        """
         aborted = False
         for worker in workers:
             if not getattr(worker, "finished", True):
@@ -3428,7 +3779,12 @@ END_DATA
         return aborted
 
     def abort_subprocess(self, confirm=False):
-        """Abort the current subprocess or thread"""
+        """Abort the current subprocess or thread.
+
+        Args:
+            confirm (bool): If True, show a confirmation dialog before
+                aborting.
+        """
         if getattr(self, "abort_requested", False):
             return
         self.abort_requested = True
@@ -3477,6 +3833,12 @@ END_DATA
         delayedresult.startWorker(self.quit_terminate_consumer, self.quit_terminate_cmd)
 
     def quit_terminate_consumer(self, delayedResult):
+        """Consumer for delayed result of subprocess termination.
+
+        Args:
+            delayedResult: Delayed result object containing the result of the
+                subprocess termination.
+        """
         try:
             result = delayedResult.get()
         except Exception as exception:
@@ -3629,7 +3991,7 @@ END_DATA
         self.reset_argyll_enum()
 
     def reset_argyll_enum(self):
-        """Reset auto-detected (during display/instrument enumeration) properties"""
+        """Reset auto-detected (during display/instrument enumeration) properties."""
         self.measurement_modes = {}
         self.argyll_virtual_display = None
 
@@ -3675,6 +4037,18 @@ END_DATA
     def lut3d_get_filename(
         self, path=None, include_input_profile=True, include_ext=True
     ):
+        """Generate a filename for the 3D LUT based on current settings.
+
+        Args:
+            path (str): Optional base path for the LUT filename.
+            include_input_profile (bool): Whether to include the input profile
+                name in the filename.
+            include_ext (bool): Whether to include the file extension in the
+                filename.
+
+        Returns:
+            str: The generated filename for the 3D LUT.
+        """
         # 3D LUT filename with crcr32 hash before extension - up to DCG 2.9.0.7
         profile_save_path = os.path.splitext(
             path or getcfg("calibration.file") or DEFAULTS["calibration.file"]
@@ -3842,8 +4216,10 @@ END_DATA
         hdr_display=False,
         XYZwp=None,
     ):
-        """Create a 3D LUT from one (device link) or two (device) profiles,
-        optionally incorporating an abstract profile."""
+        """Create a 3D LUT from one (device link) or two (device) profiles.
+
+        Optionally incorporating an abstract profile.
+        """
         # .cube: http://doc.iridas.com/index.php?title=LUT_Formats
         # .3dl: http://www.kodak.com/US/plugins/acrobat/en/motion/products/look/UserGuide.pdf
         #       http://download.autodesk.com/us/systemdocs/pdf/lustre_color_management_user_guide.pdf
@@ -4443,7 +4819,7 @@ END_DATA
                                     for v in RGB
                                 ]
                             RGB = [min(max(v, 0), 1) * 255 for v in RGB]
-                            seenkey = tuple(int(round(v * 257)) for v in RGB)
+                            seenkey = tuple(round(v * 257) for v in RGB)
                             seenkeys[abc] = seenkey
                             if seenkey in seen:
                                 continue
@@ -5042,7 +5418,7 @@ END_DATA
             # Note: We only round up for the input values, output values
             # are rounded to nearest integer
             def quantizer(v):
-                return int(math.ceil(v * (2**input_bits - 1)))
+                return math.ceil(v * (2**input_bits - 1))
 
             scale = quantizer(1.0)
         else:
@@ -5132,7 +5508,7 @@ END_DATA
                 lut.append([])
                 for component in (0, 1, 2):
                     lut[-1].append(
-                        f"{int(round(RGB_triplet[component] / scale * maxval)):d}"
+                        f"{round(RGB_triplet[component] / scale * maxval):d}"
                     )
         elif file_format == "cube":
             if maxval is None:
@@ -5199,7 +5575,7 @@ END_DATA
             for i, RGB_triplet in enumerate(RGB_out):
                 lut.append([f"{i:d}"])
                 for component in (0, 1, 2):
-                    lut[-1].append(f"{int(round(RGB_triplet[component] * maxval))}")
+                    lut[-1].append(f"{round(RGB_triplet[component] * maxval)}")
             valsep = "\t"
         elif file_format == "png":
             lut = [[]]
@@ -5211,7 +5587,7 @@ END_DATA
                 if len(lut[-1]) == size:
                     # Append new scanline
                     lut.append([])
-                lut[-1].append([int(round(v * maxval)) for v in RGB_triplet])
+                lut[-1].append([round(v * maxval) for v in RGB_triplet])
             # Current layout is vertical
             if getcfg("3dlut.image.layout") == "h":
                 # Change layout to horizontal
@@ -6201,8 +6577,8 @@ BEGIN_DATA
                             ramp = ((ctypes.c_ushort * 256) * 3)()
                             for i in range(256):
                                 for j, channel in enumerate("RGB"):
-                                    ramp[j][i] = int(
-                                        round(cal.DATA[i]["RGB_" + channel] * 65535)
+                                    ramp[j][i] = round(
+                                        cal.DATA[i][f"RGB_{channel}"] * 65535
                                     )
                     else:
                         ramp = None
@@ -7312,11 +7688,24 @@ BEGIN_DATA
         return self.retcode == 0
 
     def flush(self):
-        pass
+        """Flush the output and error streams of the worker."""
 
     def _generic_consumer(
         self, delayedResult, consumer, continue_next, *args, **kwargs
     ):
+        """Generic consumer for delayed results.
+
+        Args:
+            delayedResult (DelayedResult): The delayed result to process.
+            consumer (callable): The consumer function to call with the result.
+            continue_next (bool): Whether to continue to the next step
+                after processing the result.
+            *args: Additional arguments to pass to the consumer.
+            **kwargs: Additional keyword arguments to pass to the consumer.
+
+        Raises:
+            UnloggedError: If an error occurs during processing.
+        """
         # consumer must accept result as first arg
         result = None
         try:
@@ -7355,6 +7744,22 @@ BEGIN_DATA
         wx.CallAfter(consumer, result, *args, **kwargs)
 
     def generate_A2B0(self, profile, clutres=None, logfile=None):
+        """Generate a profile's A2B0 table (perceptual).
+
+        Args:
+            profile (Profile): The profile to generate the A2B0 table for.
+            clutres (int, optional): The cLUT resolution to use. If not
+                specified, the resolution of the A2B0 table in the profile
+                will be used.
+            logfile (file-like, optional): A file-like object to write
+                log messages to. If not specified, no logging will be done.
+
+        Raises:
+            Error: If the profile's connection color space is not XYZ.
+
+        Returns:
+            bool: True if the A2B0 table was successfully generated,
+        """
         # Lab cLUT is currently not implemented and should NOT be used!
         if profile.connectionColorSpace != b"XYZ":
             raise Error(
@@ -7434,11 +7839,42 @@ BEGIN_DATA
         filename=None,
         only_input_curves=False,
     ):
-        """Generate a profile's B2A table by inverting the A2B table
-        (default A2B1 or A2B0)
+        """Generate a profile's B2A table by inverting the A2B table.
+
+        Default A2B1 or A2B0.
 
         It is also possible to re-generate a B2A table by interpolating
         the B2A table itself.
+
+        Args:
+            profile (Profile): The profile to generate the B2A table for.
+            clutres (int, optional): The cLUT resolution to use. If not
+                specified, the resolution of the A2B table will be used.
+            source (str, optional): The source table to use for generating
+                the B2A table. Can be "A2B" (default) or "B2A". If "B2A",
+                the B2A table will be re-generated by interpolation.
+            tableno (int, optional): The table number to use for the
+                B2A table. If not specified, it will default to 1 if
+                "A2B1" is in the profile's tags, otherwise 0.
+            bpc (bool, optional): Whether to apply black point compensation
+                to the B2A table. Defaults to False.
+            smooth (bool, optional): Whether to apply smoothing to the
+                generated B2A table. Defaults to True.
+            rgb_space (str, optional): The RGB color space to use for the
+                B2A table. If not specified, the RGB color space of the
+                profile will be used.
+            logfile (file-like, optional): A file-like object to write
+                log messages to. If not specified, no logging will be done.
+            filename (str, optional): The filename to save the generated
+                B2A table to. If not specified, the table will not be saved
+                to a file.
+            only_input_curves (bool, optional): If True, only the input
+                curves of the B2A table will be generated, without the
+                cLUT. Defaults to False.
+
+        Returns:
+            bool: True if the B2A table was successfully generated,
+                False otherwise.
         """
         if tableno is None:
             tableno = 1 if "A2B1" in profile.tags else 0
@@ -8221,7 +8657,7 @@ BEGIN_DATA
                 logfile.write("Forcing B2A input curve blackpoint...\n")
             XYZbp_m = m2 * XYZbp
             for i in range(3):
-                black_index = int(math.ceil(maxval * XYZbp_m[i]))
+                black_index = math.ceil(maxval * XYZbp_m[i])
                 if logfile:
                     logfile.write(f"Channel #{i:d}\n")
                 for j in range(black_index + 1):
@@ -8519,7 +8955,18 @@ BEGIN_DATA
         return True
 
     def smooth_B2A(self, profile, tableno, diagpng=2, filename=None, logfile=None):
-        """Apply extra smoothing to the cLUT"""
+        """Apply extra smoothing to the cLUT.
+
+        Args:
+            profile (ICCProfile): The ICC profile to smooth.
+            tableno (int): The table number to smooth.
+            diagpng (int): If 1, generate diagnostic PNGs.
+            filename (str): The filename to use for diagnostic PNGs.
+            logfile (TextIO): The logfile to write to.
+
+        Returns:
+            bool: True if smoothing was successful, False otherwise.
+        """
         itable = profile.tags.get(f"B2A{tableno:d}")
         if not itable:
             return False
@@ -8534,7 +8981,20 @@ BEGIN_DATA
         omit_manufacturer=False,
         query=False,
     ):
-        """Get org.freedesktop.ColorManager device key"""
+        """Get org.freedesktop.ColorManager device key.
+
+        Args:
+            quirk (bool): If True, use quirked EDID.
+            use_serial_32 (bool): If True, use 32-bit serial number.
+            truncate_edid_strings (bool): If True, truncate EDID strings.
+            omit_manufacturer (bool): If True, omit manufacturer from EDID.
+            query (bool): If True, query the device ID instead of returning
+                the EDID.
+
+        Returns:
+            str or None: The device ID for the display, or None if no
+                display is configured or the EDID is not available.
+        """
         if not self.display_edid or config.is_virtual_display():
             return None
         display_no = max(0, min(len(self.displays) - 1, getcfg("display.number") - 1))
@@ -8572,7 +9032,10 @@ BEGIN_DATA
     def get_display(self):
         """Get the currently configured display.
 
-        Returned is the Argyll CMS dispcal/dispread -d argument
+        Returned is the Argyll CMS dispcal/dispread -d argument.
+
+        Returns:
+            str: The display identifier for Argyll CMS.
         """
         display_name = config.get_display_name(None, True)
         if display_name == "Web @ localhost":
@@ -8626,7 +9089,12 @@ BEGIN_DATA
         return display
 
     def get_display_edid(self):
-        """Return EDID of currently configured display"""
+        """Return EDID of currently configured display.
+
+        Returns:
+            dict: The EDID of the display, or an empty dict if no EDID is
+                available.
+        """
         n = getcfg("display.number") - 1
         if 0 <= n < len(self.display_edid):
             return self.display_edid[n]
@@ -8635,7 +9103,19 @@ BEGIN_DATA
     def get_display_name(
         self, prepend_manufacturer=False, prefer_edid=False, remove_manufacturer=True
     ):
-        """Return name of currently configured display"""
+        """Return name of currently configured display.
+
+        Args:
+            prepend_manufacturer (bool): If True, prepend the manufacturer
+                to the display name.
+            prefer_edid (bool): If True, prefer the EDID name over the
+                configured display name.
+            remove_manufacturer (bool): If True, remove the manufacturer
+                from the display name if it is already present.
+
+        Returns:
+            str: The display name.
+        """
         n = getcfg("display.number") - 1
         if 0 <= n < len(self.display_names):
             display = []
@@ -8669,10 +9149,19 @@ BEGIN_DATA
         return ""
 
     def get_display_name_short(self, prepend_manufacturer=False, prefer_edid=False):
-        """Return shortened name of configured display (if possible)
+        """Return shortened name of configured display (if possible).
 
         If name can't be shortened (e.g. because it's already 10 characters
-        or less), return full string
+        or less), return full string.
+
+        Args:
+            prepend_manufacturer (bool): If True, prepend the manufacturer
+                to the display name.
+            prefer_edid (bool): If True, prefer the EDID name over the
+                configured display name.
+
+        Returns:
+            str: The shortened display name.
         """
         display_name = self.get_display_name(prepend_manufacturer, prefer_edid)
         if len(display_name) > 10:
@@ -8704,6 +9193,12 @@ BEGIN_DATA
         """Return argument corresponding to the display profile for use with dispwin.
 
         Will either return '-L' (use current profile) or a filename.
+
+        Args:
+            display_no (int): The display number to get the profile for.
+
+        Returns:
+            str: The argument for dispwin, either '-L' or a profile filename.
         """
         arg = "-L"
         try:
@@ -8739,8 +9234,17 @@ BEGIN_DATA
     def update_display_name_manufacturer(
         self, ti3, display_name=None, display_manufacturer=None, write=True
     ):
-        """Update display name and manufacturer in colprof arguments
-        embedded in 'ARGYLL_COLPROF_ARGS' section in a TI3 file."""
+        """Update display name and manufacturer in 'ARGYLL_COLPROF_ARGS' section of a TI3 file.
+
+        Args:
+            ti3 (CGATS): The CGATS object representing the TI3 file.
+            display_name (str): The display name to set.
+            display_manufacturer (str): The display manufacturer to set.
+            write (bool): If True, write the updated TI3 file back to disk.
+
+        Returns:
+            list: List of options for colprof command.
+        """  # noqa: E501
         options_colprof = []
         if not display_name and not display_manufacturer:
             # Note: Do not mix'n'match display name and manufacturer from
@@ -8791,7 +9295,14 @@ BEGIN_DATA
         return options_colprof
 
     def get_instrument_features(self, instrument_name=None):
-        """Return features of currently configured instrument"""
+        """Return features of currently configured instrument.
+
+        Args:
+            instrument_name (str): Name of the instrument to get features for.
+
+        Returns:
+            dict: Mapping of feature names to their values.
+        """
         features = all_instruments.get(
             instrument_name or self.get_instrument_name(), {}
         )
@@ -8803,128 +9314,77 @@ BEGIN_DATA
     def get_instrument_measurement_modes(
         self, instrument_id=None, skip_ccxx_modes=True
     ):
-        """Enumerate measurement modes supported by the instrument"""
+        """Enumerate measurement modes supported by the instrument.
+
+        Args:
+            instrument_id (str): ID of the instrument to get measurement modes
+                for.
+            skip_ccxx_modes (bool): If True, skip modes supplied via CCMX/CCSS.
+
+        Returns:
+            dict: Mapping of measurement mode selectors to their descriptions.
+        """
         if not instrument_id:
             features = self.get_instrument_features()
             instrument_id = features.get("id", self.get_instrument_name())
-        if instrument_id:
-            measurement_modes = self.measurement_modes.get(instrument_id, {})
-            if not measurement_modes:
-                result = self.exec_cmd(
-                    get_argyll_util("spotread"),
-                    ["-?"],
-                    capture_output=True,
-                    skip_scripts=True,
-                    silent=True,
-                    log_output=False,
-                )
-                if isinstance(result, Exception):
-                    print(result)
-                # Need to get and remember output of spotread because calling
-                # self.get_technology_strings() will overwrite self.output
-                output = self.output
-                if TEST:
-                    output.extend(
-                        """Measure spot values, Version 1.7.0_beta
-Author: Graeme W. Gill, licensed under the GPL Version 2 or later
-Diagnostic: Usage requested
-usage: spotread [-options] [logfile]
- -v                   Verbose mode
- -s                   Print spectrum for each reading
- -S                   Plot spectrum for each reading
- -c listno            Set communication port from the following list (default 1)
-    1 = 'COM13 (Klein K-10)'
-    2 = 'COM1'
-    3 = 'COM3'
-    4 = 'COM4'
- -t                   Use transmission measurement mode
- -e                   Use emissive measurement mode (absolute results)
- -eb                  Use display white brightness relative measurement mode
- -ew                  Use display white point relative chromatically adjusted mode
- -p                   Use telephoto measurement mode (absolute results)
- -pb                  Use projector white brightness relative measurement mode
- -pw                  Use projector white point relative chromatically adjusted mode
- -a                   Use ambient measurement mode (absolute results)
- -f                   Use ambient flash measurement mode (absolute results)
- -y F                  K-10: Factory Default [Default,CB1]
-    c                  K-10: Default CRT File
-    P                  K-10: Klein DLP Lux
-    E                  K-10: Klein SMPTE C
-    b                  K-10: TVL XVM245
-    d                  K-10: Klein LED Bk LCD
-    m                  K-10: Klein Plasma
-    p                  K-10: DLP Screen
-    o                  K-10: TVL LEM150
-    O                  K-10: Sony EL OLED
-    z                  K-10: Eizo CG LCD
-    L                  K-10: FSI 2461W
-    h                  K-10: HP DreamColor 2
-    1                  K-10: LCD CCFL Wide Gamut IPS (LCD2690WUXi)
-    l|c                Other: l = LCD, c = CRT
- -I illum             Set simulated instrument illumination using FWA (def -i illum):
-                       M0, M1, M2, A, C, D50, D50M2, D65, F5, F8, F10 or file.sp]
- -i illum             Choose illuminant for computation of CIE XYZ from spectral data & FWA:
-                       A, C, D50 (def.), D50M2, D65, F5, F8, F10 or file.sp
- -Q observ            Choose CIE Observer for spectral data or CCSS instrument:
-                      1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
-                      (Choose FWA during operation)
- -F filter            Set filter configuration (if aplicable):
-    n                  None
-    p                  Polarising filter
-    6                  D65
-    u                  U.V. Cut
- -E extrafilterfile   Apply extra filter compensation file
- -x                   Display Yxy instead of Lab
- -h                   Display LCh instead of Lab
- -V                   Show running average and std. devation from ref.
- -T                   Display correlated color temperatures and CRI
- -N                   Disable auto calibration of instrument
- -O                   Do one cal. or measure and exit
- -H                   Start in high resolution spectrum mode (if available)
- -X file.ccmx         Apply Colorimeter Correction Matrix
- -Y r|n               Override refresh, non-refresh display mode
- -Y R:rate            Override measured refresh rate with rate Hz
- -Y A                 Use non-adaptive integration time mode (if available).
- -W n|h|x             Override serial port flow control: n = none, h = HW, x = Xon/Xoff
- -D [level]           Print debug diagnostics to stderr
- logfile              Optional file to save reading results as text""".splitlines()  # noqa: E501
-                    )
-                measurement_modes_follow = False
-                technology_strings = self.get_technology_strings()
-                for line in output:
-                    line = line.strip()
-                    if line.startswith("-y "):
-                        line = line.lstrip("-y ")
-                        measurement_modes_follow = True
-                    elif line.startswith("-"):
-                        measurement_modes_follow = False
-                    parts = [v.strip() for v in line.split(None, 1)]
-                    if measurement_modes_follow and len(parts) == 2:
-                        measurement_mode, desc = parts
-                        if measurement_mode not in (
-                            string.digits[1:] + string.ascii_letters
-                        ):
-                            # Ran out of selectors
-                            continue
-                        measurement_mode_instrument_id, desc = desc.split(":", 1)
-                        desc = desc.strip()
-                        if measurement_mode_instrument_id == instrument_id:
-                            # Found a mode for our instrument
-                            if (
-                                re.sub(r"\s*\(.*?\)?$", "", desc)
-                                in [*technology_strings.values(), ""]
-                                and skip_ccxx_modes
-                            ):
-                                # This mode is supplied via CCMX/CCSS, skip
-                                continue
-                            desc = re.sub(r"\s*(?:File|\[[^\]]*\])", "", desc)
-                            measurement_modes[measurement_mode] = desc
-                self.measurement_modes[instrument_id] = measurement_modes
+        if not instrument_id:
+            return {}
+        measurement_modes = self.measurement_modes.get(instrument_id, {})
+        if measurement_modes:
             return measurement_modes
-        return {}
+        result = self.exec_cmd(
+            get_argyll_util("spotread"),
+            ["-?"],
+            capture_output=True,
+            skip_scripts=True,
+            silent=True,
+            log_output=False,
+        )
+        if isinstance(result, Exception):
+            print(result)
+        # Need to get and remember output of spotread because calling
+        # self.get_technology_strings() will overwrite self.output
+        output = self.output
+        if TEST:
+            output.extend(INSTRUMENT_MEASUREMENT_MODES_TEST_OUTPUT.splitlines())
+        measurement_modes_follow = False
+        technology_strings = self.get_technology_strings()
+        for line in output:
+            line = line.strip()
+            if line.startswith("-y "):
+                line = line.lstrip("-y ")
+                measurement_modes_follow = True
+            elif line.startswith("-"):
+                measurement_modes_follow = False
+            parts = [v.strip() for v in line.split(None, 1)]
+            if not measurement_modes_follow or len(parts) != 2:
+                continue
+            measurement_mode, desc = parts
+            if measurement_mode not in (string.digits[1:] + string.ascii_letters):
+                # Ran out of selectors
+                continue
+            measurement_mode_instrument_id, desc = desc.split(":", 1)
+            desc = desc.strip()
+            if measurement_mode_instrument_id != instrument_id:
+                continue
+            # Found a mode for our instrument
+            if (
+                re.sub(r"\s*\(.*?\)?$", "", desc) in [*technology_strings.values(), ""]
+                and skip_ccxx_modes
+            ):
+                # This mode is supplied via CCMX/CCSS, skip
+                continue
+            desc = re.sub(r"\s*(?:File|\[[^\]]*\])", "", desc)
+            measurement_modes[measurement_mode] = desc
+        self.measurement_modes[instrument_id] = measurement_modes
+        return measurement_modes
 
     def get_instrument_name(self):
-        """Return name of currently configured instrument"""
+        """Return name of currently configured instrument.
+
+        Returns:
+            str: Name of the instrument, or an empty string if not found.
+        """
         try:
             return self.instruments[getcfg("comport.number") - 1]
         except IndexError:
@@ -8943,7 +9403,11 @@ usage: spotread [-options] [logfile]
         ]
 
     def get_technology_strings(self):
-        """Return technology strings mapping (from ccxxmake -??)"""
+        """Return technology strings mapping (from ccxxmake -??).
+
+        Returns:
+            dict: Mapping of technology strings to their descriptions.
+        """
         if self.argyll_version < [1, 7]:
             # Argyll ccxxmake before V1.7 didn't have the ability to list
             # dtechs with -??
@@ -9012,11 +9476,21 @@ usage: spotread [-options] [logfile]
         return technology_strings
 
     def has_lut_access(self):
+        """Return True if the current display has LUT access.
+
+        Returns:
+            bool: True if the current display has LUT access, False otherwise.
+        """
         display_no = min(len(self.lut_access), getcfg("display.number")) - 1
         return display_no > -1 and bool(self.lut_access[display_no])
 
     def has_separate_lut_access(self):
-        """Return True if separate LUT access is possible and needed."""
+        """Return True if separate LUT access is possible and needed.
+
+        Returns:
+            bool: True if separate LUT access is available and needed,
+                False otherwise.
+        """
         # Filter out Prisma, Resolve and Untethered
         # IMPORTANT: Also make changes to display filtering in
         # worker.Worker.enumerate_displays_and_ports
@@ -9030,8 +9504,17 @@ usage: spotread [-options] [logfile]
         return len(self.displays) > 1 and False in lut_access and True in lut_access
 
     def import_colorimeter_corrections(self, cmd, args=None, asroot=False):
-        """Import colorimeter corrections. cmd can be 'i1d3ccss', 'spyd4en'
-        or 'oeminst'"""
+        """Import colorimeter corrections.
+
+        Args:
+            cmd (str): The command to execute for importing corrections. Can be
+                'i1d3ccss', 'spyd4en' or 'oeminst'.
+            args (list, optional): Additional arguments to pass to the command.
+            asroot (bool, optional): Whether to run the command as root.
+
+        Returns:
+            Exception: If an error occurs during the import.
+        """
         if not args:
             args = []
         if (is_superuser() or asroot) and "-Sl" not in args:
@@ -9048,18 +9531,44 @@ usage: spotread [-options] [logfile]
         )
 
     def import_edr(self, args=None, asroot=False):
-        """Import X-Rite .edr files"""
+        """Import X-Rite .edr files.
+
+        Args:
+            args (list, optional): Additional arguments to pass to the command.
+            asroot (bool, optional): Whether to run the command as root.
+
+        Returns:
+            Exception: If an error occurs during the import.
+        """
         return self.import_colorimeter_corrections(
             get_argyll_util("i1d3ccss"), args, asroot
         )
 
     def import_spyd4cal(self, args=None, asroot=False):
-        """Import Spyder4/5 calibrations to spy4cal.bin"""
+        """Import Spyder4/5 calibrations to spy4cal.bin.
+
+        Args:
+            args (list, optional): Additional arguments to pass to the command.
+            asroot (bool, optional): Whether to run the command as root.
+
+        Returns:
+            Exception: If an error occurs during the import.
+        """
         return self.import_colorimeter_corrections(
             get_argyll_util("spyd4en"), args, asroot
         )
 
     def install_3dlut(self, path, filename=None):
+        """Install 3D LUT from file.
+
+        Args:
+            path (str): Path to the 3D LUT file.
+            filename (str, optional): Filename to use for the 3D LUT. If not
+                provided, the filename will be derived from the path.
+
+        Returns:
+            Exception: If an error occurs during the installation.
+        """
         if getcfg("3dlut.format") == "madVR" and madvr:
             # Install (load) 3D LUT using madTPG
             print(path)
@@ -9205,8 +9714,20 @@ usage: spotread [-options] [logfile]
     def install_profile(
         self, profile_path, capture_output=True, skip_scripts=False, silent=False
     ):
-        """Install a profile by copying it to an appropriate location and
-        registering it with the system"""
+        """Install a profile to the system and register it.
+
+        Args:
+            profile_path (str): Path to the profile file to install.
+            capture_output (bool): Whether to capture output from the installation
+                process.
+            skip_scripts (bool): Whether to skip running scripts during installation.
+            silent (bool): Whether to suppress output messages during installation.
+
+        Returns:
+            bool | str: True if the installation was successful, a string with
+                the installed profile path if the profile was installed with a
+                different name, or an exception if the installation failed.
+        """
         colord_install = None
         oy_install = None
         argyll_install = self._install_profile_argyll(
@@ -9348,7 +9869,20 @@ usage: spotread [-options] [logfile]
         return result
 
     def install_argyll_instrument_conf(self, uninstall=False, filenames=None):
-        """(Un-)install Argyll CMS instrument configuration under Linux"""
+        """(Un-)install Argyll CMS instrument configuration under Linux.
+
+        Args:
+            uninstall (bool): If True, uninstall the configuration.
+            filenames (list[str]): List of filenames to install or uninstall.
+                If None, use the default Argyll instrument configuration files
+                (e.g. 'colord.conf', 'colord.rules', etc.) or uninstall all
+                installed files.
+
+        Returns:
+            Error, Info, or None: Returns an Error if something went wrong,
+                Info if the operation was successful, or None if no files were
+                installed or uninstalled.
+        """
         udevrules = "/etc/udev/rules.d"
         hotplug = "/etc/hotplug"
         if not os.path.isdir(udevrules) and not os.path.isdir(hotplug):
@@ -9438,7 +9972,18 @@ usage: spotread [-options] [logfile]
         return result
 
     def install_argyll_instrument_drivers(self, uninstall=False, launch_devman=False):
-        """(Un-)install the Argyll CMS instrument drivers under Windows"""
+        """(Un-)install the Argyll CMS instrument drivers under Windows.
+
+        Args:
+            uninstall (bool): If True, uninstall the drivers.
+            launch_devman (bool): If True, launch Device Manager after
+                installing or uninstalling the drivers.
+
+        Returns:
+            Error, Info, or None: Returns an Error if something went wrong,
+                Info if the operation was successful, or None if no drivers
+                were installed or uninstalled.
+        """
         winxp = sys.getwindowsversion() < (6,)
         if launch_devman:
             if winxp:
@@ -9662,7 +10207,15 @@ usage: spotread [-options] [logfile]
     ):
         """Install profile using dispwin.
 
-        Return the profile path, an error or False
+        Args:
+            profile_path (str): The path to the profile to install.
+            capture_output (bool): Whether to capture the output of the
+                command.
+            skip_scripts (bool): Whether to skip running scripts.
+            silent (bool): Whether to suppress output messages.
+
+        Return:
+            str | bool | Exception: The profile path, an error or False.
 
         """
         if False:  # if sys.platform == "darwin":  # NEVER
@@ -9848,7 +10401,16 @@ usage: spotread [-options] [logfile]
         return result
 
     def _install_profile_colord(self, profile, device_id):
-        """Install profile using colord"""
+        """Install profile using colord.
+
+        Args:
+            profile (ICCProfile): The ICCProfile object to install.
+            device_id (str): The device ID to use for installation.
+
+        Returns:
+            bool | colord.CDError: True if the profile was successfully
+                installed, or a colord.CDError if an error occurred.
+        """
         self.log(f"{APPNAME}: Trying device ID {device_id}")
         try:
             colord.install_profile(device_id, profile, logfn=self.log)
@@ -9858,6 +10420,18 @@ usage: spotread [-options] [logfile]
         return True
 
     def _attempt_install_profile_colord(self, profile, device_id=None):
+        """Attempt to install a profile using colord with various quirks.
+
+        Args:
+            profile (ICCProfile): The ICCProfile object to install.
+            device_id (str, optional): The device ID to use for installation.
+
+        Returns:
+            None | bool | colord.CDError: True if the profile was successfully
+                installed, None if the device ID was not found, or a
+                colord.CDError or colord.CDObjectQueryError if an error
+                occurred.
+        """
         if not device_id:
             device_id = self.get_device_id(quirk=False, query=True)
         if not device_id:
@@ -9900,7 +10474,14 @@ usage: spotread [-options] [logfile]
         return result
 
     def _install_profile_gcm(self, profile):
-        """Install profile using gcm-import"""
+        """Install profile using gcm-import.
+
+        Args:
+            profile (ICCProfile): The ICCProfile object to install.
+
+        Returns:
+            None: If the profile was successfully installed or already exists.
+        """
         if which("colormgr"):
             # Check if profile already exists in database
             try:
@@ -9948,7 +10529,22 @@ usage: spotread [-options] [logfile]
         skip_scripts=False,
         silent=False,
     ):
-        """Install profile using oyranos-monitor"""
+        """Install profile using oyranos-monitor.
+
+        Args:
+            profile_path (str): Path to the profile file to install.
+            profile_name (str, optional): Name to use for the installed
+                profile. Defaults to None, in which case the basename of the
+                profile file is used.
+            capture_output (bool, optional): If True, captures the output of
+                the command. Defaults to False.
+            skip_scripts (bool, optional): If True, skips running scripts.
+                Defaults to False.
+            silent (bool, optional): If True, suppresses error messages.
+
+        Returns:
+            bool or Error: True on success, Error on failure.
+        """
         display = self.displays[
             max(0, min(len(self.displays) - 1, getcfg("display.number") - 1))
         ]
@@ -10029,7 +10625,14 @@ usage: spotread [-options] [logfile]
         return result
 
     def _install_profile_loader_win32(self, silent=False):
-        """Install profile loader"""
+        """Install profile loader.
+
+        Args:
+            silent (bool): If True, suppresses error messages.
+
+        Returns:
+            bool or Warning: True on success, Warning on error.
+        """
         if (
             sys.platform == "win32"
             and sys.getwindowsversion() >= (6, 1)
@@ -10249,7 +10852,11 @@ usage: spotread [-options] [logfile]
         return result
 
     def _uninstall_profile_loader_win32(self):
-        """Uninstall profile loader"""
+        """Uninstall profile loader.
+
+        Returns:
+            bool: True if the uninstallation was successful, False otherwise.
+        """
         name = f"{APPNAME} Profile Loader"
         if AUTOSTART and is_superuser():
             autostart_lnkname = os.path.join(AUTOSTART, name + ".lnk")
@@ -10268,7 +10875,14 @@ usage: spotread [-options] [logfile]
         return True
 
     def _install_profile_loader_xdg(self, silent=False):
-        """Install profile loader"""
+        """Install profile loader.
+
+        Args:
+            silent (bool): If True, suppresses error messages.
+
+        Returns:
+            bool or Warning: True on success, Warning on error.
+        """
         # See http://standards.freedesktop.org/autostart-spec
         # Must return either True on success or an Exception object on error
         result = True
@@ -10390,13 +11004,28 @@ usage: spotread [-options] [logfile]
         return result
 
     def instrument_supports_ccss(self, instrument_name=None):
-        """Return whether instrument supports CCSS files or not"""
+        """Return whether instrument supports CCSS files or not.
+
+        Args:
+            instrument_name (str): Optional name of the instrument to check.
+
+        Returns:
+            bool: True if the instrument supports CCSS, False otherwise.
+        """
         if not instrument_name:
             instrument_name = self.get_instrument_name()
         return self.get_instrument_features(instrument_name).get("spectral_cal")
 
     def create_ccxx(self, args=None, working_dir=None):
-        """Create CCMX or CCSS"""
+        """Create CCMX or CCSS.
+
+        Args:
+            args (list): Additional arguments to pass to `ccxxmake`.
+            working_dir (str): Directory to run the command in.
+
+        Returns:
+            subprocess.CompletedProcess: The result of the command execution.
+        """
         if not args:
             args = []
         cmd = get_argyll_util("ccxxmake")
@@ -10427,8 +11056,18 @@ usage: spotread [-options] [logfile]
         )
 
     def create_gamut_views(self, profile_path):
-        """Generate gamut views (VRML files) and show progress in current
-        progress dialog"""
+        """Generate gamut views (VRML files).
+
+        Also show progress in current progress dialog.
+
+        Args:
+            profile_path (str): Path to the ICC profile for which to create
+                gamut views.
+
+        Returns:
+            tuple: A tuple containing the VRML file path and the profile path,
+                or (None, None) if gamut view creation is disabled.
+        """
         if getcfg("profile.create_gamut_views"):
             self.log("-" * 80)
             self.log(lang.getstr("gamut.view.create"))
@@ -10447,7 +11086,22 @@ usage: spotread [-options] [logfile]
         display_manufacturer=None,
         tags=None,
     ):
-        """Create an ICC profile and process the generated file"""
+        """Create an ICC profile and process the generated file.
+
+        Args:
+            dst_path (str): Path to save the profile to. If None, uses the
+                default save path and profile name.
+            skip_scripts (bool): If True, skips running scripts after profile
+                creation.
+            display_name (str): Optional display name for the profile.
+            display_manufacturer (str): Optional manufacturer name for the
+                display.
+            tags (list): Optional list of tags to apply to the profile.
+
+        Returns:
+            str or Exception: The path to the created profile on success, or an
+                Exception object on error.
+        """
         print(lang.getstr("create_profile"))
         if dst_path is None:
             dst_path = os.path.join(
@@ -11436,7 +12090,21 @@ usage: spotread [-options] [logfile]
         clutres=33,
         cat="Bradford",
     ):
-        """Create a RGB to XYZ forward profile"""
+        """Create a RGB to XYZ forward profile.
+
+        Args:
+            ti3 (dict): The TI3 data.
+            description (str): Profile description.
+            copyright_ (str): Profile copyright.
+            manufacturer (str): Profile manufacturer.
+            model (str): Profile model.
+            logfn (callable, optional): Function to log messages.
+            clutres (int, optional): Resolution of the cLUT.
+            cat (str, optional): Color appearance model.
+
+        Returns:
+            ICCProfile: The created ICC profile.
+        """
         # Extract grays and remaining colors
         (ti3_extracted, RGB_XYZ, remaining) = extract_device_gray_primaries(
             ti3, True, logfn
@@ -11688,6 +12356,28 @@ usage: spotread [-options] [logfile]
         bpc=False,
         cat="Bradford",
     ):
+        """Create a simple matrix profile from primaries and gray.
+
+        Args:
+            ti3_RGB_XYZ (dict): A dictionary with RGB tuples as keys and
+                XYZ tuples as values, representing the RGB to XYZ
+                measurements.
+            ti3_remaining (dict): A dictionary with RGB tuples as keys and
+                XYZ tuples as values, representing the remaining RGB to XYZ
+                measurements.
+            desc (str): The description of the profile.
+            copyright_ (str): The copyright of the profile.
+            display_manufacturer (str, optional): The manufacturer of the
+                display.
+            display_name (str, optional): The name of the display.
+            bpc (bool): If True, black point compensation will be applied.
+            cat (str): The chromatic adaptation transform to use, default is
+                'Bradford'.
+
+        Returns:
+            ICCProfile: An ICCProfile with fileName set to None, containing
+                the matrix tags created from the primaries and gray.
+        """
         self.log("-" * 80)
         self.log("Creating matrix from primaries")
         xy = []
@@ -11721,7 +12411,7 @@ usage: spotread [-options] [logfile]
     def _create_matrix_profile(
         self, outname, profile=None, ptype="s", omit=None, bpc=False, cat="Bradford"
     ):
-        """Create matrix profile from lookup through ti3
+        """Create matrix profile from lookup through ti3.
 
         <outname>.ti3 has to exist.
         If <profile> is given, it has to be an ICCProfile instance, and the
@@ -11733,7 +12423,21 @@ usage: spotread [-options] [logfile]
         and larger testchart for the matrix. This should give the smoothest
         overall result.
 
-        Returns an ICCProfile with fileName set to <outname>.ic[cm].
+        Args:
+            outname (str): The base name of the output profile, without
+                extension.
+            profile (ICCProfile, optional): An ICCProfile instance to which the
+                tags will be added. If not given, a new profile will be
+                created.
+            ptype (str): The type of profile to create, one of 'g', 'G', 's',
+                or 'S'.
+            omit (str, optional): If 'XYZ', the XYZ tags will not be created.
+            bpc (bool): If True, black point compensation will be applied.
+            cat (str): The chromatic adaptation transform to use, default is
+                'Bradford'.
+
+        Returns:
+            ICCProfile: An ICCProfile with fileName set to <outname>.ic[cm].
 
         """
         if profile:
@@ -11944,7 +12648,23 @@ usage: spotread [-options] [logfile]
         gamut_coverage=None,
         quality=None,
     ):
-        """Update profile tags and metadata"""
+        """Update profile tags and metadata.
+
+        Args:
+            profile (ICCProfile): The profile to update.
+            ti3 (str or bytes, optional): Original TI3 data to embed.
+            chrm (ChromaticityType, optional): Chromaticity data to add.
+            tags (dict or bool, optional): Custom tags to add or True for default tags.
+            avg (str, optional): Average error from profile check.
+            peak (str, optional): Peak error from profile check.
+            rms (str, optional): RMS error from profile check.
+            gamut_volume (float, optional): Gamut volume of the profile.
+            gamut_coverage (float, optional): Gamut coverage of the profile.
+            quality (str, optional): Quality of the profile, e.g., 'v', 'l', 'm', 'h'.
+
+        Returns:
+            ICCProfile: The updated profile.
+        """
         if isinstance(profile, str):
             profile_path = profile
             try:
@@ -12152,6 +12872,15 @@ usage: spotread [-options] [logfile]
         return True
 
     def get_logfiles(self, include_progress_buffers=True):
+        """Get logfiles for logging.
+
+        Args:
+            include_progress_buffers (bool): Whether to include progress buffers
+                in the returned logfiles. Defaults to True.
+
+        Returns:
+            LineBufferedStream: A stream that writes to the logfiles.
+        """
         linebuffered_logfiles = []
         if sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
             linebuffered_logfiles.append(print)
@@ -12180,6 +12909,26 @@ usage: spotread [-options] [logfile]
         smooth=None,
         rgb_space=None,
     ):
+        """Update B2A tables in profile.
+
+        Args:
+            profile (ICCProfile): The ICC profile to update.
+            generate_perceptual_table (bool): Whether to generate a perceptual
+                B2A table if not present.
+            clutres (int, optional): The resolution of the cLUT to generate.
+                If not specified, it will be determined based on the profile
+                settings.
+            smooth (bool, optional): Whether to apply smoothing to the
+                generated B2A table. Defaults to the value from the profile
+                configuration.
+            rgb_space (str, optional): The RGB color space to use for the
+                B2A table. If not specified, the RGB space from the profile
+                will be used.
+
+        Returns:
+            list | Exception: A list of generated B2A tables, or an exception
+                if an error occurred.
+        """
         # Use reverse A2B interpolation to generate B2A table
         if not clutres:
             if getcfg("profile.b2a.hires"):
@@ -12234,83 +12983,86 @@ usage: spotread [-options] [logfile]
         rtables = []
         filename = profile.fileName
         for tableno in tables:
-            if f"A2B{tableno:d}" in profile.tags:
-                if (
-                    f"B2A{tableno:d}" in profile.tags
-                    and profile.tags[f"B2A{tableno:d}"] in rtables
-                ):
-                    continue
-                if not isinstance(profile.tags[f"A2B{tableno:d}"], LUT16Type):
-                    self.log(
-                        f"{APPNAME}: Can't process non-LUT16Type A2B{tableno:d} table"
-                    )
-                    continue
-                # Check if we want to apply BPC
-                bpc = tableno != 1
-                if bpc and (
-                    profile.tags["A2B1"].clut[0][0] != [0, 0, 0]
-                    or profile.tags["A2B1"].input[0][0] != 0
-                    or profile.tags["A2B1"].input[1][0] != 0
-                    or profile.tags["A2B1"].input[2][0] != 0
-                    or profile.tags["A2B1"].output[0][0] != 0
-                    or profile.tags["A2B1"].output[1][0] != 0
-                    or profile.tags["A2B1"].output[2][0] != 0
-                ):
-                    # Need to apply BPC
-                    table = LUT16Type(profile=profile)
-                    # Copy existing B2A1 table matrix, cLUT and output curves
-                    table.matrix = rtables[0].matrix
-                    table.clut = rtables[0].clut
-                    table.output = rtables[0].output
-                    profile.tags[f"B2A{tableno:d}"] = table
-                elif bpc:
-                    # BPC not needed, copy existing B2A
-                    profile.tags[f"B2A{tableno:d}"] = rtables[0]
-                    return rtables
-                if not filename or not os.path.isfile(filename) or bpc:
-                    # Write profile to temp dir
-                    tempdir = self.create_tempdir()
-                    if isinstance(tempdir, Exception):
-                        return tempdir
-                    fd, profile.fileName = tempfile.mkstemp(PROFILE_EXT, dir=tempdir)
-                    stream = os.fdopen(fd, "wb")
-                    profile.write(stream)
-                    stream.close()
-                    temp = True
+            if f"A2B{tableno:d}" not in profile.tags:
+                continue
+            if (
+                f"B2A{tableno:d}" in profile.tags
+                and profile.tags[f"B2A{tableno:d}"] in rtables
+            ):
+                continue
+            if not isinstance(profile.tags[f"A2B{tableno:d}"], LUT16Type):
+                self.log(f"{APPNAME}: Can't process non-LUT16Type A2B{tableno:d} table")
+                continue
+            # Check if we want to apply BPC
+            bpc = tableno != 1
+            if bpc and (
+                profile.tags["A2B1"].clut[0][0] != [0, 0, 0]
+                or profile.tags["A2B1"].input[0][0] != 0
+                or profile.tags["A2B1"].input[1][0] != 0
+                or profile.tags["A2B1"].input[2][0] != 0
+                or profile.tags["A2B1"].output[0][0] != 0
+                or profile.tags["A2B1"].output[1][0] != 0
+                or profile.tags["A2B1"].output[2][0] != 0
+            ):
+                # Need to apply BPC
+                table = LUT16Type(profile=profile)
+                # Copy existing B2A1 table matrix, cLUT and output curves
+                table.matrix = rtables[0].matrix
+                table.clut = rtables[0].clut
+                table.output = rtables[0].output
+                profile.tags[f"B2A{tableno:d}"] = table
+            elif bpc:
+                # BPC not needed, copy existing B2A
+                profile.tags[f"B2A{tableno:d}"] = rtables[0]
+                return rtables
+            if not filename or not os.path.isfile(filename) or bpc:
+                # Write profile to temp dir
+                tempdir = self.create_tempdir()
+                if isinstance(tempdir, Exception):
+                    return tempdir
+                fd, profile.fileName = tempfile.mkstemp(PROFILE_EXT, dir=tempdir)
+                stream = os.fdopen(fd, "wb")
+                profile.write(stream)
+                stream.close()
+                temp = True
+            else:
+                temp = False
+            # Invert A2B
+            try:
+                result = self.generate_B2A_from_inverse_table(
+                    profile,
+                    clutres,
+                    "A2B",
+                    tableno,
+                    bpc,
+                    smooth,
+                    rgb_space,
+                    logfiles,
+                    filename,
+                    bpc,
+                )
+            except (Error, Info) as exception:
+                return exception
+            except Exception as exception:
+                self.log(traceback.format_exc())
+                return exception
+            else:
+                if result:
+                    rtables.append(profile.tags[f"B2A{tableno:d}"])
                 else:
-                    temp = False
-                # Invert A2B
-                try:
-                    result = self.generate_B2A_from_inverse_table(
-                        profile,
-                        clutres,
-                        "A2B",
-                        tableno,
-                        bpc,
-                        smooth,
-                        rgb_space,
-                        logfiles,
-                        filename,
-                        bpc,
-                    )
-                except (Error, Info) as exception:
-                    return exception
-                except Exception as exception:
-                    self.log(traceback.format_exc())
-                    return exception
-                else:
-                    if result:
-                        rtables.append(profile.tags[f"B2A{tableno:d}"])
-                    else:
-                        return False
-                finally:
-                    if temp:
-                        os.remove(profile.fileName)
-                        profile.fileName = filename
+                    return False
+            finally:
+                if temp:
+                    os.remove(profile.fileName)
+                    profile.fileName = filename
         return rtables
 
     def is_working(self):
-        """Check if any Worker instance is busy. Return True or False."""
+        """Check if any Worker instance is busy.
+
+        Returns:
+            bool: Return True or False.
+        """
         return any(not getattr(worker, "finished", True) for worker in workers)
 
     def start_measurement(
@@ -12321,8 +13073,18 @@ usage: spotread [-options] [logfile]
         resume=False,
         continue_next=False,
     ):
-        """Start a measurement and use a progress dialog for progress
-        information"""
+        """Start a measurement and use a progress dialog for progress information.
+
+        Args:
+            consumer (callable): The consumer function to call with progress
+                updates.
+            apply_calibration (bool): If True, apply calibration to the
+                measurements.
+            progress_msg (str): Message to display in the progress dialog.
+            resume (bool): If True, resume from the last measurement point.
+            continue_next (bool): If True, continue to the next step after
+                measurement.
+        """
         self.start(
             consumer,
             self.measure,
@@ -12336,8 +13098,18 @@ usage: spotread [-options] [logfile]
     def start_calibration(
         self, consumer, remove=False, progress_msg="", resume=False, continue_next=False
     ):
-        """Start a calibration and use a progress dialog for progress
-        information"""
+        """Start a calibration and use a progress dialog for progress information.
+
+        Args:
+            consumer (callable): The consumer function to call with progress
+                updates.
+            remove (bool): If True, remove existing calibration before
+                starting.
+            progress_msg (str): Message to display in the progress dialog.
+            resume (bool): If True, resume from the last calibration point.
+            continue_next (bool): If True, continue to the next step after
+                calibration.
+        """
         self.start(
             consumer,
             self.calibrate,
@@ -12350,16 +13122,23 @@ usage: spotread [-options] [logfile]
         )
 
     def madtpg_init(self):
-        if not hasattr(self, "madtpg"):
-            if sys.platform == "win32" and getcfg("madtpg.native"):
-                # Using native implementation (madHcNet32.dll)
-                self.madtpg = madvr.MadTPG()
-            else:
-                # Using madVR net-protocol pure python implementation
-                self.madtpg = madvr.MadTPGNet()
-                self.madtpg.debug = VERBOSE
+        """Initialize madTPG connection."""
+        if hasattr(self, "madtpg"):
+            return
+        if sys.platform == "win32" and getcfg("madtpg.native"):
+            # Using native implementation (madHcNet32.dll)
+            self.madtpg = madvr.MadTPG()
+        else:
+            # Using madVR net-protocol pure python implementation
+            self.madtpg = madvr.MadTPGNet()
+            self.madtpg.debug = VERBOSE
 
     def madtpg_connect(self):
+        """Connect to madTPG and check version.
+
+        Returns:
+            bool: True if connected successfully, False otherwise.
+        """
         self.madtpg_init()
         self.patterngenerator = self.madtpg
         if self.madtpg.connect(method3=madvr.CM_StartLocalInstance, timeout3=3000):
@@ -12378,7 +13157,12 @@ usage: spotread [-options] [logfile]
         return False
 
     def madtpg_disconnect(self, restore_settings=True):
-        """Restore madVR settings and disconnect"""
+        """Restore madVR settings and disconnect.
+
+        Args:
+            restore_settings (bool): If True, restore madTPG settings before
+                disconnecting. If False, do not restore settings.
+        """
         if restore_settings:
             self.madtpg_restore_settings()
         if self.madtpg.disconnect():
@@ -12387,58 +13171,78 @@ usage: spotread [-options] [logfile]
     def madtpg_restore_settings(
         self, reconnect=True, restore_fullscreen=None, restore_osd=None
     ):
+        """Restore madTPG settings (fullscreen and OSD).
+
+        Args:
+            reconnect (bool): If True, re-connect to madTPG before restoring
+                settings. If False, assume madTPG is already connected.
+            restore_fullscreen (bool): If True, restore the fullscreen state
+                of madTPG. If None, use the previous state stored in
+                `madtpg_previous_fullscreen`.
+            restore_osd (bool): If True, restore the OSD state of madTPG.
+                If None, use the previous state stored in `madtpg_osd`.
+                If both `restore_fullscreen` and `restore_osd` are None, no
+                settings are restored.
+        """
         if restore_fullscreen is None:
             restore_fullscreen = getattr(self, "madtpg_previous_fullscreen", None)
         if restore_osd is None:
             restore_osd = getattr(self, "madtpg_osd", None) is False
-        if restore_fullscreen or restore_osd:
-            check = not reconnect or self.madtpg.get_version()
-            if not check and reconnect:
-                check = self.madtpg_connect()
-            if check:
-                if restore_fullscreen:
-                    # Restore fullscreen
-                    if self.madtpg.set_use_fullscreen_button(True):
-                        self.log(
-                            f"{APPNAME}: Restored madTPG 'use fullscreen' button state"
-                        )
-                        self.madtpg_previous_fullscreen = None
-                    else:
-                        self.log(
-                            f"{APPNAME}: Warning - couldn't restore madTPG "
-                            "'use fullscreen' button state"
-                        )
-                    if not reconnect:
-                        if self.madtpg.is_fse_mode_enabled():
-                            # Allow three seconds for automatic switch to FSE
-                            sleep(3)
-                        # Allow three seconds for fullscreen to settle
+        if not restore_fullscreen and not restore_osd:
+            return
+
+        check = not reconnect or self.madtpg.get_version()
+        if not check and reconnect:
+            check = self.madtpg_connect()
+        if check:
+            if restore_fullscreen:
+                # Restore fullscreen
+                if self.madtpg.set_use_fullscreen_button(True):
+                    self.log(
+                        f"{APPNAME}: Restored madTPG 'use fullscreen' button state"
+                    )
+                    self.madtpg_previous_fullscreen = None
+                else:
+                    self.log(
+                        f"{APPNAME}: Warning - couldn't restore madTPG "
+                        "'use fullscreen' button state"
+                    )
+                if not reconnect:
+                    if self.madtpg.is_fse_mode_enabled():
+                        # Allow three seconds for automatic switch to FSE
                         sleep(3)
-                if restore_osd:
-                    # Restore disable OSD
-                    if self.madtpg.set_disable_osd_button(True):
-                        self.log(
-                            f"{APPNAME}: Restored madTPG 'disable OSD' button state"
-                        )
-                        self.madtpg_osd = None
-                    else:
-                        self.log(
-                            f"{APPNAME}: Warning - couldn't restore madTPG "
-                            "'disable OSD' button state"
-                        )
-            else:
-                buttons = []
-                if restore_fullscreen:
-                    buttons.append("'use fullscreen'")
-                if restore_osd:
-                    buttons.append("'disable OSD'")
-                self.log(
-                    f"{APPNAME}: Warning - couldn't re-connect to madTPG "
-                    f"to restore {'/'.join(buttons)} button states"
-                )
+                    # Allow three seconds for fullscreen to settle
+                    sleep(3)
+            if restore_osd:
+                # Restore disable OSD
+                if self.madtpg.set_disable_osd_button(True):
+                    self.log(f"{APPNAME}: Restored madTPG 'disable OSD' button state")
+                    self.madtpg_osd = None
+                else:
+                    self.log(
+                        f"{APPNAME}: Warning - couldn't restore madTPG "
+                        "'disable OSD' button state"
+                    )
+        else:
+            buttons = []
+            if restore_fullscreen:
+                buttons.append("'use fullscreen'")
+            if restore_osd:
+                buttons.append("'disable OSD'")
+            self.log(
+                f"{APPNAME}: Warning - couldn't re-connect to madTPG "
+                f"to restore {'/'.join(buttons)} button states"
+            )
 
     def madtpg_show_osd(self, msg=None, leave_fullscreen=False):
-        """Show madTPG OSD, optionally with message and leaving fullscreen"""
+        """Show madTPG OSD, optionally with message and leaving fullscreen.
+
+        Args:
+            msg (str): Message to show in OSD. If None, no message is shown.
+            leave_fullscreen (bool): If True, leave fullscreen mode if
+                currently in fullscreen mode. If False, stay in fullscreen
+                mode.
+        """
         if self.madtpg.is_fullscreen() and leave_fullscreen:
             self.madtpg_previous_fullscreen = True
             self.madtpg.set_use_fullscreen_button(False)
@@ -12451,7 +13255,15 @@ usage: spotread [-options] [logfile]
                 self.madtpg.show_progress_bar(6)
 
     def measure(self, apply_calibration=True):
-        """Measure the configured testchart."""
+        """Measure the configured testchart.
+
+        Args:
+            apply_calibration (bool): If True, apply calibration to the
+                measurement. If False, use the raw measurement data.
+
+        Returns:
+            True if successful, or an Exception if an error occurred.
+        """
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
@@ -12640,10 +13452,18 @@ usage: spotread [-options] [logfile]
         return result
 
     def ensure_patch_sequence(self, ti1, write=True):
-        """Ensure correct patch sequence of TI1 file
+        """Ensure correct patch sequence of TI1 file.
 
         Return either the changed CGATS object or the original path/TI1
 
+        Args:
+            ti1 (str or CGATS): Path to TI1 file or CGATS object.
+            write (bool): If True, write the modified TI1 back to the original
+                file. If False, return the modified CGATS object without writing.
+
+        Returns:
+            str | CGATS: The modified CGATS object if the patch sequence was
+                changed, or the original path/TI1 if no changes were made.
         """
         patch_sequence = getcfg("testchart.patch_sequence")
         if patch_sequence != "optimize_display_response_delay":
@@ -12692,6 +13512,11 @@ usage: spotread [-options] [logfile]
         return ti1
 
     def parse(self, txt):
+        """Parse the command output and check for specific conditions.
+
+        Args:
+            txt (str): Command output.
+        """
         if not txt:
             return
         self.logger.info(f"{txt}")
@@ -12703,53 +13528,62 @@ usage: spotread [-options] [logfile]
         self.check_spotread_result(txt)
 
     def audio_visual_feedback(self, txt):
+        """Provide audio/visual feedback based on the command output.
+
+        Args:
+            txt (str): Command output.
+        """
         if isinstance(txt, bytes):
             txt = txt.decode()
 
-        if self.cmdname in (
+        if self.cmdname not in (
             get_argyll_utilname("dispcal"),
             get_argyll_utilname("dispread"),
             get_argyll_utilname("spotread"),
         ):
-            if (
-                self.cmdname == get_argyll_utilname("dispcal")
-                and ", repeat" in txt.lower()
-            ):
-                self.repeat = True
-            elif ", ok" in txt.lower():
-                self.repeat = False
-            if (
-                re.search(r"Patch [2-9]\d* of ", txt, re.I)
-                or (
-                    re.search(
-                        r"Patch \d+ of |The instrument can be removed from the screen",
-                        txt,
-                        re.I,
-                    )
-                    and self.patch_count > 1
+            return
+
+        if self.cmdname == get_argyll_utilname("dispcal") and ", repeat" in txt.lower():
+            self.repeat = True
+        elif ", ok" in txt.lower():
+            self.repeat = False
+        if (
+            re.search(r"Patch [2-9]\d* of ", txt, re.I)
+            or (
+                re.search(
+                    r"Patch \d+ of |The instrument can be removed from the screen",
+                    txt,
+                    re.I,
                 )
-                or (
-                    "Result is XYZ:" in txt
-                    and not isinstance(self.progress_wnd, UntetheredFrame)
-                )
-            ):
-                if self.cmdname == get_argyll_utilname("dispcal") and self.repeat:
-                    if getcfg("measurement.play_sound") and hasattr(
-                        self.progress_wnd, "sound_on_off_btn"
-                    ):
-                        self.measurement_sound.safe_play()
-                else:
-                    if getcfg("measurement.play_sound") and (
-                        hasattr(self.progress_wnd, "sound_on_off_btn")
-                        or isinstance(self.progress_wnd, DisplayUniformityFrame)
-                        or getattr(self.progress_wnd, "Name", None)
-                        == "VisualWhitepointEditor"
-                    ):
-                        self.commit_sound.safe_play()
-                    if hasattr(self.progress_wnd, "animbmp"):
-                        self.progress_wnd.animbmp.frame = 0
+                and self.patch_count > 1
+            )
+            or (
+                "Result is XYZ:" in txt
+                and not isinstance(self.progress_wnd, UntetheredFrame)
+            )
+        ):
+            if self.cmdname == get_argyll_utilname("dispcal") and self.repeat:
+                if getcfg("measurement.play_sound") and hasattr(
+                    self.progress_wnd, "sound_on_off_btn"
+                ):
+                    self.measurement_sound.safe_play()
+            else:
+                if getcfg("measurement.play_sound") and (
+                    hasattr(self.progress_wnd, "sound_on_off_btn")
+                    or isinstance(self.progress_wnd, DisplayUniformityFrame)
+                    or getattr(self.progress_wnd, "Name", None)
+                    == "VisualWhitepointEditor"
+                ):
+                    self.commit_sound.safe_play()
+                if hasattr(self.progress_wnd, "animbmp"):
+                    self.progress_wnd.animbmp.frame = 0
 
     def setup_patterngenerator(self, logfile=None):
+        """Set up the pattern generator instance based on the current configuration.
+
+        Args:
+            logfile (File, optional): Log file to use for the pattern generator.
+        """
         pgname = config.get_display_name(None, True)
         if self.patterngenerator:
             # Use existing pattern generator instance
@@ -12801,22 +13635,56 @@ usage: spotread [-options] [logfile]
 
     @property
     def patterngenerator(self):
+        """Return the current pattern generator instance.
+
+        Returns:
+            PatternGenerator: Instance of a pattern generator class, such as
+                PrismaPatternGeneratorClient or
+                WebWinHTTPPatternGeneratorServer.
+        """
         pgname = config.get_display_name()
         return self._patterngenerators.get(pgname)
 
     @patterngenerator.setter
     def patterngenerator(self, patterngenerator):
+        """Set the current pattern generator instance.
+
+        Args:
+            patterngenerator (PatternGenerator): Instance of a pattern
+                generator class, such as PrismaPatternGeneratorClient or
+                WebWinHTTPPatternGeneratorServer.
+        """
         pgname = config.get_display_name()
         self._patterngenerators[pgname] = patterngenerator
 
     @property
     def patterngenerators(self):
+        """Return all pattern generators.
+
+        Returns:
+            dict: Dictionary of pattern generator instances, keyed by display
+        """
         return self._patterngenerators
 
     def patterngenerator_send(
         self, rgb, bgrgb=None, raise_exceptions=False, increase_sent_count=True
     ):
-        """Send RGB color to pattern generator"""
+        """Send RGB color to pattern generator.
+
+        Args:
+            rgb (tuple): RGB color to send, as a tuple of three floats in the
+                range [0, 1].
+            bgrgb (tuple, optional): Background RGB color to send, as a tuple
+                of three floats in the range [0, 1]. Defaults to None.
+            raise_exceptions (bool, optional): Whether to raise exceptions on
+                failure. Defaults to False.
+            increase_sent_count (bool, optional): Whether to increase the sent
+                count. Defaults to True.
+
+        Returns:
+            None or Exception: Returns None if successful, or an Exception if
+                an error occurred.
+        """
         if getattr(self, "abort_requested", False):
             return
         x, y, w, h, size = get_pattern_geometry()
@@ -12868,14 +13736,22 @@ usage: spotread [-options] [logfile]
 
     @property
     def pauseable(self):
+        """Return whether the current measurement or calibration is pauseable.
+
+        Returns:
+            bool: True if the current measurement or calibration is pauseable,
+                False otherwise.
+        """
         return self._pauseable
 
     @pauseable.setter
     def pauseable(self, pauseable):
+        """Set whether the current measurement or calibration is pauseable."""
         self._pauseable = pauseable
         self.pauseable_now = False
 
     def pause_continue(self):
+        """Pause or continue the current measurement or calibration."""
         if not self.pauseable or not self.pauseable_now:
             return
         if getattr(self.progress_wnd, "paused", False) and not getattr(
@@ -13806,7 +14682,7 @@ usage: spotread [-options] [logfile]
         return cmd, args
 
     def progress_handler(self, event):
-        """Handle progress dialog updates and react to Argyll CMS command output"""
+        """Handle progress dialog updates and react to Argyll CMS command output."""
         if getattr(self, "subprocess_abort", False) or getattr(
             self, "thread_abort", False
         ):
@@ -13946,7 +14822,7 @@ usage: spotread [-options] [logfile]
     def progress_dlg_start(
         self, progress_title="", progress_msg="", parent=None, resume=False, fancy=True
     ):
-        """Start a progress dialog, replacing existing one if present"""
+        """Start a progress dialog, replacing existing one if present."""
         if self._progress_wnd and self.progress_wnd is getattr(self, "terminal", None):
             self.terminal.stop_timer()
             self.terminal.Hide()
@@ -14015,7 +14891,7 @@ usage: spotread [-options] [logfile]
         self.progress_wnd.original_msg = progress_msg
 
     def set_progress_type(self):
-        """Set progress type for fancy progress dialog"""
+        """Set progress type for fancy progress dialog."""
         if hasattr(self.progress_wnd, "progress_type"):
             if self.pauseable or getattr(self, "interactive_frame", "") in (
                 "ambient",
@@ -14171,7 +15047,17 @@ usage: spotread [-options] [logfile]
         return not subprocess_isalive
 
     def report(self, report_calibrated=True):
-        """Report on calibrated or uncalibrated display device response"""
+        """Report on calibrated or uncalibrated display device response.
+
+        Args:
+            report_calibrated (bool): If True, report on calibrated display
+                device response, otherwise report on uncalibrated display
+                device response.
+
+        Returns:
+            str | Exception: a string containing the report if
+                successful, an Exception if an error occurs.
+        """
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
@@ -14186,27 +15072,47 @@ usage: spotread [-options] [logfile]
         return self.exec_cmd(cmd, args, capture_output=True, skip_scripts=True)
 
     def reset_cal(self):
+        """Reset the current display calibration.
+
+        Returns:
+            None | Exception: None if successful, or an Exception if an error
+                occurs.
+        """
         cmd, args = self.prepare_dispwin(False)
         return self.exec_cmd(
             cmd, args, capture_output=True, skip_scripts=True, silent=False
         )
 
-    def safe_send(self, bytes_):
-        self.send_buffer = bytes_
+    def safe_send(self, data):
+        """Send data to the current subprocess, retrying if necessary.
+
+        Returns:
+            bool: Always send True.
+        """
+        self.send_buffer = data
         return True
 
-    def _safe_send(self, bytes_, retry=3, obfuscate=False):
-        """Safely send a keystroke to the current subprocess."""
+    def _safe_send(self, data, retry=3, obfuscate=False):
+        """Safely send a keystroke to the current subprocess.
+
+        Args:
+            data (str): Data to send to the subprocess.
+            retry (int): Number of times to retry sending the data.
+            obfuscate (bool): If True, obfuscate the data in the log output.
+
+        Returns:
+            bool: True if the data was sent successfully, False otherwise.
+        """
         for i in range(retry):
-            logbytes = "***" if obfuscate else bytes_
+            logbytes = "***" if obfuscate else data
             self.logger.info(f"Sending key(s) {logbytes} ({i + 1:d})")
             try:
                 if sys.platform == "win32":
                     # directly send the bytes_ without encoding to anything
-                    self.subprocess.send(bytes_)
+                    self.subprocess.send(data)
                 else:
                     # for Linux and MacOS encode to bytes
-                    self.subprocess.send(bytes_.encode())
+                    self.subprocess.send(data.encode())
             except Exception as exception:
                 self.logger.exception(f"Exception: {exception}")
             else:
@@ -14217,7 +15123,19 @@ usage: spotread [-options] [logfile]
     def save_current_video_lut(
         self, display_no, outfilename, interpolate_to_256=True, silent=False
     ):
-        """Save current videoLUT, optionally interpolating to n entries"""
+        """Save current videoLUT, optionally interpolating to n entries.
+
+        Args:
+            display_no (int): Display number to save the videoLUT for.
+            outfilename (str): Output filename to save the videoLUT to.
+            interpolate_to_256 (bool): If True, interpolate the videoLUT to 256
+                entries.
+            silent (bool): If True, do not print any messages.
+
+        Returns:
+            None | Exception: None if successful, or an Exception if an error
+                occurs.
+        """
         result = None
         if self.argyll_version[0:3] > [1, 1, 0] or (
             self.argyll_version[0:3] == [1, 1, 0]
@@ -14266,11 +15184,24 @@ usage: spotread [-options] [logfile]
         return result
 
     def set_argyll_version(self, name, silent=False, cfg=False):
+        """Set the Argyll CMS version from a name.
+
+        Args:
+            name (str): Name of the Argyll CMS version to set.
+            silent (bool): If True, do not print the version string.
+            cfg (bool): If True, write the version to the configuration.
+        """
         self.set_argyll_version_from_string(
             get_argyll_version_string(name, silent), cfg
         )
 
     def set_argyll_version_from_string(self, argyll_version_string, cfg=True):
+        """Set the Argyll CMS version from a version string.
+
+        Args:
+            argyll_version_string (str): The version string to set.
+            cfg (bool): If True, write the version to the configuration.
+        """
         self.argyll_version_string = argyll_version_string
         if cfg:
             setcfg("argyll.version", argyll_version_string)
@@ -14280,7 +15211,15 @@ usage: spotread [-options] [logfile]
             writecfg()
         self.argyll_version = parse_argyll_version_string(argyll_version_string)
 
-    def set_sessionlogfile(self, sessionlogfile, basename, dirname):
+    def set_sessionlogfile(self, sessionlogfile, basename, dirname) -> None:
+        """Set the session logfile for the current session.
+
+        Args:
+            sessionlogfile (None | LogFile): LogFile object for the session
+                log, or None to create a new one.
+            basename (str): Basename for the session log file.
+            dirname (str): Directory where the session log file will be stored.
+        """
         if sessionlogfile:
             self.sessionlogfile = sessionlogfile
         else:
@@ -14288,6 +15227,15 @@ usage: spotread [-options] [logfile]
         self.sessionlogfiles[basename] = self.sessionlogfile
 
     def set_terminal_cgats(self, cgats):
+        """Set the CGATS object for the terminal.
+
+        Args:
+            cgats (CGATS): CGATS object.
+
+        Returns:
+            None | Exception: None if successful, or an Exception if an error
+                occurs.
+        """
         if not isinstance(cgats, CGATS):
             try:
                 cgats = CGATS(cgats)
@@ -14304,7 +15252,16 @@ usage: spotread [-options] [logfile]
         return None
 
     def setup_inout(self, basename=None):
-        """Setup in/outfile basename and session logfile."""
+        """Setup in/outfile basename and session logfile.
+
+        Args:
+            basename (None | str): Basename for the in/output file(s). If None,
+                it will use the expanded profile name from the configuration.
+
+        Returns:
+            str | Exception: Full path to the in/output file(s) or an Exception
+                if an error occurs.
+        """
         dirname = self.create_tempdir()
         if not dirname or isinstance(dirname, Exception):
             return dirname
@@ -14319,14 +15276,23 @@ usage: spotread [-options] [logfile]
         return os.path.join(dirname, basename)
 
     def single_real_display(self):
+        """Check if there is only one real display connected.
+
+        Returns:
+            bool: True if there is only one real display, False otherwise.
+        """
         return len(self.get_real_displays()) == 1
 
     def argyll_support_file_exists(self, name, scope=None):
-        """Check if named file exists in any of the known Argyll support
-        locations valid for the chosen Argyll CMS version.
+        """Check if file exists in Argyll support locations for current version.
 
-        Scope can be 'u' (user), 'l' (local system) or None (both)
+        Args:
+            name (str): Name of the file to check for.
+            scope (None | str): Scope can be 'u' (user), 'l' (local system) or
+                None (both)
 
+        Returns:
+            bool: True if the file exists, False otherwise.
         """
         paths = []
         if sys.platform != "darwin":
@@ -14367,11 +15333,14 @@ usage: spotread [-options] [logfile]
         return any(os.path.isfile(searchpath) for searchpath in searchpaths)
 
     def spyder2_firmware_exists(self, scope=None):
-        """Check if the Spyder 2 firmware file exists in any of the known
-        locations valid for the chosen Argyll CMS version.
+        """Check if the Spyder 2 firmware file exists for the current Argyll version.
 
-        Scope can be 'u' (user), 'l' (local system) or None (both)
+        Args:
+            scope (None | str): Scope can be 'u' (user), 'l' (local system) or
+                None (both).
 
+        Returns:
+            bool: True if the Spyder 2 firmware file exists, False otherwise.
         """
         if self.argyll_version < [1, 2, 0]:
             spyd2en = get_argyll_util("spyd2en")
@@ -14383,8 +15352,12 @@ usage: spotread [-options] [logfile]
         return self.argyll_support_file_exists("spyd2PLD.bin", scope=scope)
 
     def spyder4_cal_exists(self):
-        """Check if the Spyder4/5 calibration file exists in any of the known
-        locations valid for the chosen Argyll CMS version."""
+        """Check if Spyder4/5 calibration file exists for current Argyll version.
+
+        Returns:
+            bool: True if the Spyder4/5 calibration file exists, False
+                otherwise.
+        """
         if self.argyll_version < [1, 3, 6]:
             # We couldn't use it even if it exists
             return False
@@ -14411,6 +15384,39 @@ usage: spotread [-options] [logfile]
         show_remaining_time=True,
         fancy=True,
     ):
+        """Start a worker process with a progress dialog.
+
+        Args:
+            consumer (callable): Consumer function to handle results.
+            producer (callable): Producer function to run in a separate thread.
+            cargs (tuple): Arguments for the consumer function.
+            ckwargs (dict): Keyword arguments for the consumer function.
+            wargs (tuple): Arguments for the producer function.
+            wkwargs (dict): Keyword arguments for the producer function.
+            progress_title (str): Title for the progress dialog. Defaults to
+                '{APPNAME}'.
+            progress_msg (str): Message for the progress dialog. Defaults to ''.
+            parent (wx.Window): Parent window for the progress dialog.
+            progress_start (int): Delay before showing the progress dialog (ms).
+            resume (bool): Resume previous progress dialog (elapsed time etc).
+            continue_next (bool): Do not hide progress dialog after producer
+                finishes.
+            stop_timers (bool): Stop the timers on the owner window if True.
+            interactive_frame (str or wx.TopLevelWindow): Type of interactive
+                window or a wx.TopLevelWindow instance.
+            pauseable (bool): Is the operation pauseable? Show pause button on
+                the progress dialog.
+            cancelable (bool): Is the operation cancelable? Show cancel button
+                on the progress dialog.
+            show_remaining_time (bool): Show remaining time in the progress
+                dialog.
+            fancy (bool): Use fancy progress dialog with animated throbber &
+                sound effects.
+
+        Returns:
+            None: If the worker thread is already running.
+            bool: True if the worker thread was started successfully,
+        """
         # The following statement is super hacky, I didn't want to use it but the
         # original developer wanted to add the ``appname`` into the docstring
         # programmatically. So, I think this is the best but hacky way to do it.
@@ -14617,6 +15623,7 @@ usage: spotread [-options] [logfile]
         return True
 
     def stop_progress(self):
+        """Stop the progress dialog and clean up."""
         if hasattr(self, "_disabler"):
             del self._disabler
         if getattr(self, "progress_wnd", False):
@@ -14654,7 +15661,7 @@ usage: spotread [-options] [logfile]
                         self.log(f"{APPNAME}: Uninhibited {bus_name}")
 
     def swap_progress_wnds(self):
-        """Swap the current interactive window with a progress dialog"""
+        """Swap the current interactive window with a progress dialog."""
         parent = self.terminal.GetParent()
         if isinstance(self.terminal, DisplayAdjustmentFrame):
             title = lang.getstr("calibration")
@@ -14663,7 +15670,11 @@ usage: spotread [-options] [logfile]
         self.progress_dlg_start(title, "", parent, self.resume, self.fancy)
 
     def terminal_key_handler(self, event):
-        """Key handler for the interactive window or progress dialog."""
+        """Key handler for the interactive window or progress dialog.
+
+        Args:
+            event (wx.Event): The key event to handle.
+        """
         keycode = None
         if event.GetEventType() in (wx.EVT_CHAR_HOOK.typeId, wx.EVT_KEY_DOWN.typeId):
             keycode = event.GetKeyCode()
@@ -14692,8 +15703,26 @@ usage: spotread [-options] [logfile]
     ):
         """Calculate gamut, volume, and coverage % against sRGB and Adobe RGB.
 
-        Return gamut volume (int, scaled to sRGB = 1.0) and
-        coverage (dict) as tuple.
+        Return gamut volume (int, scaled to sRGB = 1.0) and coverage (dict) as
+        tuple.
+
+        Args:
+            profile_paths (str or list): Path(s) to ICC profile(s) to calculate
+                gamut from.
+            intent (str): Rendering intent, one of "r" (relative colorimetric),
+                "s" (saturation), "m" (perceptual), "a" (absolute
+                colorimetric).
+            direction (str): Gamut direction, one of "f" (forward), "b"
+                (backward).
+            order (str): Gamut order, one of "n" (normal), "i" (interpolated),
+                "c" (continuous).
+            compare_standard_gamuts (bool): If True, compare gamut against
+                standard gamuts (sRGB, Adobe RGB, DCI-P3) and create
+                intersection VRML files. If False, only create gamut VRML files
+                for the provided profile(s).
+
+        Returns:
+            tuple: (gamut_volume, gamut_coverage)
         """
         if not isinstance(profile_paths, list):
             profile_paths = [profile_paths]
@@ -14901,7 +15930,16 @@ usage: spotread [-options] [logfile]
     def create_gamut_view_worker(
         worker, viewgam, args, key, src, gamut_coverage
     ) -> None:
-        """Gamut view creation producer"""
+        """Gamut view creation producer.
+
+        Args:
+            worker (Worker): Worker instance to execute the command.
+            viewgam (str): Path to the viewgam executable.
+            args (list): Arguments for the viewgam command.
+            key (str): Key for the gamut coverage dictionary.
+            src (str): Source file name for the gamut view.
+            gamut_coverage (dict): Dictionary to store the coverage percentage.
+        """
         try:
             result = worker.exec_cmd(
                 viewgam,
@@ -14932,7 +15970,17 @@ usage: spotread [-options] [logfile]
             worker.log(traceback.format_exc())
 
     def calibrate(self, remove=False):
-        """Calibrate the screen and process the generated file(s)."""
+        """Calibrate the screen and process the generated file(s).
+
+        Args:
+            remove (bool): If True, remove the generated calibration files
+                after processing. Defaults to False.
+
+        Returns:
+            result (Exception or bool): Returns an Exception if an error
+                occurs, or True if the calibration was successful. If no
+                calibration was performed, it returns False.
+        """
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
@@ -15053,6 +16101,12 @@ usage: spotread [-options] [logfile]
 
     @property
     def calibration_loading_generally_supported(self):
+        """Check if loading/clearing calibration is generally supported.
+
+        Returns:
+            bool: True if loading/clearing calibration is generally supported,
+                False otherwise.
+        """
         # Loading/clearing calibration seems to have undesirable side-effects
         # on Mac OS X 10.6 and newer
         # Wayland does not support videoLUT access (only by installing a
@@ -15064,6 +16118,12 @@ usage: spotread [-options] [logfile]
 
     @property
     def calibration_loading_supported(self):
+        """Check if loading/clearing calibration is supported.
+
+        Returns:
+            bool: True if loading/clearing calibration is supported, False
+                otherwise.
+        """
         # Loading/clearing calibration seems to have undesirable side-effects
         # on Mac OS X 10.6 and newer
         return (
@@ -15171,7 +16231,7 @@ usage: spotread [-options] [logfile]
             # Generate RGB input values
             # Reduce interpolation res as target whitepoint moves farther away
             # from profile whitepoint in RGB
-            res = max(int(round((min(RGBclip[:3]) / 1.0) * 33)), 9)
+            res = max(round((min(RGBclip[:3]) / 1.0) * 33), 9)
             logfiles.write(f"Interpolation res {res:d}\n")
             RGBscaled = []
             for i in range(res):
@@ -15391,7 +16451,7 @@ BEGIN_DATA
         white_patches_total=True,
         raise_exceptions=False,
     ):
-        """Lookup CIE or device values through profile"""
+        """Lookup CIE or device values through profile."""
         if profile.colorSpace == b"RGB":
             labels = ("RGB_R", "RGB_G", "RGB_B")
         else:
@@ -15490,10 +16550,32 @@ BEGIN_DATA
         white_patches=4,
         white_patches_total=True,
     ):
-        """Read TI1 (filename or CGATS instance), lookup device->pcs values
-        colorimetrically through profile using Argyll's xicclu
-        utility and return TI3 (CGATS instance)
+        """Read TI1 (filename or CGATS instance) and lookup device->pcs values.
 
+        Lookup device->pcs values colorimetrically through profile using
+        Argyll's xicclu utility and return TI3 (CGATS instance).
+
+        Args:
+            ti1 (str or CGATS): Filename of TI1 file or CGATS instance.
+            profile (ICCProfile): ICC profile to use for lookup.
+            function (str): Function to use for lookup, 'f' for forward,
+                'b' for backward, 'a' for adapt.
+            pcs (str): PCS color space, 'l' for Lab, 'x' for XYZ.
+            intent (str): Rendering intent, 'r' for relative colorimetric,
+                'a' for absolute colorimetric.
+            white_patches (int): Number of white patches to add to the TI1.
+            white_patches_total (bool): If True, ensure total of n white
+                patches, if False, add exactly n white patches.
+
+        Raises:
+            TypeError: If `ti1` is not a CGATS instance or a valid filename.
+            ValueError: If `ti1` is invalid or missing required fields.
+
+        Returns:
+            tuple: A tuple containing:
+                - CGATS instance of TI3 with device->pcs values.
+                - CGATS instance of TI3 with reference values (if available).
+                - Gray patch data (if available).
         """
         # ti1
         if isinstance(ti1, str):
@@ -15825,9 +16907,34 @@ BEGIN_DATA
     def ti3_lookup_to_ti1(
         self, ti3, profile, fields=None, intent="r", add_white_patches=4
     ):
-        """Read TI3 (filename or CGATS instance), lookup cie->device values
-        colorimetrically through profile using Argyll's xicclu
-        utility and return TI1 and compatible TI3 (CGATS instances)
+        """Read TI3 (filename or CGATS instance) and lookup cie->device values.
+
+        Lookup cie->device values colorimetrically through profile using
+        Argyll's xicclu utility and return TI1 and compatible TI3 (CGATS
+        instances).
+
+        Args:
+            ti3 (str or CGATS): TI3 filename or CGATS instance.
+            profile (str or ICCProfile): Profile filename or ICCProfile
+                instance.
+            fields (str): CIE color representation to use, either "XYZ" or
+                "LAB".
+            intent (str): Rendering intent to use, either "r" for relative
+                colorimetric or "a" for absolute colorimetric.
+            add_white_patches (int): Number of white patches to add to the
+                TI1/ti3 file. If set to 0, no white patches are added. If set
+                to a positive integer, the first n patches will be white, so
+                the whitepoint can be averaged. Defaults to 4.
+
+        Raises:
+            TypeError: If `ti3` is not a CGATS instance or a valid filename.
+            ValueError: If `ti3` is invalid or missing required fields.
+
+        Returns:
+            tuple: A tuple containing:
+                - CGATS instance of TI1 with device->cie values.
+                - CGATS instance of TI3 with device->cie values.
+                - Gray patch data (if available).
         """
         # ti3
         copy = True
@@ -16048,6 +17155,15 @@ BEGIN_DATA
         return ti1, ti3v
 
     def download(self, uri, force=False, download_dir=None):
+        """Download a file from the specified URI.
+
+        Args:
+            uri (str): The URI of the file to download.
+            force (bool, optional): If True, forces a re-download even if the
+                file exists locally. Defaults to False.
+            download_dir (str, optional): Directory to save the downloaded
+                file. If None, uses a default download directory.
+        """
         # Set timeout to a sane value
         default_timeout = socket.getdefaulttimeout()
         socket.setdefaulttimeout(20)  # 20 seconds
@@ -16057,6 +17173,38 @@ BEGIN_DATA
             socket.setdefaulttimeout(default_timeout)
 
     def _download(self, uri, force=False, download_dir=None):
+        """Download a file from the specified URI.
+
+        Optional hash verification and progress reporting are available.
+
+        This method handles downloading files (such as ArgyllCMS archives) from
+        a given URI. It supports forced downloads, custom download directories,
+        and can verify file hashes if available. The method also manages HTTP
+        redirects, SSL certificate verification, and provides progress feedback
+        during the download.
+
+        Notes:
+            - For certain domains, the method always forces a download to
+              ensure hash checking.
+            - Handles SSL certificate errors and HTTP redirects.
+            - If the file already exists and matches the expected size, it is
+              not re-downloaded unless forced.
+            - If hash verification is enabled, the method checks the downloaded
+              file's hash.
+            - Provides progress updates during the download process.
+
+        Args:
+            uri (str): The URI of the file to download.
+            force (bool, optional): If True, forces a re-download even if the
+                file exists locally. Defaults to False.
+            download_dir (str, optional): Directory to save the downloaded
+                file. If None, uses a default download directory.
+
+        Returns:
+            str: The path to the downloaded file if successful.
+            Exception: An Exception object if the download fails.
+
+        """
         if TEST_BADSSL:
             uri = f"https://{TEST_BADSSL}.badssl.com/"
         orig_uri = uri
@@ -16276,9 +17424,7 @@ BEGIN_DATA
                             bps_unit_size = 1024.0
 
                         if total_size:
-                            percent = int(
-                                math.floor(float(bytes_so_far) / total_size * 100)
-                            )
+                            percent = math.floor(float(bytes_so_far) / total_size * 100)
                             if (
                                 percent > prev_percent
                                 or time() >= update_ts + frametime
@@ -16391,6 +17537,26 @@ BEGIN_DATA
         return download_path
 
     def process_argyll_download(self, result, exit_=False):
+        """Handle the result of an ArgyllCMS download operation.
+
+        This method processes the outcome of downloading an ArgyllCMS archive
+        (ZIP or TGZ). If the result is an Exception, it displays an error
+        dialog. If the result is a valid archive file, it starts extraction of
+        the archive and sets the Argyll bin directory upon success. If the
+        result is not a supported archive file, it displays an error dialog.
+
+        Side Effects:
+            - May display dialogs to the user.
+            - May start extraction of the downloaded archive.
+            - May update the Argyll bin directory configuration.
+
+        Args:
+            result (str or Exception): The result of the download operation.
+                This can be a file path to the downloaded archive or an
+                Exception if the download failed.
+            exit_ (bool, optional): If True, closes the owner window or exits
+                the application after processing. Defaults to False.
+        """
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result:
@@ -16410,6 +17576,34 @@ BEGIN_DATA
                 )
 
     def extract_archive(self, filename):
+        """Extract the contents of a ZIP or TGZ archive file.
+
+        Notes:
+            - For ZIP files, files are extracted using the `zipfile.ZipFile`
+              class.
+            - For TGZ files, files are extracted using the `TarFileProper.open`
+              method.
+            - The method ensures that all extracted files remain within the
+              intended output directory to prevent directory traversal
+              vulnerabilities.
+            - If the archive is invalid or extraction fails, the method may
+              delete the archive file.
+
+        Args:
+            filename (str): The path to the archive file to extract. Supported
+                formats are .zip and .tgz.
+
+        Raises:
+            EOFError: If the archive file is incomplete or corrupted (e.g.,
+                unexpected end of file).
+            Exception: If a file in the archive would be extracted outside the
+                intended directory.
+
+        Returns:
+            list: A list of extracted file paths. If the archive is invalid or
+                extraction fails, returns an empty list or an Exception.
+
+        """
         extracted = []
         if filename.lower().endswith(".zip"):
             cls = zipfile.ZipFile
@@ -16458,7 +17652,13 @@ BEGIN_DATA
         return extracted
 
     def set_argyll_bin(self, result, filename):
-        """Set Argyll bin directory."""
+        """Set Argyll bin directory.
+
+        Args:
+            result (str | Exception): Either a str showing the result message
+                or an Exception.
+            filename (str): The archive filename.
+        """
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result and os.path.isdir(result[0]):
@@ -16483,6 +17683,13 @@ BEGIN_DATA
             )
 
     def process_download(self, result, exit_=False):
+        """Process download.
+
+        Args:
+            result (str, Exception): Either a str or an Exception to process.
+            exit_ (bool): If True close the owner window if any otherwise close
+                the main application. If False do not do anything.
+        """
         if isinstance(result, Exception):
             show_result_dialog(result, self.owner)
         elif result:
@@ -16494,7 +17701,12 @@ BEGIN_DATA
             launch_file(result)
 
     def verify_calibration(self):
-        """Verify the current calibration"""
+        """Verify the current calibration.
+
+        Returns:
+            str or Exception: The result of the verification, which can be a
+                str indicating success or an Exception if an error occurred.
+        """
         result = self.detect_video_levels()
         if isinstance(result, Exception) or not result:
             return result
@@ -16508,7 +17720,19 @@ BEGIN_DATA
     def measure_ti1(
         self, ti1_path, cal_path=None, colormanaged=False, allow_video_levels=True
     ):
-        """Measure a TI1 testchart file"""
+        """Measure a TI1 testchart file.
+
+        Args:
+            ti1_path (str): Path to the TI1 file to measure.
+            cal_path (str): Path to the calibration file, if any.
+            colormanaged (bool): Whether the measurement is color managed.
+            allow_video_levels (bool): Whether to allow video levels in the
+                measurement.
+
+        Returns:
+            str or Exception: The path to the measured TI1 file, or an
+                Exception if an error occurred.
+        """
         if allow_video_levels:
             result = self.detect_video_levels()
             if isinstance(result, Exception) or not result:
@@ -16552,7 +17776,22 @@ BEGIN_DATA
         return self.exec_cmd(cmd, args, skip_scripts=True)
 
     def wrapup(self, copy=True, remove=True, dst_path=None, ext_filter=None):
-        """Wrap up - copy and/or clean temporary file(s)."""
+        """Wrap up - copy and/or clean temporary file(s).
+
+        Args:
+            copy (bool or Exception): If True, copy temporary files to
+                `dst_path` (if given) or to the default save path.
+                If False, do not copy temporary files.
+            remove (bool): If True, remove temporary files.
+            dst_path (str): Destination path to copy temporary files to.
+            ext_filter (list of str): List of file extensions to filter out
+                when copying temporary files. If None, defaults to a
+                predefined list of common file extensions.
+
+        Returns:
+            bool or Exception: True if successful, False if nothing to do,
+            or an Exception if an error occurred.
+        """
         if DEBUG:
             print(f"[D] wrapup(copy={copy}, remove={remove})")
         if not self.tempdir or not os.path.isdir(self.tempdir):
@@ -16798,6 +18037,11 @@ BEGIN_DATA
         return result
 
     def write(self, txt):
+        """Write text to the terminal.
+
+        Args:
+            txt (str): Text to write.
+        """
         if True:
             # Don't buffer
             self._write(txt)

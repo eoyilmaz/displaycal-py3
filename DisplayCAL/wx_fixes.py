@@ -1,8 +1,7 @@
-"""This module provides compatibility fixes, workarounds, and enhancements for
-wxPython to address platform-specific issues, deprecated features, and
-inconsistencies across different versions. It includes custom widget
-implementations, DPI scaling adjustments, and additional utility functions for
-improved UI behavior and appearance.
+"""Compatibility fixes and enhancements for wxPython across platforms and versions.
+
+It includes custom widget implementations, DPI scaling adjustments, and
+additional utility functions for improved UI behavior and appearance.
 """
 
 import contextlib
@@ -85,11 +84,13 @@ if "phoenix" in wx.PlatformInfo:
     from wx.lib.agw import aui
 
     def BitmapFromIcon(icon):
+        """Convert an icon to a bitmap."""
         bmp = wx.Bitmap()
         bmp.CopyFromIcon(icon)
         return bmp
 
     def IconFromBitmap(bmp):
+        """Convert a bitmap to an icon."""
         icon = wx.Icon()
         icon.CopyFromBitmap(bmp)
         return bmp
@@ -156,6 +157,7 @@ if "phoenix" in wx.PlatformInfo:
     )
 
     def ContainsRect(self, *args):
+        """Check if the rectangle is contained in this rectangle."""
         rect = wx.Rect(*args) if len(args) > 1 else args[0]
         return self.Contains(rect)
 
@@ -165,6 +167,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.RegionFromBitmap = wx.Region
 
     def GetItemIndex(self, window):
+        """Return the index of the item in the sizer."""
         for index, sizeritem in enumerate(self.Children):
             if sizeritem.Window == window:
                 return index
@@ -205,7 +208,12 @@ if "phoenix" in wx.PlatformInfo:
     PositionToXY = wx.TextCtrl.PositionToXY
     wx.TextCtrl.PositionToXY = lambda self, pos: PositionToXY(self, pos)[1:]
 
-    def TabFrame__init__(self, parent):
+    def TabFrame__init__(self, parent):  # noqa: D417
+        """Fix TabFrame.__init__ to not set the size to 0, 0.
+
+        Args:
+            parent (wx.Window): The parent window for the TabFrame.
+        """
         wx.Window.__init__(self)
 
         self._tabs = None
@@ -243,10 +251,20 @@ if "gtk3" in wx.PlatformInfo:
                 self.OnCreate(None)
 
         def OnCreate(self, event):
+            """Handle the window creation event to bind the erase background event.
+
+            Args:
+                event (wx.Event): The window creation event.
+            """
             self.Unbind(wx.EVT_WINDOW_CREATE)
             self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
         def OnEraseBackground(self, event):
+            """Handle the erase background event to prevent flickering.
+
+            Args:
+                event (wx.Event): The erase background event.
+            """
             dc = event.GetDC()
             rect = self.GetClientRect()
             dc.SetClippingRegion(rect.x, rect.y, rect.width, rect.height)
@@ -264,6 +282,15 @@ if "gtk3" in wx.PlatformInfo:
 
         Implements ListCtrl as DataViewListCtrl. Works around header rendering
         ugliness with GTK3.
+
+        Args:
+            parent (wx.Window): The parent window.
+            id (int): The identifier for the control.
+            pos (wx.Point): The position of the control.
+            size (wx.Size): The size of the control.
+            style (int): The style of the control.
+            validator (wx.Validator): The validator for the control.
+            name (str): The name of the control.
         """
 
         def __init__(
@@ -287,6 +314,11 @@ if "gtk3" in wx.PlatformInfo:
             self.Bind(dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.OnEvent)
 
         def OnEvent(self, event):
+            """Handle DataViewListCtrl events and convert them to ListCtrl events.
+
+            Args:
+                event (wx.Event): The event to handle.
+            """
             typeId = event.GetEventType()
             if typeId == dataview.EVT_DATAVIEW_SELECTION_CHANGED.typeId:
                 if self.GetSelectedRow() != wx.NOT_FOUND:
@@ -300,28 +332,75 @@ if "gtk3" in wx.PlatformInfo:
             self.GetEventHandler().ProcessEvent(event)
 
         def InsertColumn(self, pos, col):
+            """Insert a column at the specified position.
+
+            Args:
+                pos (int): The position to insert the column at.
+                col (wx.DataViewColumn): The column to insert.
+            """
             self._columns[pos] = col
 
         def SetColumnWidth(self, pos, width):
+            """Set the width of the column at the specified position.
+
+            Args:
+                pos (int): The position of the column.
+                width (int): The width to set for the column.
+            """
             self.AppendTextColumn(self._columns[pos], width=int(width))
 
         def InsertStringItem(self, row, label):
+            """Insert a string item at the specified row.
+
+            Args:
+                row (int): The row to insert the item at.
+                label (str): The label of the item.
+
+            Returns:
+                int: The row index where the item was inserted.
+            """
             self._items[row] = []
             return row
 
         def SetStringItem(self, row, col, label):
+            """Set the string item at the specified row and column.
+
+            Args:
+                row (int): The row of the item.
+                col (int): The column of the item.
+                label (str): The label to set for the item.
+            """
             self._items[row].append(label)
             if len(self._items[row]) == len(self._columns):
                 # Row complete
                 DataViewListCtrl.InsertItem(self, row, self._items[row])
 
         def GetItem(self, row, col=0):
+            """Return the item at the specified row and column.
+
+            Args:
+                row (int): The row of the item.
+                col (int): The column of the item (default is 0).
+
+            Returns:
+                wx.DataViewItem: The item at the specified row and column.
+            """
             item = self.RowToItem(row)
             item.GetId = lambda: row
             item.GetText = lambda: self.GetTextValue(row, col)
             return item
 
         def SetItemState(self, row, state, stateMask):
+            """Set the state of the item.
+
+            Args:
+                row (int): The row to set the state for.
+                state (int): The state to set.
+                stateMask (int): The state mask to apply.
+
+            Raises:
+                NotImplementedError: If the state is not wx.LIST_STATE_SELECTED.
+            """
             if state == stateMask == wx.LIST_STATE_SELECTED:
                 self.SelectRow(row)
             else:
@@ -332,6 +411,16 @@ if "gtk3" in wx.PlatformInfo:
         def GetNextItem(
             self, row, geometry=wx.LIST_NEXT_ALL, state=wx.LIST_STATE_DONTCARE
         ):
+            """Return the next item in the list.
+
+            Args:
+                row (int): The row to start from.
+                geometry (int): The geometry of the item to return.
+                state (int): The state of the item to return.
+
+            Returns:
+                int: The next item in the list, or -1 if no item is found.
+            """
             if (
                 row == -1
                 and geometry == wx.LIST_NEXT_ALL
@@ -343,11 +432,22 @@ if "gtk3" in wx.PlatformInfo:
             )
 
         def GetItemCount(self):
+            """Return the number of items in the list.
+
+            Returns:
+                int: The number of items in the list.
+            """
             return len(self._items)
 
         GetFirstSelected = DataViewListCtrl.__dict__["GetSelectedRow"]
 
         def GetItemState(self, row, stateMask):
+            """Return the state of the item.
+
+            Args:
+                row (int): The row to check.
+                stateMask (int): The state mask to check against.
+            """
             if stateMask == wx.LIST_STATE_SELECTED:
                 if self.GetSelectedRow() == row:
                     return wx.LIST_STATE_SELECTED
@@ -357,6 +457,12 @@ if "gtk3" in wx.PlatformInfo:
             )
 
         def Select(self, row, on=1):
+            """Select or unselect a row.
+
+            Args:
+                row (int): The row to select or unselect.
+                on (bool): Whether to select (True) or unselect (False) the row.
+            """
             if on:
                 self.SelectRow(row)
             else:
@@ -365,7 +471,20 @@ if "gtk3" in wx.PlatformInfo:
     wx.ListCtrl = ListCtrl
 
     class SpinCtrl(wx._SpinCtrl):
-        """Compatibility class for wx.SpinCtrl."""
+        """Compatibility class for wx.SpinCtrl.
+
+        Args:
+            parent (wx.Window): The parent window.
+            id (int): The identifier for the control.
+            value (str): The initial value of the spin control.
+            pos (wx.Point): The position of the control.
+            size (wx.Size): The size of the control.
+            style (int): The style of the control.
+            min (int): The minimum value of the spin control.
+            max (int): The maximum value of the spin control.
+            initial (int): The initial value to set.
+            name (str): The name of the control.
+        """
 
         _spinwidth = 0
 
@@ -373,15 +492,21 @@ if "gtk3" in wx.PlatformInfo:
             self,
             parent,
             id=wx.ID_ANY,  # noqa: A002
-            value="",
+            value=None,
             pos=wx.DefaultPosition,
             size=wx.DefaultSize,
             style=wx.SP_ARROW_KEYS,
             min=0,  # noqa: A002
             max=100,  # noqa: A002
             initial=0,
-            name="wxSpinCtrl",
+            name=None,
         ):
+            if value is None:
+                value = ""
+
+            if name is None:
+                name = "wxSpinCtrl"
+
             if size[0] != -1:
                 # Adjust initial size for GTK3 to accomodate spin buttons
                 if not SpinCtrl._spinwidth:
@@ -406,10 +531,20 @@ if "gtk3" in wx.PlatformInfo:
             wx._StaticText.__init__(self, *args, **kwargs)
 
         def SetFont(self, font):
+            """Set the font of the static text.
+
+            Args:
+                font (wx.Font): The font to set.
+            """
             wx.Control.SetFont(self, font)
             self.SetLabel(self.Label)
 
         def SetLabel(self, label):
+            """Set the label of the static text.
+
+            Args:
+                label (str): The label to set.
+            """
             # Fix GTK3 label auto-resize on label change not working
             if not self.WindowStyle & wx.ST_NO_AUTORESIZE:
                 self.MaxSize = -1, -1
@@ -425,6 +560,11 @@ if "gtk3" in wx.PlatformInfo:
                 self.MaxSize = self.Size[0], -1
 
         def Wrap(self, width):
+            """Wrap the text to the specified width.
+
+            Args:
+                width (int): The width to wrap the text to.
+            """
             wx._StaticText.Wrap(self, int(width))
             self.SetLabel(self.Label)
 
@@ -453,7 +593,7 @@ wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 
 
 def BitmapButtonEnable(self, enable=True):
-    """Replacement for BitmapButton.Enable which circumvents repainting issues
+    """Replacement for BitmapButton.Enable which circumvents repainting issues.
 
     (bitmap does not change on button state change)
 
@@ -471,10 +611,9 @@ def BitmapButtonEnable(self, enable=True):
 
 
 def BitmapButtonDisable(self):
-    """Replacement for BitmapButton.Disable which circumvents repainting issues
+    """Replacement for BitmapButton.Disable which circumvents repainting issues.
 
     (bitmap does not change on button state change)
-
     """
     self.Enable(False)
 
@@ -485,7 +624,7 @@ if "phoenix" not in wx.PlatformInfo:
 
 
 def FindMenuItem(self, label):
-    """Replacement for wx.Menu.FindItem"""
+    """Replacement for wx.Menu.FindItem."""
     label = GTKMenuItemGetFixedLabel(label)
     for menuitem in self.GetMenuItems():
         try:
@@ -502,6 +641,7 @@ wx.Menu.FindItem = FindMenuItem
 
 
 def GTKMenuItemGetFixedLabel(label):
+    """Return the fixed label for GTK menu items."""
     if sys.platform not in ("darwin", "win32"):
         # The underscore is a special character under GTK, like the
         # ampersand on Mac OS X and Windows
@@ -517,6 +657,7 @@ def GTKMenuItemGetFixedLabel(label):
 if not hasattr(wx.Sizer, "GetItemIndex"):
 
     def GetItemIndex(self, item):
+        """Return the index of the item in the sizer."""
         for i, child in enumerate(list(self.GetChildren())):
             if child.GetWindow() is item:
                 return i
@@ -526,6 +667,7 @@ if not hasattr(wx.Sizer, "GetItemIndex"):
 
 
 def set_maxsize(window, maxsize):
+    """Set the maximum size of a window."""
     window.MaxSize = maxsize
 
 
@@ -535,6 +677,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     is_first_toplevel_window = True
 
     def fix_wayland_window_size(window):
+        """Fix erroneous extra spacing around window contents under Wayland."""
         global is_first_toplevel_window
         if is_first_toplevel_window:
             # Not needed for first toplevel window
@@ -544,6 +687,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
             wx.CallAfter(set_maxsize, window, (-1, -1))
 
     def TopLevelWindow_Show(self, show=True):
+        """Replacement for TopLevelWindow.Show which circumvents repainting issues."""
         if show and not self.IsShown():
             fix_wayland_window_size(self)
         return _TopLevelWindow_Show(self, show)
@@ -559,6 +703,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     # ~ wx.Dialog.ShowModal = Dialog_ShowModal
 
     def Sizer_SetSizeHints(self, window):
+        """Replacement for Sizer.SetSizeHints which circumvents repainting issues."""
         if isinstance(window, wx.Dialog):
             window.MaxSize = (-1, -1)
         _Sizer_SetSizeHints(self, window)
@@ -567,6 +712,7 @@ if os.getenv("XDG_SESSION_TYPE") == "wayland":
     wx.Sizer.SetSizeHints = Sizer_SetSizeHints
 
     def Sizer_Layout(self):
+        """Replacement for Sizer.Layout which circumvents repainting issues."""
         _Sizer_Layout(self)
         window = self.GetContainingWindow()
         if isinstance(window, wx.Dialog):
@@ -582,20 +728,24 @@ if sys.platform == "darwin":
 
     @property
     def StaticTextEnabled(self):
+        """Replacement for StaticText.Enabled which circumvents repainting issues."""
         return self.IsEnabled()
 
     @StaticTextEnabled.setter
     def StaticTextEnabled(self, enable=True):
+        """Replacement for StaticText.Enabled which circumvents repainting issues."""
         self.Enable(enable)
 
     wx.StaticText.Enabled = StaticTextEnabled
 
     def StaticTextDisable(self):
+        """Replacement for StaticText.Disable which circumvents repainting issues."""
         self.Enable(False)
 
     wx.StaticText.Disable = StaticTextDisable
 
     def StaticTextEnable(self, enable=True):
+        """Replacement for StaticText.Enable which circumvents repainting issues."""
         enable = bool(enable)
         if self.Enabled is enable:
             return
@@ -608,15 +758,16 @@ if sys.platform == "darwin":
             bgblend = 0.5
             blend = 0.5
             color = wx.Colour(
-                int(round(bgblend * bgcolor.Red() + blend * color.Red())),
-                int(round(bgblend * bgcolor.Green() + blend * color.Green())),
-                int(round(bgblend * bgcolor.Blue() + blend * color.Blue())),
+                round(bgblend * bgcolor.Red() + blend * color.Red()),
+                round(bgblend * bgcolor.Green() + blend * color.Green()),
+                round(bgblend * bgcolor.Blue() + blend * color.Blue()),
             )
         self.ForegroundColour = color
 
     wx.StaticText.Enable = StaticTextEnable
 
-    def StaticTextIsEnabled(self):
+    def StaticTextIsEnabled(self) -> bool:
+        """Return whether the StaticText is enabled."""
         return getattr(self, "_enabled", True)
 
     wx.StaticText.IsEnabled = StaticTextIsEnabled
@@ -626,7 +777,7 @@ wx.Window._SetToolTipString = wx.Window.SetToolTipString
 
 
 def SetToolTipString(self, string):
-    """Replacement for SetToolTipString which updates correctly"""
+    """Replacement for SetToolTipString which updates correctly."""
     wx.Window.SetToolTip(self, None)
     wx.Window._SetToolTipString(self, string)
 
@@ -644,7 +795,7 @@ def _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs):
     if scale > 1:
         args = list(args)
         if kwargs.get("border"):
-            kwargs["border"] = int(round(kwargs["border"] * scale))
+            kwargs["border"] = round(kwargs["border"] * scale)
         elif "border" not in kwargs:
             if (
                 isinstance(args[0], (tuple, wx.Size, wx.Sizer, wx.Window))
@@ -652,16 +803,16 @@ def _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs):
                 and args[3]
             ):
                 # item, proportion, flag, border, ...
-                args[3] = int(round(args[3] * scale))
+                args[3] = round(args[3] * scale)
             elif isinstance(args[0], int) and len(args) > 4 and args[4]:
                 # width, height, proportion, flag, border, ...
-                args[4] = int(round(args[4] * scale))
+                args[4] = round(args[4] * scale)
         if args and isinstance(args[0], (tuple, wx.Size)):
             spacer = list(args[0])
             # print(spacer, '->')
             for i, dimension in enumerate(spacer):
                 if dimension > 0:
-                    spacer[i] = int(round(dimension * scale))
+                    spacer[i] = round(dimension * scale)
             # print(spacer)
             args = [tuple(spacer)] + args[1:]
     return args, kwargs
@@ -671,15 +822,25 @@ wx._Sizer = wx.Sizer
 
 
 class Sizer(wx._Sizer):
-    """Replacement for wx.Sizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """wx.Sizer replacement that scales spacing for current DPI."""
 
     def Add(self, *args, **kwargs):
+        """Add an item to the sizer.
+
+        Returns:
+            wx.SizerItem: The item added to the sizer.
+        """
         args, kwargs = _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs)
         return wx._Sizer.Add(self, *args, **kwargs)
 
     def Insert(self, index, *args, **kwargs):
+        """Insert an item at the specified index in the sizer.
+
+        Args:
+            index (int): The index at which to insert the item.
+            *args: Positional arguments for the item to insert.
+            **kwargs: Keyword arguments for the item to insert.
+        """
         args, kwargs = _adjust_sizer_args_scaling_for_appdpi(*args, **kwargs)
         return wx._Sizer.Insert(self, index, *args, **kwargs)
 
@@ -691,9 +852,7 @@ wx._BoxSizer = wx.BoxSizer
 
 
 class BoxSizer(wx._BoxSizer):
-    """Replacement for wx.BoxSizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """BoxSizer with DPI scaling."""
 
     Add = Sizer.__dict__["Add"]
     Insert = Sizer.__dict__["Insert"]
@@ -706,9 +865,7 @@ wx._GridSizer = wx.GridSizer
 
 
 class GridSizer(wx._GridSizer):
-    """Replacement for wx.GridSizer which scales the spacing according to the
-    current DPI setting.
-    """
+    """GridSizer with DPI scaling."""
 
     def __init__(self, rows=0, cols=0, vgap=0, hgap=0):
         if vgap or hgap:
@@ -717,7 +874,7 @@ class GridSizer(wx._GridSizer):
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
                 # print(vgap, hgap, '->')
-                vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
+                vgap, hgap = [round(v * scale) for v in (vgap, hgap)]
             # print(vgap, hgap)
         super().__init__(rows, cols, vgap, hgap)
 
@@ -741,7 +898,7 @@ class FlexGridSizer(wx._FlexGridSizer):
             scale = getcfg("app.dpi") / get_default_dpi()
             if scale > 1:
                 # print vgap, hgap, '->',
-                vgap, hgap = [int(round(v * scale)) for v in (vgap, hgap)]
+                vgap, hgap = [round(v * scale) for v in (vgap, hgap)]
             # print vgap, hgap
         super().__init__(rows, cols, vgap, hgap)
 
@@ -791,13 +948,14 @@ wx.grid.Grid.GetSelection = GridGetSelection
 
 
 def adjust_font_size_for_gcdc(font):
+    """Adjust font size for GCDC."""
     size = get_gcdc_font_size(font.PointSize)
     font.SetPointSize(int(size))
     return font
 
 
 def get_dc_font_scale(dc):
-    """Get correct font scaling factor for DC"""
+    """Get correct font scaling factor for DC."""
     pointsize = (1.0, 1.0)
     if isinstance(dc, wx.GCDC):
         pointsize = tuple(1.0 / scale for scale in dc.GetLogicalScale())
@@ -821,11 +979,12 @@ def get_dc_font_scale(dc):
 
 
 def get_dc_font_size(size, dc):
-    """Get correct font size for DC"""
+    """Get correct font size for DC."""
     return int(size * get_dc_font_scale(dc))
 
 
 def get_gcdc_font_size(size):
+    """Get correct font size for GCDC."""
     dc = wx.MemoryDC(wx.EmptyBitmap(1, 1))
     with contextlib.suppress(Exception):
         dc = wx.GCDC(dc)
@@ -833,6 +992,7 @@ def get_gcdc_font_size(size):
 
 
 def get_bitmap_disabled(bitmap):
+    """Get the disabled bitmap."""
     # Use Rec. 709 luma coefficients to convert to grayscale
     image = bitmap.ConvertToImage().ConvertToGreyscale(0.2126, 0.7152, 0.0722)
     if image.HasMask() and not image.HasAlpha():
@@ -841,11 +1001,12 @@ def get_bitmap_disabled(bitmap):
         alphabuffer = image.GetAlphaBuffer()
         for i, byte in enumerate(alphabuffer):
             if byte > 0:
-                alphabuffer[i] = int(round(byte * 0.3))
+                alphabuffer[i] = round(byte * 0.3)
     return image.ConvertToBitmap()
 
 
 def get_bitmap_hover(bitmap, ctrl=None):
+    """Get the hover bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
@@ -878,7 +1039,7 @@ def get_bitmap_hover(bitmap, ctrl=None):
                     newmin = 0
                     newmax = bglum ** (1 / 2.2) * 153  # 60%
                 for i, v in enumerate(color):
-                    color[i] = int(round(convert_range(v, 0, 255, newmin, newmax)))
+                    color[i] = round(convert_range(v, 0, 255, newmin, newmax))
     databuffer = image.GetDataBuffer()
     alphabuffer = image.GetAlphaBuffer()
     minv = 256  # Intentionally above max possible value
@@ -914,7 +1075,7 @@ def get_bitmap_hover(bitmap, ctrl=None):
                         # graphics with a black outline get the hilight color
                         # at black.
                         v = convert_range(v, 0, 255, color[k], 255)
-                    v = int(round(v))
+                    v = round(v)
                 databuffer[i - 2 + k] = v
             j += 1
     if isinstance(ctrl, wx.BitmapButton) and sys.platform == "win32":
@@ -935,28 +1096,31 @@ def get_bitmap_hover(bitmap, ctrl=None):
 
 
 def get_bitmap_pressed(bitmap):
+    """Get the pressed bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
     databuffer = image.GetDataBuffer()
     for i, byte in enumerate(databuffer):
         if byte > 0:
-            databuffer[i] = int(round(byte * 0.85))
+            databuffer[i] = round(byte * 0.85)
     return image.ConvertToBitmap()
 
 
 def get_bitmap_focus(bitmap):
+    """Get the focus bitmap."""
     image = bitmap.ConvertToImage()
     if image.HasMask() and not image.HasAlpha():
         image.InitAlpha()
     databuffer = image.GetDataBuffer()
     for i, byte in enumerate(databuffer):
         if byte > 0:
-            databuffer[i] = int(round((byte / 255.0) ** 0.8 * 255))
+            databuffer[i] = round((byte / 255.0) ** 0.8 * 255)
     return image.ConvertToBitmap()
 
 
 def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
+    """Set the bitmap labels for a button."""
     bitmap = btn.BitmapLabel
     if not bitmap.IsOk():
         size = btn.MinSize
@@ -1007,7 +1171,7 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
 
 
 def get_dialogs(modal=False):
-    """If there are any dialogs open, return them"""
+    """If there are any dialogs open, return them."""
     return [
         window
         for window in list(wx.GetTopLevelWindows())
@@ -1026,7 +1190,12 @@ _FileDialog = wx.FileDialog
 
 
 class PathDialogBase(wx.Dialog):
-    """Base class for wx.DirDialog and wx.FileDialog."""
+    """Base class for wx.DirDialog and wx.FileDialog.
+
+    Args:
+        parent (wx.Window): The parent window.
+        name (str): The name of the dialog.
+    """
 
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name=name)
@@ -1041,26 +1210,51 @@ class PathDialogBase(wx.Dialog):
             name (str): The name of the attribute to get.
 
         Returns:
-            Any: The value of the attribute.
+            Any: The value of the attribute.s
         """
         return getattr(self.filedialog, name)
 
     def IsModal(self):
+        """Check if the dialog is modal.
+
+        Returns:
+            bool: True if the dialog is modal, False otherwise.
+        """
         return self._ismodal
 
     def IsShown(self):
+        """Check if the dialog is shown.
+
+        Returns:
+            bool: True if the dialog is shown, False otherwise.
+        """
         return self._isshown
 
     def OnDestroy(self, event):
+        """Handle the dialog destruction event.
+
+        Args:
+            event (wx.WindowDestroyEvent): The window destroy event.
+        """
         self.filedialog.Destroy()
         event.Skip()
         return 0
 
     def Show(self, show=True):
+        """Show or hide the dialog.
+
+        Args:
+            show (bool): Whether to show or hide the dialog.
+        """
         self._isshown = show
         self.filedialog.Show(show)
 
     def ShowModal(self):
+        """Show the dialog modally.
+
+        Returns:
+            int: The return code of the dialog.
+        """
         self._isshown = True
         self._ismodal = True
         returncode = self.filedialog.ShowModal()
@@ -1103,6 +1297,11 @@ class ScrolledWindow(wx._ScrolledWindow):
         self.Bind(wx.EVT_CHILD_FOCUS, self.OnChildFocus)
 
     def OnChildFocus(self, evt):
+        """Handle child focus events.
+
+        Args:
+            evt (wx.ChildFocusEvent): The child focus event.
+        """
         # If the child window that gets the focus is not visible,
         # this handler will try to scroll enough to see it.
         evt.Skip()
@@ -1160,7 +1359,6 @@ class GenButton:
 
     Fixes wx.lib.buttons.ThemedGenButton not taking into account backgroun
     color when pressed.
-
     """
 
     def __init__(self):
@@ -1170,6 +1368,11 @@ class GenButton:
         self.useFocusInd = True
 
     def OnPaint(self, event):
+        """Handle the paint event for the button.
+
+        Args:
+            event (wx.PaintEvent): The paint event.
+        """
         (width, height) = self.ClientSize
         x1 = y1 = 0
         x2 = width
@@ -1207,45 +1410,104 @@ class GenBitmapButton(GenButton, _GenBitmapButton):
 
     @property
     def BitmapFocus(self):
+        """Get the bitmap used when the button has focus.
+
+        Returns:
+            wx.Bitmap: The bitmap used for the focus state.
+        """
         return self.GetBitmapFocus()
 
     @BitmapFocus.setter
     def BitmapFocus(self, bitmap):
+        """Set the bitmap to use when the button has focus.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set for the focus state.
+        """
         self.SetBitmapFocus(self, bitmap)
 
     @property
     def BitmapDisabled(self):
+        """Get the bitmap used when the button is disabled.
+
+        Returns:
+            wx.Bitmap: The bitmap used for the disabled state.
+        """
         return self.GetBitmapDisabled()
 
     @BitmapDisabled.setter
     def BitmapDisabled(self, bitmap):
+        """Set the bitmap to use when the button is disabled.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set for the disabled state.
+        """
         self.SetBitmapDisabled(self, bitmap)
 
     @property
     def BitmapHover(self):
+        """Get the bitmap used when the button is hovered.
+
+        Returns:
+            wx.Bitmap: The bitmap used for the hover state.
+        """
         return self.GetBitmapHover()
 
     @BitmapHover.setter
     def BitmapHover(self, bitmap):
+        """Set the bitmap to use when the button is hovered.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set for the hover state.
+        """
         self.SetBitmapHover(self, bitmap)
 
     @property
     def BitmapSelected(self):
+        """Get the bitmap used when the button is selected.
+
+        Returns:
+            wx.Bitmap: The bitmap used for the selected state.
+        """
         return self.GetBitmapSelected()
 
     @BitmapSelected.setter
     def BitmapSelected(self, bitmap):
+        """Set the bitmap to use when the button is selected.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set for the selected state.
+        """
         self.SetBitmapSelected(self, bitmap)
 
     @property
     def BitmapLabel(self):
+        """Get the bitmap label for the button.
+
+        Returns:
+            wx.Bitmap: The bitmap label of the button.
+        """
         return self.GetBitmapLabel()
 
     @BitmapLabel.setter
     def BitmapLabel(self, bitmap):
+        """Set the bitmap label for the button.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set as the label.
+        """
         self.SetBitmapLabel(self, bitmap)
 
     def DrawLabel(self, dc, width, height, dx=0, dy=0):
+        """Draw the bitmap label in the button.
+
+        Args:
+            dc (wx.DC): The device context to draw on.
+            width (int): The width of the button.
+            height (int): The height of the button.
+            dx (int, optional): Horizontal offset for the bitmap. Defaults to 0.
+            dy (int, optional): Vertical offset for the bitmap. Defaults to 0.
+        """
         bmp = self.BitmapLabel
         if self.BitmapDisabled and not self.IsEnabled():
             bmp = self.BitmapDisabled
@@ -1262,9 +1524,15 @@ class GenBitmapButton(GenButton, _GenBitmapButton):
         )
 
     def GetBitmapHover(self):
+        """Get the bitmap used when the button is hovered."""
         return self.bmpHover
 
     def OnMouseEnter(self, event):
+        """Handle the mouse enter event.
+
+        Args:
+            event (wx.MouseEvent): The mouse event.
+        """
         if not self.IsEnabled():
             return
         if not self.hover:
@@ -1273,6 +1541,11 @@ class GenBitmapButton(GenButton, _GenBitmapButton):
         event.Skip()
 
     def OnMouseLeave(self, event):
+        """Handle the mouse leave event.
+
+        Args:
+            event (wx.MouseEvent): The mouse event.
+        """
         if not self.IsEnabled():
             return
         if self.hover:
@@ -1281,6 +1554,11 @@ class GenBitmapButton(GenButton, _GenBitmapButton):
         event.Skip()
 
     def SetBitmapHover(self, bitmap):
+        """Set the bitmap to use when the button is hovered.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set for the hover state.
+        """
         self.bmpHover = bitmap
 
 
@@ -1293,7 +1571,6 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
     not drawing a focus outline and not shifting the label when pressed.
 
     Also implements state for SetDefault.
-
     """
 
     _really_enabled = True
@@ -1305,11 +1582,14 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         self._default = False
 
     def Disable(self):
+        """Disable the button."""
         self.Enable(False)
 
     def DoGetBestSize(self):
-        """Overridden base class virtual.  Determines the best size of the
-        button based on the label and bezel size.
+        """Determine the best size of the button based on the label and bezel size.
+
+        Returns:
+            tuple: The width and height of the button.
         """
         w, h, useMin = self._GetLabelSize()
         if self.style & wx.BU_EXACTFIT:
@@ -1328,6 +1608,15 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         return (width, height)
 
     def DrawBezel(self, dc, x1, y1, x2, y2):
+        """Draw the bezel around the button.
+
+        Args:
+            dc (wx.DC): The device context to draw on.
+            x1 (int): The x-coordinate of the top-left corner.
+            y1 (int): The y-coordinate of the top-left corner.
+            x2 (int): The x-coordinate of the bottom-right corner.
+            y2 (int): The y-coordinate of the bottom-right corner.
+        """
         rect = wx.Rect(x1, y1, x2, y2)
         state = 0 if self.up else wx.CONTROL_PRESSED | wx.CONTROL_SELECTED
         if not self.IsEnabled():
@@ -1340,6 +1629,15 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         wx.RendererNative.Get().DrawPushButton(self, dc, rect, state)
 
     def DrawLabel(self, dc, width, height, dx=0, dy=0):
+        """Draw the label text in the button.
+
+        Args:
+            dc (wx.DC): The device context to draw on.
+            width (int): The width of the button.
+            height (int): The height of the button.
+            dx (int, optional): Horizontal offset for the label. Defaults to 0.
+            dy (int, optional): Vertical offset for the label. Defaults to 0.
+        """
         dc.SetFont(self.GetFont())
         if self.Enabled:
             dc.SetTextForeground(self.ForegroundColour)
@@ -1352,23 +1650,45 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         dc.DrawText(label, int((width - tw) / 2) + dx, int((height - th) / 2) + dy)
 
     def Enable(self, enable=True):
-        if enable != self.Enabled:
-            self.Enabled = enable
-            wx.PyControl.Enable(self, enable)
-            self.Refresh()
+        """Enable or disable the button.
+
+        Args:
+            enable (bool): True to enable the button, False to disable it.
+        """
+        if enable == self.Enabled:
+            return
+        self.Enabled = enable
+        wx.PyControl.Enable(self, enable)
+        self.Refresh()
 
     @property
     def Enabled(self):
+        """Get the enabled state of the button.
+
+        Returns:
+            bool: True if the button is enabled, False otherwise.
+        """
         return self._really_enabled
 
     @Enabled.setter
     def Enabled(self, enabled):
+        """Set the enabled state of the button."""
         self._really_enabled = enabled
 
     def IsEnabled(self):
+        """Check if the button is enabled.
+
+        Returns:
+            bool: True if the button is enabled, False otherwise.
+        """
         return self.Enabled
 
     def OnLeftDown(self, event):
+        """Handle the left mouse button down event.
+
+        Args:
+            event (wx.MouseEvent): The mouse event.
+        """
         if not self.Enabled:
             return
         self.up = False
@@ -1379,20 +1699,24 @@ class ThemedGenButton(GenButton, _ThemedGenButton):
         event.Skip()
 
     def OnGainFocus(self, event):
+        """Handle the focus gain event.
+
+        Args:
+            event (wx.FocusEvent): The focus event.
+        """
         self.hasFocus = True
         self.useFocusInd = bool(self.bezelWidth)
         self.Refresh()
         self.Update()
 
     def SetDefault(self):
+        """Set the button as default button."""
         self._default = True
         _ThemedGenButton.SetDefault(self)
 
 
 class PlateButton(platebtn.PlateButton):
-    """Fixes wx.lib.platebtn.PlateButton sometimes not reflecting enabled state
-    correctly aswelll as other quirks.
-    """
+    """Fixes PlateButton enabled state and related issues."""
 
     _really_enabled = True
 
@@ -1416,10 +1740,10 @@ class PlateButton(platebtn.PlateButton):
             self.BackgroundColour = self.Parent.BackgroundColour
 
     def DoGetBestSize(self):
-        """Calculate the best size of the button
+        """Calculate the best size of the button.
 
-        :return: :class:`Size`
-
+        Returns:
+            wx.Size: The best size of the button, taking into account.
         """
         # A little more padding left + right
         width = 6 * self.dpiscale
@@ -1451,27 +1775,30 @@ class PlateButton(platebtn.PlateButton):
         return best
 
     def GetBitmapLabel(self):
-        """Get the label bitmap
+        """Get the label bitmap.
 
-        :return: :class:`Bitmap` or None
-
+        Returns:
+            None | wx.Bitmap: wx.Bitmap or None.
         """
         return self._bmp["enable"]
 
     def SetBitmapHover(self, bmp):
-        """Set the bitmap displayed in the button
+        """Set the bitmap displayed in the button when hovered.
 
-        :param bmp: :class:`wx.Bitmap`
-
+        Args:
+            bmp (wx.Bitmap): Bitmap to set as hover bitmap.
         """
         self._bmp["hilite"] = bmp
 
     def __DrawBitmap(self, gc, interactable):
-        """Draw the bitmap if one has been set
+        """Draw the bitmap if one has been set.
 
-        :param GCDC `gc`: :class:`GCDC` to draw with
-        :return: x cordinate to draw text at
+        Args:
+            gc (GCDC): :class:`GCDC` to draw with.
+            interactable (bool): Whether the button is interactable.
 
+        Return:
+            float: x cordinate to draw text at.
         """
         if self.IsEnabled():
             if (
@@ -1493,7 +1820,7 @@ class PlateButton(platebtn.PlateButton):
         return xpos
 
     def __DrawButton(self):
-        """Draw the button"""
+        """Draw the button."""
         # TODO using a buffered paintdc on windows with the nobg style
         #      causes lots of weird drawing. So currently the use of a
         #      buffered dc is dissabled for this style.
@@ -1570,7 +1897,7 @@ class PlateButton(platebtn.PlateButton):
             self.__DrawDropArrow(gc, int(width - 10), int((height // 2) - 2))
 
     def __LeaveWindow(self):
-        """Handle updating the buttons state when the mouse cursor leaves"""
+        """Handle updating the buttons state when the mouse cursor leaves."""
         if (self._style & platebtn.PB_STYLE_TOGGLE) and self._pressed:
             self._SetState(platebtn.PLATE_PRESSED)
         else:
@@ -1578,7 +1905,7 @@ class PlateButton(platebtn.PlateButton):
             self._pressed = False
 
     def __PostEvent(self):
-        """Post a button event to parent of this control"""
+        """Post a button event to parent of this control."""
         if self._style & platebtn.PB_STYLE_TOGGLE:
             etype = wx.wxEVT_COMMAND_TOGGLEBUTTON_CLICKED
         else:
@@ -1591,7 +1918,7 @@ class PlateButton(platebtn.PlateButton):
     _PostEvent = __PostEvent
 
     def Update(self):
-        pass
+        """Update the button's appearance."""
 
     Disable = ThemedGenButton.__dict__["Disable"]
     Enable = ThemedGenButton.__dict__["Enable"]
@@ -1608,7 +1935,11 @@ if not hasattr(PlateButton, "_SetState"):
 
 
 class TempXmlResource:
-    """Temporary XML resource class to handle scaling and cleanup."""
+    """Temporary XML resource class to handle scaling and cleanup.
+
+    Args:
+        xmlpath (str): Path to the XML resource file.
+    """
 
     _temp = None
 
@@ -1665,6 +1996,7 @@ class TempXmlResource:
         self.res = xrc.XmlResource(xmlpath)
 
     def _cleanup(self):
+        """Clean up the temporary XML resource."""
         if (
             TempXmlResource._temp
             and self.xmlpath.startswith(TempXmlResource._temp + os.path.sep)
@@ -1687,7 +2019,23 @@ class TempXmlResource:
 
 
 class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
-    """A generic bitmapped button with text label"""
+    """A generic bitmapped button with text label.
+
+    Args:
+        parent (wx.Window): The parent window.
+        id (int, optional): The identifier for the button. Defaults to -1.
+        bitmap (wx.Bitmap, optional): The bitmap to use. Defaults to
+            wx.NullBitmap.
+        label (str, optional): The label to use. Defaults to "".
+        pos (wx.Point, optional): The position of the button. Defaults to
+            wx.DefaultPosition.
+        size (wx.Size, optional): The size of the button. Defaults to
+            wx.DefaultSize.
+        style (int, optional): The style of the button. Defaults to 0.
+        validator (wx.Validator, optional): The validator for the button.
+            Defaults to wx.DefaultValidator.
+        name (str, optional): The name of the button. Defaults to "genbutton".
+    """
 
     def __init__(
         self,
@@ -1708,6 +2056,15 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
         self._default = False
 
     def DrawLabel(self, dc, width, height, dx=0, dy=0):
+        """Draw the label of the button.
+
+        Args:
+            dc (wx.DC): The device context to draw on.
+            width (int): The width of the button.
+            height (int): The height of the button.
+            dx (int, optional): Horizontal offset for the label. Defaults to 0.
+            dy (int, optional): Vertical offset for the label. Defaults to 0.
+        """
         bmp = self.bmpLabel
         if bmp is not None:  # if the bitmap is used
             if self.bmpDisabled and not self.IsEnabled():
@@ -1748,7 +2105,7 @@ class GenBitmapTextButton(GenButton, _GenBitmapTextButton):
 
 
 class ThemedGenBitmapTextButton(ThemedGenButton, GenBitmapTextButton):
-    """A themed generic bitmapped button with text label"""
+    """A themed generic bitmapped button with text label."""
 
 
 class BitmapWithThemedButton(wx.BoxSizer):
@@ -1787,8 +2144,20 @@ class BitmapWithThemedButton(wx.BoxSizer):
         return getattr(self._btn, name)
 
     def Bind(self, event, handler):
+        """Bind an event to the button.
+
+        Args:
+            event (wx.EventType): The event type to bind.
+            handler (callable): The handler function to call when the event
+                occurs.
+        """
         self._btn.Bind(event, handler)
 
     def SetBitmapLabel(self, bitmap):
+        """Set the bitmap label for the static bitmap.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to set as label.
+        """
         self._bmp.SetBitmap(bitmap)
         self.Layout()

@@ -112,7 +112,12 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_head()
 
     def log_message(self, format, *args):  # noqa: A002
-        pass
+        """Override to disable logging.
+
+        Args:
+            format (str): The format string for the log message.
+            *args: Arguments to be formatted into the log message.
+        """
 
     def send_head(self):
         """Common code for GET and HEAD commands.

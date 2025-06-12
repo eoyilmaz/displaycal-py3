@@ -1,13 +1,11 @@
-"""This module provides utility functions for working with X display names,
-including parsing and extracting hostname, display number, and screen number.
-"""
+"""Utility functions for parsing X display names."""
 
 import os
 import warnings
 
 
 def get_display(display_name=None):
-    """Parse X display name and return (hostname, display number, screen number)"""
+    """Parse X display name and return (hostname, display number, screen number)."""
     if not display_name:
         display_name = (os.getenv("DISPLAY", ":0.0")).encode("utf-8")
     display_parts = display_name.split(b":")

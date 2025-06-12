@@ -1,6 +1,6 @@
-"""This module provides a graphical interface for defining and managing the
-measurement area used by DisplayCAL for display calibration and profiling. It
-includes functionality for resizing, centering, and zooming the measurement
+"""Graphical interface for setting the measurement area in DisplayCAL.
+
+It includes functionality for resizing, centering, and zooming the measurement
 frame, as well as handling display geometry and configurations. The module
 integrates with wxPython for user interaction and supports various display
 environments.
@@ -320,6 +320,12 @@ class MeasureFrame(InvincibleFrame):
         self.sizer.SetSizeHints(self)
 
     def measure_darken_background_ctrl_handler(self, event):
+        """Handle the checkbox event for darkening the background during measurement.
+
+        Args:
+            event (wx.Event): The event object containing information about the
+                checkbox event.
+        """
         if self.measure_darken_background_cb.GetValue() and getcfg(
             "measure.darken_background.show_warning"
         ):
@@ -348,12 +354,24 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def measure_darken_background_warning_handler(self, event):
+        """Handle the warning checkbox event for darkening the background.
+
+        Args:
+            event (wx.Event): The event object containing information about the
+                checkbox event.
+        """
         setcfg(
             "measure.darken_background.show_warning",
             int(not event.GetEventObject().GetValue()),
         )
 
     def info_handler(self, event):
+        """Handle the info button click event.
+
+        Args:
+            event (wx.Event): The event object containing information about the
+                info button click event.
+        """
         InfoDialog(
             self,
             msg=lang.getstr("measureframe.info"),
@@ -363,6 +381,12 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def measure_handler(self, event):
+        """Handle the measure button click event.
+
+        Args:
+            event (wx.Event): The event object containing information about the
+                measure button click event.
+        """
         if self.Parent and hasattr(self.Parent, "call_pending_function"):
             self.Parent.call_pending_function()
         else:
@@ -370,6 +394,12 @@ class MeasureFrame(InvincibleFrame):
             self.Close()
 
     def Show(self, show=True):
+        """Show or hide the measure frame.
+
+        Args:
+            show (bool, optional): If True, show the measure frame; if False,
+                hide it. Defaults to True.
+        """
         if show:
             self.show_controls()
             if hasattr(self, "measure_darken_background_cb"):
@@ -403,6 +433,7 @@ class MeasureFrame(InvincibleFrame):
             wx.Frame.Show(self, show)
 
     def Hide(self):
+        """Hide the measure frame and save its dimensions."""
         self.Show(False)
 
     def place_n_zoom(self, x=None, y=None, scale=None):
@@ -412,6 +443,13 @@ class MeasureFrame(InvincibleFrame):
         if given. Without arguments, they are read from the user
         configuration.
 
+        Args:
+            x (float, optional): The horizontal position of the measure frame
+                relative to the display (0.0...1.0). Defaults to None.
+            y (float, optional): The vertical position of the measure frame
+                relative to the display (0.0...1.0). Defaults to None.
+            scale (float, optional): The scale factor for the measure frame
+                (0.0...50.0). Defaults to None.
         """
         if DEBUG:
             print("[D] measureframe.place_n_zoom")
@@ -493,6 +531,12 @@ class MeasureFrame(InvincibleFrame):
         self.SetPosition(measureframe_pos)
 
     def zoomin_handler(self, event):
+        """Handle the zoom in event for the measure frame.
+
+        Args:
+            event (wx.Event): The event object containing information about
+                the zoom in event.
+        """
         if DEBUG:
             print("[D] measureframe_zoomin_handler")
         # We can't use self.get_dimensions() here because if we are near
@@ -511,6 +555,12 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def zoomout_handler(self, event):
+        """Handle the zoom out event for the measure frame.
+
+        Args:
+            event (wx.Event): The event object containing information about
+                the zoom out event.
+        """
         if DEBUG:
             print("[D] measureframe_zoomout_handler")
         # We can't use self.get_dimensions() here because if we are
@@ -529,6 +579,12 @@ class MeasureFrame(InvincibleFrame):
         )
 
     def zoomnormal_handler(self, event):
+        """Handle the zoom normal event for the measure frame.
+
+        Args:
+            event (wx.Event): The event object containing information about
+                the zoom normal event.
+        """
         if DEBUG:
             print("[D] measureframe_zoomnormal_handler")
         x, y = None, None
@@ -536,6 +592,12 @@ class MeasureFrame(InvincibleFrame):
         self.place_n_zoom(x, y, scale=scale)
 
     def zoommax_handler(self, event):
+        """Handle the zoom max event for the measure frame.
+
+        Args:
+            event (wx.Event): The event object containing information about
+                the zoom max event.
+        """
         if DEBUG:
             print("[D] measureframe_zoommax_handler")
         display_client_rect = self.get_display()[2]
@@ -555,12 +617,24 @@ class MeasureFrame(InvincibleFrame):
             self.place_n_zoom(x=0.5, y=0.5, scale=50.0)
 
     def center_handler(self, event):
+        """Handle the center event for the measure frame.
+
+        Args:
+            event (wx.Event): The event object containing information about
+                the center event.
+        """
         if DEBUG:
             print("[D] measureframe_center_handler")
         x, y = floatlist(DEFAULTS["dimensions.measureframe"].split(","))[:2]
         self.place_n_zoom(x, y)
 
     def close_handler(self, event):
+        """Handle the close event for the measure frame.
+
+        Args:
+            event (wx.CloseEvent): The event object containing information
+                about the close event.
+        """
         if DEBUG:
             print("[D] measureframe_close_handler")
         if self.Parent:
@@ -581,10 +655,16 @@ class MeasureFrame(InvincibleFrame):
                 MeasureFrame.exitcode = 0
 
     def get_display(self, display_no=None):
-        """Get the display number, geometry and client area, taking into
-        account separate X screens, TwinView and similar
+        """Return display number, geometry, and client area, handling multi-screen setups.
 
-        """
+        Args:
+            display_no (int, optional): The display number to get the geometry
+                for. If None, the current display is used.
+
+        Returns:
+            tuple: A tuple containing the display number, geometry (wx.Rect),
+                and client area (wx.Rect).
+        """  # noqa: E501
         if wx.Display.GetCount() == 1 and len(self.display_rects) > 1:
             # Separate X screens, TwinView or similar
             display = wx.Display(0)
@@ -631,20 +711,33 @@ class MeasureFrame(InvincibleFrame):
         return display_no, geometry, client_rect
 
     def move_handler(self, event):
+        """Handle the move event for the measure frame.
+
+        Args:
+            event (wx.MoveEvent): The event object containing information
+                about the move event.
+        """
         if not self.IsShownOnScreen():
             return
         display_no, geometry, client_area = self.get_display()
-        if display_no != self.display_no:
-            self.display_no = display_no
-            if config.is_virtual_display():
-                return
-            # Translate from wx display index to Argyll display index
-            n = get_argyll_display_number(geometry)
-            if n is not None:
-                # Save Argyll display index to configuration
-                setcfg("display.number", n + 1)
+        if display_no == self.display_no:
+            return
+        self.display_no = display_no
+        if config.is_virtual_display():
+            return
+        # Translate from wx display index to Argyll display index
+        n = get_argyll_display_number(geometry)
+        if n is not None:
+            # Save Argyll display index to configuration
+            setcfg("display.number", n + 1)
 
     def focus_handler(self, event=None):
+        """Handle the focus event for the measure frame.
+
+        Args:
+            event (wx.FocusEvent, optional): The event object containing
+                information about the focus event. Defaults to None.
+        """
         event.Skip()
         if DEBUG:
             print("SET_FOCUS", event.EventObject.Name)
@@ -656,21 +749,38 @@ class MeasureFrame(InvincibleFrame):
             if DEBUG:
                 print(self.last_focused.Name + ".SetFocus()")
 
-    def focus_lost_handler(self, e):
-        e.Skip()
+    def focus_lost_handler(self, event):
+        """Handle the focus lost event for the measure frame.
+
+        Args:
+            event (wx.FocusEvent): The event object containing information
+                about the focus lost event.
+        """
+        event.Skip()
         if DEBUG:
-            print("KILL_FOCUS", e.EventObject.Name)
-        if e.EventObject is not self:
-            self.last_focused = e.EventObject
+            print("KILL_FOCUS", event.EventObject.Name)
+        if event.EventObject is not self:
+            self.last_focused = event.EventObject
             if DEBUG and self.last_focused:
                 print("last_focused", self.last_focused.Name)
 
     def show_handler(self, e):
+        """Handle the show event for the measure frame.
+
+        Args:
+            e (wx.ShowEvent): The event object containing information about the
+                show event.
+        """
         e.Skip()
         if getattr(e, "IsShown", getattr(e, "GetShow", bool))():
             self.measurebutton.SetFocus()
 
     def show_controls(self, show=True):
+        """Show or hide the controls in the measure frame.
+
+        Args:
+            show (bool): If True, show the controls; if False, hide them.
+        """
         self.panel.Freeze()
         for ctrl in self.panel.Children:
             ctrl.Show(show)
@@ -683,6 +793,14 @@ class MeasureFrame(InvincibleFrame):
         self.panel.Thaw()
 
     def show_rgb(self, rgb):
+        """Show the RGB color in the measure frame.
+
+        The RGB values should be in the range 0.0...1.0.
+
+        Args:
+            rgb (tuple): A tuple of three floats representing the RGB color.
+
+        """
         if getcfg("patterngenerator.use_video_levels"):
             minv = 16
             maxv = 235
@@ -690,8 +808,8 @@ class MeasureFrame(InvincibleFrame):
             minv = 0
             maxv = 255
         rgb = tuple(minv + v * (maxv - minv) for v in rgb)
-        floor = tuple(int(math.floor(v)) for v in rgb)
-        ceil = tuple(int(math.ceil(v)) for v in rgb)
+        floor = tuple(math.floor(v) for v in rgb)
+        ceil = tuple(math.ceil(v) for v in rgb)
         if floor != ceil:
             # Dither using simple ordered pattern
             print(
@@ -803,35 +921,15 @@ class MeasureFrame(InvincibleFrame):
         return measureframe_dimensions
 
 
-def test():
-    import time
-
-    for rgb in [
-        (0.079291, 1 / 51.0, 1 / 51.0),
-        (0.079291, 0.089572, 0.094845),
-        (0.032927, 0.028376, 0.027248),
-        (0.037647, 0.037095, 0.036181),
-        (51.2 / 255, 153.7 / 255, 127.4 / 255),
-    ]:
-        wx.CallAfter(wx.GetApp().TopWindow.show_rgb, rgb)
-        time.sleep(0.05)
-        input("Press RETURN to continue\n")
-        if not wx.GetApp().TopWindow:
-            break
-
-
 def main():
+    """Main function to run the wxPython application."""
     config.initcfg()
     lang.init()
     app = BaseApp(0)
     app.TopWindow = MeasureFrame()
     app.TopWindow.Show()
     if "--test-dither" in sys.argv[1:]:
-        import threading
-
-        t = threading.Thread(target=test)
-        app.TopWindow.show_controls(False)
-        t.start()
+        print("Testing thourhg the `--test-dither` argument is not supported.")
     app.MainLoop()
 
 

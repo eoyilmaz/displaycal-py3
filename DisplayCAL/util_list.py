@@ -1,14 +1,10 @@
-"""This module provides utility functions for working with lists. It includes
-functions for type conversion (e.g., to floats, integers, or strings),
-case-insensitive indexing, natural sorting, and safely retrieving list
-elements with a default value.
-"""
+"""Utility functions for list conversion, indexing, and natural sorting."""
 
 import re
 
 
 def floatlist(alist):
-    """Convert all list items to floats (0.0 on error)"""
+    """Convert all list items to floats (0.0 on error)."""
     result = []
     for item in alist:
         try:
@@ -19,14 +15,14 @@ def floatlist(alist):
 
 
 def get(alist, index, default=None):
-    """Similar to dict.get, return item at index or default if not in list"""
+    """Similar to dict.get, return item at index or default if not in list."""
     if -1 < index < len(alist):
         return alist[index]
     return default
 
 
 def index_ignorecase(self, value, start=None, stop=None):
-    """Case-insensitive version of list.index"""
+    """Case-insensitive version of list.index."""
     items = [(item.lower() if isinstance(item, str) else item) for item in self]
     return items.index(value, start or 0, stop or len(self))
 
@@ -39,7 +35,7 @@ def index_fallback_ignorecase(self, value, start=None, stop=None):
 
 
 def intlist(alist):
-    """Convert all list items to ints (0 on error)"""
+    """Convert all list items to ints (0 on error)."""
     result = []
     for item in alist:
         try:
@@ -85,5 +81,5 @@ def natsort(list_in, ignorecase=True, reverse=False, n=10):
 
 
 def strlist(alist):
-    """Convert all list items to strings"""
+    """Convert all list items to strings."""
     return [str(item) for item in alist]

@@ -1,4 +1,6 @@
-"""Task Scheduler interface. Currently only implemented for Windows (Vista and up).
+"""Task Scheduler interface.
+
+Currently only implemented for Windows (Vista and up).
 The implementation is currently minimal and incomplete when it comes to
 creating tasks (all tasks are created for the 'INTERACTIVE' group and with
 only logon triggers and exec actions available).
@@ -166,7 +168,13 @@ class ResumeFromSleepTrigger(_Trigger):
 
 
 class ExecAction(_Dict2XML):
-    """Exec action."""
+    """Exec action.
+
+    Args:
+        cmd (str): The command to run.
+        args (list[str]): The arguments to pass to the command. Defaults to None,
+            which means no arguments.
+    """
 
     def __init__(self, cmd, args=None):
         # Filter any None values
@@ -180,7 +188,45 @@ class ExecAction(_Dict2XML):
 
 
 class Task(_Dict2XML):
-    """Task Scheduler task."""
+    """Task Scheduler task.
+
+    Args:
+        name (str): The name of the task.
+        author (str): The author of the task.
+        description (str): The description of the task.
+        group_id (str): The group ID for the task.
+        run_level (str): The run level for the task.
+        multiple_instances_policy (str): The policy for multiple instances.
+        disallow_start_if_on_batteries (bool): Whether to disallow starting
+            the task if on batteries.
+        stop_if_going_on_batteries (bool): Whether to stop the task if
+            going on batteries.
+        allow_hard_terminate (bool): Whether to allow hard termination of
+            the task.
+        start_when_available (bool): Whether to start the task when
+            available.
+        run_only_if_network_available (bool): Whether to run the task only
+            if the network is available.
+        duration (str): The duration for which the task should run.
+        wait_timeout (str): The timeout for waiting for the task to finish.
+        stop_on_idle_end (bool): Whether to stop the task when the system
+            goes idle.
+        restart_on_idle (bool): Whether to restart the task when the system
+            goes idle.
+        allow_start_on_demand (bool): Whether to allow starting the task on
+            demand.
+        enabled (bool): Whether the task is enabled.
+        hidden (bool): Whether the task is hidden.
+        run_only_if_idle (bool): Whether to run the task only if the system
+            is idle.
+        wake_to_run (bool): Whether to wake the system to run the task.
+        execution_time_limit (str): The execution time limit for the task.
+        priority (int): The priority of the task.
+        triggers (list[Trigger]): List of triggers for this task, e.g.:
+            [LogonTrigger(), CalendarTrigger(), ResumeFromSleepTrigger()].
+        actions (list[Action]): List of actions for this task, e.g.:
+            [ExecAction("program.exe", ["arg1", "arg2"])].
+    """
 
     def __init__(
         self,
@@ -257,12 +303,30 @@ class Task(_Dict2XML):
         _Dict2XML.__init__(self, kwargs)
 
     def add_exec_action(self, cmd, args=None):
+        """Add an exec action to the task.
+
+        Args:
+            cmd (str): The command to run.
+            args (list[str]): The arguments to pass to the command. Defaults to
+                None, which means no arguments.
+        """
         self["actions"]["items"].append(ExecAction(cmd, args))
 
     def add_logon_trigger(self, enabled=True):
+        """Add a logon trigger to the task.
+
+        Args:
+            enabled (bool): Whether the logon trigger is enabled. Defaults to
+                True.
+        """
         self["triggers"]["items"].append(LogonTrigger(enabled))
 
     def write_xml(self, xmlfilename):
+        """Write the task to an XML file.
+
+        Args:
+            xmlfilename (str): The filename to write the XML to.
+        """
         with open(xmlfilename, "wb") as xmlfile:
             xmlfile.write(codecs.BOM_UTF16_LE + str(self).encode())
 
@@ -374,6 +438,59 @@ class TaskScheduler:
         If replace_existing evaluates to True, delete any existing task with
         same name first, otherwise raise KeyError.
 
+        Args:
+            name (str): The name of the task.
+            author (str): The author of the task.
+            description (str): The description of the task.
+            group_id (str): The group ID for the task.
+            run_level (str): The run level for the task.
+            multiple_instances_policy (str): The policy for multiple instances.
+            disallow_start_if_on_batteries (bool): Whether to disallow starting
+                the task if on batteries.
+            stop_if_going_on_batteries (bool): Whether to stop the task if
+                going on batteries.
+            allow_hard_terminate (bool): Whether to allow hard termination of
+                the task.
+            start_when_available (bool): Whether to start the task when
+                available.
+            run_only_if_network_available (bool): Whether to run the task only
+                if the network is available.
+            duration (str): The duration for which the task should run.
+            wait_timeout (str): The timeout for waiting for the task to finish.
+            stop_on_idle_end (bool): Whether to stop the task when the system
+                goes idle.
+            restart_on_idle (bool): Whether to restart the task when the system
+                goes idle.
+            allow_start_on_demand (bool): Whether to allow starting the task on
+                demand.
+            enabled (bool): Whether the task is enabled.
+            hidden (bool): Whether the task is hidden.
+            run_only_if_idle (bool): Whether to run the task only if the system
+                is idle.
+            wake_to_run (bool): Whether to wake the system to run the task.
+            execution_time_limit (str): The execution time limit for the task.
+            priority (int): The priority of the task.
+            triggers (list[Trigger]): List of triggers for this task, e.g.:
+                [LogonTrigger(), CalendarTrigger(), ResumeFromSleepTrigger()].
+            actions (list[Action]): List of actions for this task, e.g.:
+                [ExecAction("program.exe", ["arg1", "arg2"])].
+            replace_existing (bool): If True, replace an existing task with same
+                name, otherwise raise KeyError if it exists already.
+            elevated (bool): If True, run command with elevated privileges,
+                otherwise not. Note that this requires administrative privileges
+                and will prompt for elevation if necessary.
+            echo (bool): If True, print command
+                output to stdout, otherwise suppress it.
+
+        Raises:
+            KeyError: If replace_existing is False and a task with the same
+                name already exists.
+            pywintypes.error: If there is an error while creating the task.
+            OSError: If there is an error while writing the XML file or removing
+                temporary files.
+
+        Returns:
+            Task: The created task object.
         """
         kwargs = locals()
         del kwargs["self"]
@@ -426,6 +543,51 @@ class TaskScheduler:
         elevated=False,
         echo=False,
     ):
+        """Create a new task to be run under the current user account at logon.
+
+        Args:
+            name (str): The name of the task.
+            cmd (str): The command to run.
+            args (list[str]): The arguments to pass to the command.
+            author (str): The author of the task.
+            description (str): The description of the task.
+            group_id (str): The group ID for the task.
+            run_level (str): The run level for the task.
+            multiple_instances_policy (str): The policy for multiple instances.
+            disallow_start_if_on_batteries (bool): Whether to disallow starting
+                the task if on batteries.
+            stop_if_going_on_batteries (bool): Whether to stop the task if
+                going on batteries.
+            allow_hard_terminate (bool): Whether to allow hard termination of
+                the task.
+            start_when_available (bool): Whether to start the task when
+                available.
+            run_only_if_network_available (bool): Whether to run the task only
+                if the network is available.
+            duration (str): The duration for which the task should run.
+            wait_timeout (str): The timeout for waiting for the task to finish.
+            stop_on_idle_end (bool): Whether to stop the task when the system
+                goes idle.
+            restart_on_idle (bool): Whether to restart the task when the system
+                goes idle.
+            allow_start_on_demand (bool): Whether to allow starting the task on
+                demand.
+            enabled (bool): Whether the task is enabled.
+            hidden (bool): Whether the task is hidden.
+            run_only_if_idle (bool): Whether to run the task only if the system
+                is idle.
+            wake_to_run (bool): Whether to wake the system to run the task.
+            execution_time_limit (str): The execution time limit for the task.
+            priority (int): The priority of the task.
+            replace_existing (bool): Whether to replace an existing task with
+                the same name.
+            elevated (bool): Whether to run the command with elevated
+                privileges.
+            echo (bool): Whether to print the command output to stdout.
+
+        Returns:
+            Task: The created task object.
+        """
         kwargs = locals()
         del kwargs["self"]
         del kwargs["cmd"]
@@ -436,19 +598,27 @@ class TaskScheduler:
         return self.create_task(**kwargs)
 
     def delete(self, name):
-        """Delete existing task"""
+        """Delete existing task."""
         self._ts.Delete(name)
 
     def disable(self, name, echo=False):
-        """Disable (deactivate) existing task"""
+        """Disable (deactivate) existing task."""
         self._schtasks(["/Change", "/TN", name, "/DISABLE"], echo=echo)
 
     def enable(self, name, echo=False):
-        """Enable (activate) existing task"""
+        """Enable (activate) existing task."""
         self._schtasks(["/Change", "/TN", name, "/ENABLE"], echo=echo)
 
     def get(self, name, default=None):
-        """Get existing task"""
+        """Get existing task.
+
+        Args:
+            name (str): The name of the task to retrieve.
+            default: The value to return if the task does not exist.
+
+        Returns:
+            Task: The task object if it exists, otherwise the default value.
+        """
         if name in self:
             return self[name]
         return default
@@ -460,31 +630,86 @@ class TaskScheduler:
 
         Call win32api.FormatMessage() on either value to get a readable message
 
+        Returns:
+            tuple[int, int]: A tuple containing the exit code and startup error
+                code of the task.
         """
         return task.GetExitCode()
 
     def items(self):
+        """Iterate over existing tasks and their names.
+
+        Returns:
+            list[tuple[str, Task]]: A list of tuples containing task names and
+                their corresponding Task objects.
+        """
         return list(zip(self, self.tasks()))
 
     def iteritems(self):
+        """Iterate over existing tasks and their names.
+
+        Returns:
+            Iterator[tuple[str, Task]]: An iterator over tuples containing task
+                names and their corresponding Task objects.
+        """
         return zip(self, self.itertasks())
 
     def itertasks(self):
+        """Iterate over existing tasks.
+
+        Returns:
+            Iterator[Task]: An iterator over Task objects representing existing
+                tasks.
+        """
         return map(self.get, self)
 
     def run(self, name, elevated=False, echo=False):
-        """Run existing task"""
+        """Run existing task.
+
+        Args:
+            name (str): The name of the task to run.
+            elevated (bool): Whether to run the command with elevated privileges.
+            echo (bool): Whether to print the command output to stdout.
+
+        Returns:
+            bool: True if the task was successfully run, False otherwise.
+        """
         return self._schtasks(["/Run", "/TN", name], elevated, echo)
 
     def has_task(self, name):
-        """Same as name in self"""
+        """Same as name in self.
+
+        Args:
+            name (str): The name of the task to check.
+
+        Returns:
+            bool: True if the task exists, False otherwise.
+        """
         return name in self
 
     def query_task(self, name, echo=False):
-        """Query task."""
+        """Query task.
+
+        Args:
+            name (str): The name of the task to query.
+            echo (bool): Whether to print the command output to stdout.
+
+        Returns:
+            bool: True if the task exists, False otherwise.
+        """
         return self._schtasks(["/Query", "/TN", name], False, echo)
 
     def _schtasks(self, args, elevated=False, echo=False):
+        """Run schtasks.exe with the given arguments.
+
+        Args:
+            args (list[str]): The arguments to pass to schtasks.exe.
+            elevated (bool): Whether to run the command with elevated privileges.
+            echo (bool): Whether to print the command output to stdout.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
         if elevated:
             try:
                 p = run_as_admin("schtasks.exe", args, close_process=False, show=False)
@@ -517,12 +742,18 @@ class TaskScheduler:
         return self.lastreturncode == 0
 
     def tasks(self):
+        """Get existing tasks.
+
+        Returns:
+            list[Task]: A list of Task objects representing existing tasks.
+        """
         return list(map(self.get, self))
 
 
 if __name__ == "__main__":
 
     def print_task_attr(name, attr, *args):
+        """Print task attribute."""
         print(f"{name:18s}:", end=" ")
         if callable(attr):
             try:

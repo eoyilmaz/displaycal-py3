@@ -1,7 +1,6 @@
-"""This module provides utilities for interacting with the D-Bus inter-process
-communication system, supporting both the `Gio` library (via GObject
-Introspection) and the `dbus` Python library. It abstracts D-Bus object
-interactions, enabling method calls, property access, and introspection.
+"""Utilities for interacting with D-Bus using Gio or dbus.
+
+Provides object access, method calls, properties, and introspection.
 """
 
 import sys
@@ -49,6 +48,7 @@ class DBusObjectInterfaceMethod:
         self._method_name = method_name
 
     def __call__(self, *args, **kwargs):
+        """Call the D-Bus method with the given arguments."""
         if USE_GI:
             format_string = ""
             value = []
@@ -129,6 +129,14 @@ class DBusObject:
 
     @property
     def properties(self):
+        """Get all properties of the D-Bus object.
+
+        Raises:
+            DBusObjectError: If properties cannot be accessed.
+
+        Returns:
+            dict: A dictionary of all properties of the D-Bus object.
+        """
         if not self._proxy:
             return {}
         interface = self._bus_name
@@ -152,6 +160,14 @@ class DBusObject:
             raise DBusObjectError(exception, self._bus_name) from exception
 
     def introspect(self):
+        """Introspect the D-Bus object to get its XML representation.
+
+        Raises:
+            DBusObjectError: If introspection fails.
+
+        Returns:
+            XMLDict: An XMLDict representation of the introspected D-Bus object.
+        """
         if not self._introspectable:
             self._introspectable = DBusObject(
                 self._bus_type,
@@ -173,4 +189,9 @@ class DBusObjectError(DBusException):
         DBusException.__init__(self, safe_str(exception))
 
     def get_dbus_name(self):
+        """Get the D-Bus error name.
+
+        Returns:
+            str: The D-Bus error name, or None if not available.
+        """
         return self._dbus_error_name

@@ -1,8 +1,9 @@
-"""This module provides functionality to convert VRML files to X3D format,
-with optional HTML embedding and viewing capabilities. It includes a graphical
-interface using wxPython for file selection and conversion, as well as a
-command-line mode for batch processing. The module supports features like
-caching, forced downloads, and embedding viewer components in the output.
+"""Convert VRML files to X3D format, with optional HTML embedding and viewing.
+
+It includes a graphical interface using wxPython for file selection and
+conversion, as well as a command-line mode for batch processing. The module
+supports features like caching, forced downloads, and embedding viewer
+components in the output.
 """
 
 import os
@@ -94,12 +95,23 @@ if gui:
             self.SetMaxSize(self.GetSize())
 
         def OnClose(self, event):
+            """Handle the close event for the frame.
+
+            Args:
+                event (wx.Event): The close event.
+            """
             # Hide first (looks nicer)
             self.Hide()
             # Need to use CallAfter to prevent hang under Windows if minimized
             wx.CallAfter(self.Destroy)
 
         def get_commands(self):
+            """Get the list of commands for the command line interface.
+
+            Returns:
+                list: A list of command strings that can be used in the command
+                    line.
+            """
             return [
                 *self.get_common_commands(),
                 "VRML-to-X3D-converter [filename...]",
@@ -107,6 +119,16 @@ if gui:
             ]
 
         def process_data(self, data):
+            """Process data received from the command line or drag-and-drop.
+
+            Args:
+                data (tuple): A tuple containing the command and optional
+                    filename(s).
+
+            Returns:
+                str: "ok" if the command was processed successfully, "invalid"
+                    otherwise.
+            """
             if data[0] in ("VRML-to-X3D-converter", "load"):
                 if self.IsIconized():
                     self.Restore()
@@ -118,6 +140,7 @@ if gui:
 
 
 def main():
+    """Main function to handle command line arguments and initiate conversion."""
     if "--help" in sys.argv[1:] or (not sys.argv[1:] and not gui):
         print("Convert VRML file to X3D")
         print("Author: Florian Hoech, licensed under the GPL version 3")
@@ -201,9 +224,29 @@ def vrmlfile2x3dfile(
     worker=None,
     gui=True,
 ):
-    """Convert VRML to HTML. Output is written to <vrmlfilename>.x3d.html
-    unless you set x3dpath to desired output path, or False to be prompted
-    for an output path."""
+    """Convert VRML to HTML.
+
+    Output is written to <vrmlfilename>.x3d.html unless you set x3dpath to
+    desired output path, or False to be prompted for an output path.
+
+    Args:
+        vrmlpath (str): Path to the VRML file to convert. If None, a file
+            dialog will be shown to select the file.
+        x3dpath (str): Path to the output X3D file. If None, it will be derived
+            from vrmlpath. If False, a file dialog will be shown to select the
+            output path.
+        html (bool): Whether to generate an HTML file with the X3D viewer.
+        embed (bool): Whether to embed the X3D viewer components in the HTML.
+        view (bool): Whether to view the generated file after conversion.
+        force (bool): Whether to force a fresh download of viewer components.
+        cache (bool): Whether to use the viewer components cache.
+        worker (Worker): Worker instance for asynchronous processing.
+        gui (bool): Whether to use GUI for file selection.
+
+    Returns:
+        bool: True if the conversion was successful, False otherwise.
+        None: If the user cancels the file selection dialog.
+    """
     while not vrmlpath or not os.path.isfile(vrmlpath):
         if not gui:
             if not vrmlpath or vrmlpath.startswith("--"):

@@ -1,7 +1,7 @@
-"""This module defines the tools, alternative names, and related configurations
-used by Argyll CMS in DisplayCAL. It includes predefined tool names, optional
-tools, alternative naming conventions, viewing conditions, intents, video
-encodings, and observer types.
+"""Argyll CMS tool names and related configurations for DisplayCAL.
+
+It includes predefined tool names, optional tools, alternative naming
+conventions, viewing conditions, intents, video encodings, and observer types.
 """
 
 # Argyll CMS tools used by DisplayCAL
@@ -62,7 +62,13 @@ ALTNAMES = {
 }
 
 
-def add_prefixes_suffixes(name, altname):
+def add_prefixes_suffixes(name: str, altname: str) -> None:
+    """Add prefixes and suffixes to the alternative tool names.
+
+    Args:
+        name (str): The original tool name.
+        altname (str): The alternative tool name.
+    """
     for prefix_suffix in PREFIXES_SUFFIXES:
         ALTNAMES[name].append(f"{altname}-{prefix_suffix}")
         ALTNAMES[name].append(f"{prefix_suffix}-{altname}")

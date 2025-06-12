@@ -1,7 +1,7 @@
-"""This module defines a collection of supported instruments and their
-properties for use with Argyll CMS. It provides utilities for managing
-instrument names, removing vendor prefixes, and mapping instrument names to
-canonical forms.
+"""Supported instruments and their properties for Argyll CMS.
+
+It provides utilities for managing instrument names, removing vendor prefixes,
+and mapping instrument names to canonical forms.
 """
 
 from __future__ import annotations
@@ -485,7 +485,15 @@ def get_canonical_instrument_name(
     return strtr(remove_vendor_names(instrument_name), replacements)
 
 
-def remove_vendor_names(txt):
+def remove_vendor_names(txt: str) -> str:
+    """Remove vendor names from the instrument name.
+
+    Args:
+        txt (bytes, str): Instrument name to be processed.
+
+    Returns:
+        str: Instrument name without vendor names.
+    """
     for vendor in vendors:
         if isinstance(txt, bytes):
             txt = re.sub(

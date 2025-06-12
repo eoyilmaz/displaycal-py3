@@ -1,7 +1,8 @@
-"""This module defines platform-specific default paths and directories used by
-the DisplayCAL application. It provides a unified way to access system paths
-such as application data directories, cache directories, and ICC profile
-locations across different operating systems (Windows, macOS, and Linux).
+"""Platform-specific default paths for DisplayCAL.
+
+It provides a unified way to access system paths such as application data
+directories, cache directories, and ICC profile locations across different
+operating systems (Windows, macOS, and Linux).
 """
 
 import os
@@ -42,7 +43,7 @@ elif sys.platform == "win32":
         MAX_PATH = 260
 
         def SHGetSpecialFolderPath(hwndOwner, nFolder, create=0):
-            """Ctypes wrapper around shell32.SHGetSpecialFolderPathW"""
+            """Ctypes wrapper around shell32.SHGetSpecialFolderPathW."""
             buffer = ctypes.create_unicode_buffer("\0" * MAX_PATH)
             ctypes.windll.shell32.SHGetSpecialFolderPathW(0, buffer, nFolder, create)
             return buffer.value

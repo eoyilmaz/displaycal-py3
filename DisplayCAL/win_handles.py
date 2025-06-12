@@ -1,8 +1,9 @@
-"""This module provides utilities for interacting with Windows system handles,
-including functions to query handle information, retrieve handle names and
-types, and list handles for specific processes. It uses the Windows API
-through the `ctypes` library.
+"""Utilities for querying Windows system handles and their information.
+
+It uses the Windows API through the `ctypes` library.
 """
+
+from __future__ import annotations
 
 import ctypes
 import os
@@ -37,6 +38,7 @@ SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 
 class SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX(ctypes.Structure):  # noqa: N801
     """Class representing SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structure."""
+
     _fields_: ClassVar[list[tuple]] = [
         ("Object", PVOID),
         ("UniqueProcessId", wintypes.HANDLE),
@@ -67,6 +69,12 @@ class SYSTEM_HANDLE_INFORMATION_EX(SYSTEM_INFORMATION):  # noqa: N801
 
     @property
     def Handles(self):
+        """Return a list of handles.
+
+        Returns:
+            list[SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX]: A list of handles
+                represented by SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX structures.
+        """
         arr_t = SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX * self.NumberOfHandles
         return ctypes.POINTER(arr_t)(self._Handles)[0]
 
@@ -106,14 +114,17 @@ def _get_handle_info(handle, info_class):
 
 
 def get_handle_name(handle):
+    """Get the name of a handle."""
     return _get_handle_info(handle, ObjectNameInformation)
 
 
 def get_handle_type(handle):
+    """Get the type of a handle."""
     return _get_handle_info(handle, ObjectTypeInformation)
 
 
 def get_handles():
+    """Get all handles in the system."""
     info = SYSTEM_HANDLE_INFORMATION_EX()
     length = wintypes.ULONG()
     while True:
@@ -132,7 +143,7 @@ def get_handles():
 
 
 def get_process_handles(pid=None):
-    """Get handles of process <pid> (current process if not specified)"""
+    """Get handles of process <pid> (current process if not specified)."""
     if not pid:
         pid = os.getpid()
     handles = []

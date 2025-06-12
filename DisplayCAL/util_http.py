@@ -1,8 +1,11 @@
-"""This module provides utility functions for making HTTP requests with
-multipart/form-data encoding. It includes functions to post fields and
-files to an HTTP host and to encode data for multipart form submissions.
+"""Utility functions for HTTP multipart/form-data requests.
+
+It includes functions to post fields and files to an HTTP host and to encode
+data for multipart form submissions.
 """
 # http://code.activestate.com/recipes/146306-http-client-to-post-using-multipartform-data/
+
+from __future__ import annotations
 
 import http.client
 import mimetypes
@@ -91,7 +94,15 @@ def encode_multipart_formdata(fields, files, charset="UTF-8"):
     return content_type, body
 
 
-def get_content_type(filename):
+def get_content_type(filename: str | bytes) -> str:
+    """Get the content type of a file based on its filename.
+
+    Args:
+        filename (str | bytes): The filename to get the content type for.
+
+    Returns:
+        str: The content type of the file.
+    """
     if isinstance(filename, bytes):
         filename = filename.decode("utf-8")
     return mimetypes.guess_type(filename)[0] or "application/octet-stream"

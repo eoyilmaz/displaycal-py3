@@ -1,7 +1,7 @@
-"""This module handles post-installation and uninstallation tasks for
-DisplayCAL across different platforms (Windows, macOS, and Linux). It includes
-functions to create shortcuts, manage installed files, and update system
-resources such as icons and desktop menu entries.
+"""Post-install and uninstall tasks for DisplayCAL on Windows, macOS, and Linux.
+
+It includes functions to create shortcuts, manage installed files, and update
+system resources such as icons and desktop menu entries.
 """
 
 import contextlib
@@ -35,11 +35,12 @@ if sys.platform == "win32":
         except ImportError:
 
             def create_shortcut(*args):
-                pass
+                """Dummy function to create a Windows shortcut."""
 
         else:
 
-            def create_shortcut(*args):
+            def create_shortcut(*args) -> None:
+                """Create a Windows shortcut."""
                 shortcut = CoCreateInstance(
                     shell.CLSID_ShellLink,
                     None,
@@ -61,7 +62,7 @@ if sys.platform == "win32":
         # this function is only available within bdist_wininst installers
 
         def directory_created(path):
-            pass
+            """Dummy function to record directory creation."""
 
     if "file_created" not in globals():
         # this function is only available within bdist_wininst installers
@@ -69,12 +70,21 @@ if sys.platform == "win32":
             import win32api
         except ImportError:
 
-            def file_created(path):
-                pass
+            def file_created(path) -> None:
+                """Dummy function to record file creation.
+
+                Args:
+                    path (str): The path of the file that was created.
+                """
 
         else:
 
-            def file_created(path):
+            def file_created(path) -> None:
+                """Record the file creation in the installed files record.
+
+                Args:
+                    path (str): The path of the file that was created.
+                """
                 if not os.path.exists(recordfile_name):
                     return
                 installed_files = []
@@ -100,12 +110,29 @@ if sys.platform == "win32":
             from win32com.shell import shell, shellcon
         except ImportError:
 
-            def get_special_folder_path(csidl_string):
-                pass
+            def get_special_folder_path(csidl_string: str) -> None:
+                """Implement the dummy version of getting the path to a special folder.
+
+                Args:
+                    csidl_string (str): The CSIDL string representing the
+                        special folder.
+
+                Returns:
+                    None: Returns None.
+                """
 
         else:
 
-            def get_special_folder_path(csidl_string):
+            def get_special_folder_path(csidl_string: str) -> str:
+                """Get the path to a special folder.
+
+                Args:
+                    csidl_string (str): The CSIDL string representing the
+                        special folder.
+
+                Returns:
+                    str: The path to the special folder.
+                """
                 return shell.SHGetSpecialFolderPath(
                     0, getattr(shellcon, csidl_string), 1
                 )
@@ -346,6 +373,7 @@ def postinstall_linux(prefix=None):
 
 
 def postinstall(prefix=None):
+    """Do postinstall actions."""
     if sys.platform == "darwin":
         postinstall_macos()
     elif sys.platform == "win32":
@@ -355,6 +383,7 @@ def postinstall(prefix=None):
 
 
 def postuninstall(prefix=None):
+    """Do postuninstall actions."""
     if sys.platform == "darwin":
         # TODO: implement
         pass
@@ -379,6 +408,7 @@ def postuninstall(prefix=None):
 
 
 def main():
+    """Main function to handle post-installation and uninstallation tasks."""
     prefix = None
     for arg in sys.argv[1:]:
         arg = arg.split("=")

@@ -1,6 +1,7 @@
-"""This module provides functionality for writing image data to files in various
-formats, including TIFF, PNG, and DPX. It supports 8-bit and 16-bit image data
-and is optimized for scenarios such as single-color images or specific dimensions.
+"""Write image data to TIFF, PNG, or DPX files.
+
+Supports 8-bit and 16-bit image data, optimized for single-color or
+specific-dimension images.
 """
 
 import math
@@ -20,7 +21,18 @@ TIFF_TAG_TYPE_DWORD = 4
 TIFF_TAG_TYPE_RATIONAL = 5  # 2 DWORDs
 
 
-def tiff_get_header(w, h, samples_per_pixel, bitdepth):
+def tiff_get_header(w: int, h: int, samples_per_pixel: int, bitdepth: int):
+    """Return TIFF header for given width, height, samples per pixel and bitdepth.
+
+    Args:
+        w (int): Width of the image.
+        h (int): Height of the image.
+        samples_per_pixel (int): Number of samples per pixel.
+        bitdepth (int): Bit depth of the image.
+
+    Returns:
+        bytes: TIFF header as bytes.
+    """
     # Very helpful: http://www.fileformat.info/format/tiff/corion.htm
 
     header = []
@@ -86,11 +98,33 @@ def write(
     file_format=None,
     dimensions=None,
     extrainfo=None,
-):
+) -> None:
+    """Write image data to a file.
+
+    Args:
+        data (list): The image data to write.
+        stream_or_filename (str or file-like object): The output file or stream.
+        bitdepth (int): The bit depth of the image (default: 16).
+        file_format (str): The file format to use (default: None, which infers
+            from filename).
+        dimensions (tuple): The dimensions of the image (width, height).
+        extrainfo (dict): Additional information for the image.
+    """
     Image(data, bitdepth, extrainfo).write(stream_or_filename, file_format, dimensions)
 
 
-def write_rgb_clut(stream_or_filename, clutres=33, bitdepth=16, file_format=None):
+def write_rgb_clut(
+    stream_or_filename, clutres=33, bitdepth=16, file_format=None
+) -> None:
+    """Write a color lookup table (CLUT) to a file.
+
+    Args:
+        stream_or_filename (str or file-like object): The output file or stream.
+        clutres (int): The resolution of the CLUT (default: 33).
+        bitdepth (int): The bit depth of the CLUT (default: 16).
+        file_format (str): The file format to use (default: None, which infers
+            from filename).
+    """
     clut = []
     for R in range(clutres):
         for G in range(clutres):
@@ -115,7 +149,7 @@ class Image:
         self.extrainfo = extrainfo or {}
 
     def _pack(self, n):
-        n = int(round(n))
+        n = round(n)
         if self.bitdepth == 16:
             data = struct.pack(">H", n)
         elif self.bitdepth == 8:
@@ -156,16 +190,14 @@ class Image:
                 )
             if not optimize:
                 # Pad lines with binary zeros so they end on 4-byte boundaries
-                scanline = scanline.ljust(
-                    int(math.ceil(len(scanline) / 4.0)) * 4, b"\0"
-                )
+                scanline = scanline.ljust(math.ceil(len(scanline) / 4.0) * 4, b"\0")
             imgdata.append(scanline)
         imgdata = "".join(imgdata)
         if optimize:
             # Optimize for single color
             imgdata *= dimensions[0]
             # Pad lines with binary zeros so they end on 4-byte boundaries
-            imgdata = imgdata.ljust(int(math.ceil(len(imgdata) / 4.0)) * 4, b"\0")
+            imgdata = imgdata.ljust(math.ceil(len(imgdata) / 4.0) * 4, b"\0")
             imgdata *= dimensions[1]
             w, h = dimensions
         else:
@@ -393,6 +425,17 @@ class Image:
                 stream.write(b"".join(self._pack(v) for v in sample))
 
     def write(self, stream_or_filename, file_format=None, dimensions=None):
+        """Write the image data to a file or stream.
+
+        Args:
+            stream_or_filename (str or file-like object): The output file or stream.
+            file_format (str): The file format to use (default: None, which infers
+                from filename).
+            dimensions (tuple): The dimensions of the image (width, height).
+
+        Raises:
+            ValueError: If the specified file format is unsupported.
+        """
         if not file_format:
             if isinstance(stream_or_filename, str):
                 file_format = (

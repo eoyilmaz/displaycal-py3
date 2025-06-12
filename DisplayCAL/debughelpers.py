@@ -1,6 +1,6 @@
-"""This module provides utility functions and custom exception classes to
-assist with debugging and error handling in the DisplayCAL application. It
-includes functionality for retrieving event object names and types, handling
+"""Utility functions and exceptions for debugging and error handling in DisplayCAL.
+
+It includes functionality for retrieving event object names and types, handling
 errors with optional logging and user notifications, and printing call stacks
 for debugging purposes.
 """
@@ -133,7 +133,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
 
 
 def print_callstack():
-    """Print call stack"""
+    """Print call stack."""
     import inspect
 
     stack = inspect.stack()

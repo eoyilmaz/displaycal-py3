@@ -18,6 +18,11 @@ import tempfile
 import time
 from typing import TYPE_CHECKING, Any, Callable
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
@@ -1205,7 +1210,7 @@ class FileLock:
         self.blocking = blocking
         self.lock()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Enter the context manager.
 
         Returns:

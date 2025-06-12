@@ -1,3 +1,5 @@
+import pytest
+
 from DisplayCAL.util_str import (
     asciize,
     ellipsis_,
@@ -264,3 +266,11 @@ def test_make_ascii_printable_4():
     result = make_ascii_printable(test_value, substitute=b"\x00")
     expected_result = "\x00\x00\x00\x00\x00\x00TYPR371U504L\n"
     assert result == expected_result
+
+
+@pytest.mark.skip(reason="TODO: This test is moved from the module, properly implement it.")
+def test_from_modules():
+    from DisplayCAL.util_str import subst
+    for k in subst:
+        v = subst[k]
+        print(k, v)

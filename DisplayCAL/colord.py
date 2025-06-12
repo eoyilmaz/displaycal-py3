@@ -1,8 +1,7 @@
-"""This module provides an interface for interacting with the `colord` color
-management service, which is used to manage color profiles and devices on Linux
-systems. It supports querying, managing, and installing color profiles for
-display devices, leveraging both the D-Bus API and the `colormgr` command-line
-utility.
+"""Interface to the colord service for managing color profiles and devices on Linux.
+
+It supports querying, managing, and installing color profiles for display
+devices, leveraging both the D-Bus API and the `colormgr` command-line utility.
 """
 
 import contextlib
@@ -132,7 +131,7 @@ device_ids = {}
 
 
 def client_connect():
-    """Connect to colord"""
+    """Connect to colord."""
     client = Colord.Client.new()
 
     # Connect to colord
@@ -142,7 +141,7 @@ def client_connect():
 
 
 def device_connect(client, device_id):
-    """Connect to device"""
+    """Connect to device."""
     if isinstance(device_id, str):
         device_id = device_id.encode("UTF-8")
     try:
@@ -164,7 +163,7 @@ def device_id_from_edid(
     omit_manufacturer=False,
     query=False,
 ):
-    """Assemble device key from EDID"""
+    """Assemble device key from EDID."""
     # https://github.com/hughsie/colord/blob/master/doc/device-and-profile-naming-spec.txt
     # Should match device ID returned by gcm_session_get_output_id in
     # gnome-settings-daemon/plugins/color/gsd-color-state.c
@@ -214,7 +213,7 @@ def device_id_from_edid(
 
 
 def find(what, search):
-    """Find device or profile and return object path"""
+    """Find device or profile and return object path."""
     if not isinstance(Colord, DBusObject):
         raise CDError("colord API not available")
     if not isinstance(search, list):
@@ -231,7 +230,14 @@ def find(what, search):
 
 
 def get_default_profile(device_id):
-    """Get default profile for device"""
+    """Get default profile for device.
+
+    Args:
+        device_id (str): Device ID to search for.
+
+    Returns:
+        str: Default profile ID for the device.
+    """
     # Find device object path
     device = Device(get_object_path(device_id, "device"))
 
@@ -250,6 +256,14 @@ def get_default_profile(device_id):
 
 
 def get_devices_by_kind(kind):
+    """Get devices by kind.
+
+    Args:
+        kind (str): Kind of device to search for.
+
+    Returns:
+        list: List of devices of the specified kind.
+    """
     if not isinstance(Colord, DBusObject):
         return []
     return [
@@ -258,10 +272,20 @@ def get_devices_by_kind(kind):
 
 
 def get_display_devices():
+    """Get display devices.
+
+    Returns:
+        list: List of display devices.
+    """
     return get_devices_by_kind("display")
 
 
 def get_display_device_ids():
+    """Get display device IDs.
+
+    Returns:
+        list: List of display device IDs.
+    """
     return [
         _f
         for _f in (
@@ -272,8 +296,8 @@ def get_display_device_ids():
 
 
 def get_object_path(search, object_type):
-    """Get object path for profile or device ID"""
-    result = find(object_type + "-by-id", search)
+    """Get object path for profile or device ID."""
+    result = find(f"{object_type}-by-id", search)
     if not result:
         raise CDObjectNotFoundError(f"Could not find object path for {search}")
     return result
@@ -458,7 +482,15 @@ def install_profile(
             logfn(stdout.strip())
 
 
-def quirk_manufacturer(manufacturer):
+def quirk_manufacturer(manufacturer: str) -> str:
+    """Correct manufacturer name for colord.
+
+    Args:
+        manufacturer (str): Manufacturer name to correct.
+
+    Returns:
+        str: Corrected manufacturer name.
+    """
     if (
         Colord
         and not isinstance(Colord, DBusObject)
@@ -481,7 +513,13 @@ def quirk_manufacturer(manufacturer):
 
 
 class Object(DBusObject):
-    """Base class for colord objects."""
+    """Base class for colord objects.
+
+    Args:
+        object_path (str): D-Bus object path of the colord object.
+        object_type (str): Type of the colord object, e.g., "Device" or
+            "Profile".
+    """
 
     def __init__(self, object_path, object_type):
         try:
@@ -500,6 +538,14 @@ class Object(DBusObject):
 
     @property
     def properties(self):
+        """Get properties of the object.
+
+        Returns:
+            dict: Dictionary of properties of the object.
+
+        Raises:
+            CDError: If there is an error retrieving the properties.
+        """
         try:
             properties = {}
             for key in self._properties:

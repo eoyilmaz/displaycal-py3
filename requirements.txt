@@ -8,6 +8,8 @@ numpy
 Pillow
 protobuf
 PyChromecast
+pyglet >= 2.1.6; python_version >= "3.10"
+pyglet <= 2.1.3; python_version < "3.10"
 pywin32; sys_platform == "win32"
 PyYAML
 Send2Trash

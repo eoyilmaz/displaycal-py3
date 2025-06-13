@@ -6929,7 +6929,10 @@ class LogWindow(InvincibleFrame):
             event (wx.WindowDestroyEvent): a `wx.WindowDestroyEvent` event to
                 be processed.
         """
-        self.Destroy()
+        with contextlib.suppress(RuntimeError):
+            # jug ignore:
+            # RuntimeError: wrapped C/C++ object of type LogWindow has been deleted
+            self.Destroy()
         event.Skip()
 
         return 0

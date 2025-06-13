@@ -12009,68 +12009,142 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.start_timers(True)
             if not getcfg("dry_run"):
                 setcfg("calibration.file.previous", None)
-            return
-        if getcfg("log.autoshow") and allow_show_log:
-            self.infoframe_toggle_handler(show=True)
-        self.install_3dlut = install_3dlut
-        if profile_path:
-            profile_save_path = os.path.splitext(profile_path)[0]
-        else:
-            profile_save_path = os.path.join(
-                getcfg("profile.save_path"),
-                getcfg("profile.name.expanded"),
-                getcfg("profile.name.expanded"),
-            )
-            profile_path = profile_save_path + PROFILE_EXT
-        self.cal = profile_path
-        profile = None
-        filename, ext = os.path.splitext(profile_path)
-        extra = []
-        cinfo = []
-        vinfo = []
-        has_cal = False
-        try:
-            profile = ICCProfile(profile_path)
-        except (OSError, ICCProfileInvalidError):
-            InfoDialog(
-                self,
-                msg=lang.getstr("profile.invalid") + "\n" + profile_path,
-                ok=lang.getstr("ok"),
-                bitmap=geticon(32, "dialog-error"),
-            )
-            self.start_timers(True)
-            setcfg("calibration.file.previous", None)
-            return
-
-        has_cal = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
-        if profile.profileClass != b"mntr" or profile.colorSpace != b"RGB":
-            InfoDialog(
-                self,
-                msg=lang.getstr("profiling.complete"),
-                ok=lang.getstr("ok"),
-                bitmap=geticon(32, "dialog-information"),
-            )
-            self.start_timers(True)
-            setcfg("calibration.file.previous", None)
-            return
-        if getcfg("calibration.file", False) != profile_path:
-            # Load profile
-            (options_dispcal, options_colprof) = get_options_from_profile(profile)
-            if options_dispcal or options_colprof:
-                cal = profile_save_path + ".cal"
-                sel = self.calibration_file_ctrl.GetSelection()
-                if options_dispcal and self.recent_cals[sel] == cal:
-                    self.recent_cals.remove(cal)
-                    self.calibration_file_ctrl.Delete(sel)
-                if getcfg("settings.changed"):
-                    self.settings_discard_changes()
-                if options_dispcal and options_colprof:
-                    self.load_cal_handler(
-                        None,
-                        path=profile_path,
-                        update_profile_name=False,
-                        silent=True,
-                        load_vcgt=False,
+                return
+            else:
+                has_cal = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
+                if profile.profileClass != b"mntr" or profile.colorSpace != b"RGB":
+                    InfoDialog(
+                        self,
+                        msg=lang.getstr("profiling.complete"),
+                        ok=lang.getstr("ok"),
+                        bitmap=geticon(32, "dialog-information"),
+                    )
+                    self.start_timers(True)
+                    setcfg("calibration.file.previous", None)
+                    return
+                if getcfg("calibration.file", False) != profile_path:
+                    # Load profile
+                    (options_dispcal, options_colprof) = get_options_from_profile(
+                        profile
+                    )
+                    if options_dispcal or options_colprof:
+                        cal = profile_save_path + ".cal"
+                        sel = self.calibration_file_ctrl.GetSelection()
+                        if options_dispcal and self.recent_cals[sel] == cal:
+                            self.recent_cals.remove(cal)
+                            self.calibration_file_ctrl.Delete(sel)
+                        # seems to break 3D lut creation...
+                        #if getcfg("settings.changed"):
+                        #    self.settings_discard_changes()
+                        if options_dispcal and options_colprof:
+                            self.load_cal_handler(
+                                None,
+                                path=profile_path,
+                                update_profile_name=False,
+                                silent=True,
+                                load_vcgt=False,
+                            )
+                        else:
+                            setcfg("calibration.file", profile_path)
+                            setcfg("3dlut.output.profile", profile_path)
+                            setcfg("measurement_report.output_profile", profile_path)
+                            self.update_controls(update_profile_name=False)
+                # Get 3D LUT options
+                self.lut3d_set_path()
+                # Check if we want to automatically create 3D LUT
+                if (
+                    install_3dlut
+                    and getcfg("3dlut.create")
+                    and not os.path.isfile(self.lut3d_path)
+                ):
+                    # Update curve viewer if shown
+                    self.lut_viewer_load_lut(profile=profile)
+                    # Create 3D LUT
+                    self.lut3d_create_handler(None)
+                    return
+                if hasattr(self.worker, "_disabler"):
+                    # This shouldn't happen
+                    self.worker.stop_progress()
+                if "meta" in profile.tags:
+                    for key in ("avg", "max", "rms"):
+                        try:
+                            dE = float(
+                                profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}")
+                            )
+                        except (TypeError, ValueError):
+                            pass
+                        else:
+                            lstr = f"{lang.getstr('profile.self_check')}:"
+                            if lstr not in extra:
+                                extra.append(lstr)
+                            extra.append(
+                                " {} {:.2f}".format(
+                                    lang.getstr(f"profile.self_check.{key}"), dE
+                                )
+                            )
+                    gamuts = (
+                        ("srgb", "sRGB", GAMUT_VOLUME_SRGB),
+                        ("adobe-rgb", "Adobe RGB", GAMUT_VOLUME_ADOBERGB),
+                        ("dci-p3", "DCI P3", GAMUT_VOLUME_SMPTE431_P3),
+                    )
+                    for key, name, _volume in gamuts:
+                        try:
+                            gamut_coverage = profile.tags.meta.getvalue(
+                                f"GAMUT_coverage({key})"
+                            )
+                            gamut_coverage = (
+                                float(gamut_coverage)
+                                if gamut_coverage is not None
+                                else gamut_coverage
+                            )
+                        except (TypeError, ValueError):
+                            traceback.print_exc()
+                            gamut_coverage = None
+                        if gamut_coverage:
+                            cinfo.append(f"{gamut_coverage:.1%} {name}")
+                    try:
+                        gamut_volume = float(profile.tags.meta.getvalue("GAMUT_volume"))
+                    except (TypeError, ValueError):
+                        traceback.print_exc()
+                        gamut_volume = None
+                    if gamut_volume:
+                        for _key, name, volume in gamuts:
+                            vinfo.append(
+                                f"{gamut_volume * GAMUT_VOLUME_SRGB / volume:.1%} "
+                                f"{name}"
+                            )
+                            if len(vinfo) == len(cinfo):
+                                break
+            if config.is_virtual_display() or install_3dlut:
+                installable = False
+                title = APPNAME
+                if self.lut3d_path and os.path.isfile(self.lut3d_path):
+                    # 3D LUT file already exists
+                    if getcfg("3dlut.format") in (
+                        "madVR",
+                        "ReShade",
+                    ) or config.check_3dlut_format("Prisma"):
+                        ok = lang.getstr("3dlut.install")
+                    else:
+                        ok = lang.getstr("3dlut.save_as")
+                else:
+                    ok = lang.getstr("3dlut.create")
+                cancel = lang.getstr("cancel")
+            else:
+                if not self.check_profile_b2a_hires(profile):
+                    return
+                installable = True
+                title = lang.getstr("profile.install")
+                ok = lang.getstr("profile.install")
+                cancel = lang.getstr("profile.do_not_install")
+            if not success_msg:
+                if installable:
+                    success_msg = lang.getstr(
+                        "dialog.install_profile",
+                        (
+                            os.path.basename(profile_path),
+                            self.display_ctrl.GetStringSelection(),
+                        ),
                     )
                 else:
                     setcfg("calibration.file", profile_path)
@@ -19141,7 +19215,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if not path:
             return
 
-        if getcfg("settings.changed") and not self.settings_confirm_discard():
+        if getcfg("settings.changed"):
             return
 
         if not os.path.exists(path):

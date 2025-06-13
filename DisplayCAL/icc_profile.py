@@ -3824,13 +3824,12 @@ BEGIN_DATA
             block = 0
             i = 1
             if self.tagSignature and self.tagSignature.startswith("B2A"):
-                interp = []
-                interp.extend(
+                interp = [
                     colormath.Interp(
                         input_value, list(range(len(input_value))), use_numpy=True
                     )
                     for input_value in self.input
-                )
+                ]
             for a in range(clutres):
                 for b in range(clutres):
                     for c in range(clutres):
@@ -6002,7 +6001,7 @@ class VideoCardGammaType(ICCProfileTag, ADict):
         entryCount = len(values)
         channels = len(values[0])
         header = ["REF"]
-        header.extend("C" + str(k + 1) for k in range(channels))
+        header.extend(f"C{k + 1}" for k in range(channels))
         header = [title.ljust(digits + 2) for title in header]
         print("#".ljust(len(str(amount)) + 1) + " ".join(header))
         for i, value in enumerate(values):

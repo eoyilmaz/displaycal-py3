@@ -134,8 +134,7 @@ def cal_to_fake_profile(cal: str | CGATS) -> None | ICCProfile:
             containing the calibration data, or None if the input is invalid
             or required fields are missing.
     """
-    vcgt, cal = cal_to_vcgt(cal, True)
-    if not vcgt:
+    if not (cal := validate_cgats(cal)) or not (vcgt := cal_to_vcgt(cal)):
         return None
     profile = ICCProfile()
     profile.fileName = cal.filename
@@ -151,28 +150,22 @@ def cal_to_fake_profile(cal: str | CGATS) -> None | ICCProfile:
     return profile
 
 
-def cal_to_vcgt(
-    cal: str | CGATS, return_cgats: bool = False
-) -> None | VideoCardGammaTableType | tuple[VideoCardGammaTableType, CGATS]:
+def cal_to_vcgt(cal: str | CGATS) -> None | VideoCardGammaTableType:
     """Create a vcgt tag from calibration data.
 
-    cal must refer to a valid Argyll CAL file and can be a CGATS instance
-    or a filename.
-
     Args:
-        cal (str | CGATS): The input CAL file or CGATS instance.
-        return_cgats (bool): If True, returns a tuple of
-            VideoCardGammaTableType and CGATS instance. If False, returns only
-            the VideoCardGammaTableType.
+        cal (str | CGATS): The input CAL file or CGATS instance. It must refer
+            to a valid Argyll CAL file or can be a CGATS instance or a
+            filename.
 
     Returns:
-        None | VideoCardGammaTableType | tuple[VideoCardGammaTableType, CGATS]:
-            Returns a VideoCardGammaTableType instance containing the `vcgt`
-            data, or a tuple of VideoCardGammaTableType and CGATS instance if
-            `return_cgats` is True. Returns None if the input is invalid or
-            required fields are missing.
+        None | VideoCardGammaTableType: Returns a VideoCardGammaTableType
+            instance containing the `vcgt` data. Returns None if the input is
+            invalid or required fields are missing.
     """
-    cal = validate_cgats(cal)
+    if not (cal := validate_cgats(cal)):
+        return None
+
     required_fields = ("RGB_I", "RGB_R", "RGB_G", "RGB_B")
     if data_format := cal.queryv1("DATA_FORMAT"):
         for field in required_fields:
@@ -202,7 +195,7 @@ def cal_to_vcgt(
     for n in entries:
         for i in range(3):
             vcgt.data[i].append(entries[n][i + 1] * 65535.0)
-    return vcgt, cal if return_cgats else vcgt
+    return vcgt
 
 
 def validate_cgats(cal: str | CGATS) -> CGATS:
@@ -300,12 +293,11 @@ def extract_cal_from_profile(
     # Check if calibration is included in TI3
     targ = profile.tags.get("targ", profile.tags.get("CIED"))
     cal = None
-    if isinstance(targ, Text):
-        cal = extract_cal_from_ti3(targ)
-        if cal:
-            check = cal
-            cgats_builder = CGATS
-            arg = cal
+    cgats_builder = None
+    if isinstance(targ, Text) and (cal := extract_cal_from_ti3(targ)):
+        check = cal
+        cgats_builder = CGATS
+        arg = cal
 
     if not cal:
         check, cgats_builder, arg = convert_cal_info_from_embedded_wcs_profile(profile)
@@ -412,8 +404,7 @@ def unscale_vcgt_from_video_levels(
     print(f"Need to un-scale vcgt from video levels ({black}..{white})")
 
     # Need to un-scale video levels
-    data = cgats.queryv1("DATA")
-    if not data:
+    if not (data := cgats.queryv1("DATA")):
         print("Warning - no un-scaling applied - no calibration data!")
         return cgats
 
@@ -423,8 +414,8 @@ def unscale_vcgt_from_video_levels(
     # precision are created by bit shifting rather
     # than scaling, so we need to scale the fp
     # value to account for this
-    oldmin = (black / 256.0) * (65536 / 65535.0)
-    oldmax = (white / 256.0) * (65536 / 65535.0)
+    old_min = (black / 256.0) * (65536 / 65535.0)
+    old_max = (white / 256.0) * (65536 / 65535.0)
     for entry in data.values():
         for column in "RGB":
             v_old = entry[f"RGB_{column}"]
@@ -440,7 +431,7 @@ def unscale_vcgt_from_video_levels(
                 )
                 encoding_mismatch = True
                 break
-            v_new = colormath.convert_range(v_old, oldmin, oldmax, 0, 1)
+            v_new = colormath.convert_range(v_old, old_min, old_max, 0, 1)
             entry[f"RGB_{column}"] = min(max(v_new, 0), 1)
         if encoding_mismatch:
             break
@@ -518,15 +509,18 @@ def extract_fix_copy_cal(
 
     cal_found = False
     for line in ti3_lines:
-        cal_found = line == b"CAL"
-        # Make sure CGATS file identifiers are always a minimum of 7 characters long
-        line = line.ljust(7) if cal_found else line
-        if not cal_found or line != b'DEVICE_CLASS "DISPLAY"':
+        if line == b"CAL":
+            # Make sure CGATS file identifiers are always a minimum of 7 characters long
+            line = line.ljust(7)
+            cal_found = True
+        if not cal_found:
+            continue
+        cal_lines.append(line)
+        if line != b'DEVICE_CLASS "DISPLAY"':
             continue
         options_dispcal = get_options_from_profile(profile)[0]
         if not options_dispcal:
             continue
-        cal_lines.append(line)
         # b = profile.tags.lumi.Y
         cal_lines = build_cal_from_profile(cal_lines, options_dispcal)
 

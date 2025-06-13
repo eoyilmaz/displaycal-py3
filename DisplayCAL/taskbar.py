@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 """Contains Windows Taskbar related functionality.
 
-Unfortunatelly the newly implemented `ctypes` interface is not working. From what I
+Unfortunately the newly implemented `ctypes` interface is not working. From what I
 learned during my research is that the `comtypes` interface is able to support the
 `IUnkwown*` (or "early-binding") interfaces. That may not be the main reason. But, if
 it was working before let's not break it and keep the old code.
@@ -68,9 +67,9 @@ Here is the code for future reference:
                 self.taskbar.contents.SetProgressState(hwnd, state)
 
 """
-import comtypes.gen.TaskbarLib as tbl
-import comtypes.client as cc
 
+from comtypes import client
+from comtypes.gen import TaskbarLib
 
 TBPF_NOPROGRESS = 0
 TBPF_INDETERMINATE = 0x1
@@ -78,21 +77,38 @@ TBPF_NORMAL = 0x2
 TBPF_ERROR = 0x4
 TBPF_PAUSED = 0x8
 
-taskbar = cc.CreateObject(
-    "{56FDF344-FD6D-11d0-958A-006097C9A090}", interface=tbl.ITaskbarList3
+taskbar = client.CreateObject(
+    "{56FDF344-FD6D-11d0-958A-006097C9A090}", interface=TaskbarLib.ITaskbarList3
 )
 taskbar.HrInit()
 
 
 class Taskbar:
+    """Taskbar progress bar interface.
+
+    Args:
+        frame (wx.Frame): The frame to associate with the taskbar progress.
+        maxv (int): The maximum value for the progress bar, default is 100.
+    """
+
     def __init__(self, frame, maxv=100):
         self.frame = frame
         self.maxv = maxv
 
     def set_progress_value(self, value):
+        """Set the taskbar progress value.
+
+        Args:
+            value (int): The progress value, should be between 0 and maxv.
+        """
         if self.frame:
             taskbar.SetProgressValue(self.frame.GetHandle(), value, self.maxv)
 
     def set_progress_state(self, state):
+        """Set the taskbar progress state.
+
+        Args:
+            state (int): The progress state, one of TBPF_* constants.
+        """
         if self.frame:
             taskbar.SetProgressState(self.frame.GetHandle(), state)

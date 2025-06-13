@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
 import tempfile
@@ -12,16 +10,16 @@ sys.path.insert(
 )
 
 
-from DisplayCAL.meta import description, name, version_tuple
+from DisplayCAL.meta import DESCRIPTION, NAME, VERSION_TUPLE
 from winmanifest import ManifestFromXMLFile
 
 
 def getmanifest(manifest_template_path):
     manifest = ManifestFromXMLFile(manifest_template_path)
-    manifest.description = description
-    manifest.name = name
+    manifest.description = DESCRIPTION
+    manifest.name = NAME
     # Windows 10+ requires a 4 part version number listed in the manifest file
-    version = list(version_tuple)
+    version = list(VERSION_TUPLE)
     if len(version) < 4:
         version.append(0)
     manifest.version = tuple(version)

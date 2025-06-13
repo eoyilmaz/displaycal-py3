@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
 import tempfile
@@ -12,24 +10,24 @@ sys.path.insert(
 )
 
 
-from DisplayCAL.meta import author, description, DOMAIN, name, version, version_tuple
+from DisplayCAL.meta import AUTHOR, DESCRIPTION, DOMAIN, NAME, VERSION_STRING, VERSION_TUPLE
 
 
 def mktempver(
-    version_template_path, name_=name, description_=description, encoding="UTF-8"
+    version_template_path, name_=NAME, description_=DESCRIPTION, encoding="UTF-8"
 ):
     version_template = open(version_template_path, "rb")
     tempver_str = version_template.read().decode(encoding, "replace") % {
-        "filevers": str(version_tuple),
-        "prodvers": str(version_tuple),
+        "filevers": str(VERSION_TUPLE),
+        "prodvers": str(VERSION_TUPLE),
         "CompanyName": DOMAIN,
         "FileDescription": description_,
-        "FileVersion": f"{version}",
+        "FileVersion": f"{VERSION_STRING}",
         "InternalName": name_,
-        "LegalCopyright": f"© {author}",
+        "LegalCopyright": f"© {AUTHOR}",
         "OriginalFilename": f"{name_}.exe",
         "ProductName": name_,
-        "ProductVersion": f"{version}",
+        "ProductVersion": f"{VERSION_STRING}",
     }
     version_template.close()
     tempdir = tempfile.mkdtemp()

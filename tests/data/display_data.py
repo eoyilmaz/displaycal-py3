@@ -1,7 +1,6 @@
 """Sample DisplayData class."""
 
 import sys
-from typing import Dict, List
 
 
 class DisplayData:
@@ -536,7 +535,7 @@ usage: dispwin [options] [calfile]
         )
 
     @staticmethod
-    def enumerate_displays() -> List[Dict]:
+    def enumerate_displays() -> list[dict]:
         """Return the display data itself."""
         return [DisplayData.DISPLAY_DATA_1]
 

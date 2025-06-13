@@ -12,55 +12,58 @@ import threading
 import sys
 from time import sleep
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 # Python version check
-from DisplayCAL.meta import py_maxversion, py_minversion
+from DisplayCAL.meta import PY_MAXVERSION, PY_MINVERSION
 
-pyver = sys.version_info[:2]
-if pyver < py_minversion or pyver > py_maxversion:
+PYVER = sys.version_info[:2]
+if PYVER < PY_MINVERSION or PYVER > PY_MAXVERSION:
     raise RuntimeError(
-        "Need Python version >= %s <= %s, got %s"
-        % (
-            ".".join(str(n) for n in py_minversion),
-            ".".join(str(n) for n in py_maxversion),
+        "Need Python version >= {} <= {}, got {}".format(
+            ".".join(str(n) for n in PY_MINVERSION),
+            ".".join(str(n) for n in PY_MAXVERSION),
             sys.version.split()[0],
         )
     )
 
 from DisplayCAL.config import (
-    appbasename,
-    autostart_home,
-    confighome,
-    datahome,
-    enc,
-    exe,
-    exe_ext,
-    exedir,
-    exename,
-    fs_enc,
+    APPBASENAME,
+    AUTOSTART_HOME,
+    CONFIG_HOME,
+    DATA_HOME,
+    ENC,
+    EXE,
+    EXE_EXT,
+    EXEDIR,
+    EXENAME,
+    FS_ENC,
     get_data_path,
     getcfg,
     initcfg,
-    isapp,
-    isexe,
-    logdir,
-    pydir,
-    pyname,
-    pypath,
-    resfiles,
-    runtype,
+    ISAPP,
+    ISEXE,
+    LOGDIR,
+    PYDIR,
+    PYNAME,
+    PYPATH,
+    RES_FILES,
+    RUNTYPE,
 )
 from DisplayCAL.debughelpers import ResourceError, handle_error
-from DisplayCAL.log import log
+from DisplayCAL.log import LOG
 from DisplayCAL.meta import (
     VERSION,
     VERSION_BASE,
     VERSION_STRING,
-    build,
-    name as appname,
+    BUILD,
+    NAME as APPNAME,
 )
 from DisplayCAL.multiprocess import mp
-from DisplayCAL.options import debug, verbose
+from DisplayCAL.options import DEBUG, VERBOSE
 from DisplayCAL.util_os import FileLock, LockingError, UnlockingError
 
 import distro
@@ -97,12 +100,12 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
         return
     else:
         print(f"Acquired lock file: {lock}")
-    log("=" * 80)
-    if verbose >= 1:
+    LOG("=" * 80)
+    if VERBOSE >= 1:
         version = VERSION_STRING
         if VERSION > VERSION_BASE:
             version += " Beta"
-        print(pyname + runtype, version, build)
+        print(PYNAME + RUNTYPE, version, BUILD)
     if sys.platform == "darwin":
         # Python's platform.platform output is useless under Mac OS X
         # (e.g. 'Darwin-15.0.0-x86_64-i386-64bit' for Mac OS X 10.11 El Capitan)
@@ -132,19 +135,19 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
         print(exception)
     else:
         try:
-            faulthandler.enable(open(os.path.join(logdir, pyname + "-fault.log"), "w"))
+            faulthandler.enable(open(os.path.join(LOGDIR, PYNAME + "-fault.log"), "w"))
         except Exception as exception:
             print(exception)
         else:
             print("Faulthandler", getattr(faulthandler, "__version__", ""))
-    from DisplayCAL.wxaddons import wx
+    from DisplayCAL.wx_addons import wx
 
     if "phoenix" in wx.PlatformInfo:
         # py2exe helper so wx.xml gets picked up
         from wx import xml
     print(f"wxPython {wx.version()}")
-    print(f"Encoding: {enc}")
-    print(f"File system encoding: {fs_enc}")
+    print(f"Encoding: {ENC}")
+    print(f"File system encoding: {FS_ENC}")
     if sys.platform == "win32" and sys.getwindowsversion() >= (6, 2):
         # HighDPI support
         try:
@@ -168,7 +171,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
     opid = os.getpid()
     if probe_ports:
         # Check for currently used ports
-        lockfilenames = glob.glob(os.path.join(confighome, "*.lock"))
+        lockfilenames = glob.glob(os.path.join(CONFIG_HOME, "*.lock"))
         for lockfilename in lockfilenames:
             try:
                 if lock and lockfilename == app_lock_file_name:
@@ -240,7 +243,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                 incoming = data_read.rstrip("\4")
                                 print("Got response: %r" % incoming)
                                 if incoming:
-                                    if incoming != pyname:
+                                    if incoming != PYNAME:
                                         incoming = None
                                 else:
                                     incoming = False
@@ -249,13 +252,13 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                             if module == "apply-profiles":
                                 # Always try to close currently running instance
                                 print("Closing existing instance")
-                                cmd = "exit" if incoming == pyname else "close"
+                                cmd = "exit" if incoming == PYNAME else "close"
                                 data = [cmd]
                                 lock.unlock()
                             else:
                                 # Send module/appname to notify running app
                                 print("Notifying existing instance")
-                                data = [module or appname]
+                                data = [module or APPNAME]
                                 if module != "3DLUT-maker":
                                     for arg in sys.argv[1:]:
                                         data.append(str(arg))
@@ -264,7 +267,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                 print("Sent scripting request, awaiting response...")
                                 data_read = appsocket.read()
                                 incoming = data_read.rstrip("\4")
-                                print(f"Got response: {repr(incoming)}")
+                                print(f"Got response: {incoming!r}")
                                 if module == "apply-profiles":
                                     if incoming == "":
                                         # Successfully sent our close request.
@@ -291,12 +294,12 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                         except pywintypes.error as exception:
                             print("Enumerating processes failed:", exception)
                         else:
-                            appname_lower = appname.lower()
-                            exename_lower = exename.lower()
+                            appname_lower = APPNAME.lower()
+                            exename_lower = EXENAME.lower()
                             if module:
-                                pyexe_lower = appname_lower + "-" + module + exe_ext
+                                pyexe_lower = appname_lower + "-" + module + EXE_EXT
                             else:
-                                pyexe_lower = appname_lower + exe_ext
+                                pyexe_lower = appname_lower + EXE_EXT
                             incoming = None
                             for sid, pid2, basename, usid in processes:
                                 basename_lower = basename.lower()
@@ -324,7 +327,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                                                     "Warning - could "
                                                     "not create dummy "
                                                     f"lockfile {lockfilename}: "
-                                                    f"{repr(exception)}"
+                                                    f"{exception!r}"
                                                 )
                                             else:
                                                 print(
@@ -463,7 +466,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
             lock.write(port)
         lock.flush()
         atexit.register(lambda: print("Ran application exit handlers"))
-        from DisplayCAL.wxwindows import BaseApp
+        from DisplayCAL.wx_windows import BaseApp
 
         BaseApp.register_exitfunc(_exit, app_lock_file_name, port)
         # Check for required resource files
@@ -476,7 +479,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
             "testchart-editor": [],
             "VRML-to-X3D-converter": [],
         }
-        for filename in mod2res.get(module, resfiles):
+        for filename in mod2res.get(module, RES_FILES):
             path = get_data_path(os.path.sep.join(filename.split("/")))
             if not path or not os.path.isfile(path):
                 from DisplayCAL import localization as lang
@@ -486,12 +489,12 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                     lang.getstr("resources.notfound.error") + "\n" + filename
                 )
         # Create main data dir if it does not exist
-        if not os.path.exists(datahome):
+        if not os.path.exists(DATA_HOME):
             try:
-                os.makedirs(datahome)
+                os.makedirs(DATA_HOME)
             except Exception:
                 handle_error(
-                    UserWarning(f"Warning - could not create directory '{datahome}'")
+                    UserWarning(f"Warning - could not create directory '{DATA_HOME}'")
                 )
         elif sys.platform == "darwin":
             # Check & fix permissions if necessary
@@ -499,7 +502,7 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
 
             user = getpass.getuser()
             script = []
-            for directory in (confighome, datahome, logdir):
+            for directory in (CONFIG_HOME, DATA_HOME, LOGDIR):
                 if os.path.isdir(directory) and not os.access(directory, os.W_OK):
                     script.append("chown -R '%s' '%s'" % (user, directory))
             if script:
@@ -508,24 +511,24 @@ def _main(module, name, app_lock_file_name, probe_ports=True):
                         "osascript",
                         "-e",
                         'do shell script "%s" with administrator privileges'
-                        % ";".join(script).encode(fs_enc),
+                        % ";".join(script).encode(FS_ENC),
                     ]
                 )
     # Initialize & run
     if module == "3DLUT-maker":
-        from DisplayCAL.wxLUT3DFrame import main
+        from DisplayCAL.wx_lut_3d_frame import main
     elif module == "curve-viewer":
-        from DisplayCAL.wxLUTViewer import main
+        from DisplayCAL.wx_lut_viewer import main
     elif module == "profile-info":
-        from DisplayCAL.wxProfileInfo import main
+        from DisplayCAL.wx_profile_info import main
     elif module == "scripting-client":
-        from DisplayCAL.wxScriptingClient import main
+        from DisplayCAL.wx_scripting_client import main
     elif module == "synthprofile":
-        from DisplayCAL.wxSynthICCFrame import main
+        from DisplayCAL.wx_synth_icc_frame import main
     elif module == "testchart-editor":
-        from DisplayCAL.wxTestchartEditor import main
+        from DisplayCAL.wx_testchart_editor import main
     elif module == "VRML-to-X3D-converter":
-        from DisplayCAL.wxVRML2X3D import main
+        from DisplayCAL.wx_vrml_2_x3d import main
     elif module == "apply-profiles":
         from DisplayCAL.profile_loader import main
     else:
@@ -539,10 +542,10 @@ def main(module=None):
     if mp.current_process().name != "MainProcess":
         return
     if module:
-        name = f"{appbasename}-{module}"
+        name = f"{APPBASENAME}-{module}"
     else:
-        name = appbasename
-    app_lock_file_name = os.path.join(confighome, f"{name}.lock")
+        name = APPBASENAME
+    app_lock_file_name = os.path.join(CONFIG_HOME, f"{name}.lock")
     try:
         _main(module, name, app_lock_file_name)
     except Exception as exception:
@@ -564,7 +567,7 @@ def _exit(lockfilename, oport):
     for thread in threading.enumerate():
         if (
             thread.is_alive()
-            and thread is not threading.currentThread()
+            and thread is not threading.current_thread()
             and not thread.isDaemon()
         ):
             print("Waiting for thread %s to exit" % thread.getName())
@@ -575,7 +578,7 @@ def _exit(lockfilename, oport):
         with AppLock(lockfilename, "r+", False, True) as lock:
             _update_lockfile(lockfilename, oport, lock)
 
-    print("Exiting", pyname)
+    print("Exiting", PYNAME)
 
 
 def _update_lockfile(lockfilename, oport, lock):
@@ -682,7 +685,7 @@ class AppLock:
         self._blocking = blocking
         self.lock()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, etype, value, traceback):

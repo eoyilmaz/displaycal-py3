@@ -1,16 +1,20 @@
-# -*- coding: utf-8 -*-
+"""Utilities for retrieving and managing display information.
+
+It supports various platforms and integrates with ArgyllCMS's `dispwin` tool to
+enumerate displays and extract detailed display data.
+"""
+
+from __future__ import annotations
 
 import os
 import re
 import subprocess
 import sys
-from typing import Dict, List, Union
 
 from DisplayCAL import argyll
 from DisplayCAL import localization as lang
 from DisplayCAL.util_dbus import BUSTYPE_SESSION, DBusException, DBusObject
 from DisplayCAL.util_x import get_display as _get_x_display
-
 
 _displays = None
 
@@ -56,14 +60,14 @@ class Display:
         self.xrandr_name = None  # Generated from self.description
 
         self.pos = (0, 0)  # USED
-        """Displays offset in pixel."""
+        """Display offset in pixel."""
         # self.sx = None
-        # """Displays offset in pixels (X)."""
+        # """Display offset in pixels (X)."""
         # self.sy = None
-        # """Displays offset in pixels (Y)."""
+        # """Display offset in pixels (Y)."""
 
         self.size = (0, 0)  # USED
-        """Displays width and height in pixels."""
+        """Display width and height in pixels."""
 
         # WINDOWS / NT
         self.monid = None
@@ -185,11 +189,11 @@ def get_dispwin_output() -> bytes:
     return output
 
 
-def _enumerate_displays() -> List[dict]:
+def _enumerate_displays() -> list[dict]:
     """Generate display information data from ArgyllCMS's dispwin.
 
     Returns:
-        List[dict]: A list of dictionary containing display data.
+        list[dict]: A list of dictionary containing display data.
     """
     displays = []
     has_display = False
@@ -245,32 +249,32 @@ def enumerate_displays():
     return _displays
 
 
-def get_display(display_no: int = 0) -> Union[None, Dict]:
+def get_display(display_no: int = 0) -> None | dict:
     """Return display data for a given display number.
 
     Args:
         display_no (int): Display number.
 
     Returns:
-        Dict: The display data.
+        None | dict: The display data.
     """
     if _displays is None:
         enumerate_displays()
 
     # Ensure _displays is not None after calling enumerate_displays
     if _displays is None:
-        return
+        return None
 
     # Translate from Argyll display index to enumerated display index using the
     # coordinates and dimensions
     from DisplayCAL.config import getcfg, is_virtual_display
 
     if is_virtual_display(display_no):
-        return
+        return None
 
     getcfg_displays = getcfg("displays")
     if len(getcfg_displays) < display_no:
-        return
+        return None
 
     argyll_display = getcfg_displays[display_no]
 
@@ -284,6 +288,7 @@ def get_display(display_no: int = 0) -> Union[None, Dict]:
         geometry = b"".join(desc.split(b"@ ")[-1:])
         if argyll_display.endswith((b"@ " + geometry).decode("utf-8")):
             return display
+    return None
 
 
 def get_wayland_display(x, y, w, h):
@@ -297,7 +302,7 @@ def get_wayland_display(x, y, w, h):
     # The xrandr output is also interesting in that case:
     # $ xrandr
     # Screen 0: minimum 320 x 200, current 3660 x 1941, maximum 8192 x 8192
-    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950
+    # XWAYLAND0 connected 3656x1941+0+0 (normal left inverted right x axis y axis) 0mm x 0mm,B950  # noqa: E501
     #   3656x1941     59.96*+
     # Note the apparent mismatch between first and 2nd/3rd line.
     # Look for active display at x, y instead.
@@ -310,10 +315,10 @@ def get_wayland_display(x, y, w, h):
         )
         res = iface.get_resources()
     except DBusException:
-        return
+        return None
 
     if not res or len(res) < 2:
-        return
+        return None
 
     # See
     # https://github.com/GNOME/mutter/blob/master/src/org.gnome.Mutter.DisplayConfig.xml
@@ -353,19 +358,44 @@ def get_wayland_display(x, y, w, h):
         if w_mm and h_mm:
             wayland_display["size_mm"] = (w_mm, h_mm)
         return wayland_display
+    return None
 
 
-def get_x_display(display_no=0):
-    if display := get_display(display_no):
-        if name := display.get("name"):
-            return _get_x_display(name)
+def get_x_display(display_no: int = 0) -> None | str:
+    """Get the X display name for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | str: The X display name.
+    """
+    if (display := get_display(display_no)) and (name := display.get("name")):
+        return _get_x_display(name)
+    return None
 
 
-def get_x_icc_profile_atom_id(display_no=0):
-    if display := get_display(display_no):
-        return display.get("icc_profile_atom_id")
+def get_x_icc_profile_atom_id(display_no: int = 0) -> None | int:
+    """Get the ICC profile atom ID for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | int: The ICC profile atom ID.
+    """
+    display = get_display(display_no)
+    return display.get("icc_profile_atom_id") if display else None
 
 
-def get_x_icc_profile_output_atom_id(display_no=0):
-    if display := get_display(display_no):
-        return display.get("icc_profile_output_atom_id")
+def get_x_icc_profile_output_atom_id(display_no: int = 0) -> None | int:
+    """Get the ICC profile output atom ID for a given display number.
+
+    Args:
+        display_no (int): Display number.
+
+    Returns:
+        None | int: The ICC profile output atom ID.
+    """
+    display = get_display(display_no)
+    return display.get("icc_profile_output_atom_id") if display else None

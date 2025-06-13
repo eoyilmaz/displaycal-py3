@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from io import BytesIO
 import os
 import re
@@ -28,9 +26,9 @@ def quote(obj):
 
 def langmerge(infilename1, infilename2, outfilename):
     print("Syncing", infilename1, "to", infilename2)
-    dictin1 = lazydict.LazyDict_YAML_UltraLite(infilename1)
+    dictin1 = lazydict.LazyDictYAMLUltraLite(infilename1)
     dictin1.load()
-    dictin2 = lazydict.LazyDict_YAML_UltraLite(infilename2)
+    dictin2 = lazydict.LazyDictYAMLUltraLite(infilename2)
     dictin2.load()
 
     added = []

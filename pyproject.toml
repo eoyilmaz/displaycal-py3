@@ -3,6 +3,7 @@ build-backend = "setuptools.build_meta"
 requires = [
     "setuptools",
     'pywin32; platform_system=="Windows"',
+    "numpy",  # very unnecessarily we require `numpy` for the build, will be removed in the future
 ]
 
 [project]
@@ -34,6 +35,18 @@ maintainers = [
 name = "displaycal"
 readme = "README.md"
 requires-python = ">= 3.9"
+
+[project.gui-scripts]
+    displaycal = "DisplayCAL.main:main"
+    displaycal-3dlut-maker = "DisplayCAL.main:main_3dlut_maker"
+    displaycal-curve-viewer = "DisplayCAL.main:main_curve_viewer"
+    displaycal-eecolor-to-madvr-converter = "DisplayCAL.main:main_eecolor_to_madvr_converter"
+    displaycal-profile-info = "DisplayCAL.main:main_profile_info"
+    displaycal-scripting-client = "DisplayCAL.main:main_scripting_client"
+    displaycal-synthprofile = "DisplayCAL.main:main_synthprofile"
+    displaycal-testchart-editor = "DisplayCAL.main:main_testchart_editor"
+    displaycal-vrml-to-x3d-converter = "DisplayCAL.main:main_vrml_to_x3d_converter"
+    displaycal-vrml-to-x3d-converter-console = "DisplayCAL.main:main_vrml_to_x3d_converter_console"
 
 [project.urls]
 "Home Page" = "https://displaycal.net/"
@@ -150,6 +163,76 @@ max-line-length = 80
 per-file-ignores = [
     "DisplayCAL/lib/agw/fmresources.py: B950"
 ]
+
+[tool.ruff.lint]
+select = [
+    "A",  # flake8-builtins
+    "ANN",  # flake-annotations
+    "ASYNC",  # flake-async
+    "B",  # flake8-bugbear
+    "C",  # McCabe complexity
+    "C4",  # flake8-comprehensions
+    "COM",  # flake8-commas
+    "D",  # pydocstyle
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "FA",  # flake8-future-annotations
+    "FLY",  # flynt
+    "I",  # isort
+    "INT",  # flake8-gettext
+    "ISC",  # flake8-implicit-str-concat
+    "LOG",  # flake8-logging
+    "N",  # PEP8 Naming
+    "NPY",  # NumPy-specific rules
+    "PERF",  # perflint
+    "PIE",  # flake8-pie
+    "PLR",  # Pylint - Refactor
+    "PYI",  # flake8-pyi
+    "RET",  # flake8-return
+    "RSE",  # flake8-raise
+    "RUF",  # Ruff-specific-rules
+    "Q",  # flake8-quotes
+    "S",  # flake-bandit
+    "SIM",  # flake8-simplify
+    "SLOT",  # flake8-slots
+    "T10",  # flake8-debugger
+    "TC",  # flake8-type-checking
+    "TID",  # flake8-tidy-imports
+    "UP",  # pyupgrade
+    "YTT",  # flake-2020
+
+]
+extend-ignore = [
+    "ANN002",  # missing type annotations args
+    "ANN003",  # missing type annotations kwargs
+    "COM812",  # flake8-commas
+    "D104",  # Missing docstring in in publish package
+    "D107",  # skip docstring for __init__
+    "D203",  # Incorrect blank line before class
+    "D209",  # New line after last paragraph in docstring
+    "D213",  # Multiline docstring summary second line
+    "D412",  # Bland line between header and content
+    "D416",  # Missing section name colon
+    "E741",  # Ambiguous variable name
+    "E402",  # Module level import not at top of file
+    "PLR0911",  # Too many return statements
+    "PLR0912",  # Too many branches
+    "PLR0913",  # Too many arguments
+    "PLR0914",  # Too many local variables
+    "PLR0915",  # Too many statements
+    "PLR2004",  # Magic value comparison
+    "PERF203",  # Try..except in loop, TODO: Re-enable this later on...
+    "RUF100",  # Unused noqa
+    "S105",  # Hardcoded password
+    "S110",  # try..except..pass
+    "S603",  # Subprocess without shell=True
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.pytest.ini_options]
 pythonpath = [

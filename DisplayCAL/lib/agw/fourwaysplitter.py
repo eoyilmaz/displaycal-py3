@@ -56,11 +56,11 @@ Usage example::
 
     class MyFrame(wx.Frame):
 
-        def __init__(self, parent: Union[None, wx.Window]) -> None:
+        def __init__(self, parent: None | wx.Window) -> None:
 
             wx.Frame.__init__(self, parent, -1, "FourWaySplitter Demo")
 
-            splitter = fws.FourWaySplitter(self, -1, agwStyle=wx.SP_LIVE_UPDATE)
+            splitter = fws.FourWaySplitter(self, -1, agw_style=wx.SP_LIVE_UPDATE)
 
             # Put in some coloured panels...
             for colour in [wx.RED, wx.WHITE, wx.BLUE, wx.GREEN]:
@@ -140,7 +140,7 @@ Latest Revision: Andrea Gavana @ 16 Jul 2012, 15.00 GMT
 Version 0.5
 """
 
-from typing import List, Optional, Tuple, Union
+from __future__ import annotations
 
 import wx
 
@@ -163,7 +163,7 @@ SP_NOSASH = wx.SP_NOSASH
 SP_LIVE_UPDATE = wx.SP_LIVE_UPDATE
 """Don't draw XOR line but resize the child windows immediately."""
 SP_3DBORDER = wx.SP_3DBORDER
-"""Draws a 3D effect border."""
+"""Draw a 3D effect border."""
 
 # FourWaySplitter events
 EVT_SPLITTER_SASH_POS_CHANGING: wx.PyEventBinder = wx.EVT_SPLITTER_SASH_POS_CHANGING
@@ -192,27 +192,27 @@ class FourWaySplitterEvent(wx.CommandEvent):
     The same event type IDs and event binders are used as with :class:`SplitterEvent`.
 
     Args:
-        evtType (int): the event type;
-        splitter (Optional[FourWaySplitter]): The associated :class:`FourWaySplitter`
+        evt_type (int): the event type;
+        splitter (None | FourWaySplitter): The associated :class:`FourWaySplitter`
             window.
     """
 
     def __init__(
         self,
-        evtType: int = wx.wxEVT_NULL,
-        splitter: Optional["FourWaySplitter"] = None,
+        evt_type: int = wx.wxEVT_NULL,
+        splitter: None | FourWaySplitter = None,
     ) -> None:
-        wx.CommandEvent.__init__(self, evtType)
+        wx.CommandEvent.__init__(self, evt_type)
 
         if splitter:
             self.SetEventObject(splitter)
             self.SetId(splitter.GetId())
 
         self.sashIdx = -1
-        self.sashPos: Union[int, wx.Point] = -1
+        self.sashPos: int | wx.Point = -1
         self.isAllowed = True
 
-    def SetSashIdx(self, idx: int) -> None:
+    def SetSashIdx(self, idx: int) -> None:  # noqa: N802
         """Set the index of the sash currently involved in the event.
 
         Args:
@@ -221,7 +221,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         self.sashIdx = idx
 
-    def SetSashPosition(self, pos: Union[int, wx.Point]) -> None:
+    def SetSashPosition(self, pos: int | wx.Point) -> None:  # noqa: N802
         """For EVT_SPLITTER_SASH_POS_CHANGED events, set the new sash position.
 
         In the case of ``EVT_SPLITTER_SASH_POS_CHANGING`` events, sets the new
@@ -230,15 +230,15 @@ class FourWaySplitterEvent(wx.CommandEvent):
         handler code to prevent repositioning.
 
         Args:
-            pos (Union[int, wx.Point]): the new sash position.
+            pos (int | wx.Point): the new sash position.
 
         Note:
             May only be called while processing ``EVT_SPLITTER_SASH_POS_CHANGING``
                 and ``EVT_SPLITTER_SASH_POS_CHANGED`` events.
         """
-        self.sashPos: Union[int, wx.Point] = pos
+        self.sashPos: int | wx.Point = pos
 
-    def GetSashIdx(self) -> int:
+    def GetSashIdx(self) -> int:  # noqa: N802
         """Return the index of the sash currently involved in the event.
 
         Returns:
@@ -246,11 +246,11 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         return self.sashIdx
 
-    def GetSashPosition(self) -> Union[int, wx.Point]:
+    def GetSashPosition(self) -> int | wx.Point:  # noqa: N802
         """Return the new sash position.
 
         Returns:
-            Union[int, wx.Point]: the new sash position.
+            int | wx.Point: the new sash position.
 
         Note:
             May only be called while processing ``EVT_SPLITTER_SASH_POS_CHANGING`` and
@@ -259,7 +259,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
         return self.sashPos
 
     # methods from wx.NotifyEvent
-    def Veto(self) -> None:
+    def Veto(self) -> None:  # noqa: N802
         """Prevent the change announced by this event from happening.
 
         Note:
@@ -270,7 +270,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         self.isAllowed = False
 
-    def Allow(self) -> None:
+    def Allow(self) -> None:  # noqa: N802
         """Do the opposite of :meth:`~FourWaySplitterEvent.Veto`.
 
         It explicitly allows the event to be processed.
@@ -280,7 +280,7 @@ class FourWaySplitterEvent(wx.CommandEvent):
         """
         self.isAllowed = True
 
-    def IsAllowed(self) -> bool:
+    def IsAllowed(self) -> bool:  # noqa: N802
         """Return ``True`` if change is allowed, ``False`` if vetoed.
 
         Returns:
@@ -317,11 +317,11 @@ class FourWaySplitter(wx.Panel):
     def __init__(
         self,
         parent: wx.Window,
-        id: int = wx.ID_ANY,
+        id: int = wx.ID_ANY,  # noqa: A002
         pos: wx.Point = wx.DefaultPosition,
         size: wx.Size = wx.DefaultSize,
         style: int = 0,
-        agwStyle: int = 0,
+        agw_style: int = 0,
         name: str = "FourWaySplitter",
     ) -> None:
         """Construct the default class.
@@ -336,7 +336,7 @@ class FourWaySplitter(wx.Panel):
                 default size, chosen by either the windowing system or wxPython,
                 depending on platform;
             style (int): the underlying :class:`Panel` window style;
-            agwStyle (int): the AGW-specific window style.
+            agw_style (int): the AGW-specific window style.
                 It can be a combination of the following bits:
                 ================== =========== =========================================
                 Window Styles      Hex Value   Description
@@ -356,13 +356,13 @@ class FourWaySplitter(wx.Panel):
         style &= ~wx.BORDER_MASK
         style |= wx.BORDER_NONE
 
-        self._agwStyle = agwStyle
+        self._agw_style = agw_style
 
         # initialize the base class
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
-        self._windows: List[wx.Window] = []
+        self._windows: list[wx.Window] = []
 
         self._splitx = 0
         self._splity = 0
@@ -389,11 +389,11 @@ class FourWaySplitter(wx.Panel):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
         self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
 
-    def _IsVersionGreaterOrEqual(self, version: Tuple[int, int, int, int]) -> bool:
+    def _IsVersionGreaterOrEqual(self, version: tuple[int, int, int, int]) -> bool:  # noqa: N802
         """Compare the current wxPython version with the given version.
 
         Args:
-            version (Tuple[int, int, int, int]): a tuple of version numbers.
+            version (tuple[int, int, int, int]): a tuple of version numbers.
 
         Returns:
             bool: ``True`` if the current wxPython version is greater or equal to the
@@ -410,11 +410,11 @@ class FourWaySplitter(wx.Panel):
             )
         )
 
-    def SetAGWWindowStyleFlag(self, agwStyle: int) -> None:
+    def SetAGWWindowStyleFlag(self, agw_style: int) -> None:  # noqa: N802
         """Set the :class:`FourWaySplitter` window style flags.
 
         Args:
-            agwStyle (int): the AGW-specific window style.
+            agw_style (int): the AGW-specific window style.
                 This can be a combination of the following bits:
                 ================== =========== =========================================
                 Window Styles      Hex Value   Description
@@ -426,10 +426,10 @@ class FourWaySplitter(wx.Panel):
                 ``SP_3DBORDER``          0x200 Draws a 3D effect border.
                 ================== =========== =========================================
         """
-        self._agwStyle = agwStyle
+        self._agw_style = agw_style
         self.Refresh()
 
-    def GetAGWWindowStyleFlag(self) -> int:
+    def GetAGWWindowStyleFlag(self) -> int:  # noqa: N802
         """Return the :class:`FourWaySplitter` window style.
 
         See:
@@ -439,9 +439,9 @@ class FourWaySplitter(wx.Panel):
         Returns:
             int: The AGW-specific window style.
         """
-        return self._agwStyle
+        return self._agw_style
 
-    def AppendWindow(self, window: wx.Window) -> None:
+    def AppendWindow(self, window: wx.Window) -> None:  # noqa: N802
         """Add a new window to the splitter at the right or bottom.
 
         Args:
@@ -449,20 +449,21 @@ class FourWaySplitter(wx.Panel):
         """
         self.InsertWindow(len(self._windows), window)
 
-    def InsertWindow(self, idx: int, window: wx.Window) -> None:
+    def InsertWindow(self, idx: int, window: wx.Window) -> None:  # noqa: N802
         """Insert a new window into the splitter at the position given in `idx`.
 
         Args:
             idx (int): the index at which the window will be inserted;
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window not in self._windows, "A window can only be in the splitter once!"
+        if window in self._windows:
+            raise RuntimeError("A window can only be in the splitter once!")
 
         self._windows.insert(idx, window)
 
         self._SizeWindows()
 
-    def DetachWindow(self, window: wx.Window) -> None:
+    def DetachWindow(self, window: wx.Window) -> None:  # noqa: N802
         """Remove the window from the stack of windows managed by the splitter.
 
         The window will still exist so you should `Hide` or `Destroy` it as needed.
@@ -470,39 +471,41 @@ class FourWaySplitter(wx.Panel):
         Args:
             window (wx.Window): an instance of :class:`wx.Window`.
         """
-        assert window in self._windows, "Unknown window!"
+        if window not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx = self._windows.index(window)
         del self._windows[idx]
 
         self._SizeWindows()
 
-    def ReplaceWindow(self, oldWindow: wx.Window, newWindow: wx.Window) -> None:
+    def ReplaceWindow(self, old_window: wx.Window, new_window: wx.Window) -> None:  # noqa: N802
         """Replace `oldWindow` with `newWindow` in the splitter.
 
         The `oldWindow` window will still exist so you should `Hide` or `Destroy` it as
         needed.
 
         Args:
-            oldWindow (wx.Window): an instance of :class:`wx.Window`;
-            newWindow (wx.Window): another instance of :class:`wx.Window`.
+            old_window (wx.Window): an instance of :class:`wx.Window`;
+            new_window (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert oldWindow in self._windows, "Unknown window!"
+        if old_window not in self._windows:
+            raise RuntimeError("Unknown window!")
 
-        idx = self._windows.index(oldWindow)
-        self._windows[idx] = newWindow
+        idx = self._windows.index(old_window)
+        self._windows[idx] = new_window
 
         self._SizeWindows()
 
-    def ExchangeWindows(self, window1: wx.Window, window2: wx.Window) -> None:
+    def ExchangeWindows(self, window1: wx.Window, window2: wx.Window) -> None:  # noqa: N802
         """Trade the positions in the splitter of the two windows.
 
         Args:
             window1 (wx.Window): an instance of :class:`wx.Window`;
             window2 (wx.Window): another instance of :class:`wx.Window`.
         """
-        assert window1 in self._windows, "Unknown window!"
-        assert window2 in self._windows, "Unknown window!"
+        if window1 not in self._windows or window2 not in self._windows:
+            raise RuntimeError("Unknown window!")
 
         idx1 = self._windows.index(window1)
         idx2 = self._windows.index(window2)
@@ -517,15 +520,15 @@ class FourWaySplitter(wx.Panel):
         if "__WXMSW__" in wx.Platform:
             self.Thaw()
 
-    def GetWindow(self, idx: int) -> Union[None, wx.Window]:
+    def GetWindow(self, idx: int) -> None | wx.Window:  # noqa: N802
         """Return the window at the index `idx`.
 
         Args:
             idx (int): the index at which the window is located.
 
         Returns:
-            Union[None, wx.Window]: The window at the specified index or ``None`` if the index
-                is out of range.
+            None | wx.Window: The window at the specified index or `None`
+                if the index is out of range.
         """
         if len(self._windows) > idx:
             return self._windows[idx]
@@ -533,46 +536,46 @@ class FourWaySplitter(wx.Panel):
         return None
 
     # Get top left child
-    def GetTopLeft(self) -> Union[None, wx.Window]:
+    def GetTopLeft(self) -> None | wx.Window:  # noqa: N802
         """Return the top left window (window index: 0).
 
         Returns:
-            Union[wx.Window]: The top left window or ``None`` if the index is
+            None | wx.Window: The top left window or ``None`` if the index is
                 out of range.
         """
         return self.GetWindow(0)
 
     # Get top right child
-    def GetTopRight(self) -> Union[None, wx.Window]:
+    def GetTopRight(self) -> None | wx.Window:  # noqa: N802
         """Return the top right window (window index: 1).
 
         Returns:
-            Union[None, wx.Window]: The top right window or ``None`` if the
+            None | wx.Window: The top right window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(1)
 
     # Get bottom left child
-    def GetBottomLeft(self) -> Union[None, wx.Window]:
+    def GetBottomLeft(self) -> None | wx.Window:  # noqa: N802
         """Return the bottom left window (window index: 2).
 
         Returns:
-            Union[None, wx.Window]: The bottom left window or ``None`` if the
+            None | wx.Window: The bottom left window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(2)
 
     # Get bottom right child
-    def GetBottomRight(self) -> Union[None, wx.Window]:
+    def GetBottomRight(self) -> None | wx.Window:  # noqa: N802
         """Return the bottom right window (window index: 3).
 
         Returns:
-            Union[None, wx.Window]: The bottom right window or ``None`` if the
+            None | wx.Window: The bottom right window or ``None`` if the
                 index is out of range.
         """
         return self.GetWindow(3)
 
-    def DoGetBestSize(self) -> wx.Size:
+    def DoGetBestSize(self) -> wx.Size:  # noqa: N802
         """Get the size which best suits the window.
 
         For a control, it would be the minimal size which doesn't truncate the control,
@@ -611,7 +614,7 @@ class FourWaySplitter(wx.Panel):
         return wx.Size(width + 2 * border, height + 2 * border)
 
     # Recompute layout
-    def _SizeWindows(self) -> None:
+    def _SizeWindows(self) -> None:  # noqa: N802
         """Recalculate the layout based on split positions and split fractions.
 
         See:
@@ -649,17 +652,16 @@ class FourWaySplitter(wx.Panel):
                 )
                 win3.Show()
 
-        else:
-            if self._expanded < len(self._windows):
-                for ii, win in enumerate(self._windows):
-                    if ii == self._expanded:
-                        win.SetSize(0, 0, width - 2 * border, height - 2 * border)
-                        win.Show()
-                    else:
-                        win.Hide()
+        elif self._expanded < len(self._windows):
+            for ii, win in enumerate(self._windows):
+                if ii == self._expanded:
+                    win.SetSize(0, 0, width - 2 * border, height - 2 * border)
+                    win.Show()
+                else:
+                    win.Hide()
 
     # Determine split mode
-    def GetMode(self, pt: wx.Point) -> int:
+    def GetMode(self, pt: wx.Point) -> int:  # noqa: N802
         """Determine the split mode for :class:`FourWaySplitter`.
 
         Args:
@@ -677,7 +679,7 @@ class FourWaySplitter(wx.Panel):
                                     sashes
                 ================= ======================================================
         """
-        barSize = self._GetSashSize()
+        bar_size = self._GetSashSize()
         flag = wx.BOTH
 
         if pt.x < self._splitx - _TOLERANCE:
@@ -686,16 +688,16 @@ class FourWaySplitter(wx.Panel):
         if pt.y < self._splity - _TOLERANCE:
             flag &= ~wx.HORIZONTAL
 
-        if pt.x >= self._splitx + barSize + _TOLERANCE:
+        if pt.x >= self._splitx + bar_size + _TOLERANCE:
             flag &= ~wx.VERTICAL
 
-        if pt.y >= self._splity + barSize + _TOLERANCE:
+        if pt.y >= self._splity + bar_size + _TOLERANCE:
             flag &= ~wx.HORIZONTAL
 
         return flag
 
     # Move the split intelligently
-    def MoveSplit(self, x: int, y: int) -> None:
+    def MoveSplit(self, x: int, y: int) -> None:  # noqa: N802
         """Move the split accordingly to user action.
 
         Args:
@@ -703,22 +705,18 @@ class FourWaySplitter(wx.Panel):
             y (int): the new splitter `y` coordinate.
         """
         width, height = self.GetSize()
-        barSize = self._GetSashSize()
+        bar_size = self._GetSashSize()
 
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0
-        if x > width - barSize:
-            x = width - barSize
-        if y > height - barSize:
-            y = height - barSize
+        x = max(x, 0)
+        y = max(y, 0)
+        x = min(x, width - bar_size)
+        y = min(y, height - bar_size)
 
         self._splitx = x
         self._splity = y
 
     # Adjust layout
-    def AdjustLayout(self) -> None:
+    def AdjustLayout(self) -> None:  # noqa: N802
         """Adjust layout of :class:`FourWaySplitter`.
 
         Mainly used to recalculate the correct values for split fractions.
@@ -727,23 +725,31 @@ class FourWaySplitter(wx.Panel):
         bar_size = self._GetSashSize()
 
         self._fhor = (
-            width > bar_size
-            and [(10000 * self._splitx + (width - bar_size - 1)) // (width - bar_size)]
+            (
+                width > bar_size
+                and [
+                    (10000 * self._splitx + (width - bar_size - 1))
+                    // (width - bar_size)
+                ]
+            )
             or [0]
         )[0]
 
         self._fver = (
-            height > bar_size
-            and [
-                (10000 * self._splity + (height - bar_size - 1)) // (height - bar_size)
-            ]
+            (
+                height > bar_size
+                and [
+                    (10000 * self._splity + (height - bar_size - 1))
+                    // (height - bar_size)
+                ]
+            )
             or [0]
         )[0]
 
         self._SizeWindows()
 
     # Button being pressed
-    def OnLeftDown(self, event: wx.MouseEvent) -> None:
+    def OnLeftDown(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEFT_DOWN`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -769,7 +775,7 @@ class FourWaySplitter(wx.Panel):
             self._flags |= FLAG_PRESSED
 
     # Button being released
-    def OnLeftUp(self, event: wx.MouseEvent) -> None:
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEFT_UP`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -805,7 +811,7 @@ class FourWaySplitter(wx.Panel):
 
         self._mode = NOWHERE
 
-    def OnLeaveWindow(self, event: wx.MouseEvent) -> None:
+    def OnLeaveWindow(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_LEAVE_WINDOW`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -814,7 +820,7 @@ class FourWaySplitter(wx.Panel):
         self.SetCursor(wx.STANDARD_CURSOR)
         self._RedrawIfHotSensitive(False)
 
-    def OnEnterWindow(self, event: wx.MouseEvent) -> None:
+    def OnEnterWindow(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_ENTER_WINDOW`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -822,24 +828,24 @@ class FourWaySplitter(wx.Panel):
         """
         self._RedrawIfHotSensitive(True)
 
-    def _RedrawIfHotSensitive(self, isHot: bool) -> None:
+    def _RedrawIfHotSensitive(self, is_hot: bool) -> None:  # noqa: N802
         """Use internally.
 
         Redraw the splitter if we are using a hot-sensitive splitter.
 
         Args:
-            isHot (bool): ``True`` if the splitter is in a hot state,
+            is_hot (bool): ``True`` if the splitter is in a hot state,
                 ``False`` otherwise.
         """
         if not self._IsVersionGreaterOrEqual(_RENDER_VER):
             return
 
         if wx.RendererNative.Get().GetSplitterParams(self).isHotSensitive:
-            self._isHot = isHot
+            self._isHot = is_hot
             dc = wx.ClientDC(self)
             self.DrawSplitter(dc)
 
-    def OnMotion(self, event: wx.MouseEvent) -> None:
+    def OnMotion(self, event: wx.MouseEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_MOTION`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -899,7 +905,7 @@ class FourWaySplitter(wx.Panel):
 
         event.Skip()
 
-    def OnPaint(self, event: wx.PaintEvent) -> None:
+    def OnPaint(self, event: wx.PaintEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_PAINT`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -908,7 +914,7 @@ class FourWaySplitter(wx.Panel):
         dc = wx.PaintDC(self)
         self.DrawSplitter(dc)
 
-    def OnSize(self, event: wx.SizeEvent) -> None:
+    def OnSize(self, event: wx.SizeEvent) -> None:  # noqa: N802
         """Handle the ``wx.EVT_SIZE`` event for :class:`FourWaySplitter`.
 
         Args:
@@ -921,7 +927,7 @@ class FourWaySplitter(wx.Panel):
 
         self._SizeWindows()
 
-    def DoSendChangingEvent(self, pt: wx.Point) -> bool:
+    def DoSendChangingEvent(self, pt: wx.Point) -> bool:  # noqa: N802
         """Send a ``EVT_SPLITTER_SASH_POS_CHANGING`` event.
 
         Args:
@@ -935,14 +941,11 @@ class FourWaySplitter(wx.Panel):
         event.SetSashIdx(self._mode)
         event.SetSashPosition(pt)
 
-        if self.GetEventHandler().ProcessEvent(event) and not event.IsAllowed():
-            # the event handler vetoed the change or missing event.Skip()
-            return False
-        else:
-            # or it might have changed the value
-            return True
+        # the event handler vetoed the change or missing event.Skip()
+        # or it might have changed the value
+        return not self.GetEventHandler().ProcessEvent(event) or event.IsAllowed()
 
-    def _GetSashSize(self) -> int:
+    def _GetSashSize(self) -> int:  # noqa: N802
         """Use internally.
 
         Returns:
@@ -953,10 +956,9 @@ class FourWaySplitter(wx.Panel):
 
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).widthSash
-        else:
-            return 5
+        return 5
 
-    def _GetBorderSize(self) -> int:
+    def _GetBorderSize(self) -> int:  # noqa: N802
         """Use internally.
 
         Returns:
@@ -964,11 +966,10 @@ class FourWaySplitter(wx.Panel):
         """
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             return wx.RendererNative.Get().GetSplitterParams(self).border
-        else:
-            return 0
+        return 0
 
     # Draw the horizontal split
-    def DrawSplitter(self, dc: wx.DC) -> None:
+    def DrawSplitter(self, dc: wx.DC) -> None:  # noqa: N802
         """Actually draw the sashes.
 
         Args:
@@ -977,19 +978,19 @@ class FourWaySplitter(wx.Panel):
         Returns:
             None
         """
-        backColour = self.GetBackgroundColour()
-        dc.SetBrush(wx.Brush(backColour))
-        dc.SetPen(wx.Pen(backColour))
+        back_colour = self.GetBackgroundColour()
+        dc.SetBrush(wx.Brush(back_colour))
+        dc.SetPen(wx.Pen(back_colour))
         dc.Clear()
 
-        barSize = None
+        bar_size = None
         if self._IsVersionGreaterOrEqual(_RENDER_VER):
             if self.HasFlag(wx.SP_3DBORDER):
                 wx.RendererNative.Get().DrawSplitterBorder(
                     self, dc, self.GetClientRect()
                 )
         else:
-            barSize = self._GetSashSize()
+            bar_size = self._GetSashSize()
 
         # if we are not supposed to use a sash then we're done.
         if self.HasFlag(wx.SP_NOSASH):
@@ -1007,7 +1008,7 @@ class FourWaySplitter(wx.Panel):
                     self, dc, self.GetClientSize(), self._splitx, wx.VERTICAL, flag
                 )
             else:
-                dc.DrawRectangle(self._splitx, 0, barSize, height)
+                dc.DrawRectangle(self._splitx, 0, bar_size, height)
 
         if self._mode & wx.HORIZONTAL:
             if self._IsVersionGreaterOrEqual(_RENDER_VER):
@@ -1015,10 +1016,10 @@ class FourWaySplitter(wx.Panel):
                     self, dc, self.GetClientSize(), self._splity, wx.HORIZONTAL, flag
                 )
             else:
-                dc.DrawRectangle(0, self._splity, width, barSize)
+                dc.DrawRectangle(0, self._splity, width, bar_size)
 
-    def DrawTrackSplitter(self, x: int, y: int) -> None:
-        """Draws a fake sash in case we don't have ``wx.SP_LIVE_UPDATE`` style.
+    def DrawTrackSplitter(self, x: int, y: int) -> None:  # noqa: N802
+        """Draw a fake sash in case we don't have ``wx.SP_LIVE_UPDATE`` style.
 
         Args:
             x (int): the `x` position of the sash;
@@ -1095,7 +1096,7 @@ class FourWaySplitter(wx.Panel):
             dc.SetLogicalFunction(wx.COPY)
 
     # Change horizontal split [fraction*10000]
-    def SetHSplit(self, s: int) -> None:
+    def SetHSplit(self, s: int) -> None:  # noqa: N802
         """Change horizontal split fraction.
 
         Args:
@@ -1105,16 +1106,14 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent, use::
                 fourSplitter.SetHSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fhor:
             self._fhor = s
             self._SizeWindows()
 
     # Change vertical split [fraction*10000]
-    def SetVSplit(self, s: int) -> None:
+    def SetVSplit(self, s: int) -> None:  # noqa: N802
         """Change vertical split fraction.
 
         Args:
@@ -1124,16 +1123,14 @@ class FourWaySplitter(wx.Panel):
                 For example, to split the panes at 35 percent,
                 use::fourSplitter.SetVSplit(3500)
         """
-        if s < 0:
-            s = 0
-        if s > 10000:
-            s = 10000
+        s = max(s, 0)
+        s = min(s, 10000)
         if s != self._fver:
             self._fver = s
             self._SizeWindows()
 
     # Expand one or all of the four panes
-    def SetExpanded(self, expanded: int) -> None:
+    def SetExpanded(self, expanded: int) -> None:  # noqa: N802
         """Expand a window or revert to four.
 
         Args:
@@ -1155,18 +1152,18 @@ if __name__ == "__main__":
     import wx
 
     class MyFrame(wx.Frame):
-        """MyFrame is a custom wx.Frame that demonstrates the usage of the FourWaySplitter.
+        """A custom wx.Frame that demonstrates the usage of the FourWaySplitter.
 
         It initializes a frame with a FourWaySplitter containing four colored panels.
 
         Args:
-            parent (Union[None, wx.Window]): The parent window for this frame.
+            parent (None | wx.Window): The parent window for this frame.
         """
 
-        def __init__(self, parent: Union[None, wx.Window]) -> None:
+        def __init__(self, parent: None | wx.Window) -> None:
             wx.Frame.__init__(self, parent, -1, "FourWaySplitter Demo")
 
-            splitter = FourWaySplitter(self, -1, agwStyle=wx.SP_LIVE_UPDATE)
+            splitter = FourWaySplitter(self, -1, agw_style=wx.SP_LIVE_UPDATE)
 
             # Put in some coloured panels...
             for colour in [wx.RED, wx.WHITE, wx.BLUE, wx.GREEN]:

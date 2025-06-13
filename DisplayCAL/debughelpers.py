@@ -1,15 +1,17 @@
-# -*- coding: utf-8 -*-
+"""Utility functions and exceptions for debugging and error handling in DisplayCAL.
+
+It includes functionality for retrieving event object names and types, handling
+errors with optional logging and user notifications, and printing call stacks
+for debugging purposes.
+"""
 
 import traceback
 
-from DisplayCAL import config
-from DisplayCAL.config import fs_enc
-from DisplayCAL.log import logbuffer
-from DisplayCAL.meta import name as appname, wx_recversion
-from DisplayCAL.options import debug
+from DisplayCAL.meta import WX_RECVERSION
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_str import box
 
-wxEventTypes = {}
+WX_EVENT_TYPES = {}
 
 
 def getevtobjname(event, window=None):
@@ -26,20 +28,21 @@ def getevtobjname(event, window=None):
 
 def getevttype(event):
     """Get and return the event object's type."""
-    if not wxEventTypes:
-        from DisplayCAL.wxaddons import wx
+    if not WX_EVENT_TYPES:
+        from DisplayCAL.wx_addons import wx
 
         try:
             for name in dir(wx):
                 if name.find("EVT_") == 0:
                     attr = getattr(wx, name)
                     if hasattr(attr, "evtType"):
-                        wxEventTypes[attr.evtType[0]] = name
+                        WX_EVENT_TYPES[attr.evtType[0]] = name
         except Exception:
             pass
     typeId = event.GetEventType()
-    if typeId in wxEventTypes:
-        return wxEventTypes[typeId]
+    if typeId in WX_EVENT_TYPES:
+        return WX_EVENT_TYPES[typeId]
+    return None
 
 
 def handle_error(error, parent=None, silent=False, tb=True):
@@ -56,7 +59,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         and tbstr.strip() != "None"
         and isinstance(error, Exception)
         and (
-            debug
+            DEBUG
             or not isinstance(error, EnvironmentError)
             or not getattr(error, "filename", None)
         )
@@ -64,7 +67,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
         # Print a traceback if in debug mode, for non environment errors, and
         # for environment errors not related to files
         errstr, tbstr = (str(v) for v in (error, tbstr))
-        msg = "\n\n".join((errstr, tbstr))
+        msg = f"{errstr}\n\n{tbstr}"
         if msg.startswith(errstr):
             print(box(tbstr))
         else:
@@ -74,14 +77,15 @@ def handle_error(error, parent=None, silent=False, tb=True):
         print(box(msg))
     if not silent:
         try:
-            from DisplayCAL.wxaddons import wx
+            from DisplayCAL.wx_addons import wx
 
-            if wx.VERSION < wx_recversion:
+            if wx.VERSION < WX_RECVERSION:  # noqa: SIM300
                 msg += (
-                    "\n\nWARNING: Your version of wxPython (%s) is outdated "
+                    "\n\nWARNING: Your version of wxPython ({}) is outdated "
                     "and no longer supported. You should consider updating "
-                    "to wxPython %s or newer."
-                    % (wx.__version__, ".".join(str(n) for n in wx_recversion))
+                    "to wxPython {} or newer.".format(
+                        wx.__version__, ".".join(str(n) for n in WX_RECVERSION)
+                    )
                 )
             app = wx.GetApp()
             if app is None and parent is None:
@@ -129,7 +133,7 @@ def handle_error(error, parent=None, silent=False, tb=True):
 
 
 def print_callstack():
-    """Print call stack"""
+    """Print call stack."""
     import inspect
 
     stack = inspect.stack()
@@ -140,38 +144,40 @@ def print_callstack():
 
 
 class ResourceError(Exception):
-    pass
+    """Error class for resource errors."""
 
 
 class Error(Exception):
-    pass
+    """Error class for fatal errors."""
 
 
 class Info(UserWarning):
-    pass
+    """Info class for non-fatal errors."""
 
 
 class UnloggedError(Error):
-    pass
+    """Error class for non-fatal errors that should not be logged."""
 
 
 class UnloggedInfo(Info):
-    pass
+    """Info class for non-fatal errors that should not be logged."""
 
 
 class UnloggedWarning(UserWarning):
-    pass
+    """Warning class for non-fatal errors that should not be logged."""
 
 
 class DownloadError(Error):
+    """Error class for download errors."""
+
     def __init__(self, *args):
         Error.__init__(self, *args[:-1])
         self.url = args[1]
 
 
 class UntracedError(Error):
-    pass
+    """Error class for errors that should not be logged."""
 
 
 class Warn(UserWarning):
-    pass
+    """Warning class for non-fatal errors."""

@@ -1,5 +1,10 @@
-# -*- coding: utf-8 -*-
+"""Supported instruments and their properties for Argyll CMS.
 
+It provides utilities for managing instrument names, removing vendor prefixes,
+and mapping instrument names to canonical forms.
+"""
+
+from __future__ import annotations
 
 import re
 
@@ -451,13 +456,28 @@ vendors = [
 ]
 
 
-def get_canonical_instrument_name(instrument_name, replacements=None, inverse=False):
-    """
+def get_canonical_instrument_name(
+    instrument_name: bytes | str,
+    replacements: None | dict = None,
+    inverse: bool = False,
+) -> str:
+    """Get canonical instrument name.
 
-    :param (bytes, str) instrument_name:
-    :param replacements:
-    :param inverse:
-    :return:
+    This function removes vendor names from the instrument name and replaces
+    the instrument name with a canonical name if it is found in the
+    replacements dictionary.
+
+    Args:
+        instrument_name (bytes, str): Instrument name to be canonicalized.
+        replacements (dict): Dictionary of replacements. The keys are the
+            canonical names and the values are the instrument names to be
+            replaced. If None, no replacements are made.
+        inverse (bool): If True, the replacements are inverted. The keys are
+            the instrument names and the values are the canonical names. If
+            False, the replacements are not inverted. Default is False.
+
+    Returns:
+        str: Canonical instrument name.
     """
     replacements = replacements or {}
     if inverse:
@@ -465,7 +485,15 @@ def get_canonical_instrument_name(instrument_name, replacements=None, inverse=Fa
     return strtr(remove_vendor_names(instrument_name), replacements)
 
 
-def remove_vendor_names(txt):
+def remove_vendor_names(txt: str) -> str:
+    """Remove vendor names from the instrument name.
+
+    Args:
+        txt (bytes, str): Instrument name to be processed.
+
+    Returns:
+        str: Instrument name without vendor names.
+    """
     for vendor in vendors:
         if isinstance(txt, bytes):
             txt = re.sub(

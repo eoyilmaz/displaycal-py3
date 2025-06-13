@@ -1,22 +1,12 @@
-# -*- coding: UTF-8 -*-
-"""
-Interactive display calibration UI
-"""
+"""Interactive display calibration UI."""
 
 import os
+import platform
 import re
 import sys
 
-if sys.platform == "win32":
-    from ctypes import windll
-elif sys.platform == "darwin":
-    from platform import mac_ver
-
-from DisplayCAL.wxaddons import wx
-from DisplayCAL.lib.agw import labelbook
-from DisplayCAL.lib.agw.fmresources import *
-from DisplayCAL.lib.agw.pygauge import PyGauge
-
+from DisplayCAL import audio, config
+from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     get_data_path,
     get_default_dpi,
@@ -26,24 +16,39 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
-from DisplayCAL.config import enc
+from DisplayCAL.lib.agw import labelbook
+from DisplayCAL.lib.agw.fmresources import (
+    IMG_NONE,
+    IMG_OVER_EW_BORDER,
+    IMG_OVER_IMG,
+    IMG_OVER_PIN,
+    INB_BORDER,
+    INB_BOTTOM,
+    INB_FIT_BUTTON,
+    INB_FIT_LABELTEXT,
+    INB_LEFT,
+    INB_RIGHT,
+    INB_SHOW_ONLY_IMAGES,
+    INB_SHOW_ONLY_TEXT,
+    INB_TOP,
+    INB_USE_PIN_BUTTON,
+    INB_WEB_HILITE,
+)
+from DisplayCAL.lib.agw.pygauge import PyGauge
 from DisplayCAL.log import get_file_logger
-from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.util_list import intlist
 from DisplayCAL.util_str import wrap
-from DisplayCAL.wxwindows import (
-    BaseApp,
+from DisplayCAL.wx_addons import wx
+from DisplayCAL.wx_windows import (
+    NAV_KEYCODES,
+    NUMPAD_KEYCODES,
+    PROCESSING_KEYCODES,
     BaseFrame,
     FlatShadedButton,
-    numpad_keycodes,
-    nav_keycodes,
-    processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import audio
-from DisplayCAL import config
-from DisplayCAL import localization as lang
 
 BGCOLOUR = wx.Colour(0x33, 0x33, 0x33)
 BORDERCOLOUR = wx.Colour(0x22, 0x22, 0x22)
@@ -53,14 +58,15 @@ CRT = True
 
 
 def get_panel(parent, size=wx.DefaultSize):
+    """Get a panel with the specified size."""
     scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
-    size = tuple(int(round(v * scale)) for v in size)
+    size = tuple(round(v * scale) for v in size)
     panel = wx_Panel(parent, wx.ID_ANY, size=size)
-    if debug:
+    if DEBUG:
         from random import randint
 
         panel.SetBackgroundColour(
-            wx.Colour(randint(0, 255), randint(0, 255), randint(0, 255))
+            wx.Colour(randint(0, 255), randint(0, 255), randint(0, 255))  # noqa: S311
         )
         get_panel.i += 1
         wx.StaticText(panel, wx.ID_ANY, str(get_panel.i) + " " + str(size))
@@ -73,6 +79,7 @@ get_panel.i = 0
 
 
 def get_xy_vt_dE(groups):
+    """Get x, y, vt, and dE from a regex match."""
     x = float(groups[0])
     y = float(groups[1])
     vt = ""
@@ -85,32 +92,36 @@ def get_xy_vt_dE(groups):
 
 
 def set_label_and_size(txtctrl, label):
+    """Set the label and size of a text control."""
     txtctrl.SetMinSize((txtctrl.GetSize()[0], -1))
     txtctrl.SetLabel(label)
     txtctrl.SetMinSize(txtctrl.GetSize())
 
 
 class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
+    """Overridden agw.ImageContainer.
+
+    Override default agw ImageContainer to use BackgroundColour and
+    ForegroundColour with no borders/labeltext and hilite image instead of
+    hilite shading.
+    """
+
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="ImageContainer",
     ):
-        """Override default agw ImageContainer to use BackgroundColour and
-        ForegroundColour with no borders/labeltext and hilite image instead of
-        hilite shading
-        """
         labelbook.ImageContainer.__init__(
-            self, parent, id, pos, size, style, agwStyle, name
+            self, parent, id, pos, size, style, agw_style, name
         )
         imagelist = None
         for img in ("tab_hilite", "tab_selected"):
-            bmp = getbitmap("theme/%s" % img)
+            bmp = getbitmap(f"theme/{img}")
             if not imagelist:
                 img_w, img_h = bmp.Size
                 imagelist = wx.ImageList(img_w, img_h)
@@ -118,33 +129,35 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         self.stateimgs = imagelist
 
     def HitTest(self, pt):
-        """Returns the index of the tab at the specified position or ``wx.NOT_FOUND``
+        """Return the index of the tab at the specified position or ``wx.NOT_FOUND``.
+
+        Return the index of the tab at the specified position or ``wx.NOT_FOUND``
         if ``None``, plus the flag style of L{HitTest}.
 
-        :param pt: an instance of `wx.Point`, to test for hits.
+        Args:
+            pt (wx.Point): an instance of `wx.Point`, to test for hits.
 
-        :return: The index of the tab at the specified position plus the hit test
-         flag, which can be one of the following bits:
+        Returns:
+            tupe(int, int): The index of the tab at the specified position plus
+                the hit test flag, which can be one of the following bits:
 
-         ====================== ======= ================================
-         HitTest Flags           Value  Description
-         ====================== ======= ================================
-         ``IMG_OVER_IMG``             0 The mouse is over the tab icon
-         ``IMG_OVER_PIN``             1 The mouse is over the pin button
-         ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west book border
-         ``IMG_NONE``                 3 Nowhere
-         ====================== ======= ================================
-
+                ====================== ======= ================================
+                HitTest Flags           Value  Description
+                ====================== ======= ================================
+                ``IMG_OVER_IMG``             0 The mouse is over the tab icon
+                ``IMG_OVER_PIN``             1 The mouse is over the pin button
+                ``IMG_OVER_EW_BORDER``       2 The mouse is over the east-west
+                                               book border
+                ``IMG_NONE``                 3 Nowhere
+                ====================== ======= ================================
         """
-
         if self.GetParent().GetParent().is_busy:
             return -1, IMG_NONE
 
         style = self.GetParent().GetAGWWindowStyleFlag()
 
-        if style & INB_USE_PIN_BUTTON:
-            if self._pinBtnRect.Contains(pt):
-                return -1, IMG_OVER_PIN
+        if style & INB_USE_PIN_BUTTON and self._pinBtnRect.Contains(pt):
+            return -1, IMG_OVER_PIN
 
         for i in range(len(self._pagesInfoVec)):
             if self._pagesInfoVec[i].GetPosition() == wx.Point(-1, -1):
@@ -169,15 +182,14 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         if self.PointOnSash(pt):
             return -1, IMG_OVER_EW_BORDER
-        else:
-            return -1, IMG_NONE
+        return -1, IMG_NONE
 
     def OnPaint(self, event):
-        """Handles the ``wx.EVT_PAINT`` event for L{ImageContainer}.
+        """Handle the ``wx.EVT_PAINT`` event for L{ImageContainer}.
 
-        :param event: a `wx.PaintEvent` event to be processed.
+        Args:
+            event (wx.PaintEvent): a `wx.PaintEvent` event to be processed.
         """
-
         dc = wx.BufferedPaintDC(self)
         style = self.GetParent().GetAGWWindowStyleFlag()
 
@@ -195,7 +207,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
         borderPen.SetWidth(1)
         dc.SetPen(borderPen)
         dc.DrawRectangle(0, 0, size.x, size.y)
-        bUsePin = (style & INB_USE_PIN_BUTTON and [True] or [False])[0]
+        bUsePin = ((style & INB_USE_PIN_BUTTON and [True]) or [False])[0]
 
         if bUsePin:
             # Draw the pin button
@@ -208,11 +220,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         clientSize = 0
         bUseYcoord = style & INB_RIGHT or style & INB_LEFT
-
-        if bUseYcoord:
-            clientSize = size.GetHeight()
-        else:
-            clientSize = size.GetWidth()
+        clientSize = size.GetHeight() if bUseYcoord else size.GetWidth()
 
         # We reserver 20 pixels for the 'pin' button
 
@@ -222,11 +230,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
         if bUsePin:
             if style & INB_TOP or style & INB_BOTTOM:
-                pos = (style & INB_BORDER and [0] or [1])[0]
+                pos = ((style & INB_BORDER and [0]) or [1])[0]
             else:
-                pos = (style & INB_BORDER and [20] or [21])[0]
+                pos = ((style & INB_BORDER and [20]) or [21])[0]
         else:
-            pos = (style & INB_BORDER and [0] or [1])[0]
+            pos = ((style & INB_BORDER and [0]) or [1])[0]
 
         nPadding = 4  # Pad text with 2 pixels on the left and right
         nTextPaddingLeft = 2
@@ -244,9 +252,11 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
             count = count + 1
 
-            # incase the 'fit button' style is applied, we set the rectangle width to the
+            # incase the 'fit button' style is applied,
+            # we set the rectangle width to the
             # text width plus padding
-            # Incase the style IS applied, but the style is either LEFT or RIGHT
+            # Incase the style IS applied,
+            # but the style is either LEFT or RIGHT
             # we ignore it
             normalFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
             dc.SetFont(normalFont)
@@ -267,12 +277,14 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             if (
                 style & INB_FIT_BUTTON
                 and not ((style & INB_LEFT) or (style & INB_RIGHT))
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
                 and not (style & INB_SHOW_ONLY_IMAGES)
             ):
                 rectWidth = (
-                    (textWidth + nPadding * 2) > rectWidth
-                    and [nPadding * 2 + textWidth]
+                    (
+                        (textWidth + nPadding * 2) > rectWidth
+                        and [nPadding * 2 + textWidth]
+                    )
                     or [rectWidth]
                 )[0]
 
@@ -281,22 +293,21 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                     rectWidth += 1
 
             # Check that we have enough space to draw the button
-            # If Pin button is used, consider its space as well (applicable for top/botton style)
-            # since in the left/right, its size is already considered in 'pos'
-            pinBtnSize = (bUsePin and [20] or [0])[0]
+            # If Pin button is used, consider its space as well (applicable
+            # for top/botton style) since in the left/right, its size is already
+            # considered in 'pos'
+            pinBtnSize = ((bUsePin and [20]) or [0])[0]
 
             if pos + rectWidth + pinBtnSize > clientSize:
                 break
 
             # Calculate the button rectangle
             modRectWidth = (
-                (style & INB_LEFT or style & INB_RIGHT)
-                and [rectWidth - 2]
+                ((style & INB_LEFT or style & INB_RIGHT) and [rectWidth - 2])
                 or [rectWidth]
             )[0]
             modRectHeight = (
-                (style & INB_LEFT or style & INB_RIGHT)
-                and [rectHeight]
+                ((style & INB_LEFT or style & INB_RIGHT) and [rectHeight])
                 or [rectHeight - 2]
             )[0]
 
@@ -305,10 +316,10 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             else:
                 buttonRect = wx.Rect(pos, 1, modRectWidth, modRectHeight)
 
-            if bUseYcoord:
-                rect = wx.Rect(0, pos, rectWidth, rectWidth)
-            else:
-                rect = wx.Rect(pos, 0, rectWidth, rectWidth)
+            # if bUseYcoord:
+            #     rect = wx.Rect(0, pos, rectWidth, rectWidth)
+            # else:
+            #     rect = wx.Rect(pos, 0, rectWidth, rectWidth)
 
             # Incase user set both flags:
             # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
@@ -328,14 +339,14 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 if bUseYcoord:
                     imgXcoord = 0
                     imgYcoord = (
-                        style & INB_SHOW_ONLY_IMAGES and [pos] or [pos + imgTopPadding]
+                        (style & INB_SHOW_ONLY_IMAGES and [pos])
+                        or [pos + imgTopPadding]
                     )[0] + (8 * (count - 1))
 
                 else:
                     imgXcoord = pos + (rectWidth / 2) - (self._nImgSize / 2)
                     imgYcoord = (
-                        style & INB_SHOW_ONLY_IMAGES
-                        and [self._nImgSize / 2]
+                        (style & INB_SHOW_ONLY_IMAGES and [self._nImgSize / 2])
                         or [imgTopPadding]
                     )[0]
 
@@ -361,7 +372,7 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
             # Draw the text
             if (
                 not style & INB_SHOW_ONLY_IMAGES
-                and not self._pagesInfoVec[i].GetCaption() == ""
+                and self._pagesInfoVec[i].GetCaption() != ""
             ):
                 dc.SetFont(normalFont)
 
@@ -381,16 +392,20 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 if bUseYcoord:
                     textOffsetX = (rectWidth - textWidth) / 2
                     textOffsetY = (
-                        not style & INB_SHOW_ONLY_TEXT
-                        and [pos + self._nImgSize + imgTopPadding + 3]
+                        (
+                            not style & INB_SHOW_ONLY_TEXT
+                            and [pos + self._nImgSize + imgTopPadding + 3]
+                        )
                         or [pos + ((self._nImgSize * 2 - textHeight) / 2)]
                     )[0]
 
                 else:
                     textOffsetX = (rectWidth - textWidth) / 2 + pos + nTextPaddingLeft
                     textOffsetY = (
-                        not style & INB_SHOW_ONLY_TEXT
-                        and [self._nImgSize + imgTopPadding + 3]
+                        (
+                            not style & INB_SHOW_ONLY_TEXT
+                            and [self._nImgSize + imgTopPadding + 3]
+                        )
                         or [((self._nImgSize * 2 - textHeight) / 2)]
                     )[0]
 
@@ -415,33 +430,51 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
 
 
 class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
-    """Override default agw ImageContainer to use BackgroundColour and ForegroundColour with no borders/labeltext and
-    hilite image instead of hilite shading
+    """Overridden agw.ImageContainer.
+
+    This is a subclass of L{FlatImageBook} that allows you to use
+    BackgroundColour and ForegroundColour with no borders/labeltext and hilite
+    image instead of hilite shading.
+
+    Args:
+        parent (wx.Window): The parent window.
+        id (int): The identifier for the FlatImageBook.
+        pos (wx.Point): The position of the FlatImageBook.
+        size (wx.Size): The size of the FlatImageBook.
+        style (int): The style of the FlatImageBook.
+        agw_style (int): The advanced GUI window style flags.
+        name (str): The name of the FlatImageBook.
     """
 
     def __init__(
         self,
         parent,
-        id=wx.ID_ANY,
+        id=wx.ID_ANY,  # noqa: A002
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=0,
-        agwStyle=0,
+        agw_style=0,
         name="FlatImageBook",
     ):
         labelbook.FlatImageBook.__init__(
-            self, parent, id, pos, size, style, agwStyle, name
+            self, parent, id, pos, size, style, agw_style, name
         )
 
     def CreateImageContainer(self):
+        """Create the image container for the FlatImageBook.
+
+        Returns:
+            DisplayAdjustmentImageContainer: An instance of the custom image.
+        """
         return DisplayAdjustmentImageContainer(
-            self, wx.ID_ANY, agwStyle=self.GetAGWWindowStyleFlag()
+            self, wx.ID_ANY, agw_style=self.GetAGWWindowStyleFlag()
         )
 
-    def SetAGWWindowStyleFlag(self, agwStyle):
-        """Sets the window style.
+    def SetAGWWindowStyleFlag(self, agw_style):
+        """Set the window style.
 
-        :param agwStyle: can be a combination of the following bits.
+        Args:
+            agw_style: Can be a combination of the following bits.
 
          =========================== =========== ==================================================
          Window Styles               Hex Value   Description
@@ -461,9 +494,8 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
          ``INB_NO_RESIZE``                0x1000 Don't allow resizing of the tab area.
          ``INB_FIT_LABELTEXT``            0x2000 Will fit the tab area to the longest text (or text+image if you have images) in all the tabs.
          =========================== =========== ==================================================
-        """
-
-        self._agwStyle = agwStyle
+        """  # noqa: E501
+        self._agw_style = agw_style
 
         # Check that we are not in initialization process
         if self._bInitializing:
@@ -481,13 +513,10 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         # Create new sizer with the requested orientaion
         className = self.GetName()
 
-        if className == "LabelBook":
+        if className == "LabelBook" or agw_style & INB_LEFT or agw_style & INB_RIGHT:
             self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         else:
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
-                self._mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-            else:
-                self._mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self._mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.SetSizer(self._mainSizer)
 
@@ -496,10 +525,9 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
         if className == "FlatImageBook":
             scale = getcfg("app.dpi") / get_default_dpi()
-            if scale < 1:
-                scale = 1
-            if agwStyle & INB_LEFT or agwStyle & INB_RIGHT:
-                border = int(round(24 * scale))
+            scale = max(scale, 1)
+            if agw_style & INB_LEFT or agw_style & INB_RIGHT:
+                border = round(24 * scale)
                 self._pages.SetSizeHints(self._pages._nImgSize + border, -1)
             else:
                 self._pages.SetSizeHints(-1, self._pages._nImgSize)
@@ -508,7 +536,7 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
         if self.GetSelection() >= 0:
             self.DoSetSelection(self._windows[self.GetSelection()])
 
-        if agwStyle & INB_FIT_LABELTEXT:
+        if agw_style & INB_FIT_LABELTEXT:
             self.ResizeTabArea()
 
         self._mainSizer.Layout()
@@ -518,9 +546,19 @@ class DisplayAdjustmentFlatImageBook(labelbook.FlatImageBook):
 
 
 class DisplayAdjustmentPanel(wx_Panel):
-    def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):
+    """Panel for interactive display adjustment.
+
+    Args:
+        parent (None | wx.Window): The parent window.
+        id (int): The identifier for the panel.
+        title (str): The title of the panel.
+        ctrltype (str): The type of control to display, e.g., "luminance",
+            "black_level", "white_point", "black_point", or "rgb_offset".
+    """
+
+    def __init__(self, parent=None, id=wx.ID_ANY, title="", ctrltype="luminance"):  # noqa: A002
         # wx_Panel.__init__(self, parent, id)
-        super(DisplayAdjustmentPanel, self).__init__(parent, id)
+        super().__init__(parent, id)
         self.ctrltype = ctrltype
         self.SetBackgroundColour(BGCOLOUR)
         self.SetForegroundColour(FGCOLOUR)
@@ -534,8 +572,8 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.GetSizer().Add(self.title_txt)
         self.sizer = wx.FlexGridSizer(0, 2, 0, 0)
         self.GetSizer().Add(self.sizer, flag=wx.TOP, border=8)
-        self.gauges = dict()
-        self.txt = dict()
+        self.gauges = {}
+        self.txt = {}
         if ctrltype == "check_all":
             txt = wx.StaticText(
                 self,
@@ -554,7 +592,7 @@ class DisplayAdjustmentPanel(wx_Panel):
                 ("black_point", "black_point"),
             ):
                 bitmap = wx.StaticBitmap(
-                    self, wx.ID_ANY, getbitmap("theme/icons/16x16/%s" % name)
+                    self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{name}")
                 )
                 bitmap.SetToolTipString(lang.getstr(lstr))
                 self.add_txt(name, bitmap, 4)
@@ -582,13 +620,13 @@ class DisplayAdjustmentPanel(wx_Panel):
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
             self.add_marker()
-            self.add_gauge("R", ctrltype + "_red", "R")
+            self.add_gauge("R", f"{ctrltype}_red", "R")
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
-            self.add_gauge("G", ctrltype + "_green", "G")
+            self.add_gauge("G", f"{ctrltype}_green", "G")
             self.sizer.Add((1, 4))
             self.sizer.Add((1, 4))
-            self.add_gauge("B", ctrltype + "_blue", "B")
+            self.add_gauge("B", f"{ctrltype}_blue", "B")
             self.add_marker("btm")
             self.add_txt("rgb")
         else:
@@ -616,8 +654,16 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.add_marker("btm")
         self.add_txt("luminance")
 
-    def add_gauge(self, name="R", bitmapname=None, tooltip=None):
-        if bitmapname == "black_level" or bitmapname.startswith("rgb_offset"):
+    def add_gauge(self, name="R", bitmap_name=None, tooltip=None):
+        """Add a gauge to the panel.
+
+        Args:
+            name (str): The name of the gauge, e.g., "R", "G", "B", or "L".
+            bitmap_name (None | str): The name of the bitmap to use for the
+                gauge label.
+            tooltip (None | str): An optional tooltip for the gauge label.
+        """
+        if bitmap_name == "black_level" or bitmap_name.startswith("rgb_offset"):
             gaugecolors = {
                 "R": (wx.Colour(102, 0, 0), wx.Colour(204, 0, 0)),
                 "G": (wx.Colour(0, 102, 0), wx.Colour(0, 204, 0)),
@@ -632,16 +678,14 @@ class DisplayAdjustmentPanel(wx_Panel):
                 "L": (wx.Colour(153, 153, 153), wx.Colour(255, 255, 255)),
             }
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
-        self.gauges[name] = PyGauge(
-            self, size=(int(round(200 * scale)), int(round(8 * scale)))
-        )
+        self.gauges[name] = PyGauge(self, size=(round(200 * scale), round(8 * scale)))
         self.gauges[name].SetBackgroundColour(BORDERCOLOUR)
         self.gauges[name].SetBarGradient(gaugecolors[name])
         self.gauges[name].SetBorderColour(BORDERCOLOUR)
         self.gauges[name].SetValue(0)
-        if bitmapname:
+        if bitmap_name:
             self.gauges[name].label = wx.StaticBitmap(
-                self, wx.ID_ANY, getbitmap("theme/icons/16x16/%s" % bitmapname)
+                self, wx.ID_ANY, getbitmap(f"theme/icons/16x16/{bitmap_name}")
             )
             if tooltip:
                 self.gauges[name].label.SetToolTipString(tooltip)
@@ -654,18 +698,31 @@ class DisplayAdjustmentPanel(wx_Panel):
         self.sizer.Add(self.gauges[name], flag=wx.ALIGN_CENTER_VERTICAL)
 
     def add_marker(self, direction="top"):
+        """Add a marker line to the panel.
+
+        Args:
+            direction (str): The direction of the marker, either "top" or "btm".
+        """
         self.sizer.Add((1, 1))
         scale = max(getcfg("app.dpi") / get_default_dpi(), 1.0)
         self.sizer.Add(
             wx.StaticBitmap(
                 self,
                 -1,
-                getbitmap("theme/marker_%s" % direction),
-                size=(int(round(200 * scale)), int(round(10 * scale))),
+                getbitmap(f"theme/marker_{direction}"),
+                size=(round(200 * scale), round(10 * scale)),
             )
         )
 
     def add_txt(self, name, spacer=None, border=8):
+        """Add a text label with a checkmark icon.
+
+        Args:
+            name (str): The name of the text control.
+            spacer (None | wx.Window): An optional spacer window to add before
+                the checkmark.
+            border (int): The border size around the text control.
+        """
         checkmark = wx.StaticBitmap(
             self, wx.ID_ANY, getbitmap("theme/icons/16x16/checkmark")
         )
@@ -705,22 +762,24 @@ class DisplayAdjustmentPanel(wx_Panel):
         )
 
     def update_desc(self):
-        if self.ctrltype in ("luminance", "black_level"):
-            if self.ctrltype == "black_level":
-                lstr = "calibration.interactive_display_adjustment.black_level.crt"
-            elif getcfg("measurement_mode") == "c":
-                # CRT
-                lstr = "calibration.interactive_display_adjustment.white_level.crt"
-            else:
-                lstr = "calibration.interactive_display_adjustment.white_level.lcd"
-            self.desc.SetLabel(
-                lang.getstr(lstr)
-                + " "
-                + lang.getstr(
-                    "calibration.interactive_display_adjustment.generic_hint.singular"
-                )
+        """Update the description label based on the control type."""
+        if self.ctrltype not in ("luminance", "black_level"):
+            return
+        if self.ctrltype == "black_level":
+            lstr = "calibration.interactive_display_adjustment.black_level.crt"
+        elif getcfg("measurement_mode") == "c":
+            # CRT
+            lstr = "calibration.interactive_display_adjustment.white_level.crt"
+        else:
+            lstr = "calibration.interactive_display_adjustment.white_level.lcd"
+        self.desc.SetLabel(
+            lang.getstr(lstr)
+            + " "
+            + lang.getstr(
+                "calibration.interactive_display_adjustment.generic_hint.singular"
             )
-            self.desc.Wrap(250)
+        )
+        self.desc.Wrap(250)
 
 
 NEVER = False
@@ -731,19 +790,30 @@ else:
 
 
 class DisplayAdjustmentFrame(windowcls):
+    """Main window for interactive display adjustment.
+
+    Args:
+        parent (None | wx.Window): The parent window.
+        handler (None | callable): A handler function to call when an event
+            occurs.
+        keyhandler (None | callable): A key handler function to call when a key
+            event occurs.
+        start_timer (bool): Whether to start a timer for periodic updates.
+    """
+
     def __init__(self, parent=None, handler=None, keyhandler=None, start_timer=True):
         # windowcls.__init__(self, parent, wx.ID_ANY,
         #                    lang.getstr("calibration.interactive_display_adjustment"),
         #                    style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
         #                    name="displayadjustmentframe")
-        super(DisplayAdjustmentFrame, self).__init__(
+        super().__init__(
             parent,
             wx.ID_ANY,
             lang.getstr("calibration.interactive_display_adjustment"),
             style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL,
             name="displayadjustmentframe",
         )
-        self.SetIcons(get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.SetBackgroundColour(BGCOLOUR)
         self.sizer = wx.FlexGridSizer(0, 3, 0, 0)
         self.sizer.AddGrowableCol(1)
@@ -752,7 +822,7 @@ class DisplayAdjustmentFrame(windowcls):
 
         # FlatImageNotebook
         self.lb = DisplayAdjustmentFlatImageBook(
-            self, agwStyle=INB_LEFT | INB_SHOW_ONLY_IMAGES
+            self, agw_style=INB_LEFT | INB_SHOW_ONLY_IMAGES
         )
         self.lb.SetBackgroundColour(BGCOLOUR)
         self.add_panel((12, 12), flag=wx.EXPAND)
@@ -840,7 +910,7 @@ class DisplayAdjustmentFrame(windowcls):
             self.indicator_panel,
             wx.ID_ANY,
             geticon(10, "empty", use_mask=True),
-            size=(int(round(10 * scale)), int(round(10 * scale))),
+            size=(round(10 * scale), round(10 * scale)),
         )
         self.indicator_ctrl.SetForegroundColour(FGCOLOUR)
         self.indicator_panel.GetSizer().Add(
@@ -877,18 +947,18 @@ class DisplayAdjustmentFrame(windowcls):
             keycodes = [wx.WXK_TAB, wx.WXK_SPACE]
             keycodes.extend(list(range(ord("0"), ord("9"))))
             keycodes.extend(list(range(ord("A"), ord("Z"))))
-            keycodes.extend(numpad_keycodes)
-            keycodes.extend(nav_keycodes)
-            keycodes.extend(processing_keycodes)
+            keycodes.extend(NUMPAD_KEYCODES)
+            keycodes.extend(NAV_KEYCODES)
+            keycodes.extend(PROCESSING_KEYCODES)
             for keycode in keycodes:
                 self.id_to_keycode[wx.Window.NewControlId()] = keycode
             accels = []
-            for id in self.id_to_keycode:
-                keycode = self.id_to_keycode[id]
-                self.Bind(wx.EVT_MENU, self.key_handler, id=id)
-                accels.append((wx.ACCEL_NORMAL, keycode, id))
+            for id_ in self.id_to_keycode:
+                keycode = self.id_to_keycode[id_]
+                self.Bind(wx.EVT_MENU, self.key_handler, id=id_)
+                accels.append((wx.ACCEL_NORMAL, keycode, id_))
                 if keycode == wx.WXK_TAB:
-                    accels.append((wx.ACCEL_SHIFT, keycode, id))
+                    accels.append((wx.ACCEL_SHIFT, keycode, id_))
             self.SetAcceleratorTable(wx.AcceleratorTable(accels))
         else:
             self.Bind(wx.EVT_CHAR_HOOK, self.key_handler)
@@ -919,12 +989,32 @@ class DisplayAdjustmentFrame(windowcls):
         OnEraseBackground = wx_Panel.__dict__["OnEraseBackground"]
 
     def EndModal(self, returncode=wx.ID_OK):
+        """End the modal state of the display adjustment frame.
+
+        Args:
+            returncode (int): The return code to indicate the result of the
+                modal operation. Defaults to wx.ID_OK.
+
+        Returns:
+            int: The return code indicating the result of the modal operation.
+        """
         return returncode
 
-    def MakeModal(self, makemodal=False):
-        pass
+    def MakeModal(self, modal=False):
+        """Make the display adjustment frame modal or not.
+
+        Args:
+            modal (bool): If True, make the frame modal; otherwise, make it
+                non-modal.
+        """
 
     def OnClose(self, event):
+        """Handle the close event of the display adjustment frame.
+
+        Args:
+            event (wx.CloseEvent): The event object containing information
+                about the window being closed.
+        """
         # if getattr(self, "measurement_play_sound_ctrl", None):
         # setcfg("measurement.play_sound",
         # int(self.measurement_play_sound_ctrl.GetValue()))
@@ -935,22 +1025,36 @@ class DisplayAdjustmentFrame(windowcls):
             self.keepGoing = False
 
     def OnDestroy(self, event):
+        """Handle the destruction of the display adjustment frame.
+
+        Args:
+            event (wx.WindowDestroyEvent): The event object containing information
+                about the window being destroyed.
+
+        Returns:
+            int: Returns 0 if the control IDs were successfully unreserved.
+        """
         self.stop_timer()
         del self.timer
         if not hasattr(wx.Window, "UnreserveControlId"):
             return 0
 
-        for id in self.id_to_keycode.keys():
-            if id >= 0:
+        for id_ in self.id_to_keycode:
+            if id_ >= 0:
                 continue
             try:
-                wx.Window.UnreserveControlId(id)
+                wx.Window.UnreserveControlId(id_)
             except wx.wxAssertionError as exception:
                 print(exception)
 
         return 0
 
     def OnMove(self, event):
+        """Handle window move event.
+
+        Args:
+            event (wx.MoveEvent): The event object containing information about
+        """
         if (
             self.IsShownOnScreen()
             and not self.IsIconized()
@@ -964,51 +1068,91 @@ class DisplayAdjustmentFrame(windowcls):
                 setcfg("position.progress.y", y)
 
     def OnPageChanging(self, event):
-        oldsel = event.GetOldSelection()
-        newsel = event.GetSelection()
+        """Handle page changing event.
+
+        Args:
+            event (wx.CommandEvent): The event object containing information
+        """
+        _oldsel = event.GetOldSelection()
+        _newsel = event.GetSelection()
         self.abort()
         event.Skip()
 
     def Pulse(self, msg=""):
-        if msg:
-            msg = str(msg)
-            if (
-                msg
-                in (
-                    lang.getstr("instrument.initializing"),
-                    lang.getstr("instrument.calibrating"),
-                    lang.getstr("please_wait"),
-                    lang.getstr("aborting"),
-                )
-                or msg == " " * 4
-                or ": error -" in msg.lower()
-                or "failed" in msg.lower()
-                or msg.startswith(lang.getstr("webserver.waiting"))
-                or msg.startswith(lang.getstr("connection.waiting"))
-            ) and msg != self.lastmsg:
-                self.lastmsg = msg
-                self.Freeze()
-                for txt in self.lb.GetCurrentPage().txt.values():
-                    txt.checkmark.GetContainingSizer().Hide(txt.checkmark)
-                    txt.SetLabel(" ")
-                txt = list(self.lb.GetCurrentPage().txt.values())[0]
-                if txt.GetLabel() != wrap(msg, 46):
-                    txt.SetLabel(wrap(msg, 46))
-                    txt.SetForegroundColour(FGCOLOUR)
-                self.Thaw()
+        """Pulse the display adjustment with a message.
+
+        Args:
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
+        if not msg:
+            return self.keepGoing, False
+        msg = str(msg)
+        if (
+            msg
+            in (
+                lang.getstr("instrument.initializing"),
+                lang.getstr("instrument.calibrating"),
+                lang.getstr("please_wait"),
+                lang.getstr("aborting"),
+            )
+            or msg == " " * 4
+            or ": error -" in msg.lower()
+            or "failed" in msg.lower()
+            or msg.startswith(
+                (lang.getstr("webserver.waiting"), lang.getstr("connection.waiting"))
+            )
+        ) and msg != self.lastmsg:
+            self.lastmsg = msg
+            self.Freeze()
+            for txt in self.lb.GetCurrentPage().txt.values():
+                txt.checkmark.GetContainingSizer().Hide(txt.checkmark)
+                txt.SetLabel(" ")
+            txt = next(iter(self.lb.GetCurrentPage().txt.values()))  # first value
+            if txt.GetLabel() != wrap(msg, 46):
+                txt.SetLabel(wrap(msg, 46))
+                txt.SetForegroundColour(FGCOLOUR)
+            self.Thaw()
         return self.keepGoing, False
 
     def Resume(self):
+        """Resume the interactive display adjustment."""
         self.keepGoing = True
         self.set_sound_on_off_btn_bitmap()
 
     def UpdateProgress(self, value, msg=""):
+        """Update the progress with a value and a message.
+
+        Args:
+            value (int): The value to set the progress to.
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
         return self.Pulse(msg)
 
     def UpdatePulse(self, msg=""):
+        """Update the pulse with a message.
+
+        Args:
+            msg (str): The message to display. If empty, it will just return
+                the current state.
+
+        Returns:
+            tuple: A tuple containing the current state (keepGoing) and a
+                boolean indicating if the message was processed.
+        """
         return self.Pulse(msg)
 
     def _assign_image_list(self):
+        """Assign an image list to the labelbook."""
         imagelist = None
         modes = {CRT: {"black_luminance": "luminance", "luminance": "contrast"}}
         for img in (
@@ -1019,7 +1163,7 @@ class DisplayAdjustmentFrame(windowcls):
             "check_all",
         ):
             img = modes.get(getcfg("measurement_mode") == "c", {}).get(img, img)
-            bmp = getbitmap("theme/icons/72x72/%s" % img)
+            bmp = getbitmap(f"theme/icons/72x72/{img}")
             if not imagelist:
                 img_w, img_h = bmp.Size
                 imagelist = wx.ImageList(img_w, img_h)
@@ -1027,6 +1171,11 @@ class DisplayAdjustmentFrame(windowcls):
         self.lb.AssignImageList(imagelist)
 
     def _setup(self, init=False):
+        """Setup the display adjustment frame.
+
+        Args:
+            init (bool): If True, perform initial setup.
+        """
         self.logger.info("-" * 80)
         self.cold_run = True
         self.is_busy = None
@@ -1059,8 +1208,7 @@ class DisplayAdjustmentFrame(windowcls):
 
         # Set size
         scale = getcfg("app.dpi") / get_default_dpi()
-        if scale < 1:
-            scale = 1
+        scale = max(scale, 1)
         img_w, img_h = list(map(int, list(map(round, (84 * scale, 72 * scale)))))
         min_h = (
             (img_h + 8) * (self.lb.GetPageCount() - len(self.lb.disabled_pages)) + 2 - 8
@@ -1080,11 +1228,13 @@ class DisplayAdjustmentFrame(windowcls):
         # The button sizer will be as wide as the labelbook or wider,
         # so use it as reference
         w = self.btnsizer.CalcMin()[0] - img_w - 12
-        for pagenum in range(0, self.lb.GetPageCount()):
+        for pagenum in range(self.lb.GetPageCount()):
             page = self.lb.GetPage(pagenum)
             page.SetSize((w, -1))
             page.desc.SetLabel(page.desc.GetLabel().replace("\n", " "))
-            if sys.platform == "darwin" and intlist(mac_ver()[0].split(".")) >= [
+            if sys.platform == "darwin" and intlist(
+                platform.mac_ver()[0].split(".")
+            ) >= [
                 10,
                 10,
             ]:
@@ -1127,24 +1277,42 @@ class DisplayAdjustmentFrame(windowcls):
         self.SetSaneGeometry(x, y)
 
     def abort(self):
-        if self.has_worker_subprocess():
-            if self.is_measuring:
-                self.worker.safe_send(" ")
+        """Abort the current operation."""
+        if self.has_worker_subprocess() and self.is_measuring:
+            self.worker.safe_send(" ")
 
     def abort_and_send(self, key):
+        """Abort the current operation and send a key to the worker subprocess.
+
+        Args:
+            key (str): The key to send to the worker subprocess.
+        """
         self.abort()
-        if self.has_worker_subprocess():
-            if self.worker.safe_send(key):
-                self.is_busy = True
-                self.adjustment_btn.Disable()
-                self.calibration_btn.Disable()
+        if self.has_worker_subprocess() and self.worker.safe_send(key):
+            self.is_busy = True
+            self.adjustment_btn.Disable()
+            self.calibration_btn.Disable()
 
     def add_panel(self, size=wx.DefaultSize, flag=0):
+        """Add a panel to the sizer with the specified size and flags.
+
+        Args:
+            size (tuple): The size of the panel to add.
+            flag (int): The flags to apply to the panel.
+
+        Returns:
+            wx.Panel: The created panel instance.
+        """
         panel = get_panel(self, size)
         self.sizer.Add(panel, flag=flag)
         return panel
 
     def continue_to_calibration(self, event=None):
+        """Continue to the calibration step after interactive adjustment.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this method.
+        """
         if getcfg("trc"):
             self.abort_and_send("7")
         else:
@@ -1153,22 +1321,40 @@ class DisplayAdjustmentFrame(windowcls):
     def create_start_interactive_adjustment_button(
         self, icon="play", enable=False, startstop="start"
     ):
+        """Create or update the interactive adjustment button.
+
+        Args:
+            icon (str): The icon to use for the button.
+            enable (bool): Whether the button should be enabled.
+            startstop (str): The action to display on the button, either
+                "start" or "stop".
+        """
         if getattr(self, "adjustment_btn", None):
-            self.adjustment_btn._bitmap = getbitmap("theme/icons/10x10/%s" % icon)
+            self.adjustment_btn._bitmap = getbitmap(f"theme/icons/10x10/{icon}")
             self.adjustment_btn.SetLabel(
-                lang.getstr("calibration.interactive_display_adjustment.%s" % startstop)
+                lang.getstr(f"calibration.interactive_display_adjustment.{startstop}")
             )
             self.adjustment_btn.Enable(enable)
             return
         self.adjustment_btn = self.create_gradient_button(
-            getbitmap("theme/icons/10x10/%s" % icon),
-            lang.getstr("calibration.interactive_display_adjustment.%s" % startstop),
+            getbitmap(f"theme/icons/10x10/{icon}"),
+            lang.getstr(f"calibration.interactive_display_adjustment.{startstop}"),
             name="adjustment_btn",
         )
         self.adjustment_btn.Bind(wx.EVT_BUTTON, self.start_interactive_adjustment)
         self.adjustment_btn.Enable(enable)
 
     def create_gradient_button(self, bitmap, label, name):
+        """Create a gradient button with the specified bitmap and label.
+
+        Args:
+            bitmap (wx.Bitmap): The bitmap to display on the button.
+            label (str): The label for the button.
+            name (str): The name of the button.
+
+        Returns:
+            FlatShadedButton: The created button instance.
+        """
         btn = FlatShadedButton(
             self, bitmap=bitmap, label=label, name=name, fgcolour=FGCOLOUR
         )
@@ -1177,17 +1363,32 @@ class DisplayAdjustmentFrame(windowcls):
         return btn
 
     def flush(self):
-        pass
+        """Flush the output buffer of the worker subprocess if available."""
 
     def has_worker_subprocess(self):
+        """Check if the worker subprocess is available.
+
+        Returns:
+            bool: True if the worker subprocess is available, False otherwise.
+        """
         return bool(
             getattr(self, "worker", None) and getattr(self.worker, "subprocess", None)
         )
 
     def isatty(self):
+        """Check if the interactive display adjustment is in a terminal.
+
+        Returns:
+            bool: Always returns True, as this is a GUI application.
+        """
         return True
 
     def key_handler(self, event):
+        """Handle key events for interactive display adjustment.
+
+        Args:
+            event (wx.Event): The key event triggered by the user.
+        """
         # print {wx.EVT_CHAR.typeId: 'EVT_CHAR',
         # wx.EVT_CHAR_HOOK.typeId: 'EVT_CHAR_HOOK',
         # wx.EVT_KEY_DOWN.typeId: 'EVT_KEY_DOWN',
@@ -1245,13 +1446,21 @@ class DisplayAdjustmentFrame(windowcls):
             event.Skip()
 
     def measurement_play_sound_handler(self, event):
-        # self.measurement_play_sound_ctrl.SetValue(not self.measurement_play_sound_ctrl.GetValue())
+        """Toggle the sound on/off setting and update the button bitmap.
+
+        Args:
+            event (wx.Event): The event triggered by the button click.
+        """
+        # self.measurement_play_sound_ctrl.SetValue(
+        #     not self.measurement_play_sound_ctrl.GetValue()
+        # )
         setcfg(
             "measurement.play_sound", int(not (bool(getcfg("measurement.play_sound"))))
         )
         self.set_sound_on_off_btn_bitmap()
 
     def get_sound_on_off_btn_bitmap(self):
+        """Get the bitmap for the sound on/off button based on the current setting."""
         if getcfg("measurement.play_sound"):
             bitmap = geticon(16, "sound_volume_full")
         else:
@@ -1259,14 +1468,20 @@ class DisplayAdjustmentFrame(windowcls):
         return bitmap
 
     def set_sound_on_off_btn_bitmap(self):
+        """Set the bitmap for the sound on/off button based on the current setting."""
         bitmap = self.get_sound_on_off_btn_bitmap()
         self.sound_on_off_btn._bitmap = bitmap
 
     def parse_txt(self, txt):
+        """Parse the text output from the instrument and update the UI.
+
+        Args:
+            txt (str): The text output from the instrument.
+        """
         colors = {True: wx.Colour(0x33, 0xCC, 0x0), False: FGCOLOUR}
         if not txt:
             return
-        self.logger.info("%r" % txt)
+        self.logger.info(f"{txt!r}")
         self.Pulse(txt)
 
         if "/ Current" in txt:
@@ -1279,9 +1494,9 @@ class DisplayAdjustmentFrame(windowcls):
         )
         if getcfg("measurement_mode") == "c":
             target_bl = re.search(
-                r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
-                    " ", r"\s+"
-                ),
+                (
+                    r"Target Near Black = (\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(" ", r"\s+"),
                 txt,
                 re.I,
             )
@@ -1291,9 +1506,11 @@ class DisplayAdjustmentFrame(windowcls):
                     float(target_bl.groups()[0]),
                 ]
         initial_br = re.search(
-            r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)".replace(
-                " ", r"\s+"
-            ),
+            (
+                r"(Initial|Target)(?: Br)? (\d+(?:\.\d+)?)\s*(?:, "
+                r"x (\d+(?:\.\d+)?)\s*, y (\d+(?:\.\d+)?)(?:\s*, "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?))?|$)"
+            ).replace(" ", r"\s+"),
             txt,
             re.I,
         )
@@ -1305,16 +1522,17 @@ class DisplayAdjustmentFrame(windowcls):
             self.lb.GetCurrentPage().initial_br = [
                 initial_br.groups()[0],
                 float(initial_br.groups()[1]),
-            ] + list(initial_br.groups()[2:])
+                *list(initial_br.groups()[2:]),
+            ]
         if self.lb.GetCurrentPage().ctrltype != "check_all":
             current_br = re.search(
                 r"Current(?: Br)? (\d+(?:\.\d+)?)".replace(" ", r"\s+"), txt, re.I
             )
         else:
             current_br = re.search(
-                r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)".replace(
-                    " ", r"\s+"
-                ),
+                (
+                    r"Target Brightness = (?:\d+(?:\.\d+)?), Current = (\d+(?:\.\d+)?)"
+                ).replace(" ", r"\s+"),
                 txt,
                 re.I,
             )
@@ -1329,24 +1547,29 @@ class DisplayAdjustmentFrame(windowcls):
                     current_bl = float(target_bl.groups()[1])
             else:
                 current_bl = re.search(
-                    r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) (?:\d+(?:\.\d+)?)".replace(
-                        " ", r"\s+"
-                    ),
+                    (
+                        r"Black = XYZ (?:\d+(?:\.\d+)?) (\d+(?:\.\d+)?) "
+                        r"(?:\d+(?:\.\d+)?)"
+                    ).replace(" ", r"\s+"),
                     txt,
                     re.I,
                 )
                 if current_bl:
                     current_bl = float(current_bl.groups()[0])
         xy_dE_rgb = re.search(
-            r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? (?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) R([=+-]+) G([=+-]+) B([=+-]+)".replace(
-                " ", r"\s+"
-            ),
+            (
+                r"x (\d+(?:\.\d+)?)[=+-]*, y (\d+(?:\.\d+)?)[=+-]*,? "
+                r"(?:(V[CD]T \d+K?) )?DE(?: 2K)? (\d+(?:\.\d+)?) "
+                r"R([=+-]+) G([=+-]+) B([=+-]+)"
+            ).replace(" ", r"\s+"),
             txt,
             re.I,
         )
-        white_xy_dE_re = r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), (?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)".replace(
-            " ", r"\s+"
-        )
+        white_xy_dE_re = (
+            r"(?:Target white = x (?:\d+(?:\.\d+)?), y (?:\d+(?:\.\d+)?), "
+            r"Current|Current white) = x (\d+(?:\.\d+)?), y (\d+(?:\.\d+)?), "
+            r"(?:(?:(V[CD]T \d+K?) )?DE(?: 2K)?|error =) (\d+(?:\.\d+)?)"
+        ).replace(" ", r"\s+")
         white_xy_dE = re.search(white_xy_dE_re, txt, re.I)
         black_xy_dE = re.search(white_xy_dE_re.replace(r"white", "black"), txt, re.I)
         white_xy_target = re.search(
@@ -1380,12 +1603,9 @@ class DisplayAdjustmentFrame(windowcls):
                 target_br or initial_br or ("Initial", float(current_br.groups()[0]))
             )
             lstr = (compare_br[0]).lower()
-            if compare_br[1]:
-                percent = 100.0 / compare_br[1]
-            else:
-                percent = 100.0
+            percent = 100.0 / compare_br[1] if compare_br[1] else 100.0
             l_diff = float(current_br.groups()[0]) - compare_br[1]
-            l = int(round(50 + l_diff * percent))
+            l = round(50 + l_diff * percent)
             if self.lb.GetCurrentPage().gauges.get("L"):
                 self.lb.GetCurrentPage().gauges["L"].SetValue(min(max(l, 1), 100))
                 self.lb.GetCurrentPage().gauges["L"].Refresh()
@@ -1397,17 +1617,16 @@ class DisplayAdjustmentFrame(windowcls):
                         sign = "-"
                     else:
                         sign = "\u00b1"  # plusminus
-                    label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
-                        lang.getstr(lstr),
-                        compare_br[1],
-                        lang.getstr("current"),
-                        float(current_br.groups()[0]),
-                        sign,
-                        abs(l_diff) * percent,
+                    label = (
+                        f"{lang.getstr(lstr)} {compare_br[1]:.2f} "
+                        f"cd/m\u00b2\n{lang.getstr('current')} "
+                        f"{float(current_br.groups()[0]):.2f} cd/m\u00b2 "
+                        f"({sign}{abs(l_diff) * percent:.2f}%)"
                     )
                 else:
-                    label = lang.getstr("current") + " %.2f cd/m\u00b2" % float(
-                        current_br.groups()[0]
+                    label = (
+                        f"{lang.getstr('current')} "
+                        f"{float(current_br.groups()[0]):.2f} cd/m\u00b2"
                     )
                 self.lb.GetCurrentPage().txt[
                     "luminance"
@@ -1433,7 +1652,7 @@ class DisplayAdjustmentFrame(windowcls):
                     sign = "-"
                 else:
                     sign = "\u00b1"  # plusminus
-                label = "%s %.2f cd/m\u00b2\n%s %.2f cd/m\u00b2 (%s%.2f%%)" % (
+                label = "{} {:.2f} cd/m\u00b2\n{} {:.2f} cd/m\u00b2 ({}{:.2f}%)".format(
                     lang.getstr("target"),
                     target_bl[1],
                     lang.getstr("current"),
@@ -1442,11 +1661,8 @@ class DisplayAdjustmentFrame(windowcls):
                     abs(l_diff) * percent,
                 )
             else:
-                if target_bl:
-                    l_diff = 0
-                else:
-                    l_diff = None
-                label = lang.getstr("current") + " %.2f cd/m\u00b2" % current_bl
+                l_diff = 0 if target_bl else None
+                label = f"{lang.getstr('current')} {current_bl:.2f} cd/m\u00b2"
             self.lb.GetCurrentPage().txt[
                 "black_level"
             ].checkmark.GetContainingSizer().Show(
@@ -1466,35 +1682,20 @@ class DisplayAdjustmentFrame(windowcls):
         # groups()[6] = B +-
         if xy_dE_rgb:
             x, y, vdt, dE = get_xy_vt_dE(xy_dE_rgb.groups())
-            r = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[4].count("+")
-                        - xy_dE_rgb.groups()[4].count("-")
-                    )
-                    * dE
-                )
+            r = round(
+                50
+                - (xy_dE_rgb.groups()[4].count("+") - xy_dE_rgb.groups()[4].count("-"))
+                * dE
             )
-            g = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[5].count("+")
-                        - xy_dE_rgb.groups()[5].count("-")
-                    )
-                    * dE
-                )
+            g = round(
+                50
+                - (xy_dE_rgb.groups()[5].count("+") - xy_dE_rgb.groups()[5].count("-"))
+                * dE
             )
-            b = int(
-                round(
-                    50
-                    - (
-                        xy_dE_rgb.groups()[6].count("+")
-                        - xy_dE_rgb.groups()[6].count("-")
-                    )
-                    * dE
-                )
+            b = round(
+                50
+                - (xy_dE_rgb.groups()[6].count("+") - xy_dE_rgb.groups()[6].count("-"))
+                * dE
             )
             if self.lb.GetCurrentPage().gauges.get("R"):
                 self.lb.GetCurrentPage().gauges["R"].SetValue(min(max(r, 1), 100))
@@ -1513,15 +1714,15 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} "
+                    f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 initial_br = getattr(self.lb.GetCurrentPage(), "initial_br", None)
                 if initial_br and len(initial_br) > 3:
                     x, y, vdt, dE = get_xy_vt_dE(initial_br[2:])
                     label = (
-                        lang.getstr(initial_br[0].lower())
-                        + " x %.4f y %.4f %s %.1f \u0394E*00\n" % (x, y, vdt, dE)
+                        f"{lang.getstr(initial_br[0].lower())} "
+                        f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00\n"
                     ).replace("  ", " ") + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["rgb"], label)
         if white_xy_dE:
@@ -1536,14 +1737,14 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} "
+                    f"x {x:.4f} y {y:.4f} {vdt} {dE:.1f} \u0394E*00"
                 ).replace("  ", " ")
                 if white_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(white_xy_target.groups())
-                    label = (
-                        lang.getstr("target") + " x %.4f y %.4f\n" % (x, y)
-                    ).replace("  ", " ") + label
+                    label = (f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n").replace(
+                        "  ", " "
+                    ) + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["white_point"], label)
         if black_xy_dE:
             x, y, vdt, dE = get_xy_vt_dE(black_xy_dE.groups())
@@ -1557,14 +1758,14 @@ class DisplayAdjustmentFrame(windowcls):
                     colors[abs(dE) <= 1]
                 )
                 label = (
-                    lang.getstr("current")
-                    + " x %.4f y %.4f %s %.1f \u0394E*00" % (x, y, vdt, dE)
+                    f"{lang.getstr('current')} x {x:.4f} y {y:.4f} {vdt} {dE:.1f} "
+                    "\u0394E*00"
                 ).replace("  ", " ")
                 if black_xy_target:
                     x, y, vdt, dE = get_xy_vt_dE(black_xy_target.groups())
-                    label = (
-                        lang.getstr("target") + " x %.4f y %.4f\n" % (x, y)
-                    ).replace("  ", " ") + label
+                    label = (f"{lang.getstr('target')} x {x:.4f} y {y:.4f}\n").replace(
+                        "  ", " "
+                    ) + label
                 set_label_and_size(self.lb.GetCurrentPage().txt["black_point"], label)
         if (
             current_br or current_bl or xy_dE_rgb
@@ -1604,10 +1805,11 @@ class DisplayAdjustmentFrame(windowcls):
     # (str(self.is_measuring), self.timer.IsRunning(), self.keepGoing))
 
     def reset(self):
+        """Reset the display adjustment frame to its initial state."""
         self.Freeze()
         self._setup()
         # Reset controls
-        for pagenum in range(0, self.lb.GetPageCount()):
+        for pagenum in range(self.lb.GetPageCount()):
             page = self.lb.GetPage(pagenum)
             page.initial_br = None
             page.target_bl = None
@@ -1623,375 +1825,32 @@ class DisplayAdjustmentFrame(windowcls):
         self.Thaw()
 
     def start_interactive_adjustment(self, event=None):
+        """Start the interactive display adjustment process.
+
+        Args:
+            event (wx.Event, optional): The event that triggered this method.
+        """
         if self.is_measuring:
             self.abort()
         else:
             self.abort_and_send(self.pagenum_2_argyll_key_num[self.lb.GetSelection()])
 
     def start_timer(self, ms=50):
+        """Start the timer with a specified interval.
+
+        Args:
+            ms (int): The interval in milliseconds to trigger the timer.
+        """
         self.timer.Start(ms)
 
     def stop_timer(self):
+        """Stop the timer."""
         self.timer.Stop()
 
     def write(self, txt):
+        """Write text to the display adjustment frame.
+
+        Args:
+            txt (str): The text to write.
+        """
         wx.CallAfter(self.parse_txt, txt)
-
-
-if __name__ == "__main__":
-    from _thread import start_new_thread
-    from time import sleep
-
-    class Subprocess:
-        def send(self, bytes_):
-            start_new_thread(test, (bytes_,))
-
-    class Worker:
-        def __init__(self):
-            self.subprocess = Subprocess()
-
-        def safe_send(self, bytes_):
-            self.subprocess.send(bytes_)
-            return True
-
-    config.initcfg()
-    lang.init()
-    app = BaseApp(0)
-
-    if "--crt" in sys.argv[1:]:
-        setcfg("measurement_mode", "c")
-    else:
-        setcfg("measurement_mode", "l")
-
-    app.TopWindow = DisplayAdjustmentFrame(start_timer=False)
-    app.TopWindow.worker = Worker()
-    app.TopWindow.Show()
-    i = 0
-
-    def test(bytes_=None):
-        global i
-        # 0 = dispcal -v -yl
-        # 1 = dispcal -v -yl -b130
-        # 2 = dispcal -v -yl -B0.5
-        # 3 = dispcal -v -yl -t5200
-        # 4 = dispcal -v -yl -t5200 -b130 -B0.5
-        menu = r"""
-Press 1 .. 7
-1) Black level (CRT: Offset/Brightness)
-2) White point (Color temperature, R,G,B, Gain/Contrast)
-3) White level (CRT: Gain/Contrast, LCD: Brightness/Backlight)
-4) Black point (R,G,B, Offset/Brightness)
-5) Check all
-6) Measure and set ambient for viewing condition adjustment
-7) Continue on to calibration
-8) Exit
-"""
-        if bytes_ == " ":
-            txt = "\n" + menu
-        elif bytes_ == "1":
-            # Black level
-            txt = [
-                r"""Doing some initial measurements
-Black = XYZ   0.19   0.20   0.28
-Grey  = XYZ  27.20  27.79  24.57
-White = XYZ 126.48 128.71 112.75
-
-Adjust CRT brightness to get target level. Press space when done.
-   Target 1.29
-/ Current 2.02  -""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  27.11  27.76  24.72
-                   White = XYZ 125.91 128.38 113.18
-
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.02  -""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.28
-                   Grey  = XYZ  27.08  27.72  24.87
-                   White = XYZ 125.47 127.86 113.60
-
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.02  -""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  27.11  27.77  25.01
-                   White = XYZ 125.21 127.80 113.90
-
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 2.03  -""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.20   0.30
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
-
-                   Adjust CRT brightness to get target level. Press space when done.
-                      Target 1.28
-                   / Current 1.28""",
-            ][i]
-        elif bytes_ == "2":
-            # White point
-            txt = [
-                r"""Doing some initial measurements
-Red   = XYZ  81.08  39.18   2.41
-Green = XYZ  27.63  80.13  10.97
-Blue  = XYZ  18.24   9.90  99.75
-White = XYZ 126.53 128.96 112.57
-
-Adjust R,G & B gain to desired white point. Press space when done.
-  Initial Br 128.96, x 0.3438 , y 0.3504 , VDT 5152K DE 2K  4.7
-/ Current Br 128.85, x 0.3439-, y 0.3502+  VDT 5151K DE 2K  4.8  R-  G++ B-""",
-                r"""Doing some initial measurements
-                   Red   = XYZ  80.48  38.87   2.43
-                   Green = XYZ  27.58  79.99  10.96
-                   Blue  = XYZ  18.34   9.93 100.24
-                   White = XYZ 125.94 128.32 113.11
-
-                   Adjust R,G & B gain to desired white point. Press space when done.
-                     Initial Br 130.00, x 0.3428 , y 0.3493 , VDT 5193K DE 2K  4.9
-                   / Current Br 128.39, x 0.3428-, y 0.3496+  VDT 5190K DE 2K  4.7  R-  G++ B-""",
-                r"""Doing some initial measurements
-                   Red   = XYZ  80.01  38.57   2.44
-                   Green = XYZ  27.51  79.85  10.95
-                   Blue  = XYZ  18.45   9.94 100.77
-                   White = XYZ 125.48 127.88 113.70
-
-                   Adjust R,G & B gain to desired white point. Press space when done.
-                     Initial Br 127.88, x 0.3419 , y 0.3484 , VDT 5232K DE 2K  5.0
-                   / Current Br 127.87, x 0.3419-, y 0.3485+  VDT 5231K DE 2K  4.9  R-  G++ B-""",
-                r"""Doing some initial measurements
-                   Red   = XYZ  79.69  38.48   2.44
-                   Green = XYZ  27.47  79.76  10.95
-                   Blue  = XYZ  18.50   9.95 101.06
-                   White = XYZ 125.08 127.71 113.91
-
-                   Adjust R,G & B gain to get target x,y. Press space when done.
-                      Target Br 127.71, x 0.3401 , y 0.3540
-                   / Current Br 127.70, x 0.3412-, y 0.3481+  DE  4.8  R-  G++ B-""",
-                r"""Doing some initial measurements
-                   Red   = XYZ  79.47  38.41   2.44
-                   Green = XYZ  27.41  79.72  10.94
-                   Blue  = XYZ  18.52   9.96 101.20
-                   White = XYZ 124.87 130.00 112.27
-
-                   Adjust R,G & B gain to get target x,y. Press space when done.
-                      Target Br 130.00, x 0.3401 , y 0.3540
-                   / Current Br 130.00, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
-            ][i]
-        elif bytes_ == "3":
-            # White level
-            txt = [
-                r"""Doing some initial measurements
-White = XYZ 126.56 128.83 112.65
-
-Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
-  Initial 128.83
-/ Current 128.85""",
-                r"""Doing some initial measurements
-                   White = XYZ 125.87 128.23 113.43
-
-                   Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
-                      Target 130.00
-                   / Current 128.24  +""",
-                r"""Doing some initial measurements
-                   White = XYZ 125.33 127.94 113.70
-
-                   Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
-                     Initial 127.94
-                   / Current 127.88""",
-                r"""Doing some initial measurements
-                   White = XYZ 125.00 127.72 114.03
-
-                   Adjust CRT Contrast or LCD Brightness to desired level. Press space when done.
-                     Initial 127.72
-                   / Current 127.69""",
-                r"""Doing some initial measurements
-                   White = XYZ 124.87 130.00 112.27
-
-                   Adjust CRT Contrast or LCD Brightness to get target level. Press space when done.
-                      Target 130.00
-                   / Current 130.00""",
-            ][i]
-        elif bytes_ == "4":
-            # Black point
-            txt = [
-                r"""Doing some initial measurements
-Black = XYZ   0.19   0.21   0.29
-Grey  = XYZ  27.25  27.83  24.52
-White = XYZ 126.60 128.86 112.54
-
-Adjust R,G & B offsets to get target x,y. Press space when done.
-   Target Br 1.29, x 0.3440 , y 0.3502
-/ Current Br 2.03, x 0.3409+, y 0.3484+  DE  1.7  R++ G+  B-""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.19  27.87  24.94
-                   White = XYZ 125.83 128.16 113.57
-
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3423 , y 0.3487
-                   / Current Br 2.03, x 0.3391+, y 0.3470+  DE  1.7  R++ G+  B-""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.14  27.79  24.97
-                   White = XYZ 125.49 127.89 113.90
-
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3417 , y 0.3482
-                   / Current Br 2.02, x 0.3386+, y 0.3466+  DE  1.7  R++ G+  B-""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.30
-                   Grey  = XYZ  27.10  27.79  25.12
-                   White = XYZ 125.12 127.68 114.09
-
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3401 , y 0.3540
-                   / Current Br 2.04, x 0.3373+, y 0.3465+  DE  4.4  R+  G++ B-""",
-                r"""Doing some initial measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
-
-                   Adjust R,G & B offsets to get target x,y. Press space when done.
-                      Target Br 1.28, x 0.3401 , y 0.3540
-                   / Current Br 1.28, x 0.3401=, y 0.3540=  DE  0.0  R=  G= B=""",
-            ][i]
-        elif bytes_ == "5":
-            # Check all
-            txt = [
-                r"""Doing check measurements
-Black = XYZ   0.19   0.20   0.29
-Grey  = XYZ  27.22  27.80  24.49
-White = XYZ 126.71 128.91 112.34
-1%    = XYZ   1.94   1.98   1.76
-
-  Current Brightness = 128.91
-  Target 50% Level  = 24.42, Current = 27.80, error =  2.6%
-  Target Near Black =  1.29, Current =  2.02, error =  0.6%
-  Current white = x 0.3443, y 0.3503, VDT 5137K DE 2K  5.0
-  Target black = x 0.3443, y 0.3503, Current = x 0.3411, y 0.3486, error =  1.73 DE
-
-Press 1 .. 7""",
-                r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.10  27.75  24.85
-                   White = XYZ 125.78 128.17 113.53
-                   1%    = XYZ   1.93   1.98   1.79
-
-                     Target Brightness = 130.00, Current = 128.17, error = -1.4%
-                     Target 50% Level  = 24.28, Current = 27.75, error =  2.7%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Current white = x 0.3423, y 0.3488, VDT 5215K DE 2K  4.9
-                     Target black = x 0.3423, y 0.3488, Current = x 0.3391, y 0.3467, error =  1.69 DE
-
-                   Press 1 .. 7""",
-                r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  27.09  27.74  24.95
-                   White = XYZ 125.32 127.78 113.82
-                   1%    = XYZ   1.93   1.98   1.80
-
-                     Current Brightness = 127.78
-                     Target 50% Level  = 24.21, Current = 27.74, error =  2.8%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Current white = x 0.3415, y 0.3483, VDT 5243K DE 2K  4.9
-                     Target black = x 0.3415, y 0.3483, Current = x 0.3386, y 0.3465, error =  1.55 DE
-
-                   Press 1 .. 7""",
-                r"""Doing check measurements
-                   Black = XYZ   0.19   0.20   0.29
-                   Grey  = XYZ  26.98  27.68  24.97
-                   White = XYZ 125.00 127.56 113.99
-                   1%    = XYZ   1.92   1.97   1.80
-
-                     Current Brightness = 127.56
-                     Target 50% Level  = 24.17, Current = 27.68, error =  2.8%
-                     Target Near Black =  1.28, Current =  2.02, error =  0.6%
-                     Target white = x 0.3401, y 0.3540, Current = x 0.3410, y 0.3480, error =  4.83 DE
-                     Target black = x 0.3401, y 0.3540, Current = x 0.3372, y 0.3464, error =  4.48 DE
-
-                   Press 1 .. 7""",
-                r"""Doing check measurements
-                   Black = XYZ   0.19   0.21   0.29
-                   Grey  = XYZ  23.56  24.14  21.83
-                   White = XYZ 124.87 130.00 112.27
-                   1%    = XYZ   1.92   1.97   1.80
-
-                     Target Brightness = 130.00, Current = 130.00, error = 0.0%
-                     Target 50% Level  = 24.14, Current = 24.14, error =  0.0%
-                     Target Near Black =  1.27, Current =  1.27, error =  0.0%
-                     Target white = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
-                     Target black = x 0.3401, y 0.3540, Current = x 0.3401, y 0.3540, error =  0.00 DE
-
-                   Press 1 .. 7""",
-            ][i]
-        elif bytes_ == "7" or not bytes_:
-            if bytes_ == "7":
-                if i < 4:
-                    i += 1
-                else:
-                    i -= 4
-                wx.CallAfter(app.TopWindow.reset)
-            txt = (
-                [
-                    r"""Setting up the instrument
-Place instrument on test window.
-Hit Esc or Q to give up, any other key to continue:
-Display type is LCD
-Target white = native white point
-Target white brightness = native brightness
-Target black brightness = native brightness
-Target advertised gamma = 2.400000""",
-                    r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = native white point
-                   Target white brightness = 130.000000 cd/m^2
-                   Target black brightness = native brightness
-                   Target advertised gamma = 2.400000""",
-                    r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = native white point
-                   Target white brightness = native brightness
-                   Target black brightness = 0.500000 cd/m^2
-                   Target advertised gamma = 2.400000""",
-                    r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is LCD
-                   Target white = 5200.000000 degrees kelvin Daylight spectrum
-                   Target white brightness = native brightness
-                   Target black brightness = native brightness
-                   Target advertised gamma = 2.400000""",
-                    r"""Setting up the instrument
-                   Place instrument on test window.
-                   Hit Esc or Q to give up, any other key to continue:
-                   Display type is CRT
-                   Target white = 5200.000000 degrees kelvin Daylight spectrum
-                   Target white brightness = 130.000000 cd/m^2
-                   Target black brightness = 0.500000 cd/m^2
-                   Target advertised gamma = 2.400000""",
-                ][i]
-                + r"""
-
-Display adjustment menu:"""
-                + menu
-            )
-        elif bytes_ == "8":
-            wx.CallAfter(app.TopWindow.Close)
-            return
-        else:
-            return
-        for line in txt.split("\n"):
-            sleep(0.0625)
-            wx.CallAfter(app.TopWindow.write, line)
-            print(line)
-
-    start_new_thread(test, tuple())
-    app.MainLoop()

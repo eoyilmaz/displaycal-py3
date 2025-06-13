@@ -1,18 +1,27 @@
-# -*- coding: utf-8 -*-
+"""String utility functions for ASCII conversion, safe filenames, and Unicode handling.
+
+It also includes error handling utilities and custom string-like classes.
+"""
+
+from __future__ import annotations
 
 import codecs
-import locale
 import re
 import string
 import sys
 import unicodedata
 from functools import reduce
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 env_errors = (EnvironmentError,)
 if sys.platform == "win32":
     import pywintypes
 
-    env_errors = env_errors + (pywintypes.error, pywintypes.com_error)
+    env_errors = (*env_errors, pywintypes.error, pywintypes.com_error)
 
 from DisplayCAL.encoding import get_encodings
 
@@ -27,9 +36,7 @@ ascii_printable = "".join(
 
 # Control chars are defined as charcodes in the decimal range 0-31 (inclusive)
 # except whitespace characters, plus charcode 127 (DEL)
-control_chars = "".join(
-    [chr(i) for i in list(range(0, 9)) + list(range(14, 32)) + [127]]
-)
+control_chars = "".join([chr(i) for i in list(range(9)) + list(range(14, 32)) + [127]])
 
 # Safe character substitution - can be used for filenames
 # i.e. no \/:*?"<>| will be added through substitution
@@ -226,20 +233,46 @@ subst.update(
 
 
 class StrList(list):
-    """It's a list. It's a string. It's a list of strings that behaves like a
-    string! And like a list."""
+    """A list of strings that behaves like a string.
 
-    def __init__(self, seq=tuple()):
+    It's a list. It's a string. It's a list of strings that behaves like a
+    string! And like a list.
+    """
+
+    def __init__(self, seq=None) -> None:
+        if seq is None:
+            seq = ()
         list.__init__(self, seq)
 
-    def __iadd__(self, text):
+    def __iadd__(self, text) -> Self:
+        """Append text to the list.
+
+        Args:
+            text (str): The text to append.
+
+        Returns:
+            StrList: The updated StrList object.
+        """
         self.append(text)
         return self
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> str:
+        """Get the attribute of the string representation of the list.
+
+        Args:
+            attr (str): The attribute to get.
+
+        Returns:
+            str: The value of the attribute.
+        """
         return getattr(str(self), attr)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the string representation of the list.
+
+        Returns:
+            str: The string representation of the list.
+        """
         return "".join(self)
 
 
@@ -254,8 +287,7 @@ def asciize(obj):
         for char in obj.object[obj.start : obj.end]:
             chars += subst.get(char, normalencode(char).strip() or b"?")
         return chars, obj.end
-    else:
-        return obj.encode("ASCII", "asciize")
+    return obj.encode("ASCII", "asciize")
 
 
 codecs.register_error("asciize", asciize)
@@ -266,9 +298,21 @@ def safe_asciize(obj) -> bytes:
 
     This function either takes a string or an exception as argument (when used
     as error handler for encode or decode).
+
+    Args:
+        obj (str | bytes | Exception): A ``str``, ``bytes``, or ``Exception``
+            value.
+
+    Returns:
+        bytes: A ``bytes`` value that is ASCII safe.
     """
-    chars = b""
+    if not isinstance(obj, (str, bytes, Exception)):
+        raise TypeError(
+            f"obj should be a str, bytes, or Exception, not {obj.__class__.__name__}"
+        )
+
     if isinstance(obj, Exception):
+        chars = b""
         for char in obj.object[obj.start : obj.end]:
             if char in safesubst:
                 subst_char = safesubst[char]
@@ -278,10 +322,11 @@ def safe_asciize(obj) -> bytes:
                     subst_char = normalencode(char).strip() or subst_char
             chars += subst_char
         return chars, obj.end
-    elif isinstance(obj, str):
-        return obj.encode("ASCII", "safe_asciize")
-    elif isinstance(obj, bytes):
-        return obj.decode("utf-8").encode("ASCII", "safe_asciize")
+
+    if isinstance(obj, bytes):
+        obj = obj.decode("utf-8")
+
+    return obj.encode("ASCII", "safe_asciize")
 
 
 codecs.register_error("safe_asciize", safe_asciize)
@@ -297,10 +342,9 @@ def escape(obj):
     chars = b""
     if isinstance(obj, Exception):
         for char in obj.object[obj.start : obj.end]:
-            chars += subst.get(char, "\\u%s" % hex(ord(char))[2:].rjust(4, "0"))
+            chars += subst.get(char, "\\u{}".format(hex(ord(char))[2:].rjust(4, "0")))
         return chars, obj.end
-    else:
-        return obj.encode("ASCII", "escape")
+    return obj.encode("ASCII", "escape")
 
 
 # TODO: convert this to a decorator
@@ -325,9 +369,8 @@ def make_ascii_printable(text, substitute=b""):
         temp_ascii_printable = ascii_printable.encode("utf-8")
         if isinstance(substitute, str):
             substitute = substitute.encode("utf-8")
-    else:
-        if isinstance(substitute, bytes):
-            substitute = substitute.decode("utf-8")
+    elif isinstance(substitute, bytes):
+        substitute = substitute.decode("utf-8")
 
     for i in range(len(text)):
         char = text[i : i + 1]
@@ -347,7 +390,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
     """
     if not isinstance(unistr, (str, bytes)):
         raise TypeError(
-            "unistr should be a str or bytes, not {}".format(unistr.__class__.__name__)
+            f"unistr should be a str or bytes, not {unistr.__class__.__name__}"
         )
     # Turn characters that are invalid in the filesystem encoding into ASCII
     # substitution character '?'
@@ -388,8 +431,7 @@ def make_filename_safe(unistr, encoding=fs_enc, substitute="_", concat=True):
     if concat:
         pattern += plus
 
-    uniout = re.sub(pattern, substitute, uniout)
-    return uniout
+    return re.sub(pattern, substitute, uniout)
 
 
 def normalencode(unistr, form="NFKD", encoding="ASCII", errors="ignore"):
@@ -398,7 +440,7 @@ def normalencode(unistr, form="NFKD", encoding="ASCII", errors="ignore"):
 
 
 def box(text, width=80, collapse=False):
-    """Create a box around text (monospaced font required for display)"""
+    """Create a box around text (monospaced font required for display)."""
     content_width = width - 4
     text = wrap(str(text), content_width)
     lines = text.splitlines()
@@ -408,10 +450,9 @@ def box(text, width=80, collapse=False):
             content_width = max(len(line), content_width)
         width = content_width + 4
     horizontal_line = "\u2500" * (width - 2)
-    box = ["\u250c%s\u2510" % horizontal_line]
-    for line in lines:
-        box.append("\u2502 %s \u2502" % line.ljust(content_width))
-    box.append("\u2514%s\u2518" % horizontal_line)
+    box = [f"\u250c{horizontal_line}\u2510"]
+    box.extend(f"\u2502 {line.ljust(content_width)} \u2502" for line in lines)
+    box.append(f"\u2514{horizontal_line}\u2518")
     return "\n".join(box)
 
 
@@ -426,17 +467,14 @@ def center(text, width=None):
     if width is None:
         width = 0
         for line in text:
-            if len(line) > width:
-                width = len(line)
-    i = 0
-    for line in text:
+            width = max(width, len(line))
+    for i, line in enumerate(text):
         text[i] = line.center(width)
-        i += 1
     return "\n".join(text)
 
 
 def create_replace_function(template, values):
-    """Create a replace function for use with e.g. re.sub"""
+    """Create a replace function for use with e.g. re.sub."""
 
     def replace_function(match, template=template, values=values):
         template = match.expand(template)
@@ -445,30 +483,44 @@ def create_replace_function(template, values):
     return replace_function
 
 
-def ellipsis_(text, maxlen=64, pos="r"):
+def ellipsis_(text: str | bytes, maxlen: int = 64, pos: str = "r") -> str | bytes:
     """Truncate text to maxlen characters and add ellipsis if it was longer.
 
     Ellipsis position can be 'm' (middle) or 'r' (right).
+
+    Args:
+        text (Union[str, bytes]): A ``str`` or ``bytes`` value.
+        maxlen (int): Maximum length of the string.
+        pos (str): Position of the ellipsis ('m' or 'r').
+
+    Returns:
+        Union[str, bytes]: A ``str`` or ``bytes`` value that is truncated to
+            the maximum length and has an ellipsis added if it was longer.
     """
     if len(text) <= maxlen:
         return text
+
+    if pos not in ("m", "r"):
+        raise ValueError(f"pos must be 'm' or 'r', not {pos!r}")
+
     ellipsis_char = "\u2026"
+
     if isinstance(text, bytes):
         ellipsis_char = b"u\xc2\x826"
     if pos == "r":
         return text[: maxlen - 1] + ellipsis_char
-    elif pos == "m":
-        return text[: int(maxlen / 2)] + ellipsis_char + text[int(-maxlen / 2 + 1) :]
+    # elif pos == "m":
+    return text[: int(maxlen / 2)] + ellipsis_char + text[int(-maxlen / 2 + 1) :]
 
 
 def hexunescape(match):
-    """To be used with re.sub"""
+    """To be used with re.sub."""
     return chr(int(match.group(1), 16))
 
 
 def indent(text, prefix, predicate=None):
     # From Python 3.7 textwrap module
-    """Adds 'prefix' to the beginning of selected lines in 'text'.
+    """Add 'prefix' to the beginning of selected lines in 'text'.
 
     If 'predicate' is provided, 'prefix' will only be added to the lines
     where 'predicate(line)' is True. If 'predicate' is not provided,
@@ -489,10 +541,12 @@ def indent(text, prefix, predicate=None):
 
 def universal_newlines(txt):
     """Return txt with all new line formats converted to POSIX newlines."""
+    if not isinstance(txt, (str, bytes)):
+        raise TypeError(f"txt should be a str or bytes, not {txt.__class__.__name__}")
     if isinstance(txt, str):
         return txt.replace("\r\n", "\n").replace("\r", "\n")
-    elif isinstance(txt, bytes):
-        return txt.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    # elif isinstance(txt, bytes):
+    return txt.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
 
 
 def replace_control_chars(txt, replacement=" ", collapse=False):
@@ -539,9 +593,9 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
         error = []
         if getattr(obj, "winerror", None) is not None:
             # pywintypes.error or WindowsError
-            error.append("[Windows Error %s]" % obj.winerror)
+            error.append(f"[Windows Error {obj.winerror}]")
         elif getattr(obj, "errno", None) is not None:
-            error.append("[Errno %s]" % obj.errno)
+            error.append(f"[Errno {obj.errno}]")
         if getattr(obj, "strerror", None) is not None:
             if getattr(obj, "filename", None) is not None:
                 error.append(obj.strerror.rstrip(":.") + ":")
@@ -566,7 +620,7 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
         error = temp_error
         obj = " ".join(error)
     elif isinstance(obj, KeyError) and obj.args:
-        obj = "Key does not exist: " + repr(obj.args[0])
+        obj = f"Key does not exist: {obj.args[0]!r}"
     oobj = obj
     if not isinstance(obj, str):
         try:
@@ -585,7 +639,7 @@ def safe_basestring(obj, enc="utf-8", errors="replace"):
 
 
 def safe_str(obj, enc=fs_enc, errors="replace"):
-    """Return string representation of obj"""
+    """Return string representation of obj."""
     return safe_basestring(obj, enc=enc, errors=errors)
 
 
@@ -621,14 +675,12 @@ def strtr(txt, replacements):
 
 
 def wrap(text, width=70):
-    """A word-wrap function that preserves existing line breaks and spaces.
+    r"""A word-wrap function that preserves existing line breaks and spaces.
 
-    Expects that existing line breaks are posix newlines (\\n).
-
+    Expects that existing line breaks are posix newlines (\n).
     """
     return reduce(
-        lambda line, word, width=width: "%s%s%s"
-        % (
+        lambda line, word, width=width: "{}{}{}".format(
             line,
             " \n"[
                 (
@@ -640,13 +692,3 @@ def wrap(text, width=70):
         ),
         text.split(" "),
     )
-
-
-def test():
-    for k in subst:
-        v = subst[k]
-        print(k, v)
-
-
-if __name__ == "__main__":
-    test()

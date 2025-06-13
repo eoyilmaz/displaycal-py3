@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-DisplayCAL setup.py script
+"""DisplayCAL setup.py script.
 
 Can be used with setuptools or pure distutils (the latter can be forced
 with the --use-distutils option, otherwise it will try to use setuptools
@@ -22,27 +20,27 @@ the wrapper script in the root directory of the source tar.gz/zip
 
 """
 
+from __future__ import annotations
+
 import codecs
 import ctypes.util
-from configparser import ConfigParser
-from distutils.command.install import install
 import distutils.core
-from distutils.util import change_root, get_platform
-from fnmatch import fnmatch
 import functools
 import os
 import platform
 import re
 import shutil
 import sys
+from configparser import ConfigParser
+from distutils.command.install import install
+from distutils.util import change_root, get_platform
+from fnmatch import fnmatch
 from time import strftime
 
 
 # Borrowed from setuptools
 def _find_all_simple(path):
-    """
-    Find all files under 'path'
-    """
+    """Find all files under 'path'."""
     results = (
         os.path.join(base, file)
         for base, dirs, files in os.walk(path, followlinks=True)
@@ -51,14 +49,14 @@ def _find_all_simple(path):
     return filter(os.path.isfile, results)
 
 
-def findall(dir=os.curdir):
-    """
-    Find all files under 'dir' and return the list of full filenames.
+def findall(directory=os.curdir):
+    """Find all files under 'dir' and return the list of full filenames.
+
     Unless dir is '.', return full filenames with dir prepended.
     """
-    files = _find_all_simple(dir)
-    if dir == os.curdir:
-        make_rel = functools.partial(os.path.relpath, start=dir)
+    files = _find_all_simple(directory)
+    if directory == os.curdir:
+        make_rel = functools.partial(os.path.relpath, start=directory)
         files = map(make_rel, files)
     return list(files)
 
@@ -68,29 +66,28 @@ import distutils.filelist
 distutils.filelist.findall = findall  # Fix findall bug in distutils
 
 
-from DisplayCAL.defaultpaths import autostart, autostart_home
+from DisplayCAL.defaultpaths import AUTOSTART, AUTOSTART_HOME
 from DisplayCAL.meta import (
-    appstream_id,
-    author,
-    author_ascii,
-    author_email,
-    description,
-    development_home_page,
+    APPSTREAM_ID,
+    AUTHOR,
+    AUTHOR_ASCII,
+    AUTHOR_EMAIL,
+    DESCRIPTION,
+    DEVELOPMENT_HOME_PAGE,
     DOMAIN,
-    longdesc,
-    name,
-    py_maxversion,
-    py_minversion,
+    LONG_DESCRIPTION,
+    NAME,
+    PY_MAXVERSION,
+    PY_MINVERSION,
+    VERSION_STRING,
+    VERSION_TUPLE,
+    WX_MINVERSION,
     script2pywname,
-    version,
-    version_tuple,
-    wx_minversion,
 )
-from DisplayCAL.util_list import intlist
-from DisplayCAL.util_os import getenvu, relpath, safe_glob
+from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.util_str import safe_str
 
-appname = name
+appname = NAME
 
 bits = platform.architecture()[0][:2]
 pypath = os.path.abspath(__file__)
@@ -152,7 +149,7 @@ config = {
         "win32": ["gi", "win32com.client.genpy"],
     },
     "package_data": {
-        name: [
+        NAME: [
             "beep.wav",
             "camera_shutter.wav",
             "ColorLookupTable.fx",
@@ -190,42 +187,51 @@ config = {
             "xrc/*.xrc",
         ]
     },
-    "xtra_package_data": {name: {"win32": [f"theme/icons/{name}-uninstall.ico"]}},
+    "xtra_package_data": {NAME: {"win32": [f"theme/icons/{NAME}-uninstall.ico"]}},
 }
 
 
 msiversion = ".".join(
     (
-        str(version_tuple[0]),
-        str(version_tuple[1]),
-        str(version_tuple[2]),
+        str(VERSION_TUPLE[0]),
+        str(VERSION_TUPLE[1]),
+        str(VERSION_TUPLE[2]),
     )
 )
 
 plist_dict = {
     "CFBundleDevelopmentRegion": "English",
-    "CFBundleExecutable": name,
-    "CFBundleGetInfoString": version,
-    "CFBundleIdentifier": ".".join(reversed(DOMAIN.split("."))) + "." + name,
+    "CFBundleExecutable": NAME,
+    "CFBundleGetInfoString": VERSION_STRING,
+    "CFBundleIdentifier": ".".join(reversed(DOMAIN.split("."))) + "." + NAME,
     "CFBundleInfoDictionaryVersion": "6.0",
-    "CFBundleLongVersionString": version,
-    "CFBundleName": name,
+    "CFBundleLongVersionString": VERSION_STRING,
+    "CFBundleName": NAME,
     "CFBundlePackageType": "APPL",
-    "CFBundleShortVersionString": version,
+    "CFBundleShortVersionString": VERSION_STRING,
     "CFBundleSignature": "????",
-    "CFBundleVersion": ".".join(map(str, version_tuple)),
-    "NSHumanReadableCopyright": f"© {strftime('%Y')} {author}",
+    "CFBundleVersion": ".".join(map(str, VERSION_TUPLE)),
+    "NSHumanReadableCopyright": f"© {strftime('%Y')} {AUTHOR}",
     "LSMinimumSystemVersion": "10.6.0",
 }
 
 
 class Target:
+    """A class representing a target for installation."""
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
 
-def create_app_symlinks(dist_dir, scripts):
-    maincontents_rel = os.path.join(f"{name}.app", "Contents")
+def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
+    """Create symlinks for the app bundle and standalone tools.
+
+    Args:
+        dist_dir (str): The distribution directory.
+        scripts (list[tuple[str, str]]): List of tuples containing script names
+            and their descriptions.
+    """
+    maincontents_rel = os.path.join(f"{NAME}.app", "Contents")
     # Create ref, tests, ReadMe and license symlinks in directory
     # containing the app bundle
     for src, tgt in [
@@ -243,16 +249,16 @@ def create_app_symlinks(dist_dir, scripts):
     # Create standalone tools app bundles by symlinking to the main bundle
     scripts = [(script2pywname(script), desc) for script, desc in scripts]
     toolscripts = [
-        script for script in [script for script, desc in scripts] if script != name
+        script for script in [script for script, desc in scripts] if script != NAME
     ]
     for script, desc in scripts:
         if script in (
-            name,
-            f"{name}-apply-profiles",
-            f"{name}-eeColor-to-madVR-converter",
+            NAME,
+            f"{NAME}-apply-profiles",
+            f"{NAME}-eeColor-to-madVR-converter",
         ) or script.endswith("-console"):
             continue
-        toolname = desc.replace(name, "").strip()
+        toolname = desc.replace(NAME, "").strip()
         toolapp = os.path.join(dist_dir, f"{toolname}.app")
         if os.path.isdir(toolapp):
             if (
@@ -289,13 +295,13 @@ def create_app_symlinks(dist_dir, scripts):
                     tgt = os.path.join(toolcontents, entry, subentry)
                     if subentry == "main.py":
                         # py2app
-                        with open(src, "r") as main_in:
+                        with open(src) as main_in:
                             py = main_in.read()
-                        py = py.replace("main()", "main(%r)" % script[len(name) + 1 :])
+                        py = py.replace("main()", f"main({script[len(NAME) + 1 :]!r})")
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
-                    if subentry == name + ".icns":
+                    if subentry == NAME + ".icns":
                         shutil.copy(
                             os.path.join(pydir, "theme", "icons", f"{script}.icns"),
                             os.path.join(toolcontents, entry, f"{script}.icns"),
@@ -318,20 +324,20 @@ def create_app_symlinks(dist_dir, scripts):
                     infoxml = info_in.read()
                 # CFBundleName / CFBundleDisplayName
                 infoxml = re.sub(
-                    r"(Name</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + toolname,
+                    rf"(Name</key>\s*<string>){NAME}",
+                    lambda match, toolname=toolname: match.group(1) + toolname,
                     infoxml,
                 )
                 # CFBundleIdentifier
-                infoxml = infoxml.replace(f".{name}</string>", f".{script}</string>")
+                infoxml = infoxml.replace(f".{NAME}</string>", f".{script}</string>")
                 # CFBundleIconFile
                 infoxml = infoxml.replace(
-                    f"{name}.icns</string>", f"{script}.icns</string>"
+                    f"{NAME}.icns</string>", f"{script}.icns</string>"
                 )
                 # CFBundleExecutable
                 infoxml = re.sub(
-                    r"(Executable</key>\s*<string>)%s" % name,
-                    lambda match: match.group(1) + script,
+                    rf"(Executable</key>\s*<string>){NAME}",
+                    lambda match, script=script: match.group(1) + script,
                     infoxml,
                 )
                 with codecs.open(
@@ -353,10 +359,10 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         key (str): The config key.
         pkgname (Union[None, str]): Name of the package. Default is None.
         subkey (Union[None, str]): Name of the subkey. Default is None.
-        excludes (Union[None, List[str]]): List of files to exclude. Default is None.
+        excludes (Union[None, list[str]]): List of files to exclude. Default is None.
 
     Returns:
-        List[str]: List of strings showing the paths of the data files.
+        list[str]: List of strings showing the paths of the data files.
     """
     files = config[key]
     src_dir = source_dir
@@ -365,10 +371,7 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
         # modifying the src_dir is not working with py2app, so disabling it.
         # src_dir = os.path.join(src_dir, pkgname)
         if subkey:
-            if subkey in files:
-                files = files[subkey]
-            else:
-                files = []
+            files = files.get(subkey, [])
     data = []
     for pth in files:
         if not [exclude for exclude in excludes or [] if fnmatch(pth, exclude)]:
@@ -376,12 +379,13 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
                 os.path.join(tgt_dir, os.path.dirname(pth))
             )
             safe_path = [
-                relpath(p, src_dir) for p in safe_glob(os.path.join(src_dir, pth))
+                os.path.relpath(p, src_dir)
+                for p in safe_glob(os.path.join(src_dir, pth))
             ]
             if pkgname:
                 # try looking for the "{src_dir}/{pkgname}/{pth}" too
                 safe_path += [
-                    relpath(p, src_dir)
+                    os.path.relpath(p, src_dir)
                     for p in safe_glob(os.path.join(src_dir, pkgname, pth))
                 ]
             data.append((normalized_path, safe_path))
@@ -389,6 +393,16 @@ def get_data(tgt_dir, key, pkgname=None, subkey=None, excludes=None):
 
 
 def get_scripts(excludes=None):
+    """Return a list of scripts with their descriptions.
+
+    Args:
+        excludes (None | list[str]): List of scripts to exclude. Default is
+            None.
+
+    Returns:
+        list[tuple[str, str]]: List of tuples containing script names and their
+            descriptions.
+    """
     # It is required that each script has an accompanying .desktop file
     scripts_with_desc = []
     scripts = safe_glob(os.path.join(pydir, "..", "scripts", appname.lower() + "*"))
@@ -397,10 +411,9 @@ def get_scripts(excludes=None):
         a, b = [os.path.splitext(v)[0] for v in (a, b)]
         if a > b:
             return 1
-        elif a < b:
+        if a < b:
             return -1
-        else:
-            return 0
+        return 0
 
     import functools
 
@@ -409,10 +422,10 @@ def get_scripts(excludes=None):
         script = os.path.basename(script)
         if script == appname.lower() + "-apply-profiles-launcher":
             continue
-        desktopfile = os.path.join(pydir, "..", "misc", f"{script}.desktop")
-        if os.path.isfile(desktopfile):
+        desktop_file = os.path.join(pydir, "..", "misc", f"{script}.desktop")
+        if os.path.isfile(desktop_file):
             cfg = ConfigParser()
-            cfg.read(desktopfile)
+            cfg.read(desktop_file)
             script = cfg.get("Desktop Entry", "Exec").split()[0]
             desc = cfg.get("Desktop Entry", "Name")
         else:
@@ -423,6 +436,7 @@ def get_scripts(excludes=None):
 
 
 def setup():
+    """Setup function for DisplayCAL."""
     print("***", os.path.abspath(sys.argv[0]), " ".join(sys.argv[1:]))
 
     bdist_bbfreeze = "bdist_bbfreeze" in sys.argv[1:]
@@ -436,14 +450,14 @@ def setup():
     do_uninstall = "uninstall" in sys.argv[1:]
     doc_layout = "deb" if os.path.exists("/etc/debian_version") else ""
     dry_run = "-n" in sys.argv[1:] or "--dry-run" in sys.argv[1:]
-    help = False
+    print_help = False
     install_data = None  # data files install path (only if given)
     is_rpm_build = "bdist_rpm" in sys.argv[1:] or os.path.abspath(sys.argv[0]).endswith(
         os.path.join(
             os.path.sep,
             "rpm",
             "BUILD",
-            f"{name}-{version}",
+            f"{NAME}-{VERSION_STRING}",
             os.path.basename(os.path.abspath(sys.argv[0])),
         )
     )
@@ -468,22 +482,20 @@ def setup():
         if "--use-setuptools" in sys.argv[1:] and not os.path.exists("use-setuptools"):
             open("use-setuptools", "w").close()
         try:
-            import setuptools
-            from setuptools import setup, Extension, find_packages
+            from setuptools import find_packages, setup
 
             setuptools = True
             print("using setuptools")
             current_findall = find_packages
         except ImportError:
             pass
-    else:
-        if os.path.exists("use-setuptools"):
-            os.remove("use-setuptools")
+    elif os.path.exists("use-setuptools"):
+        os.remove("use-setuptools")
 
     if distutils.filelist.findall is current_findall:
         # Fix traversing unneeded dirs which can take a long time (minutes)
         def findall(
-            dir=os.curdir,
+            directory=os.curdir,
             original=distutils.filelist.findall,
             listdir=os.listdir,
             basename=os.path.basename,
@@ -494,19 +506,16 @@ def setup():
                 if entry not in ("build", "dist") and not entry.startswith(".")
             ]
             try:
-                return original(dir)
+                return original(directory)
             finally:
                 os.listdir = listdir
 
         distutils.filelist.findall = findall
 
     if not setuptools:
-        from distutils.core import setup, Extension
+        from distutils.core import setup
 
         print("using distutils")
-
-    if do_py2exe:
-        setup_do_py2exe()
 
     if do_uninstall:
         i = sys.argv.index("uninstall")
@@ -568,7 +577,7 @@ def setup():
                 elif arg[0] == "--record":
                     recordfile_name = arg[1]
             elif arg[0] == "-h" or arg[0].startswith("--help"):
-                help = True
+                print_help = True
 
     if not recordfile_name and (do_full_install or do_uninstall):
         recordfile_name = "INSTALLED_FILES"
@@ -576,16 +585,16 @@ def setup():
     # sys.argv.append("--record=" + "INSTALLED_FILES")
 
     if sys.platform in ("darwin", "win32") or "bdist_egg" in sys.argv[1:]:
-        doc = data = "." if do_py2app or do_py2exe or bdist_bbfreeze else name
+        doc = data = "." if do_py2app or do_py2exe or bdist_bbfreeze else NAME
     else:
         # Linux/Unix
-        data = name
+        data = NAME
         if doc_layout.startswith("deb"):
-            doc = os.path.join("doc", name.lower())
+            doc = os.path.join("doc", NAME.lower())
         elif "suse" in doc_layout:
-            doc = os.path.join("doc", "packages", name)
+            doc = os.path.join("doc", "packages", NAME)
         else:
-            doc = os.path.join("doc", f"{name}-{version}")
+            doc = os.path.join("doc", f"{NAME}-{VERSION_STRING}")
 
         if not install_data:
             data = os.path.join("share", data)
@@ -600,25 +609,25 @@ def setup():
         cacert = certifi.where()
         if cacert:
             shutil.copyfile(cacert, os.path.join(pydir, "cacert.pem"))
-            config["package_data"][name].append("cacert.pem")
+            config["package_data"][NAME].append("cacert.pem")
         else:
             print("WARNING: cacert.pem from certifi project not found!")
 
     # on Mac OS X and Windows, we want data files in the package dir
     # (package_data will be ignored when using py2exe)
     package_data = {
-        name: (
-            config["package_data"][name]
+        NAME: (
+            config["package_data"][NAME]
             if sys.platform in ("darwin", "win32") and not do_py2app and not do_py2exe
             else []
         )
     }
     if sdist and sys.platform in ("darwin", "win32"):
-        package_data[name].extend(
+        package_data[NAME].extend(
             ["theme/icons/22x22/*.png", "theme/icons/24x24/*.png"]
         )
     if sys.platform == "win32" and not do_py2exe:
-        package_data[name].append("theme/icons/*.ico")
+        package_data[NAME].append("theme/icons/*.ico")
     # Scripts
     if sys.platform == "darwin":
         scripts = get_scripts(excludes=[appname.lower() + "-apply-profiles"])
@@ -637,7 +646,10 @@ def setup():
             )
         )
         data_files.append(
-            (doc, [relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)])
+            (
+                doc,
+                [os.path.relpath(os.path.join(pydir, "..", "LICENSE.txt"), source_dir)],
+            )
         )
 
     # metainfo / appdata.xml
@@ -645,9 +657,9 @@ def setup():
         (
             os.path.join(os.path.dirname(data), "metainfo"),
             [
-                relpath(
+                os.path.relpath(
                     os.path.normpath(
-                        os.path.join(pydir, "..", "dist", f"{appstream_id}.appdata.xml")
+                        os.path.join(pydir, "..", "dist", f"{APPSTREAM_ID}.appdata.xml")
                     ),
                     source_dir,
                 )
@@ -657,9 +669,9 @@ def setup():
 
     if sys.platform not in ("darwin", "win32") or do_py2app or do_py2exe:
         # Linux/Unix or py2app/py2exe
-        data_files += get_data(data, "package_data", name, excludes=["theme/icons/*"])
+        data_files += get_data(data, "package_data", NAME, excludes=["theme/icons/*"])
         data_files += get_data(data, "data")
-        data_files += get_data(data, "xtra_package_data", name, sys.platform)
+        data_files += get_data(data, "xtra_package_data", NAME, sys.platform)
         if sys.platform == "win32":
             # Add python and pythonw
             data_files.extend(
@@ -707,25 +719,29 @@ def setup():
             data_files.append(
                 (
                     os.path.join(os.path.dirname(data), "applications"),
-                    [os.path.join(pydir, "..", "misc", f"{name.lower()}.desktop")]
-                    + safe_glob(
-                        os.path.join(pydir, "..", "misc", f"{name.lower()}-*.desktop")
-                    ),
+                    [
+                        os.path.join(pydir, "..", "misc", f"{NAME.lower()}.desktop"),
+                        *safe_glob(
+                            os.path.join(
+                                pydir, "..", "misc", f"{NAME.lower()}-*.desktop"
+                            )
+                        ),
+                    ],
                 )
             )
             data_files.append(
                 (
                     (
-                        autostart
+                        AUTOSTART
                         if os.geteuid() == 0 or prefix.startswith("/")
-                        else autostart_home
+                        else AUTOSTART_HOME
                     ),
                     [
                         os.path.join(
                             pydir,
                             "..",
                             "misc",
-                            f"z-{name.lower()}-apply-profiles.desktop",
+                            f"z-{NAME.lower()}-apply-profiles.desktop",
                         )
                     ],
                 )
@@ -796,19 +812,18 @@ def setup():
                                     ],
                                 )
                             )
-                    else:
-                        if os.path.isdir("/etc/hotplug"):
-                            # USB using hotplug and Serial using udev
-                            # (older versions of Linux)
-                            devconf_files.append(
-                                (
-                                    "/etc/hotplug/usb",
-                                    [
-                                        os.path.join(pydir, "..", "misc", fname)
-                                        for fname in ["Argyll", "Argyll.usermap"]
-                                    ],
-                                )
+                    elif os.path.isdir("/etc/hotplug"):
+                        # USB using hotplug and Serial using udev
+                        # (older versions of Linux)
+                        devconf_files.append(
+                            (
+                                "/etc/hotplug/usb",
+                                [
+                                    os.path.join(pydir, "..", "misc", fname)
+                                    for fname in ["Argyll", "Argyll.usermap"]
+                                ],
                             )
+                        )
                     for entry in devconf_files:
                         for fname in entry[1]:
                             if os.path.isfile(fname):
@@ -845,7 +860,7 @@ def setup():
             for iconpath in safe_glob(
                 os.path.join(pydir, "theme", "icons", dname, "*.png")
             ):
-                if not os.path.basename(iconpath).startswith(name.lower()) or (
+                if not os.path.basename(iconpath).startswith(NAME.lower()) or (
                     sys.platform in ("darwin", "win32")
                     and dname
                     in ("16x16", "32x32", "48x48", largest_iconbundle_icon_size)
@@ -878,36 +893,35 @@ def setup():
                         pydir,
                         "..",
                         "scripts",
-                        f"{name.lower()}-eecolor-to-madvr-converter",
+                        f"{NAME.lower()}-eecolor-to-madvr-converter",
                     )
                 ],
             )
         )
 
-    sources = []
-    if sys.platform == "win32":
-        macros = [("NT", None)]
-        libraries = ["user32", "gdi32"]
-        link_args = None
-    elif sys.platform == "darwin":
-        macros = [("__APPLE__", None), ("UNIX", None)]
-        libraries = None
-        # XXX: Not sure which macOS version exactly removed the need
-        # to specify -framework
-        if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
-            link_args = None
-        else:
-            link_args = [
-                "-framework Carbon",
-                "-framework CoreFoundation",
-                "-framework Python",
-                "-framework IOKit",
-            ]
-
-    else:
-        macros = [("UNIX", None)]
-        libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
-        link_args = None
+    # sources = []
+    # if sys.platform == "win32":
+    #     macros = [("NT", None)]
+    #     libraries = ["user32", "gdi32"]
+    #     link_args = None
+    # elif sys.platform == "darwin":
+    #     macros = [("__APPLE__", None), ("UNIX", None)]
+    #     libraries = None
+    #     # XXX: Not sure which macOS version exactly removed the need
+    #     # to specify -framework
+    #     if intlist(platform.mac_ver()[0].split(".")) >= [10, 7]:
+    #         link_args = None
+    #     else:
+    #         link_args = [
+    #             "-framework Carbon",
+    #             "-framework CoreFoundation",
+    #             "-framework Python",
+    #             "-framework IOKit",
+    #         ]
+    # else:
+    #     macros = [("UNIX", None)]
+    #     libraries = ["X11", "Xinerama", "Xrandr", "Xxf86vm"]
+    #     link_args = None
 
     ext_modules = []
 
@@ -916,23 +930,24 @@ def setup():
         # wxPython windows installer doesn't add egg-info entry, so
         # a dependency check from pkg_resources would always fail
         requires.append(
-            "wxPython (>= {})".format(".".join(str(n) for n in wx_minversion))
+            "wxPython (>= {})".format(".".join(str(n) for n in WX_MINVERSION))
         )
     if sys.platform == "win32":
         requires.append("pywin32 (>= 213.0)")
 
-    packages = [name, f"{name}.lib", f"{name}.lib.agw"]
+    packages = [NAME, f"{NAME}.lib", f"{NAME}.lib.agw"]
 
     attrs = {
-        "author": author_ascii,
-        "author_email": author_email,
+        "author": AUTHOR_ASCII,
+        "author_email": AUTHOR_EMAIL,
         "classifiers": [
             "Development Status :: 5 - Production/Stable",
             "Environment :: MacOS X",
             "Environment :: Win32 (MS Windows)",
             "Environment :: X11 Applications",
             "Intended Audience :: End Users/Desktop",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: GNU General Public License v3 "
+            "or later (GPLv3+)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
@@ -942,30 +957,31 @@ def setup():
             "Topic :: Multimedia :: Graphics",
         ],
         "data_files": data_files,
-        "description": description,
-        "download_url": f"{development_home_page}/releases/download/{version}/{name}-{version}.tar.gz",
+        "description": DESCRIPTION,
+        "download_url": f"{DEVELOPMENT_HOME_PAGE}/releases/download/"
+        f"{VERSION_STRING}/{NAME}-{VERSION_STRING}.tar.gz",
         "ext_modules": ext_modules,
         "license": "GPL v3",
-        "long_description": longdesc,
+        "long_description": LONG_DESCRIPTION,
         "long_description_content_type": "text/x-rst",
-        "name": name,
+        "name": NAME,
         "packages": packages,
         "package_data": package_data,
-        "package_dir": {name: name},
+        "package_dir": {NAME: NAME},
         "platforms": [
             "Python >= {} <= {}".format(
-                ".".join(str(n) for n in py_minversion),
-                ".".join(str(n) for n in py_maxversion),
+                ".".join(str(n) for n in PY_MINVERSION),
+                ".".join(str(n) for n in PY_MAXVERSION),
             ),
             "Linux/Unix with X11",
             "Mac OS X >= 10.4",
             "Windows 2000 and newer",
         ],
         "requires": requires,
-        "provides": [name],
+        "provides": [NAME],
         "scripts": [],
         "url": f"https://{DOMAIN}/",
-        "version": msiversion if "bdist_msi" in sys.argv[1:] else version,
+        "version": msiversion if "bdist_msi" in sys.argv[1:] else VERSION_STRING,
     }
 
     if setuptools:
@@ -973,17 +989,17 @@ def setup():
             "gui_scripts": [
                 "{} = {}.main:main{}".format(
                     script,
-                    name,
+                    NAME,
                     (
                         ""
-                        if script == name.lower()
-                        else script[len(name) :].lower().replace("-", "_")
+                        if script == NAME.lower()
+                        else script[len(NAME) :].lower().replace("-", "_")
                     ),
                 )
                 for script, desc in scripts
             ]
         }
-        attrs["exclude_package_data"] = {name: []}
+        attrs["exclude_package_data"] = {NAME: []}
         attrs["include_package_data"] = (
             sys.platform in ("darwin", "win32") and not do_py2app
         )
@@ -996,7 +1012,7 @@ def setup():
             for script, desc in [
                 script_desc
                 for script_desc in scripts
-                if script_desc[0] != f"{name.lower()}-apply-profiles"
+                if script_desc[0] != f"{NAME.lower()}-apply-profiles"
                 or sys.platform != "darwin"
             ]
         )
@@ -1005,19 +1021,19 @@ def setup():
         attrs["setup_requires"] = ["bbfreeze"]
 
     if "bdist_wininst" in sys.argv[1:]:
-        attrs["scripts"].append(os.path.join("util", f"{name}_postinstall.py"))
+        attrs["scripts"].append(os.path.join("util", f"{NAME}_postinstall.py"))
 
     if do_py2app:
         mainpy = os.path.join(source_dir, "main.py")
         if not os.path.exists(mainpy):
-            shutil.copy(os.path.join(source_dir, "scripts", name.lower()), mainpy)
+            shutil.copy(os.path.join(source_dir, "scripts", NAME.lower()), mainpy)
         attrs["app"] = [mainpy]
         dist_dir = os.path.join(
             pydir,
             "..",
             "dist",
             f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-            f"{name}-{version}",
+            f"{NAME}-{VERSION_STRING}",
         )
         from py2app.build_app import py2app as py2app_cls
 
@@ -1025,7 +1041,7 @@ def setup():
 
         def copy_package_data(self, package, target_dir):
             # Skip package data which is already included as data files
-            if package.identifier.split(".")[0] != name:
+            if package.identifier.split(".")[0] != NAME:
                 self._copy_package_data(package, target_dir)
 
         py2app_cls.copy_package_data = copy_package_data
@@ -1034,7 +1050,7 @@ def setup():
                 "argv_emulation": False,
                 "dist_dir": dist_dir,
                 "excludes": config["excludes"]["all"] + config["excludes"]["darwin"],
-                "iconfile": os.path.join(pydir, "theme", "icons", f"{name}.icns"),
+                "iconfile": os.path.join(pydir, "theme", "icons", f"{NAME}.icns"),
                 "optimize": 0,
                 "plist": plist_dict,
             }
@@ -1047,16 +1063,13 @@ def setup():
         import wx
         from winmanifest_util import getmanifestxml
 
-        if platform.architecture()[0] == "64bit":
-            arch = "amd64"
-        else:
-            arch = "x86"
+        arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
         manifest_xml = getmanifestxml(
             os.path.join(
                 pydir,
                 "..",
                 "misc",
-                name
+                NAME
                 + (
                     f".exe.{arch}.VC90.manifest"
                     if hasattr(sys, "version_info") and sys.version_info[:2] >= (3, 8)
@@ -1071,30 +1084,28 @@ def setup():
             f"{appname.lower()}-apply-profiles-launcher",
             f"{appname} Profile Loader Launcher",
         )
-        for script, desc in scripts + [apply_profiles_launcher]:
+        for script, _desc in [*scripts, apply_profiles_launcher]:
             shutil.copy(
                 os.path.join(source_dir, "scripts", script),
                 os.path.join(tmp_scripts_dir, script2pywname(script)),
             )
         attrs["windows"] = [
             Target(
-                **{
-                    "script": os.path.join(tmp_scripts_dir, script2pywname(script)),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                os.path.splitext(os.path.basename(script))[0] + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": desc,
-                }
+                script=os.path.join(tmp_scripts_dir, script2pywname(script)),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            os.path.splitext(os.path.basename(script))[0] + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {AUTHOR}",
+                description=desc,
             )
             for script, desc in [
                 script_desc1
@@ -1107,30 +1118,28 @@ def setup():
         # Add profile loader launcher
         attrs["windows"].append(
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, script2pywname(apply_profiles_launcher[0])
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                appname + "-apply-profiles" + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": apply_profiles_launcher[1],
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, script2pywname(apply_profiles_launcher[0])
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            appname + "-apply-profiles" + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {AUTHOR}",
+                description=apply_profiles_launcher[1],
             )
         )
 
         # Programs that can run with and without GUI
-        console_scripts = [f"{name}-VRML-to-X3D-converter"]  # No "-console" suffix!
+        console_scripts = [f"{NAME}-VRML-to-X3D-converter"]  # No "-console" suffix!
         for console_script in console_scripts:
             console_script_path = os.path.join(
                 tmp_scripts_dir, console_script + "-console"
@@ -1144,25 +1153,23 @@ def setup():
                 )
         attrs["console"] = [
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, script2pywname(script) + "-console"
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir,
-                                "theme",
-                                "icons",
-                                os.path.splitext(os.path.basename(script))[0] + ".ico",
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": desc,
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, script2pywname(script) + "-console"
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir,
+                            "theme",
+                            "icons",
+                            os.path.splitext(os.path.basename(script))[0] + ".ico",
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {AUTHOR}",
+                description=desc,
             )
             for script, desc in [
                 script_desc2
@@ -1174,23 +1181,21 @@ def setup():
         # Programs without GUI
         attrs["console"].append(
             Target(
-                **{
-                    "script": os.path.join(
-                        tmp_scripts_dir, appname + "-eeColor-to-madVR-converter"
-                    ),
-                    "icon_resources": [
-                        (
-                            1,
-                            os.path.join(
-                                pydir, "theme", "icons", appname + "-3DLUT-maker.ico"
-                            ),
-                        )
-                    ],
-                    "other_resources": [(24, 1, manifest_xml)],
-                    "copyright": f"© {strftime('%Y')} {author}",
-                    "description": "Convert eeColor 65^3 to madVR 256^3 3D LUT "
-                    "(video levels in, video levels out)",
-                }
+                script=os.path.join(
+                    tmp_scripts_dir, appname + "-eeColor-to-madVR-converter"
+                ),
+                icon_resources=[
+                    (
+                        1,
+                        os.path.join(
+                            pydir, "theme", "icons", appname + "-3DLUT-maker.ico"
+                        ),
+                    )
+                ],
+                other_resources=[(24, 1, manifest_xml)],
+                copyright=f"© {strftime('%Y')} {AUTHOR}",
+                description="Convert eeColor 65^3 to madVR 256^3 3D LUT "
+                "(video levels in, video levels out)",
             )
         )
 
@@ -1199,7 +1204,7 @@ def setup():
             "..",
             "dist",
             f"py2exe.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
-            f"{name}-{version}",
+            f"{NAME}-{VERSION_STRING}",
         )
         attrs["options"] = {
             "py2exe": {
@@ -1219,7 +1224,7 @@ def setup():
                 "excludes": config["excludes"]["all"] + config["excludes"]["win32"],
                 "bundle_files": 3 if wx.VERSION >= (2, 8, 10, 1) else 1,
                 "compressed": 1,
-                "optimize": 0,  # 0 = don’t optimize (generate .pyc)
+                "optimize": 0,  # 0 = don't optimize (generate .pyc)
                 # 1 = normal optimization (like python -O)
                 # 2 = extra optimization (like python -OO)
             }
@@ -1232,7 +1237,7 @@ def setup():
             attrs["setup_requires"] = ["py2exe"]
         attrs["zipfile"] = os.path.join("lib", "library.zip")
 
-    if (do_uninstall or do_install or bdist_win or bdist_dumb) and not help:
+    if (do_uninstall or do_install or bdist_win or bdist_dumb) and not print_help:
         distutils.core._setup_stop_after = "commandline"
         dist = setup(**attrs)
         distutils.core._setup_stop_after = None
@@ -1290,14 +1295,14 @@ def setup():
             and attrs["data_files"]
         ):
             if data_basedir.startswith(cmd.install_data + os.path.sep):
-                data_basedir = relpath(data_basedir, cmd.install_data)
+                data_basedir = os.path.relpath(data_basedir, cmd.install_data)
             for i, f in enumerate(attrs["data_files"]):
                 if isinstance(f, str):
                     attrs["data_files"][i] = change_root(data_basedir, f)
                 else:
                     attrs["data_files"][i] = (change_root(data_basedir, f[0]), f[1])
 
-    if do_uninstall and not help:
+    if do_uninstall and not print_help:
         # Quick and dirty uninstall
         if dry_run:
             print("dry run - nothing will be removed")
@@ -1314,44 +1319,45 @@ def setup():
         visited = []
 
         if os.path.exists(recordfile_name):
-            paths = [
-                (
-                    change_root(cmd.root, line.rstrip("\n"))
-                    if cmd.root
-                    else line.rstrip("\n")
-                )
-                for line in open(recordfile_name, "r")
-            ]
+            with open(recordfile_name) as f:
+                paths = [
+                    (
+                        change_root(cmd.root, line.rstrip("\n"))
+                        if cmd.root
+                        else line.rstrip("\n")
+                    )
+                    for line in f
+                ]
         else:
             paths = []
 
         if not paths:
             # If the installed files have not been recorded, use some fallback
             # logic to find them
-            paths = safe_glob(os.path.join(cmd.install_scripts, name))
+            paths = safe_glob(os.path.join(cmd.install_scripts, NAME))
             if sys.platform == "win32":
                 if setuptools:
-                    paths += safe_glob(os.path.join(cmd.install_scripts, f"{name}.exe"))
+                    paths += safe_glob(os.path.join(cmd.install_scripts, f"{NAME}.exe"))
                     paths += safe_glob(
-                        os.path.join(cmd.install_scripts, f"{name}-script.py")
+                        os.path.join(cmd.install_scripts, f"{NAME}-script.py")
                     )
                 else:
-                    paths += safe_glob(os.path.join(cmd.install_scripts, f"{name}.cmd"))
+                    paths += safe_glob(os.path.join(cmd.install_scripts, f"{NAME}.cmd"))
             paths += safe_glob(
-                os.path.join(cmd.install_scripts, f"{name}_postinstall.py")
+                os.path.join(cmd.install_scripts, f"{NAME}_postinstall.py")
             )
             for attrname in ["data", "headers", "lib", "libbase", "platlib", "purelib"]:
-                path = os.path.join(getattr(cmd, f"install_{attrname}"), name)
+                path = os.path.join(getattr(cmd, f"install_{attrname}"), NAME)
                 if path not in paths:
                     # Using sys.version in this way is consistent with
                     # setuptools
                     paths += (
                         safe_glob(path)
                         + safe_glob(
-                            f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg"
+                            f"{path}-{VERSION_STRING}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg"
                         )
                         + safe_glob(
-                            f"{path}-{version}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg-info"
+                            f"{path}-{VERSION_STRING}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg-info"
                         )
                     )
 
@@ -1374,13 +1380,13 @@ def setup():
                     "cacert.pem",
                     "camera_shutter.wav",
                     "ColorLookupTable.fx",
-                    f"{name.lower()}.desktop",
-                    f"{name.lower()}-3dlut-maker.desktop",
-                    f"{name.lower()}-curve-viewer.desktop",
-                    f"{name.lower()}-profile-info.desktop",
-                    f"{name.lower()}-scripting-client.desktop",
-                    f"{name.lower()}-synthprofile.desktop",
-                    f"{name.lower()}-testchart-editor.desktop",
+                    f"{NAME.lower()}.desktop",
+                    f"{NAME.lower()}-3dlut-maker.desktop",
+                    f"{NAME.lower()}-curve-viewer.desktop",
+                    f"{NAME.lower()}-profile-info.desktop",
+                    f"{NAME.lower()}-scripting-client.desktop",
+                    f"{NAME.lower()}-synthprofile.desktop",
+                    f"{NAME.lower()}-testchart-editor.desktop",
                     "pnp.ids",
                     "quirk.json",
                     "linear.cal",
@@ -1411,22 +1417,21 @@ def setup():
                 for path in (startmenu_programs_common, startmenu_programs):
                     if path:
                         for filename in (
-                            name,
+                            NAME,
                             "CHANGES",
                             "LICENSE",
                             "README",
                             "Uninstall",
                         ):
                             paths += safe_glob(
-                                os.path.join(path, name, f"{filename}.lnk")
+                                os.path.join(path, NAME, f"{filename}.lnk")
                             )
 
         for path in paths:
             if os.path.exists(path):
                 if path in visited:
                     continue
-                else:
-                    visited.append(path)
+                visited.append(path)
                 if dry_run:
                     print(path)
                     continue
@@ -1450,8 +1455,7 @@ def setup():
                     if len(os.listdir(path)) == 0:
                         if path in visited:
                             continue
-                        else:
-                            visited.append(path)
+                        visited.append(path)
                         if dry_run:
                             print(path)
                             continue
@@ -1484,9 +1488,9 @@ def setup():
                 "include README.html",
                 "include README-fr.html",
                 "include CHANGES.html",
-                f"include {name}*.pyw",
-                f"include {name}-*.pyw",
-                f"include {name}-*.py",
+                f"include {NAME}*.pyw",
+                f"include {NAME}-*.pyw",
+                f"include {NAME}-*.py",
                 "include use-distutils",
             ]
         )
@@ -1495,13 +1499,13 @@ def setup():
             "include " + os.path.splitext(os.path.basename(sys.argv[0]))[0] + ".cfg"
         )
         for _datadir, datafiles in attrs.get("data_files", []):
-            for datafile in datafiles:
-                manifest_in.append(
-                    "include {}".format(
-                        relpath(os.path.sep.join(datafile.split("/")), source_dir)
-                        or datafile
-                    )
+            manifest_in.extend(
+                "include {}".format(
+                    os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
+                    or datafile
                 )
+                for datafile in datafiles
+            )
         for extmod in attrs.get("ext_modules", []):
             manifest_in.extend(
                 "include " + os.path.sep.join(src.split("/")) for src in extmod.sources
@@ -1514,18 +1518,20 @@ def setup():
             manifest_in.append("include " + os.path.join(pkgdir, "*.py"))
             # manifest_in.append("include " + os.path.join(pkgdir, "*.pyd"))
             # manifest_in.append("include " + os.path.join(pkgdir, "*.so"))
-            for obj in attrs.get("package_data", {}).get(pkg, []):
-                manifest_in.append(
-                    "include " + os.path.sep.join([pkgdir] + obj.split("/"))
-                )
-        for pymod in attrs.get("py_modules", []):
-            manifest_in.append("include {}".format(os.path.join(*pymod.split("."))))
+            manifest_in.extend(
+                f"include {os.path.sep.join([pkgdir, *obj.split('/')])}"
+                for obj in attrs.get("package_data", {}).get(pkg, [])
+            )
+        manifest_in.extend(
+            "include {}".format(os.path.join(*pymod.split(".")))
+            for pymod in attrs.get("py_modules", [])
+        )
         manifest_in.append(
-            "include {}".format(os.path.join(name, "theme", "theme-info.txt"))
+            "include {}".format(os.path.join(NAME, "theme", "theme-info.txt"))
         )
         manifest_in.append(
             "recursive-include {} {} {}".format(
-                os.path.join(name, "theme", "icons"), "*.icns", "*.ico"
+                os.path.join(NAME, "theme", "icons"), "*.icns", "*.ico"
             )
         )
         manifest_in.append("include {}".format(os.path.join("man", "*.1")))
@@ -1551,9 +1557,8 @@ def setup():
         manifest_in.append("global-exclude */__pycache__/*")
         manifest_in.append("global-exclude *.bak")
         if not dry_run:
-            manifest = open("MANIFEST.in", "w")
-            manifest.write("\n".join(manifest_in))
-            manifest.close()
+            with open("MANIFEST.in", "w") as manifest:
+                manifest.write("\n".join(manifest_in))
             if os.path.exists("MANIFEST"):
                 os.remove("MANIFEST")
 
@@ -1578,9 +1583,41 @@ def setup():
 
         setup(**attrs)
 
-        if dry_run or help:
+        if dry_run or print_help:
             return
 
+        if do_py2app:
+            frameworks_dir = os.path.join(
+                dist_dir, f"{NAME}.app", "Contents", "Frameworks"
+            )
+            lib_dynload_dir = os.path.join(
+                dist_dir,
+                f"{NAME}.app",
+                "Contents",
+                "Resources",
+                "lib",
+                "python{}.{}".format(*sys.version_info[:2]),
+                "lib-dynload",
+            )
+            # Fix Pillow (PIL) dylibs not being included
+            pil_dylibs = os.path.join(lib_dynload_dir, "PIL", ".dylibs")
+            if not os.path.isdir(pil_dylibs):
+                import PIL
+
+                pil_installed_dylibs = os.path.join(
+                    os.path.dirname(PIL.__file__), ".dylibs"
+                )
+                print("Copying", pil_installed_dylibs, "->", pil_dylibs)
+                shutil.copytree(pil_installed_dylibs, pil_dylibs)
+                for entry in os.listdir(pil_dylibs):
+                    print(os.path.join(pil_dylibs, entry))
+                # Remove wrongly included frameworks
+                dylibs_entries = os.listdir(pil_installed_dylibs)
+                for entry in os.listdir(frameworks_dir):
+                    if entry in dylibs_entries:
+                        dylib = os.path.join(frameworks_dir, entry)
+                        print("Removing", dylib)
+                        os.remove(dylib)
             import wx
 
             if wx.VERSION >= (4,):
@@ -1607,73 +1644,36 @@ def setup():
                 ),
             )
 
-        if (
-            (bdist_bbfreeze and sys.platform == "win32") or do_py2exe
-        ):
-            from vc90crt import name as vc90crt_name, vc90crt_copy_files
+        if (bdist_bbfreeze and sys.platform == "win32") or do_py2exe:
+            from vc90crt import vc90crt_copy_files
 
             if do_py2exe:
                 vc90crt_copy_files(dist_dir)
                 vc90crt_copy_files(os.path.join(dist_dir, "lib"))
             else:
-                vc90crt_copy_files(os.path.join(dist_dir, name + "-" + version))
+                vc90crt_copy_files(os.path.join(dist_dir, NAME + "-" + VERSION_STRING))
 
         if do_full_install and not is_rpm_build and not skip_postinstall:
             from DisplayCAL.postinstall import postinstall
 
             if sys.platform == "win32":
-                path = os.path.join(cmd.install_lib, name)
+                path = os.path.join(cmd.install_lib, NAME)
                 # Using sys.version in this way is consistent with setuptools
-                for path in safe_glob(path) + safe_glob(
+                for path_ in safe_glob(path) + safe_glob(
                     os.path.join(
-                        f"{path}-{version}-py{sys.version[:3]}*.egg",
-                        name,
+                        f"{path}-{VERSION_STRING}-py{sys.version_info[0]}.{sys.version_info[1]}*.egg",
+                        NAME,
                     )
                 ):
                     if cmd.root:
-                        postinstall(prefix=change_root(cmd.root, path))
+                        postinstall(prefix=change_root(cmd.root, path_))
                     else:
-                        postinstall(prefix=path)
+                        postinstall(prefix=path_)
 
             elif cmd.root:
                 postinstall(prefix=change_root(cmd.root, cmd.prefix))
             else:
                 postinstall(prefix=cmd.prefix)
-
-
-def setup_do_py2exe():
-    import py2exe
-
-    # ModuleFinder can't handle runtime changes to __path__, but win32com
-    # uses them
-    try:
-        # if this doesn't work, try import modulefinder
-        import py2exe.mf as modulefinder
-        import win32com
-
-        for p in win32com.__path__[1:]:
-            modulefinder.AddPackagePath("win32com", p)
-        for extra in ["win32com.shell"]:
-            __import__(extra)
-            m = sys.modules[extra]
-            for p in m.__path__[1:]:
-                modulefinder.AddPackagePath(extra, p)
-    except ImportError:
-        # no build path setup, no worries.
-        pass
-    origIsSystemDLL = py2exe.build_exe.isSystemDLL
-    systemroot = os.getenv("SystemRoot").lower()
-
-    def isSystemDLL(pathname):
-        if (
-            os.path.basename(pathname).lower() in ("gdiplus.dll", "mfc90.dll")
-            or os.path.basename(pathname).lower().startswith("python")
-            or os.path.basename(pathname).lower().startswith("pywintypes")
-        ):
-            return 0
-        return pathname.lower().startswith(systemroot + "\\")
-
-    py2exe.build_exe.isSystemDLL = isSystemDLL
 
 
 if __name__ == "__main__":

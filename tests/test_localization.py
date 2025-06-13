@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 from DisplayCAL import localization
 
 
 def test_init_1():
     """Test DisplayCAL.localization.init() function."""
     localization.init()
-    assert localization.ldict != {}
+    assert localization.LDICT != {}
 
     result = localization.getstr("comparison_profile")
     expected_result = "Comparison profile"

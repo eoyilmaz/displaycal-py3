@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import sys
 
 brackets = {dict: "{}", list: "[]", tuple: "()"}

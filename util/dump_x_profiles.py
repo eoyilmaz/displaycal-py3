@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import os
 import sys
 
@@ -17,7 +15,7 @@ def get_display(display=None):
         try:
             display_screen = tuple(int(n) for n in display_parts[1].split("."))
         except ValueError:
-            raise ValueError("display has an unknown " "format: %r" % display)
+            raise ValueError("display has an unknown format: %r" % display)
         display = display_screen[0]
         if len(display_screen) > 1:
             screen = display_screen[1]

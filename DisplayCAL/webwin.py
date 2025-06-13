@@ -1,38 +1,32 @@
-# -*- coding: utf-8 -*-
-
-"""
-Re-implementation of Argyll's webwin in pure python.
-
-"""
+"""Re-implementation of Argyll's webwin in pure python."""
 
 import http.server
 import time
 from urllib.parse import unquote
 
-from DisplayCAL.meta import name as appname, version as appversion
+from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.meta import VERSION_STRING as APPVERSION
 
-
-WEBDISP_HTML = (
-    r"""<!DOCTYPE html>
+WEBDISP_HTML = rf"""<!DOCTYPE html>
 <html>
 <head>
-<title>%s Web Display</title>
+<title>{APPNAME} Web Display</title>
 <script src="webdisp.js"></script>
 <style>
-html, body {`
+html, body {{
     background: #000;
     margin: 0;
     padding: 0;
     overflow: hidden;
     height: 100%%;
-}
-#pattern {
+}}
+#pattern {{
     position: absolute;
     left: 45%%;
     top: 45%%;
     width: 10%%;
     height: 10%%;
-}
+}}
 </style>
 </head>
 <body>
@@ -40,8 +34,6 @@ html, body {`
 </body>
 </html>
 """
-    % appname
-)
 
 WEBDISP_JS = r"""if (typeof XMLHttpRequest == "undefined") {
     XMLHttpRequest = function () {
@@ -60,7 +52,12 @@ var oXHR;
 var pat;
 
 function XHR_request() {
-    oXHR.open("GET", "/ajax/messages?" + encodeURIComponent(cpat.join("|") + "|" + Math.random()), true);
+    oXHR.open(
+        "GET",
+        "/ajax/messages?"
+        + encodeURIComponent(cpat.join("|") + "|" + Math.random()),
+        true
+    );
     oXHR.onreadystatechange = XHR_response;
     oXHR.send();
 }
@@ -102,7 +99,7 @@ window.onload = function() {
 class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     """Simple HTTP request handler with GET and HEAD commands."""
 
-    server_version = appname + "-WebWinHTTP/" + appversion
+    server_version = f"{APPNAME}-WebWinHTTP/{APPVERSION}"
 
     def do_GET(self):
         """Serve a GET request."""
@@ -114,8 +111,13 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         """Serve a HEAD request."""
         self.send_head()
 
-    def log_message(self, format, *args):
-        pass
+    def log_message(self, format, *args):  # noqa: A002
+        """Override to disable logging.
+
+        Args:
+            format (str): The format string for the log message.
+            *args: Arguments to be formatted into the log message.
+        """
 
     def send_head(self):
         """Common code for GET and HEAD commands.
@@ -144,7 +146,7 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             ctype = "text/plain; charset=UTF-8"
         else:
             self.send_error(404)
-            return
+            return None
         if self.server.patterngenerator.listening:
             try:
                 self.send_response(200)
@@ -154,3 +156,4 @@ class WebWinHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 return s
             except BaseException:
                 pass
+        return None

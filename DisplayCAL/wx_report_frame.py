@@ -1,18 +1,26 @@
-# -*- coding: utf-8 -*-
+"""Measurement report creation window for DisplayCAL.
+
+It allows users to configure test charts, profiles, and various settings for
+generating measurement reports. The module integrates with wxPython for the
+graphical interface and supports handling ICC profiles, test charts, and
+rendering intents.
+"""
 
 import math
 import os
 from time import gmtime, strftime
 
+from wx import xrc
+
 from DisplayCAL import (
     config,
-    localization as lang,
     worker,
     xh_bitmapctrls,
     xh_fancytext,
     xh_filebrowsebutton,
     xh_hstretchstatbmp,
 )
+from DisplayCAL import localization as lang
 from DisplayCAL.cgats import (
     CGATS,
     CGATSInvalidError,
@@ -24,9 +32,7 @@ from DisplayCAL.cgats import (
 from DisplayCAL.config import (
     get_data_path,
     getcfg,
-    geticon,
     hascfg,
-    initcfg,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -36,15 +42,12 @@ from DisplayCAL.icc_profile import (
     LUT16Type,
     XYZType,
 )
-from DisplayCAL.meta import name as appname
+from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.util_list import natsort_key_factory
-from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
-from DisplayCAL.wxTestchartEditor import TestchartEditor
-from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
-
-from wx import xrc
+from DisplayCAL.wx_fixes import TempXmlResource
+from DisplayCAL.wx_testchart_editor import TestchartEditor
+from DisplayCAL.wx_windows import BaseApp, BaseFrame, FileDrop, wx
 
 
 class ReportFrame(BaseFrame):
@@ -54,7 +57,7 @@ class ReportFrame(BaseFrame):
         BaseFrame.__init__(self, parent, -1, lang.getstr("measurement_report"))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], appname))
+        self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
 
         self.XYZbpin = None
         self.XYZbpout = None
@@ -90,20 +93,18 @@ class ReportFrame(BaseFrame):
         self.mr_init_frame()
 
     def mr_init_controls(self):
+        """Initialize controls for the measurement report frame."""
         for which in (
             "chart",
             "simulation_profile",
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl")
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
-                if which == "chart":
-                    wildcard = r"\.(cie|ti1|ti3)$"
-                else:
-                    wildcard = r"\.(icc|icm)$"
+                wildcard = r"\.(cie|ti1|ti3)$" if which == "chart" else r"\.(icc|icm)$"
                 history = []
                 if which == "simulation_profile":
                     standard_profiles = config.get_standard_profiles(True)
@@ -117,18 +118,17 @@ class ReportFrame(BaseFrame):
                     paths = get_data_path("ref", wildcard) or []
                     for path in paths:
                         basepath, ext = os.path.splitext(path)
-                        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+                        if os.getenv("XDG_SESSION_TYPE") == "wayland" and (
+                            ext.lower() != ".ti1"
+                            or os.path.basename(path) == "ccxx.ti1"
+                        ):
                             # When the number of items in a dropdown popup menu
                             # exceeds the available display client area height,
                             # the popup menu gets shown at weird positions or
                             # not at all under Wayland. Work-around this wx bug
                             # by truncating the choices. Yuck. Also see:
                             # FileBrowseBitmapButtonWithChoiceHistory.SetHistory
-                            if (
-                                ext.lower() != ".ti1"
-                                or os.path.basename(path) == "ccxx.ti1"
-                            ):
-                                continue
+                            continue
                         if not (
                             path.lower().endswith(".ti2") and f"{basepath}.cie" in paths
                         ):
@@ -195,11 +195,12 @@ class ReportFrame(BaseFrame):
         )
 
     def mr_init_frame(self):
+        """Initialize the measurement report frame with default settings and layout."""
         self.measurement_report_btn.SetDefault()
 
         self.update_layout()
 
-        config.defaults.update(
+        config.DEFAULTS.update(
             {
                 "position.reportframe.x": self.GetDisplay().ClientArea[0] + 40,
                 "position.reportframe.y": self.GetDisplay().ClientArea[1] + 60,
@@ -224,6 +225,11 @@ class ReportFrame(BaseFrame):
             self.Center()
 
     def OnClose(self, event=None):
+        """Handle the close event for the measurement report frame.
+
+        Args:
+            event (wx.Event, optional): The event that triggered the close.
+        """
         if self.IsShownOnScreen() and not self.IsMaximized() and not self.IsIconized():
             x, y = self.GetScreenPosition()
             setcfg("position.reportframe.x", x)
@@ -235,6 +241,11 @@ class ReportFrame(BaseFrame):
             event.Skip()
 
     def apply_trc_ctrl_handler(self, event):
+        """Handle changes to the TRC application control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         v = self.apply_trc_ctrl.GetValue()
         setcfg("measurement_report.apply_trc", int(v))
         setcfg(
@@ -244,6 +255,11 @@ class ReportFrame(BaseFrame):
         self.mr_update_main_controls()
 
     def mr_black_output_offset_ctrl_handler(self, event):
+        """Handle changes to the black output offset control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         if event.GetId() == self.mr_black_output_offset_intctrl.GetId():
             self.mr_black_output_offset_ctrl.SetValue(
                 self.mr_black_output_offset_intctrl.GetValue()
@@ -259,13 +275,18 @@ class ReportFrame(BaseFrame):
         # self.mr_show_trc_controls()
 
     def mr_trc_gamma_ctrl_handler(self, event):
+        """Handle changes to the TRC gamma control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         try:
             v = float(self.mr_trc_gamma_ctrl.GetValue().replace(",", "."))
             if (
-                v < config.valid_ranges["measurement_report.trc_gamma"][0]
-                or v > config.valid_ranges["measurement_report.trc_gamma"][1]
+                v < config.VALID_RANGES["measurement_report.trc_gamma"][0]
+                or v > config.VALID_RANGES["measurement_report.trc_gamma"][1]
             ):
-                raise ValueError()
+                raise ValueError
         except ValueError:
             wx.Bell()
             self.mr_trc_gamma_ctrl.SetValue(str(getcfg("measurement_report.trc_gamma")))
@@ -279,6 +300,11 @@ class ReportFrame(BaseFrame):
         event.Skip()
 
     def mr_trc_ctrl_handler(self, event):
+        """Handle changes to the TRC control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         self.Freeze()
         if self.mr_trc_ctrl.GetSelection() == 1:
             # BT.1886
@@ -302,6 +328,11 @@ class ReportFrame(BaseFrame):
         self.Thaw()
 
     def mr_trc_gamma_type_ctrl_handler(self, event):
+        """Handle changes to the TRC gamma type control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         v = self.trc_gamma_types_ab[self.mr_trc_gamma_type_ctrl.GetSelection()]
         if v != getcfg("measurement_report.trc_gamma_type"):
             setcfg("measurement_report.trc_gamma_type", v)
@@ -309,10 +340,12 @@ class ReportFrame(BaseFrame):
             self.mr_show_trc_controls()
 
     def chart_btn_handler(self, event):
-        if self.Parent:
-            parent = self.Parent
-        else:
-            parent = self
+        """Open the test chart editor for the selected chart.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
+        parent = self.Parent if self.Parent else self
         chart = getcfg("measurement_report.chart")
         if not hasattr(parent, "tcframe"):
             parent.tcframe = TestchartEditor(
@@ -330,12 +363,17 @@ class ReportFrame(BaseFrame):
         parent.tcframe.Raise()
 
     def chart_ctrl_handler(self, event):
+        """Handle changes to the chart control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         chart = self.chart_ctrl.GetPath()
         values = []
         try:
             cgats = CGATS(chart)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
@@ -371,10 +409,10 @@ class ReportFrame(BaseFrame):
                     self.fields_ctrl.SetItems(values)
                     self.fields_ctrl.GetContainingSizer().Layout()
                     self.panel.Thaw()
-                    fields = getcfg("measurement_report.chart.fields")
+                    _fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
-                    elif "RGB" in values and not ext.lower() == ".cie":
+                    elif "RGB" in values and ext.lower() != ".cie":
                         index = values.index("RGB")
                     elif "CMYK" in values:
                         index = values.index("CMYK")
@@ -406,10 +444,7 @@ class ReportFrame(BaseFrame):
                 self.chart_ctrl.SetPath(getcfg("measurement_report.chart"))
             else:
                 self.chart_btn.Enable("RGB" in values)
-                if self.Parent:
-                    parent = self.Parent
-                else:
-                    parent = self
+                parent = self.Parent if self.Parent else self
                 if (
                     event
                     and self.chart_btn.Enabled
@@ -427,6 +462,12 @@ class ReportFrame(BaseFrame):
         self.fields_ctrl_handler(event)
 
     def set_simulate_whitepoint(self, set_whitepoint_simulate_relative=False):
+        """Set the configuration for simulating whitepoint in measurement reports.
+
+        Args:
+            set_whitepoint_simulate_relative (bool): If True, sets the
+                'measurement_report.whitepoint.simulate.relative' configuration.
+        """
         sim_profile = self.get_simulation_profile()
         is_prtr_profile = sim_profile and sim_profile.profileClass == b"prtr"
         if set_whitepoint_simulate_relative:
@@ -444,56 +485,107 @@ class ReportFrame(BaseFrame):
         )
 
     def chart_drop_handler(self, path):
+        """Handle dropping a chart file onto the control.
+
+        Args:
+            path (str): The file path of the dropped chart.
+        """
         if not self.worker.is_working():
             self.chart_ctrl.SetPath(path)
             self.chart_ctrl_handler(True)
 
     def devlink_profile_ctrl_handler(self, event):
+        """Handle changes to the devicelink profile control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         self.set_profile("devlink")
 
     def devlink_profile_drop_handler(self, path):
+        """Handle dropping a devicelink profile file onto the control.
+
+        Args:
+            path (str): The file path of the dropped devicelink profile.
+        """
         if not self.worker.is_working():
             self.devlink_profile_ctrl.SetPath(path)
             self.set_profile("devlink")
 
     def enable_3dlut_handler(self, event):
+        """Handle changes to the enable 3D LUT checkbox.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         setcfg("3dlut.enable", int(self.enable_3dlut_cb.GetValue()))
         setcfg("measurement_report.use_devlink_profile", 0)
         self.mr_update_main_controls()
 
     def fields_ctrl_handler(self, event):
+        """Handle changes to the fields control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         setcfg("measurement_report.chart.fields", self.fields_ctrl.GetStringSelection())
         if event:
             self.mr_update_main_controls(event)
 
     def output_profile_ctrl_handler(self, event):
+        """Handle changes to the output profile control.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         self.set_profile("output")
 
     def output_profile_current_ctrl_handler(self, event):
+        """Set the output profile control to the current profile path.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         profile_path = get_current_profile_path(True, True)
         if profile_path and os.path.isfile(profile_path):
             self.output_profile_ctrl.SetPath(profile_path)
             self.set_profile("output")
 
     def output_profile_drop_handler(self, path):
+        """Handle dropping an output profile file onto the control.
+
+        Args:
+            path (str): The file path of the dropped output profile.
+        """
         if not self.worker.is_working():
             self.output_profile_ctrl.SetPath(path)
             self.set_profile("output")
 
     def set_profile(self, which, profile_path=None, silent=False):
+        """Set the profile for the given type (simulation, devlink, or output).
+
+        Args:
+            which (str): The type of profile to set. Should be one of "simulation",
+                "devlink", or "output".
+            profile_path (str, optional): The path to the profile file. If None,
+                the current profile path will be used.
+            silent (bool): If True, suppresses UI updates and dialogs.
+
+        Returns:
+            ICCProfile or None: The set profile if successful, otherwise None.
+        """
         path = getattr(self, f"{which}_profile_ctrl").GetPath()
         if which == "output":
             # if profile_path is None:
-            #   profile_path = get_current_profile_path(True, True)
-            #   self.output_profile_current_btn.Enable(self.output_profile_ctrl.IsShown() and
-            #   bool(profile_path) and
-            #   os.path.isfile(profile_path) and
-            #   profile_path != path)
+            #     profile_path = get_current_profile_path(True, True)
+            #     self.output_profile_current_btn.Enable(
+            #         self.output_profile_ctrl.IsShown() and
+            #         bool(profile_path) and
+            #         os.path.isfile(profile_path) and
+            #         profile_path != path
+            #     )
             profile = config.get_current_profile(True)
-            if profile:
-                path = profile.fileName
-            else:
-                path = None
+            path = profile.fileName if profile else None
             setcfg("measurement_report.output_profile", path)
             XYZbpout = self.XYZbpout
             # XYZbpout will be set to the blackpoint of the selected profile.
@@ -506,137 +598,141 @@ class ReportFrame(BaseFrame):
             if which == "input":
                 XYZbpin = self.XYZbpin
                 self.XYZbpin = [0, 0, 0]
-        if path or profile:
-            if path and not os.path.isfile(path):
-                if not silent:
-                    show_result_dialog(
-                        Error(lang.getstr("file.missing", path)), parent=self
-                    )
-                return
-            if not profile:
-                try:
-                    profile = ICCProfile(path)
-                except (IOError, ICCProfileInvalidError):
-                    if not silent:
-                        show_result_dialog(
-                            Error(
-                                f"{lang.getstr('profile.invalid')}\n{path}"),
-                            parent=self,
-                        )
-                except IOError as exception:
-                    if not silent:
-                        show_result_dialog(exception, parent=self)
-            if profile:
-                profile_path = profile.fileName
-                if (
-                    (
-                        which == "simulation"
-                        and (
-                            profile.profileClass not in (b"mntr", b"prtr")
-                            or profile.colorSpace not in (b"CMYK", b"RGB")
-                        )
-                    )
-                    or (
-                        which == "output"
-                        and (
-                            profile.profileClass != b"mntr"
-                            or profile.colorSpace != b"RGB"
-                        )
-                    )
-                    or (which == "devlink" and profile.profileClass != b"link")
-                ):
-                    show_result_dialog(
-                        NotImplementedError(
-                            lang.getstr(
-                                "profile.unsupported",
-                                (profile.profileClass, profile.colorSpace),
-                            )
-                        ),
-                        parent=self,
-                    )
-                else:
-                    if (
-                        not getattr(self, f"{which}_profile", None)
-                        or getattr(self, f"{which}_profile").fileName
-                        != profile.fileName
-                    ):
-                        # Profile selection has changed
-                        if which == "simulation":
-                            # Get profile blackpoint so we can check if it makes
-                            # sense to show TRC type and output offset controls
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return
-                                self.XYZbpin = odata[0]
-                        elif which == "output":
-                            # Get profile blackpoint so we can check if input
-                            # values would be clipped
-                            try:
-                                odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
-                            except Exception as exception:
-                                show_result_dialog(exception, self)
-                                self.set_profile_ctrl_path(which)
-                                return
-                            else:
-                                if len(odata) != 1 or len(odata[0]) != 3:
-                                    show_result_dialog(
-                                        f"Blackpoint is invalid: {odata}", self
-                                    )
-                                    self.set_profile_ctrl_path(which)
-                                    return
-                                if odata[0][1]:
-                                    # Got above zero blackpoint from lookup
-                                    self.XYZbpout = odata[0]
-                                else:
-                                    # Got zero blackpoint from lookup.
-                                    # Try chardata instead.
-                                    XYZbp = profile.get_chardata_bkpt()
-                                    if XYZbp:
-                                        self.XYZbpout = XYZbp
-                                    else:
-                                        self.XYZbpout = [0, 0, 0]
-                    else:
-                        # Profile selection has not changed
-                        # Restore cached XYZbp values
-                        if which == "output":
-                            self.XYZbpout = XYZbpout
-                        elif which == "input":
-                            self.XYZbpin = XYZbpin
-                    setattr(self, f"{which}_profile", profile)
-                    if not silent:
-                        setcfg(
-                            f"measurement_report.{which}_profile",
-                            profile and profile_path,
-                        )
-                        if which == "simulation":
-                            self.use_simulation_profile_ctrl_handler(None)
-                        elif hasattr(self, "XYZbpin"):
-                            self.mr_update_main_controls()
-                    return profile
-            if path:
-                self.set_profile_ctrl_path(which)
-        else:
+        if not path and not profile:
             setattr(self, f"{which}_profile", None)
             if not silent:
                 setcfg(f"measurement_report.{which}_profile", None)
                 self.mr_update_main_controls()
+            return None
+        if path and not os.path.isfile(path):
+            if not silent:
+                show_result_dialog(
+                    Error(lang.getstr("file.missing", path)), parent=self
+                )
+            return None
+        if not profile:
+            try:
+                profile = ICCProfile(path)
+            except ICCProfileInvalidError:
+                if not silent:
+                    show_result_dialog(
+                        Error(f"{lang.getstr('profile.invalid')}\n{path}"),
+                        parent=self,
+                    )
+            except OSError as exception:
+                if not silent:
+                    show_result_dialog(exception, parent=self)
+        if profile:
+            profile_path = profile.fileName
+            if (
+                (
+                    which == "simulation"
+                    and (
+                        profile.profileClass not in (b"mntr", b"prtr")
+                        or profile.colorSpace not in (b"CMYK", b"RGB")
+                    )
+                )
+                or (
+                    which == "output"
+                    and (
+                        profile.profileClass != b"mntr" or profile.colorSpace != b"RGB"
+                    )
+                )
+                or (which == "devlink" and profile.profileClass != b"link")
+            ):
+                show_result_dialog(
+                    NotImplementedError(
+                        lang.getstr(
+                            "profile.unsupported",
+                            (profile.profileClass, profile.colorSpace),
+                        )
+                    ),
+                    parent=self,
+                )
+            else:
+                if (
+                    not getattr(self, f"{which}_profile", None)
+                    or getattr(self, f"{which}_profile").fileName != profile.fileName
+                ):
+                    # Profile selection has changed
+                    if which == "simulation":
+                        # Get profile blackpoint so we can check if it makes
+                        # sense to show TRC type and output offset controls
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            self.XYZbpin = odata[0]
+                    elif which == "output":
+                        # Get profile blackpoint so we can check if input
+                        # values would be clipped
+                        try:
+                            odata = self.worker.xicclu(profile, (0, 0, 0), pcs="x")
+                        except Exception as exception:
+                            show_result_dialog(exception, self)
+                            self.set_profile_ctrl_path(which)
+                            return None
+                        else:
+                            if len(odata) != 1 or len(odata[0]) != 3:
+                                show_result_dialog(
+                                    f"Blackpoint is invalid: {odata}", self
+                                )
+                                self.set_profile_ctrl_path(which)
+                                return None
+                            if odata[0][1]:
+                                # Got above zero blackpoint from lookup
+                                self.XYZbpout = odata[0]
+                            else:
+                                # Got zero blackpoint from lookup.
+                                # Try chardata instead.
+                                XYZbp = profile.get_chardata_bkpt()
+                                if XYZbp:
+                                    self.XYZbpout = XYZbp
+                                else:
+                                    self.XYZbpout = [0, 0, 0]
+                # Profile selection has not changed
+                # Restore cached XYZbp values
+                elif which == "output":
+                    self.XYZbpout = XYZbpout
+                elif which == "input":
+                    self.XYZbpin = XYZbpin
+                setattr(self, f"{which}_profile", profile)
+                if not silent:
+                    setcfg(
+                        f"measurement_report.{which}_profile",
+                        profile and profile_path,
+                    )
+                    if which == "simulation":
+                        self.use_simulation_profile_ctrl_handler(None)
+                    elif hasattr(self, "XYZbpin"):
+                        self.mr_update_main_controls()
+                return profile
+        if path:
+            self.set_profile_ctrl_path(which)
+        return None
 
     def set_profile_ctrl_path(self, which):
+        """Set the path for the profile control based on the current configuration.
+
+        Args:
+            which (str): The type of profile control to set the path for.
+                Should be one of "simulation", "devlink", or "output".
+        """
         getattr(self, f"{which}_profile_ctrl").SetPath(
             getcfg(f"measurement_report.{which}_profile")
         )
 
     def mr_setup_language(self):
+        """Set up language-specific strings and controls for the measurement report window."""  # noqa: E501
         # Shared with main window
 
         for which in (
@@ -646,10 +742,10 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
+                wildcard = f"{lang.getstr('filetype.icc')}|*.icc;*.icm"
             else:
                 wildcard = (
-                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|"
                     "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {
@@ -657,19 +753,17 @@ class ReportFrame(BaseFrame):
                 "devlink_profile": "devicelink_profile",
                 "output_profile": "measurement_report_choose_profile",
             }.get(which, which)
-            kwargs = dict(
-                toolTip=lang.getstr(msg).rstrip(":"),
-                dialogTitle=lang.getstr(msg),
-                fileMask=wildcard,
-            )
+            kwargs = {
+                "toolTip": lang.getstr(msg).rstrip(":"),
+                "dialogTitle": lang.getstr(msg),
+                "fileMask": wildcard,
+            }
             ctrl = getattr(self, f"{which}_ctrl")
             for name in kwargs:
                 value = kwargs[name]
                 setattr(ctrl, name, value)
 
-        items = []
-        for item in ("Gamma 2.2", "trc.rec1886", "custom"):
-            items.append(lang.getstr(item))
+        items = [lang.getstr(item) for item in ("Gamma 2.2", "trc.rec1886", "custom")]
         self.mr_trc_ctrl.SetItems(items)
 
         self.trc_gamma_types_ab = {0: "b", 1: "B"}
@@ -679,6 +773,7 @@ class ReportFrame(BaseFrame):
         )
 
     def mr_show_trc_controls(self):
+        """Show or hide TRC controls based on the current configuration."""
         shown = self.apply_trc_ctrl.IsShown()
         enable6 = shown and bool(getcfg("measurement_report.apply_trc"))
         show = shown and (
@@ -711,35 +806,62 @@ class ReportFrame(BaseFrame):
         self.panel.Thaw()
 
     def simulate_whitepoint_ctrl_handler(self, event):
+        """Handle changes to the simulate whitepoint checkbox.
+
+        Args:
+            event (wx.Event): Optional event that triggered the change.
+        """
         v = self.simulate_whitepoint_cb.GetValue()
         setcfg("measurement_report.whitepoint.simulate", int(v))
         self.mr_update_main_controls()
 
     def simulate_whitepoint_relative_ctrl_handler(self, event):
+        """Handle changes to the simulate whitepoint relative checkbox.
+
+        Args:
+            event (wx.Event): Optional event that triggered the change.
+        """
         setcfg(
             "measurement_report.whitepoint.simulate.relative",
             int(self.simulate_whitepoint_relative_cb.GetValue()),
         )
 
     def simulation_profile_ctrl_handler(self, event):
+        """Handle changes to the simulation profile control.
+
+        Args:
+            event (wx.Event): Optional event that triggered the change.
+        """
         self.set_profile("simulation")
 
     def simulation_profile_drop_handler(self, path):
+        """Handle dropping a simulation profile file onto the control.
+
+        Args:
+            path (str): The file path of the dropped simulation profile.
+        """
         if not self.worker.is_working():
             self.simulation_profile_ctrl.SetPath(path)
             self.set_profile("simulation")
 
     def mr_set_filebrowse_paths(self):
+        """Set file browse paths for chart, simulation, devicelink and output profile controls."""  # noqa: E501
         for which in ("simulation", "devlink", "output"):
             self.set_profile_ctrl_path(which)
         chart = getcfg("measurement_report.chart")
         if not chart or not os.path.isfile(chart):
-            chart = config.defaults["measurement_report.chart"]
+            chart = config.DEFAULTS["measurement_report.chart"]
             setcfg("measurement_report.chart", chart)
         self.mr_set_testchart(chart, load=False)
 
     def mr_update_controls(self, set_filebrowse_paths=True):
-        """Update controls with values from the configuration"""
+        """Update controls with values from the configuration.
+
+        Args:
+            set_filebrowse_paths (bool): If True, sets the file browse paths
+                for the chart, simulation profile, devicelink profile, and
+                output profile controls.
+        """
         self.panel.Freeze()
         if set_filebrowse_paths:
             self.mr_set_filebrowse_paths()
@@ -752,6 +874,7 @@ class ReportFrame(BaseFrame):
         self.panel.Thaw()
 
     def mr_update_trc_control(self):
+        """Update the TRC control based on the current configuration."""
         if (
             getcfg("measurement_report.trc_gamma_type") == "B"
             and getcfg("measurement_report.trc_output_offset") == 0
@@ -768,6 +891,7 @@ class ReportFrame(BaseFrame):
             self.mr_trc_ctrl.SetSelection(2)  # Custom
 
     def mr_update_trc_controls(self):
+        """Update TRC controls based on the current configuration."""
         self.mr_update_trc_control()
         self.mr_trc_gamma_ctrl.SetValue(str(getcfg("measurement_report.trc_gamma")))
         self.mr_trc_gamma_type_ctrl.SetSelection(
@@ -778,11 +902,24 @@ class ReportFrame(BaseFrame):
         self.mr_black_output_offset_intctrl.SetValue(outoffset)
 
     def mr_set_testchart(self, path, load=True):
+        """Set the test chart for the measurement report.
+
+        Args:
+            path (str): Path to the test chart file.
+            load (bool): If True, the chart will be loaded and the controls
+                updated.
+        """
         self.chart_ctrl.SetPath(path)
         if load:
             self.chart_ctrl_handler(None)
 
     def mr_update_main_controls(self, event=None):
+        """Update main controls based on the current configuration.
+
+        Args:
+            event: Optional event that triggered the update. If provided,
+                the whitepoint simulation will be set to True.
+        """
         # print("MR update main ctrls")
         self.panel.Freeze()
         chart_has_white = bool(getattr(self, "chart_white", None))
@@ -903,8 +1040,10 @@ class ReportFrame(BaseFrame):
             )
         )
         output_profile = (
-            hasattr(self, "presets")
-            and getcfg("measurement_report.output_profile") not in self.presets
+            (
+                hasattr(self, "presets")
+                and getcfg("measurement_report.output_profile") not in self.presets
+            )
             or not hasattr(self, "presets")
         ) and bool(getattr(self, "output_profile", None))
         self.measurement_report_btn.Enable(
@@ -943,7 +1082,13 @@ class ReportFrame(BaseFrame):
             self.update_layout()
 
     def update_estimated_measurement_time(self, which, patches=None):
-        """Update the estimated measurement time shown"""
+        """Update the estimated measurement time shown.
+
+        Args:
+            which (str): The type of measurement, e.g. "chart", "testchart".
+            patches (int, optional): The number of patches to measure. If not
+                provided, the value from the chart_patches_amount control is used.
+        """
         integration_time = self.worker.get_instrument_features().get("integration_time")
         if integration_time:
             if which == "chart" and not patches:
@@ -965,7 +1110,7 @@ class ReportFrame(BaseFrame):
                 min(prop[i] * v, 20) for i, v in enumerate(integration_time)
             ]
             # Get time per patch (tpp)
-            tpp = [v for v in integration_time]
+            tpp = list(integration_time)
             if (
                 "plasma" in tech
                 or "crt" in tech
@@ -1028,7 +1173,7 @@ class ReportFrame(BaseFrame):
             timestamp = gmtime(seconds)
             hours = int(strftime("%H", timestamp))
             minutes = int(strftime("%M", timestamp))
-            minutes += int(math.ceil(int(strftime("%S", timestamp)) / 60.0))
+            minutes += math.ceil(int(strftime("%S", timestamp)) / 60.0)
             if minutes > 59:
                 minutes = 0
                 hours += 1
@@ -1052,6 +1197,11 @@ class ReportFrame(BaseFrame):
         getattr(self, f"{which}_meas_time").ForegroundColour = color
 
     def use_devlink_profile_ctrl_handler(self, event):
+        """Handle use_devlink_profile checkbox.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         setcfg("3dlut.enable", 0)
         setcfg(
             "measurement_report.use_devlink_profile",
@@ -1060,11 +1210,17 @@ class ReportFrame(BaseFrame):
         self.mr_update_main_controls()
 
     def get_simulation_profile(self):
-        """Return simulation profile if enabled"""
+        """Return simulation profile if enabled."""
         use_sim_profile = getcfg("measurement_report.use_simulation_profile")
         return use_sim_profile and getattr(self, "simulation_profile", None)
 
     def use_simulation_profile_ctrl_handler(self, event, update_trc=True):
+        """Handle use_simulation_profile checkbox.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+            update_trc (bool): Whether to update TRC controls.
+        """
         if event:
             setcfg(
                 "measurement_report.use_simulation_profile",
@@ -1129,6 +1285,11 @@ class ReportFrame(BaseFrame):
         self.mr_update_main_controls()
 
     def use_simulation_profile_as_output_handler(self, event):
+        """Handle use_simulation_profile_as_output checkbox.
+
+        Args:
+            event (wx.Event): The event that triggered this handler.
+        """
         setcfg(
             "measurement_report.use_simulation_profile_as_output",
             int(self.use_simulation_profile_as_output_cb.GetValue()),

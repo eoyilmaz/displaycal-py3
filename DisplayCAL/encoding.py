@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Utility functions for retrieving system and filesystem encodings."""
 
 import sys
 

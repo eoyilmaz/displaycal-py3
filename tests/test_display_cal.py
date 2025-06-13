@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 import os
 import platform
 import sys
 from pathlib import Path
-from typing import Tuple
 
 import pytest
 import wx
@@ -35,7 +33,7 @@ from DisplayCAL.display_cal import (
 from DisplayCAL.util_str import universal_newlines
 from DisplayCAL.util_list import intlist
 from DisplayCAL.worker import Worker, check_ti3
-from DisplayCAL.wxwindows import ConfirmDialog, BaseInteractiveDialog
+from DisplayCAL.wx_windows import ConfirmDialog, BaseInteractiveDialog
 
 
 @pytest.fixture(scope="class", name="app", autouse=True)
@@ -142,7 +140,7 @@ def test_colorimeter_correction_check_overwrite(
     ),
 )
 def test_get_cgats_measurement_mode(
-    data_files, instrument: str, file: str, modes: Tuple[str, str, None]
+    data_files, instrument: str, file: str, modes: tuple[str, str, None]
 ) -> None:
     """Test if expected measurement mode is returned."""
     path = data_files[file].absolute()

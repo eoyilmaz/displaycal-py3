@@ -16,26 +16,26 @@ help:
 
 .PHONY: venv
 venv:
-	@printf "\n\033[36m--- $@: Creating Local virtualenv '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
+	@printf "\n\033[36m--- $@: Creating Local virtualenv '$(VIRTUALENV_DIR)' using '`which python`' ---\033[0m\n"
 	$(SYSTEM_PYTHON) -m venv $(VIRTUALENV_DIR)
 
 build:
-	@printf "\n\033[36m--- $@: Building ---\033[0m\n"
-	echo -e "\n\033[36m--- $@: Local install into virtualenv '$(VIRTUALENV_DIR)' ---\033[0m\n";
-	source ./$(VIRTUALENV_DIR)/bin/activate; \
-	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
+	@printf "\n\033[36m--- $@: Building ---\033[0m"
+	@printf "\n\033[36m--- $@: Local install into virtualenv '$(VIRTUALENV_DIR)' ---\033[0m";
+	@source ./$(VIRTUALENV_DIR)/bin/activate; \
+	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
 	pip install uv; \
 	uv pip install -r requirements.txt -r requirements-dev.txt; \
 	uv build;
 
 install:
-	@printf "\n\033[36m--- $@: Installing displaycal to virtualenv at '$(VIRTUALENV_DIR)' using '$(SYSTEM_PYTHON)' ---\033[0m\n"
+	@printf "\n\033[36m--- $@: Installing displaycal to virtualenv at '$(VIRTUALENV_DIR)' using '`which python`' ---\033[0m\n"
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
 	uv pip install ./dist/displaycal-$(VERSION)-*.whl --force-reinstall;
 
 launch:
 	@printf "\n\033[36m--- $@: Launching DisplayCAL ---\033[0m\n"
-	source ./$(VIRTUALENV_DIR)/bin/activate; \
+	@source ./$(VIRTUALENV_DIR)/bin/activate; \
 	displaycal
 
 clean: FORCE
@@ -75,8 +75,8 @@ new-release:
 	git merge develop
 	git tag $(VERSION)
 	git push origin main --tags
-	source ./$(VIRTUALENV_DIR)/bin/activate; \
-	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
+	@source ./$(VIRTUALENV_DIR)/bin/activate; \
+	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
 	uv pip install -r requirements.txt; \
 	uv pip install -r requirements-dev.txt; \
 	uv build; \
@@ -85,10 +85,10 @@ new-release:
 
 .PHONY: tests
 tests:
-	@printf "\n\033[36m--- $@: Run Tests ---\033[0m\n"
-	echo -e "\n\033[36m--- $@: Using virtualenv at '$(VIRTUALENV_DIR)' ---\033[0m\n";
+	@printf "\n\033[36m--- $@: Run Tests ---\033[0m"
+	@printf "\n\033[36m--- $@: Using virtualenv at '$(VIRTUALENV_DIR)' ---\033[0m"; \
 	source ./$(VIRTUALENV_DIR)/bin/activate; \
-	echo -e "\n\033[36m--- $@: Using python interpretter '`which python`' ---\033[0m\n"; \
+	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
 	pytest -n auto -W ignore --color=yes --cov-report term;
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html

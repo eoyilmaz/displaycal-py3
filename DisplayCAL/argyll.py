@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
 """Argyll utilities situated here.
 
 The utilities that were previously spread around are gathered here.
 """
 
 # Standard Library Imports
-from functools import cache
+from __future__ import annotations
 
+import contextlib
 import os
 import re
 import string
@@ -14,18 +14,18 @@ import subprocess as sp
 import sys
 import urllib.error
 import urllib.request
-from typing import List, Optional, Union
+from functools import cache
+from typing import TYPE_CHECKING, Callable, overload
 
 # Local Imports
-from DisplayCAL.argyll_names import (
-    names as argyll_names,
-    altnames as argyll_altnames,
-    optional as argyll_optional,
-)
-from DisplayCAL import config, localization as lang
+from DisplayCAL import config, options
+from DisplayCAL import localization as lang
+from DisplayCAL.argyll_names import ALTNAMES as ARGYLL_ALTNAMES
+from DisplayCAL.argyll_names import NAMES as ARGYLL_NAMES
+from DisplayCAL.argyll_names import OPTIONAL as ARGYLL_OPTIONAL
 from DisplayCAL.config import (
-    exe_ext,
-    fs_enc,
+    EXE_EXT,
+    FS_ENC,
     get_data_path,
     get_verified_path,
     getcfg,
@@ -33,28 +33,51 @@ from DisplayCAL.config import (
     setcfg,
     writecfg,
 )
-from DisplayCAL.options import debug, verbose
 from DisplayCAL.util_os import getenvu, safe_glob, which
 from DisplayCAL.util_str import make_filename_safe
 
-argyll_utils = {}
+if TYPE_CHECKING:
+    import wx  # noqa: TC004
+
+ARGYLL_UTILS = {}
 
 
-def check_argyll_bin(paths: Optional[List[str]] = None) -> bool:
+def debug_print(*args, **kwargs) -> None:
+    """Prints messages if DEBUG is set to 1 or higher."""
+    if kwargs.pop("debug_level", 1) <= options.DEBUG:
+        print(*args, **kwargs)
+
+
+def verbose_print(*args, **kwargs) -> None:
+    """Prints messages if VERBOSE is set to 1 or higher."""
+    if kwargs.pop("verbose_level", 1) <= options.VERBOSE:
+        print(*args, **kwargs)
+
+
+def get_path_from_env() -> list[str]:
+    """Parse environment paths into a list.
+
+    Returns:
+        list[str]: A list of paths.
+    """
+    return getenvu("PATH", os.defpath).split(os.pathsep)
+
+
+def check_argyll_bin(paths: None | list[str] = None) -> bool:
     """Check if the Argyll binaries can be found.
 
     Args:
-        paths (Optional[List[str]]): The paths to look for.
+        paths (None | list[str]): The paths to look for.
 
     Returns:
         bool: True if all required Argyll binaries are found, False otherwise.
     """
     prev_dir = None
     cur_dir = os.curdir
-    for name in argyll_names:
+    for name in ARGYLL_NAMES:
         exe = get_argyll_util(name, paths)
         if not exe:
-            if name in argyll_optional:
+            if name in ARGYLL_OPTIONAL:
                 continue
             return False
         cur_dir = os.path.dirname(exe)
@@ -63,60 +86,63 @@ def check_argyll_bin(paths: Optional[List[str]] = None) -> bool:
             continue
         if cur_dir == prev_dir:
             continue
-        if name in argyll_optional:
-            if verbose:
-                print(
-                    f"Warning: Optional Argyll executable {exe} is not "
-                    "in the same directory as the main executables "
-                    f"({prev_dir})."
-                )
+        if name in ARGYLL_OPTIONAL:
+            verbose_print(
+                f"Warning: Optional Argyll executable {exe} is not "
+                "in the same directory as the main executables "
+                f"({prev_dir})."
+            )
         else:
-            if verbose:
-                print(
-                    f"Error: Main Argyll executable {exe} is not in the "
-                    f"same directory as the other executables ({prev_dir})."
-                )
+            verbose_print(
+                f"Error: Main Argyll executable {exe} is not in the "
+                f"same directory as the other executables ({prev_dir})."
+            )
             return False
 
-    if verbose >= 3:
-        print("Argyll binary directory:", cur_dir)
-    if debug:
-        print("[D] check_argyll_bin OK")
-    if debug >= 2:
+    verbose_print("Argyll binary directory:", cur_dir, verbose_level=3)
+    debug_print("[D] check_argyll_bin OK")
+    if options.DEBUG >= 2:
         if not paths:
-            paths = getenvu("PATH", os.defpath).split(os.pathsep)
+            paths = get_path_from_env()
             argyll_dir = (getcfg("argyll.dir") or "").rstrip(os.path.sep)
             if argyll_dir:
                 if argyll_dir in paths:
                     paths.remove(argyll_dir)
-                paths = [argyll_dir] + paths
+                paths = [argyll_dir, *paths]
         print("[D] Search path:\n  ", "\n  ".join(paths))
     # Fedora doesn't ship Rec709.icm
-    config.defaults["3dlut.input.profile"] = (
+    config.DEFAULTS["3dlut.input.profile"] = (
         get_data_path(os.path.join("ref", "Rec709.icm"))
         or get_data_path(os.path.join("ref", "sRGB.icm"))
         or ""
     )
-    config.defaults["testchart.reference"] = (
+    config.DEFAULTS["testchart.reference"] = (
         get_data_path(os.path.join("ref", "ColorChecker.cie")) or ""
     )
-    config.defaults["gamap_profile"] = (
+    config.DEFAULTS["gamap_profile"] = (
         get_data_path(os.path.join("ref", "sRGB.icm")) or ""
     )
     return True
 
 
-def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=()):
-    """Set the directory containing the Argyll CMS binary executables."""
-    # TODO: This function contains UI stuff, please refactor it so that it is
-    #       split into a separate function that can be called from the UI.
-    from DisplayCAL.wxaddons import wx
-    from DisplayCAL.wxwindows import ConfirmDialog, InfoDialog
+def prompt_argyll_dir(
+    parent: wx.Window = None,
+    callafter: None | Callable = None,
+    callafter_args: None | tuple = None,
+) -> str:
+    """Prompt the user for the Argyll CMS directory.
 
-    if parent and not parent.IsShownOnScreen():
-        parent = None  # do not center on parent if not visible
+    Args:
+        parent (wx.Window): The parent window for dialogs.
+        callafter (callable): A function to call after setting the Argyll bin.
+        callafter_args (None | tuple): Arguments to pass to the callafter
+            function.
+
+    Returns:
+        str: The path to the Argyll CMS directory.
+    """
     # Check if Argyll version on PATH is newer than configured Argyll version
-    paths = getenvu("PATH", os.defpath).split(os.pathsep)
+    paths = get_path_from_env()
     argyll_version_string = get_argyll_version_string("dispwin", True, paths)
     argyll_version = parse_argyll_version_string(argyll_version_string)
     argyll_version_string_cfg = get_argyll_version_string("dispwin", True)
@@ -124,6 +150,7 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     # Don't prompt for 1.2.3_foo if current version is 1.2.3
     # but prompt for 1.2.3 if current version is 1.2.3_foo
     # Also prompt for 1.2.3_beta2 if current version is 1.2.3_beta
+    argyll_dir = None
     if (
         argyll_version > argyll_version_cfg
         and (
@@ -135,6 +162,8 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
         and argyll_version_string_cfg.startswith(argyll_version_string)
         and "beta" in argyll_version_string_cfg.lower()
     ):
+        from DisplayCAL.wx_windows import ConfirmDialog
+
         argyll_dir = os.path.dirname(get_argyll_util("dispwin", paths) or "")
         dlg = ConfirmDialog(
             parent,
@@ -160,8 +189,41 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
             if callafter:
                 callafter(*callafter_args)
             return False
-    else:
-        argyll_dir = None
+
+    return argyll_dir
+
+
+def set_argyll_bin(
+    parent: wx.Window = None,
+    silent: bool = False,
+    callafter: None | Callable = None,
+    callafter_args: None | tuple = None,
+) -> bool:
+    """Set the directory containing the Argyll CMS binary executables.
+
+    Args:
+        parent (wx.Window): The parent window for dialogs.
+        silent (bool): If True, do not show any dialogs.
+        callafter (callable): A function to call after setting the Argyll bin.
+        callafter_args (None | tuple): Arguments to pass to the callafter
+            function.
+
+    Returns:
+        bool: True if the Argyll bin was set successfully, False otherwise.
+    """
+    # TODO: This function contains UI stuff, please refactor it so that it is
+    #       split into a separate function that can be called from the UI.
+    from DisplayCAL.wx_addons import wx
+    from DisplayCAL.wx_windows import ConfirmDialog, InfoDialog
+
+    # Tests fails if wx.App is not initialized...
+    _ = wx.GetApp() or wx.App()
+
+    callafter_args = () if callafter_args is None else callafter_args
+
+    # do not center on parent if not visible
+    parent = None if parent and not parent.IsShownOnScreen() else parent
+    argyll_dir = prompt_argyll_dir(parent, callafter, callafter_args)
     if parent and not check_argyll_bin():
         dlg = ConfirmDialog(
             parent,
@@ -179,15 +241,14 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
 
             app_update_check(parent, silent, argyll=True)
             return False
-        elif dlg_result == wx.ID_CANCEL:
+        if dlg_result == wx.ID_CANCEL:
             if callafter:
                 callafter(*callafter_args)
             return False
-    defaultPath = os.path.join(*get_verified_path("argyll.dir", path=argyll_dir))
     dlg = wx.DirDialog(
         parent,
         lang.getstr("dialog.set_argyll_bin"),
-        defaultPath=defaultPath,
+        defaultPath=os.path.join(*get_verified_path("argyll.dir", path=argyll_dir)),
         style=wx.DD_DIR_MUST_EXIST,
     )
     dlg.Center(wx.BOTH)
@@ -200,41 +261,34 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
                 path = os.path.join(path, "bin")
             result = check_argyll_bin([path])
             if result:
-                if verbose >= 3:
-                    print("Setting Argyll binary directory:", path)
+                verbose_print("Setting Argyll binary directory:", path, verbose_level=3)
                 setcfg("argyll.dir", path)
                 # Always write cfg directly after setting Argyll directory so
                 # subprocesses that read the configuration will use the right
                 # executables
                 writecfg()
                 break
-            else:
-                not_found = []
-                for name in argyll_names:
-                    if (
-                        not get_argyll_util(name, [path])
-                        and name not in argyll_optional
-                    ):
-                        not_found.append(
-                            f" {lang.getstr('or')} ".join(
-                                [
-                                    altname
-                                    for altname in [
-                                        altname + exe_ext
-                                        for altname in argyll_altnames[name]
-                                    ]
-                                    if "argyll" not in altname
-                                ]
-                            )
-                        )
-                InfoDialog(
-                    parent,
-                    msg="{}\n\n{}".format(
-                        path, lang.getstr("argyll.dir.invalid", ", ".join(not_found))
-                    ),
-                    ok=lang.getstr("ok"),
-                    bitmap=geticon(32, "dialog-error"),
+            not_found = [
+                f" {lang.getstr('or')} ".join(
+                    [
+                        altname
+                        for altname in [
+                            altname + EXE_EXT for altname in ARGYLL_ALTNAMES[name]
+                        ]
+                        if "argyll" not in altname
+                    ]
                 )
+                for name in ARGYLL_NAMES
+                if not get_argyll_util(name, [path]) and name not in ARGYLL_OPTIONAL
+            ]
+            InfoDialog(
+                parent,
+                msg="{}\n\n{}".format(
+                    path, lang.getstr("argyll.dir.invalid", ", ".join(not_found))
+                ),
+                ok=lang.getstr("ok"),
+                bitmap=geticon(32, "dialog-error"),
+            )
         else:
             break
     dlg.Destroy()
@@ -243,70 +297,90 @@ def set_argyll_bin(parent=None, silent=False, callafter=None, callafter_args=())
     return result
 
 
-def check_set_argyll_bin(paths: Optional[List[str]] = None) -> bool:
+def check_set_argyll_bin(paths: None | list[str] = None) -> bool:
     """Check if Argyll binaries can be found, otherwise let the user choose.
 
     Args:
-        paths (Optional[List[str]]): The paths to look for.
+        paths (list[str]): The paths to look for.
     """
     if check_argyll_bin(paths):
         return True
-    else:
-        return set_argyll_bin()
+    return set_argyll_bin()
 
 
-def get_argyll_util(name, paths=None):
+def validate_search_paths(paths: None | list[str] = None) -> list[str]:
+    """Validate the paths to look for Argyll utilities.
+
+    Args:
+        paths (None | list[str]): The paths to look for.
+
+    Returns:
+        list[str]: A list of paths to look for Argyll utilities.
+    """
+    cfg_argyll_dir = getcfg("argyll.dir")
+    if not paths:
+        paths = get_path_from_env()
+        if argyll_dir := (cfg_argyll_dir or "").rstrip(os.path.sep):
+            with contextlib.suppress(ValueError):
+                paths.remove(argyll_dir)
+            paths = [argyll_dir, *paths]
+    return paths
+
+
+def get_argyll_util(name: str, paths: None | list[str] = None) -> None | str:
     """Find a single Argyll utility. Return the full path.
 
     Args:
         name (str): The name of the utility.
-        paths (Union[None, List[str]]): The paths to look for.
+        paths (None | list[str]): The paths to look for.
 
     Returns:
-        Union[None, str]: None if not found or the path of the utility.
+        None | str: None if not found or the path of the utility.
     """
-    cfg_argyll_dir = getcfg("argyll.dir")
-    if not paths:
-        paths = getenvu("PATH", os.defpath).split(os.pathsep)
-        argyll_dir = (cfg_argyll_dir or "").rstrip(os.path.sep)
-        if argyll_dir:
-            if argyll_dir in paths:
-                paths.remove(argyll_dir)
-            paths = [argyll_dir] + paths
+    paths = validate_search_paths(paths)
     cache_key = os.pathsep.join(paths)
-    exe = argyll_utils.get(cache_key, {}).get(name, None)
-    if exe:
+    if exe := ARGYLL_UTILS.get(cache_key, {}).get(name, None):
         return exe
-    elif verbose >= 4:
-        print("Info: Searching for", name, "in", os.pathsep.join(paths))
+    verbose_print(
+        "Info: Searching for", name, "in", os.pathsep.join(paths), verbose_level=4
+    )
     for path in paths:
-        for altname in argyll_altnames.get(name, []):
-            exe = which(f"{altname}{exe_ext}", [path])
-            if exe:
+        for altname in ARGYLL_ALTNAMES.get(name, []):
+            if exe := which(f"{altname}{EXE_EXT}", [path]):
                 break
         if exe:
             break
-    if verbose >= 4:
-        if exe:
-            print("Info:", name, "=", exe)
-        else:
-            print(
+
+    verbose_print(
+        *(
+            ["Info:", name, "=", exe]
+            if exe
+            else [
                 "Info:",
-                "|".join(argyll_altnames[name]),
+                "|".join(ARGYLL_ALTNAMES[name]),
                 "not found in",
                 os.pathsep.join(paths),
-            )
+            ]
+        ),
+        verbose_level=4,
+    )
     if exe:
-        if cache_key not in argyll_utils:
-            argyll_utils[cache_key] = {}
-        argyll_utils[cache_key][name] = exe
+        if cache_key not in ARGYLL_UTILS:
+            ARGYLL_UTILS[cache_key] = {}
+        ARGYLL_UTILS[cache_key][name] = exe
     return exe
 
 
-def get_argyll_utilname(name, paths=None):
+def get_argyll_utilname(name: str, paths: None | list[str] = None) -> str:
     """Find a single Argyll utility.
 
-    Return the basename without extension.
+    Args:
+        name (str): The name of the utility.
+        paths (None | list[str]): The paths to look for.
+
+    Returns:
+        str: The basename of the utility without extension, or an empty string
+            if not found.
     """
     exe = get_argyll_util(name, paths)
     if exe:
@@ -314,13 +388,15 @@ def get_argyll_utilname(name, paths=None):
     return exe
 
 
-def get_argyll_version(name, silent=False, paths=None):
+def get_argyll_version(
+    name: str, silent: bool = False, paths: None | list[str] = None
+) -> str:
     """Determine version of a certain Argyll utility.
 
     Args:
         name (str): The name of the Argyll utility.
         silent (bool): Silently check Argyll version. Default is False.
-        paths (Union[list, None]): Paths to look for Argyll executables.
+        paths (None | list[str]): Paths to look for Argyll executables.
 
     Returns:
         str: The Argyll utility version.
@@ -329,13 +405,15 @@ def get_argyll_version(name, silent=False, paths=None):
     return parse_argyll_version_string(argyll_version_string)
 
 
-def get_argyll_version_string(name, silent=False, paths=None):
+def get_argyll_version_string(
+    name: str, silent: bool = False, paths: None | str = None
+) -> str:
     """Return the version of the requested Argyll utility.
 
     Args:
         name (str): The name of the Argyll utility.
         silent (bool): Silently check Argyll version. Default is False.
-        paths (Union[list, None]): Paths to look for Argyll executables.
+        paths (None | str): Paths to look for Argyll executables.
 
     Returns:
         str: The Argyll utility version.
@@ -375,7 +453,7 @@ def get_argyll_version_string(name, silent=False, paths=None):
         startupinfo = None
     try:
         p = sp.Popen(
-            [cmd.encode(fs_enc), "-?"],
+            [cmd.encode(FS_ENC), "-?"],
             stdin=sp.PIPE,
             stdout=sp.PIPE,
             stderr=sp.STDOUT,
@@ -396,43 +474,57 @@ def get_argyll_version_string(name, silent=False, paths=None):
     return argyll_version_string
 
 
-def parse_argyll_version_string(argyll_version_string):
+def parse_argyll_version_string(argyll_version_string: str) -> list[int | str]:
+    """Parse the Argyll version string.
+
+    Args:
+        argyll_version_string (str): The version string to parse.
+
+    Returns:
+        list[int | str]: A list of version components.
+    """
     if isinstance(argyll_version_string, bytes):
         argyll_version_string = argyll_version_string.decode()
     argyll_version = re.findall(r"(\d+|[^.\d]+)", argyll_version_string)
     for i, v in enumerate(argyll_version):
-        try:
+        with contextlib.suppress(ValueError):
             argyll_version[i] = int(v)
-        except ValueError:
-            pass
     return argyll_version
 
 
 @cache
-def get_argyll_latest_version():
+def get_argyll_latest_version() -> str:
     """Return the latest ArgyllCMS version from argyllcms.com.
 
     Returns:
         str: The latest version number. Returns
     """
-    argyll_domain = config.defaults.get("argyll.domain", "")
+    argyll_domain = config.DEFAULTS.get("argyll.domain", "")
     try:
         changelog = re.search(
             r"(?<=Version ).{5}",
-            urllib.request.urlopen(f"{argyll_domain}/log.txt")
+            urllib.request.urlopen(f"{argyll_domain}/log.txt")  # noqa: S310
             .read(100)
             .decode("utf-8"),
         )
-    except urllib.error.URLError as e:
+    except urllib.error.URLError:
         # no internet connection
         # return the default version
-        return config.defaults.get("argyll.version")
+        return config.DEFAULTS.get("argyll.version")
     result = changelog.group()
     print(f"Latest ArgyllCMS version: {result} (from {argyll_domain}/log.txt)")
     if not result:
         # no version found
-        return config.defaults.get("argyll.version")
+        return config.DEFAULTS.get("argyll.version")
     return result
+
+
+@overload
+def make_argyll_compatible_path(path: bytes) -> bytes: ...
+
+
+@overload
+def make_argyll_compatible_path(path: str) -> str: ...
 
 
 def make_argyll_compatible_path(path):
@@ -443,10 +535,10 @@ def make_argyll_compatible_path(path):
     underscores.
 
     Args:
-        path (Union[bytes, str]): The path to be made compatible.
+        path (bytes | str): The path to be made compatible.
 
     Returns:
-        Union[bytes, str]: The compatible path.
+        bytes | str: The compatible path.
     """
     skip = -1
     regex = r"\\\\\?\\"
@@ -481,23 +573,35 @@ def make_argyll_compatible_path(path):
     return os_path_sep.join(parts)
 
 
-def get_argyll_instrument_config(what=None):
-    """Check for Argyll CMS udev rules/hotplug scripts."""
+def get_argyll_instrument_config(what: None | str = None) -> list[str]:
+    """Check for Argyll CMS udev rules/hotplug scripts.
+
+    Args:
+        what (str): The type of files to look for. Can be "installed",
+            "expected", or None.
+
+    Returns:
+        list[str]: A list of file paths that match the criteria.
+    """
     filenames = []
     if what == "installed":
-        for filename in (
+        argyll_rule_filepaths = (
             "/etc/udev/rules.d/55-Argyll.rules",
             "/etc/udev/rules.d/45-Argyll.rules",
             "/etc/hotplug/Argyll",
             "/etc/hotplug/Argyll.usermap",
             "/lib/udev/rules.d/55-Argyll.rules",
             "/lib/udev/rules.d/69-cd-sensors.rules",
-        ):
-            if os.path.isfile(filename):
-                filenames.append(filename)
+        )
+        filenames = [
+            filename for filename in argyll_rule_filepaths if os.path.isfile(filename)
+        ]
     else:
         if what == "expected":
-            fn = lambda filename: filename
+
+            def fn(filename: bytes | str) -> bytes | str:
+                """Return the full path to the Argyll utility."""
+                return filename
         else:
             fn = get_data_path
         if os.path.isdir("/etc/udev/rules.d"):
@@ -509,11 +613,10 @@ def get_argyll_instrument_config(what=None):
                 # USB using udev, where there are NOT /dev/bus/usb/00X/00X
                 # devices
                 filenames.append(fn("usb/45-Argyll.rules"))
-        else:
-            if os.path.isdir("/etc/hotplug"):
-                # USB using hotplug and Serial using udev
-                # (older versions of Linux)
-                filenames.extend(
-                    fn(filename) for filename in ("usb/Argyll", "usb/Argyll.usermap")
-                )
+        elif os.path.isdir("/etc/hotplug"):
+            # USB using hotplug and Serial using udev
+            # (older versions of Linux)
+            filenames.extend(
+                fn(filename) for filename in ("usb/Argyll", "usb/Argyll.usermap")
+            )
     return [filename for filename in filenames if filename]

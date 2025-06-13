@@ -1,10 +1,14 @@
-# -*- coding: utf-8 -*-
+"""Control Chromecast for pattern generation.
 
-from time import sleep
+It includes classes to send color patterns, manage connections, and interact
+with the Chromecast's pattern generator app for use in display calibration
+workflows.
+"""
 
 # 0install: Make sure imported protobuf is from implementation to ensure
 # correct version
 import sys
+from time import sleep
 
 if not getattr(sys, "frozen", False):
     import os
@@ -16,30 +20,11 @@ if not getattr(sys, "frozen", False):
         ):
             if "google" in sys.modules:
                 del sys.modules["google"]
-            try:
-                import pkg_resources
-            except ImportError:
-                import pkgutil
             syspath = sys.path[:]
             sys.path[:] = [pth]
-            import google.protobuf
 
             sys.path[:] = syspath
             break
-
-if sys.version_info[:2] < (3,):
-    # zeroconf 0.19.1 is the last version supporting Python 2.x
-    # but zeroconf 0.20 lacks a check for Python version
-    import zeroconf
-
-    if zeroconf.__version__ > "0.19.1":
-        raise ImportError(
-            """
-Python version > 3.3 required for python-zeroconf %s.
-If you need support for Python 2 or Python 3.3 please use version 0.19.1
-    """
-            % zeroconf.__version__
-        )
 
 from pychromecast import get_chromecasts
 from pychromecast.controllers import BaseController
@@ -48,13 +33,22 @@ from DisplayCAL import localization as lang
 
 
 class ChromeCastPatternGeneratorController(BaseController):
+    """Controller for the Chromecast pattern generator app."""
+
     def __init__(self):
-        super(ChromeCastPatternGeneratorController, self).__init__(
-            "urn:x-cast:net.hoech.cast.patterngenerator", "B5C2CBFC"
-        )
+        super().__init__("urn:x-cast:net.hoech.cast.patterngenerator", "B5C2CBFC")
         self.request_id = 0
 
     def receive_message(self, message, data):
+        """Handle incoming messages from the Chromecast device.
+
+        Args:
+            message (dict): The message received from the Chromecast.
+            data: Additional data associated with the message.
+
+        Returns:
+            bool: True if the message was handled, False otherwise.
+        """
         return True  # Indicate we handled this message
 
     def send(
@@ -66,8 +60,18 @@ class ChromeCastPatternGeneratorController(BaseController):
         h_scale=1,
         v_scale=1,
     ):
-        fg = "#%02X%02X%02X" % tuple(round(v * 255) for v in rgb)
-        bg = "#%02X%02X%02X" % tuple(round(v * 255) for v in bgrgb)
+        """Send a color pattern to the Chromecast device.
+
+        Args:
+            rgb (tuple): RGB color values (0-1 range).
+            bgrgb (tuple): Background RGB color values (0-1 range).
+            offset_x (float): Horizontal offset (0-1 range).
+            offset_y (float): Vertical offset (0-1 range).
+            h_scale (float): Horizontal scale factor.
+            v_scale (float): Vertical scale factor.
+        """
+        fg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in rgb))
+        bg = "#{:02X}{:02X}{:02X}".format(*tuple(round(v * 255) for v in bgrgb))
         self.request_id += 1
         self.send_message(
             {
@@ -81,6 +85,8 @@ class ChromeCastPatternGeneratorController(BaseController):
 
 
 class ChromeCastPatternGenerator:
+    """Class to control a Chromecast device for pattern generation."""
+
     def __init__(self, name, logfile=None):
         self._controller = ChromeCastPatternGeneratorController()
         self.name = name
@@ -88,10 +94,10 @@ class ChromeCastPatternGenerator:
         self.logfile = logfile
 
     def disconnect_client(self):
+        """Disconnect the Chromecast client and clean up resources."""
         self.listening = False
-        if hasattr(self, "_cc"):
-            if self._cc.app_id:
-                self._cc.quit_app()
+        if hasattr(self, "_cc") and self._cc.app_id:
+            self._cc.quit_app()
         if hasattr(self, "conn"):
             del self.conn
 
@@ -106,6 +112,18 @@ class ChromeCastPatternGenerator:
         w=1,
         h=1,
     ):
+        """Send a color pattern to the Chromecast device.
+
+        Args:
+            rgb (tuple): RGB color values (0-1 range).
+            bgrgb (tuple): Background RGB color values (0-1 range).
+            bits (int, optional): Not used in this implementation.
+            use_video_levels (bool, optional): Not used in this implementation.
+            x (float): Horizontal offset (0-1 range).
+            y (float): Vertical offset (0-1 range).
+            w (float): Width of the pattern (0-1 range).
+            h (float): Height of the pattern (0-1 range).
+        """
         if w < 1:
             x /= 1.0 - w
         else:
@@ -117,6 +135,7 @@ class ChromeCastPatternGenerator:
         self._controller.send(rgb, bgrgb, x, y, w * 10, h * 10)
 
     def wait(self):
+        """Wait for Chromecast to be ready and launch the pattern generator app."""
         self.listening = True
         if self.logfile:
             self.logfile.write(

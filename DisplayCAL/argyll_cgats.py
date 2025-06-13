@@ -1,11 +1,19 @@
-# -*- coding: utf-8 -*-
+"""Utilities for working with Argyll CMS CGATS files and calibration data.
+
+It includes functions for manipulating CGATS data, extracting calibration
+information, and creating or modifying ICC profiles with embedded calibration
+data.
+"""
+
+from __future__ import annotations
 
 # import decimal
 # Decimal = decimal.Decimal
+import contextlib
 import decimal
-from decimal import Decimal
 import os
 import traceback
+from decimal import Decimal
 from io import BytesIO
 from time import strftime
 
@@ -20,6 +28,7 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
@@ -29,16 +38,22 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
     WcsProfilesTagType,
 )
-from DisplayCAL.debughelpers import Error
-from DisplayCAL.options import debug
+from DisplayCAL.options import DEBUG
 
-cals = {}
+CALS = {}
 
 
-def quote_nonoption_args(args):
+def quote_nonoption_args(args: list[str]) -> list[bytes]:
     """Put quotes around all arguments which are not options.
 
     (ie. which do not start with a hyphen '-')
+
+    Args:
+        args (list[str]): A list of arguments to be quoted.
+
+    Returns:
+        list[bytes]: A list of quoted arguments, where each argument that does not
+            start with a hyphen is wrapped in quotes.
     """
     args = list(args)
     for i, arg in enumerate(args):
@@ -49,7 +64,16 @@ def quote_nonoption_args(args):
     return args
 
 
-def add_dispcal_options_to_cal(cal, options_dispcal):
+def add_dispcal_options_to_cal(cal: str | CGATS, options_dispcal: list[str]) -> CGATS:
+    """Add dispcal options to cal.
+
+    Args:
+        cal (str | CGATS): The input CAL file or CGATS instance.
+        options_dispcal (list[str]): List of dispcal options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal options to cal
     options_dispcal = quote_nonoption_args(options_dispcal)
     try:
@@ -60,7 +84,21 @@ def add_dispcal_options_to_cal(cal, options_dispcal):
         print(traceback.format_exc())
 
 
-def add_options_to_ti3(ti3, options_dispcal=None, options_colprof=None):
+def add_options_to_ti3(
+    ti3: str | CGATS,
+    options_dispcal: None | list[str] = None,
+    options_colprof: None | list[str] = None,
+) -> CGATS:
+    """Add dispcal and colprof options to ti3.
+
+    Args:
+        ti3 (str or CGATS): The input TI3 file or CGATS instance.
+        options_dispcal (list): List of dispcal options to add.
+        options_colprof (list): List of colprof options to add.
+
+    Returns:
+        CGATS: The modified CGATS instance with added options.
+    """
     # Add dispcal and colprof options to ti3
     try:
         cgats = CGATS(ti3)
@@ -82,15 +120,22 @@ def add_options_to_ti3(ti3, options_dispcal=None, options_colprof=None):
         print(traceback.format_exc())
 
 
-def cal_to_fake_profile(cal):
+def cal_to_fake_profile(cal: str | CGATS) -> None | ICCProfile:
     """Create and return a 'fake' ICCProfile with just a vcgt tag.
 
     cal must refer to a valid Argyll CAL file and can be a CGATS instance
     or a filename.
+
+    Args:
+        cal (str | CGATS): The input CAL file or CGATS instance.
+
+    Returns:
+        None | ICCProfile: Returns an ICCProfile instance with a vcgt tag
+            containing the calibration data, or None if the input is invalid
+            or required fields are missing.
     """
-    vcgt, cal = cal_to_vcgt(cal, True)
-    if not vcgt:
-        return
+    if not (cal := validate_cgats(cal)) or not (vcgt := cal_to_vcgt(cal)):
+        return None
     profile = ICCProfile()
     profile.fileName = cal.filename
     profile._data = b"\0" * 128
@@ -105,40 +150,37 @@ def cal_to_fake_profile(cal):
     return profile
 
 
-def cal_to_vcgt(cal, return_cgats=False):
+def cal_to_vcgt(cal: str | CGATS) -> None | VideoCardGammaTableType:
     """Create a vcgt tag from calibration data.
 
-    cal must refer to a valid Argyll CAL file and can be a CGATS instance
-    or a filename.
+    Args:
+        cal (str | CGATS): The input CAL file or CGATS instance. It must refer
+            to a valid Argyll CAL file or can be a CGATS instance or a
+            filename.
+
+    Returns:
+        None | VideoCardGammaTableType: Returns a VideoCardGammaTableType
+            instance containing the `vcgt` data. Returns None if the input is
+            invalid or required fields are missing.
     """
-    if not isinstance(cal, CGATS):
-        try:
-            cal = CGATS(cal)
-        except (
-            IOError,
-            CGATSInvalidError,
-            CGATSInvalidOperationError,
-            CGATSKeyError,
-            CGATSTypeError,
-            CGATSValueError,
-        ) as exception:
-            print(f"Warning - couldn't process CGATS file '{cal}': {exception}")
-            return None
+    if not (cal := validate_cgats(cal)):
+        return None
+
     required_fields = ("RGB_I", "RGB_R", "RGB_G", "RGB_B")
     if data_format := cal.queryv1("DATA_FORMAT"):
         for field in required_fields:
             if field.encode("utf-8") not in list(data_format.values()):
-                if debug:
+                if DEBUG:
                     print(f"[D] Missing required field: {field}")
                 return None
         for field in list(data_format.values()):
             if field.decode("utf-8") not in required_fields:
-                if debug:
+                if DEBUG:
                     print(f"[D] Unknown field: {field}")
                 return None
     entries = cal.queryv(required_fields)
     if len(entries) < 1:
-        if debug:
+        if DEBUG:
             print(f"[D] No entries found in calibration {cal.filename}")
         return None
     vcgt = VideoCardGammaTableType(b"", "vcgt")
@@ -153,31 +195,60 @@ def cal_to_vcgt(cal, return_cgats=False):
     for n in entries:
         for i in range(3):
             vcgt.data[i].append(entries[n][i + 1] * 65535.0)
-    if return_cgats:
-        return vcgt, cal
     return vcgt
 
 
-def can_update_cal(path):
-    """Check if cal can be updated by checking for required fields."""
-    try:
-        calstat = os.stat(path)
-    except Exception as exception:
-        print(f"Warning - os.stat('{path}') failed: {exception}")
-        return False
-    if path not in cals or cals[path].mtime != calstat.st_mtime:
+def validate_cgats(cal: str | CGATS) -> CGATS:
+    """Validate and return a CGATS instance.
+
+    Args:
+        cal (str | CGATS): The input CAL file or CGATS instance.
+
+    Returns:
+        CGATS: A validated CGATS instance.
+    """
+    if not isinstance(cal, CGATS):
         try:
-            cal = CGATS(path)
+            cal = CGATS(cal)
         except (
-            IOError,
+            OSError,
             CGATSInvalidError,
             CGATSInvalidOperationError,
             CGATSKeyError,
             CGATSTypeError,
             CGATSValueError,
         ) as exception:
-            if path in cals:
-                del cals[path]
+            print(f"Warning - couldn't process CGATS file '{cal}': {exception}")
+            return None
+    return cal
+
+
+def can_update_cal(path: str) -> bool:
+    """Check if cal can be updated by checking for required fields.
+
+    Args:
+        path (str): The path to the CGATS file.
+
+    Returns:
+        bool: True if the CGATS file can be updated, False otherwise.
+    """
+    try:
+        calstat = os.stat(path)
+    except Exception as exception:
+        print(f"Warning - os.stat('{path}') failed: {exception}")
+        return False
+    if path not in CALS or CALS[path].mtime != calstat.st_mtime:
+        try:
+            cal = CGATS(path)
+        except (
+            OSError,
+            CGATSInvalidError,
+            CGATSInvalidOperationError,
+            CGATSKeyError,
+            CGATSTypeError,
+            CGATSValueError,
+        ) as exception:
+            CALS.pop(path, None)
             print(f"Warning - couldn't process CGATS file '{path}': {exception}")
         else:
             if cal.queryv1("DEVICE_CLASS") == "DISPLAY" and None not in (
@@ -186,117 +257,204 @@ def can_update_cal(path):
                 cal.queryv1("BLACK_POINT_CORRECTION"),
                 cal.queryv1("QUALITY"),
             ):
-                cals[path] = cal
-    return path in cals and cals[path].mtime == calstat.st_mtime
+                CALS[path] = cal
+    return path in CALS and CALS[path].mtime == calstat.st_mtime
 
 
 def extract_cal_from_profile(
-    profile, out_cal_path=None, raise_on_missing_cal=True, prefer_cal=False
-):
-    """Extract calibration from 'targ' tag in profile or vcgt as fallback"""
+    profile: ICCProfile,
+    out_cal_path: None | str = None,
+    raise_on_missing_cal: bool = True,
+    prefer_cal: bool = False,
+) -> bool | CGATS:
+    """Extract calibration from 'targ' tag in profile or vcgt as fallback.
+
+    Args:
+        profile (ICCProfile): The ICCProfile to extract the data from.
+        out_cal_path (str, optional): If provided, the extracted calibration
+            data will be saved to this path as a CGATS file.
+        raise_on_missing_cal (bool): If True, raises an error if no calibration
+            data is found in the profile. If False, returns False instead.
+        prefer_cal (bool): If True, prefers the calibration data from the
+            'targ' tag over the 'vcgt' tag, if both are present. If False,
+            prefers the 'vcgt' tag if it is nonlinear.
+
+    Raises:
+        Error: If the calibration extraction fails or if no calibration data
+            is found and `raise_on_missing_cal` is True.
+
+    Returns:
+        bool | CGATS: Returns a CGATS instance containing the calibration data
+            if successful, or False if no calibration data is found and
+            `raise_on_missing_cal` is False.
+    """
     white = False
 
     # Check if calibration is included in TI3
     targ = profile.tags.get("targ", profile.tags.get("CIED"))
-    if isinstance(targ, Text):
-        cal = extract_cal_from_ti3(targ)
-        if cal:
-            check = cal
-            get_cgats = CGATS
-            arg = cal
-    else:
-        cal = None
-    if not cal:
-        # Convert calibration information from embedded WCS profile
-        # (if present) to VideCardFormulaType if the latter is not present
-        if (
-            isinstance(profile.tags.get("MS00"), WcsProfilesTagType)
-            and "vcgt" not in profile.tags
-        ):
-            profile.tags["vcgt"] = profile.tags["MS00"].get_vcgt()
+    cal = None
+    cgats_builder = None
+    if isinstance(targ, Text) and (cal := extract_cal_from_ti3(targ)):
+        check = cal
+        cgats_builder = CGATS
+        arg = cal
 
-        # Get the calibration from profile vcgt
-        check = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
-        get_cgats = vcgt_to_cal
-        arg = profile
+    if not cal:
+        check, cgats_builder, arg = convert_cal_info_from_embedded_wcs_profile(profile)
 
     if check:
         try:
-            cgats = get_cgats(arg)
-        except (IOError, CGATSError) as e:
+            cgats = cgats_builder(arg)
+        except (OSError, CGATSError) as e:
             traceback.print_exc()
             raise Error(lang.getstr("cal_extraction_failed")) from e
     elif raise_on_missing_cal:
         raise Error(lang.getstr("profile.no_vcgt"))
     else:
         return False
+
     if (
-        cal
-        and not prefer_cal
-        and isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
+        not cal
+        or prefer_cal
+        or not isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
     ):
-        # When vcgt is nonlinear, prefer it
-        # Check for video levels encoding
-        if cgats.queryv1("TV_OUTPUT_ENCODING") == b"YES":
-            black, white = (16, 235)
-        elif output_enc := cgats.queryv1("OUTPUT_ENCODING"):
-            try:
-                black, white = (float(v) for v in output_enc.split())
-            except (TypeError, ValueError):
-                white = False
-        cgats = vcgt_to_cal(profile)
-        if white and (black, white) != (0, 255):
-            print(f"Need to un-scale vcgt from video levels ({black}..{white})")
-            # Need to un-scale video levels
-            if data := cgats.queryv1("DATA"):
-                print(f"Un-scaling vcgt from video levels ({black}..{white})")
-                encoding_mismatch = False
-                # For video encoding the extra bits of
-                # precision are created by bit shifting rather
-                # than scaling, so we need to scale the fp
-                # value to account for this
-                oldmin = (black / 256.0) * (65536 / 65535.0)
-                oldmax = (white / 256.0) * (65536 / 65535.0)
-                for entry in data.values():
-                    for column in "RGB":
-                        v_old = entry[f"RGB_{column}"]
-                        lvl = round(v_old * (65535 / 65536.0) * 256, 2)
-                        if lvl < round(black, 2) or lvl > round(white, 2):
-                            # Can't be right. Metadata says it's video encoded,
-                            # but clearly exceeds the encoding range.
-                            print(
-                                f"Warning: Metadata claims video levels ("
-                                f"{round(black, 2)}..{round(white, 2)}) but "
-                                f"vcgt value {lvl} exceeds encoding range. "
-                                f"Using values as-is."
-                            )
-                            encoding_mismatch = True
-                            break
-                        v_new = colormath.convert_range(v_old, oldmin, oldmax, 0, 1)
-                        entry[f"RGB_{column}"] = min(max(v_new, 0), 1)
-                    if encoding_mismatch:
-                        break
-                if encoding_mismatch:
-                    cgats = vcgt_to_cal(profile)
-                # Add video levels hint to CGATS
-                elif (black, white) == (16, 235):
-                    cgats[0].add_keyword("TV_OUTPUT_ENCODING", "YES")
-                else:
-                    cgats[0].add_keyword(
-                        "OUTPUT_ENCODING",
-                        b" ".join(bytes(str(v), "utf-8") for v in (black, white)),
-                    )
-            else:
-                print("Warning - no un-scaling applied - no calibration data!")
+        if out_cal_path:
+            cgats.write(out_cal_path)
+        return cgats
+
+    black, white = get_black_and_white_levels(cgats)
+    cgats = vcgt_to_cal(profile)
+    cgats = unscale_vcgt_from_video_levels(profile, cgats, black, white)
     if out_cal_path:
         cgats.write(out_cal_path)
     return cgats
 
 
-def extract_cal_from_ti3(ti3):
+def get_black_and_white_levels(cgats: CGATS) -> None | tuple[float, float]:
+    """Get black and white levels for video encoding.
+
+    Args:
+        cgats (CGATS): The CGATS instance to query for black and white levels.
+
+    Returns:
+        tuple[float, float]: A tuple containing the black and white levels.
+    """
+    # When vcgt is nonlinear, prefer it
+    # Check for video levels encoding
+    black = None
+    white = None
+    if cgats.queryv1("TV_OUTPUT_ENCODING") == b"YES":
+        black, white = (16, 235)
+    elif output_enc := cgats.queryv1("OUTPUT_ENCODING"):
+        try:
+            black, white = (float(v) for v in output_enc.split())
+        except (TypeError, ValueError):
+            white = False
+
+    return black, white
+
+
+def convert_cal_info_from_embedded_wcs_profile(
+    profile: ICCProfile,
+) -> tuple[bool, callable, ICCProfile]:
+    """Convert calibration info from embedded WCS profile to vcgt if missing.
+
+    Args:
+        profile (ICCProfile): The ICCProfile to extract the calibration data from.
+
+    Returns:
+        tuple[bool, callable, ICCProfile]: A tuple containing:
+            - bool: True if the profile has a vcgt tag or can be converted to one,
+            - callable: A function to convert the vcgt tag to calibration data,
+            - ICCProfile: The ICCProfile instance with the vcgt tag.
+    """
+    if (
+        isinstance(profile.tags.get("MS00"), WcsProfilesTagType)
+        and "vcgt" not in profile.tags
+    ):
+        profile.tags["vcgt"] = profile.tags["MS00"].get_vcgt()
+
+    # Get the calibration from profile vcgt
+    check = isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
+    cgats_builder = vcgt_to_cal
+    arg = profile
+    return check, cgats_builder, arg
+
+
+def unscale_vcgt_from_video_levels(
+    profile: ICCProfile, cgats: CGATS, black: float, white: float
+) -> CGATS:
+    """Un-scale vcgt from video levels.
+
+    Args:
+        profile (ICCProfile): The ICC profile containing the vcgt tag.
+        cgats (CGATS): The CGATS instance to apply scaling to.
+        black (float): The black level for video encoding.
+        white (float): The white level for video encoding.
+
+    Returns:
+        CGATS: The CGATS instance with applied video level scaling.
+    """
+    if not white or (black, white) == (0, 255):
+        print(
+            "No need to un-scale vcgt from video levels as black and white "
+            f"levels are ({black}..{white})"
+        )
+        return cgats
+    print(f"Need to un-scale vcgt from video levels ({black}..{white})")
+
+    # Need to un-scale video levels
+    if not (data := cgats.queryv1("DATA")):
+        print("Warning - no un-scaling applied - no calibration data!")
+        return cgats
+
+    print(f"Un-scaling vcgt from video levels ({black}..{white})")
+    encoding_mismatch = False
+    # For video encoding the extra bits of
+    # precision are created by bit shifting rather
+    # than scaling, so we need to scale the fp
+    # value to account for this
+    old_min = (black / 256.0) * (65536 / 65535.0)
+    old_max = (white / 256.0) * (65536 / 65535.0)
+    for entry in data.values():
+        for column in "RGB":
+            v_old = entry[f"RGB_{column}"]
+            lvl = round(v_old * (65535 / 65536.0) * 256, 2)
+            if lvl < round(black, 2) or lvl > round(white, 2):
+                # Can't be right. Metadata says it's video encoded,
+                # but clearly exceeds the encoding range.
+                print(
+                    f"Warning: Metadata claims video levels ("
+                    f"{round(black, 2)}..{round(white, 2)}) but "
+                    f"vcgt value {lvl} exceeds encoding range. "
+                    f"Using values as-is."
+                )
+                encoding_mismatch = True
+                break
+            v_new = colormath.convert_range(v_old, old_min, old_max, 0, 1)
+            entry[f"RGB_{column}"] = min(max(v_new, 0), 1)
+        if encoding_mismatch:
+            break
+    if encoding_mismatch:
+        cgats = vcgt_to_cal(profile)
+    # Add video levels hint to CGATS
+    elif (black, white) == (16, 235):
+        cgats[0].add_keyword("TV_OUTPUT_ENCODING", "YES")
+    else:
+        cgats[0].add_keyword(
+            "OUTPUT_ENCODING",
+            b" ".join(bytes(str(v), "utf-8") for v in (black, white)),
+        )
+    return cgats
+
+
+def extract_cal_from_ti3(ti3: str | BytesIO) -> bytes:
     """Extract and return the CAL section of a TI3.
 
     ti3 can be a file object or a string holding the data.
+
+    Returns:
+        bytes: The extracted data.
     """
     if isinstance(ti3, CGATS):
         ti3 = bytes(ti3)
@@ -314,37 +472,46 @@ def extract_cal_from_ti3(ti3):
             cal_lines.append(line)
             if line == b"END_DATA":
                 break
-    try:
+    with contextlib.suppress(AttributeError):
         ti3.close()
-    except AttributeError:
-        pass
 
     return b"\n".join(cal_lines)
 
 
-def extract_fix_copy_cal(source_filename, target_filename=None):
+def extract_fix_copy_cal(
+    source_filename: str, target_filename: None | str = None
+) -> None | list[str] | Exception:
     """Return the CAL section from a profile's embedded measurement data.
 
     Try to 'fix it' (add information needed to make the resulting .cal file
     'updatable') and optionally copy it to target_filename.
+
+    Args:
+        source_filename (str): The path to the source profile file.
+        target_filename (str, optional): The path to save the fixed CAL data.
+            If None, the data is not saved to a file.
+
+    Returns:
+        None | list[str] | Exception: Returns a list of CAL lines if found and
+            None if not and Exception if any exception is raised.
     """
     from DisplayCAL.worker import get_options_from_profile
 
     try:
         profile = ICCProfile(source_filename)
-    except (IOError, ICCProfileInvalidError) as exception:
+    except (OSError, ICCProfileInvalidError) as exception:
         return exception
     if "CIED" not in profile.tags and "targ" not in profile.tags:
         return None
     cal_lines = []
-    ti3 = BytesIO(profile.tags.get("CIED", b"") or profile.tags.get("targ", b""))
-    ti3_lines = [line.strip() for line in ti3]
-    ti3.close()
+    with BytesIO(profile.tags.get("CIED", b"") or profile.tags.get("targ", b"")) as ti3:
+        ti3_lines = [line.strip() for line in ti3]
+
     cal_found = False
     for line in ti3_lines:
-        line = line.strip()
         if line == b"CAL":
-            line = b"CAL    "  # Make sure CGATS file identifiers are always a minimum of 7 characters
+            # Make sure CGATS file identifiers are always a minimum of 7 characters long
+            line = line.ljust(7)
             cal_found = True
         if not cal_found:
             continue
@@ -354,84 +521,9 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
         options_dispcal = get_options_from_profile(profile)[0]
         if not options_dispcal:
             continue
-        whitepoint = False
         # b = profile.tags.lumi.Y
-        for o in options_dispcal:
-            if o[0] == b"y":
-                cal_lines.append(b'KEYWORD "DEVICE_TYPE"')
-                if o[1] == b"c":
-                    cal_lines.append(b'DEVICE_TYPE "CRT"')
-                else:
-                    cal_lines.append(b'DEVICE_TYPE "LCD"')
-                continue
-            if o[0] in (b"t", b"T"):
-                continue
-            if o[0] == b"w":
-                continue
-            if o[0] in (b"g", b"G"):
-                if o[1:] == b"240":
-                    trc = b"SMPTE240M"
-                elif o[1:] == b"709":
-                    trc = b"REC709"
-                elif o[1:] == b"l":
-                    trc = b"L_STAR"
-                elif o[1:] == b"s":
-                    trc = b"sRGB"
-                else:
-                    trc = o[1:]
-                    if o[0] == b"G":
-                        try:
-                            trc = 0 - Decimal(trc)
-                        except decimal.InvalidOperation:
-                            continue
-                cal_lines.extend(
-                    (b'KEYWORD "TARGET_GAMMA"', b'TARGET_GAMMA "%s"' % trc)
-                )
-                continue
-            if o[0] == b"f":
-                cal_lines.extend(
-                    (
-                        b'KEYWORD "DEGREE_OF_BLACK_OUTPUT_OFFSET"',
-                        b'DEGREE_OF_BLACK_OUTPUT_OFFSET "%s"' % o[1:],
-                    )
-                )
+        cal_lines = build_cal_from_profile(cal_lines, options_dispcal)
 
-                continue
-            if o[0] == b"k":
-                cal_lines.extend(
-                    (
-                        b'KEYWORD "BLACK_POINT_CORRECTION"',
-                        b'BLACK_POINT_CORRECTION "%s"' % o[1:],
-                    )
-                )
-
-                continue
-            if o[0] == b"B":
-                cal_lines.extend(
-                    (
-                        b'KEYWORD "TARGET_BLACK_BRIGHTNESS"',
-                        b'TARGET_BLACK_BRIGHTNESS "%s"' % o[1:],
-                    )
-                )
-
-                continue
-            if o[0] == b"q":
-                if o[1] == b"l":
-                    q = b"low"
-                elif o[1] == b"m":
-                    q = b"medium"
-                else:
-                    q = b"high"
-                cal_lines.extend(
-                    (b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q)
-                )
-        if not whitepoint:
-            cal_lines.extend(
-                (
-                    b'KEYWORD "NATIVE_TARGET_WHITE"',
-                    b'NATIVE_TARGET_WHITE ""',
-                )
-            )
     if cal_lines:
         if target_filename:
             try:
@@ -440,14 +532,101 @@ def extract_fix_copy_cal(source_filename, target_filename=None):
             except Exception as exception:
                 return exception
         return cal_lines
+    return None
+
+
+def build_cal_from_profile(
+    cal_lines: list[bytes], options_dispcal: list
+) -> list[bytes]:
+    """Build a CAL section from profile options.
+
+    Args:
+        cal_lines (list[bytes]): The list to append CAL lines to.
+        options_dispcal (list): List of dispcal options to add to the CAL section.
+    """
+    whitepoint = False
+    for option in options_dispcal:
+        if option[0] == b"y":
+            cal_lines.extend(
+                [
+                    b'KEYWORD "DEVICE_TYPE"',
+                    {b"c": b'DEVICE_TYPE "CRT"'}.get(option[1], b'DEVICE_TYPE "LCD"'),
+                ]
+            )
+            continue
+        if option[0] in (b"t", b"T", b"w"):
+            continue
+        if option[0] in (b"g", b"G"):
+            trc = {
+                b"240": b"SMPTE240M",
+                b"709": b"REC709",
+                b"l": b"L_STAR",
+                b"s": b"sRGB",
+            }.get(option[1:], option[1:])
+            if trc == option[1:] and option[0] == b"G":
+                try:
+                    trc = 0 - Decimal(trc)
+                except decimal.InvalidOperation:
+                    continue
+            cal_lines.extend((b'KEYWORD "TARGET_GAMMA"', b'TARGET_GAMMA "%s"' % trc))
+            continue
+
+        to_extend = {
+            b"f": (
+                b'KEYWORD "DEGREE_OF_BLACK_OUTPUT_OFFSET"',
+                b'DEGREE_OF_BLACK_OUTPUT_OFFSET "%s"' % option[1:],
+            ),
+            b"k": (
+                b'KEYWORD "BLACK_POINT_CORRECTION"',
+                b'BLACK_POINT_CORRECTION "%s"' % option[1:],
+            ),
+            b"B": (
+                b'KEYWORD "TARGET_BLACK_BRIGHTNESS"',
+                b'TARGET_BLACK_BRIGHTNESS "%s"' % option[1:],
+            ),
+        }.get(option[0:1], None)
+        if to_extend:
+            cal_lines.extend(to_extend)
+            continue
+
+        if option[0] == b"q":
+            q = {
+                b"l": b"low",
+                b"m": b"medium",
+            }.get(option[1:2], b"high")
+            cal_lines.extend((b'KEYWORD "QUALITY"', b'QUALITY "%s"' % q))
+    cal_lines.extend(
+        (
+            b'KEYWORD "NATIVE_TARGET_WHITE"',
+            b'NATIVE_TARGET_WHITE ""',
+        )
+        if not whitepoint
+        else ()
+    )
+    return cal_lines
 
 
 def extract_device_gray_primaries(
-    ti3, gray=True, logfn=None, include_neutrals=False, neutrals_ab_threshold=0.1
-):
-    """Extract gray or primaries into new TI3
+    ti3: CGATS,
+    gray: bool = True,
+    logfn: None | bool = None,
+    include_neutrals: bool = False,
+    neutrals_ab_threshold: float = 0.1,
+) -> tuple[CGATS, dict, dict]:
+    """Extract gray or primaries into new TI3.
 
-    Return extracted ti3, extracted RGB to XYZ mapping and remaining RGB to XYZ
+    Args:
+        ti3 (CGATS): The CGATS instance containing the TI3 data.
+        gray (bool): If True, extract gray neutrals, otherwise extract RGB primaries.
+        logfn (callable): A logging function to call with messages.
+        include_neutrals (bool): If True, include neutral readings in the extraction.
+        neutrals_ab_threshold (float): Threshold for neutral readings in Lab space.
+
+    Returns:
+        tuple: A tuple containing:
+            - CGATS: The extracted TI3 data.
+            - dict: A mapping of extracted RGB to XYZ values.
+            - dict: A mapping of remaining RGB to XYZ values.
     """
     filename = ti3.filename
     ti3 = ti3.queryi1("DATA")
@@ -476,45 +655,84 @@ END_DATA"""
             logfn(f"Extracting neutrals and primaries from {ti3.filename}")
     elif logfn:
         logfn(f"Extracting neutrals from {ti3.filename}")
-    RGB_XYZ_extracted = {}
-    RGB_XYZ_remaining = {}
+
+    ti3_extracted, rgb_xyz_extracted, rgb_xyz_remaining, dupes = extract_rgb_xyz_data(
+        ti3,
+        gray,
+        include_neutrals,
+        neutrals_ab_threshold,
+        ti3_extracted,
+        subset,
+    )
+
+    for rgb, count in dupes.items():
+        for rgb_xyz in (rgb_xyz_extracted, rgb_xyz_remaining):
+            if rgb in rgb_xyz:
+                # Average values
+                xyz = tuple(rgb_xyz[rgb][i] / count for i in range(3))
+                rgb_xyz[rgb] = xyz
+    return ti3_extracted, rgb_xyz_extracted, rgb_xyz_remaining
+
+
+def extract_rgb_xyz_data(
+    ti3: CGATS,
+    gray: bool,
+    include_neutrals: bool,
+    neutrals_ab_threshold: float,
+    ti3_extracted: CGATS,
+    subset: list[tuple[float, float, float]],
+) -> CGATS:
+    """Extract RGB and XYZ data from TI3.
+
+    Args:
+        ti3 (CGATS): The CGATS instance containing the TI3 data.
+        gray (bool): If True, extract gray neutrals, otherwise extract RGB primaries.
+        include_neutrals (bool): If True, include neutral readings in the extraction.
+        neutrals_ab_threshold (float): Threshold for neutral readings in Lab space.
+        ti3_extracted (CGATS): The CGATS instance to store extracted data.
+        subset (list): List of RGB values to be included in the extraction.
+
+    Raises:
+        Error: If required fields are missing in the TI3 data.
+
+    Returns:
+        tuple[CGATS, dict, dict, dict]: The CGATS instance containing the
+            extracted data, the dictionary of extracted RGB to XYZ mappings,
+            the dictionary of remaining RGB to XYZ mappings, and the dictionary
+            of duplicate RGB values.
+    """
+    rgb_xyz_extracted = {}
+    rgb_xyz_remaining = {}
     dupes = {}
+
     if include_neutrals:
         white = ti3.get_white_cie("XYZ")
         str_thresh = str(neutrals_ab_threshold)
         round_digits = len(str_thresh[str_thresh.find(".") + 1 :])
+
     for i in ti3.DATA:
         item = ti3.DATA[i]
-        if not i:
-            # Check if fields are missing
-            for prefix in ("RGB", "XYZ"):
-                for suffix in prefix:
-                    key = f"{prefix}_{suffix}"
-                    if key not in item:
-                        raise Error(
-                            lang.getstr(
-                                "error.testchart.missing_fields", (ti3.filename, key)
-                            )
-                        )
-        RGB = (item["RGB_R"], item["RGB_G"], item["RGB_B"])
-        XYZ = (item["XYZ_X"], item["XYZ_Y"], item["XYZ_Z"])
-        for RGB_XYZ in (RGB_XYZ_extracted, RGB_XYZ_remaining):
-            if RGB not in RGB_XYZ:
+        if not i:  # don't validate the header
+            validate_ti3_item(ti3, item)
+        rgb = (item["RGB_R"], item["RGB_G"], item["RGB_B"])
+        xyz = (item["XYZ_X"], item["XYZ_Y"], item["XYZ_Z"])
+        for rgb_xyz in (rgb_xyz_extracted, rgb_xyz_remaining):
+            if rgb not in rgb_xyz:
                 continue
-            if RGB != (100.0, 100.0, 100.0):
+            if rgb != (100.0, 100.0, 100.0):
                 # Add to existing values for averaging later
                 # if it's not white (all other readings are scaled to the
                 # white Y by dispread, so we don't alter it. Note that it's
                 # always the first encountered white that will have Y = 100,
                 # even if subsequent white readings may be higher)
-                XYZ = tuple(RGB_XYZ[RGB][i] + XYZ[i] for i in range(3))
-                if RGB not in dupes:
-                    dupes[RGB] = 1.0
-                dupes[RGB] += 1.0
-            elif RGB in subset:
+                xyz = tuple(rgb_xyz[rgb][i] + xyz[i] for i in range(3))
+                if rgb not in dupes:
+                    dupes[rgb] = 1.0
+                dupes[rgb] += 1.0
+            elif rgb in subset:
                 # We have white already, remove it from the subset so any
                 # additional white readings we encounter are ignored
-                subset.remove(RGB)
+                subset.remove(rgb)
         if (
             gray
             and (
@@ -532,25 +750,42 @@ END_DATA"""
                     )
                 )
             )
-            and RGB not in [(100.0, 100.0, 100.0), (0.0, 0.0, 0.0)]
-        ) or RGB in subset:
+            and rgb not in [(100.0, 100.0, 100.0), (0.0, 0.0, 0.0)]
+        ) or rgb in subset:
             ti3_extracted.DATA.add_data(item)
-            RGB_XYZ_extracted[RGB] = XYZ
-        elif RGB not in [(100.0, 100.0, 100.0), (0.0, 0.0, 0.0)]:
-            RGB_XYZ_remaining[RGB] = XYZ
-    for RGB, count in dupes.items():
-        for RGB_XYZ in (RGB_XYZ_extracted, RGB_XYZ_remaining):
-            if RGB in RGB_XYZ:
-                # Average values
-                XYZ = tuple(RGB_XYZ[RGB][i] / count for i in range(3))
-                RGB_XYZ[RGB] = XYZ
-    return ti3_extracted, RGB_XYZ_extracted, RGB_XYZ_remaining
+            rgb_xyz_extracted[rgb] = xyz
+        elif rgb not in [(100.0, 100.0, 100.0), (0.0, 0.0, 0.0)]:
+            rgb_xyz_remaining[rgb] = xyz
+
+    return ti3_extracted, rgb_xyz_extracted, rgb_xyz_remaining, dupes
 
 
-def ti3_to_ti1(ti3_data):
+def validate_ti3_item(ti3: CGATS, item: dict) -> None:
+    """Validate a TI3 item to ensure it contains required fields.
+
+    Args:
+        ti3 (CGATS): The CGATS instance containing the TI3 data.
+        item (dict): The TI3 item to validate.
+
+    Raises:
+        Error: If required fields are missing in the TI3 item.
+    """
+    # Check if fields are missing
+    required_fields = ("RGB_R", "RGB_G", "RGB_B", "XYZ_X", "XYZ_Y", "XYZ_Z")
+    for field in required_fields:
+        if field not in item:
+            lang.getstr("error.testchart.missing_fields", (ti3.filename, field))
+
+
+def ti3_to_ti1(ti3_data: str | list[str] | BytesIO) -> bytes:
     """Create and return TI1 data converted from TI3.
 
-    ti3_data can be a file object, a list of strings or a string holding the data.
+    Args:
+        ti3_data (str | list[str] | BytesIO): Can be a file object, a list of
+            strings or a string holding the data.
+
+    Returns:
+        bytes: The converted TI1 data as bytes.
     """
     ti3 = CGATS(ti3_data)
     if not ti3:
@@ -571,8 +806,15 @@ def ti3_to_ti1(ti3_data):
     return bytes(ti3[0])
 
 
-def vcgt_to_cal(profile):
-    """Return a CAL (CGATS instance) from vcgt."""
+def vcgt_to_cal(profile: ICCProfile) -> CGATS:
+    """Return a CAL (CGATS instance) from vcgt.
+
+    Args:
+        profile (ICCProfile): The ICC profile containing the vcgt tag.
+
+    Returns:
+        CGATS: A CGATS instance representing the calibration data.
+    """
     cgats = CGATS(file_identifier=b"CAL")
     context = cgats.add_data({"DESCRIPTOR": b"Argyll Device Calibration State"})
     context.add_data({"ORIGINATOR": b"vcgt"})
@@ -603,11 +845,13 @@ def vcgt_to_cal(profile):
     context[key].type = key.encode("utf-8")
     values = profile.tags.vcgt.getNormalizedValues()
     for i, triplet in enumerate(values):
-        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)),) + triplet)
+        context[key].add_data((b"%.7f" % (i / float(len(values) - 1)), *triplet))
     return cgats
 
 
-def verify_cgats(cgats, required, ignore_unknown=True):
+def verify_cgats(
+    cgats: CGATS, required: tuple[str], ignore_unknown: bool = True
+) -> CGATS:
     """Verify and return a CGATS instance or None on failure.
 
     Verify if a CGATS instance has a section with all required fields.
@@ -616,6 +860,20 @@ def verify_cgats(cgats, required, ignore_unknown=True):
     If ignore_unknown evaluates to True, ignore fields which are not required.
     Otherwise, the CGATS data must contain only the required fields, no more,
     no less.
+
+    Args:
+        cgats (CGATS): The CGATS instance to verify.
+        required (tuple[str]): A tuple of required field names.
+        ignore_unknown (bool): Whether to ignore unknown fields.
+
+    Raises:
+        CGATSKeyError: If a required field is missing.
+        CGATSInvalidError: If the CGATS data is invalid or incomplete.
+        CGATSError: If an unknown field is found and ignore_unknown is False.
+
+    Returns:
+        CGATS: The verified CGATS instance containing the required section,
+            or raises an error if verification fails.
     """
     cgats_1 = cgats.queryi1(required)
     if not cgats_1 or not cgats_1.parent or not cgats_1.parent.parent:
@@ -638,11 +896,18 @@ def verify_cgats(cgats, required, ignore_unknown=True):
     return cgats_1
 
 
-def verify_ti1_rgb_xyz(cgats):
+def verify_ti1_rgb_xyz(cgats: CGATS) -> None | CGATS:
     """Verify and return a CGATS instance or None on failure.
 
     Verify if a CGATS instance has a TI1 section with all required fields
     for RGB devices. Return the TI1 section as CGATS instance on success,
     None on failure.
+
+    Args:
+        cgats (CGATS): The CGATS instance to verify.
+
+    Returns:
+        None | CGATS: The verified CGATS instance containing the TI1 section, or None
+            if verification fails.
     """
     return verify_cgats(cgats, ("RGB_R", "RGB_B", "RGB_G", "XYZ_X", "XYZ_Y", "XYZ_Z"))

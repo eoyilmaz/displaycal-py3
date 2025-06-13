@@ -7583,7 +7583,7 @@ class ProgressDialog(wx.Dialog):
             # Generating test patches
             frame_range = (27, 36)
             loop = True
-        self.animbmp.SetBitmaps(bitmaps, range=frame_range, loop=loop)
+        self.animbmp.SetBitmaps(bitmaps, range_=frame_range, loop=loop)
         if self.progress_type == 1:
             self.animbmp.frame = 4
         wx.CallLater(50, lambda: self and self.IsShown() and self.animbmp.Play(24))

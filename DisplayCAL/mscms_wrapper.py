@@ -1,19 +1,19 @@
 import ctypes
 
-from ctypes.wintypes import DWORD
-from ctypes.wintypes import BOOL
-from ctypes.wintypes import LPWSTR
-from ctypes import WINFUNCTYPE
-from ctypes import Structure
-from ctypes import POINTER
-from ctypes import WinError
 from ctypes import c_wchar_p
-from ctypes import wstring_at
 from ctypes import create_unicode_buffer
+from ctypes import POINTER
+from ctypes import Structure
+from ctypes import WinError
+from ctypes import WINFUNCTYPE
+from ctypes import wstring_at
+from ctypes.wintypes import BOOL
+from ctypes.wintypes import DWORD
+from ctypes.wintypes import LPWSTR
 
+from enum import auto
 from enum import IntEnum
 from enum import IntFlag
-from enum import auto
 
 from typing import Any
 from typing import Callable
@@ -134,7 +134,7 @@ class COLORPROFILESUBTYPE(IntEnum):
     CPST_SATURATION = auto()
     CPST_ABSOLUTE_COLORIMETRIC = auto()
     # working space
-    CPST_NONE = auto() # makes the API deduct profile subtype from the profile itself
+    CPST_NONE = auto()  # makes the API deduct profile subtype from the profile itself
     CPST_RGB_WORKING_SPACE = auto()
     CPST_CUSTOM_WORKING_SPACE = auto()
     CPST_STANDARD_DISPLAY_COLOR_MODE = auto()
@@ -369,25 +369,27 @@ class WCS:
         self._wcsSetUsePerUserProfiles = _wrap_wcsSetUsePerUserProfiles()
 
     def AssociateColorProfileWithDevice(
-        self, scope: WCS_PROF_SCOPE, profile: str, device_key: str
+        self, scope: WCS_PROF_SCOPE, profile_name: str, device_key: str
     ) -> None:
         """Associates a specified WCS color profile with a specified device.
+        
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
             profile (str): file name of the profile to disassociate
             device_key (str): device key of the device from which to disassociate the profile
-            
+
         Raises:
             OSError: in case of Win API errors
         """
-        self._wcsAssociateColorProfileWithDevice(scope, profile, device_key)
+        self._wcsAssociateColorProfileWithDevice(scope, profile_name, device_key)
 
     def DisassociateColorProfileFromDevice(
         self, scope: WCS_PROF_SCOPE, profile_name: str, device_key: str
     ) -> None:
         """Disassociates a specified WCS color profile from a specified device on a computer.
+        
         This API does not support "advanced color" profiles for HDR monitors. Can, apparently return random
         errors, even though it does it's job
 
@@ -410,6 +412,7 @@ class WCS:
         self, scope: WCS_PROF_SCOPE, enum_record: ENUMTYPEW, prof_size: int
     ) -> List[str]:
         """Enumerates color profiles associated with any device, in the specified scope.
+        
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:
@@ -436,13 +439,15 @@ class WCS:
     def EnumColorProfilesSize(
         self, scope: WCS_PROF_SCOPE, enum_record: ENUMTYPEW
     ) -> int:
-        """Returns the size, in bytes, of the buffer that is required by the EnumColorProfiles function 
-        to enumerate color profiles. This API does not support "advanced color" profiles for HDR monitors
+        """Returns the size, in bytes, of the buffer that is required by the EnumColorProfiles function
+        to enumerate color profiles. 
+        
+        This API does not support "advanced color" profiles for HDR monitors
 
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
             enum_record (ENUMTYPEW): structure specifying the enumeration criteria
-   
+
         Raises:
             OSError: in case of Win API errors
 
@@ -467,7 +472,7 @@ class WCS:
 
         Args:
             new_state (bool): True to enable system management of the display calibration state. False to disable system management of the display calibration state
-        
+
         Raises:
             OSError: in case of Win API errors
         """
@@ -483,7 +488,8 @@ class WCS:
         profile_id: int = 0,
     ) -> str:
         """Retrieves the default color profile for a device, or for a device-independent default if the device is not specified.
-        This API does not support "advanced color" profiles for HDR monitors. Note: if HDR enabled on a device causes OSError 
+        
+        This API does not support "advanced color" profiles for HDR monitors. Note: if HDR enabled on a device causes OSError
 
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
@@ -514,6 +520,7 @@ class WCS:
         profile_id: int = 0,
     ) -> int:
         """Returns the size, in bytes, of the default color profile name (including the NULL terminator), for a device.
+        
         This API does not support "advanced color" profiles for HDR monitors. Note: if HDR enabled on a device returns 0
 
         Args:
@@ -543,6 +550,7 @@ class WCS:
         profile_id: int = 0,
     ) -> None:
         """Sets the default color profile name for the specified profile type in the specified profile management scope.
+        
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:
@@ -594,3 +602,28 @@ class WCS:
             OSError: in case of Win API errors
         """
         self._wcsSetUsePerUserProfiles(device_key, device_class, new_state)
+
+    def getDeviceColorProfileList(
+        self,
+        scope: WCS_PROF_SCOPE,
+        device_key: str,
+        device_class: dwDeviceClass = dwDeviceClass.CLASS_MONITOR,
+    ) -> List[str]:
+        """Higher abstraction level function to get color profile list for a device. Also dodges the issue
+        with serialization of some ctypes structures in multiprocess context
+
+        Args:
+            scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
+            device_key (str): device key of the device
+
+        Raises:
+            OSError: in case of Win API errors
+            ValueError: on parsing errors
+
+        Returns:
+            List[str]: array of color profile names
+        """
+        enum_record = ENUMTYPEW.create_monitor_profile_filter(device_key)
+        size = self.EnumColorProfilesSize(scope, enum_record)
+        prof_list = self.EnumColorProfiles(scope, enum_record, size)
+        return prof_list

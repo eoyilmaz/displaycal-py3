@@ -30,11 +30,11 @@ from typing_extensions import ParamSpec
 from typing_extensions import TypedDict
 from typing_extensions import TypeVar
 
-from mscms_wrapper import COLORPROFILESUBTYPE
-from mscms_wrapper import COLORPROFILETYPE
-from mscms_wrapper import dwDeviceClass
-from mscms_wrapper import WCS
-from mscms_wrapper import WCS_PROF_SCOPE
+from DisplayCAL.mscms_wrapper import COLORPROFILESUBTYPE
+from DisplayCAL.mscms_wrapper import COLORPROFILETYPE
+from DisplayCAL.mscms_wrapper import dwDeviceClass
+from DisplayCAL.mscms_wrapper import WCS
+from DisplayCAL.mscms_wrapper import WCS_PROF_SCOPE
 
 """
 This module provides a threadsafe interface for the Windows Color System API while isolating actual 

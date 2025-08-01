@@ -114,7 +114,6 @@ if sys.platform == "win32":
         MONITORINFOF_PRIMARY,
         per_user_profiles_isenabled,
         run_as_admin,
-        USE_REGISTRY,
         win_ver,
     )
 
@@ -1050,8 +1049,7 @@ class ProfileAssociationsDialog(InfoDialog):
 
     def _update_device(self, fn, arg0, devicekey, show_error=True):
         if (
-            not USE_REGISTRY
-            and fn is enable_per_user_profiles
+            fn is enable_per_user_profiles
             and not per_user_profiles_isenabled(devicekey=devicekey)
         ):
             # We need to re-associate per-user profiles to the

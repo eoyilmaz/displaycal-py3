@@ -96,6 +96,7 @@ if sys.platform == "win32":
     import winerror
     import winreg
 
+    from DisplayCAL.mscms import WCSManager, WCS_PROF_SCOPE
     from DisplayCAL.icc_profile import _winreg_get_display_profiles
     from DisplayCAL.systrayicon import Menu, MenuItem, SysTrayIcon
     from DisplayCAL.util_win import (
@@ -1057,8 +1058,8 @@ class ProfileAssociationsDialog(InfoDialog):
             # after enabling per-user if a system default profile
             # was set (but only if we call WcsSetUsePerUserProfiles
             # instead of setting the underlying registry value directly)
-            monkey = devicekey.split("\\")[-2:]
-            profiles = _winreg_get_display_profiles(monkey, True)
+            WCS = WCSManager()
+            profiles = WCS.get_device_color_profile_list(WCS_PROF_SCOPE.CURRENT_USER, devicekey)
         else:
             profiles = []
         try:
@@ -1146,8 +1147,11 @@ class ProfileAssociationsDialog(InfoDialog):
             current_user = False
             scope_changed = False
         monkey = device.DeviceKey.split("\\")[-2:]
-        profiles = _winreg_get_display_profiles(monkey, current_user)
-        profiles.reverse()
+        scope = WCS_PROF_SCOPE.CURRENT_USER
+        if not current_user:
+            scope = WCS_PROF_SCOPE.SYSTEM_WIDE
+        WCS = WCSManager()
+        profiles = WCS.get_device_color_profile_list(scope, device.DeviceKey)
         profiles_changed = profiles != self.profiles
         if profiles_changed:
             self.profiles_ctrl.Freeze()

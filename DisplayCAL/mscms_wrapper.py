@@ -429,6 +429,8 @@ class WCS:
         """
         buf = create_unicode_buffer(prof_size)
         profiles, p_num = self._wcsEnumColorProfiles(scope, enum_record, buf, prof_size)
+        if p_num == 0:
+            return []
         prof_arr = wstring_at(profiles, prof_size).strip("\x00").split("\x00")
         if len(prof_arr) != p_num:
             raise ValueError(

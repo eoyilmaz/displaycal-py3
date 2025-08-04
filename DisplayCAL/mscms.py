@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import builtins
 import logging
 import multiprocessing
 import psutil
@@ -69,6 +70,8 @@ logger.addHandler(ch)
 logger.propagate = False
 
 metrics_gather_period = 50
+
+FILE_NOT_FOUND_ERRNO = 2
 
 RequestType = TypedDict(
     "RequestType", {"id": str, "method": str, "args": Any, "kwargs": Any}
@@ -404,7 +407,7 @@ class WCSManager:
 
         logger.debug("Response listener thread loop finished")
 
-    @retry(retry_on=(RuntimeError, TimeoutError))
+    @retry(retry_on=(RuntimeError, TimeoutError, WCSManagerShutdownError))
     def _call_wcs_method(self, method_name: str, *args: Any, **kwargs: Any) -> Any:
         if self._shutdown_event.is_set():
             raise WCSManagerShutdownError("WCSManager is set to shut down")
@@ -457,16 +460,19 @@ class WCSManager:
                 error_errno = error_response.get("errno")
 
                 # Recreating exceptions
-                if error_type == "OSError":
-                    exc = OSError(error_message)
+                try:
+                    exc_class = getattr(builtins, error_type)
+                except Exception:
+                    exc_class = WCSWorkerError
+
+                if issubclass(exc_class, OSError):
+                    exc = exc_class(error_message)
                     if error_errno is not None:
                         exc.errno = error_errno
                     raise exc
-                elif error_type == "ValueError":
-                    raise ValueError(error_message)
                 else:
                     # Something else might have happened
-                    raise WCSWorkerError(f"{error_type}: {error_message}")
+                    raise exc_class(f"{error_type}: {error_message}")
 
         # normal path
         return req_data.get("result")
@@ -618,7 +624,7 @@ class WCSManager:
         c_prof_type: COLORPROFILETYPE = COLORPROFILETYPE.CPT_ICC,
         c_prof_subtype: COLORPROFILESUBTYPE = COLORPROFILESUBTYPE.CPST_NONE,
         profile_id: int = 0,
-    ) -> str:
+    ) -> Optional[str]:
         """Retrieves the default color profile for a device
 
         This API does not support "advanced color" profiles for HDR monitors.
@@ -645,26 +651,30 @@ class WCSManager:
             RuntimeError: in case of unrecoverable IPC errors
 
         Returns:
-            str: the name of the default color profile for the device
+            str: the name of the default color profile for the device (or None if not set)
         """
-        size = self._call_wcs_method(
-            "GetDefaultColorProfileSize",
-            scope,
-            device_key,
-            c_prof_type,
-            c_prof_subtype,
-            profile_id,
-        )
-        prof = self._call_wcs_method(
-            "GetDefaultColorProfile",
-            scope,
-            device_key,
-            size,
-            c_prof_type,
-            c_prof_subtype,
-            profile_id,
-        )
-        return prof
+        try:
+            size = self._call_wcs_method(
+                "GetDefaultColorProfileSize",
+                scope,
+                device_key,
+                c_prof_type,
+                c_prof_subtype,
+                profile_id,
+            )
+            prof = self._call_wcs_method(
+                "GetDefaultColorProfile",
+                scope,
+                device_key,
+                size,
+                c_prof_type,
+                c_prof_subtype,
+                profile_id,
+            )
+            return prof
+        except FileNotFoundError: # no default profile 
+            pass
+        return None
 
     def set_default_color_profile(
         self,

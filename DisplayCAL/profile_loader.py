@@ -45,6 +45,7 @@ from DisplayCAL.icc_profile import (
     get_display_profile,
     set_display_profile,
     unset_display_profile,
+    set_default_display_profile,
     VideoCardGammaFormulaType,
     VideoCardGammaType,
     WcsProfilesTagType,
@@ -1008,7 +1009,7 @@ class ProfileAssociationsDialog(InfoDialog):
             -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
         )
         if pindex > -1:
-            self.set_profile(self.profiles[pindex], True)
+            self.unset_profile(self.profiles[pindex])
         else:
             wx.Bell()
 
@@ -1021,16 +1022,18 @@ class ProfileAssociationsDialog(InfoDialog):
             -1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
         )
         if pindex > -1:
-            self.set_profile(self.profiles[pindex])
+            self.set_default_profile(self.profiles[pindex])
         else:
             wx.Bell()
 
-    def set_profile(self, profile, unset=False):
-        if unset:
-            fn = unset_display_profile
-        else:
-            fn = set_display_profile
-        self._update_configuration(fn, profile)
+    def set_profile(self, profile):
+        self._update_configuration(set_display_profile, profile)
+
+    def unset_profile(self, profile):
+        self._update_configuration(unset_display_profile, profile)
+
+    def set_default_profile(self, profile):
+        self._update_configuration(set_default_display_profile, profile)
 
     def _update_configuration(self, fn, arg0):
         dindex = self.display_ctrl.GetSelection()

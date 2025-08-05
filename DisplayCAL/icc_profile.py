@@ -2375,68 +2375,6 @@ def get_display_profile_linux(
     return profile
 
 
-def _wcs_set_display_profile(
-    devicekey, profile_name, scope=WCS_PROF_SCOPE.CURRENT_USER
-):
-    """Set the current default WCS color profile for the given device.
-
-    If the device is a display, this will also set its video card gamma ramps
-    to linear* if the given profile is the display's current default profile
-    and Windows calibration management isn't enabled.
-
-    Note that the profile needs to have been already installed.
-
-    * 0..65535 will get mapped to 0..65280, which is a Windows bug
-
-    """
-    # We need to disassociate the profile first in case it's not the default
-    # so we can make it the default again.
-    # Note that disassociating the current default profile for a display will
-    # also set its video card gamma ramps to linear if Windows calibration
-    # management isn't enabled.
-    with contextlib.suppress(WindowsError):
-        # Disassociate the profile from the device first
-        mscms.disassociate_color_profile_from_device(scope, profile_name, devicekey)
-    
-    mscms.associate_color_profile_with_device(scope, profile_name, devicekey)
-
-    profiles = mscms.get_device_color_profile_list(scope, devicekey)
-    if profile_name not in profiles:
-        return False
-    return True
-
-
-def _wcs_unset_display_profile(
-    devicekey, profile_name, scope=WCS_PROF_SCOPE.CURRENT_USER
-):
-    """Unset the current default WCS color profile for the given device.
-
-    If the device is a display, this will also set its video card gamma ramps
-    to linear* if the given profile is the display's current default profile
-    and Windows calibration management isn't enabled.
-
-    Note that the profile needs to have been already installed.
-
-    * 0..65535 will get mapped to 0..65280, which is a Windows bug
-
-    """
-    # Disassociating a profile will always (regardless of whether or
-    # not the profile was associated or even exists) result in Windows
-    # error code 2015 ERROR_PROFILE_NOT_ASSOCIATED_WITH_DEVICE.
-    # This is probably a Windows bug.
-    # To have a meaningful return value, we thus check wether the profile that
-    # should be removed is currently associated, and only fail if it is not,
-    # or if disassociating it fails for some reason.
-    profiles = mscms.get_device_color_profile_list(scope, devicekey)
-
-    if profile_name not in profiles:
-        return True
-
-    mscms.disassociate_color_profile_from_device(scope, profile_name, devicekey)
-            
-    return True
-
-
 def set_display_profile(
     profile_name, display_no=0, devicekey=None, use_active_display_device=True
 ):
@@ -2452,7 +2390,9 @@ def set_display_profile(
             scope = WCS_PROF_SCOPE.CURRENT_USER
         else:
             scope = WCS_PROF_SCOPE.SYSTEM_WIDE
-        return _wcs_set_display_profile(str(devicekey), profile_name, scope)
+        
+        mscms.associate_color_profile_with_device(scope, profile_name, str(devicekey))
+        return True
     else:
         # TODO: Implement for XP
         return False
@@ -2473,11 +2413,36 @@ def unset_display_profile(
             scope = WCS_PROF_SCOPE.CURRENT_USER
         else:
             scope = WCS_PROF_SCOPE.SYSTEM_WIDE
-        return _wcs_unset_display_profile(str(devicekey), profile_name, scope)
+        
+        mscms.disassociate_color_profile_from_device(scope, profile_name, str(devicekey))
+        profiles = mscms.get_device_color_profile_list(scope, str(devicekey))
+        if profile_name not in profiles:
+            return True
     else:
         # TODO: Implement for XP
         return False
+    return False
 
+def set_default_display_profile(
+    profile_name, display_no=0, devicekey=None, use_active_display_device=True
+):
+    if not devicekey:
+        device = util_win.get_display_device(display_no, use_active_display_device)
+        if not device:
+            return False
+        devicekey = device.DeviceKey
+    if mscms:
+        if util_win.per_user_profiles_isenabled(devicekey=devicekey):
+            scope = WCS_PROF_SCOPE.CURRENT_USER
+        else:
+            scope = WCS_PROF_SCOPE.SYSTEM_WIDE
+
+        mscms.set_default_color_profile(scope, str(devicekey), profile_name)
+        return True
+    else:
+        # TODO: Implement for XP
+        return False
+    
 
 def _blend_blackpoint(row, bp_in, bp_out, wp=None, use_bpc=False, weight=False):
     X, Y, Z = row

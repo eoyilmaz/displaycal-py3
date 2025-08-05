@@ -497,18 +497,20 @@ class WCSManager:
             self.shutdown()
 
     def associate_color_profile_with_device(
-        self, scope: WCS_PROF_SCOPE, profile: str, device_key: str
+        self, scope: WCS_PROF_SCOPE, profile_name: str, device_key: str
     ) -> None:
         """
         Associates a specified WCS color profile with a specified device
 
         This API does not support "advanced color" profiles for HDR monitors
 
+        Note: this API makes the added profile also be the default one
+
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management
                                     operation, which could be system-wide or for
                                     the current user
-            profile (str): file name of the profile to associate
+            profile_name (str): file name of the profile to associate
             device_key (str): device key of the device with which to associate
                               the profile
 
@@ -520,7 +522,7 @@ class WCSManager:
             RuntimeError: in case of unrecoverable IPC errors
         """
         self._call_wcs_method(
-            "AssociateColorProfileWithDevice", scope, profile, device_key
+            "AssociateColorProfileWithDevice", scope, profile_name, device_key
         )
 
     def disassociate_color_profile_from_device(
@@ -530,6 +532,8 @@ class WCSManager:
         Disassociates a specified WCS color profile from a specified device
 
         This API does not support "advanced color" profiles for HDR monitors
+        
+        Note: very unreliable due to quirks, the actual result should be double-checked with profile listing
 
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management

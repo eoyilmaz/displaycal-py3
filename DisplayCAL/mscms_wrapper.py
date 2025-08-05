@@ -41,6 +41,7 @@ PCWSTR = c_wchar_p
 
 ENUM_TYPE_VERSION = DWORD(0x0300)  # Profile enumeration marker
 WIN_ERRNO_SUCCESS = 0
+WIN_ERRNO_PROFILE_NOT_ASSOCIATED = 2015
 
 
 class dwDeviceClass(IntEnum):
@@ -375,6 +376,8 @@ class WCS:
         
         This API does not support "advanced color" profiles for HDR monitors
 
+        Note: this API makes the added profile also be the default one
+
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
             profile (str): file name of the profile to disassociate
@@ -390,8 +393,9 @@ class WCS:
     ) -> None:
         """Disassociates a specified WCS color profile from a specified device on a computer.
         
-        This API does not support "advanced color" profiles for HDR monitors. Can, apparently return random
-        errors, even though it does it's job
+        This API does not support "advanced color" profiles for HDR monitors.
+
+        Note: very unreliable due to quirks, the actual result should be double-checked with profile listing
 
         Args:
             scope (WCS_PROF_SCOPE): specifies the scope of this profile management operation, which could be system-wide or for the current user
@@ -399,13 +403,14 @@ class WCS:
             device_key (str): device key of the device from which to disassociate the profile
 
         Raises:
-            OSError: in case of Win API errors
+            OSError: in case of Win API errors (aparts of the ones caught during handling its quirks)
         """
         try:
             self._wcsDisassociateColorProfileFromDevice(scope, profile_name, device_key)
         except OSError as e:
-            # quirk: returns error, but errno signifies success and the profile is disassociated
-            if e.winerror != WIN_ERRNO_SUCCESS:
+            # quirks: very very quirky: either returns error with errno success or errno profile 
+            # not associated with device. Why? Because Windows, that's why. 
+            if e.winerror not in (WIN_ERRNO_SUCCESS, WIN_ERRNO_PROFILE_NOT_ASSOCIATED):
                 raise
 
     def EnumColorProfiles(

@@ -14,7 +14,6 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from queue import Empty
 from threading import Lock
-from threading import RLock
 from threading import Thread
 from time import sleep
 from typing import Any
@@ -69,7 +68,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.propagate = False
 
-metrics_gather_period = 50
+check_handles_call_num = 100 # check leaking handles every <num> of calls
+open_handles_threshold = 3000 # worker process open handle limit
 
 FILE_NOT_FOUND_ERRNO = 2
 
@@ -87,7 +87,6 @@ FailureResponseType = TypedDict(
     {"type": Literal["resp_error"], "id": str, "error": ErrorType},
 )
 ResponseType = Union[SuccessResponseType, FailureResponseType]
-MetricsType = TypedDict("MetricsType", {"type": Literal["metrics"], "num_handles": int})
 
 PendingType = TypedDict(
     "PendingType",
@@ -160,11 +159,10 @@ def retry(
 
 def _wcs_worker_process(
     request_queue: Queue[RequestType | None],
-    response_queue: Queue[ResponseType | MetricsType],
+    response_queue: Queue[ResponseType],
     log_queue: Queue[Any],
 ) -> None:
     wcs_instance = None
-    request_count = 0
 
     log_queue_handler = QueueHandler(log_queue)
     logger = logging.getLogger(__name__ + ".wcsworker")
@@ -220,22 +218,6 @@ def _wcs_worker_process(
             except Exception as e:
                 logger.error(f"Failed to send response for request {request_id}: {e}")
 
-            # Open handles check
-            request_count += 1
-            if request_count % metrics_gather_period == 0:
-                try:
-                    p = psutil.Process()
-                    num_handles = p.num_handles()
-
-                    metrics_response: MetricsType = {
-                        "type": "metrics",
-                        "num_handles": num_handles,
-                    }
-
-                    response_queue.put_nowait(metrics_response)
-
-                except Exception as e:
-                    logger.warning(f"Failed to get handle count: {e}")
     except Exception as e:
         logger.critical(f"Unexpected error in WCSWorker process: {e}", exc_info=True)
     finally:
@@ -261,7 +243,7 @@ class WCSManager:
 
     def __init__(
         self,
-        handle_threshold: int = 10000,  # will restart once in a while
+        handle_threshold: int = open_handles_threshold,  # will restart once in a while
         request_timeout: float = 10.0,
     ):
         """Initializes WCSManager class. Note: can only be run once
@@ -276,15 +258,15 @@ class WCSManager:
         self.handle_threshold = handle_threshold
         self.request_timeout = request_timeout
 
-        self._lock = RLock()
+        self._lock = Lock()
         self._worker_process: Optional[Process] = None
         self._request_queue: Queue[RequestType | None] = Queue()
-        self._response_queue: Queue[ResponseType | MetricsType] = Queue()
+        self._response_queue: Queue[ResponseType] = Queue()
         self._log_queue: Queue[Any] = Queue()
         self._log_listener: Optional[QueueListener] = None
         self._pending_requests: Dict[str, PendingType] = {}
-        self._last_num_handles = 0
         self._shutdown_event = threading.Event()
+        self._wcs_calls_made = 0
 
         self._response_listener_thread: Optional[Thread] = None
 
@@ -307,8 +289,6 @@ class WCSManager:
                 return
 
             self._shutdown_event.clear()
-
-            self._last_num_handles = 0
 
             self._worker_process = multiprocessing.Process(
                 target=_wcs_worker_process,
@@ -354,11 +334,30 @@ class WCSManager:
 
             self._shutdown_event.set()  # Closing down listener and call functionality
 
-    def _restart_worker(self):
-        logger.info("Restarting WCSWorker...")
-        self._stop_worker()
-        self._start_worker()
-        logger.info("WCSWorker restarted successfully")
+    def _handle_check_worker(self):
+        logger.info("Performing worker process open handle check")
+
+        p = None
+        num_handles = 0
+
+        try:
+            if self._worker_process:
+                p = psutil.Process(self._worker_process.pid)
+                num_handles = p.num_handles()
+            else:
+                logger.warning("No running worker process discovered")
+
+        except Exception as e:
+            logger.warning(f"Failed to get handle count for process {p.pid if p else 'unknown'}: {e}")
+            return
+
+        if num_handles > self.handle_threshold:
+            logger.debug(f"Open handle number exceeded: {num_handles}>{self.handle_threshold}. Restarting worker process")
+            self._stop_worker()
+            self._start_worker()
+            logger.info("WCSWorker restarted successfully")
+        else:
+            logger.debug(f"Current child process open handles: {num_handles}")
 
     def _listen_for_responses(self):
         logger.debug("Response listener thread main loop started")
@@ -371,19 +370,6 @@ class WCSManager:
             except Exception as e:
                 if not self._shutdown_event.is_set():
                     logger.error(f"Error getting response from queue: {e}")
-                continue
-
-            if response.get("type") == "metrics":
-                self._last_num_handles = response.get("num_handles", 0)
-                logger.debug(f"Received metrics: handles={self._last_num_handles}")
-
-                # Restart
-                if self._last_num_handles > self.handle_threshold:
-                    logger.warning(
-                        f"Handle count ({self._last_num_handles}) exceeded threshold ({self.handle_threshold}), scheduling restart."
-                    )
-                    # Launch in other thread to not block the listener
-                    threading.Thread(target=self._restart_worker, daemon=True).start()
                 continue
 
             # Regular path
@@ -435,6 +421,14 @@ class WCSManager:
                     f"Request ID {request_id} removed from pending requests: cancellation"
                 )
             raise RuntimeError(f"Failed to send request to worker: {e}")
+
+        with self._lock:
+            self._wcs_calls_made += 1
+
+            if self._wcs_calls_made % check_handles_call_num == 0:
+                logger.debug("Worker process open handle check triggered")
+                # Launch in other thread to not block the listener
+                threading.Thread(target=self._handle_check_worker, daemon=True).start()
 
         # Waiting for an answer to be received
         if not event.wait(timeout=self.request_timeout):

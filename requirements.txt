@@ -8,7 +8,8 @@ Pillow
 protobuf
 PyChromecast
 pywin32; sys_platform == "win32"
-psutil; sys_platform == "win32"
+psutil
+typing_extensions
 Send2Trash
 WMI; sys_platform == "win32"
 wxPython >= 4.2.2

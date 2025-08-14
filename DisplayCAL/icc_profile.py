@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import binascii
-import contextlib
 import ctypes
 import datetime
 import json
@@ -48,6 +47,7 @@ from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
 from DisplayCAL.encoding import get_encodings
 from DisplayCAL.options import test_input_curve_clipping
 from DisplayCAL.util_list import intlist
+from DisplayCAL.mscms import WCS_PROF_SCOPE, COLORPROFILETYPE, COLORPROFILESUBTYPE
 
 if sys.platform not in ("darwin", "win32"):
     from DisplayCAL.defaultpaths import xdg_config_dirs, xdg_config_home
@@ -62,7 +62,6 @@ if sys.platform not in ("darwin", "win32"):
 elif sys.platform == "win32":
     from DisplayCAL import util_win
     from DisplayCAL.mscms import WCSManager
-    from DisplayCAL.mscms import WCS_PROF_SCOPE, COLORPROFILETYPE, COLORPROFILESUBTYPE
 
     if sys.getwindowsversion() < (6,):
         # WCS only available under Vista and later

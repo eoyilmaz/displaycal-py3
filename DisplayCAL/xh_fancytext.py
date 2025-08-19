@@ -1,6 +1,17 @@
-# -*- coding: utf-8 -*-
+"""
+xh_fancytext.py — XRC handler for StaticFancyText controls.
 
-import wx
+This module defines a custom XmlResourceHandler for integrating
+StaticFancyText widgets into wxPython XRC resource files. StaticFancyText is
+a label-like control that can render styled text with simple markup, such as
+bold or italic spans.
+
+When declared in an XRC file with <object class="StaticFancyText">, this
+handler creates and configures the control, applying properties such as the
+text label, position, size, and style. If the widget is marked as hidden in
+XRC, it is automatically hidden after creation.
+"""
+
 import wx.xrc as xrc
 from DisplayCAL.log import safe_print
 

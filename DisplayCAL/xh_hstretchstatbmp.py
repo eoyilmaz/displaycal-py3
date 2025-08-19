@@ -1,4 +1,17 @@
-# -*- coding: utf-8 -*-
+"""
+xh_hstretchstatbmp.py — XRC handler for HStretchStaticBitmap widgets.
+
+This module defines a custom XmlResourceHandler for integrating the
+HStretchStaticBitmap widget into wxPython XRC-based user interfaces.
+HStretchStaticBitmap behaves like a standard wx.StaticBitmap, but it is
+capable of horizontally stretching its bitmap to fit the available space,
+making it useful in responsive or resizable layouts.
+
+When used in an XRC resource file, the <object class="HStretchStaticBitmap">
+tag will be recognized and instantiated through this handler. If the
+DisplayCAL-specific implementation is not available, it falls back to the
+standard wx.StaticBitmap.
+"""
 
 import wx
 import wx.xrc as xrc

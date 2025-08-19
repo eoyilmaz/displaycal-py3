@@ -1,4 +1,7 @@
-# -*- coding: utf-8 -*-
+import os
+import sys
+
+from DisplayCAL.options import debug
 
 from ctypes import (
     POINTER,
@@ -27,11 +30,6 @@ try:
     libxrandr = cdll.LoadLibrary(libxrandrpth)
 except OSError:
     raise ImportError("Couldn't load libXrandr")
-
-import os
-import sys
-
-from DisplayCAL.options import debug
 
 XA_CARDINAL = 6
 XA_INTEGER = 19

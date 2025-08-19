@@ -1,3 +1,18 @@
+"""
+xrandr.py — Python bindings for querying X11/XRandR display properties.
+
+This module provides a thin ctypes-based wrapper around the X11 (libX11) and
+XRandR (libXrandr) libraries. It enables Python code to open an X11 display,
+resolve atoms, and retrieve properties from windows or outputs, such as EDID
+information or other low-level display metadata. It is intended for use in
+applications like DisplayCAL that require direct access to monitor properties
+beyond what higher-level libraries expose.
+
+The main entry point is the XDisplay class, which acts as a context manager
+to safely open/close an X11 display and provides helper methods for querying
+window and output properties.
+"""
+
 import os
 import sys
 

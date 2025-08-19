@@ -1,4 +1,16 @@
-# -*- coding: utf-8 -*-
+"""
+xh_filebrowsebutton.py — XRC handlers for file browse button controls.
+
+This module defines custom XmlResourceHandlers for integrating wxPython’s
+FileBrowseButton and FileBrowseButtonWithHistory widgets into XRC resource
+files. These controls combine a text field with a "Browse" button, allowing
+the user to select files via a dialog or type paths directly.
+
+When declared in an XRC file, the handlers create and configure the controls,
+applying properties such as label text, button text, tooltips, dialog title,
+start directory, file mask, and file mode. If the widget is marked as hidden
+in XRC, it is automatically hidden after creation.
+"""
 
 import wx
 import wx.xrc as xrc

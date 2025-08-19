@@ -1,4 +1,15 @@
-# -*- coding: utf-8 -*-
+"""
+XRC handlers for wxBitmapButton and wxStaticBitmap controls.
+
+This module defines custom XmlResourceHandlers that allow bitmap-based
+buttons and static images to be used within wxPython XRC resource files.
+When declared in XRC as <object class="wxBitmapButton"> or
+<object class="wxStaticBitmap">, these handlers create and configure the
+controls by resolving the bitmap resource via DisplayCAL’s getbitmap().
+
+The handlers also support standard window properties such as position, size,
+style, and hidden state, automatically applying them after creation.
+"""
 
 import os
 

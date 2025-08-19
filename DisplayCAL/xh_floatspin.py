@@ -1,4 +1,18 @@
-# -*- coding: utf-8 -*-
+"""
+xh_floatspin.py — XRC handler for FloatSpin controls.
+
+This module defines a custom XmlResourceHandler that allows the FloatSpin
+widget to be used within wxPython XRC resource files. FloatSpin is a numeric
+input control similar to wx.SpinCtrl, but supports floating-point values,
+custom increments, and configurable precision. Depending on availability, it
+uses DisplayCAL's own FloatSpin implementation or falls back to
+wx.lib.agw.floatspin.
+
+When declared in an XRC file with <object class="FloatSpin">, this handler
+creates and configures the control, applying properties such as min/max
+values, increment step, initial value, and digit precision. If the widget is
+marked as hidden in XRC, it is automatically hidden after creation.
+"""
 
 import wx
 import wx.xrc as xrc

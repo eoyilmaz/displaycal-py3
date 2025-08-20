@@ -1,4 +1,11 @@
-# -*- coding: utf-8 -*-
+"""
+VRML to X3D converter.
+
+Provides a command-line and optional GUI interface for converting VRML
+(.vrml, .wrl, .wrz) files into X3D (.x3d) format, with support for
+generating an accompanying HTML viewer. Integrates with DisplayCAL’s
+localization, configuration, and GUI components.
+"""
 
 import os
 import sys
@@ -64,15 +71,16 @@ if gui:
                 ),
             )
             self.droptarget = FileDrop(self)
-            vrml_drop_handler = lambda vrmlpath: vrmlfile2x3dfile(
-                vrmlpath,
-                html=html,
-                embed=embed,
-                view=view,
-                force=force,
-                cache=cache,
-                worker=self.worker,
-            )
+            def vrml_drop_handler(vrmlpath):
+                return vrmlfile2x3dfile(
+                    vrmlpath,
+                    html=self.html,
+                    embed=self.embed,
+                    view=view,
+                    force=self.force,
+                    cache=self.cache,
+                    worker=self.worker,
+                )
             self.droptarget.drophandlers = {
                 ".vrml": vrml_drop_handler,
                 ".vrml.gz": vrml_drop_handler,
@@ -203,7 +211,7 @@ def vrmlfile2x3dfile(
                 print("%r is not a file." % vrmlpath)
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            BaseApp(0)
         defaultDir, defaultFile = config.get_verified_path("last_vrml_path")
         dlg = wx.FileDialog(
             None,
@@ -235,7 +243,7 @@ def vrmlfile2x3dfile(
                 print(f"{repr(dirname)} is not writable.")
             return False
         if not wx.GetApp():
-            app = BaseApp(0)
+            BaseApp(0)
         if x3dpath:
             defaultDir, defaultFile = os.path.split(x3dpath)
         else:

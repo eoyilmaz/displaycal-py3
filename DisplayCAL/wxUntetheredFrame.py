@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 """
 Interactive display calibration UI
 """
@@ -262,7 +261,6 @@ class UntetheredFrame(BaseFrame):
                 print(exception)
 
         return 0
-
 
     def OnMove(self, event):
         if (

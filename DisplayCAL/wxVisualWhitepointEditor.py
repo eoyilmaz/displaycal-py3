@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Visual whitepoint editor.
 
 Based on wx.lib.agw.cubecolourdialog 0.4 by Andrea Gavana @ 26 Feb 2012

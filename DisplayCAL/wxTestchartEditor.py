@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import csv
 import math
 import os
@@ -37,7 +35,6 @@ from DisplayCAL.cgats import (
 )
 from DisplayCAL.config import (
     defaults,
-    get_current_profile,
     get_data_path,
     get_display_name,
     get_total_patches,
@@ -46,7 +43,6 @@ from DisplayCAL.config import (
     getcfg,
     geticon,
     hascfg,
-    profile_ext,
     setcfg,
     writecfg,
 )
@@ -58,7 +54,7 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug, tc_use_alternate_preview, test, verbose
-from DisplayCAL.util_os import expanduseru, is_superuser, launch_file, waccess
+from DisplayCAL.util_os import is_superuser, launch_file, waccess
 from DisplayCAL.worker import (
     Error,
     Worker,
@@ -68,8 +64,7 @@ from DisplayCAL.worker import (
     show_result_dialog,
 )
 from DisplayCAL.wxMeasureFrame import get_default_size
-from DisplayCAL.wxaddons import CustomEvent, CustomGridCellEvent, wx
-from DisplayCAL.wxfixes import GenBitmapButton as BitmapButton
+from DisplayCAL.wxaddons import CustomEvent, wx
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
@@ -77,7 +72,6 @@ from DisplayCAL.wxwindows import (
     CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
-    InfoDialog,
     get_gradient_panel,
 )
 
@@ -1361,7 +1355,6 @@ END_DATA"""
     def tc_grid_label_left_dclick_handler(self, event):
         row, col = event.GetRow(), event.GetCol()
         if col == -1:  # row label clicked
-            data = self.ti1.queryv1("DATA")
             wp = self.ti1.queryv1("APPROX_WHITE_POINT")
             if wp:
                 wp = [float(v) for v in wp.split()]
@@ -1738,7 +1731,6 @@ END_DATA"""
                 black_patches = self.ti1.queryv1("BLACK_COLOR_PATCHES")
         if single_channel_patches is None:
             single_channel_patches = self.tc_single_channel_patches.GetValue()
-        single_channel_patches_total = single_channel_patches * 3
         if gray_patches is None:
             gray_patches = self.tc_gray_patches.GetValue()
         if (
@@ -1896,7 +1888,6 @@ END_DATA"""
         self.tc_enable_add_precond_controls()
 
     def tc_enable_add_precond_controls(self):
-        tc_algo = getcfg("tc_algo")
         add_preconditioned_enable = hasattr(self, "ti1") and bool(
             getcfg("tc_precond_profile")
         )
@@ -1963,7 +1954,6 @@ END_DATA"""
             else:
                 row = self.grid.GetNumberRows() - 1
             for i in range(maxv):
-                saturation = 1.0 / (maxv - 1) * i
                 RGB, xyY = colormath.RGBsaturation(
                     R, G, B, 1.0 / (maxv - 1) * i, rgb_space
                 )
@@ -2124,8 +2114,6 @@ END_DATA"""
                     and "XYZ_Y" in data_format
                     and "XYZ_Z" in data_format
                 )
-                if getcfg("tc_add_ti3_relative"):
-                    adapted = chart.adapt()
                 ti1, ti3, void = self.worker.chart_lookup(
                     chart, profile, as_ti3, intent=intent, white_patches=False
                 )
@@ -3988,7 +3976,7 @@ END_DATA"""
                     fixed_datasets = []
                     for i in fixed_data:
                         dataset = fixed_data[i]
-                        if not str(dataset) in rgbdata:
+                        if str(dataset) not in rgbdata:
                             fixed_datasets.append(dataset)
                     if fixed_datasets:
                         # Insert fixed point datasets after first patch
@@ -4387,7 +4375,6 @@ END_DATA"""
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
 
-        item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

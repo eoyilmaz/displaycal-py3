@@ -1,22 +1,26 @@
-# -*- coding: utf-8 -*-
+"""
+wxScriptingClient.py
+
+Implements a wxPython-based client for the DisplayCAL scripting interface.
+Provides a simple GUI front-end that connects to a scripting server,
+sends commands, and displays responses for interactive use and testing.
+"""
 
 import errno
 import os
 import socket
 import sys
-import threading
 from time import sleep
 
 from DisplayCAL import (
     config,
     localization as lang,
 )
-from DisplayCAL.config import confighome, getcfg, geticon, initcfg, setcfg, writecfg
+from DisplayCAL.config import confighome, getcfg, setcfg, writecfg
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_str import safe_str, universal_newlines
 from DisplayCAL.wexpect import split_command_line
 from DisplayCAL.wxaddons import wx
-from DisplayCAL.wxfixes import GenBitmapButton
 from DisplayCAL.wxwindows import BaseApp, SimpleTerminal, numpad_keycodes
 
 import wx.lib.delayedresult as delayedresult

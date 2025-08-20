@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 from time import gmtime, strftime
@@ -24,9 +22,7 @@ from DisplayCAL.cgats import (
 from DisplayCAL.config import (
     get_data_path,
     getcfg,
-    geticon,
     hascfg,
-    initcfg,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -38,11 +34,10 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import name as appname
 from DisplayCAL.util_list import natsort_key_factory
-from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import Error, get_current_profile_path, show_result_dialog
 from DisplayCAL.wxTestchartEditor import TestchartEditor
 from DisplayCAL.wxfixes import TempXmlResource
-from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, InfoDialog, wx
+from DisplayCAL.wxwindows import BaseApp, BaseFrame, FileDrop, wx
 
 from wx import xrc
 
@@ -96,7 +91,7 @@ class ReportFrame(BaseFrame):
             "devlink_profile",
             "output_profile",
         ):
-            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl" )
+            ctrl = xrc.XRCCTRL(self, f"{which}_ctrl")
             setattr(self, f"{which}_ctrl", ctrl)
             ctrl.changeCallback = getattr(self, f"{which}_ctrl_handler")
             if which not in ("devlink_profile", "output_profile"):
@@ -371,7 +366,6 @@ class ReportFrame(BaseFrame):
                     self.fields_ctrl.SetItems(values)
                     self.fields_ctrl.GetContainingSizer().Layout()
                     self.panel.Thaw()
-                    fields = getcfg("measurement_report.chart.fields")
                     if ext.lower() == ".ti1":
                         index = 0
                     elif "RGB" in values and not ext.lower() == ".cie":
@@ -519,8 +513,7 @@ class ReportFrame(BaseFrame):
                 except (IOError, ICCProfileInvalidError):
                     if not silent:
                         show_result_dialog(
-                            Error(
-                                f"{lang.getstr('profile.invalid')}\n{path}"),
+                            Error(f"{lang.getstr('profile.invalid')}\n{path}"),
                             parent=self,
                         )
                 except IOError as exception:
@@ -646,10 +639,10 @@ class ReportFrame(BaseFrame):
             "output_profile",
         ):
             if which.endswith("_profile"):
-                wildcard = f'{lang.getstr("filetype.icc")}|*.icc;*.icm'
+                wildcard = f"{lang.getstr('filetype.icc')}|*.icc;*.icm"
             else:
                 wildcard = (
-                    f'{lang.getstr("filetype.ti1_ti3_txt")}|'
+                    f"{lang.getstr('filetype.ti1_ti3_txt')}|"
                     "*.cgats;*.cie;*.ti1;*.ti2;*.ti3;*.txt"
                 )
             msg = {

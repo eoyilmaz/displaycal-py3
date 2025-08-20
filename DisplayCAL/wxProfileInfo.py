@@ -1,4 +1,25 @@
-# -*- coding: utf-8 -*-
+"""
+wxProfileInfo.py
+
+This module is part of the DisplayCAL application and provides functionality 
+related to managing and interacting with display profiles. It imports various 
+utilities and modules from DisplayCAL, including configuration management, 
+color math operations, enhanced plotting, localization, and ICC profile handling.
+
+Key functionalities:
+- Accessing and manipulating display profiles.
+- Interfacing with ArgyllCMS tools for color management.
+- Utilizing enhanced plotting and localization features.
+- Managing application configuration and settings.
+
+Dependencies:
+- DisplayCAL modules: colormath, config, wxenhancedplot, localization, x3dom, argyll, icc_profile.
+- Standard Python libraries: re, os, sys, traceback.
+
+This file serves as a foundational component for handling display profile-related 
+operations within the DisplayCAL application.
+"""
+
 import re
 import os
 import sys
@@ -13,7 +34,6 @@ from DisplayCAL import x3dom
 from DisplayCAL.argyll import check_set_argyll_bin, make_argyll_compatible_path
 from DisplayCAL.config import (
     defaults,
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -1097,8 +1117,6 @@ class PIFrame_2WaySplitter(TwoWaySplitter):
         pt = event.GetPosition()
 
         if self.GetMode(pt):
-            barSize = self._GetSashSize()
-
             winborder, titlebar = get_platform_window_decoration_size()
 
             win0w = self.GetTopLeft().Size[0]
@@ -1486,7 +1504,7 @@ class ProfileInfoFrame(LUTFrame):
         if "meta" in profile.tags:
             for key in ("avg", "max", "rms"):
                 try:
-                    dE = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
+                    _ = float(profile.tags.meta.getvalue(f"ACCURACY_dE76_{key}"))
                 except (TypeError, ValueError):
                     pass
 
@@ -2097,7 +2115,7 @@ class ProfileInfoFrame(LUTFrame):
                         filename, "".join([f"[{mod.upper()}]" for mod in mods])
                     )
             for vrmlext in (".vrml", ".vrml.gz", ".wrl", ".wrl.gz", ".wrz"):
-                vrmlpath =  f"{filename}{vrmlext}"
+                vrmlpath = f"{filename}{vrmlext}"
                 if sys.platform == "win32":
                     vrmlpath = make_win32_compatible_long_path(vrmlpath)
                 if os.path.isfile(vrmlpath):
@@ -2196,7 +2214,6 @@ class ProfileInfoFrame(LUTFrame):
     def view_3d_format_popup(self, event):
         menu = wx.Menu()
 
-        item_selected = False
         for file_format in config.valid_values["3d.format"]:
             item = menu.AppendRadioItem(-1, file_format)
             item.Check(file_format == getcfg("3d.format"))

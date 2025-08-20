@@ -1943,6 +1943,7 @@ class BaseFrame(wx.Frame):
             # our response
             def relayfunc(func, *args):
                 return wx.CallLater(55, func, *args)
+
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win

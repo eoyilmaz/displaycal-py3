@@ -1,4 +1,29 @@
-# -*- coding: utf-8 -*-
+"""
+worker.py
+
+This module is part of the DisplayCAL application and provides core functionality 
+for managing background tasks, system interactions, and utility operations. It 
+handles platform-specific behavior, subprocess management, and various helper 
+functions to support the application's workflows.
+
+Key functionalities:
+- Managing subprocesses and system-level commands.
+- Handling temporary files and directories.
+- Performing platform-specific operations (e.g., Linux, macOS, Windows).
+- Providing threading support for background tasks.
+- Working with file paths, MIME types, and network sockets.
+- Utility functions for string manipulation, text wrapping, and encoding.
+
+Dependencies:
+- Standard Python libraries: atexit, binascii, codecs, ctypes, datetime, getpass, 
+  http.client, math, mimetypes, os, pathlib, platform, re, shutil, socket, string, 
+  struct, subprocess, sys, tempfile, textwrap, threading.
+- Third-party libraries: distro (for Linux distribution detection).
+
+This file serves as a foundational module for system-level operations and 
+background task management within the DisplayCAL application, enabling robust 
+and efficient execution of various utility functions.
+"""
 
 # stdlib
 import codecs
@@ -34,6 +59,7 @@ import urllib.error
 import warnings
 import zipfile
 import zlib
+import wx.lib.delayedresult as delayedresult
 from collections import UserString
 from hashlib import md5, sha256
 from threading import currentThread
@@ -244,7 +270,6 @@ else:
         from DisplayCAL.util_dbus import (
             DBusObject,
             DBusException,
-            DBusObjectError,
             BUSTYPE_SESSION,
             dbus_session,
             dbus_system,
@@ -262,7 +287,6 @@ from DisplayCAL.util_os import (
     mksfile,
     mkstemp_bypath,
     quote_args,
-    safe_glob,
     which,
 )
 
@@ -306,7 +330,6 @@ if sys.platform not in ("darwin", "win32"):
         from DisplayCAL import RealDisplaySizeMM as RDSMM
     except ImportError as exception:
         warnings.warn(str(exception), ImportWarning)
-import wx.lib.delayedresult as delayedresult
 
 
 INST_CAL_MSGS = [
@@ -846,7 +869,6 @@ def create_shaper_curves(
         "g": colormath.Interp([], []),
         "b": colormath.Interp([], []),
     }
-    RGBwp = bwd_mtx * XYZwp
     for n in range(numentries):
         n /= maxval
         if numentries < final:
@@ -4110,9 +4132,7 @@ END_DATA
             profile_in_wtpt_XYZ = list(profile_in.tags.wtpt.ir.values())
             if XYZwp:
                 # Quantize to ICC s15Fixed16Number encoding
-                XYZwp = [
-                    s15Fixed16Number(s15Fixed16Number_tohex(v)) for v in XYZwp
-                ]
+                XYZwp = [s15Fixed16Number(s15Fixed16Number_tohex(v)) for v in XYZwp]
             else:
                 XYZwp = profile_in_wtpt_XYZ
             if XYZwp != profile_in_wtpt_XYZ:
@@ -4532,14 +4552,10 @@ END_DATA
                 profile_link.connectionColorSpace = b"RGB"
                 profile_link.setDescription(name)
                 profile_link.setCopyright(getcfg("copyright"))
-                profile_link.tags.pseq = ProfileSequenceDescType(
-                    profile=profile_link
-                )
+                profile_link.tags.pseq = ProfileSequenceDescType(profile=profile_link)
                 profile_link.tags.pseq.add(profile_in)
                 profile_link.tags.pseq.add(profile_out)
-                profile_link.tags.A2B0 = A2B0 = LUT16Type(
-                    None, "A2B0", profile_link
-                )
+                profile_link.tags.A2B0 = A2B0 = LUT16Type(None, "A2B0", profile_link)
                 A2B0.matrix = colormath.Matrix3x3([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
                 if input_encoding in ("t", "T"):
                     A2B0.input = [[]] * 3
@@ -5004,12 +5020,18 @@ END_DATA
                 output_bits = math.log(maxval + 1) / math.log(2)
             if input_bits is None:
                 input_bits = output_bits
+
             # Note: We only round up for the input values, output values
             # are rounded to nearest integer
-            quantizer = lambda v: int(math.ceil(v * (2**input_bits - 1)))
+            def quantizer(v):
+                return int(math.ceil(v * (2**input_bits - 1)))
+
             scale = quantizer(1.0)
         else:
-            quantizer = lambda v: v
+
+            def quantizer(v):
+                return v
+
             scale = 1.0
         step = 1.0 / (size - 1)
         RGB_triplet = [0.0, 0.0, 0.0]
@@ -5048,10 +5070,10 @@ END_DATA
                     RGB_oin.append(list(RGB_triplet))
                     RGB_copy = list(RGB_triplet)
                     if format == "eeColor":
-                        for l in range(3):
-                            RGB_copy[l] = eeColor_to_VidRGB(RGB_copy[l])
+                        for i in range(3):
+                            RGB_copy[i] = eeColor_to_VidRGB(RGB_copy[i])
                             if input_encoding in ("t", "T"):
-                                RGB_copy[l] = VidRGB_to_cLUT65(RGB_copy[l])
+                                RGB_copy[i] = VidRGB_to_cLUT65(RGB_copy[i])
                     RGB_index[columns[2]] = k
                     RGB_in.append(RGB_copy)
                     RGB_indexes.append(list(RGB_index))
@@ -6336,7 +6358,8 @@ BEGIN_DATA
                     if not self.madtpg_bw_lvl:
                         self.log("madVR_GetBlackAndWhiteLevel failed")
                     else:
-                        self.log("Output levels: {}-{}".format(self.madtpg_bw_lvl))
+                        black, white = self.madtpg_bw_lvl
+                        self.log(f"Output levels: {black}-{white}")
                     # Get pattern config
                     patternconfig = self.madtpg.get_pattern_config()
                     if (
@@ -6428,7 +6451,7 @@ BEGIN_DATA
                     waitfile.write("echo Current RGB %*\n")
                     waitfile.write(
                         'set "PYTHONPATH={}"\n'.format(
-                            safe_str(os.pathsep.join(pythonpath)), enc
+                            safe_str(os.pathsep.join(pythonpath)),
                         )
                     )
                     waitfile.write(
@@ -9204,11 +9227,9 @@ usage: spotread [-options] [logfile]
                         size += table.get("s", 0)
                         numinstalled += 1
                     else:
-                        rawlen -= len(
-                            '{"n":"{}", "s":{:d}},'.format(
-                                table["n"], table.get("s", 0)
-                            )
-                        )
+                        n = table["n"]
+                        s = int(table.get("s", 0))
+                        rawlen -= len(f'{{"n":"{n}", "s":{s:d}}},')
                 filesize = os.stat(path).st_size
                 size_exceeded = size + filesize > maxsize
                 # NOTE that the total number of 3D LUT slots seems to be limited
@@ -10329,7 +10350,7 @@ usage: spotread [-options] [logfile]
         if os.path.exists(desktop_file_path):
             try:
                 os.remove(desktop_file_path)
-            except Exception as exception:
+            except Exception:
                 result = Warning(
                     lang.getstr("error.autostart_remove_old", desktop_file_path)
                 )
@@ -10784,7 +10805,7 @@ usage: spotread [-options] [logfile]
                         self.log(exception)
                     else:
                         if (
-                            not "A2B0" in gamap_profile.tags
+                            "A2B0" not in gamap_profile.tags
                             and "rXYZ" in gamap_profile.tags
                             and "gXYZ" in gamap_profile.tags
                             and "bXYZ" in gamap_profile.tags
@@ -11345,9 +11366,7 @@ usage: spotread [-options] [logfile]
                 ):
                     if getcfg("profile.type") == "X":
                         if (
-                            not isinstance(
-                                profile.tags.get("vcgt"), VideoCardGammaType
-                            )
+                            not isinstance(profile.tags.get("vcgt"), VideoCardGammaType)
                             or profile.tags.vcgt.is_linear()
                         ):
                             # Use matrix from 3x shaper curves profile if vcgt
@@ -11507,12 +11526,12 @@ usage: spotread [-options] [logfile]
         # Check if we have calibration, if so, add vcgt
         vcgt = False
         options_dispcal = []
-        is_hq_cal = False
+        _ = False
         for cgats in ti3.values():
             if cgats.type == b"CAL":
                 vcgt = cal_to_vcgt(cgats)
                 options_dispcal = get_options_from_cal(cgats)[0]
-                is_hq_cal = "qh" in options_dispcal
+                _ = "qh" in options_dispcal
 
         dEs = []
         RGB_XYZ = dict_sort(RGB_XYZ)
@@ -11694,7 +11713,8 @@ usage: spotread [-options] [logfile]
                         # round(50 / 100 * 255) = 128 (the latter is what we want)!
                         RGB = tuple(round((k * step) / 100.0 * 255) for k in (a, b, c))
                         # Prefer actual measurements over interpolated values
-                        prev_actual = actual
+
+                        # prev_actual = actual
                         XYZ = remaining.get(RGB)
                         i += 1
                         if not XYZ:
@@ -15325,11 +15345,11 @@ usage: spotread [-options] [logfile]
             RGBscaled = self.xicclu(
                 profile, XYZscaled, "a", "if", pcs="x", use_cam_clipping=True
             )
+            r, g, b = RGBscaled
             logfiles.write(
-                "RGB black after inverse forward lookup {:6.4f} {:6.4f} {:6.4f}\n".format(
-                    RGBscaled[0]
-                )
+                f"RGB black after inverse forward lookup {r:6.4f} {g:6.4f} {b:6.4f}\n"
             )
+
             logfiles.write(
                 "RGB white after inverse forward lookup {:6.4f} {:6.4f} {:6.4f}\n".format(
                     *RGBscaled[-1]
@@ -15624,7 +15644,7 @@ BEGIN_DATA
         if not isinstance(ti1, CGATS):
             raise TypeError(
                 "Wrong type for ti1, needs to be a CGATS instance, "
-                f"not {t11.__class__.__name__}"
+                f"not {ti1.__class__.__name__}"
             )
 
         # profile
@@ -16097,23 +16117,23 @@ BEGIN_DATA
                 if (
                     olabels[0] not in list(ti3v.DATA_FORMAT.values())
                     and olabels[1] not in list(ti3v.DATA_FORMAT.values())
-                    and not olabels[2] in list(ti3v.DATA_FORMAT.values())
+                    and olabels[2] not in list(ti3v.DATA_FORMAT.values())
                     and (
                         ocolor == b"RGB"
                         or (
                             ocolor == b"CMYK"
-                            and not olabels[3] in list(ti3v.DATA_FORMAT.values())
+                            and olabels[3] not in list(ti3v.DATA_FORMAT.values())
                         )
                     )
                 ):
                     ti3v.DATA_FORMAT.add_data(olabels)
                 # add required fields to DATA_FORMAT if not yet present
                 if (
-                    not bytes(required[0], "utf-8") in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[1], "utf-8")
-                    in list(ti3v.DATA_FORMAT.values())
-                    and not bytes(required[2], "utf-8")
-                    in list(ti3v.DATA_FORMAT.values())
+                    bytes(required[0], "utf-8") not in list(ti3v.DATA_FORMAT.values())
+                    and bytes(required[1], "utf-8")
+                    not in list(ti3v.DATA_FORMAT.values())
+                    and bytes(required[2], "utf-8")
+                    not in list(ti3v.DATA_FORMAT.values())
                 ):
                     ti3v.DATA_FORMAT.add_data(required)
                 ti1out.write(b'KEYWORD "COLOR_REP"\n')

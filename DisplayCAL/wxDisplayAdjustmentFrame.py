@@ -1,6 +1,25 @@
-# -*- coding: UTF-8 -*-
 """
-Interactive display calibration UI
+wxDisplayAdjustmentFrame.py
+
+This module is part of the DisplayCAL application and provides functionality 
+for managing the graphical user interface (GUI) related to display adjustment. 
+It integrates with various DisplayCAL modules and utilities to handle platform-specific 
+behavior, GUI components, and user interactions.
+
+Key functionalities:
+- Providing a GUI frame for display adjustment operations.
+- Handling platform-specific imports and configurations (e.g., macOS and Windows).
+- Utilizing advanced wxPython components such as labelbook for tabbed interfaces.
+- Supporting user interaction for display calibration and adjustment workflows.
+
+Dependencies:
+- Standard Python libraries: os, re, sys.
+- Platform-specific libraries: mac_ver (for macOS).
+- DisplayCAL modules: wxaddons, lib.agw.labelbook, lib.agw.fmresources.
+
+This file serves as a core component for display adjustment operations within 
+the DisplayCAL application, enabling users to interact with and fine-tune 
+display settings through a graphical interface.
 """
 
 import os
@@ -8,13 +27,29 @@ import re
 import sys
 
 if sys.platform == "win32":
-    from ctypes import windll
+    pass
 elif sys.platform == "darwin":
     from platform import mac_ver
 
 from DisplayCAL.wxaddons import wx
 from DisplayCAL.lib.agw import labelbook
-from DisplayCAL.lib.agw.fmresources import *
+from DisplayCAL.lib.agw.fmresources import (
+    IMG_NONE,
+    INB_BOTTOM,
+    INB_BORDER,
+    INB_USE_PIN_BUTTON,
+    IMG_OVER_PIN,
+    INB_WEB_HILITE,
+    IMG_OVER_IMG,
+    IMG_OVER_EW_BORDER,
+    INB_RIGHT,
+    INB_LEFT,
+    INB_TOP,
+    INB_FIT_BUTTON,
+    INB_SHOW_ONLY_IMAGES,
+    INB_SHOW_ONLY_TEXT,
+    INB_FIT_LABELTEXT,
+)
 from DisplayCAL.lib.agw.pygauge import PyGauge
 
 from DisplayCAL.config import (
@@ -26,7 +61,6 @@ from DisplayCAL.config import (
     geticon,
     setcfg,
 )
-from DisplayCAL.config import enc
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
@@ -306,9 +340,9 @@ class DisplayAdjustmentImageContainer(labelbook.ImageContainer):
                 buttonRect = wx.Rect(pos, 1, modRectWidth, modRectHeight)
 
             if bUseYcoord:
-                rect = wx.Rect(0, pos, rectWidth, rectWidth)
+                _ = wx.Rect(0, pos, rectWidth, rectWidth)
             else:
-                rect = wx.Rect(pos, 0, rectWidth, rectWidth)
+                _ = wx.Rect(pos, 0, rectWidth, rectWidth)
 
             # Incase user set both flags:
             # INB_SHOW_ONLY_TEXT and INB_SHOW_ONLY_IMAGES
@@ -1385,9 +1419,9 @@ class DisplayAdjustmentFrame(windowcls):
             else:
                 percent = 100.0
             l_diff = float(current_br.groups()[0]) - compare_br[1]
-            l = int(round(50 + l_diff * percent))
+            lum = int(round(50 + l_diff * percent))
             if self.lb.GetCurrentPage().gauges.get("L"):
-                self.lb.GetCurrentPage().gauges["L"].SetValue(min(max(l, 1), 100))
+                self.lb.GetCurrentPage().gauges["L"].SetValue(min(max(lum, 1), 100))
                 self.lb.GetCurrentPage().gauges["L"].Refresh()
             if self.lb.GetCurrentPage().txt.get("luminance"):
                 if initial_br or target_br:  # and round(l_diff, 2):

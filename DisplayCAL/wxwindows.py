@@ -5,7 +5,6 @@ from datetime import datetime
 import html
 from html.parser import HTMLParser
 
-htmlparser = HTMLParser()
 from time import gmtime, sleep, strftime, time
 import errno
 import math
@@ -173,6 +172,8 @@ processing_keycodes = [
     wx.WXK_DELETE,
     wx.WXK_BACK,
 ]
+
+htmlparser = HTMLParser()
 
 modifier_keycodes = [wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_COMMAND]
 
@@ -1006,7 +1007,7 @@ class BaseFrame(wx.Frame):
         try:
             conn.connect((ip, port))
         except socket.error as exception:
-            #HACK: not sure why this was here... Garbage collection is handled in python
+            # HACK: not sure why this was here... Garbage collection is handled in python
             # del conn
             return exception
         return conn
@@ -1940,10 +1941,12 @@ class BaseFrame(wx.Frame):
             # original values after processing
             wx.DirDialog = DirDialog
             wx.FileDialog = FileDialog
+
             # Use CallLater so GUI methods have a chance to run before we send
             # our response
             def relayfunc(func, *args):
                 return wx.CallLater(55, func, *args)
+
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win
@@ -2608,8 +2611,6 @@ class BaseInteractiveDialog(wx.Dialog):
                 self.message.MinSize[1],
             )
         self.sizer3.Add(self.message)
-
-        btnwidth = 80
 
         self.ok = wx.Button(self.buttonpanel, wx.ID_OK, ok)
         self.sizer2.Add((-1, 1), 1)
@@ -4196,7 +4197,7 @@ class CustomGrid(wx.grid.Grid):
             self.SetGridCursor(event.Row, event.Col)
 
     def OnCellSelect(self, event):
-        row, col = event.GetRow(), event.GetCol()
+        row = event.GetRow()
         self._anchor_row = row
         self._overwrite_cell_values = True
         self.SelectBlock(event.Row, event.Col, event.Row, event.Col)
@@ -5117,7 +5118,7 @@ class CustomColLabelRenderer:
             else:
                 color = grid.GetLabelTextColour()
             dc.SetTextForeground(color)
-            align = grid.GetColLabelAlignment()
+            # align = grid.GetColLabelAlignment()
             # if align[1] == wx.ALIGN_CENTER:
             #     align = align[0], wx.ALIGN_CENTER_VERTICAL
             # dc.DrawLabel(" %s " % grid.GetColLabelValue(col), orect, align[0] | align[1])
@@ -7093,7 +7094,7 @@ class TabButton(PlateButton):
             if self._menu is not None:
                 self.ShowMenu()
             elif self._style & platebtn.PB_STYLE_DROPARROW:
-                #Adam-Color: was PlateBtnDropArrowPressed()
+                # Adam-Color: was PlateBtnDropArrowPressed()
                 event = platebtn.EVT_PLATEBTN_DROPARROW_PRESSED
                 event.SetEventObject(self)
                 self.EventHandler.ProcessEvent(event)
@@ -7171,10 +7172,10 @@ class TabButton(PlateButton):
         else:
             return False
 
-        if self._style & platebtn.PB_STYLE_SQUARE:
-            rad = 0
-        else:
-            rad = (height - 3) / 2
+        # if self._style & platebtn.PB_STYLE_SQUARE:
+        #     rad = 0
+        # else:
+        #     rad = (height - 3) / 2
 
         gc.SetPen(wx.TRANSPARENT_PEN)
 
@@ -8147,7 +8148,7 @@ def test():
 
     app = BaseApp(0)
     style = wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_CAN_ABORT | wx.PD_SMOOTH
-    p = ProgressDialog(
+    ProgressDialog(
         msg="".join(("Test " * 5)),
         maximum=10000,
         style=style,

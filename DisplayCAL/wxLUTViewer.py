@@ -1,4 +1,25 @@
-# -*- coding: utf-8 -*-
+"""
+wxLUTViewer.py
+
+This module is part of the DisplayCAL application and provides functionality 
+for visualizing and interacting with Look-Up Tables (LUTs) and related color 
+management data. It integrates with various DisplayCAL modules and utilities 
+to handle configuration, plotting, and ICC profile operations.
+
+Key functionalities:
+- Visualization of LUTs using enhanced plotting tools.
+- Interfacing with ArgyllCMS for color management compatibility.
+- Handling ICC profile data, including curves and calibration.
+- Managing application configuration and display-related settings.
+
+Dependencies:
+- Standard Python libraries: math, os, re, sys.
+- Third-party libraries: numpy.
+- DisplayCAL modules: colormath, config, localization, wxenhancedplot, argyll, argyll_cgats, icc_profile.
+
+This file serves as a core component for LUT visualization and manipulation 
+within the DisplayCAL application, supporting advanced color management workflows.
+"""
 
 import math
 import os
@@ -16,7 +37,6 @@ from DisplayCAL import (
 from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.argyll_cgats import cal_to_fake_profile, vcgt_to_cal
 from DisplayCAL.config import (
-    fs_enc,
     get_argyll_display_number,
     get_data_path,
     get_display_profile,
@@ -38,7 +58,6 @@ from DisplayCAL.icc_profile import (
     WcsProfilesTagType,
 )
 from DisplayCAL.meta import name as appname
-from DisplayCAL.options import debug
 from DisplayCAL.util_decimal import float2dec
 from DisplayCAL.util_os import waccess
 from DisplayCAL.worker import (
@@ -578,7 +597,7 @@ class LUTCanvas(plot.PlotCanvas):
             # no graph available
             return []
         graphics, xAxis, yAxis = self.last_draw
-        l = []
+        curves = []
         for curveNum, obj in enumerate(graphics):
             # check there are points in the curve
             if len(obj.points) == 0 or isinstance(obj, PolyBox):
@@ -587,8 +606,8 @@ class LUTCanvas(plot.PlotCanvas):
             cn = (
                 [curveNum] + [obj.getLegend()] + obj.getClosestPoint(pntXY, pointScaled)
             )
-            l.append(cn)
-        return l
+            curves.append(cn)
+        return curves
 
     def _disabledoublebuffer(self, event):
         window = self
@@ -1644,7 +1663,7 @@ class LUTFrame(BaseFrame):
         if profile and not isinstance(profile, ICCProfile):
             try:
                 profile = ICCProfile(profile)
-            except (IOError, ICCProfileInvalidError) as exception:
+            except (IOError, ICCProfileInvalidError):
                 show_result_dialog(
                     Error(f"{lang.getstr('profile.invalid')}\n{profile}"), self
                 )
@@ -2231,7 +2250,6 @@ class LUTFrame(BaseFrame):
                 self.Refresh()
 
     def OnWheel(self, event):
-        xy = wx.GetMousePosition()
         if self.client.last_draw:
             if event.WheelRotation < 0:
                 direction = 1.0
@@ -2507,7 +2525,7 @@ class LUTFrame(BaseFrame):
 def main():
     config.initcfg("curve-viewer")
     # Backup display config
-    cfg_display = getcfg("display.number")
+    _ = getcfg("display.number")
     lang.init()
     lang.update_defaults()
     app = BaseApp(0)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 import sys
@@ -40,28 +38,25 @@ from DisplayCAL.config import (
     profile_ext,
     setcfg,
 )
-from DisplayCAL.debughelpers import Error
 from DisplayCAL.log import log
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_io import Files
 from DisplayCAL.util_os import waccess
-from DisplayCAL.util_str import safe_str
 from DisplayCAL.worker import (
     Error,
     FilteredStream,
     LineBufferedStream,
     show_result_dialog,
 )
-from DisplayCAL.wxLUT3DFrame import LUT3DFrame, LUT3DMixin
+from DisplayCAL.wxLUT3DFrame import LUT3DMixin
 from DisplayCAL.wxfixes import TempXmlResource
 from DisplayCAL.wxwindows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
 
@@ -441,7 +436,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """ICC profile dropped"""
         try:
             profile = ICCProfile(path)
-        except (IOError, ICCProfileInvalidError) as exception:
+        except (IOError, ICCProfileInvalidError):
             show_result_dialog(
                 Error(lang.getstr("profile.invalid") + "\n" + path), self
             )
@@ -529,7 +524,7 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         """TI3 file dropped"""
         try:
             ti3 = CGATS(path)
-        except (IOError, CGATSInvalidError) as exception:
+        except (IOError, CGATSInvalidError):
             show_result_dialog(
                 Error(lang.getstr("error.measurement.file_invalid", path)), self
             )
@@ -857,9 +852,12 @@ class SynthICCFrame(BaseFrame, LUT3DMixin):
         class_i = self.profile_class_ctrl.GetSelection()
         tech_i = self.tech_ctrl.GetSelection()
         ciis_i = self.ciis_ctrl.GetSelection()
-        consumer = lambda result: (
-            isinstance(result, Exception) and show_result_dialog(result, self)
-        )
+
+        def consumer(result):
+            if isinstance(result, Exception):
+                return show_result_dialog(result, self)
+            return False
+
         wargs = (XYZ, trc, path)
         wkwargs = {
             "rgb": self.colorspace_rgb_ctrl.Value,

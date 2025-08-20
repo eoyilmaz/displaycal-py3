@@ -1,4 +1,28 @@
-# -*- coding: utf-8 -*-
+"""
+wxLUT3DFrame.py
+
+This module is part of the DisplayCAL application and provides functionality 
+for managing and visualizing 3D Look-Up Tables (LUTs) within the application's 
+graphical user interface (GUI). It integrates with various DisplayCAL modules 
+and utilities to handle configuration, color management, and user interactions.
+
+Key functionalities:
+- Visualization and manipulation of 3D LUTs.
+- Integration with ArgyllCMS tools for color management workflows.
+- Handling video encoding standards and calibration data.
+- Managing application configuration and paths for data storage.
+- Providing GUI components for user interaction.
+
+Dependencies:
+- Standard Python libraries: os, re, shutil, sys, traceback.
+- Platform-specific libraries: win32api (Windows only).
+- DisplayCAL modules: argyll, argyll_cgats, argyll_names, colormath, config, 
+  floatspin, localization, worker, xh_bitmapctrls, xh_filebrowsebutton, xh_floatspin.
+
+This file serves as a core component for 3D LUT-related operations and GUI 
+management within the DisplayCAL application, supporting advanced color 
+calibration and visualization workflows.
+"""
 
 import os
 import re
@@ -16,7 +40,6 @@ from DisplayCAL import (
     config,
     floatspin,
     localization as lang,
-    madvr,
     worker,
     xh_bitmapctrls,
     xh_filebrowsebutton,
@@ -28,11 +51,8 @@ from DisplayCAL.config import (
     defaults,
     get_data_path,
     get_verified_path,
-    getcfg,
     geticon,
-    hascfg,
     profile_ext,
-    setcfg,
 )
 from DisplayCAL.icc_profile import (
     CurveType,
@@ -49,11 +69,9 @@ from DisplayCAL.util_os import islink, readlink, safe_glob, waccess
 from DisplayCAL.util_str import strtr
 from DisplayCAL.worker import (
     Error,
-    Info,
     UnloggedInfo,
     UnloggedWarning,
     get_current_profile_path,
-    get_options_from_profile,
     show_result_dialog,
 )
 from DisplayCAL.wxaddons import CustomEvent
@@ -63,7 +81,6 @@ from DisplayCAL.wxwindows import (
     BaseFrame,
     ConfirmDialog,
     FileDrop,
-    InfoDialog,
     wx,
 )
 
@@ -127,7 +144,7 @@ class LUT3DMixin:
         )
         for color in ("white", "red", "green", "blue"):
             for coord in "xy":
-                v = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
+                _ = self.getcfg("3dlut.content.colorspace.%s.%s" % (color, coord))
                 getattr(self, "lut3d_content_colorspace_%s_%s" % (color, coord)).Bind(
                     floatspin.EVT_FLOATSPIN, self.lut3d_content_colorspace_xy_handler
                 )
@@ -2040,12 +2057,8 @@ class LUT3DFrame(BaseFrame, LUT3DMixin):
         elif (
             hasattr(self, "input_profile")
             and isinstance(self.input_profile.tags.get("A2B0"), LUT16Type)
-            and isinstance(
-                self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type
-            )
-            and isinstance(
-                self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type
-            )
+            and isinstance(self.input_profile.tags.get("A2B1", LUT16Type()), LUT16Type)
+            and isinstance(self.input_profile.tags.get("A2B2", LUT16Type()), LUT16Type)
         ):
             self.lut3d_trc_apply_black_offset_ctrl.Enable(self.XYZbpin != self.XYZbpout)
             if self.XYZbpin == self.XYZbpout:

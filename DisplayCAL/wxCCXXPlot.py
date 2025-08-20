@@ -1,4 +1,32 @@
-# -*- coding: utf-8 -*-
+"""
+wxCCXXPlot.py
+
+This module is part of the DisplayCAL application and provides functionality 
+for plotting and visualizing color calibration data using wxPython. It integrates 
+with various DisplayCAL modules to handle configuration, color math, ICC profiles, 
+and user interactions through a graphical interface.
+
+Key functionalities:
+- Plotting calibration and characterization data using enhanced plotting tools.
+- Interfacing with ArgyllCMS utilities for color management workflows.
+- Handling ICC profile interpolation and related operations.
+- Providing GUI components for displaying and interacting with plots.
+- Supporting platform-specific behavior (e.g., macOS adjustments).
+
+Dependencies:
+- Standard Python libraries: math, os, sys.
+- DisplayCAL modules: colormath, config, localization, wxenhancedplot, argyll_instruments, 
+  cgats, debughelpers, icc_profile, meta, util_str, worker_base, wxaddons, wxLUTViewer, wxwindows.
+
+Constants:
+- `BGCOLOUR`: Background color for the plot.
+- `FGCOLOUR`: Foreground color for the plot.
+- `GRIDCOLOUR`: Gridline color for the plot.
+
+This file serves as a core component for visualizing color calibration data 
+within the DisplayCAL application, enabling users to analyze and interpret 
+calibration results through an interactive graphical interface.
+"""
 
 import math
 import os
@@ -10,7 +38,7 @@ from DisplayCAL import (
     localization as lang,
     wxenhancedplot as plot,
 )
-from DisplayCAL.argyll_instruments import get_canonical_instrument_name, instruments
+from DisplayCAL.argyll_instruments import get_canonical_instrument_name
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg
 from DisplayCAL.debughelpers import UnloggedError

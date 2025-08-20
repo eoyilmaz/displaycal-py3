@@ -315,7 +315,7 @@ class DisplayIdentificationFrame(wx.Frame):
         text = wx.StaticText(panel_inner, -1, label, style=wx.ALIGN_CENTER)
         text.ForegroundColour = "#FFFFFF"
         font = wx.Font(
-            text.Font.PointSize * size[0] / 12.0 / 16,
+            int(text.Font.PointSize * size[0] / 12.0 / 16),
             wx.FONTFAMILY_DEFAULT,
             wx.FONTSTYLE_NORMAL,
             wx.FONTWEIGHT_LIGHT,
@@ -467,7 +467,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
             style = wx.BORDER_SIMPLE
         else:
             style = wx.BORDER_THEME
-        dlg.grid = CustomGrid(dlg, -1, size=(648 * scale, 200 * scale), style=style)
+        dlg.grid = CustomGrid(dlg, -1, size=wx.Size(int(648 * scale), int(200 * scale)), style=style)
         grid = dlg.grid
         grid.DisableDragRowSize()
         grid.SetCellHighlightPenWidth(0)
@@ -505,7 +505,7 @@ class ProfileLoaderExceptionsDialog(ConfirmDialog):
             else:
                 # Directory component
                 size = dc.GetTextExtent("W" * 34)[0]
-            grid.SetColSize(i, size)
+            grid.SetColSize(i, int(size))
         for i, label in enumerate(["", "", "executable", "directory"]):
             grid.SetColLabelValue(i, lang.getstr(label))
 
@@ -930,8 +930,8 @@ class ProfileAssociationsDialog(InfoDialog):
                 m_left, m_top, m_right, m_bottom = moninfo["Monitor"]
                 m_width = abs(m_right - m_left)
                 m_height = abs(m_bottom - m_top)
-                pos = m_left + m_width / 4, m_top + m_height / 4
-                size = (m_width / 2, m_height / 2)
+                pos = wx.Point(int(m_left + m_width / 4), int(m_top + m_height / 4))
+                size = wx.Size(int(m_width / 2), int(m_height / 2))
                 display_desc = display.replace(
                     "[PRIMARY]", lang.getstr("display.primary")
                 )

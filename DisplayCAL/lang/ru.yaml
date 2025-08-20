@@ -1625,7 +1625,7 @@
 "measureframe.measurebutton": |-
   Начать измерения
 "measureframe.title": |-
-  Площадь измерений
+  Область измерений
 "measureframe.zoomin": |-
   Увеличить
 "measureframe.zoommax": |-
@@ -2056,7 +2056,7 @@
 "profile_loader": |-
   Загрузчик профиля
 "profile_loader.disable": |-
-  Виключить загрузку профиля
+  Выключить загрузку профиля
 "profile_loader.exceptions.known_app.error": |-
   Загрузчик профиля автоматически выключается, когда %s работает. Вы не можете изменить это поведение.
 "profile_loader.exit_warning": |-

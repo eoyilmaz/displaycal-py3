@@ -1797,7 +1797,7 @@ class spawn_windows(spawn_unix):
         # if any of the args contain any spaces (most possibly a path),
         # we need to quote them
         for i, arg in enumerate(args):
-            if " " in arg:
+            if " " in arg and arg[0] != '"' and arg[-1] != '"':
                 log("Quoting argument {}: {}".format(i, arg))
                 args[i] = '"{}"'.format(arg)
 

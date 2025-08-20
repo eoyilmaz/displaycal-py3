@@ -16709,8 +16709,10 @@ BEGIN_DATA
                 args.append(cal_path)
             if getcfg("extra_args.dispread").strip():
                 args += parse_argument_string(getcfg("extra_args.dispread"))
+        if sys.platform == "win32":
+            args = quote_args(args)
         result = self.add_measurement_features(
-            quote_args(args) if sys.platform == "win32" else args,
+            args,
             cmd == get_argyll_util("dispread"),
             allow_nondefault_observer=is_ccxx_testchart(),
             allow_video_levels=allow_video_levels,

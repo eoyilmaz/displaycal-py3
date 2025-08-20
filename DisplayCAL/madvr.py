@@ -3,7 +3,7 @@
 # See developers/interfaces/madTPG.h in the madVR package
 
 
-from io import StringIO
+from io import BytesIO, StringIO
 from binascii import unhexlify
 from time import sleep, time
 from zlib import crc32
@@ -198,7 +198,7 @@ def icc_device_link_to_madvr(
     h3d_params["Input_Primaries"] = colorspace
 
     # Create madVR 3D LUT
-    h3d_stream = StringIO(H3D_HEADER)
+    h3d_stream = BytesIO(H3D_HEADER)
     h3dlut = H3DLUT(h3d_stream, check_lut_size=False)
     h3dlut.parametersData = h3d_params
     h3dlut.write(filename + ".3dlut")
@@ -218,7 +218,7 @@ def icc_device_link_to_madvr(
                 for c in range(clutres):
                     # Optimize for speed
                     B, G, R = chr(c), chr(b), chr(a)
-                    raw.write(B + B + G + G + R + R)
+                    raw.write(B + B + G + G + R + R).encode()
             perc = round(a / clutmax * 100)
             if perc > prevperc:
                 logfile.write("\r%i%%" % perc)
@@ -516,7 +516,7 @@ class H3DLUT:
         samples_per_pixel = 3  # RGB
         bytes_per_sample = self.outputBitDepth / 8
         bytes_per_pixel = samples_per_pixel * bytes_per_sample
-        io = StringIO(tagData)
+        io = BytesIO(tagData)
         io.seek(0, 2)  # Position cursor at end
         i = 0
         for R in range(input_grid_steps):
@@ -762,9 +762,7 @@ class MadTPG(MadTPGBase):
     def get_version(self):
         version = ctypes.c_ulong()
         result = self.mad.madVR_GetVersion(ctypes.byref(version))
-        version = tuple(
-            struct.unpack(">B", c)[0] for c in struct.pack(">I", version.value)
-        )
+        version = tuple(c for c in struct.pack(">I", version.value))
         return result and version
 
     def show_rgb(self, r, g, b, bgr=None, bgg=None, bgb=None):

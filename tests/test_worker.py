@@ -542,7 +542,7 @@ def test_get_argyll_latest_version_returns_str():
 def test_get_argyll_latest_version_returns_latest_argyll_cms_version():
     """get_argyll_latest_version() returns the latest argyll cms version."""
     result = get_argyll_latest_version()
-    assert result == "3.3.0"
+    assert result == "3.4.0"
 
 
 def test_get_argyll_latest_version_returns_the_default_version_if_no_internet_connect(

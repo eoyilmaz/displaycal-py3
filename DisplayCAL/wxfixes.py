@@ -1,7 +1,27 @@
-# -*- coding: utf-8 -*-
+"""
+wxfixes.py
+
+This module is part of the DisplayCAL application and provides compatibility 
+fixes and workarounds for issues related to the wxPython library and GUI behavior. 
+It ensures proper integration of wxPython with the application and addresses 
+platform-specific quirks.
+
+Key functionalities:
+- Disabling GTK client-side decorations (CSD) to avoid double window decorations 
+  on Linux systems (related to issue #17331).
+- Selecting the appropriate wxPython version using `wxversion` for compatibility 
+  with the application's requirements.
+- Importing and initializing the wxPython library for GUI functionality.
+
+Dependencies:
+- Standard Python libraries: os, re, shutil, sys, tempfile.
+- DisplayCAL modules: meta, wxversion (if available).
+
+This file serves as a utility module to handle wxPython-related fixes and 
+ensure smooth operation of the DisplayCAL application's graphical user interface.
+"""
 
 import os
-import platform
 import re
 import shutil
 import sys
@@ -26,7 +46,6 @@ else:
         except wxversion.VersionError:
             pass
 
-from wx import __version__ as wx_version
 import wx
 
 if wx.VERSION < wx_minversion:
@@ -244,7 +263,7 @@ if "phoenix" in wx.PlatformInfo:
     wx.TextCtrl.PositionToXY = lambda self, pos: PositionToXY(self, pos)[1:]
 
     def TabFrame__init__(self, parent):
-        pre = wx.Window.__init__(self)
+        _ = wx.Window.__init__(self)
 
         self._tabs = None
         self._rect = wx.Rect(0, 0, 200, 200)
@@ -471,10 +490,12 @@ else:
 
 wx.AnyButton._SetBitmapLabel = wx.AnyButton.SetBitmapLabel
 
+
 def SetBitmapLabel(self, bitmap):
     """Override the SetBitmapLabel to avoid flickering."""
     if self.GetBitmapLabel() != bitmap:
         self._SetBitmapLabel(self, bitmap)
+
 
 wx.AnyButton.SetBitmapLabel = SetBitmapLabel
 
@@ -1010,7 +1031,7 @@ def set_bitmap_labels(btn, disabled=True, focus=None, pressed=True):
             try:
                 btn.SetBitmapCurrent(bmp)
             except wx._core.wxAssertionError:
-               pass
+                pass
         else:
             # Classic
             btn.SetBitmapHover(bmp)

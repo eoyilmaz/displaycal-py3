@@ -1,7 +1,26 @@
-# -*- coding: UTF-8 -*-
 """
-Interactive display calibration UI
+wxDisplayUniformityFrame.py
 
+This module is part of the DisplayCAL application and provides functionality 
+for managing the graphical user interface (GUI) related to display uniformity 
+measurement. It integrates with various DisplayCAL modules and utilities to 
+handle configuration, logging, debugging, and user interactions.
+
+Key functionalities:
+- Managing the display uniformity measurement process through a dedicated GUI frame.
+- Accessing and modifying application configuration settings.
+- Logging measurement data and handling errors during runtime.
+- Interfacing with display-specific operations such as display rects and numbers.
+- Providing custom events and GUI components for user interaction.
+
+Dependencies:
+- Standard Python libraries: os, re, sys, time.
+- DisplayCAL modules: wxaddons, config, log, debughelpers, meta, util_os, 
+  wxMeasureFrame, wxwindows.
+
+This file serves as a core component for display uniformity measurement 
+operations within the DisplayCAL application, supporting advanced calibration 
+and analysis workflows.
 """
 
 from time import sleep, strftime
@@ -21,6 +40,7 @@ from DisplayCAL.config import (
     setcfg,
 )
 from DisplayCAL.log import get_file_logger
+from DisplayCAL.debughelpers import Error
 from DisplayCAL.meta import name as appname, version as appversion
 from DisplayCAL.util_os import launch_file, waccess
 from DisplayCAL.wxaddons import CustomEvent
@@ -34,7 +54,6 @@ from DisplayCAL.wxwindows import (
     processing_keycodes,
     wx_Panel,
 )
-from DisplayCAL import colormath
 from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL import report

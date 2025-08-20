@@ -1,4 +1,31 @@
-# -*- coding: utf-8 -*-
+"""
+wxaddons.py
+
+This module is part of the DisplayCAL application and provides additional 
+wxPython-based utilities and extensions to enhance the graphical user interface (GUI). 
+It includes custom methods, widgets, and functionality to support advanced GUI 
+operations and interactions.
+
+Key functionalities:
+- Extending wx.Image with custom methods such as `AdjustMinMax` for modifying 
+  image data and `Blend` for blending bitmaps.
+- Importing and utilizing custom buttons like `GenButton`, `PlateButton`, and 
+  `GradientButton` for enhanced GUI components.
+- Providing threading support for GUI-related tasks.
+- Integrating with DisplayCAL modules for color math operations and dialog handling.
+
+Dependencies:
+- Standard Python libraries: os, sys, threading, time, types.
+- DisplayCAL modules: colormath, wxfixes, floatspin, lib.agw.gradientbutton.
+
+Custom Methods:
+- `AdjustMinMax`: Adjusts the minimum and maximum values of an image's data buffer.
+- `Blend`: Blends a given bitmap over a specified position in another bitmap.
+
+This file serves as a utility module to extend and enhance wxPython functionality 
+within the DisplayCAL application, enabling more advanced and customized GUI features.
+"""
+
 from time import sleep
 import os
 import sys

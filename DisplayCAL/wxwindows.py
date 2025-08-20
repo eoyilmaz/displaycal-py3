@@ -13,7 +13,6 @@ import os
 import re
 import signal
 import socket
-import string
 import subprocess as sp
 import sys
 import tarfile
@@ -44,28 +43,23 @@ from DisplayCAL.config import (
     set_default_app_dpi,
 )
 from DisplayCAL.debughelpers import (
-    Error,
     DownloadError,
     Info,
     UnloggedError,
     UnloggedInfo,
     UnloggedWarning,
-    Warn,
     getevtobjname,
     getevttype,
-    handle_error,
 )
 from DisplayCAL.icc_profile import (
     ICCProfile,
     ICCProfileInvalidError,
 )
-from DisplayCAL.log import log as log_
 from DisplayCAL.meta import name as appname
 from DisplayCAL.options import debug
 from DisplayCAL.network import ScriptingClientSocket, get_network_addr
-from DisplayCAL.util_io import StringIOu as StringIO
-from DisplayCAL.util_os import get_program_file, launch_file, waccess
-from DisplayCAL.util_str import box, safe_str, wrap
+from DisplayCAL.util_os import launch_file, waccess
+from DisplayCAL.util_str import box, safe_str
 from DisplayCAL.util_xml import dict2xml
 from DisplayCAL.wxaddons import (
     CustomEvent,
@@ -90,7 +84,6 @@ from DisplayCAL.wxfixes import (
     adjust_font_size_for_gcdc,
     get_bitmap_disabled,
     get_dc_font_size,
-    get_gcdc_font_size,
     platebtn,
     set_bitmap_labels,
     wx_Panel,
@@ -1013,7 +1006,8 @@ class BaseFrame(wx.Frame):
         try:
             conn.connect((ip, port))
         except socket.error as exception:
-            del conn
+            #HACK: not sure why this was here... Garbage collection is handled in python
+            # del conn
             return exception
         return conn
 
@@ -1938,7 +1932,8 @@ class BaseFrame(wx.Frame):
             or response != "ok"
         ):
             # No interaction with UI
-            relayfunc = lambda func, *args: func(*args)
+            def relayfunc(func, *args):
+                return func(*args)
         else:
             # Interaction with UI
             # Prevent actual file dialogs blocking the UI - need to restore
@@ -1947,7 +1942,8 @@ class BaseFrame(wx.Frame):
             wx.FileDialog = FileDialog
             # Use CallLater so GUI methods have a chance to run before we send
             # our response
-            relayfunc = lambda func, *args: wx.CallLater(55, func, *args)
+            def relayfunc(func, *args):
+                return wx.CallLater(55, func, *args)
             relayfunc(restore_path_dialog_classes)
         relayfunc(
             self.send_response, response, data, conn, command_timestamp, child or win
@@ -2879,7 +2875,7 @@ class BitmapBackgroundBitmapButton(wx.BitmapButton):
         dc = wx.PaintDC(self)
         try:
             dc = wx.GCDC(dc)
-        except Exception as exception:
+        except Exception:
             pass
         dc.DrawBitmap(self.Parent.GetBitmap(), 0, -self.GetPosition()[1])
         dc.DrawBitmap(self.GetBitmapLabel(), 0, 0)
@@ -3031,7 +3027,7 @@ class BitmapBackgroundPanelText(BitmapBackgroundPanel):
             # being replaced with boxes under wxGTK
             try:
                 dc = wx.GCDC(dc)
-            except Exception as exception:
+            except Exception:
                 pass
         font.SetPointSize(get_dc_font_size(font.GetPointSize(), dc))
         dc.SetFont(font)
@@ -7097,7 +7093,8 @@ class TabButton(PlateButton):
             if self._menu is not None:
                 self.ShowMenu()
             elif self._style & platebtn.PB_STYLE_DROPARROW:
-                event = PlateBtnDropArrowPressed()
+                #Adam-Color: was PlateBtnDropArrowPressed()
+                event = platebtn.EVT_PLATEBTN_DROPARROW_PRESSED
                 event.SetEventObject(self)
                 self.EventHandler.ProcessEvent(event)
 

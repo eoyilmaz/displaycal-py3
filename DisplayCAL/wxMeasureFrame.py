@@ -1,4 +1,25 @@
-# -*- coding: utf-8 -*-
+"""
+wxMeasureFrame.py
+
+This module is part of the DisplayCAL application and provides functionality 
+for managing the graphical user interface (GUI) related to measurement frames. 
+It integrates with various DisplayCAL modules and utilities to handle 
+configuration, localization, debugging, and GUI enhancements.
+
+Key functionalities:
+- Managing measurement-related GUI components.
+- Accessing and modifying application configuration settings.
+- Utilizing localization for internationalized text.
+- Handling errors and debugging during runtime.
+- Supporting display-specific operations such as DPI adjustments and display rects.
+
+Dependencies:
+- Standard Python libraries: math, os, sys, time, warnings.
+- DisplayCAL modules: config, localization, debughelpers, meta, options, util_list, wxaddons.
+
+This file serves as a core component for the GUI functionality of the 
+DisplayCAL application, specifically for measurement-related operations.
+"""
 
 import math
 import os
@@ -12,7 +33,6 @@ from DisplayCAL import (
 )
 from DisplayCAL.config import (
     defaults,
-    enc,
     get_argyll_display_number,
     get_default_dpi,
     get_display_number,

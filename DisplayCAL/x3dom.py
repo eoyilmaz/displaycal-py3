@@ -1,5 +1,10 @@
-# -*- coding: utf-8 -*-
+"""
+XRC handlers for wxBitmapButton and wxStaticBitmap.
 
+Provides XmlResourceHandlers that allow bitmap buttons and static bitmaps
+to be created from XRC resource definitions, with support for standard
+window properties.
+"""
 
 import http.client
 import os
@@ -14,7 +19,7 @@ from DisplayCAL.config import get_data_path
 from DisplayCAL.defaultpaths import cache as cachepath
 from DisplayCAL.log import safe_print as _safe_print
 from DisplayCAL.meta import DOMAIN
-from DisplayCAL.options import verbose, debug
+from DisplayCAL.options import debug
 from DisplayCAL.util_io import GzipFileProper
 from DisplayCAL.util_str import StrList, create_replace_function
 from DisplayCAL import colormath

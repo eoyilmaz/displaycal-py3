@@ -151,6 +151,7 @@ from DisplayCAL.icc_profile import (
     TextType,
     XYZType,
     VideoCardGammaType,
+    VideoCardGammaTableType,
 )
 from DisplayCAL.log import log, logbuffer
 from DisplayCAL.meta import (
@@ -4636,7 +4637,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     continue
                 if desc == lstr:
                     desc = cgats.get_descriptor()  # this is bytes
-                    desc = desc.decode("utf-8")
+                    desc = desc.decode("utf-8", "replace")
                 # If the description is not the same as the 'sane'
                 # filename, add the filename after the description
                 # (max 31 chars)
@@ -4692,7 +4693,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
                 item_text = "{}: {}".format(
                     types.get(os.path.splitext(path)[1].lower()[1:]),
-                    desc if isinstance(desc, str) else desc.decode("utf-8"),
+                    desc if isinstance(desc, str) else desc.decode("utf-8", "replace"),
                 )
                 items.append(item_text)
                 self.ccmx_item_paths.append(path)
@@ -4807,7 +4808,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     2,
                     "{}: {}".format(
                         types.get(os.path.splitext(ccmx[1])[1].lower()[1:]),
-                        desc if isinstance(desc, str) else desc.decode("utf-8"),
+                        desc
+                        if isinstance(desc, str)
+                        else desc.decode("utf-8", "replace"),
                     ),
                 )
                 self.ccmx_item_paths.insert(0, ccmx[1])
@@ -4856,7 +4859,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     (
                         ccmx_desc
                         if isinstance(ccmx_desc, str)
-                        else ccmx_desc.decode("utf-8")
+                        else ccmx_desc.decode("utf-8", "replace")
                     ),
                 )
             else:

@@ -619,6 +619,8 @@
   Please note that Chromecast accuracy is not as good as a directly connected display or madTPG, due to the Chromecast using RGB to YCbCr conversion and upscaling.
 "cie2012_2": |-
   CIE 2012 2°
+"cie2015_2": |-
+  CIE 2015 2°
 "clear": |-
   Clear
 "close": |-
@@ -1783,6 +1785,10 @@
   CIE 2012 2°
 "observer.2012_10": |-
   CIE 2012 10°
+"observer.2015_2": |-
+  CIE 2015 2°
+"observer.2015_10": |-
+  CIE 2015 10°
 "observer.shaw": |-
   Shaw & Fairchild 1997 2°
 "oem.import.auto": |-

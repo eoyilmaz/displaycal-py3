@@ -2519,8 +2519,13 @@ def XYZ2Lpt(X, Y, Z, whitepoint=None):
 
     """
     # Adapted from Argyll/icc/icc.c
+    from DisplayCAL import argyll
 
-    xyz2lms = get_cat_matrix("CIE2012_2")
+    if argyll.get_argyll_version("dispwin") < [3, 4, 0]:
+        observer_name = "CIE2012_2"
+    else:
+        observer_name = "CIE2015_2"
+    xyz2lms = get_cat_matrix(observer_name)
 
     wlms = xyz2lms * get_whitepoint(whitepoint, 100)
 
@@ -2561,7 +2566,14 @@ def Lpt2XYZ(L, p, t, whitepoint=None, scale=1.0):
     """
     # Adapted from Argyll/icc/icc.c
 
-    xyz2lms = get_cat_matrix("CIE2012_2")
+    from DisplayCAL import argyll
+
+    if argyll.get_argyll_version("dispwin") < [3, 4, 0]:
+        observer_name = "CIE2012_2"
+    else:
+        observer_name = "CIE2015_2"
+
+    xyz2lms = get_cat_matrix(observer_name)
     lms2xyz = xyz2lms.inverted()
 
     wlms = xyz2lms * get_whitepoint(whitepoint, scale)

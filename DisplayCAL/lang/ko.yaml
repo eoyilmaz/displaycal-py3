@@ -619,6 +619,8 @@
   크롬캐스트는 RGB를 YCbCr로 변환하고 업스케일을 하는 관계로, 크롬캐스트의 정확도는 디스플레이나 madTPG에 직접 연결하는 것만큼 좋지 않습니다.
 "*cie2012_2": |-
   CIE 2012 2°
+"*cie2015_2": |-
+  CIE 2015 2°
 "*clear": |-
   Clear
 "*close": |-
@@ -1783,6 +1785,10 @@
   CIE 2012 2°
 "*observer.2012_10": |-
   CIE 2012 10°
+"*observer.2015_2": |-
+  CIE 2015 2°
+"*observer.2015_10": |-
+  CIE 2015 10°
 "observer.shaw": |-
   Shaw & Fairchild 1997 2°
 "oem.import.auto": |-

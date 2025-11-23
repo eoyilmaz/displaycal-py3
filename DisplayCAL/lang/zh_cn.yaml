@@ -619,6 +619,8 @@
   请注意由于 Chromecast 使用 RGB 至 YCbCr 转换和粗化， Chromecast 的精度不如直接连接显示器或 madTPG。
 "*cie2012_2": |-
   CIE 2012 2°
+"*cie2015_2": |-
+  CIE 2015 2°
 "clear": |-
   清除
 "close": |-
@@ -1799,6 +1801,10 @@
   CIE 2012 2°
 "*observer.2012_10": |-
   CIE 2012 10°
+"*observer.2015_2": |-
+  CIE 2015 2°
+"*observer.2015_10": |-
+  CIE 2015 10°
 "*observer.shaw": |-
   Shaw & Fairchild 1997 2°
 "oem.import.auto": |-

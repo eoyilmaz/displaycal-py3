@@ -621,6 +621,8 @@
   Veuillez noter que la précision du Chromecast n’est pas aussi bonne que celle d’un écran directement raccordé ou qu’un madTPG, car le Chromecast utilise une conversion de RVB vers YCbCr et un rééchantillonage.
 "cie2012_2": |-
   CIE 2012 2°
+"cie2015_2": |-
+  CIE 2015 2°
 "clear": |-
   Effacer
 "close": |-
@@ -1779,6 +1781,10 @@
   CIE 2012 2°
 "observer.2012_10": |-
   CIE 2012 10°
+"observer.2015_2": |-
+  CIE 2015 2°
+"observer.2015_10": |-
+  CIE 2015 10°
 "observer.shaw": |-
   Shaw & Fairchild 1997 2°
 "oem.import.auto": |-

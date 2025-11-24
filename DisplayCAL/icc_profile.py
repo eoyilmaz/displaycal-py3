@@ -26,6 +26,7 @@ if sys.platform == "win32":
     except ImportError:
         pass
 
+    from DisplayCAL.mscms import WCS_PROF_SCOPE, COLORPROFILETYPE, COLORPROFILESUBTYPE
 try:
     from DisplayCAL import colord
 except ImportError:
@@ -47,7 +48,7 @@ from DisplayCAL.defaultpaths import iccprofiles, iccprofiles_home
 from DisplayCAL.encoding import get_encodings
 from DisplayCAL.options import test_input_curve_clipping
 from DisplayCAL.util_list import intlist
-from DisplayCAL.mscms import WCS_PROF_SCOPE, COLORPROFILETYPE, COLORPROFILESUBTYPE
+
 
 if sys.platform not in ("darwin", "win32"):
     from DisplayCAL.defaultpaths import xdg_config_dirs, xdg_config_home
@@ -59,6 +60,7 @@ if sys.platform not in ("darwin", "win32"):
     except ImportError:
         xrandr = None
     from DisplayCAL.util_os import dlopen, which
+    mscms = None
 elif sys.platform == "win32":
     from DisplayCAL import util_win
     from DisplayCAL.mscms import WCSManager
@@ -2026,21 +2028,33 @@ def _ucmm_get_display_profile(display_no, name, path_only=False, use_cache=True)
                 return ICCProfile(profile_path, use_cache=use_cache)
 
 
-def _wcs_get_display_profile(
-    devicekey,
-    scope=WCS_PROF_SCOPE.CURRENT_USER,
-    profile_type=COLORPROFILETYPE.CPT_ICC,
-    profile_subtype=COLORPROFILESUBTYPE.CPST_NONE,
-    profile_id=0,
-    path_only=False,
-    use_cache=True,
-):
-    prof = mscms.get_default_color_profile(scope, devicekey, profile_type, profile_subtype, profile_id)
-    
-    if prof:
-        if path_only:
-            return os.path.join(iccprofiles[0], prof)
-        return ICCProfile(prof, use_cache=use_cache)
+if mscms:
+    def _wcs_get_display_profile(
+        devicekey,
+        scope=WCS_PROF_SCOPE.CURRENT_USER,
+        profile_type=COLORPROFILETYPE.CPT_ICC,
+        profile_subtype=COLORPROFILESUBTYPE.CPST_NONE,
+        profile_id=0,
+        path_only=False,
+        use_cache=True,
+    ):
+        prof = mscms.get_default_color_profile(scope, devicekey, profile_type, profile_subtype, profile_id)
+
+        if prof:
+            if path_only:
+                return os.path.join(iccprofiles[0], prof)
+            return ICCProfile(prof, use_cache=use_cache)
+else:
+    def _wcs_get_display_profile(
+        devicekey,
+        scope,
+        profile_type,
+        profile_subtype,
+        profile_id,
+        path_only,
+        use_cache,
+    ):
+        raise NotImplementedError("WCS methods unavailable outside Windows")
 
 
 def _winreg_get_display_profile(
@@ -2389,7 +2403,7 @@ def set_display_profile(
             scope = WCS_PROF_SCOPE.CURRENT_USER
         else:
             scope = WCS_PROF_SCOPE.SYSTEM_WIDE
-        
+
         mscms.associate_color_profile_with_device(scope, profile_name, str(devicekey))
         return True
     else:
@@ -2412,7 +2426,7 @@ def unset_display_profile(
             scope = WCS_PROF_SCOPE.CURRENT_USER
         else:
             scope = WCS_PROF_SCOPE.SYSTEM_WIDE
-        
+
         mscms.disassociate_color_profile_from_device(scope, profile_name, str(devicekey))
         profiles = mscms.get_device_color_profile_list(scope, str(devicekey))
         if profile_name not in profiles:
@@ -2441,7 +2455,7 @@ def set_default_display_profile(
     else:
         # TODO: Implement for XP
         return False
-    
+
 
 def _blend_blackpoint(row, bp_in, bp_out, wp=None, use_bpc=False, weight=False):
     X, Y, Z = row

@@ -28,8 +28,9 @@ import winreg
 
 from DisplayCAL.util_os import quote_args
 from DisplayCAL.win_structs import UNICODE_STRING
-from DisplayCAL.mscms import WCSManager
+from DisplayCAL.mscms import WCSManagerProxy
 
+mscms = WCSManagerProxy()
 
 if TYPE_CHECKING:
     from _win32typing import PyDISPLAY_DEVICE
@@ -138,8 +139,7 @@ def calibration_management_isenabled() -> bool:
         # Windows XP and Vista don't have calibration management
         return False
     else:
-        WCS = WCSManager()
-        return WCS.get_calibration_management_state()
+        return mscms.get_calibration_management_state()
 
 
 def disable_calibration_management():
@@ -175,8 +175,7 @@ def enable_calibration_management(enable: bool = True) -> bool:
             "Calibration Management is only available in Windows 7 or later"
         )
     else:
-        WCS = WCSManager()
-        WCS.set_calibration_management_state(enable)
+        mscms.set_calibration_management_state(enable)
         return True
 
 
@@ -208,8 +207,7 @@ def enable_per_user_profiles(
         if device:
             devicekey = device.DeviceKey
     if devicekey:
-        WCS = WCSManager()
-        WCS.set_use_per_user_profiles(devicekey, enable)
+        mscms.set_use_per_user_profiles(devicekey, enable)
         
         return True
 
@@ -506,8 +504,7 @@ def per_user_profiles_isenabled(
         if device:
             devicekey = device.DeviceKey
     if devicekey:
-        WCS = WCSManager()
-        return WCS.get_use_per_user_profiles(devicekey)
+        return mscms.get_use_per_user_profiles(devicekey)
 
 
 def run_as_admin(

@@ -231,16 +231,6 @@ def _wcs_worker_process(
 
 
 class WCSManager:
-    _instance = None
-    _instance_lock = Lock()
-
-    def __new__(cls, *args: Any, **kwargs: Any):
-        if not cls._instance:
-            with cls._instance_lock:
-                if not cls._instance:
-                    cls._instance = super(WCSManager, cls).__new__(cls)
-        return cls._instance
-
     def __init__(
         self,
         handle_threshold: int = open_handles_threshold,  # will restart once in a while
@@ -763,19 +753,35 @@ class WCSManager:
             "SetUsePerUserProfiles", device_key, new_state, device_class
         )
 
-_manager: Optional[WCSManager] = None
-_manager_lock = Lock()
+class WCSManagerProxy:
+    _instance = None
+    _lock = Lock()
 
-def get_manager():
-    global _manager
-    if _manager is None:
-        with _manager_lock:
-            if _manager is None: #check after lock acquire also
-                _manager = WCSManager()
-    return _manager
+    def _ensure_instance(self):
+        if WCSManagerProxy._instance is None:
+            with WCSManagerProxy._lock:
+                if WCSManagerProxy._instance is None:
+                    WCSManagerProxy._instance = WCSManager()
 
-class WCSManagerProxy():
     def __getattr__(self, name):
-        return getattr(get_manager(), name)
+        self._ensure_instance()
+        return getattr(WCSManagerProxy._instance, name)
+
     def __setattr__(self, name, value):
-        setattr(get_manager(), name, value)
+        self._ensure_instance()
+        setattr(WCSManagerProxy._instance, name, value)
+
+    def __delattr__(self, name):
+        self._ensure_instance()
+        delattr(WCSManagerProxy._instance, name)
+
+    def __call__(self, *args, **kwargs):
+        self._ensure_instance()
+        if callable(WCSManagerProxy._instance):
+            return WCSManagerProxy._instance(*args, **kwargs)
+        raise TypeError(f"'{type(WCSManagerProxy._instance).__name__}' object is not callable")
+
+    def __repr__(self):
+        if WCSManagerProxy._instance is None:
+            return "<MyHeavyInstance (not initialized)>"
+        return f"<MyHeavyInstance wrapping {repr(WCSManagerProxy._instance)}>"

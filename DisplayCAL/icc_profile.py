@@ -63,7 +63,7 @@ if sys.platform not in ("darwin", "win32"):
     mscms = None
 elif sys.platform == "win32":
     from DisplayCAL import util_win
-    from DisplayCAL.mscms import WCSManager
+    from DisplayCAL.mscms import WCSManagerProxy
 
     if sys.getwindowsversion() < (6,):
         # WCS only available under Vista and later
@@ -75,7 +75,7 @@ elif sys.platform == "win32":
             get_handle_type,
         )
 
-        mscms = WCSManager()
+        mscms = WCSManagerProxy()
 
         win_ver = util_win.win_ver()
         win10_1903 = (

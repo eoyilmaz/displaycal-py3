@@ -762,3 +762,20 @@ class WCSManager:
         self._call_wcs_method(
             "SetUsePerUserProfiles", device_key, new_state, device_class
         )
+
+_manager: Optional[WCSManager] = None
+_manager_lock = Lock()
+
+def get_manager():
+    global _manager
+    if _manager is None:
+        with _manager_lock:
+            if _manager is None: #check after lock acquire also
+                _manager = WCSManager()
+    return _manager
+
+class WCSManagerProxy():
+    def __getattr__(self, name):
+        return getattr(get_manager(), name)
+    def __setattr__(self, name, value):
+        setattr(get_manager(), name, value)

@@ -188,7 +188,7 @@ def _wcs_worker_process(
 
             request_id = request.get("id")
             method_name: str = request.get("method")
-            args = request.get("args", {})
+            args = request.get("args", ())
             kwargs = request.get("kwargs", {})
 
             logger.debug(f"WCSWorker processing request ID {request_id}: {method_name}")
@@ -783,5 +783,5 @@ class WCSManagerProxy:
 
     def __repr__(self):
         if WCSManagerProxy._instance is None:
-            return "<MyHeavyInstance (not initialized)>"
-        return f"<MyHeavyInstance wrapping {repr(WCSManagerProxy._instance)}>"
+            return "<WCSManagerProxy (not initialized)>"
+        return f"<WCSManagerProxy wrapping {repr(WCSManagerProxy._instance)}>"

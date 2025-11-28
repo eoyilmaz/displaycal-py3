@@ -5,6 +5,7 @@ import builtins
 import logging
 import multiprocessing
 import psutil
+import sys
 import threading
 import uuid
 
@@ -30,14 +31,31 @@ from typing_extensions import ParamSpec
 from typing_extensions import TypedDict
 from typing_extensions import TypeVar
 
-from DisplayCAL.mscms_wrapper import COLORPROFILESUBTYPE
-from DisplayCAL.mscms_wrapper import COLORPROFILETYPE
-from DisplayCAL.mscms_wrapper import dwDeviceClass
-from DisplayCAL.mscms_wrapper import WCS
-from DisplayCAL.mscms_wrapper import WCS_PROF_SCOPE
+
+from DisplayCAL.mscms_types import COLORPROFILESUBTYPE
+from DisplayCAL.mscms_types import COLORPROFILETYPE
+from DisplayCAL.mscms_types import dwDeviceClass
+from DisplayCAL.mscms_types import WCS_PROF_SCOPE
+
+if sys.platform == "win32":
+    from DisplayCAL.mscms_wrapper import WCS
+else:
+    class WCS():
+        def __getattribute__(self, name):
+            raise NotImplementedError("Windows only")
+
+        def __setattr__(self, name, value):
+            raise NotImplementedError("Windows only")
+
+        def __delattr__(self, name):
+            raise NotImplementedError("Windows only")
+
+        def __call__(self, *args, **kwargs):
+            raise NotImplementedError("Windows only")
+
 
 """
-This module provides a threadsafe interface for the Windows Color System API while isolating actual 
+This module provides a threadsafe interface for the Windows Color System API while isolating actual
 communication with WinAPI to separate process
 
 References and useful info:
@@ -58,7 +76,7 @@ Other mitigation tactics possible:
    + restarting once in a while (profile loader, according to the changelog 3.8.7, restarts each day at 4.00 due to leaks in SetDeviceGammaRamp)
    + calling such APIs in separate processes
 """
-   
+
 default_logging_level = logging.DEBUG
 logger = logging.getLogger(__name__ + ".manager")
 logger.setLevel(logging.DEBUG)
@@ -516,7 +534,7 @@ class WCSManager:
         Disassociates a specified WCS color profile from a specified device
 
         This API does not support "advanced color" profiles for HDR monitors
-        
+
         Note: very unreliable due to quirks, the actual result should be double-checked with profile listing
 
         Args:
@@ -660,7 +678,7 @@ class WCSManager:
                 profile_id,
             )
             return prof
-        except FileNotFoundError: # no default profile 
+        except FileNotFoundError: # no default profile
             pass
         return None
 
@@ -690,7 +708,7 @@ class WCSManager:
                                                   subtype. Defaults to COLORPROFILESUBTYPE.CPST_NONE
             profile_id (int, optional): ID of the color space that the color profile
                               represents. Defaults to 0
-        
+
         Raises:
             OSError: in case of Win API errors
             TimeoutError: if timeout occurs while waiting for worker response
@@ -741,7 +759,7 @@ class WCSManager:
             device_key (str): device key of the device
             new_state (bool): True if the user wants to use a per-user profile association list for the specified device; otherwise False
             device_class (dwDeviceClass, optional): the class of the device. Defaults to dwDeviceClass.CLASS_MONITOR
-        
+
         Raises:
             OSError: in case of Win API errors
             TimeoutError: if timeout occurs while waiting for worker response

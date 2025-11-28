@@ -11,14 +11,16 @@ from ctypes.wintypes import BOOL
 from ctypes.wintypes import DWORD
 from ctypes.wintypes import LPWSTR
 
-from enum import auto
-from enum import IntEnum
-from enum import IntFlag
-
 from typing import Any
 from typing import Callable
 from typing import List
 from typing_extensions import Self
+
+from DisplayCAL.mscms_types import COLORPROFILESUBTYPE
+from DisplayCAL.mscms_types import COLORPROFILETYPE
+from DisplayCAL.mscms_types import dwDeviceClass
+from DisplayCAL.mscms_types import dwFieldsUsed
+from DisplayCAL.mscms_types import WCS_PROF_SCOPE
 
 # mscms calls used:
 #  + WcsAssociateColorProfileWithDevice
@@ -42,36 +44,6 @@ PCWSTR = c_wchar_p
 ENUM_TYPE_VERSION = DWORD(0x0300)  # Profile enumeration marker
 WIN_ERRNO_SUCCESS = 0
 WIN_ERRNO_PROFILE_NOT_ASSOCIATED = 2015
-
-
-class dwDeviceClass(IntEnum):
-    """Available device classes to be used in the dwDeviceClass field"""
-
-    CLASS_SCANNER = int.from_bytes(b"scnr", byteorder="big")
-    CLASS_MONITOR = int.from_bytes(b"mntr", byteorder="big")
-    CLASS_PRINTER = int.from_bytes(b"prtr", byteorder="big")
-
-
-class dwFieldsUsed(IntFlag):
-    """Available fields to be used in the ENUMTYPEW structure"""
-
-    ET_DEVICENAME = 0x00000001
-    ET_MEDIATYPE = 0x00000002
-    ET_DITHERMODE = 0x00000004
-    ET_RESOLUTION = 0x00000008
-    ET_CMMTYPE = 0x00000010
-    ET_CLASS = 0x00000020
-    ET_DATACOLORSPACE = 0x00000040
-    ET_CONNECTIONSPACE = 0x00000080
-    ET_SIGNATURE = 0x00000100
-    ET_PLATFORM = 0x00000200
-    ET_PROFILEFLAGS = 0x00000400
-    ET_MANUFACTURER = 0x00000800
-    ET_MODEL = 0x00001000
-    ET_ATTRIBUTES = 0x00002000
-    ET_RENDERINGINTENT = 0x00004000
-    ET_CREATOR = 0x00008000
-    ET_DEVICECLASS = 0x00010000
 
 
 class ENUMTYPEW(Structure):
@@ -114,32 +86,6 @@ class ENUMTYPEW(Structure):
         enumDesc.pDeviceName = device_key
         enumDesc.dwFields = dwFieldsUsed.ET_DEVICECLASS | dwFieldsUsed.ET_DEVICENAME
         return enumDesc
-
-
-class WCS_PROF_SCOPE(IntEnum):
-    SYSTEM_WIDE = 0
-    CURRENT_USER = 1
-
-
-class COLORPROFILETYPE(IntEnum):
-    CPT_ICC = 0
-    CPT_DMP = auto()
-    CPT_CAMP = auto()
-    CPT_GMMP = auto()
-
-
-class COLORPROFILESUBTYPE(IntEnum):
-    # intent
-    CPST_PERCEPTUAL = 0
-    CPST_RELATIVE_COLORIMETRIC = auto()
-    CPST_SATURATION = auto()
-    CPST_ABSOLUTE_COLORIMETRIC = auto()
-    # working space
-    CPST_NONE = auto()  # makes the API deduct profile subtype from the profile itself
-    CPST_RGB_WORKING_SPACE = auto()
-    CPST_CUSTOM_WORKING_SPACE = auto()
-    CPST_STANDARD_DISPLAY_COLOR_MODE = auto()
-    CPST_EXTENDED_DISPLAY_COLOR_MODE = auto()
 
 
 def _errcheck_simple_bool(result: Any, func: Callable[..., Any], args: Any):
@@ -373,7 +319,7 @@ class WCS:
         self, scope: WCS_PROF_SCOPE, profile_name: str, device_key: str
     ) -> None:
         """Associates a specified WCS color profile with a specified device.
-        
+
         This API does not support "advanced color" profiles for HDR monitors
 
         Note: this API makes the added profile also be the default one
@@ -392,7 +338,7 @@ class WCS:
         self, scope: WCS_PROF_SCOPE, profile_name: str, device_key: str
     ) -> None:
         """Disassociates a specified WCS color profile from a specified device on a computer.
-        
+
         This API does not support "advanced color" profiles for HDR monitors.
 
         Note: very unreliable due to quirks, the actual result should be double-checked with profile listing
@@ -408,8 +354,8 @@ class WCS:
         try:
             self._wcsDisassociateColorProfileFromDevice(scope, profile_name, device_key)
         except OSError as e:
-            # quirks: very very quirky: either returns error with errno success or errno profile 
-            # not associated with device. Why? Because Windows, that's why. 
+            # quirks: very very quirky: either returns error with errno success or errno profile
+            # not associated with device. Why? Because Windows, that's why.
             if e.winerror not in (WIN_ERRNO_SUCCESS, WIN_ERRNO_PROFILE_NOT_ASSOCIATED):
                 raise
 
@@ -417,7 +363,7 @@ class WCS:
         self, scope: WCS_PROF_SCOPE, enum_record: ENUMTYPEW, prof_size: int
     ) -> List[str]:
         """Enumerates color profiles associated with any device, in the specified scope.
-        
+
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:
@@ -447,8 +393,8 @@ class WCS:
         self, scope: WCS_PROF_SCOPE, enum_record: ENUMTYPEW
     ) -> int:
         """Returns the size, in bytes, of the buffer that is required by the EnumColorProfiles function
-        to enumerate color profiles. 
-        
+        to enumerate color profiles.
+
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:
@@ -495,7 +441,7 @@ class WCS:
         profile_id: int = 0,
     ) -> str:
         """Retrieves the default color profile for a device, or for a device-independent default if the device is not specified.
-        
+
         This API does not support "advanced color" profiles for HDR monitors. Note: if HDR enabled on a device causes OSError
 
         Args:
@@ -527,7 +473,7 @@ class WCS:
         profile_id: int = 0,
     ) -> int:
         """Returns the size, in bytes, of the default color profile name (including the NULL terminator), for a device.
-        
+
         This API does not support "advanced color" profiles for HDR monitors. Note: if HDR enabled on a device returns 0
 
         Args:
@@ -557,7 +503,7 @@ class WCS:
         profile_id: int = 0,
     ) -> None:
         """Sets the default color profile name for the specified profile type in the specified profile management scope.
-        
+
         This API does not support "advanced color" profiles for HDR monitors
 
         Args:

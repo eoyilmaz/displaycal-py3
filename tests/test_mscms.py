@@ -1,11 +1,15 @@
 import pytest
+import sys
 from unittest.mock import patch
 from queue import Empty
 
-import DisplayCAL.mscms as mscms_module
-from DisplayCAL.mscms import WCSManagerProxy, WCSManagerShutdownError
+from DisplayCAL.mscms import WCSManagerProxy, WCSManagerShutdownError, WCSManager
 
-#Tests including mocks and multiprocess do not work under Windows due to spawn != fork, so this is why some tests are ugly
+if sys.platform == "win32":
+    import DisplayCAL.mscms as mscms_module
+
+# Tests including mocks and multiprocess do not work under Windows due to spawn != fork, so this is why some tests are ugly
+
 
 def _mock_wcs_worker_process(request_queue, response_queue, log_queue):
     """Замена реальному _wcs_worker_process для тестов."""
@@ -64,20 +68,32 @@ def _oserror_wcs_worker_process(request_queue, response_queue, log_queue):
         response_queue.put(response)
 
 
-@pytest.fixture
-def wcs_manager():
-    original_worker = mscms_module._wcs_worker_process
-    mscms_module._wcs_worker_process = _mock_wcs_worker_process
+if sys.platform == "win32":
 
-    manager = None
-    try:
-        manager = mscms_module.WCSManager()
-        yield manager
-    finally:
-        if manager:
+    @pytest.fixture
+    def wcs_manager():
+        original_worker = mscms_module._wcs_worker_process
+        mscms_module._wcs_worker_process = _mock_wcs_worker_process
+
+        manager = None
+        try:
+            manager = mscms_module.WCSManager()
+            yield manager
+        finally:
+            if manager:
+                manager.shutdown()
+
+            mscms_module._wcs_worker_process = original_worker
+else:
+
+    @pytest.fixture
+    def wcs_manager():
+        with patch(
+            "DisplayCAL.mscms._wcs_worker_process", side_effect=_mock_wcs_worker_process
+        ):
+            manager = WCSManager()
+            yield manager
             manager.shutdown()
-
-        mscms_module._wcs_worker_process = original_worker
 
 
 def test_manager_initialization(wcs_manager):
@@ -100,47 +116,71 @@ def test_method_call_with_args(wcs_manager):
     assert device_key in result["args"]
 
 
-def test_call_after_shutdown_raises_error():
-    import DisplayCAL.mscms as mscms_module
+if sys.platform == "win32":
 
-    original_worker = mscms_module._wcs_worker_process
-    mscms_module._wcs_worker_process = _mock_wcs_worker_process
+    def test_call_after_shutdown_raises_error():
+        import DisplayCAL.mscms as mscms_module
 
-    manager = None
-    try:
-        manager = mscms_module.WCSManager()
+        original_worker = mscms_module._wcs_worker_process
+        mscms_module._wcs_worker_process = _mock_wcs_worker_process
 
-        manager.shutdown()
+        manager = None
+        try:
+            manager = mscms_module.WCSManager()
 
-        with pytest.raises(
-            WCSManagerShutdownError, match="WCSManager is set to shut down"
+            manager.shutdown()
+
+            with pytest.raises(
+                WCSManagerShutdownError, match="WCSManager is set to shut down"
+            ):
+                manager.get_calibration_management_state()
+
+        finally:
+            mscms_module._wcs_worker_process = original_worker
+            if manager and not manager._shutdown_event.is_set():
+                manager.shutdown()
+
+    def test_exception_transparency_oserror():
+        original_worker = mscms_module._wcs_worker_process
+        mscms_module._wcs_worker_process = _oserror_wcs_worker_process
+
+        manager = None
+        try:
+            manager = mscms_module.WCSManager()
+
+            with pytest.raises(OSError) as exc_info:
+                manager.set_calibration_management_state(True)
+
+            assert exc_info.value.errno == 5
+            assert "Access is denied" in str(exc_info.value)
+
+        finally:
+            if manager:
+                manager.shutdown()
+            mscms_module._wcs_worker_process = original_worker
+else:
+
+    def test_call_after_shutdown_raises_error():
+        with patch(
+            "DisplayCAL.mscms._wcs_worker_process", side_effect=_mock_wcs_worker_process
         ):
-            manager.get_calibration_management_state()
-
-    finally:
-        mscms_module._wcs_worker_process = original_worker
-        if manager and not manager._shutdown_event.is_set():
+            manager = WCSManager()
             manager.shutdown()
+            with pytest.raises(WCSManagerShutdownError):
+                manager.get_calibration_management_state()
 
+    def test_exception_transparency_oserror():
+        with patch(
+            "DisplayCAL.mscms._wcs_worker_process",
+            side_effect=_oserror_wcs_worker_process,
+        ):
+            manager = WCSManager()
 
-def test_exception_transparency_oserror():
-    original_worker = mscms_module._wcs_worker_process
-    mscms_module._wcs_worker_process = _oserror_wcs_worker_process
+            with pytest.raises(OSError) as exc_info:
+                manager.set_calibration_management_state(True)
 
-    manager = None
-    try:
-        manager = mscms_module.WCSManager()
-
-        with pytest.raises(OSError) as exc_info:
-            manager.set_calibration_management_state(True)
-
-        assert exc_info.value.errno == 5
-        assert "Access is denied" in str(exc_info.value)
-
-    finally:
-        if manager:
-            manager.shutdown()
-        mscms_module._wcs_worker_process = original_worker
+            assert exc_info.value.errno == 5
+            assert "Access is denied" in str(exc_info.value)
 
 
 @pytest.fixture

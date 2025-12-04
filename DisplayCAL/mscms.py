@@ -77,9 +77,9 @@ Other mitigation tactics possible:
    + calling such APIs in separate processes
 """
 
-default_logging_level = logging.DEBUG
+default_logging_level = logging.INFO
 logger = logging.getLogger(__name__ + ".manager")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(default_logging_level)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)

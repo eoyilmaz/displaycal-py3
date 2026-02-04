@@ -113,7 +113,7 @@ def decode(txt, strict=False, encoding=None, **kw):
             sys.stdout.write("\n")
             print("JSON:", txt)
 
-    return json.loads(txt, encoding=encoding, strict=strict)
+    return json.loads(txt, strict=strict)
 
 
 def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=None):
@@ -155,5 +155,4 @@ def encode(obj, strict=False, compactly=True, escape_unicode=False, encoding=Non
         ensure_ascii=ensure_ascii,
         indent=indent,
         separators=separators,
-        encoding=encoding or "utf-8",
     )

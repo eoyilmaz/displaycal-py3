@@ -16,7 +16,7 @@ AppSupportURL=%(AppSupportURL)s
 AppUpdatesURL=%(AppUpdatesURL)s
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
-DefaultDirName={pf}\%(AppName)s
+DefaultDirName={sd}\%(AppName)s
 DefaultGroupName=%(AppName)s
 LicenseFile=..\LICENSE.txt
 OutputDir=.
@@ -114,6 +114,26 @@ MinVersion: 0,6.0; Filename: schtasks.exe; parameters: "/Delete /TN ""%(AppName)
 MinVersion: 0,6.0; Filename: schtasks.exe; parameters: "/Delete /TN ""%(AppName)s Profile Loader Launcher - Daily Restart"" /F"; Flags: RunHidden RunAsCurrentUser;
 
 [Code]
+function NextButtonClick(CurPageID: Integer): Boolean;
+var
+	InstallPath: String;
+begin
+	Result := True;
+	if CurPageID = wpSelectDir then
+	begin
+		InstallPath := WizardDirValue();
+		if Pos(' ', InstallPath) > 0 then
+		begin
+			MsgBox(
+				'The installation path cannot contain spaces.' + #13#10 + #13#10 +
+				'%(AppName)s will not work correctly when installed to a path containing spaces' + #13#10 +
+				'(e.g. "C:\Program Files\%(AppName)s").' + #13#10 + #13#10 +
+				'Please choose a path without spaces, such as:  C:\%(AppName)s',
+				mbError, MB_OK);
+			Result := False;
+		end;
+	end;
+end;
 function Get_RunEntryShellExec_Message(Value: string): string;
 begin
 	Result := FmtMessage(SetupMessage(msgRunEntryShellExec), [Value]);
@@ -157,3 +177,4 @@ begin
 		end;
 	end;
 end;
+

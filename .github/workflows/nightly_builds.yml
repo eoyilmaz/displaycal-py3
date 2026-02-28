@@ -74,11 +74,11 @@ jobs:
           $version = Get-Content VERSION_BASE
           $git_revision = git rev-parse --short HEAD
           $version_tag = "$version.$git_revision.nightly"
+          copy DisplayCAL\misc\net.displaycal.DisplayCAL.appdata.xml dist\net.displaycal.DisplayCAL.appdata.xml
           python DisplayCAL\freeze.py
           $build_folder = Get-ChildItem dist\py2exe.*
           python setup.py inno
           $iss_file = Get-ChildItem dist\*.iss
-          copy DisplayCAL\misc\net.displaycal.DisplayCAL.appdata.xml dist\net.displaycal.DisplayCAL.appdata.xml
 
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'

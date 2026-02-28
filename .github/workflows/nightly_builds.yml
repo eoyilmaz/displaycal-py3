@@ -77,8 +77,7 @@ jobs:
 
       - name: Rename Installer
         run: |
-            $version = Get-Content VERSION_BASE
-            Move-Item dist/DisplayCAL-$version-Setup.exe dist/DisplayCAL-Setup.exe
+            Move-Item dist/DisplayCAL-*-Setup.exe dist/DisplayCAL-Setup.exe
 
       - name: Update nightly Windows release
         uses: WebFreak001/deploy-nightly@v3.2.0
@@ -108,7 +107,7 @@ jobs:
 
       - name: Install dependencies (macOS)
         run: |
-          brew install create-dmg glib gtk+3
+          brew install create-dmg gtk+3
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5

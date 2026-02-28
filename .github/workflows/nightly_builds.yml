@@ -139,8 +139,13 @@ jobs:
           uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
 
       - name: Build macOS APP
+        env:
+          # This forces setuptools to target ARM64 and a modern macOS version
+          MACOSX_DEPLOYMENT_TARGET: "11.0"
+          ARCHFLAGS: "-arch arm64"
         run: |
           # Use the --python alias to ensure we use the ARM64 environment
+          # The --arch=arm64 flag tells py2app to thin the bundle to one architecture
           python setup.py py2app --arch=arm64
 
       - name: Force Ad-Hoc Signing

@@ -70,9 +70,9 @@ jobs:
           $iss_file = Get-ChildItem dist\*.iss
           echo "iss_file=$iss_file"
 
-      - name: Download INNO Setup
-        run: |
-            winget install --id JRSoftware.InnoSetup -e -s winget -i
+      # - name: Download INNO Setup
+      #   run: |
+      #       winget install --id JRSoftware.InnoSetup -e -s winget -i
 
       # - name: Build Windows Installer
       #   uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
@@ -82,7 +82,7 @@ jobs:
       - name: Build Windows Installer
         run: |
             cd dist
-            "C:\Program Files (x86)\Inno Setup 6\iscc" DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
+            iscc.exe DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
       - name: Update nightly Windows release
         if: matrix.os == 'windows-latest'

@@ -75,14 +75,17 @@ jobs:
             cd dist
             iscc.exe DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
-      - name: Update nightly Windows release
+      - name: Rename Installer
         run: |
-          $version = Get-Content VERSION_BASE
+            $version = Get-Content VERSION_BASE
+            Move-Item dist/DisplayCAL-$version-Setup.exe dist/DisplayCAL-Setup.exe
+
+      - name: Update nightly Windows release
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: dist\DisplayCAL-$version-Setup.exe
+          asset_path: dist\DisplayCAL-Setup.exe
           asset_name: displaycal-$$-nightly-windows.exe
           asset_content_type: application/x-msdownload
           max_releases: 1

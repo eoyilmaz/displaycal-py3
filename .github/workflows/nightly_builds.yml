@@ -66,7 +66,7 @@ jobs:
           python setup.py py2app
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
-          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-arm64.dmg dist/$build_folder/DisplayCAL-${version}
+          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-universal.dmg dist/$build_folder/DisplayCAL-${version}
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
@@ -74,19 +74,7 @@ jobs:
           $version = Get-Content VERSION_BASE
           $git_revision = git rev-parse --short HEAD
           $version_tag = "$version.$git_revision.nightly"
-
-          echo "dir"
-          echo "====="
-          dir
-
-          echo "dir DisplayCAL"
-          echo "=============="
-          dir DisplayCAL
-
-          echo "dir DisplayCAL/misc"
-          echo "==================="
-          dir DisplayCAL/misc
-          copy DisplayCAL/misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
+          copy misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
           python DisplayCAL\freeze.py
           $build_folder = Get-ChildItem dist\py2exe.*
           python setup.py inno
@@ -103,13 +91,14 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: ./dist/DisplayCAL-macOS-arm64.dmg
-          asset_name: displaycal-$$-nightly-macOS-arm64.dmg
+          asset_path: ./dist/DisplayCAL-macOS-universal.dmg
+          asset_name: displaycal-$$-nightly-macOS-universal.dmg
           asset_content_type: application/x-apple-diskimage
           max_releases: 5
           ignore_hash: true
 
       - name: Update nightly Windows release
+        if: matrix.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}

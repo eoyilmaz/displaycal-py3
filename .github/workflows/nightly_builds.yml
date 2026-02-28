@@ -63,14 +63,18 @@ jobs:
         run: |
           python DisplayCAL\freeze.py
           $build_folder = Get-ChildItem dist\py2exe.*
+
+      - name: Create INNO script
+        run: |
           python setup.py inno
           $iss_file = Get-ChildItem dist\*.iss
           echo "iss_file=$iss_file"
+          cd dist
 
       - name: Build Windows Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: dist\DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
+          path: DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
       - name: Update nightly Windows release
         if: matrix.os == 'windows-latest'
@@ -130,6 +134,7 @@ jobs:
 
       - name: Build macOS DMG
         run: |
+          version=$(cat VERSION_BASE)
           python setup.py py2app
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"

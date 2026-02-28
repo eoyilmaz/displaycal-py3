@@ -775,6 +775,7 @@ def setup():
                     f"{bdist_cmd}.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}",
                 ),
             )
+            print(f"inno_path: {inno_path}")
 
             if not dry_run:
                 dist_path = Path("dist")

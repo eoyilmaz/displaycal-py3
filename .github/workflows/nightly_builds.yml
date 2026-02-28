@@ -78,29 +78,31 @@ jobs:
           $build_folder = Get-ChildItem dist\py2exe.*
           python setup.py inno
           $iss_file = Get-ChildItem dist\*.iss
+          copy DisplayCAL\misc\net.displaycal.DisplayCAL.appdata.xml dist\net.displaycal.DisplayCAL.appdata.xml
 
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: dist\*.iss
+          path: dist/*.iss
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: dist/*.dmg
+          asset_path: ./dist/*.dmg
           asset_name: displaycal-$$-nightly-macos_arm64.dmg
           asset_content_type: application/x-apple-diskimage
           max_releases: 5
           ignore_hash: true
+
       - name: Update nightly Windows release
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: dist/*.exe
+          asset_path: ./dist/*.exe
           asset_name: displaycal-$$-nightly-windows.exe
           asset_content_type: application/x-msdownload
           max_releases: 5

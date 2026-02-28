@@ -149,6 +149,7 @@ jobs:
           codesign --force --deep --sign - dist/*/DisplayCAL-*/DisplayCAL.app
 
       - name: Build macOS DMG
+        run: |
           version=$(cat VERSION_BASE)
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"

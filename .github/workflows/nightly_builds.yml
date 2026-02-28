@@ -6,12 +6,12 @@ on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  nightly_build:
-    name: Build on ${{ matrix.os }}
+  windows:
+    name: Build on Windows
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest]
         python-version: ['3.11']
     runs-on: ${{ matrix.os }}
 
@@ -21,14 +21,85 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install wheel helper
+        run: uv pip install --system wheel
+
       - name: Fix user Scripts missing from PATH
-        if: matrix.os == 'windows-latest'
         run: |
           $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
           Add-Content $env:GITHUB_PATH $ScriptsPath
 
+      - name: Install Python dependencies
+        run: |
+          uv pip install --system -r requirements.txt -r requirements-dev.txt
+
+      - name: Fix pywin32
+        run: |
+          $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
+          python "$ScriptsPath\pywin32_postinstall.py" -install
+
+      - name: Build DisplayCAL
+        run: |
+          $version = Get-Content VERSION_BASE
+          $git_revision = git rev-parse --short HEAD
+          $version_tag = "$version.$git_revision.nightly"
+          uv build
+          $wheel_file = Get-ChildItem dist\*.whl
+          echo "wheel_file=$wheel_file"
+          uv pip install --system $wheel_file
+          copy misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
+
+      - name: Run freeze.py
+        run: |
+          python DisplayCAL\freeze.py
+          $build_folder = Get-ChildItem dist\py2exe.*
+          python setup.py inno
+          $iss_file = Get-ChildItem dist\*.iss
+          echo "iss_file=$iss_file"
+
+      - name: Build Windows Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: dist\DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
+
+      - name: Update nightly Windows release
+        if: matrix.os == 'windows-latest'
+        uses: WebFreak001/deploy-nightly@v3.2.0
+        with:
+          upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
+          release_id: 291565678
+          asset_path: ./dist/DisplayCAL*.exe
+          asset_name: displaycal-$$-nightly-windows.exe
+          asset_content_type: application/x-msdownload
+          max_releases: 1
+          ignore_hash: true
+
+  macOS:
+    name: Build on macOS
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        python-version: ['3.11']
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install dependencies (macOS)
-        if: matrix.os == 'macos-latest'
         run: |
           brew install create-dmg glib gtk+3
 
@@ -49,43 +120,20 @@ jobs:
         run: |
           uv pip install --system -r requirements.txt -r requirements-dev.txt
 
-      - name: Fix pywin32
-        if: matrix.os == 'windows-latest'
-        run: |
-          $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
-          python "$ScriptsPath\pywin32_postinstall.py" -install
-
-      - name: Build macOS DMG
-        if: matrix.os == 'macos-latest'
+      - name: Build DisplayCAL
         run: |
           version=$(cat VERSION_BASE)
           git_revision=$(git rev-parse --short HEAD)
           version_tag="${version}.${git_revision}.nightly"
           uv build;
           uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
+
+      - name: Build macOS DMG
+        run: |
           python setup.py py2app
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
           create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-universal.dmg dist/$build_folder/DisplayCAL-${version}
-
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          $version = Get-Content VERSION_BASE
-          $git_revision = git rev-parse --short HEAD
-          $version_tag = "$version.$git_revision.nightly"
-          New-Item -ItemType Directory -Name "dist" -Force -Path .
-          copy misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
-          python DisplayCAL\freeze.py
-          $build_folder = Get-ChildItem dist\py2exe.*
-          python setup.py inno
-          $iss_file = Get-ChildItem dist\*.iss
-
-      - name: Build Windows Installer
-        if: matrix.os == 'windows-latest'
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
-        with:
-          path: dist\DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0
@@ -95,17 +143,5 @@ jobs:
           asset_path: ./dist/DisplayCAL-macOS-universal.dmg
           asset_name: displaycal-$$-nightly-macOS-universal.dmg
           asset_content_type: application/x-apple-diskimage
-          max_releases: 5
-          ignore_hash: true
-
-      - name: Update nightly Windows release
-        if: matrix.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.2.0
-        with:
-          upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
-          release_id: 291565678
-          asset_path: ./dist/DisplayCAL*.exe
-          asset_name: displaycal-$$-nightly-windows.exe
-          asset_content_type: application/x-msdownload
-          max_releases: 5
+          max_releases: 1
           ignore_hash: true

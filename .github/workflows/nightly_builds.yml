@@ -85,7 +85,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: ./dist/DisplayCAL*.iss
+          path: dist\DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0

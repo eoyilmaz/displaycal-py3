@@ -215,7 +215,9 @@ plist_dict = {
     "CFBundleSignature": "????",
     "CFBundleVersion": ".".join(map(str, VERSION_TUPLE)),
     "NSHumanReadableCopyright": f"© {strftime('%Y')} {AUTHOR}",
-    "LSMinimumSystemVersion": "10.6.0",
+    "LSMinimumSystemVersion": "11.0", # Required for native ARM64 support
+    "com.apple.security.cs.disable-library-validation": True, # Critical fix
+    "com.apple.security.cs.allow-unsigned-executable-memory": True,
 }
 
 
@@ -1123,6 +1125,7 @@ def setup() -> None:
                 "no_strip": True,
                 "optimize": 0,
                 "plist": plist_dict,
+                "entitlements": os.path.join(pydir, "..", "misc", "entitlements.plist"),
             }
         }
         if use_sdl:

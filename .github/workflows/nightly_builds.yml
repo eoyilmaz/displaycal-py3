@@ -115,6 +115,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          architecture: arm64  # Force ARM64 Python
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -126,7 +127,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          uv pip install --system -r requirements.txt -r requirements-dev.txt
+          # Explicitly target the current architecture to prevent mix-and-match
+          uv pip install --system --compile-bytecode -r requirements.txt -r requirements-dev.txt
 
       - name: Build DisplayCAL
         run: |
@@ -136,10 +138,16 @@ jobs:
           uv build;
           uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
 
+      - name: Force Ad-Hoc Signing
+        run: |
+          # Use the --deep flag to ensure every internal .so is signed
+          codesign --force --deep --sign - dist/*/DisplayCAL-*/DisplayCAL.app
+
       - name: Build macOS DMG
         run: |
           version=$(cat VERSION_BASE)
-          python setup.py py2app
+          # Use the --python alias to ensure we use the ARM64 environment
+          python setup.py py2app --arch=arm64
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
           create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-universal.dmg dist/$build_folder/DisplayCAL-${version}

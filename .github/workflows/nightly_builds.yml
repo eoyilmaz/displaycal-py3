@@ -138,27 +138,29 @@ jobs:
           uv build;
           uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
 
+      - name: Build macOS APP
+        run: |
+          # Use the --python alias to ensure we use the ARM64 environment
+          python setup.py py2app --arch=arm64
+
       - name: Force Ad-Hoc Signing
         run: |
           # Use the --deep flag to ensure every internal .so is signed
           codesign --force --deep --sign - dist/*/DisplayCAL-*/DisplayCAL.app
 
       - name: Build macOS DMG
-        run: |
           version=$(cat VERSION_BASE)
-          # Use the --python alias to ensure we use the ARM64 environment
-          python setup.py py2app --arch=arm64
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
-          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-universal.dmg dist/$build_folder/DisplayCAL-${version}
+          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-arm64.dmg dist/$build_folder/DisplayCAL-${version}
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: ./dist/DisplayCAL-macOS-universal.dmg
-          asset_name: DisplayCAL-$$-nightly-macOS-universal.dmg
+          asset_path: ./dist/DisplayCAL-macOS-arm64.dmg
+          asset_name: DisplayCAL-$$-nightly-macOS-arm64.dmg
           asset_content_type: application/x-apple-diskimage
           max_releases: 5
           ignore_hash: true

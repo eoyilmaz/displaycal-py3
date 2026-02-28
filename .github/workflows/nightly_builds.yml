@@ -74,6 +74,7 @@ jobs:
           $version = Get-Content VERSION_BASE
           $git_revision = git rev-parse --short HEAD
           $version_tag = "$version.$git_revision.nightly"
+          New-Item -ItemType Directory -Name "dist" -Force -Path .
           copy misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
           python DisplayCAL\freeze.py
           $build_folder = Get-ChildItem dist\py2exe.*

@@ -1125,7 +1125,7 @@ def setup() -> None:
                 "no_strip": True,
                 "optimize": 0,
                 "plist": plist_dict,
-                "entitlements": os.path.join(pydir, "..", "misc", "entitlements.plist"),
+                # "entitlements": os.path.join(pydir, "..", "misc", "entitlements.plist"),
             }
         }
         if use_sdl:

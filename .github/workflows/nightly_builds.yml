@@ -146,7 +146,7 @@ jobs:
       - name: Force Ad-Hoc Signing
         run: |
           # Use the --deep flag to ensure every internal .so is signed
-          codesign --force --deep --sign - dist/*/DisplayCAL-*/DisplayCAL.app
+          codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - dist/*/DisplayCAL-*/DisplayCAL.app
 
       - name: Build macOS DMG
         run: |

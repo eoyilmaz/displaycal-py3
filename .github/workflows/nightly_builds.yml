@@ -85,7 +85,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: *.iss
+          path: ./*.iss
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0

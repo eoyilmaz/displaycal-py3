@@ -75,6 +75,8 @@ jobs:
             cd dist
             iscc.exe DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
+      # The next step can't interpret wildcards,
+      # so we need to rename the installer to a known name.
       - name: Rename Installer
         run: |
             Move-Item dist/DisplayCAL-*-Setup.exe dist/DisplayCAL-Setup.exe
@@ -85,9 +87,9 @@ jobs:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
           asset_path: dist\DisplayCAL-Setup.exe
-          asset_name: displaycal-$$-nightly-windows.exe
+          asset_name: DisplayCAL-$$-nightly-Windows.exe
           asset_content_type: application/x-msdownload
-          max_releases: 1
+          max_releases: 5
           ignore_hash: true
 
   macOS:
@@ -148,7 +150,7 @@ jobs:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
           asset_path: ./dist/DisplayCAL-macOS-universal.dmg
-          asset_name: displaycal-$$-nightly-macOS-universal.dmg
+          asset_name: DisplayCAL-$$-nightly-macOS-universal.dmg
           asset_content_type: application/x-apple-diskimage
-          max_releases: 1
+          max_releases: 5
           ignore_hash: true

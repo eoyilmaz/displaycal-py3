@@ -62,7 +62,7 @@ jobs:
           git_revision=$(git rev-parse --short HEAD)
           version_tag="${version}.${git_revision}.nightly"
           uv build;
-          uv pip install ./dist/displaycal-${version}-*.whl --force-reinstall;
+          uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
           python setup.py py2app
           build_folder=$(ls dist | grep -i py2app.macosx)
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"

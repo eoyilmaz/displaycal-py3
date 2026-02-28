@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import ctypes.util
 import functools
 import os
@@ -727,18 +728,16 @@ def build_py2exe() -> None:
         "include " + os.path.splitext(os.path.basename(sys.argv[0]))[0] + ".cfg"
     )
     for _datadir, datafiles in attrs.get("data_files", []):
-
         for datafile in datafiles:
-            try:
-                datafile_relpath = os.path.relpath(os.path.sep.join(datafile.split("/")), source_dir)
-            except ValueError:
-                datafile_relpath = None
-            manifest_in.append(
-                "include {}".format(datafile_relpath or datafile)
-            )
+            datafile_relpath = None
+            with contextlib.suppress(ValueError):
+                datafile_relpath = os.path.relpath(
+                    os.path.sep.join(datafile.split("/")), source_dir
+                )
+            manifest_in.append(f"include {datafile_relpath or datafile}")
     for extmod in attrs.get("ext_modules", []):
         manifest_in.extend(
-            "include " + os.path.sep.join(src.split("/")) for src in extmod.sources
+            f"include {os.path.sep.join(src.split('/'))}" for src in extmod.sources
         )
     for pkg in attrs.get("packages", []):
         pkg = os.path.join(*pkg.split("."))

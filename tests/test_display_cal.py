@@ -110,15 +110,22 @@ def test_donation_message(mainframe: MainFrame, response: int) -> None:
 
 
 # todo: test is working locally but not on CI
-@pytest.mark.skip(
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
     reason="Seems like the first call of ShowWindowModalBlocking always fails on remote."
     "Locally however the problem cannot be reproduced, skipping test for now."
 )
 @pytest.mark.parametrize(
-    "update", (True, False), ids=("update comports", "dont update comports")
+    "update",
+    (True, False),
+    ids=("update comports", "don't update comports"),
 )
 @pytest.mark.parametrize(
-    "response,value", ((wx.ID_OK, True), (wx.ID_NO, False)), ids=("Ok", "Cancel")
+    "response, value", (
+        (wx.ID_OK, True),
+        (wx.ID_NO, False),
+    ),
+    ids=("Ok", "Cancel"),
 )
 def test_colorimeter_correction_check_overwrite(
     data_files, mainframe: MainFrame, response: int, value: bool, update: bool

@@ -165,6 +165,7 @@ from DisplayCAL.meta import (
     DEVELOPMENT_HOME_PAGE,
     DOMAIN,
     VERSION_STRING,
+    VERSION_TUPLE,
     get_latest_changelog_entry,
 )
 from DisplayCAL.meta import (
@@ -398,13 +399,13 @@ def app_update_check(
         chglog_file = "Argyll/ChangesSummary.html"
     elif snapshot:
         # Snapshot
-        curversion_tuple = VERSION_STRING
+        curversion_tuple = VERSION_TUPLE
         version_file = "SNAPSHOT_VERSION"
         chglog_file = "SNAPSHOT_CHANGES.html"
     else:
         # Stable
         print(lang.getstr("update_check"))
-        curversion_tuple = VERSION_STRING
+        curversion_tuple = VERSION_TUPLE
         version_file = "VERSION"
         chglog_file = "CHANGES.html"
     resp = http_request(
@@ -522,11 +523,10 @@ def check_donation(parent: wx.Window, snapshot: bool) -> None:
         parent (wx.Window): Parent window to show the dialog.
         snapshot (bool): If True, the application is a snapshot build.
     """
-    if not snapshot and VERSION[0] > next(
-        iter(intlist(getcfg("last_launch").split(".")))
-    ):
+    if not snapshot and VERSION_TUPLE[0] > intlist(getcfg("last_launch", "0.0.0").split("."))[0]:
         setcfg("show_donation_message", 1)
-    setcfg("last_launch", VERSION_STRING)
+        # store the current version as the last_launch version
+        setcfg("last_launch", VERSION_STRING)
     if getcfg("show_donation_message"):
         wx.CallAfter(donation_message, parent)
 

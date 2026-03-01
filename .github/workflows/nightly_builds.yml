@@ -148,10 +148,25 @@ jobs:
           # The --arch=arm64 flag tells py2app to thin the bundle to one architecture
           python setup.py py2app --arch=arm64
 
-      - name: Force Ad-Hoc Signing
+      # - name: Force Ad-Hoc Signing
+      #   run: |
+      #     # Use the --deep flag to ensure every internal .so is signed
+      #     codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - dist/*/DisplayCAL-*/DisplayCAL.app
+
+      - name: Force Sign (Inside-Out Loop)
         run: |
-          # Use the --deep flag to ensure every internal .so is signed
-          codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - dist/*/DisplayCAL-*/DisplayCAL.app
+          APP_PATH=$(ls -d dist/*/DisplayCAL-*/DisplayCAL.app)
+
+          # 1. Nuke any 'poisoned' signatures from py2app
+          find "$APP_PATH" -type f -exec codesign --remove-signature {} + 2>/dev/null || true
+
+          # 2. Pre-sign libraries to satisfy 'strict validation'
+          # Using linker-signed flag to bypass contextual errors
+          find "$APP_PATH/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign -s - -f -o linker-signed {} +
+          find "$APP_PATH/Contents/Resources" -type f -name "*.so" -exec codesign -s - -f -o linker-signed {} +
+
+          # 3. Final Deep Sign with Entitlements and Hardened Runtime
+          codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - "$APP_PATH"
 
       - name: Build macOS DMG
         run: |

@@ -1683,6 +1683,11 @@ def setup() -> None:
                 )
                 print("Copying", pil_installed_dylibs, "->", pil_dylibs)
                 shutil.copytree(pil_installed_dylibs, pil_dylibs)
+                # ADD THIS: Remove existing signatures so the later deep-sign works properly
+                for root, dirs, files in os.walk(pil_dylibs):
+                    for file in files:
+                        if file.endswith(".dylib"):
+                            os.system(f"codesign --remove-signature '{os.path.join(root, file)}'")
                 for entry in os.listdir(pil_dylibs):
                     print(os.path.join(pil_dylibs, entry))
                 # Remove wrongly included frameworks

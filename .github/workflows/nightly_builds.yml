@@ -1,18 +1,22 @@
 name: Nightly Builds
 
 on:
-  schedule:
-    - cron: '0 2 * * *' # Runs at 02:00 UTC every day
+  # schedule:
+  #   - cron: '0 2 * * *' # Runs at 02:00 UTC every day
+  push:
+    branches:
+      - develop  # Runs whenever you push or merge to the develop branch
   workflow_dispatch: # Allows manual triggering
 
 jobs:
   windows:
-    name: Build on Windows
+    name: Build on Windows (${{ matrix.architecture }})
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest]
         python-version: ['3.11']
+        architecture: [x64, arm64] # Split the build into two architectures
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -31,9 +35,6 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install wheel helper
-        run: uv pip install --system wheel
-
       - name: Fix user Scripts missing from PATH
         run: |
           $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
@@ -41,6 +42,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
+          uv pip install --system wheel
           uv pip install --system -r requirements.txt -r requirements-dev.txt
 
       - name: Fix pywin32
@@ -51,11 +53,8 @@ jobs:
       - name: Build DisplayCAL
         run: |
           $version = Get-Content VERSION_BASE
-          $git_revision = git rev-parse --short HEAD
-          $version_tag = "$version.$git_revision.nightly"
           uv build
-          $wheel_file = Get-ChildItem dist\*.whl
-          echo "wheel_file=$wheel_file"
+          $wheel_file = Get-ChildItem dist\*.whl | Select-Object -First 1
           uv pip install --system $wheel_file
           copy misc/net.displaycal.DisplayCAL.appdata.xml dist/net.displaycal.DisplayCAL.appdata.xml
 
@@ -66,14 +65,14 @@ jobs:
 
       - name: Create INNO script
         run: |
-          python setup.py inno
+          python setup.py inno --force-arch ${{ matrix.architecture }}
           $iss_file = Get-ChildItem dist\*.iss
           echo "iss_file=$iss_file"
 
       - name: Build Windows Installer
         run: |
             cd dist
-            iscc.exe DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
+            iscc.exe dist\DisplayCAL-Setup-py2exe.win-${{ matrix.architecture }}-py${{ matrix.python-version }}.iss
 
       # The next step can't interpret wildcards,
       # so we need to rename the installer to a known name.
@@ -87,9 +86,9 @@ jobs:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
           asset_path: dist\DisplayCAL-Setup.exe
-          asset_name: DisplayCAL-$$-nightly-Windows.exe
+          asset_name: DisplayCAL-$$-nightly-Windows-${{ matrix.architecture }}.exe
           asset_content_type: application/x-msdownload
-          max_releases: 5
+          max_releases: 1
           ignore_hash: true
 
   macOS:
@@ -186,5 +185,5 @@ jobs:
           asset_path: ./dist/DisplayCAL-macOS-${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}.dmg
           asset_name: DisplayCAL-$$-nightly-macOS-${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}.dmg
           asset_content_type: application/x-apple-diskimage
-          max_releases: 5
+          max_releases: 1
           ignore_hash: true

@@ -1135,7 +1135,13 @@ def setup() -> None:
         import wx
         from winmanifest_util import getmanifestxml
 
-        arch = "amd64" if platform.architecture()[0] == "64bit" else "x86"
+        machine = platform.machine().lower()
+        if "arm" in machine or "aarch64" in machine:
+            arch = "arm64"
+        elif "64" in platform.architecture()[0]:
+            arch = "amd64"
+        else:
+            arch = "x86"
         manifest_xml = getmanifestxml(
             os.path.join(
                 pydir,

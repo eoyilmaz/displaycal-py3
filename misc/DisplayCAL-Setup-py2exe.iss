@@ -9,6 +9,7 @@ AppID={{4714199A-0D66-4E69-97FF-7B54BFF80B88}
 AppCopyright=%(AppCopyright)s
 AppName=%(AppName)s
 AppVerName=%(AppName)s %(AppVerName)s
+AppArch=%(AppArch)s
 AppPublisher=%(AppPublisher)s
 AppPublisherURL=%(AppPublisherURL)s
 AppReadmeFile={app}\README.html

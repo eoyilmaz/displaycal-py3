@@ -755,6 +755,7 @@ def setup():
                 inno_script = template % {
                     "AppCopyright": f"© {strftime('%Y')} {AUTHOR}",
                     "AppName": NAME,
+                    "AppArch": arch,
                     "AppVerName": VERSION_STRING,
                     "AppPublisher": AUTHOR,
                     "AppPublisherURL": f"https://{DOMAIN}/",

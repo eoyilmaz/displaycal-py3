@@ -181,7 +181,7 @@ jobs:
           find "$APP_PATH/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign -s - -f -o linker-signed {} +
 
           # 3. Final Deep Sign
-          codesign --force --deep --options runtime --entitlements entitlements.plist --sign - "$APP_PATH"
+          codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - "$APP_PATH"
 
       - name: Build macOS DMG
         run: |

@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [windows-latest]
         python-version: ['3.11']
-        architecture: [x64, arm64] # Split the build into two architectures
+        architecture: [x64] # Split the build into two architectures
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -92,7 +92,7 @@ jobs:
           ignore_hash: true
 
   macOS:
-    name: Build on macOS
+    name: Build on macOS (${{ matrix.architecture }})
     strategy:
       fail-fast: false
       matrix:

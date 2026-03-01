@@ -72,7 +72,7 @@ jobs:
       - name: Build Windows Installer
         run: |
             cd dist
-            iscc.exe dist\DisplayCAL-Setup-py2exe.win-${{ matrix.architecture == 'x64' && 'amd64' || 'arm64' }}-py${{ matrix.python-version }}.iss
+            iscc.exe dist\DisplayCAL-Setup-py2exe.win-amd64-py${{ matrix.python-version }}.iss
 
       # The next step can't interpret wildcards,
       # so we need to rename the installer to a known name.

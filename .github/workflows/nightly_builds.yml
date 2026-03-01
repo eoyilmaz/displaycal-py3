@@ -50,16 +50,16 @@ jobs:
           $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts'))"
           python "$ScriptsPath\pywin32_postinstall.py" -install
 
-      - name: Patch Version String
-        run: |
-          $Version = Get-Content VERSION_BASE
-          # Result: 3.9.18.dev.nightly
-          Set-Content -Path VERSION_BASE -Value "$Version.nightly"
-          Write-Host "Building version: $(Get-Content VERSION_BASE)"
+      # - name: Patch Version String
+      #   run: |
+      #     $Version = Get-Content VERSION
+      #     # Result: 3.9.18.dev.nightly
+      #     Set-Content -Path VERSION -Value "$Version.nightly"
+      #     Write-Host "Building version: $(Get-Content VERSION)"
 
       - name: Build DisplayCAL
         run: |
-          $version = Get-Content VERSION_BASE
+          $version = Get-Content VERSION
           uv build
           $wheel_file = Get-ChildItem dist\*.whl | Select-Object -First 1
           uv pip install --system $wheel_file
@@ -137,18 +137,16 @@ jobs:
           # Explicitly target the current architecture to prevent mix-and-match
           uv pip install --system --compile-bytecode -r requirements.txt -r requirements-dev.txt
 
-      - name: Patch Version String
-        run: |
-          VERSION=$(cat VERSION_BASE)
-          # Result: 3.9.18.nightly
-          echo "${VERSION}.nightly" > VERSION_BASE
-          echo "Building version: $(cat VERSION_BASE)"
+      # - name: Patch Version String
+      #   run: |
+      #     VERSION=$(cat VERSION)
+      #     # Result: 3.9.18.nightly
+      #     echo "${VERSION}.nightly" > VERSION
+      #     echo "Building version: $(cat VERSION)"
 
       - name: Build DisplayCAL
         run: |
-          version=$(cat VERSION_BASE)
-          git_revision=$(git rev-parse --short HEAD)
-          version_tag="${version}.${git_revision}.nightly"
+          version=$(cat VERSION)
           uv build;
           uv pip install --system ./dist/displaycal-${version}-*.whl --force-reinstall;
 
@@ -180,7 +178,7 @@ jobs:
 
       - name: Build macOS DMG
         run: |
-          version=$(cat VERSION_BASE)
+          version=$(cat VERSION)
           build_folder=$(ls dist | grep -i py2app.macosx)
           TARGET_ARCH="${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}"
 

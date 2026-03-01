@@ -15,3 +15,13 @@ def test_get_data_returns_relative_paths(tgt_dir, key, pkgname, subkey, excludes
     for r in result:
         all_paths += r[1]
     assert all([not os.path.isabs(path) for path in all_paths])
+
+
+def test_get_version_info():
+    """DisplayCAL.setup.get_version_info() returns correct version info."""
+    from DisplayCAL.meta import VERSION_STRING
+
+    from DisplayCAL.setup import get_version_info
+
+    version_info = get_version_info()
+    assert version_info == VERSION_STRING

@@ -1562,7 +1562,6 @@ def setup() -> None:
             [
                 "include LICENSE.txt",
                 "include VERSION",
-                "include VERSION_BASE",
                 "include MANIFEST",
                 "include MANIFEST.in",
                 "include README.html",

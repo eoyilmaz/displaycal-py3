@@ -2,28 +2,21 @@
 
 from __future__ import annotations
 
+import os
 import re
 
-try:
-    from DisplayCAL.__version__ import (
-        BUILD_DATE as BUILD,
-    )
-    from DisplayCAL.__version__ import (
-        LASTMOD,
-        VERSION,
-        VERSION_BASE,
-        VERSION_STRING,
-    )
-except ImportError:
-    BUILD = LASTMOD = "1970-01-01T00:00:00Z"
-    VERSION = None
-    VERSION_STRING = None
+# globals
+VERSION_STRING = None
+VERSION_FILE = os.path.join(os.path.dirname(__file__), "VERSION")
+if os.path.isfile(VERSION_FILE):
+    with open(VERSION_FILE, "r", encoding="utf-8") as f:
+        VERSION_STRING = f.read().strip()
+VERSION_STRING = VERSION_STRING or "0.0.0"
+"""str: The version number of DisplayCAL."""
+
 
 from DisplayCAL.options import TEST_UPDATE
 
-if not VERSION or TEST_UPDATE:
-    VERSION = VERSION_BASE = (0, 0, 0)
-    VERSION_STRING = ".".join(str(n) for n in VERSION)
 
 AUTHOR = "Florian Höch, Erkan Özgür Yılmaz, Patrick Zwerschke"  # noqa: RUF001
 AUTHOR_ASCII = "Florian Hoech, Erkan Ozgur Yilmaz, Patrick Zwerschke"
@@ -55,13 +48,13 @@ NAME_HTML = '<span class="appname">Display<span>CAL</span></span>'
 PY_MINVERSION = (3, 9)
 PY_MAXVERSION = (3, 14)
 
-VERSION_STRING = VERSION_STRING
 VERSION_LIN = VERSION_STRING  # Linux
 VERSION_MAC = VERSION_STRING  # Mac OS X
 VERSION_WIN = VERSION_STRING  # Windows
 VERSION_SRC = VERSION_STRING
-VERSION_SHORT = re.sub(r"(?:\.0){1,2}$", "", VERSION_STRING)
-VERSION_TUPLE = VERSION  # only ints allowed and must be exactly 3 values
+# follow semver format
+VERSION_TUPLE = tuple(int(n) for n in VERSION_STRING.split("-")[0].split(".")[:3])
+"""tuple[int, int, int]: The version number as a tuple of integers."""
 
 WX_MINVERSION = (4, 0, 0)
 WX_RECVERSION = (4, 2, 0)

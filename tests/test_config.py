@@ -49,7 +49,7 @@ def test_default_values_1():
         "/var/lib",
     ]
 
-    from DisplayCAL.__version__ import VERSION_STRING
+    from DisplayCAL.meta import VERSION_STRING
 
     expected_data_dirs = [
         os.path.expanduser("~/.local/share/DisplayCAL"),

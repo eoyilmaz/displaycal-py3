@@ -49,12 +49,7 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.debughelpers import ResourceError, handle_error
 from DisplayCAL.log import LOG
-from DisplayCAL.meta import (
-    BUILD,
-    VERSION,
-    VERSION_BASE,
-    VERSION_STRING,
-)
+from DisplayCAL.meta import VERSION_STRING
 from DisplayCAL.meta import (
     NAME as APPNAME,
 )
@@ -146,9 +141,7 @@ def print_application_version() -> None:
     """Print application version."""
     if VERBOSE >= 1:
         version = VERSION_STRING
-        if VERSION > VERSION_BASE:
-            version += " Beta"
-        print(PYNAME + RUNTYPE, version, BUILD)
+        print(PYNAME + RUNTYPE, version, "")
 
 
 def print_os_version() -> None:

@@ -1,5 +1,6 @@
 """Runtime configuration and user settings parser."""
 
+# Standard Library Imports
 from __future__ import annotations
 
 import configparser
@@ -14,9 +15,9 @@ from decimal import Decimal
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any
 
-if sys.platform == "win32":
-    pass
 
+# Local Imports
+import DisplayCAL
 from DisplayCAL import colormath
 from DisplayCAL.argyll_names import INTENTS, OBSERVERS, VIDEO_ENCODINGS, VIEWCONDS
 
@@ -42,10 +43,7 @@ from DisplayCAL.defaultpaths import (  # noqa: F401
     ICCPROFILES,
     ICCPROFILES_HOME,
 )
-from DisplayCAL.meta import (  # noqa: F401
-    BUILD,  # don't remove this, imported by other modules
-    VERSION_STRING,
-)
+from DisplayCAL.meta import VERSION_STRING
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import (  # noqa: F401

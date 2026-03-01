@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import calendar
 import codecs
 import glob
 import os
@@ -31,11 +30,12 @@ sys.path.insert(1, str(pydir))
 
 
 def create_appdmg(zeroinstall=False):
+    from DisplayCAL.meta import NAME, VERSION_STRING
     if zeroinstall:
-        dmgname = NAME + "-0install"
+        dmgname = f"{NAME}-0install"
         srcdir = "0install"
     else:
-        dmgname = NAME + "-" + VERSION_STRING
+        dmgname = f"{NAME}-{VERSION_STRING}"
         srcdir = f"py2app.{get_platform()}-py{sys.version_info[0]}.{sys.version_info[1]}"
 
     retcode = subprocess.call(
@@ -134,42 +134,44 @@ def format_changelog(changelog, fmt="appstream"):
         changelog = ""
 
         for lvl1 in tree:
-            if lvl1.tag in ("ol", "ul"):
-                for lvl2 in lvl1:
-                    if lvl2.tag == "li":
-                        changelog = f"{changelog}  * {lvl2.text.lstrip()}"
-                        links = []
-                        link_cnt = 1
+            if lvl1.tag not in ("ol", "ul"):
+                continue
+            for lvl2 in lvl1:
+                if lvl2.tag != "li":
+                    continue
+                changelog = f"{changelog}  * {lvl2.text.lstrip()}"
+                links = []
+                link_cnt = 1
 
-                        for lvl3 in lvl2:
-                            if lvl3.tag in ("ol", "ul"):
-                                if not changelog.endswith("\n"):
-                                    changelog = f"{changelog}\n"
-
-                                for lvl4 in lvl3:
-                                    if lvl4.tag == "li":
-                                        changelog += f"    {lvl4.text.lstrip()}"
-
-                                        for lvl5 in lvl4:
-                                            if lvl5.tag == "a":
-                                                # Collect links
-                                                links.append(lvl5.attrib["href"])
-                                                changelog = f"{changelog}{lvl5.text.strip()}[{link_cnt}]{lvl5.tail}"
-                                                link_cnt += 1
-
-                                        if not changelog.endswith("\n"):
-                                            changelog = f"{changelog}\n"
-                            elif lvl3.tag == "a":
-                                # Collect links
-                                links.append(lvl3.attrib["href"])
-                                changelog = f"{changelog}{lvl3.text.strip()}[{link_cnt}]{lvl3.tail}"
-                                link_cnt += 1
-
+                for lvl3 in lvl2:
+                    if lvl3.tag in ("ol", "ul"):
                         if not changelog.endswith("\n"):
                             changelog = f"{changelog}\n"
 
-                        for n, link in enumerate(links, 1):
-                            changelog = f"{changelog}    [{n}] {link}\n"
+                        for lvl4 in lvl3:
+                            if lvl4.tag == "li":
+                                changelog += f"    {lvl4.text.lstrip()}"
+
+                                for lvl5 in lvl4:
+                                    if lvl5.tag == "a":
+                                        # Collect links
+                                        links.append(lvl5.attrib["href"])
+                                        changelog = f"{changelog}{lvl5.text.strip()}[{link_cnt}]{lvl5.tail}"
+                                        link_cnt += 1
+
+                                if not changelog.endswith("\n"):
+                                    changelog = f"{changelog}\n"
+                    elif lvl3.tag == "a":
+                        # Collect links
+                        links.append(lvl3.attrib["href"])
+                        changelog = f"{changelog}{lvl3.text.strip()}[{link_cnt}]{lvl3.tail}"
+                        link_cnt += 1
+
+                if not changelog.endswith("\n"):
+                    changelog = f"{changelog}\n"
+
+                for n, link in enumerate(links, 1):
+                    changelog = f"{changelog}    [{n}] {link}\n"
 
         # Wrap each line to 67 chars
         changelog = changelog.splitlines()
@@ -194,7 +196,6 @@ def format_changelog(changelog, fmt="appstream"):
                 if lvl1.tag == "p":
                     if nump == maxp:
                         continue
-
                     nump += 1
 
                 changelog = f"{changelog}\t\t\t\t<{lvl1.tag}>\n"
@@ -203,45 +204,43 @@ def format_changelog(changelog, fmt="appstream"):
                     changelog = f"{changelog}\t\t\t\t\t{escape(text)}\n"
 
                 for lvl2 in lvl1:
-                    if lvl2.tag == "li":
-                        changelog = f"{changelog}\t\t\t\t\t<li>\n\t\t\t\t\t\t{escape(lvl2.text.strip())}\n"
+                    if lvl2.tag != "li":
+                        continue
+                    changelog = f"{changelog}\t\t\t\t\t<li>\n\t\t\t\t\t\t{escape(lvl2.text.strip())}\n"
 
-                        for lvl3 in lvl2:
-                            if lvl3.tag in {"p", "ol", "ul"}:
-                                text = lvl3.text.strip()
+                    for lvl3 in lvl2:
+                        if lvl3.tag in {"p", "ol", "ul"}:
+                            text = lvl3.text.strip()
 
-                                if lvl3.tag == "p":
-                                    if nump == maxp:
-                                        continue
+                            if lvl3.tag == "p":
+                                if nump == maxp:
+                                    continue
+                                nump += 1
 
-                                    nump += 1
+                            changelog = f"{changelog}\t\t\t\t\t\t<{lvl3.tag}>\n"
 
-                                changelog = f"{changelog}\t\t\t\t\t\t<{lvl3.tag}>\n"
+                            if text:
+                                changelog = (
+                                    f"{changelog}\t\t\t\t\t\t\t{escape(text)}\n"
+                                )
 
-                                if text:
-                                    changelog = (
-                                        f"{changelog}\t\t\t\t\t\t\t{escape(text)}\n"
-                                    )
+                            for lvl4 in lvl3:
+                                if lvl4.tag == "li":
+                                    changelog = f"{changelog}\t\t\t\t\t\t\t<li>{escape(lvl4.text.strip())}</li>\n"
 
-                                for lvl4 in lvl3:
-                                    if lvl4.tag == "li":
-                                        changelog = f"{changelog}\t\t\t\t\t\t\t<li>{escape(lvl4.text.strip())}</li>\n"
-
-                                changelog = f"{changelog}\t\t\t\t\t\t</{lvl3.tag}>\n"
-
-                        changelog = f"{changelog}\t\t\t\t\t</li>\n"
-
+                            changelog = f"{changelog}\t\t\t\t\t\t</{lvl3.tag}>\n"
+                    changelog = f"{changelog}\t\t\t\t\t</li>\n"
                 changelog = f"{changelog}\t\t\t\t</{lvl1.tag}>\n"
-
         changelog = changelog.rstrip()
 
     return changelog
 
 
 def replace_placeholders(
-    tmpl_path: Path, out_path: Path, lastmod_time=0, iterable=None
+    tmpl_path: Path, out_path: Path, lastmod_time= 0, iterable=None
 ):
     global LONG_DESCRIPTION
+    import DisplayCAL
 
     with codecs.open(str(tmpl_path), "r", "UTF-8") as tmpl:
         tmpl_data = tmpl.read()
@@ -448,84 +447,6 @@ def setup():
 
     from DisplayCAL.util_os import which
 
-    git_metadata = Path(pydir, ".git")
-    has_git_metadata = git_metadata.is_dir() or git_metadata.is_file()
-
-    if (
-        has_git_metadata
-        and (which("git") or which("git.exe"))
-        and (not sys.argv[1:] or (len(non_build_args) < len(sys.argv[1:]) and not help))
-    ):
-        print("Trying to get git version information...")
-        git_revision_hash_short = None
-
-        try:
-            p = subprocess.Popen(
-                ["git", "rev-parse", "--short", "HEAD"],
-                stdout=subprocess.PIPE,
-                cwd=pydir,
-            )
-        except Exception as exception:
-            print("...failed:", exception)
-        else:
-            git_revision_hash_short = p.communicate()[0].strip().decode()
-            version_base_file_path = Path(pydir, "VERSION_BASE")
-            version_base = "0.0.0".split(".")
-
-            if version_base_file_path.is_file():
-                with open(version_base_file_path) as version_base_file:
-                    version_base = version_base_file.read().strip().split(".")
-
-        print("Trying to get git information...")
-        LASTMOD = ""
-        timestamp = None
-        mtime = 0
-
-        try:
-            p = subprocess.Popen(
-                ["git", "log", "-1", "--format=%ct"], stdout=subprocess.PIPE, cwd=pydir
-            )
-        except Exception as exception:
-            print("...failed:", exception)
-        else:
-            mtime = int(p.communicate()[0].strip().decode())
-            timestamp = time.gmtime(mtime)
-
-        if timestamp:
-            LASTMOD = f"{strftime('%Y-%m-%dT%H:%M:%S', timestamp)}Z"
-
-        if not dry_run:
-            print("Generating __version__.py")
-
-            with open(Path(pydir, "DisplayCAL", "__version__.py"), "w") as versionpy:
-                versionpy.write("# generated by setup.py\n\n")
-                build_time = time.time()
-                versionpy.write(
-                    f"BUILD_DATE = "
-                    f"\"{strftime('%Y-%m-%dT%H:%M:%S', gmtime(build_time))}Z\"\n"
-                )
-
-                if LASTMOD:
-                    versionpy.write(f"LASTMOD = {LASTMOD!r}\n")
-
-                if git_revision_hash_short:
-                    print("Version", ".".join(version_base))
-                    versionpy.write("VERSION = (%s)\n" % ", ".join(version_base))
-                    versionpy.write("VERSION_BASE = (%s)\n" % ", ".join(version_base))
-                    versionpy.write("VERSION_STRING = %r\n" % ".".join(version_base))
-
-                    with open(Path(pydir, "VERSION"), "w") as versiontxt:
-                        versiontxt.write(".".join(version_base))
-
-    backup_setup_path = Path(pydir, "setup.cfg.backup")
-    setup_path = Path(pydir, "setup.cfg")
-
-    if not help and not dry_run:
-        # Restore setup.cfg.backup if it exists
-
-        if backup_setup_path.is_file() and not setup_path.is_file():
-            shutil.copy2(backup_setup_path, setup_path)
-
     if not sys.argv[1:]:
         return
 
@@ -535,14 +456,15 @@ def setup():
     global VERSION_SRC, VERSION_TUPLE, VERSION_WIN
     global WX_MINVERSION, APPSTREAM_ID
 
-    # Do not remove the following seemingly unused variables, I know that it seems silly, but for now we need them
+    # Do not remove the following seemingly unused variables,
+    # I know that it seems silly, but for now we need them
+    import DisplayCAL
     from DisplayCAL.meta import (
         NAME,
         NAME_HTML,
         AUTHOR,
         AUTHOR_EMAIL,
         DESCRIPTION,
-        LASTMOD,
         LONG_DESCRIPTION,
         DOMAIN,
         PY_MAXVERSION,
@@ -562,7 +484,7 @@ def setup():
     LONG_DESCRIPTION = fill(LONG_DESCRIPTION)
 
     if not lastmod_time:
-        lastmod_time = calendar.timegm(time.strptime(LASTMOD, "%Y-%m-%dT%H:%M:%SZ"))
+        lastmod_time = int(time.time())
 
     msiversion = ".".join(
         (
@@ -571,19 +493,6 @@ def setup():
             str(VERSION_TUPLE[2]),
         )
     )
-
-    if not dry_run and not help:
-        if setup_cfg or ("bdist_msi" in sys.argv[1:] and use_setuptools):
-            if not backup_setup_path.exists():
-                shutil.copy2(setup_path, backup_setup_path)
-
-        if "bdist_msi" in sys.argv[1:] and use_setuptools:
-            # setuptools parses options globally even if they're not under the
-            # section of the currently run command
-            os.remove(setup_path)
-
-        if setup_cfg:
-            shutil.copy2(Path(pydir, "misc", f"setup.{setup_cfg}.cfg"), setup_path)
 
     if purge or purge_dist:
         # remove the "build", "DisplayCAL.egg-info" and

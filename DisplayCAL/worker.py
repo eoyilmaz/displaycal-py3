@@ -186,7 +186,7 @@ from DisplayCAL.icc_profile import (
     set_display_profile,
 )
 from DisplayCAL.log import LOG, DummyLogger, LogFile, get_file_logger
-from DisplayCAL.meta import DOMAIN, VERSION, VERSION_BASE, VERSION_STRING
+from DisplayCAL.meta import DOMAIN, VERSION_STRING
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.multiprocess import cpu_count, pool_slice
 from DisplayCAL.network import LoggingHTTPRedirectHandler, NoHTTPRedirectHandler
@@ -17773,7 +17773,7 @@ BEGIN_DATA
             writecfg()
             from DisplayCAL.display_cal import check_donation
 
-            snapshot = VERSION > VERSION_BASE
+            snapshot = False
             self.owner.set_argyll_bin_handler(
                 None,
                 True,

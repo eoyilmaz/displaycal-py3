@@ -56,9 +56,6 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.meta import (
     DOMAIN,
-    VERSION,
-    VERSION_BASE,
-    VERSION_SHORT,
     VERSION_STRING,
 )
 from DisplayCAL.meta import (
@@ -2632,10 +2629,8 @@ class ProfileLoader:
         title = "{} {} {}".format(
             APPNAME,
             lang.getstr("profile_loader").title(),
-            VERSION_SHORT,
+            VERSION_STRING,
         )
-        if VERSION > VERSION_BASE:
-            title += " Beta"
         if "--force" in sys.argv[1:]:
             title += " ({})".format(lang.getstr("forced"))
         return title

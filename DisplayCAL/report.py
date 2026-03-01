@@ -15,7 +15,7 @@ from time import strftime
 from DisplayCAL import jspacker
 from DisplayCAL import localization as lang
 from DisplayCAL.config import get_data_path, initcfg
-from DisplayCAL.meta import VERSION_SHORT
+from DisplayCAL.meta import VERSION_STRING
 
 
 def create(
@@ -166,7 +166,7 @@ def update(report_path: str, pack: bool = True) -> None:
     )
 
     placeholders2data = {
-        "${REPORT_VERSION}": VERSION_SHORT,
+        "${REPORT_VERSION}": VERSION_STRING,
         "${CORRECTION_MATRIX}": "Unknown",
         "${ADAPTION}": "None",
         "${CAL_ENTRYCOUNT}": "null",

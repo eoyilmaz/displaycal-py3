@@ -1,8 +1,8 @@
 SHELL:=bash
 NUM_CPUS = $(shell nproc ||  grep -c '^processor' /proc/cpuinfo)
 SETUP_PY_FLAGS = --use-distutils
-VERSION := $(shell cat VERSION_BASE)
-VERSION_FILE=$(CURDIR)/VERSION_BASE
+VERSION := $(shell cat VERSION)
+VERSION_FILE=$(CURDIR)/VERSION
 VIRTUALENV_DIR:=.venv
 SYSTEM_PYTHON?=python3
 
@@ -57,9 +57,7 @@ clean-all: clean
 	-rm -Rf htmlcov
 	-rm .coverage.*
 	-rm MANIFEST.in
-	-rm VERSION
 	-rm -Rf displaycal.egg-info
-	-rm DisplayCAL/__version__.py
 	-rm -Rf $(VIRTUALENV_DIR)
 
 html:

@@ -106,7 +106,6 @@ DisplayCAL = [
     "theme/**",
     "ti1/**",
     "util/**",
-    "VERSION_BASE",
     "VERSION",
     "x3d-viewer/**",
     "xrc/**",

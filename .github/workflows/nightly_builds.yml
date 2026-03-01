@@ -99,6 +99,7 @@ jobs:
       matrix:
         os: [macos-latest]
         python-version: ['3.11']
+        architecture: [arm64, x64] # New key to split the builds
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -115,7 +116,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: arm64  # Force ARM64 Python
+          architecture: ${{ matrix.architecture }} # Use matrix value
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -142,11 +143,12 @@ jobs:
         env:
           # This forces setuptools to target ARM64 and a modern macOS version
           MACOSX_DEPLOYMENT_TARGET: "11.0"
-          ARCHFLAGS: "-arch arm64"
+          # Map x64 matrix to x86_64 for compiler flags
+          ARCHFLAGS: "-arch ${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}"
         run: |
-          # Use the --python alias to ensure we use the ARM64 environment
-          # The --arch=arm64 flag tells py2app to thin the bundle to one architecture
-          python setup.py py2app --arch=arm64
+          # Use x86_64 for Intel or arm64 for Apple Silicon
+          TARGET_ARCH="${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}"
+          python setup.py py2app --arch=$TARGET_ARCH
 
       - name: Force Ad-Hoc Signing
         run: |
@@ -167,12 +169,13 @@ jobs:
         run: |
           version=$(cat VERSION_BASE)
           build_folder=$(ls dist | grep -i py2app.macosx)
+          TARGET_ARCH="${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}"
 
           # Clean attributes from the app BEFORE putting it in the DMG
           xattr -cr "dist/${build_folder}/DisplayCAL-${version}/DisplayCAL.app"
 
           ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
-          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-arm64.dmg dist/$build_folder/DisplayCAL-${version}
+          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-${TARGET_ARCH}.dmg dist/$build_folder/DisplayCAL-${version}
 
 
       - name: Update nightly macOS release
@@ -180,8 +183,8 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/eoyilmaz/displaycal-py3/releases/291565678/assets{?name,label}
           release_id: 291565678
-          asset_path: ./dist/DisplayCAL-macOS-arm64.dmg
-          asset_name: DisplayCAL-$$-nightly-macOS-arm64.dmg
+          asset_path: ./dist/DisplayCAL-macOS-${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}.dmg
+          asset_name: DisplayCAL-$$-nightly-macOS-${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}.dmg
           asset_content_type: application/x-apple-diskimage
           max_releases: 5
           ignore_hash: true

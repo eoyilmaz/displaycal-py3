@@ -211,7 +211,7 @@ jobs:
 
     - name: Install ArgyllCMS (Windows)
       run: |
-        choco install argyllcms --no-progress
+        choco install argyll --no-progress
         echo "C:\tools\argyllcms\bin" >> $env:GITHUB_PATH
       shell: pwsh
 

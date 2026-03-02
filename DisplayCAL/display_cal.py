@@ -10273,9 +10273,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # Determine if we should use planckian locus for assumed target wp
         # Detection will only work for profiles created by DisplayCAL
         planckian = False
-        if (profile.tags.get("CIED", "") or profile.tags.get("targ", ""))[
+        if (profile.tags.get("CIED", b"") or profile.tags.get("targ", b""))[
             0:4
-        ] == "CTI3":
+        ] == b"CTI3":
             options_dispcal = get_options_from_profile(profile)[0]
             for option in options_dispcal:
                 if option.startswith("T"):
@@ -12411,6 +12411,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             setcfg("calibration.file.previous", None)
             return
         if getcfg("calibration.file", False) != profile_path:
+            # We just created this profile from the current settings, so allow
+            # reloading it even if the UI still marks settings as changed.
+            setcfg("settings.changed", 0)
             # Load profile
             (options_dispcal, options_colprof) = get_options_from_profile(profile)
             if options_dispcal or options_colprof:
@@ -14628,10 +14631,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             instrument = "EDID"
                         else:
                             targ = profile.tags.get(
-                                "CIED", profile.tags.get("targ", "")
+                                "CIED", profile.tags.get("targ", b"")
                             )
                             instrument = None
-                            if targ[0:4] == "CTI3":
+                            if targ[0:4] == b"CTI3":
                                 targ = CGATS(targ)
                                 instrument = targ.queryv1("TARGET_INSTRUMENT")
                             if not instrument:
@@ -17125,15 +17128,17 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     Error(lang.getstr("profile.invalid") + "\n" + path), self
                 )
                 return
-            if (profile.tags.get("CIED", "") or profile.tags.get("targ", ""))[
+            if (profile.tags.get("CIED", b"") or profile.tags.get("targ", b""))[
                 0:4
-            ] != "CTI3":
+            ] != b"CTI3":
                 show_result_dialog(
                     Error(lang.getstr("profile.no_embedded_ti3") + "\n" + path),
                     self,
                 )
                 return
-            ti3 = BytesIO(profile.tags.get("CIED", "") or profile.tags.get("targ", ""))
+            ti3 = BytesIO(
+                profile.tags.get("CIED", b"") or profile.tags.get("targ", b"")
+            )
         else:
             profile = None
             try:
@@ -17793,9 +17798,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         bitmap=get_icon(32, "dialog-error"),
                     )
                     return
-                if (profile.tags.get("CIED", "") or profile.tags.get("targ", ""))[
+                if (profile.tags.get("CIED", b"") or profile.tags.get("targ", b""))[
                     0:4
-                ] != "CTI3":
+                ] != b"CTI3":
                     InfoDialog(
                         self,
                         msg=f"{lang.getstr('profile.no_embedded_ti3')}\n{path_}",
@@ -17804,7 +17809,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     )
                     return
                 with BytesIO(
-                    profile.tags.get("CIED", "") or profile.tags.get("targ", "")
+                    profile.tags.get("CIED", b"") or profile.tags.get("targ", b"")
                 ) as ti3:
                     ti3_lines = [line.strip() for line in ti3]
                 # Preserve custom tags
@@ -18857,7 +18862,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 return
             ti3_lines = [
-                line.strip()
+                line.strip().decode("utf-8", "replace")
                 for line in BytesIO(
                     profile.tags.get("CIED", b"") or profile.tags.get("targ", b"")
                 )
@@ -19686,6 +19691,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         profile, ti3_lines = self.parse_calibration_file(path)
         if profile is None or ti3_lines is None:
             return
+        # Normalize parsed TI3 data to text lines so string comparisons and
+        # option parsing work reliably under Python 3.
+        ti3_lines = [
+            line.decode("utf-8", "replace")
+            if isinstance(line, (bytes, bytearray))
+            else line
+            for line in ti3_lines
+        ]
         setcfg("last_cal_or_icc_path", path)
         update_ccmx_items = True
         set_size = True
@@ -20083,8 +20096,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 setcfg("profile.b2a.hires.smooth", 0)
             simset = False  # Only HDR 3D LUTs will have this set
             if "BEGIN_DATA_FORMAT" in ti3_lines:
-                cfgend = ti3_lines.index(b"BEGIN_DATA_FORMAT")
-                cfgpart = CGATS(b"\n".join(ti3_lines[:cfgend]))
+                cfgend = ti3_lines.index("BEGIN_DATA_FORMAT")
+                cfgpart = CGATS("\n".join(ti3_lines[:cfgend]).encode("utf-8"))
                 lut3d_trc_set = False
                 config_mapper = {
                     "SMOOTH_B2A_SIZE": "profile.b2a.hires.size",
@@ -20388,7 +20401,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         self.worker.options_dispcal = []
         settings = []
         for line in ti3_lines:
-            line = line.strip().split(b" ", 1)
+            line = line.strip().split(" ", 1)
             if len(line) > 1:
                 value = line[1][1:-1]  # strip quotes
                 if line[0] == "DEVICE_CLASS":

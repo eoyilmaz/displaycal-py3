@@ -104,7 +104,6 @@ jobs:
 
     - name: Setup xvfb
       run: |
-        sudo apt-get update
         sudo apt-get install -y xvfb \
             libxkbcommon-x11-0 \
             libxcb-icccm4 \
@@ -122,13 +121,18 @@ jobs:
       run: |
         sudo apt-get install -y libnotify4
 
+    - name: Install ArgyllCMS (Linux)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y argyll
+        dispread -v || true # Verify installation
+
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install system dependencies
-      # timeout-minutes: 15
       run: |
         set -euxo pipefail
         packages="$(awk '!/^\s*(#|$)/ { print $1 }' packages.list | xargs)"
@@ -204,6 +208,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install ArgyllCMS (Windows)
+      run: |
+        choco install argyllcms --no-progress
+        echo "C:\tools\argyllcms\bin" >> $env:GITHUB_PATH
+      shell: pwsh
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -282,6 +292,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install ArgyllCMS (macOS)
+      run: |
+        brew install argyll-cms
+        dispread -v || true
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

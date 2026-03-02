@@ -123,11 +123,13 @@ jobs:
 
     - name: Install ArgyllCMS V3.5.0 (Linux)
       run: |
-        sudo apt-get update && sudo apt-get install -y libusb-1.0-0
+        # sudo apt-get update && sudo apt-get install -y libusb-1.0-0
         curl -L https://www.argyllcms.com/Argyll_V3.5.0_linux_x86_64_bin.tgz -o argyll.tgz
         mkdir argyllcms
         tar -xzf argyll.tgz -C argyllcms --strip-components=1
         echo "$GITHUB_WORKSPACE/argyllcms/bin" >> $GITHUB_PATH
+        # just make sure everything is listed there...
+        ls -la "$GITHUB_WORKSPACE/argyllcms/bin/"
 
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -179,7 +181,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        dispread -v || true
+        xicclu -v0 || true
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html  --durations=50
 
     - name: Archive code coverage results
@@ -214,7 +216,28 @@ jobs:
 
     - name: Install ArgyllCMS V3.5.0 (Windows)
       run: |
-        Invoke-WebRequest -Uri "https://www.argyllcms.com/Argyll_V3.5.0_win64_exe.zip" -OutFile "argyll.zip"
+        $url = "https://www.argyllcms.com/Argyll_V3.5.0_win64_exe.zip"
+        $output = "argyll.zip"
+        $maxRetries = 5
+        $retryCount = 0
+        $completed = $false
+
+        while (-not $completed -and $retryCount -lt $maxRetries) {
+            try {
+                echo "Attempting download (Attempt $($retryCount + 1))..."
+                # Setting TimeoutSec to 300 (5 minutes) for slower connections
+                Invoke-WebRequest -Uri $url -OutFile $output -TimeoutSec 300
+                $completed = $true
+            } catch {
+                $retryCount++
+                if ($retryCount -ge $maxRetries) {
+                    throw "Failed to download ArgyllCMS after $maxRetries attempts."
+                }
+                echo "Download failed. Retrying in 30 seconds..."
+                Start-Sleep -Seconds 10
+            }
+        }
+
         Expand-Archive -Path "argyll.zip" -DestinationPath "$env:USERPROFILE\argyllcms"
         # The zip contains a subfolder like Argyll_V3.5.0
         $binPath = Get-ChildItem -Path "$env:USERPROFILE\argyllcms\*\bin" | Select-Object -First 1
@@ -261,7 +284,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        dispread -v
+        xicclu -v0
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html  --durations=50
 
     - name: Archive code coverage results
@@ -337,7 +360,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        dispread -v || true
+        xicclu -v0 || true
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html --durations=50
 
     - name: Archive code coverage results

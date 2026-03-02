@@ -8,6 +8,11 @@ on:
     branches:
       - develop
 
+# Centralized variables for easy updates
+env:
+  ARGYLL_VERSION: "3.5.0"
+  ARGYLL_REPO: "https://github.com/eoyilmaz/argyllcms-binaries/releases/download"
+
 jobs:
   linux:
     name: Linux + Python ${{ matrix.python-version }} + wxPython ${{ matrix.wx-version }}
@@ -121,15 +126,12 @@ jobs:
       run: |
         sudo apt-get install -y libnotify4
 
-    - name: Install ArgyllCMS V3.5.0 (Linux)
+    - name: Install ArgyllCMS (Linux)
       run: |
-        # sudo apt-get update && sudo apt-get install -y libusb-1.0-0
-        curl -L "https://github.com/eoyilmaz/argyllcms-binaries/releases/download/3.5.0/Argyll_V3.5.0_linux_x86_64_bin.tgz" -o argyll.tgz
+        curl -L "${{ env.ARGYLL_REPO }}/${{ env.ARGYLL_VERSION }}/Argyll_V${{ env.ARGYLL_VERSION }}_linux_x86_64_bin.tgz" -o argyll.tgz
         mkdir argyllcms
         tar -xzf argyll.tgz -C argyllcms --strip-components=1
         echo "$GITHUB_WORKSPACE/argyllcms/bin" >> $GITHUB_PATH
-        # just make sure everything is listed there...
-        ls -la "$GITHUB_WORKSPACE/argyllcms/bin/"
 
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -174,14 +176,12 @@ jobs:
       run: |
         sudo chmod a+rw /etc/udev/rules.d
         python3 -m build
-        ls -l dist/
         wheel_file=$(ls dist/*.whl)
         echo wheel_file=$wheel_file
         uv pip install --system $wheel_file
 
     - name: Test with pytest
       run: |
-        xicclu -v0 || true
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html  --durations=50
 
     - name: Archive code coverage results
@@ -214,12 +214,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install ArgyllCMS V3.5.0 (Windows)
+    - name: Install ArgyllCMS (Windows)
       run: |
-        $url = "https://github.com/eoyilmaz/argyllcms-binaries/releases/download/3.5.0/Argyll_V3.5.0_win64_exe.zip"
+        $url = "${{ env.ARGYLL_REPO }}/${{ env.ARGYLL_VERSION }}/Argyll_V${{ env.ARGYLL_VERSION }}_win64_exe.zip"
         Invoke-WebRequest -Uri $url -OutFile "argyll.zip"
         Expand-Archive -Path "argyll.zip" -DestinationPath "$env:USERPROFILE\argyllcms"
-        # The zip contains a subfolder like Argyll_V3.5.0
         $binPath = Get-ChildItem -Path "$env:USERPROFILE\argyllcms\*\bin" | Select-Object -First 1
         echo $binPath.FullName >> $env:GITHUB_PATH
       shell: pwsh
@@ -264,7 +263,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        xicclu -v0
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html  --durations=50
 
     - name: Archive code coverage results
@@ -303,9 +301,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install ArgyllCMS V3.5.0 (macOS arm64)
+    - name: Install ArgyllCMS (macOS arm64)
       run: |
-        curl -L "https://github.com/eoyilmaz/argyllcms-binaries/releases/download/3.5.0/Argyll_V3.5.0_macOS11_arm64_bin.tgz" -o argyll.tgz
+        curl -L "${{ env.ARGYLL_REPO }}/${{ env.ARGYLL_VERSION }}/Argyll_V${{ env.ARGYLL_VERSION }}_macOS11_arm64_bin.tgz" -o argyll.tgz
         mkdir argyllcms
         tar -xzf argyll.tgz -C argyllcms --strip-components=1
         echo "$GITHUB_WORKSPACE/argyllcms/bin" >> $GITHUB_PATH
@@ -340,7 +338,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        xicclu -v0 || true
         python -m pytest --verbose -n auto -W ignore --color=yes -m "not network" --cov=./DisplayCAL --cov-report html --durations=50
 
     - name: Archive code coverage results

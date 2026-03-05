@@ -118,7 +118,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install dependencies (macOS)
+      - name: Install dependencies (${{ matrix.os }}-${{ matrix.architecture }})
         run: |
           brew install create-dmg gtk+3
 
@@ -187,12 +187,18 @@ jobs:
           build_folder=$(ls dist | grep -i py2app.macosx)
           TARGET_ARCH="${{ matrix.architecture == 'x64' && 'x86_64' || 'arm64' }}"
 
-          # Clean attributes from the app BEFORE putting it in the DMG
-          xattr -cr "dist/${build_folder}/DisplayCAL-${version}/DisplayCAL.app"
+          # Prepare staging directory for DMG creation
+          STAGING_DIR="dist/dmg_staging"
+          mkdir -p "$STAGING_DIR"
 
-          ln -s /Applications "dist/${build_folder}/DisplayCAL-${version}/Applications"
-          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-${TARGET_ARCH}.dmg dist/$build_folder/DisplayCAL-${version}
+          # Move the build output to a 'DisplayCAL' subfolder
+          mv "dist/${build_folder}/DisplayCAL-${version}" "$STAGING_DIR/DisplayCAL"
 
+          # Clean attributes from the apps
+          xattr -cr "$STAGING_DIR/DisplayCAL"
+
+          ln -s /Applications "$STAGING_DIR/Applications"
+          create-dmg --volname DisplayCAL-${version} dist/DisplayCAL-macOS-${TARGET_ARCH}.dmg "$STAGING_DIR"
 
       - name: Update nightly macOS release
         uses: WebFreak001/deploy-nightly@v3.2.0

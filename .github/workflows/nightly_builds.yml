@@ -103,9 +103,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
         python-version: ['3.11']
-        architecture: [arm64, x64] # New key to split the builds
+        include:
+          - architecture: arm64
+            os: macos-14
+          - architecture: x64
+            os: macos-15-intel
     runs-on: ${{ matrix.os }}
 
     steps:

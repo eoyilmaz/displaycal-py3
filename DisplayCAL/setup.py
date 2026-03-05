@@ -23,7 +23,6 @@ the wrapper script in the root directory of the source tar.gz/zip
 # Standard Library Imports
 from __future__ import annotations
 
-import codecs
 import ctypes.util
 import distutils.core
 import functools
@@ -237,11 +236,10 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
             and their descriptions.
     """
     maincontents_rel = os.path.join(f"{NAME}.app", "Contents")
-    # Create ref, tests, ReadMe and license symlinks in directory
+    # Create ref, ReadMe and license symlinks in directory
     # containing the app bundle
     for src, tgt in [
         ("ref", "Reference"),
-        ("tests", "Tests"),
         ("CHANGES.html", "CHANGES.html"),
         ("README.html", "README.html"),
         ("README-fr.html", "README-fr.html"),
@@ -284,6 +282,7 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
             shutil.copy(
                 os.path.join(dist_dir, maincontents_rel, "MacOS", appname), toolscript
             )
+            has_tool_script = True
         toolcontents = os.path.join(toolapp, "Contents")
         os.makedirs(toolcontents)
         subdirs = ["Frameworks", "Resources"]
@@ -332,6 +331,7 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                     encoding="utf-8",
                 ) as info_in:
                     infoxml = info_in.read()
+                # TODO: use an XML library to manipulate the data!
                 # CFBundleName / CFBundleDisplayName
                 infoxml = re.sub(
                     rf"(Name</key>\s*<string>){NAME}",
@@ -423,7 +423,7 @@ def get_scripts(excludes: None | list[str] = None) -> list[tuple[str, str]]:
     """
     # It is required that each script has an accompanying .desktop file
     scripts_with_desc = []
-    scripts = safe_glob(os.path.join(pydir, "..", "scripts", appname.lower() + "*"))
+    scripts = safe_glob(os.path.join(pydir, "..", "scripts", f"{appname.lower()}*"))
 
     def sortbyname(a: str, b: str) -> int:
         """Sort two script names by their base names."""
@@ -439,7 +439,7 @@ def get_scripts(excludes: None | list[str] = None) -> list[tuple[str, str]]:
     scripts = sorted(scripts, key=functools.cmp_to_key(sortbyname))
     for script in scripts:
         script = os.path.basename(script)
-        if script == appname.lower() + "-apply-profiles-launcher":
+        if script == f"{appname.lower()}-apply-profiles-launcher":
             continue
         desktop_file = os.path.join(pydir, "..", "misc", f"{script}.desktop")
         if os.path.isfile(desktop_file):

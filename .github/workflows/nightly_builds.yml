@@ -194,9 +194,6 @@ jobs:
           # Move the build output to a 'DisplayCAL' subfolder
           mv "dist/${build_folder}/DisplayCAL-${version}" "$STAGING_DIR/DisplayCAL"
 
-          # Remove Tests folder if present (causes xattr issues and not needed in release)
-          rm -rf "$STAGING_DIR/DisplayCAL/Tests"
-
           # Clean attributes from the apps
           xattr -cr "$STAGING_DIR/DisplayCAL"
 

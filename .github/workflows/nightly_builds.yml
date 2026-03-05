@@ -99,7 +99,7 @@ jobs:
           ignore_hash: true
 
   macOS:
-    name: Build on macOS (${{ matrix.architecture }})
+    name: Build on macOS (${{ matrix.os }} ${{ matrix.architecture }})
     strategy:
       fail-fast: false
       matrix:

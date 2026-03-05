@@ -306,6 +306,9 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
+                    if subentry == "__boot__.py":
+                        shutil.copy(src, tgt)
+                        continue
                     if subentry == f"{NAME}.icns":
                         shutil.copy(
                             os.path.join(pydir, "theme", "icons", f"{script}.icns"),
@@ -1607,20 +1610,20 @@ def setup() -> None:
             )
         )
         manifest_in.append("include {}".format(os.path.join("man", "*.1")))
-        # manifest_in.append("recursive-include misc *")
-        # if skip_instrument_conf_files:
-        #     manifest_in.extend(
-        #         [
-        #             "exclude misc/Argyll",
-        #             "exclude misc/*.rules",
-        #             "exclude misc/*.usermap",
-        #         ]
-        #     )
+        manifest_in.append("recursive-include misc *")
+        if skip_instrument_conf_files:
+            manifest_in.extend(
+                [
+                    "exclude misc/Argyll",
+                    "exclude misc/*.rules",
+                    "exclude misc/*.usermap",
+                ]
+            )
         manifest_in.append("include {}".format(os.path.join("screenshots", "*.png")))
         manifest_in.append("include {}".format(os.path.join("scripts", "*")))
-        # manifest_in.append("include {}".format(os.path.join("tests", "*")))
+        manifest_in.append("include {}".format(os.path.join("tests", "*")))
         manifest_in.append("recursive-include theme *")
-        # manifest_in.append("recursive-include util *.cmd *.py *.sh")
+        manifest_in.append("recursive-include util *.cmd *.py *.sh")
         if sys.platform == "win32" and not setuptools:
             # Only needed under Windows
             manifest_in.append("global-exclude .svn/*")

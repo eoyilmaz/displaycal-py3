@@ -306,7 +306,7 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
-                    if subentry == "__boot__.py":
+                    if subentry in ("__boot__.py", "site.py", "site.pyc"):
                         shutil.copy(src, tgt)
                         continue
                     if subentry == f"{NAME}.icns":

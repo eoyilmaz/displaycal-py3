@@ -170,12 +170,12 @@ jobs:
           for APP_PATH in dist/*/DisplayCAL-*/*.app; do
             echo "Signing $APP_PATH..."
             # 1. Strip all signatures
-            find "$APP_PATH" -type f -name "*.dylib" -exec codesign --remove-signature {} +
-            find "$APP_PATH" -type f -name "*.so" -exec codesign --remove-signature {} +
+            find -L "$APP_PATH" -type f -name "*.dylib" -exec codesign --remove-signature {} +
+            find -L "$APP_PATH" -type f -name "*.so" -exec codesign --remove-signature {} +
 
             # 2. Sign EVERY binary subcomponent in the bundle
             # This includes the deep .dylibs folders inside Pillow
-            find "$APP_PATH/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign -s - -f -o linker-signed {} +
+            find -L "$APP_PATH/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign -s - -f -o linker-signed {} +
 
             # 3. Final Deep Sign
             codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - "$APP_PATH"

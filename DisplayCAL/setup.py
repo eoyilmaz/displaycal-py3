@@ -282,7 +282,6 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
             shutil.copy(
                 os.path.join(dist_dir, maincontents_rel, "MacOS", appname), toolscript
             )
-            has_tool_script = True
         toolcontents = os.path.join(toolapp, "Contents")
         os.makedirs(toolcontents)
         subdirs = ["Frameworks", "Resources"]
@@ -304,49 +303,6 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                         py = py.replace("main()", f"main({script[len(NAME) + 1 :]!r})")
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
-                        continue
-                    if entry == "Frameworks":
-                        if subentry.endswith(".framework"):
-                            # Create a real framework directory, symlink the Versions
-                            # directory, and then recreate the top-level symlinks
-                            # to point into the Versions directory. This is required
-                            # for codesigning to succeed.
-                            os.makedirs(tgt)
-
-                            # Create real 'Versions' directory and symlink its contents
-                            versions_src_dir = os.path.join(src, "Versions")
-                            versions_tgt_dir = os.path.join(tgt, "Versions")
-                            os.makedirs(versions_tgt_dir)
-                            for name in os.listdir(versions_src_dir):
-                                item_src = os.path.join(versions_src_dir, name)
-                                item_tgt = os.path.join(versions_tgt_dir, name)
-                                if os.path.islink(item_src):
-                                    link_target = os.readlink(item_src)
-                                    os.symlink(link_target, item_tgt)
-                                else:
-                                    os.symlink(os.path.relpath(item_src, os.path.dirname(item_tgt)), item_tgt)
-
-                            # Recreate top-level symlinks
-                            for name in os.listdir(src):
-                                if name != "Versions" and os.path.islink(os.path.join(src, name)):
-                                    link_target = os.readlink(os.path.join(src, name))
-                                    os.symlink(link_target, os.path.join(tgt, name))
-                        # else: if it's not a framework, just ignore it to keep the bundle clean.
-                        continue
-                    if entry == "Resources" and subentry == "lib":
-                        # Create a real 'lib' directory and symlink its contents.
-                        # If we symlink the 'lib' directory itself, Python's
-                        # import machinery resolves the path of the 'DisplayCAL'
-                        # package to the main app bundle, causing the wrong
-                        # code to run.
-                        os.makedirs(tgt)
-                        for lib_item in os.listdir(src):
-                            lib_src = os.path.join(src, lib_item)
-                            lib_tgt = os.path.join(tgt, lib_item)
-                            os.symlink(
-                                os.path.relpath(lib_src, os.path.dirname(lib_tgt)),
-                                lib_tgt,
-                            )
                         continue
                     if subentry in ("__boot__.py", "site.py", "site.pyc"):
                         shutil.copy(src, tgt)

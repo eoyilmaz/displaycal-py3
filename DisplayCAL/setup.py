@@ -312,16 +312,26 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                             # to point into the Versions directory. This is required
                             # for codesigning to succeed.
                             os.makedirs(tgt)
-                            # Symlink Versions dir
-                            versions_src = os.path.join(src, "Versions")
-                            versions_tgt = os.path.join(tgt, "Versions")
-                            os.symlink(os.path.relpath(versions_src, os.path.dirname(versions_tgt)), versions_tgt)
+
+                            # Create real 'Versions' directory and symlink its contents
+                            versions_src_dir = os.path.join(src, "Versions")
+                            versions_tgt_dir = os.path.join(tgt, "Versions")
+                            os.makedirs(versions_tgt_dir)
+                            for name in os.listdir(versions_src_dir):
+                                item_src = os.path.join(versions_src_dir, name)
+                                item_tgt = os.path.join(versions_tgt_dir, name)
+                                if os.path.islink(item_src):
+                                    link_target = os.readlink(item_src)
+                                    os.symlink(link_target, item_tgt)
+                                else:
+                                    os.symlink(os.path.relpath(item_src, os.path.dirname(item_tgt)), item_tgt)
+
                             # Recreate top-level symlinks
                             for name in os.listdir(src):
                                 if name != "Versions" and os.path.islink(os.path.join(src, name)):
                                     link_target = os.readlink(os.path.join(src, name))
                                     os.symlink(link_target, os.path.join(tgt, name))
-                        # else: if it's not a framework, just ignore it.
+                        # else: if it's not a framework, just ignore it to keep the bundle clean.
                         continue
                     if entry == "Resources" and subentry == "lib":
                         # Create a real 'lib' directory and symlink its contents.

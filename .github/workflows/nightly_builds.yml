@@ -177,13 +177,7 @@ jobs:
             # This includes the deep .dylibs folders inside Pillow
             find -L "$APP_PATH/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign -s - -f -o linker-signed {} +
 
-            # 3. Explicitly sign the main executable, which isn't a .dylib or .so
-            EXECUTABLE_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PATH/Contents/Info.plist")
-            EXECUTABLE_PATH="$APP_PATH/Contents/MacOS/$EXECUTABLE_NAME"
-            echo "Signing main executable: $EXECUTABLE_PATH"
-            codesign -s - -f -o linker-signed "$EXECUTABLE_PATH"
-
-            # 4. Final Deep Sign
+            # 3. Final Deep Sign
             codesign --force --deep --options runtime --entitlements misc/entitlements.plist --sign - "$APP_PATH"
           done
 

@@ -305,30 +305,23 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
-                    if entry == "Frameworks" and subentry.endswith(".framework"):
-                        # Create a real framework directory with the correct sealed structure.
-                        # The bulky 'Versions/X.Y' directory is symlinked, and all other
-                        # necessary directories and relative symlinks are recreated.
-                        os.makedirs(tgt)
-
-                        # Create real 'Versions' directory and symlink its contents
-                        versions_src_dir = os.path.join(src, "Versions")
-                        versions_tgt_dir = os.path.join(tgt, "Versions")
-                        os.makedirs(versions_tgt_dir)
-                        for name in os.listdir(versions_src_dir):
-                            item_src = os.path.join(versions_src_dir, name)
-                            item_tgt = os.path.join(versions_tgt_dir, name)
-                            if os.path.islink(item_src):
-                                link_target = os.readlink(item_src)
-                                os.symlink(link_target, item_tgt)
-                            else:
-                                os.symlink(os.path.relpath(item_src, os.path.dirname(item_tgt)), item_tgt)
-
-                        # Recreate top-level symlinks
-                        for name in os.listdir(src):
-                            if name != "Versions" and os.path.islink(os.path.join(src, name)):
-                                link_target = os.readlink(os.path.join(src, name))
-                                os.symlink(link_target, os.path.join(tgt, name))
+                    if entry == "Frameworks":
+                        if subentry.endswith(".framework"):
+                            # Create a real framework directory, symlink the Versions
+                            # directory, and then recreate the top-level symlinks
+                            # to point into the Versions directory. This is required
+                            # for codesigning to succeed.
+                            os.makedirs(tgt)
+                            # Symlink Versions dir
+                            versions_src = os.path.join(src, "Versions")
+                            versions_tgt = os.path.join(tgt, "Versions")
+                            os.symlink(os.path.relpath(versions_src, os.path.dirname(versions_tgt)), versions_tgt)
+                            # Recreate top-level symlinks
+                            for name in os.listdir(src):
+                                if name != "Versions" and os.path.islink(os.path.join(src, name)):
+                                    link_target = os.readlink(os.path.join(src, name))
+                                    os.symlink(link_target, os.path.join(tgt, name))
+                        # else: if it's not a framework, just ignore it.
                         continue
                     if entry == "Resources" and subentry == "lib":
                         # Create a real 'lib' directory and symlink its contents.

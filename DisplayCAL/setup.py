@@ -306,14 +306,20 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                             main_out.write(py.encode())
                         continue
                     if entry == "Frameworks" and subentry.endswith(".framework"):
+                        # Create a real framework directory, symlink the Versions
+                        # directory, and then recreate the top-level symlinks
+                        # to point into the Versions directory. This is required
+                        # for codesigning to succeed.
                         os.makedirs(tgt)
-                        for item in os.listdir(src):
-                            item_src = os.path.join(src, item)
-                            item_tgt = os.path.join(tgt, item)
-                            os.symlink(
-                                os.path.relpath(item_src, os.path.dirname(item_tgt)),
-                                item_tgt,
-                            )
+                        # Symlink Versions dir
+                        versions_src = os.path.join(src, "Versions")
+                        versions_tgt = os.path.join(tgt, "Versions")
+                        os.symlink(os.path.relpath(versions_src, os.path.dirname(versions_tgt)), versions_tgt)
+                        # Recreate top-level symlinks
+                        for name in os.listdir(src):
+                            if name != "Versions" and os.path.islink(os.path.join(src, name)):
+                                link_target = os.readlink(os.path.join(src, name))
+                                os.symlink(link_target, os.path.join(tgt, name))
                         continue
                     if entry == "Resources" and subentry == "lib":
                         # Create a real 'lib' directory and symlink its contents.

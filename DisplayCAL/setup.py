@@ -305,6 +305,16 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
                         with open(tgt, "wb") as main_out:
                             main_out.write(py.encode())
                         continue
+                    if entry == "Frameworks" and subentry.endswith(".framework"):
+                        os.makedirs(tgt)
+                        for item in os.listdir(src):
+                            item_src = os.path.join(src, item)
+                            item_tgt = os.path.join(tgt, item)
+                            os.symlink(
+                                os.path.relpath(item_src, os.path.dirname(item_tgt)),
+                                item_tgt,
+                            )
+                        continue
                     if entry == "Resources" and subentry == "lib":
                         # Create a real 'lib' directory and symlink its contents.
                         # If we symlink the 'lib' directory itself, Python's

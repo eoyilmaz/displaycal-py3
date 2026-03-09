@@ -1,4 +1,5 @@
 coverage
+charset-normalizer<=3.4.4; sys_platform == "win32"
 darglint
 flake8
 flake8-bugbear

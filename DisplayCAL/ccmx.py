@@ -48,7 +48,7 @@ def convert_devicecorrections_to_ccmx(path: str, target_dir: str) -> tuple[int, 
         tuple[int, int]: A tuple containing the number of imported and skipped
             entries.
     """
-    with open(path, "utf8") as devcorrections_file:
+    with open(path, encoding="utf8") as devcorrections_file:
         lines = devcorrections_file.read().strip().splitlines()
     # Convert to JSON
     # The DeviceCorrections.txt format is as follows, so a conversion is pretty

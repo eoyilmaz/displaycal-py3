@@ -642,7 +642,66 @@ def import_profile(
             f"Trying to import profile '{profile.filename}' failed after {n} tries."
         )
 
-    return query_colord_for_newly_added_profile(profile_id, timeout=timeout)
+    # Try to find the profile by the ICC profile.ID-based profile_id first.
+    # If that fails (because colord uses a different ID scheme based on the
+    # file checksum), fall back to finding by filename, which is reliable
+    # and locale-independent.
+    try:
+        return query_colord_for_newly_added_profile(profile_id, timeout=timeout)
+    except CDTimeoutError:
+        pass
+
+    # Fallback: use colormgr find-profile-by-filename to locate the profile
+    # that was just imported. This works regardless of the ID scheme colord
+    # uses internally (md5 of file contents vs. ICC profile.ID header).
+    for _ in range(int(timeout / 1.0)):
+        with contextlib.suppress(CDObjectQueryError, CDObjectNotFoundError):
+            cdprofile = _find_profile_by_filename(cmd, profile_install_name)
+            if cdprofile:
+                return cdprofile
+        sleep(1)
+
+    raise CDTimeoutError(
+        f"Querying for profile {profile_id!r} (and by filename "
+        f"{profile_install_name!r}) returned no result for {timeout} secs"
+    )
+
+
+def _find_profile_by_filename(cmd: str, filename: str) -> None | str:
+    """Find a profile in colord by its filename using colormgr.
+
+    This is a fallback for when the profile ID-based lookup fails, e.g.
+    because colord uses a different ID scheme (md5 of file contents) than
+    the ICC profile.ID header that DisplayCAL uses.
+
+    Args:
+        cmd (str): The colormgr command path.
+        filename (str): The filename of the profile to search for.
+
+    Returns:
+        None | str: The D-Bus object path of the profile, or None if not found.
+    """
+    args = [cmd, "find-profile-by-filename", filename]
+    try:
+        process = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
+        stdout, _ = process.communicate()
+    except Exception:
+        return None
+    if process.returncode != 0 or not stdout.strip():
+        return None
+    # Parse the object path from the output. colormgr outputs it on a line
+    # like "Object path:     /org/freedesktop/ColorManager/profiles/..."
+    # (or the locale-translated equivalent, e.g. "Objektsti:" in Norwegian).
+    # We match by the D-Bus object path pattern which is locale-independent.
+    for line in stdout.decode("utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if "/org/freedesktop/ColorManager/" in line:
+            # Extract just the path (may have a label prefix in non-English locales)
+            parts = line.split()
+            for part in parts:
+                if part.startswith("/org/freedesktop/ColorManager/"):
+                    return part
+    return None
 
 
 def query_colord_for_newly_added_profile(

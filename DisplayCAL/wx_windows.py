@@ -1598,7 +1598,8 @@ class BaseFrame(wx.Frame):
             conn (socket.socket): The connection to send the response to.
             command_timestamp (str): The timestamp of the command.
         """
-        if not responseformats.get(conn):
+        fmt = responseformats.get(conn)
+        if not fmt:
             # Client connection has broken down in the meantime
             return
         state = self.get_app_state("plain")
@@ -1770,7 +1771,7 @@ class BaseFrame(wx.Frame):
                             response = "forbidden"
         elif data[0] == "getactivewindow" and len(data) == 1:
             win = self.get_top_window()
-            response = format_ui_element(win, responseformats[conn])
+            response = format_ui_element(win, fmt)
             win = None
         elif data[0] == "getcellvalues" and len(data) in (2, 3):
             response = "invalid"
@@ -1792,7 +1793,7 @@ class BaseFrame(wx.Frame):
                             child.GetCellValue(row, col)
                             for col in range(child.GetNumberCols())
                         ]
-                        if responseformats[conn] == "plain":
+                        if fmt == "plain":
                             values = (
                                 demjson.encode(values).strip("[]").replace('","', '" "')
                             )
@@ -1806,7 +1807,7 @@ class BaseFrame(wx.Frame):
             if menubar:
                 for i, (_menu, label) in enumerate(menubar.GetMenus()):
                     label = label.lstrip("&_")
-                    if responseformats[conn] != "plain":
+                    if fmt != "plain":
                         menus.append(
                             {
                                 "label": label,
@@ -1838,7 +1839,7 @@ class BaseFrame(wx.Frame):
                     label = label.lstrip("&_")
                     if len(data) == 2 and menu_pos_label not in (label, i):
                         continue
-                    if responseformats[conn] != "plain" and label not in menulabels:
+                    if fmt != "plain" and label not in menulabels:
                         menuitems = []
                         menulabels.append(label)
                         menus.append(
@@ -1852,7 +1853,7 @@ class BaseFrame(wx.Frame):
                     for menuitem in menu.GetMenuItems():
                         if menuitem.IsSeparator():
                             continue
-                        if responseformats[conn] != "plain":
+                        if fmt != "plain":
                             menuitems.append(
                                 {
                                     "label": menuitem.Label,
@@ -1880,9 +1881,9 @@ class BaseFrame(wx.Frame):
                                     " checked" if menuitem.IsChecked() else "",
                                 )
                             )
-            response = menus if responseformats[conn] != "plain" else menuitems
+            response = menus if fmt != "plain" else menuitems
         elif data[0] == "getstate" and len(data) == 1:
-            response = self.get_app_state(responseformats[conn])
+            response = self.get_app_state(fmt)
         elif data[0] == "getuielement" and len(data) in (2, 3):
             response = "invalid"
             if len(data) == 3:
@@ -1893,7 +1894,7 @@ class BaseFrame(wx.Frame):
                 name = data[-1]
                 child = get_widget(win, name)
                 if child and child.IsShownOnScreen():
-                    response = format_ui_element(child, responseformats[conn])
+                    response = format_ui_element(child, fmt)
                 elif child is False:
                     response = "forbidden"
                 child = None
@@ -1906,7 +1907,7 @@ class BaseFrame(wx.Frame):
             if win:
                 # Ordering in tab order
                 uielements.extend(
-                    format_ui_element(child, responseformats[conn])
+                    format_ui_element(child, fmt)
                     for child in list(win.GetAllChildren())
                     if is_scripting_allowed(win, child)
                 )
@@ -1916,9 +1917,7 @@ class BaseFrame(wx.Frame):
                 response = "invalid"
         elif data[0] == "getwindows" and len(data) == 1:
             windows = [win for win in list(wx.GetTopLevelWindows()) if win.IsShown()]
-            response = [
-                format_ui_element(win, responseformats[conn]) for win in windows
-            ]
+            response = [format_ui_element(win, fmt) for win in windows]
             win = None
         elif data[0] == "interact" and 1 < len(data) < 6:
             response = "invalid"
@@ -2092,7 +2091,7 @@ class BaseFrame(wx.Frame):
                 response = self.process_data(data)
             except Exception as exception:
                 print(exception)
-                if responseformats[conn] != "plain":
+                if fmt != "plain":
                     response = {
                         "class": exception.__class__.__name__,
                         "error": str(exception),
@@ -2170,12 +2169,13 @@ class BaseFrame(wx.Frame):
             command_timestamp (str): The timestamp of the command.
             win (wx.Window, optional): The window that was interacted with.
         """
-        if not responseformats.get(conn):
+        fmt = responseformats.get(conn)
+        if not fmt:
             # Client connection has broken down in the meantime
             return
         if response == "invalid":
             print(lang.getstr("app.incoming_message.invalid"))
-        if responseformats[conn] != "plain":
+        if fmt != "plain":
             if not isinstance(response, (str, list)):
                 response = [response]
             command = {"name": data[0], "timestamp": command_timestamp}
@@ -2187,18 +2187,14 @@ class BaseFrame(wx.Frame):
                 "timestamp": datetime.now().strftime("%Y-%m-%dTH:%M:%S.%f"),
             }
             if win:
-                response["object"] = format_ui_element(win, responseformats[conn])
-        if responseformats[conn].startswith("json"):
-            response = demjson.encode(
-                response, compactly=responseformats[conn] == "json"
-            )
-        elif responseformats[conn].startswith("xml"):
+                response["object"] = format_ui_element(win, fmt)
+        if fmt.startswith("json"):
+            response = demjson.encode(response, compactly=fmt == "json")
+        elif fmt.startswith("xml"):
             response = (
                 '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-                + ((responseformats[conn] == "xml.pretty" and "\n") or "")
-                + dict2xml(
-                    response, "response", pretty=responseformats[conn] == "xml.pretty"
-                )
+                + ((fmt == "xml.pretty" and "\n") or "")
+                + dict2xml(response, "response", pretty=fmt == "xml.pretty")
             )
         else:
             if isinstance(response, dict):

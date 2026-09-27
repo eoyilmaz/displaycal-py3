@@ -1,8 +1,10 @@
 import sys
+from unittest import mock
 
 import pytest
 
-from DisplayCAL.wx_windows import fancytext_RenderToRenderer
+from DisplayCAL import wx_windows
+from DisplayCAL.wx_windows import BaseFrame, fancytext_RenderToRenderer, responseformats
 
 
 def test_fancytext_render_to_renderer():
@@ -91,3 +93,45 @@ def test_wxwindows():
     )
     # t = SimpleTerminal(start_timer=False)
     app.MainLoop()
+
+
+@pytest.fixture
+def scripting_conn():
+    """Provide a mock client connection registered with the scripting host."""
+    conn = mock.MagicMock()
+    responseformats[conn] = "json"
+    yield conn
+    responseformats.pop(conn, None)
+
+
+def test_send_response_ignores_client_that_disconnects_while_responding(
+    scripting_conn,
+):
+    """A client disconnecting during send_response must not raise KeyError."""
+
+    def disconnect(*args):
+        responseformats.pop(scripting_conn, None)
+        scripting_conn.sendall.side_effect = ConnectionResetError()
+        return "invalid"
+
+    with mock.patch.object(wx_windows.lang, "getstr", side_effect=disconnect):
+        BaseFrame.send_response(None, "invalid", ["GET"], scripting_conn, "now")
+
+
+def test_finish_processing_ignores_client_that_disconnects_mid_command(
+    scripting_conn,
+):
+    """A client disconnecting during finish_processing must not raise KeyError."""
+    frame = mock.MagicMock()
+    frame.get_top_window.return_value = None
+    frame.process_data.side_effect = RuntimeError("boom")
+
+    def disconnect(file_format):
+        responseformats.pop(scripting_conn, None)
+        return "idle"
+
+    frame.get_app_state.side_effect = disconnect
+
+    BaseFrame.finish_processing(frame, ["GET", "/", "HTTP/1.1"], scripting_conn, "now")
+
+    frame.send_response.assert_called_once()

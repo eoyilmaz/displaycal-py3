@@ -548,12 +548,12 @@ class ScriptingHostMixin:
             command_timestamp (str): When the command was received.
             win (QWidget | None): The element a UI command acted on, if any.
         """
-        if not responseformats.get(conn):
+        fmt = responseformats.get(conn)
+        if not fmt:
             # Client connection has broken down in the meantime.
             return
         if response == "invalid":
             print(lang.getstr("app.incoming_message.invalid"))
-        fmt = responseformats[conn]
         if fmt != "plain":
             if not isinstance(response, (str, list)):
                 response = [response]
@@ -699,7 +699,8 @@ class ScriptingHostMixin:
             conn (socket.socket): The client connection.
             command_timestamp (str): When the command was received.
         """
-        if not responseformats.get(conn):
+        fmt = responseformats.get(conn)
+        if not fmt:
             return
         state = self.get_app_state("plain")
         force_setcfg = False
@@ -722,24 +723,23 @@ class ScriptingHostMixin:
         ):
             self.send_response(state, data, conn, command_timestamp)
             return
-        win = self._dispatch_ui_command(data, conn)
+        win = self._dispatch_ui_command(data, fmt)
         # _dispatch_ui_command stores its response on the instance so it can
         # also hand back an optional acted-on window for the response envelope.
         self.send_response(self._last_response, data, conn, command_timestamp, win)
 
     def _dispatch_ui_command(  # noqa: C901
-        self, data: list, conn: socket.socket
+        self, data: list, fmt: str
     ) -> QWidget | None:
         """Execute a UI/window command, recording the response.
 
         Args:
             data (list): The split command line.
-            conn (socket.socket): The client connection (selects the format).
+            fmt (str): The client connection's response format.
 
         Returns:
             QWidget | None: The window the response should describe, if any.
         """
-        fmt = responseformats[conn]
         response = "ok"
         win = None
         if data[0] == "abort":
@@ -784,7 +784,7 @@ class ScriptingHostMixin:
         elif data[0] == "setcfg" and len(data) == 3:
             response = self._set_cfg(data[1], data[2])
         else:
-            response = self._process_overridable(data, conn)
+            response = self._process_overridable(data, fmt)
         self._last_response = response
         return win
 
@@ -813,12 +813,12 @@ class ScriptingHostMixin:
         setcfg(name, value)
         return "ok" if getcfg(name, False) == value else "failed"
 
-    def _process_overridable(self, data: list, conn: socket.socket) -> str:
+    def _process_overridable(self, data: list, fmt: str) -> str:
         """Delegate to :meth:`process_data`, then handle generic fallbacks.
 
         Args:
             data (list): The split command line.
-            conn (socket.socket): The client connection (selects the format).
+            fmt (str): The client connection's response format.
 
         Returns:
             str: The command response.
@@ -827,7 +827,7 @@ class ScriptingHostMixin:
             response = self.process_data(data)
         except Exception as exception:  # noqa: BLE001
             print(exception)
-            if responseformats[conn] != "plain":
+            if fmt != "plain":
                 return {
                     "class": exception.__class__.__name__,
                     "error": str(exception),

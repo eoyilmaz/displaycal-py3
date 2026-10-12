@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
-from typing import TYPE_CHECKING
+import socket
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,70 +15,122 @@ from DisplayCAL import worker as worker_module
 from DisplayCAL.debughelpers import UnloggedInfo
 from DisplayCAL.worker import Worker
 
-if TYPE_CHECKING:
-    from pathlib import Path
+_PROTOCOL = json.loads(
+    (Path(__file__).parent / "data" / "madvr-protocol.json").read_text(encoding="utf-8")
+)
+_HELLO = bytes.fromhex(_PROTOCOL["hello"]["hex"])
+_CONFIRM = bytes.fromhex(_PROTOCOL["confirm"]["hex"])
+_HELLO_PARAMS = _PROTOCOL["hello"]["expected"]["params"]
+
+
+@pytest.fixture
+def madtpg_client(monkeypatch: pytest.MonkeyPatch) -> madvr.MadTPGNet:
+    """Keep interface discovery local; protocol methods run unchanged."""
+    monkeypatch.setattr(madvr, "get_network_addr", lambda: "127.0.0.1")
+    return madvr.MadTPGNet()
+
+
+@pytest.mark.parametrize("name", ["stop", "hello", "confirm"])
+def test_parse_vendor_protocol_examples(
+    madtpg_client: madvr.MadTPGNet, name: str
+) -> None:
+    """Check every decoded field against the vendor specification's examples."""
+    fixture = _PROTOCOL[name]
+    expected = dict(fixture["expected"], magic=b"mad.")
+    expected["component"] = expected["component"].encode("ascii")
+    if isinstance(expected["params"], str):
+        expected["params"] = expected["params"].encode("ascii")
+
+    record, remaining = madtpg_client._parse(bytes.fromhex(fixture["hex"]))
+
+    assert record == expected
+    assert remaining == b""
+
+
+def receive_chunks(client: madvr.MadTPGNet, chunks: list[bytes]) -> tuple[list, dict]:
+    """Run the receiver and observe its state immediately before EOF cleanup."""
+    addr = ("127.0.0.2", 60562)  # Higher-IP peer is the master (section C).
+    conn = MagicMock(spec=socket.socket)
+    conn.getpeername.return_value = addr
+    conn.getsockname.return_value = ("127.0.0.1", 60562)
+    conn.send.side_effect = len
+    fragments = iter(chunks)
+    received = []
+    peer_state = {}
+
+    def recv(size: int) -> bytes:
+        fragment = next(fragments, b"")
+        assert len(fragment) <= size
+        if not fragment:
+            received.extend(client._incoming[addr])
+            peer_state.update(client.clients.get(addr, {}))
+        return fragment
+
+    conn.recv.side_effect = recv
+    client._client_sockets[addr] = conn
+    client.listening = True
+    client._receive_handler(addr, conn)
+
+    assert addr not in client._client_sockets
+    assert addr not in client._incoming
+    assert addr not in client.clients
+    conn.close.assert_called_once()
+    return received, peer_state
 
 
 @pytest.mark.parametrize(
     "chunks, expected",
     [
-        ([slice(0, 8), slice(8, 20), slice(20, None)], [1, 2]),
-        ([slice(0, 70), slice(70, None)], [1, 2]),
-        ([slice(None)], [1, 2]),
-        ([slice(0, 20)], []),
+        ([_HELLO[:8], _HELLO[8:20], _HELLO[20:] + _CONFIRM], ["hello", "confirm"]),
+        ([_HELLO + _CONFIRM[:20], _CONFIRM[20:]], ["hello", "confirm"]),
+        ([_HELLO + _CONFIRM], ["hello", "confirm"]),
+        ([_HELLO[:20]], []),
+        ([_HELLO + _CONFIRM[:20]], ["hello"]),
     ],
-    ids=["split-header-and-body", "complete-plus-partial", "coalesced", "partial-eof"],
+    ids=[
+        "split-header-and-body",
+        "complete-plus-partial",
+        "coalesced",
+        "partial-eof",
+        "complete-plus-partial-eof",
+    ],
 )
 def test_receive_handler_preserves_packet_boundaries(
-    monkeypatch: pytest.MonkeyPatch, chunks: list[slice], expected: list[int]
+    madtpg_client: madvr.MadTPGNet, chunks: list[bytes], expected: list[str]
 ) -> None:
-    """TCP recv boundaries must not truncate or replay protocol records."""
-    monkeypatch.setattr(madvr, "get_network_addr", lambda: "127.0.0.1")
-    client = madvr.MadTPGNet()
-    addr = ("127.0.0.1", 60562)
-    conn = MagicMock()
-    conn.getpeername.return_value = addr
-    packets = b"".join(
-        client._assemble(conn, number, "ShowRGB", b"payload") for number in (1, 2)
-    )
-    conn.recv.side_effect = [packets[chunk] for chunk in chunks] + [b""]
-    client._client_sockets[addr] = conn
-    client.listening = True
-    monkeypatch.setattr(client, "_hello", lambda conn: True)
-    processed = MagicMock()
-    monkeypatch.setattr(client, "_process", processed)
-
-    client._receive_handler(addr, conn)
-
-    assert [call.args[0]["commandNo"] for call in processed.call_args_list] == expected
-    assert addr not in client._client_sockets
-    assert addr not in client._incoming
+    """Fragmented messages must reach real decoding and connection processing."""
+    received, peer_state = receive_chunks(madtpg_client, chunks)
+    messages = {
+        "hello": (1, "hello", _HELLO_PARAMS, b""),
+        "confirm": (2, "confirm", b"", b""),
+    }
+    assert received == [messages[name] for name in expected]
+    if "hello" in expected:
+        assert peer_state == {
+            "processId": 160,
+            "module": 1073741824,
+            "component": b"",
+            "instance": 0,
+            **_HELLO_PARAMS,
+            **({"confirmed": True} if "confirm" in expected else {}),
+        }
+    else:
+        assert peer_state == {}
 
 
 def test_receive_handler_discards_bad_packet_then_receives_next(
-    monkeypatch: pytest.MonkeyPatch,
+    madtpg_client: madvr.MadTPGNet,
 ) -> None:
-    """An invalid CRC must not leave a text buffer for the next byte packet."""
-    monkeypatch.setattr(madvr, "get_network_addr", lambda: "127.0.0.1")
-    client = madvr.MadTPGNet()
-    addr = ("127.0.0.1", 60562)
-    conn = MagicMock()
-    conn.getpeername.return_value = addr
-    packet = client._assemble(conn, 1, "ShowRGB", b"payload")
-    conn.recv.side_effect = [b"bad!" + packet[4:], packet, b""]
-    client._client_sockets[addr] = conn
-    client.listening = True
-    monkeypatch.setattr(client, "_hello", lambda conn: True)
-    processed = MagicMock()
-    monkeypatch.setattr(client, "_process", processed)
+    """A deliberately damaged CRC must not poison the next valid message."""
+    damaged = bytearray(_HELLO)
+    damaged[8] ^= 1  # Alter only the CRC of the otherwise valid vendor example.
+    received, peer_state = receive_chunks(madtpg_client, [bytes(damaged), _HELLO])
 
-    client._receive_handler(addr, conn)
-
-    processed.assert_called_once()
-    assert processed.call_args.args[0]["commandNo"] == 1
+    assert received == [(1, "hello", _HELLO_PARAMS, b"")]
+    assert peer_state["computerName"] == "HTPC"
 
 
-@pytest.mark.parametrize("network", [True, False], ids=["network", "native"])
+@pytest.mark.parametrize("network", [True, False], ids=["network-type", "native-type"])
 @pytest.mark.parametrize("connect_error", [False, True], ids=["setup", "failure"])
 def test_worker_madtpg_measurement_setup(
     monkeypatch: pytest.MonkeyPatch,

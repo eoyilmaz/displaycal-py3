@@ -1,0 +1,42 @@
+{
+  "source": {
+    "url": "https://madshi.net/madVR.zip",
+    "archive_sha256": "336651a376890dfb56d4f14871f4e8c7d495d79ceb4d0d69a48f62236f4af623",
+    "member": "madVR/developers/net-protocol.txt",
+    "member_sha256": "1c4c823244123ba2109231e5d7ffe133d3627e6be6a69a1ed18adba2289b56aa",
+    "kind": "Specification-derived fixtures, not a traffic capture",
+    "framing": "Section B: little-endian magic 0x2e64616d, data length, CRC32 of the first eight bytes. Section D: packed command fields.",
+    "stop": "The complete command body is transcribed byte-for-byte from section D's literal example. Only the section B envelope is added.",
+    "hello": "Section F's exact three-property example, joined by UTF-16LE tabs. Empty component and zero instance identify the process hello from section E. Process/module identifiers are reused from D; command number starts at 1.",
+    "confirm": "Section E specifies confirm with no parameters. This is the next process-level message, command number 2, with the same process/module identifiers. Section C makes the higher-IP peer the master.",
+    "generation": "Transcribed using Python's struct and zlib only; DisplayCAL's serializer and parser were not used to construct these bytes."
+  },
+  "stop": {
+    "hex": "6d61642e2d0000009886c1bca0000000000000400000000001000000050000006d61645652000000087b0000000400000073746f7000000000",
+    "expected": {
+      "len": 45, "crc": -1128167784, "processId": 160,
+      "module": 1073741824, "commandNo": 1,
+      "sizeOfComponent": 5, "component": "madVR", "instance": 528415195136,
+      "sizeOfCommand": 4, "command": "stop", "sizeOfParams": 0, "params": ""
+    }
+  },
+  "hello": {
+    "hex": "6d61642e8100000025207cbba00000000000004000000000010000000000000000000000000000000500000068656c6c6f5800000063006f006d00700075007400650072004e0061006d0065003d004800540050004300090075007300650072004e0061006d0065003d004a00610063006b0009006f0073003d00570069006e0064006f007700730020003700",
+    "expected": {
+      "len": 129, "crc": -1149493211, "processId": 160,
+      "module": 1073741824, "commandNo": 1,
+      "sizeOfComponent": 0, "component": "", "instance": 0,
+      "sizeOfCommand": 5, "command": "hello", "sizeOfParams": 88,
+      "params": {"computerName": "HTPC", "userName": "Jack", "os": "Windows 7"}
+    }
+  },
+  "confirm": {
+    "hex": "6d61642e2b00000044d9aa99a000000000000040000000000200000000000000000000000000000007000000636f6e6669726d00000000",
+    "expected": {
+      "len": 43, "crc": -1716856508, "processId": 160,
+      "module": 1073741824, "commandNo": 2,
+      "sizeOfComponent": 0, "component": "", "instance": 0,
+      "sizeOfCommand": 7, "command": "confirm", "sizeOfParams": 0, "params": ""
+    }
+  }
+}

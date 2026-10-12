@@ -1327,7 +1327,7 @@ class MadTPGNet(MadTPGBase):
                 send_bye = False
                 break
             else:
-                send_bye, break_early = self._process_client_message(
+                send_bye, break_early, blob = self._process_client_message(
                     addr, conn, incoming, send_bye, blob
                 )
                 if break_early:
@@ -1349,7 +1349,7 @@ class MadTPGNet(MadTPGBase):
         incoming: bytes,
         send_bye: bool,
         blob: bytes,
-    ) -> tuple[bool, bool]:
+    ) -> tuple[bool, bool, bytes]:
         """Process incoming message from a client.
 
         Args:
@@ -1360,8 +1360,8 @@ class MadTPGNet(MadTPGBase):
             blob (bytes): The accumulated data blob for processing.
 
         Returns:
-            tuple: A tuple containing the updated send_bye flag and a boolean
-                indicating whether to break early from the processing loop.
+            tuple: The updated send_bye flag, whether to break early from the
+                processing loop, and the unconsumed bytes for the next receive.
         """
         with _LOCK:
             if not incoming:
@@ -1371,7 +1371,7 @@ class MadTPGNet(MadTPGBase):
                         f"MadTPG_Net: Client {addr[0]}:{addr[1]} stopped sending"
                     )
                 send_bye = False
-                return send_bye, True
+                return send_bye, True, blob
             blob += incoming
             if self.debug:
                 safe_print("MadTPG_Net: Received from {}:{}:".format(*addr[:2]))
@@ -1381,7 +1381,7 @@ class MadTPGNet(MadTPGBase):
                 except ValueError as exception:
                     safe_print("MadTPG_Net:", exception)
                     # Invalid, discard
-                    blob = ""
+                    blob = b""
                 else:
                     if record is None:
                         # Need more data
@@ -1390,7 +1390,7 @@ class MadTPGNet(MadTPGBase):
                         self._process(record, conn)
                     except OSError as exception:
                         safe_print("MadTPG_Net:", exception)
-        return send_bye, False
+        return send_bye, False, blob
 
     def _remove_client(self, addr: tuple, send_bye: bool = True) -> None:
         """Remove client from list of connected clients.

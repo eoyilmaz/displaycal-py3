@@ -557,11 +557,11 @@ def match_display_and_instrument(
         edid_md5_indexes = []
         for i, edid in enumerate(worker.display_edid):
             if display_name in (
-                edid.get(b"monitor_name", False),
+                edid.get("monitor_name", False),
                 worker.display_names[i],
             ):
                 display_name_indexes.append(i)
-            if edid_md5 == edid.get(b"hash", False):
+            if edid_md5 == edid.get("hash", False):
                 edid_md5_indexes.append(i)
 
         display_index = None

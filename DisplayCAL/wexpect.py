@@ -2306,15 +2306,44 @@ class Wtty:
             None, command_line, None, None, False, CREATE_NEW_CONSOLE, env, self.cwd, si
         )
 
-    def switchTo(self, attached=True):
-        """Release from the current console and attatches to the childs."""
+    def switchTo(self, attached=True, retry_timeout: float | None = 5.0):
+        """Release from the current console and attatches to the childs.
+
+        On recent Windows 11 builds AttachConsole intermittently fails with
+        ERROR_INVALID_FUNCTION (1), see issue #990. The failure is transient,
+        so retry for up to ``retry_timeout`` seconds (None = for as long as
+        the console reader process is alive) before re-raising.
+        """
         if not self.__switch or not self.__oproc_isalive():
             return
 
         if attached:
-            FreeConsole()
+            with contextlib.suppress(pywintypes.error):
+                FreeConsole()
 
-        AttachConsole(self.conpid)
+        start = time.time()
+        attempt = 0
+        while True:
+            try:
+                AttachConsole(self.conpid)
+                break
+            except pywintypes.error as e:
+                attempt += 1
+                if attempt == 1 or attempt % 100 == 0:
+                    log(
+                        f"AttachConsole failed (attempt {attempt}): {e!r}, retrying",
+                        "_exceptions",
+                    )
+                # Make sure we are not half-attached before the next try
+                with contextlib.suppress(pywintypes.error):
+                    FreeConsole()
+                if not self.__oproc_isalive():
+                    raise
+                if retry_timeout is not None and time.time() - start >= retry_timeout:
+                    raise
+                time.sleep(min(0.005 * attempt, 0.05))
+        if attempt:
+            log(f"AttachConsole succeeded after {attempt} retries", "_exceptions")
         self.__consin = GetStdHandle(STD_INPUT_HANDLE)
         self.__consout = self.getConsoleOut()
 
@@ -2327,10 +2356,18 @@ class Wtty:
             # If we originally had a console, re-attach it (or allocate a new one)
             # If we didn't have a console to begin with, there's no need to
             # re-attach/allocate
-            FreeConsole()
+            with contextlib.suppress(pywintypes.error):
+                FreeConsole()
             if len(self.processList) > 1:
                 # Our original console is still present, re-attach
-                AttachConsole(self.__parentPid)
+                for _attempt in range(200):
+                    try:
+                        AttachConsole(self.__parentPid)
+                        break
+                    except pywintypes.error:
+                        if _attempt == 199:
+                            raise
+                        time.sleep(0.01)
             else:
                 # Our original console has been free'd, allocate a new one
                 AllocConsole()
@@ -2542,7 +2579,24 @@ class Wtty:
 
     def read_nonblocking(self, timeout, size):
         """Read data from the console if available, else wait up to timeout seconds."""
-        self.switchTo()
+        # Keep retrying the attach within the caller's timeout instead of
+        # aborting the whole measurement (issue #990). If we still cannot
+        # attach, behave like "no data arrived within timeout".
+        try:
+            self.switchTo(retry_timeout=None if timeout is None else max(timeout, 2.0))
+        except pywintypes.error as e:
+            log(e, "_exceptions")
+            log(
+                "Could not attach to console in Wtty.read_nonblocking(), "
+                "returning no data.",
+                "_exceptions",
+            )
+            self.__consin = None
+            self.__consout = None
+            return ""
+        if getattr(self, "_Wtty__consout", None) is None:
+            # Console reader already gone (switchTo returned early)
+            return ""
 
         consinfo = self.__consout.GetConsoleScreenBufferInfo()
         cursorPos = consinfo["CursorPosition"]

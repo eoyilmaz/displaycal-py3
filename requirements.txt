@@ -12,7 +12,13 @@ PyChromecast
 pyglet <= 2.1.3; python_version < "3.10"
 pyglet >= 2.1.6; python_version >= "3.10"
 pyqtgraph >= 0.13
-PySide6 >= 6.7
+# PySide6 6.12.0 aborts the interpreter on Python 3.10/3.11 with
+# "none_dealloc: deallocating None". On Windows with Python 3.10 the wxPython
+# wheel bundles an old msvcp140.dll, and PySide6 >= 6.11.2 (built against a
+# newer one) crashes on import if wx is imported first.
+PySide6 >= 6.7, < 6.11.2; python_version < "3.11" and sys_platform == "win32"
+PySide6 >= 6.7, != 6.12.0; (python_version < "3.11" and sys_platform != "win32") or python_version == "3.11"
+PySide6 >= 6.7; python_version >= "3.12"
 pywin32; sys_platform == "win32"
 PyYAML
 qtpy >= 2.4

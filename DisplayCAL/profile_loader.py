@@ -2042,6 +2042,10 @@ class TaskBarIcon(SysTrayIcon):
 class ProfileLoader:
     """Profile loader class for Windows."""
 
+    # Consecutive failed reads of a display profile before its linear
+    # fallback is cached instead of retried on every poll
+    PROFILE_READ_RETRIES = 10
+
     def __init__(self) -> None:
         self._bootstrap_app()
         self.reload_count = 0
@@ -2064,6 +2068,8 @@ class ProfileLoader:
         self.profiles = {}
         self.devices2profiles = {}
         self.ramps = {}
+        # Profile association key -> (failed read attempts, last exception)
+        self._profile_read_failures = {}
         self.linear_vcgt_values = ([], [], [])
         for j in range(3):
             for k in range(256):
@@ -3740,6 +3746,7 @@ class ProfileLoader:
         self.profile_associations[key] = (profile_key, mtime, desc)
         self.profiles[key] = None
         self.ramps[key] = (None, None, None)
+        self._profile_read_failures.pop(key, None)
         profile_association_changed = True
         profile_associations_changed += 1
         if not first_run and self._is_displaycal_running():
@@ -3788,14 +3795,17 @@ class ProfileLoader:
             ]: The recheck flag, the gamma ramp, the hack gamma ramp, and the
                 VCGT values.
         """
-        (vcgt_ramp, vcgt_ramp_hack, vcgt_values) = self.ramps.get(
-            self._reset_gamma_ramps or key, (None, None, None)
-        )
+        (vcgt_ramp, vcgt_ramp_hack, vcgt_values) = self._get_cached_gamma_ramp(key)
         recheck = False
         if vcgt_ramp:
             return recheck, vcgt_ramp, vcgt_ramp_hack, vcgt_values
 
         vcgt_values, profile = self._retrieve_profile_vcgt(key, profile_name)
+        read_failed = not self._reset_gamma_ramps and profile is None
+        failures = self._profile_read_failures[key][0] if read_failed else 0
+
+        if read_failed and (self._manual_restore or profile_association_changed):
+            errors.append(f"{display_desc}: {lang.getstr('profile.load_error')}")
 
         if len(vcgt_values[0]) != 256:
             # Hmm. Do we need to deal with this?
@@ -3803,6 +3813,7 @@ class ProfileLoader:
             if (
                 not self._reset_gamma_ramps
                 and (self._manual_restore or profile_association_changed)
+                and profile is not None
                 and profile.tags.get("vcgt")
             ):
                 print(lang.getstr("calibration.loading_from_display_profile"))
@@ -3831,10 +3842,7 @@ class ProfileLoader:
                 tag_data += b"\0\x01\0\0"  # Max 1.0
             vcgt = VideoCardGammaFormulaType(tag_data, "vcgt")
             vcgt_values = vcgt.get_values()[:3]
-            if self._reset_gamma_ramps:
-                print("Caching linear gamma ramps")
-            else:
-                print("Caching implicit linear gamma ramps for profile", desc)
+            self._log_linear_gamma_ramp(read_failed, failures, desc)
         else:
             print("Caching gamma ramps for profile", desc)
             # Convert vcgt to ushort_Array_256_Array_3
@@ -3851,13 +3859,67 @@ class ProfileLoader:
                 if j == 0:
                     vcgt_value += 1
                 vcgt_ramp_hack[k][j] = vcgt_value
-        self.ramps[self._reset_gamma_ramps or key] = (
-            vcgt_ramp,
-            vcgt_ramp_hack,
-            vcgt_values,
-        )
+        # A failed read must not turn the linear fallback into a cached
+        # calibration right away. The file may become readable without its
+        # association or modification time changing (e.g. after a sharing
+        # violation). Only give up once it has kept failing.
+        if not read_failed or failures >= self.PROFILE_READ_RETRIES:
+            self.ramps[self._reset_gamma_ramps or key] = (
+                vcgt_ramp,
+                vcgt_ramp_hack,
+                vcgt_values,
+            )
         recheck = True
         return recheck, vcgt_ramp, vcgt_ramp_hack, vcgt_values
+
+    def _log_linear_gamma_ramp(
+        self, read_failed: bool, failures: int, desc: str
+    ) -> None:
+        """Log why a linear gamma ramp is used.
+
+        Args:
+            read_failed (bool): Whether reading the profile failed.
+            failures (int): The number of consecutive failed reads.
+            desc (str): The description of the profile.
+        """
+        if self._reset_gamma_ramps:
+            print("Caching linear gamma ramps")
+        elif read_failed and failures < self.PROFILE_READ_RETRIES:
+            # Only log the first attempt, not every poll that retries it
+            if failures == 1:
+                print("Using temporary linear gamma ramps for profile", desc)
+        elif read_failed:
+            print("Caching linear gamma ramps for unreadable profile", desc)
+        else:
+            print("Caching implicit linear gamma ramps for profile", desc)
+
+    def _get_cached_gamma_ramp(
+        self, key: str
+    ) -> tuple[
+        None | ctypes.c_ushort_Array_256_Array_3,
+        None | ctypes.c_ushort_Array_256_Array_3,
+        None | tuple[list[float], list[float], list[float]],
+    ]:
+        """Return the cached gamma ramp for the given profile, if any.
+
+        An explicit reload drops a linear fallback that was cached after
+        repeated read failures, so that the profile is read again.
+
+        Args:
+            key (str): The key for the profile.
+
+        Returns:
+            tuple: The gamma ramp, the hack gamma ramp, and the VCGT values,
+                or ``(None, None, None)`` if nothing is cached.
+        """
+        if (
+            self._manual_restore
+            and not self._reset_gamma_ramps
+            and key in self._profile_read_failures
+        ):
+            del self._profile_read_failures[key]
+            self.ramps[key] = (None, None, None)
+        return self.ramps.get(self._reset_gamma_ramps or key, (None, None, None))
 
     def _retrieve_profile_vcgt(
         self,
@@ -3894,8 +3956,18 @@ class ProfileLoader:
                     )
                 self.profiles[key].tags.get("vcgt")
             except Exception as exception:
-                print(exception)
-                self.profiles[key] = ICCProfile()
+                failures, last_exception = self._profile_read_failures.get(
+                    key, (0, None)
+                )
+                # Don't repeat the same error on every poll
+                if type(exception) is not type(last_exception) or (
+                    exception.args != last_exception.args
+                ):
+                    print(exception)
+                self._profile_read_failures[key] = (failures + 1, exception)
+                self.profiles[key] = None
+                return vcgt_values, None
+            self._profile_read_failures.pop(key, None)
         profile = self.profiles[key]
         if isinstance(profile.tags.get("vcgt"), VideoCardGammaType):
             # Get display profile vcgt

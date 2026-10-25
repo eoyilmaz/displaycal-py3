@@ -23,7 +23,12 @@ from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg, initcfg, setcfg
 from DisplayCAL.debughelpers import Error
 from DisplayCAL.dev.mocks import check_call_str
-from DisplayCAL.icc_profile import ICCProfile, LUT16Type
+from DisplayCAL.icc_profile import (
+    ICCProfile,
+    ICCProfileTag,
+    LUT16Type,
+    MakeAndModelType,
+)
 from DisplayCAL.meta import DOMAIN
 from DisplayCAL.worker import (
     Sudo,
@@ -692,6 +697,41 @@ def test_update_profile_1(random_icc_profile):
         "DisplayCAL.worker.Worker.get_display_edid", DisplayData.DISPLAY_DATA_2
     ):
         worker.update_profile(icc_profile_path, tags=True)
+
+
+def test_update_profile_custom_mmod_tag_sets_device_header(random_icc_profile):
+    """Worker.update_profile() copies a preserved mmod tag to the header.
+
+    "Create profile from measurement data" with a profile source preserves its
+    mmod tag. Indexing the tag's 2-byte manufacturer/model values gave ints and
+    crashed with "can't concat int to bytes" (issue 972).
+    """
+    from DisplayCAL import worker
+
+    worker.dbus_session = None
+    worker.dbus_system = None
+    initcfg()
+
+    icc_profile, icc_profile_path = random_icc_profile
+    # Laid out like Worker.update_profile(tags=True) writes it from an EDID
+    # with manufacturer bytes 0x10 0xAC and product code bytes 0xD0 0xA0
+    mmod = ICCProfileTag(
+        b"mmod" + b"\0" * 6 + b"\x10\xac" + b"\0" * 2 + b"\xa0\xd0" + b"\0" * 24,
+        "mmod",
+    )
+    icc_profile.tags.mmod = mmod
+    icc_profile.write(icc_profile_path)
+    source = ICCProfile(icc_profile_path)
+    assert isinstance(source.tags.mmod, MakeAndModelType)
+
+    result = Worker().update_profile(
+        ICCProfile(icc_profile_path), tags={"mmod": source.tags.mmod}
+    )
+
+    assert result is True
+    updated = ICCProfile(icc_profile_path)
+    assert updated.device["manufacturer"] == b"\0\0\xac\x10"
+    assert updated.device["model"] == b"\0\0\xa0\xd0"
 
 
 def test_exec_cmd_1():

@@ -209,6 +209,51 @@ class TestApplyIccProfileLoadDefaults:
         assert getcfg("measurement_report.output_profile") == "/existing.icc"
 
 
+#: The stripped lines of a ``dispwin -s`` video LUT snapshot, which is what a
+#: profile-only session saves as its ``.cal`` file.
+VIDEO_LUT_SNAPSHOT_LINES = [
+    b"CAL",
+    b"",
+    b'DESCRIPTOR "Argyll Device Calibration Curves"',
+    b'ORIGINATOR "Argyll synthcal"',
+    b'DEVICE_CLASS "DISPLAY"',
+    b'COLOR_REP "RGB"',
+    b"BEGIN_DATA_FORMAT",
+    b"RGB_I RGB_R RGB_G RGB_B",
+    b"END_DATA_FORMAT",
+]
+
+
+class TestFindSettingsProfileForCal:
+    @pytest.mark.parametrize("ext", [".icc", ".icm"])
+    def test_settingsless_cal_returns_sibling_profile(self, tmp_path, ext):
+        cal = tmp_path / "session.cal"
+        cal.write_bytes(b"CAL\n")
+        profile = tmp_path / f"session{ext}"
+        profile.write_bytes(b"")
+
+        result = cf.find_settings_profile_for_cal(str(cal), VIDEO_LUT_SNAPSHOT_LINES)
+
+        assert result == str(profile)
+
+    def test_settingsless_cal_without_sibling_profile_returns_none(self, tmp_path):
+        cal = tmp_path / "session.cal"
+        cal.write_bytes(b"CAL\n")
+        (tmp_path / "other.icc").write_bytes(b"")
+
+        assert (
+            cf.find_settings_profile_for_cal(str(cal), VIDEO_LUT_SNAPSHOT_LINES) is None
+        )
+
+    def test_legacy_cal_with_settings_returns_none(self, tmp_path):
+        cal = tmp_path / "session.cal"
+        cal.write_bytes(b"CAL\n")
+        (tmp_path / "session.icc").write_bytes(b"")
+        lines = [*VIDEO_LUT_SNAPSHOT_LINES, b'TARGET_GAMMA "2.2"']
+
+        assert cf.find_settings_profile_for_cal(str(cal), lines) is None
+
+
 class TestParseLegacyCal:
     def test_non_display_device_class_is_invalid(self):
         worker = SimpleNamespace(options_dispcal=[])

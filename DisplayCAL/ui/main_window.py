@@ -10355,7 +10355,10 @@ class MainWindow(BaseWindow):
         :meth:`update_controls` (called below regardless) already
         repopulates both selectors from config. A ``.cal`` file with no
         ``ARGYLL_DISPCAL_ARGS`` section (an Argyll release old enough to
-        predate it) falls back to :meth:`_load_legacy_cal`. Right after the
+        predate it) falls back to :meth:`_load_legacy_cal`, unless it has no
+        settings at all and its session profile sits next to it
+        (:func:`~DisplayCAL.calibration_file.find_settings_profile_for_cal`),
+        in which case that profile is loaded instead. Right after the
         config-mapper block, :meth:`_apply_lut3d_path` refreshes
         ``self.lut3d_path`` and the measurement-report devlink/simulation
         profile options, matching wx's ``self.lut3d_set_path()`` call at the
@@ -10413,6 +10416,12 @@ class MainWindow(BaseWindow):
                         self.windowTitle(),
                         f"{lang.getstr('no_settings')}\n{path}",
                     )
+                return
+            profile_path = calibration_file.find_settings_profile_for_cal(
+                path, ti3_lines
+            )
+            if profile_path:
+                self._load_calibration_file(profile_path, silent=silent)
                 return
             self._load_legacy_cal(path, ti3_lines, silent=silent)
             return

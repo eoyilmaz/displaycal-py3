@@ -4820,6 +4820,37 @@ def test_load_calibration_file_legacy_cal_no_settings_notifies(
     assert getcfg("calibration.file") == str(cal_file)
 
 
+def test_load_calibration_file_settingsless_cal_loads_session_profile(
+    window, monkeypatch, tmp_path
+):
+    # A profile-only session's .cal is a dispwin -s video LUT snapshot with no
+    # settings; its settings live in the profile next to it (issue 972)
+    cal_file = tmp_path / "session.cal"
+    cal_file.write_bytes(b'CAL\n\nDEVICE_CLASS "DISPLAY"\nCOLOR_REP "RGB"\n')
+    profile_file = tmp_path / "session.icc"
+    profile_file.write_bytes(b"")
+    monkeypatch.setattr(mw, "get_options_from_cal", lambda path: ([], []))
+    loaded = []
+    original = window._load_calibration_file
+
+    def fake_load(path, silent=False):
+        if path == str(profile_file):
+            loaded.append((path, silent))
+            return None
+        return original(path, silent=silent)
+
+    monkeypatch.setattr(window, "_load_calibration_file", fake_load)
+    infos = []
+    monkeypatch.setattr(
+        mw.QMessageBox, "information", lambda *a, **k: infos.append(a) or None
+    )
+
+    window._load_calibration_file(str(cal_file), silent=False)
+
+    assert loaded == [(str(profile_file), False)]
+    assert not infos
+
+
 def test_calibration_file_ctrl_handler_loads_selected_recent(window):
     path = _srgb_preset_path(window)
     idx = window.recent_cals.index(path)

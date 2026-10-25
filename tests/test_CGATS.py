@@ -7,7 +7,7 @@ from typing import TypedDict
 import pytest
 from _pytest.fixtures import SubRequest
 
-from DisplayCAL.cgats import CGATS, parse_float, stable_sort_by_l
+from DisplayCAL.cgats import CGATS, CGATSValueError, parse_float, stable_sort_by_l
 from DisplayCAL.dev.mocks import check_call
 
 
@@ -1199,3 +1199,25 @@ END_DATA
         for key in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
             assert math.isnan(data[i][key])
     assert data[0]["RGB_R"] == 100.0
+
+
+def test_cgats_invalid_float_error_names_field_without_bytes_repr() -> None:
+    """The invalid float error names the field as 'XYZ_X', not b'XYZ_X'."""
+    with pytest.raises(CGATSValueError) as exc_info:
+        CGATS(
+            b"""CTI3
+
+NUMBER_OF_FIELDS 2
+BEGIN_DATA_FORMAT
+SAMPLE_ID XYZ_X
+END_DATA_FORMAT
+
+NUMBER_OF_SETS 1
+BEGIN_DATA
+1 foo
+END_DATA
+"""
+        )
+    assert str(exc_info.value) == (
+        "Invalid data type for 'XYZ_X' (expected float, got bytes)"
+    )

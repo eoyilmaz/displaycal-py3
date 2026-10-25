@@ -860,7 +860,11 @@ def create_shaper_curves(
         for j, values in enumerate((R_X, G_Y, B_Z)):
             values[:] = colormath.interp_fill(RGB[j], values, numentries, True)
 
-        for i in range(1, numentries - 1):
+        # Include the last (white) entry so it is mapped back from the
+        # normalized (1, 1, 1) to the actual white point, otherwise device max
+        # ends up at a non-white XYZ whenever its normalized Y lands a hair
+        # below 1.0 and misses the ``Y >= 1`` white point fix below (issue #985)
+        for i in range(1, numentries):
             X, Y, Z = R_X[i], G_Y[i], B_Z[i]
             if use_individual_channel_gammas:
                 X, Y, Z = (

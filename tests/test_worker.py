@@ -1333,6 +1333,47 @@ def test_create_shaper_curves_trc_endpoint_reaches_one(data_files, white_scale):
         assert all(curve[i] <= curve[i + 1] + 1e-9 for i in range(len(curve) - 1))
 
 
+def test_create_shaper_curves_device_max_maps_to_white_point(data_files, monkeypatch):
+    """Device max must be interpolated to the white point XYZ (issue #985).
+
+    The per channel values are normalized to reach 1.0 for the gamma based
+    interpolation and must be mapped back to the white point afterwards,
+    including the last entry. Otherwise device max maps to (1, 1, 1) instead of
+    the white point whenever its normalized Y lands just below 1.0, which skews
+    the curves and gets amplified by the endpoint normalization of issue #710.
+    """
+    from DisplayCAL import colormath
+
+    interp_values = []
+
+    class SpyInterp(colormath.Interp):
+        def __init__(self, xp, fp, *args, **kwargs):
+            interp_values.append(list(fp))
+            super().__init__(xp, fp, *args, **kwargs)
+
+    ti3 = CGATS(
+        str(data_files["UP2516D #1 2022-03-20 02-08 D6500 2.2 F-S XYZLUT+MTX.ti3"])
+    )[0]
+    _, RGB_XYZ, remaining = extract_device_gray_primaries(ti3, True, lambda *a: None)
+    profile = _build_matrix_from_primaries(RGB_XYZ, remaining, 1.0)
+    bwd_mtx = colormath.get_rgb_space(profile.get_rgb_space("pcs", 1))[-1].inverted()
+
+    monkeypatch.setattr(colormath, "Interp", SpyInterp)
+    create_shaper_curves(
+        RGB_XYZ,
+        bwd_mtx,
+        single_curve=False,
+        bpc=False,
+        profile=profile,
+        options_dispcal=[],
+        cat="Bradford",
+    )
+
+    # The R->X, G->Y and B->Z interpolators are created first
+    endpoint = [values[-1] for values in interp_values[:3]]
+    assert endpoint == pytest.approx(colormath.get_whitepoint("D50"), abs=1e-9)
+
+
 @pytest.mark.parametrize(
     "viewgam_output,expected_coverage",
     [

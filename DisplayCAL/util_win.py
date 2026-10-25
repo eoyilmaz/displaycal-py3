@@ -646,13 +646,17 @@ def is_advanced_color_enabled(gdi_device_name: str) -> bool | None:
         return None
 
     try:
+        # DISPLAYCONFIG_DEVICE_INFO_TYPE values from wingdi.h (issue #989:
+        # these were previously 3 and 16, i.e. GET_TARGET_PREFERRED_MODE and
+        # SET_HDR_STATE, so the GDI name lookup always failed and the Advanced
+        # Color state was never detected).
         QDC_ONLY_ACTIVE_PATHS = 0x00000002
-        DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_GDI_DEVICE_NAME = 3
+        DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME = 1
         DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO = 9
-        DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2 = 16
+        DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2 = 15
         CCHDEVICENAME = 32
         ADVANCED_COLOR_ENABLED_BIT = 0x2
-        DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR = 2
+        DISPLAYCONFIG_ADVANCED_COLOR_MODE_SDR = 0
 
         class _LUID(ctypes.Structure):
             _fields_ = [
@@ -717,14 +721,16 @@ def is_advanced_color_enabled(gdi_device_name: str) -> bool | None:
                 ("bitsPerColorChannel", wintypes.UINT),
             ]
 
-        # DISPLAYCONFIG_ADVANCED_COLOR_INFO2 — introduced in Windows 11 22H2
-        # (build 22621). activeColorMode == 2 means HDR is active.
-        class _ADVANCED_COLOR_INFO2(ctypes.Structure):
+        # DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2, introduced in Windows 11
+        # 22H2 (build 22621). activeColorMode is SDR (0), WCG (1, i.e. SDR
+        # with Auto Color Management) or HDR (2).
+        class _ADVANCED_COLOR_INFO_2(ctypes.Structure):
             _fields_ = [
                 ("header", _DEVICE_INFO_HEADER),
-                ("activeColorMode", wintypes.UINT),
                 ("value", wintypes.UINT),
-                ("sdrWhiteLevel", wintypes.UINT),
+                ("colorEncoding", wintypes.UINT),
+                ("bitsPerColorChannel", wintypes.UINT),
+                ("activeColorMode", wintypes.UINT),
             ]
 
         # DISPLAYCONFIG_MODE_INFO is a union-containing struct; its size is
@@ -767,7 +773,7 @@ def is_advanced_color_enabled(gdi_device_name: str) -> bool | None:
             path = paths[i]
 
             src_name = _SOURCE_DEVICE_NAME()
-            src_name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_GDI_DEVICE_NAME
+            src_name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME
             src_name.header.size = ctypes.sizeof(_SOURCE_DEVICE_NAME)
             src_name.header.adapterId = path.sourceInfo.adapterId
             src_name.header.id = path.sourceInfo.id
@@ -778,19 +784,21 @@ def is_advanced_color_enabled(gdi_device_name: str) -> bool | None:
             if src_name.viewGdiDeviceName.lower() != gdi_name_lower:
                 continue
 
-            # Try the newer type-16 API first (Windows 11 22H2+, build
-            # 22621+).  On those builds the "Use HDR" toggle no longer sets
-            # advancedColorEnabled in the type-9 struct, so the old check
-            # incorrectly returns False when HDR is active (issue #627).
-            adv_color2 = _ADVANCED_COLOR_INFO2()
-            adv_color2.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2
-            adv_color2.header.size = ctypes.sizeof(_ADVANCED_COLOR_INFO2)
+            # Try the newer GET_ADVANCED_COLOR_INFO_2 API first (Windows 11
+            # 22H2+, build 22621+), which reports the active color mode
+            # directly (issue #627). Both HDR and WCG (Auto Color Management)
+            # are Advanced Color modes, which is what selects the ICMProfileAC
+            # association list, and what the type-9 advancedColorEnabled bit
+            # below also reports.
+            adv_color2 = _ADVANCED_COLOR_INFO_2()
+            adv_color2.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2
+            adv_color2.header.size = ctypes.sizeof(_ADVANCED_COLOR_INFO_2)
             adv_color2.header.adapterId = path.targetInfo.adapterId
             adv_color2.header.id = path.targetInfo.id
 
             if user32.DisplayConfigGetDeviceInfo(ctypes.byref(adv_color2)) == 0:
                 return (
-                    adv_color2.activeColorMode == DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR
+                    adv_color2.activeColorMode != DISPLAYCONFIG_ADVANCED_COLOR_MODE_SDR
                 )
 
             # Fall back to the older type-9 API (pre-Win11 22H2).

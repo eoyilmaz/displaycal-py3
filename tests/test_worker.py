@@ -534,6 +534,53 @@ def test_detected_levels_issue_confirm_prefers_progress_wnd_confirm3():
     assert worker._detected_levels_issue_confirm_wait is False
 
 
+def test_detect_video_levels_msvc_nan_readings_report_invalid_luminance(
+    monkeypatch, tmp_path
+):
+    """MSVC "-nan(ind)" readings give the invalid luminance error (#978).
+
+    Argyll's Windows builds write NaN readings as "-nan(ind)", which the
+    CGATS parser used to reject with "Invalid data type for b'XYZ_X'
+    (expected float, got bytes)" before the NaN luminance check was reached.
+    """
+    initcfg()
+    lang.init()
+    worker = Worker()
+    monkeypatch.setattr(worker, "create_tempdir", lambda: str(tmp_path))
+
+    def fake_measure_ti1(ti1_path, *args, **kwargs):
+        (tmp_path / "0_16.ti3").write_bytes(
+            b"""CTI3
+
+DESCRIPTOR "Argyll Calibration Target chart information 3"
+ORIGINATOR "Argyll dispread"
+DEVICE_CLASS "DISPLAY"
+COLOR_REP "RGB_XYZ"
+LUMINANCE_XYZ_CDM2 "-nan(ind) -nan(ind) -nan(ind)"
+
+NUMBER_OF_FIELDS 7
+BEGIN_DATA_FORMAT
+SAMPLE_ID RGB_R RGB_G RGB_B XYZ_X XYZ_Y XYZ_Z
+END_DATA_FORMAT
+
+NUMBER_OF_SETS 3
+BEGIN_DATA
+1 100.00 100.00 100.00 -nan(ind) -nan(ind) -nan(ind)
+2 0.0000 0.0000 0.0000 -nan(ind) -nan(ind) -nan(ind)
+3 6.2500 6.2500 6.2500 -nan(ind) -nan(ind) -nan(ind)
+END_DATA
+"""
+        )
+        return True
+
+    monkeypatch.setattr(worker, "measure_ti1", fake_measure_ti1)
+
+    result = worker._detect_video_levels()
+
+    assert isinstance(result, Error)
+    assert str(result) == lang.getstr("error.luminance.invalid")
+
+
 def test_abort_subprocess_confirm_prefers_progress_wnd_confirm(monkeypatch):
     """confirm=True routes through progress_wnd.confirm(), never a wx ConfirmDialog.
 

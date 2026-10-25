@@ -2271,6 +2271,11 @@
 "instrument.reposition_sensor": |-
   측정 센서가 잘못된 포지션에 위치하여 측정이 실패하였습니다. 센서를 올바른 포지션에 위치하세요. OK 를 클릭하여 계속합니다.
 
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  Spyder 2024의 "%s" 측정 모드는 ArgyllCMS %s의 Spyder 2024 드라이버 버그 때문에 작동하지 않습니다. 이 모드에서의 측정은 실패하거나 신뢰할 수 없는 결과를 냅니다.
+
+  다른 측정 모드를 선택하십시오. 예를 들어 디스플레이용 색도계 보정(CCMX)과 함께 "LCD White LED" 또는 "LCD (generic)"을 사용하거나, 수정된 버전이 나오면 ArgyllCMS를 업데이트하십시오.
+
 "internal": |-
   Internal
 
@@ -3854,6 +3859,9 @@
 "warning.autostart_user": |-
   현재 유저용 자동시작 디렉토리를 결정할 수 없습니다.
 
+"warning.devlink_profile.missing": |-
+  장치 링크 프로파일이 선택되지 않아 측정된 패치에 3D LUT가 적용되지 않으며, 보고서는 시뮬레이션 프로파일과 비교한 디스플레이 자체를 보여줍니다. 3D LUT를 검증하려면 그 옆에 저장된 장치 링크 프로파일을 선택하십시오.
+
 "warning.discard_changes": |-
   정말로 현재 설정의 변경을 취소하시겠습니까?
 
@@ -3931,6 +3939,12 @@
 
 "whitepoint.visual_editor.display_changed.warning": |-
   경고: 디스플레이 구성이 변경되었고, 시각 화이트포인트 편집기가 더이상 디스플레이 프로파일을 정상적으로 복구할 수 없습니다. 편집기를 종료하고 DisplayCAL 을 재실행한 후에 디스플레이 프로파일의 할당을 확인하세요.
+
+"whitepoint.visual_editor.panel.dock": |-
+  패널을 편집기 창에 붙이기
+
+"whitepoint.visual_editor.panel.float": |-
+  패널을 별도의 창으로 분리
 
 "whitepoint.xy": |-
   색도 좌표

@@ -2273,6 +2273,11 @@
 "instrument.reposition_sensor": |-
   Die Messung konnte nicht durchgeführt werden, weil sich der Messgerätesensor in der falschen Position befindet. Bitte korrigieren Sie die Sensorposition und klicken Sie OK, um fortzufahren.
 
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  Der Messmodus „%s“ des Spyder 2024 funktioniert wegen eines Fehlers im Spyder-2024-Treiber nicht mit ArgyllCMS %s. Messungen in diesem Modus schlagen fehl oder liefern unzuverlässige Ergebnisse.
+
+  Bitte wählen Sie einen anderen Messmodus, z.B. „LCD White LED“ oder „LCD (generic)“ zusammen mit einer Colorimeterkorrektur (CCMX) für Ihren Bildschirm, oder aktualisieren Sie ArgyllCMS, sobald eine Version mit einer Korrektur verfügbar ist.
+
 "internal": |-
   Intern
 
@@ -3855,6 +3860,9 @@
 "warning.autostart_user": |-
   Das benutzerspezifische Autostart-Verzeichnis konnte nicht ermittelt werden.
 
+"warning.devlink_profile.missing": |-
+  Es ist kein Gerätelink-Profil ausgewählt, daher wird keine 3D LUT auf die gemessenen Felder angewendet und der Bericht zeigt den Bildschirm selbst im Vergleich zum Simulationsprofil. Um eine 3D LUT zu verifizieren, wählen Sie das Gerätelink-Profil, das neben ihr gespeichert wurde.
+
 "warning.discard_changes": |-
   Möchten Sie die Änderungen an den aktuellen Einstellungen wirklich verwerfen?
 
@@ -3932,6 +3940,12 @@
 
 "whitepoint.visual_editor.display_changed.warning": |-
   Achtung: Die Anzeigegeräte-Konfiguration hat sich geändert und der visuelle Weißpunkt-Editor ist eventuell nicht länger in der Lage, Anzeigegeräteprofile korrekt wiederherzustellen. Bitte überprüfen Sie die Anzeigegeräte-Profilzuweisungen sorgfältig, nachdem Sie den Editor geschlossen haben, und starten Sie DisplayCAL neu.
+
+"whitepoint.visual_editor.panel.dock": |-
+  Bedienfeld an das Editorfenster anheften
+
+"whitepoint.visual_editor.panel.float": |-
+  Bedienfeld in ein eigenes Fenster lösen
 
 "whitepoint.xy": |-
   Farbort

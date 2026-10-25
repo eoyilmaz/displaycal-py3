@@ -1532,6 +1532,10 @@
   (%i) Posiziona il tuo %s nell'area di test
 "instrument.reposition_sensor": |-
   Riposiziona sensore
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  La modalità di misurazione "%s" dello Spyder 2024 non funziona con ArgyllCMS %s a causa di un bug nel suo driver per lo Spyder 2024. Le misurazioni in questa modalità falliscono o danno risultati inaffidabili.
+
+  Seleziona una modalità di misurazione diversa, ad esempio "LCD White LED" o "LCD (generic)" insieme a una correzione del colorimetro (CCMX) per il tuo schermo, oppure aggiorna ArgyllCMS quando sarà disponibile una versione corretta.
 "internal": |-
   Interno
 "interval": |-
@@ -2601,6 +2605,8 @@
   Avviso: voce avvio automatico di sistema non impostata.
 "warning.autostart_user": |-
   Avviso: voce avvio automatico utente non impostata.
+"warning.devlink_profile.missing": |-
+  Nessun profilo di collegamento dispositivo selezionato, quindi nessuna 3D LUT viene applicata alle patch misurate e il rapporto mostra lo schermo stesso rispetto al profilo di simulazione. Per verificare una 3D LUT, seleziona il profilo di collegamento dispositivo salvato accanto ad essa.
 "warning.discard_changes": |-
   Vuoi scartare le modifiche?
 "warning.gamap.out_viewcond.nondisplay": |-
@@ -2659,6 +2665,10 @@
   Editor visivo punto bianco
 "whitepoint.visual_editor.display_changed.warning": |-
   Attenzione: la configurazione display è cambiata e l'editor visivo punto bianco potrebbe non essere più in grado di ripristinare correttamente i profili display. Controlla attentamente le associazioni profilo display dopo aver chiuso l'editor e riavvia DisplayCAL.
+"whitepoint.visual_editor.panel.dock": |-
+  Aggancia il pannello alla finestra dell'editor
+"whitepoint.visual_editor.panel.float": |-
+  Sgancia il pannello in una finestra separata
 "whitepoint.xy": |-
   Coordinate della cromaticità
 "window.title": |-

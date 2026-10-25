@@ -469,6 +469,86 @@ def resolve_report_context(
     )
 
 
+def devlink_applies_calibration(devlink: ICCProfile | None) -> bool:
+    """Return whether a device link already has the calibration baked in.
+
+    A device link built with "Apply calibration (vcgt)" enabled was created
+    with ``collink -a``, which DisplayCAL records in the link's ``meta`` tag.
+    Links without that metadata fall back to the current
+    ``3dlut.output.profile.apply_cal`` setting.
+
+    Args:
+        devlink: The device-link profile, if any.
+
+    Returns:
+        True if ``devlink`` is given and was built with ``collink -a``.
+    """
+    return bool(devlink) and "-a" in parse_argument_string(
+        devlink.tags.get("meta", {})
+        .get("collink.args", {})
+        .get("value", "-a" if getcfg("3dlut.output.profile.apply_cal") else "")
+    )
+
+
+def select_calibration_profile(
+    oprof: ICCProfile,
+    profile: ICCProfile,
+    use_sim_as_output: bool,
+    devlink: ICCProfile | None,
+) -> ICCProfile:
+    """Pick the profile whose calibration is applied while measuring.
+
+    The display profile's calibration is kept unless the simulation profile
+    stands in as the display profile, in which case it is only kept when a
+    device link that expects the calibration to be applied downstream (i.e.
+    built without ``collink -a``) is used.
+
+    Args:
+        oprof: The original (display) profile.
+        profile: The profile used for the lookup (the simulation profile when
+            it stands in as the display profile).
+        use_sim_as_output: ``measurement_report.use_simulation_profile_as_output``.
+        devlink: The device-link profile, if any.
+
+    Returns:
+        ``oprof`` or ``profile``.
+    """
+    if not use_sim_as_output or (devlink and not devlink_applies_calibration(devlink)):
+        return oprof
+    return profile
+
+
+def report_calibration_label(
+    oprof: ICCProfile,
+    profile: ICCProfile,
+    use_sim_as_output: bool,
+    devlink: ICCProfile | None,
+    self_check_report: bool = False,
+) -> str:
+    """Describe the calibration that was active during the measurement.
+
+    Args:
+        oprof: The original (display) profile.
+        profile: The profile used for the lookup.
+        use_sim_as_output: ``measurement_report.use_simulation_profile_as_output``.
+        devlink: The device-link profile, if any.
+        self_check_report: Whether this is a self-check report (no
+            measurement took place).
+
+    Returns:
+        The ``${CALIBRATION}`` value for the report.
+    """
+    if self_check_report:
+        return "N/A"
+    calprof = select_calibration_profile(oprof, profile, use_sim_as_output, devlink)
+    if extract_cal_from_profile(calprof, None, False):
+        source = "display" if calprof is oprof else "simulation"
+        return f"Yes ({source} profile)"
+    if use_sim_as_output and devlink_applies_calibration(devlink):
+        return "No (already applied by the devicelink profile)"
+    return "No (linear)"
+
+
 def stage_measurement_files(
     worker: Worker,
     save_path: str,
@@ -515,18 +595,7 @@ def stage_measurement_files(
         ti1_file.write(bytes(ti1))
     profile.write(profile_path)
 
-    if not use_sim_as_output or (
-        devlink
-        and "-a"
-        not in parse_argument_string(
-            devlink.tags.get("meta", {})
-            .get("collink.args", {})
-            .get("value", "-a" if getcfg("3dlut.output.profile.apply_cal") else "")
-        )
-    ):
-        calprof = oprof
-    else:
-        calprof = profile
+    calprof = select_calibration_profile(oprof, profile, use_sim_as_output, devlink)
 
     cal_path = os.path.join(temp, f"{name}.cal")
     cal = extract_cal_from_profile(calprof, cal_path, False)
@@ -586,12 +655,7 @@ def perform_self_check_lookup(
     _applycal_bug_workaround(oprof)
     oprof.write(profile_path)
 
-    apply_cal = bool(devlink) and "-a" in parse_argument_string(
-        devlink.tags.get("meta", {})
-        .get("collink.args", {})
-        .get("value", "-a" if getcfg("3dlut.output.profile.apply_cal") else "")
-    )
-    if apply_cal:
+    if devlink_applies_calibration(devlink):
         oprof_cal_path = os.path.join(temp, f"{name}.cal")
         extract_cal_from_profile(oprof, oprof_cal_path)
         profile_with_cal_path = os.path.join(temp, f"{name}_with_cal.icc")
@@ -1344,6 +1408,9 @@ def finalize_measurement_report(
             sim_intent == "a" and intent == "r"
         ).lower(),
         "${DEVICELINK_PROFILE}": devlink.getDescription() if devlink else "",
+        "${CALIBRATION}": report_calibration_label(
+            oprof, profile, use_sim_as_output, devlink, self_check_report
+        ),
         "${TESTCHART}": os.path.basename(chart.filename),
         "${ADAPTION}": str(profile.guess_cat(False) or cat),
         "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),

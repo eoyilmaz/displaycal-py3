@@ -9658,11 +9658,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             oprof.write(profile_path)
 
             # Check if we need to apply calibration
-            if devlink and "-a" in parse_argument_string(
-                devlink.tags.get("meta", {})
-                .get("collink.args", {})
-                .get("value", "-a" if getcfg("3dlut.output.profile.apply_cal") else "")
-            ):
+            if measurement_report_utils.devlink_applies_calibration(devlink):
                 oprof_cal_path = os.path.join(temp, f"{name}.cal")
                 extract_cal_from_profile(oprof, oprof_cal_path)
                 profile_with_cal_path = os.path.join(temp, f"{name}_with_cal.icc")
@@ -9848,18 +9844,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         # write profile to temp dir
         profile.write(profile_path)
         # Check if we need to apply calibration
-        if not use_sim_as_output or (
-            devlink
-            and "-a"
-            not in parse_argument_string(
-                devlink.tags.get("meta", {})
-                .get("collink.args", {})
-                .get("value", "-a" if getcfg("3dlut.output.profile.apply_cal") else "")
-            )
-        ):
-            calprof = oprof
-        else:
-            calprof = profile
+        calprof = measurement_report_utils.select_calibration_profile(
+            oprof, profile, use_sim_as_output, devlink
+        )
 
         cal_path = os.path.join(temp, f"{name}.cal")
         try:
@@ -10334,6 +10321,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 sim_intent == "a" and intent == "r"
             ).lower(),
             "${DEVICELINK_PROFILE}": devlink.getDescription() if devlink else "",
+            "${CALIBRATION}": measurement_report_utils.report_calibration_label(
+                oprof, profile, use_sim_as_output, devlink, self_check_report
+            ),
             "${TESTCHART}": os.path.basename(chart.filename),
             "${ADAPTION}": str(profile.guess_cat(False) or cat),
             "${DATETIME}": strftime("%Y-%m-%d %H:%M:%S"),

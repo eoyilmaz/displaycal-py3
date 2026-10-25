@@ -799,7 +799,7 @@ def detect_import_kind(
                     )
                     if imported == 0:
                         raise Info
-                except ValueError as exception:
+                except ccmx.DeviceCorrectionsError as exception:
                     result = Error(lang.getstr("file.invalid") + "\n" + str(exception))
                 except Info:
                     result = False

@@ -134,7 +134,7 @@ def test_set_visual_state_prefers_error_icon_over_animation_frame(qapp, monkeypa
     tray.setIcon.assert_called_with(tray._error_icon)
 
 
-def test_rotate_hue_rotates_chromatic_pixels():
+def test_rotate_hue_rotates_chromatic_pixels(qapp):
     from PIL import Image
 
     img = Image.new("RGBA", (1, 1), (255, 0, 0, 255))  # pure red, hue == 0

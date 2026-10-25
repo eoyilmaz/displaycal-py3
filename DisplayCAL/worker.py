@@ -2832,6 +2832,9 @@ class Worker(WorkerBase):
                     measurement_mode[0], measurement_mode
                 )
             args.append("-y" + measurement_mode[0])
+        result = self.check_spyder2024_measurement_mode(args, instrument_name)
+        if isinstance(result, Exception):
+            return result
         if (
             getcfg("measurement_mode.projector")
             and instrument_features.get("projector_mode")
@@ -3444,6 +3447,48 @@ class Worker(WorkerBase):
                 return result
             return self.exec_cmd(cmd, args, skip_scripts=True)
         return Error(lang.getstr("argyll.util.not_found", "spotread"))
+
+    def check_spyder2024_measurement_mode(
+        self, args: list[str], instrument_name: None | str = None
+    ) -> None | Error:
+        """Check for a Spyder 2024 measurement mode broken in ArgyllCMS.
+
+        ArgyllCMS up to and including 3.5.0 sizes the Spyder 2024 calibration
+        table for the 5 Spyder X2 display types, but the Spyder 2024 has 7.
+        The OLED and Mini-LED modes (native index 5 and 6) write past the end of
+        that table. For OLED this overwrites the gain value sent to the
+        measurement setup command, so every reading fails with a checksum error.
+        Mini-LED writes outside the driver object entirely, so its readings
+        can't be trusted either.
+
+        Args:
+            args (list): The Argyll utility arguments to check.
+            instrument_name (str, optional): The name of the instrument.
+
+        Returns:
+            None | Error: An Error if the selected mode is affected, None
+                otherwise.
+        """
+        if not instrument_name:
+            instrument_name = self.get_instrument_name()
+        if instrument_name != "Spyder 2024" or self.argyll_version[0:3] > [3, 5, 0]:
+            return None
+        measurement_mode_arg = get_arg("-y", args)
+        if not measurement_mode_arg:
+            return None
+        measurement_mode = measurement_mode_arg[1][2:3]
+        mode_names = {
+            "o": lang.getstr("measurement_mode.lcd.oled", "OLED"),
+            "m": lang.getstr("measurement_mode.lcd.mini_led", "Mini-LED"),
+        }
+        if measurement_mode not in mode_names:
+            return None
+        return Error(
+            lang.getstr(
+                "instrument.spyder2024.measurement_mode.unsupported",
+                (mode_names[measurement_mode], self.argyll_version_string),
+            )
+        )
 
     def instrument_can_use_ccxx(
         self, check_measurement_mode=True, instrument_name=None

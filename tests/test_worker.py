@@ -13,6 +13,7 @@ from urllib.error import URLError
 import pytest
 
 from DisplayCAL import config
+from DisplayCAL import localization as lang
 from DisplayCAL.argyll import (
     get_argyll_latest_version,
     get_argyll_util,
@@ -161,6 +162,68 @@ def test_worker_instrument_supports_css_1():
     result = worker.instrument_supports_ccss()
     expected_result = None
     assert result == expected_result
+
+
+@pytest.mark.parametrize("measurement_mode", ["-yo", "-ym"])
+@pytest.mark.parametrize("argyll_version", [[3, 4, 1], [3, 5, 0]])
+def test_check_spyder2024_measurement_mode_rejects_broken_modes(
+    measurement_mode, argyll_version
+):
+    """OLED/Mini-LED on a Spyder 2024 is rejected with ArgyllCMS <= 3.5.0."""
+    lang.init()
+    worker = Worker()
+    worker.argyll_version = argyll_version
+    worker.argyll_version_string = ".".join(str(n) for n in argyll_version)
+    result = worker.check_spyder2024_measurement_mode(
+        ["-v", measurement_mode], "Spyder 2024"
+    )
+    assert isinstance(result, Error)
+    assert worker.argyll_version_string in str(result)
+
+
+@pytest.mark.parametrize(
+    "instrument_name,measurement_mode,argyll_version",
+    [
+        ("Spyder 2024", "-ye", [3, 5, 0]),
+        ("Spyder 2024", "-yl", [3, 5, 0]),
+        ("Spyder 2024", "-yo", [3, 5, 1]),
+        ("Spyder 2024", "-ym", [3, 6, 0]),
+        ("SpyderX2", "-yo", [3, 5, 0]),
+        ("i1 DisplayPro, ColorMunki Display, Spyder4", "-ym", [3, 5, 0]),
+    ],
+)
+def test_check_spyder2024_measurement_mode_allows_other_cases(
+    instrument_name, measurement_mode, argyll_version
+):
+    """Other modes, instruments and newer ArgyllCMS versions pass the check."""
+    worker = Worker()
+    worker.argyll_version = argyll_version
+    result = worker.check_spyder2024_measurement_mode(
+        ["-v", measurement_mode], instrument_name
+    )
+    assert result is None
+
+
+def test_check_spyder2024_measurement_mode_without_mode_arg():
+    """No ``-y`` argument (e.g. ambient measurement) passes the check."""
+    worker = Worker()
+    worker.argyll_version = [3, 5, 0]
+    assert worker.check_spyder2024_measurement_mode(["-v", "-a"], "Spyder 2024") is None
+
+
+def test_add_measurement_features_rejects_spyder2024_oled(monkeypatch):
+    """add_measurement_features() returns the Spyder 2024 OLED error."""
+    worker = Worker()
+    worker.argyll_version = [3, 5, 0]
+    worker.argyll_version_string = "3.5.0"
+    monkeypatch.setattr(worker, "get_instrument_name", lambda: "Spyder 2024")
+    measurement_mode = getcfg("measurement_mode")
+    setcfg("measurement_mode", "o")
+    try:
+        result = worker.add_measurement_features(["-v"], display=False)
+    finally:
+        setcfg("measurement_mode", measurement_mode)
+    assert isinstance(result, Error)
 
 
 # @pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")

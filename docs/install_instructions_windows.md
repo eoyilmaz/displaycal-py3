@@ -39,9 +39,9 @@ system:
 Install through PyPI
 --------------------
 
-If you desire so, you can install DisplayCAL through PyPI. Use Python 3.9 to 3.14
+If you desire so, you can install DisplayCAL through PyPI. Use Python 3.11 to 3.14
 and create a dedicated virtual environment to avoid package conflicts with other Python
-programs. We recommend using Python 3.11 or newer. Here is the installation procedure:
+programs. Here is the installation procedure:
 
 1- Download and install a supported Python release from
    [Python.org](https://www.python.org/downloads/windows/).
@@ -95,7 +95,7 @@ Build From Source
 
 Under Windows the `makefile` workflow will not work. Build from source in a virtual
 environment to keep dependencies isolated from your system Python installation.
-Currently, DisplayCAL supports Python 3.9 to 3.14. To build DisplayCAL from source under
+Currently, DisplayCAL supports Python 3.11 to 3.14. To build DisplayCAL from source under
 Windows follow these steps:
 
 1- Download and install a supported Python release from

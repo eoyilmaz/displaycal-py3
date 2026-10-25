@@ -23,10 +23,7 @@ from ctypes import (
 from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+    from typing import Self
 
 
 libx11pth = util.find_library("X11")

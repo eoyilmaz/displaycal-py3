@@ -48,17 +48,14 @@ from typing import (
     Any,
     Callable,
     Literal,
+    NotRequired,
+    ParamSpec,
+    TypedDict,
     TypeVar,
     Union,
 )
 
 import psutil
-
-if sys.version_info >= (3, 11):
-    from typing import NotRequired, ParamSpec, TypedDict
-else:
-    from typing_extensions import NotRequired, ParamSpec, TypedDict
-
 
 from DisplayCAL.mscms_types import (
     COLORPROFILESUBTYPE,

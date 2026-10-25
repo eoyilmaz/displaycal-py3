@@ -403,7 +403,7 @@ jobs:
             --license "GPL-3.0-or-later" \
             --maintainer "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>" \
             --category graphics \
-            --depends "python3 (>= 3.9)" \
+            --depends "python3 (>= 3.11)" \
             --depends "python3-pip" \
             --depends "python3-venv" \
             --depends "pkg-config" \
@@ -432,7 +432,7 @@ jobs:
             --maintainer "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>" \
             --rpm-summary "Display calibration and profiling" \
             --category "Applications/Multimedia" \
-            --depends "python3 >= 3.9" \
+            --depends "python3 >= 3.11" \
             --depends "python3-pip" \
             --depends "pkgconfig" \
             --depends "dbus-devel" \

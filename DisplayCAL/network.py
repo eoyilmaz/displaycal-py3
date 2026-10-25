@@ -8,7 +8,6 @@ from __future__ import annotations
 import errno
 import os
 import socket
-import sys
 import urllib.error
 import urllib.request
 from typing import TYPE_CHECKING, BinaryIO
@@ -18,11 +17,7 @@ from DisplayCAL.util_str import safe_str
 
 if TYPE_CHECKING:
     from types import TracebackType
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+    from typing import Self
 
 
 DNS_SERVER_IP_ADDR = "8.8.8.8"

@@ -75,7 +75,6 @@ from DisplayCAL.wx_windows import (
     BaseApp,
     BaseFrame,
     ConfirmDialog,
-    CustomGrid,
     FileBrowseBitmapButtonWithChoiceHistory,
     FileDrop,
     get_gradient_panel,
@@ -1047,9 +1046,7 @@ class TestchartEditor(BaseFrame):
 
         # grid
         self.sizer.Add((-1, 12))
-        use_native_grid = sys.version_info >= (3, 10)
-        grid_cls = wx.grid.Grid if use_native_grid else CustomGrid
-        self.grid = grid_cls(panel, -1, size=(-1, 100))
+        self.grid = wx.grid.Grid(panel, -1, size=(-1, 100))
         self.grid.DisableDragColSize()
         self.grid.EnableGridLines(False)
         self.grid.SetCellHighlightPenWidth(0)

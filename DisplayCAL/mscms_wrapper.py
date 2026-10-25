@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ctypes
-import sys
 from ctypes import (
     POINTER,
     WINFUNCTYPE,
@@ -14,12 +13,7 @@ from ctypes import (
     wstring_at,
 )
 from ctypes.wintypes import BOOL, DWORD, LPWSTR
-from typing import Any, Callable
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
+from typing import Any, Callable, Self
 
 from DisplayCAL.mscms_types import (
     COLORPROFILESUBTYPE,

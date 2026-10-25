@@ -27,12 +27,7 @@ from DisplayCAL.defaultpaths import ICCPROFILES, ICCPROFILES_HOME
 
 if TYPE_CHECKING:
     import threading
-    from typing import BinaryIO, TextIO
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+    from typing import BinaryIO, Self, TextIO
 
 
 from DisplayCAL.icc_profile.codecs import (

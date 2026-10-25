@@ -19190,8 +19190,8 @@ BEGIN_DATA
                         dur = getcfg("patterngenerator.ffp_insertion.duration")
                         lvl = getcfg("patterngenerator.ffp_insertion.level")
                         self.log(
-                            f"{APPNAME}: Frame insertion duration {dur:d}s, "
-                            f"level = {lvl * 100:d}%"
+                            f"{APPNAME}: Frame insertion duration {dur:g}s, "
+                            f"level = {lvl * 100:.0f}%"
                         )
                         ts = time()
                         patternconfig = []

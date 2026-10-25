@@ -141,6 +141,51 @@ def test_clear_cmd_output_tolerates_cleared_thread_attribute():
     worker.clear_cmd_output()
 
 
+def test_write_frame_insertion_logs_float_config_values(monkeypatch, tmp_path):
+    """Frame insertion must not crash on its float config values (issue 984).
+
+    ``patterngenerator.ffp_insertion.duration`` and ``.level`` are floats
+    (defaults 5.0 and 0.15), so formatting them with ``:d`` in the log line
+    raised ``ValueError: Unknown format code 'd' for object of type 'float'``
+    as soon as the first frame insertion was due.
+    """
+    cfg = {
+        "patterngenerator.ffp_insertion": 1,
+        "patterngenerator.ffp_insertion.interval": 0.0,
+        "patterngenerator.ffp_insertion.duration": 2.5,
+        "patterngenerator.ffp_insertion.level": 0.15,
+        "measure.override_min_display_update_delay_ms": 0,
+    }
+    worker = Worker()
+    monkeypatch.setattr(
+        "DisplayCAL.worker.getcfg",
+        lambda name, *args, **kwargs: (
+            cfg[name] if name in cfg else getcfg(name, *args, **kwargs)
+        ),
+    )
+    monkeypatch.setattr(Worker, "_use_patternwindow", True)
+    worker.use_madnet_tpg = False
+    worker.patterngenerator_sent_count = 2
+    worker.tempdir = str(tmp_path)
+    # Skip the frame insertion and settle delays.
+    worker.thread_abort = True
+    sent = []
+    monkeypatch.setattr(
+        worker, "patterngenerator_send", lambda rgb, *args, **kwargs: sent.append(rgb)
+    )
+    monkeypatch.setattr(worker, "audio_visual_feedback", lambda txt: None)
+    monkeypatch.setattr(worker, "parse", lambda txt: None)
+    logged = []
+    monkeypatch.setattr(worker, "log", lambda *args, **kwargs: logged.append(args))
+
+    worker._write("Current RGB 0 0 0 0.5000 0.5000 0.5000\n")
+
+    assert any(
+        "Frame insertion duration 2.5s, level = 15%" in str(args[0]) for args in logged
+    )
+    assert sent == [(0.15, 0.15, 0.15), [0.5, 0.5, 0.5]]
+
+
 def test_worker_get_instrument_name_1():
     """Worker.get_instrument_name() is working properly."""
     worker = Worker()

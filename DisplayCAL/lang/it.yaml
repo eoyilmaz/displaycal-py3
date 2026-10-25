@@ -1766,6 +1766,11 @@
   No
 "no_settings": |-
   Il file non contiene impostazioni.
+"no_settings.load_from_profile": |-
+  Questo file di calibrazione contiene solo curve di calibrazione e nessuna impostazione, ad es. la tabella gamma della scheda video salvata durante una sessione di sola profilazione. Il profilo con lo stesso nome accanto contiene le impostazioni di quella sessione:
+  %s
+
+  Caricare invece le impostazioni da questo profilo?
 "none": |-
   Nessuno
 "not_applicable": |-

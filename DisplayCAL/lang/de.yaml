@@ -2618,6 +2618,12 @@
 "no_settings": |-
   Die Datei enthält keine Einstellungen.
 
+"no_settings.load_from_profile": |-
+  Diese Kalibrierungsdatei enthält nur Kalibrierungskurven und keine Einstellungen, z.B. die während einer reinen Profilierungssitzung gespeicherte Grafikkarten-Gammatabelle. Das gleichnamige Profil daneben enthält die Einstellungen dieser Sitzung:
+  %s
+
+  Einstellungen stattdessen aus diesem Profil laden?
+
 "none": |-
   Keine
 

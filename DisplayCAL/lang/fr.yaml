@@ -2614,6 +2614,12 @@
 "no_settings": |-
   Le fichier ne contient pas de paramètre.
 
+"no_settings.load_from_profile": |-
+  Ce fichier de calibrage ne contient que des courbes de calibrage et aucun paramètre, par ex. la table gamma de la carte graphique enregistrée lors d’une session de profilage seul. Le profil portant le même nom à côté contient les paramètres de cette session :
+  %s
+
+  Charger plutôt les paramètres depuis ce profil ?
+
 "none": |-
   Aucun
 

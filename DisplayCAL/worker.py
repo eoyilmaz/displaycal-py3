@@ -2286,6 +2286,37 @@ def _macos_active_display_ids(max_displays=16):
     return cg, list(ids[: count.value])
 
 
+def get_macos_display_identity(display_index, max_displays=16):
+    """Return the CoreGraphics id and EDID vendor/product numbers of a display.
+
+    Used to tell apart displays that share the same resolution when matching
+    them against system_profiler output (issue #991).
+
+    Args:
+        display_index (int): Zero-based display index (CoreGraphics/dispwin
+            order).
+        max_displays (int): Maximum number of active displays to enumerate.
+
+    Returns:
+        None | tuple[int, int, int]: The ``(display_id, vendor_id,
+            product_id)``, or None if CoreGraphics is unavailable or the index
+            is out of range.
+    """
+    cg, ids = _macos_active_display_ids(max_displays)
+    if cg is None or not 0 <= display_index < len(ids):
+        return None
+    display_id = ids[display_index]
+    for func_name in ("CGDisplayVendorNumber", "CGDisplayModelNumber"):
+        func = getattr(cg, func_name)
+        func.argtypes = [ctypes.c_uint32]
+        func.restype = ctypes.c_uint32
+    return (
+        display_id,
+        cg.CGDisplayVendorNumber(display_id),
+        cg.CGDisplayModelNumber(display_id),
+    )
+
+
 def get_macos_videolut_maxima(max_displays=16):
     """Return the maximum VideoLUT output value for each active display (macOS).
 
@@ -6560,8 +6591,13 @@ END_DATA
                         manufacturer = []
                         if sys.platform == "darwin" and i < len(self.display_rects):
                             rect = self.display_rects[i]
+                            # Identify the display by CoreGraphics id and
+                            # vendor/product so that two displays with the
+                            # same resolution aren't both given the first
+                            # one's name (issue #991)
+                            identity = get_macos_display_identity(i) or ()
                             sp_name = get_display_name_from_system_profiler(
-                                rect.width, rect.height
+                                rect.width, rect.height, *identity
                             )
                             if sp_name:
                                 generic_desc = [sp_name]

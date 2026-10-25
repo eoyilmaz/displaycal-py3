@@ -323,15 +323,31 @@ def get_edid_darwin(display_name: str, display_no: int = 0) -> None | bytes:
     return None
 
 
-def get_display_name_from_system_profiler(width: int, height: int) -> str | None:
+def get_display_name_from_system_profiler(
+    width: int,
+    height: int,
+    display_id: int | None = None,
+    vendor_id: int | None = None,
+    product_id: int | None = None,
+) -> str | None:
     """Return the display model name from system_profiler on macOS.
 
     Used as a last-resort fallback when ioreg does not expose IODisplayEDID
     (e.g. Apple Silicon Macs running macOS Tahoe with external displays).
 
-    Matches by display resolution because system_profiler and ArgyllCMS may
-    enumerate displays in different orders.  When multiple displays share the
-    same resolution the first match is returned.
+    Displays are matched in order of decreasing reliability:
+
+    1. ``display_id``: the CoreGraphics ``CGDirectDisplayID``, which
+       system_profiler reports as ``_spdisplays_displayID``.
+    2. ``vendor_id`` and ``product_id``: the EDID vendor/product numbers
+       (``CGDisplayVendorNumber()``/``CGDisplayModelNumber()``), which
+       system_profiler reports as hex strings. Two displays with the same
+       vendor/product ids are the same model, so the name is correct either
+       way.
+    3. Resolution, because system_profiler and ArgyllCMS may enumerate
+       displays in different orders. When multiple displays share the same
+       resolution the first match is returned, so this alone can't tell two
+       different displays of the same resolution apart.
 
     Resolution strings like "1920 x 1080 (3840 x 2160 HiDPI)" contain multiple
     pairs; all pairs are tried so that both logical and physical resolutions match.
@@ -340,9 +356,42 @@ def get_display_name_from_system_profiler(width: int, height: int) -> str | None
     Args:
         width (int): Display width in pixels as reported by ArgyllCMS.
         height (int): Display height in pixels as reported by ArgyllCMS.
+        display_id (None | int): CoreGraphics display id, if known.
+        vendor_id (None | int): EDID vendor number, if known.
+        product_id (None | int): EDID product number, if known.
 
     Returns:
         str | None: Display model name, or None if not determinable.
+    """
+    displays = _get_system_profiler_displays()
+
+    if display_id is not None:
+        for name, display in displays:
+            if _parse_int(display.get("_spdisplays_displayID")) == display_id:
+                return name
+
+    if vendor_id is not None and product_id is not None:
+        for name, display in displays:
+            if (
+                _parse_int(display.get("_spdisplays_display-vendor-id"), 16)
+                == vendor_id
+                and _parse_int(display.get("_spdisplays_display-product-id"), 16)
+                == product_id
+            ):
+                return name
+
+    for name, display in displays:
+        if _system_profiler_display_has_resolution(display, width, height):
+            return name
+    return None
+
+
+def _get_system_profiler_displays() -> list[tuple[str, dict]]:
+    """Return the named display entries reported by system_profiler.
+
+    Returns:
+        list[tuple[str, dict]]: ``(name, entry)`` pairs, or [] if
+            system_profiler couldn't be run or its output couldn't be parsed.
     """
     try:
         p = subprocess.Popen(  # noqa: S607
@@ -352,33 +401,67 @@ def get_display_name_from_system_profiler(width: int, height: int) -> str | None
         )
         stdout, _ = p.communicate()
         if not stdout:
-            return None
+            return []
         data = json.loads(stdout)
     except Exception:
-        return None
+        return []
 
+    displays = []
     for gpu in data.get("SPDisplaysDataType", []):
         for display in gpu.get("spdisplays_ndrvs", []):
             name = display.get("_name", "").strip()
-            if not name:
-                continue
-            for res_key in (
-                "spdisplays_resolution",
-                "_spdisplays_resolution",  # macOS Tahoe uses underscore prefix
-                "spdisplays_native-resolution",
-                "spdisplays_ui-resolution",
-                "spdisplays_pixelresolution",
-                "_spdisplays_pixels",  # macOS Tahoe physical pixel count
-            ):
-                resolution = display.get(res_key, "")
-                if not resolution:
-                    continue
-                # findall captures every (w, h) pair in strings like
-                # "1920 x 1080 (3840 x 2160 HiDPI)" or "spdisplays_3840x2160"
-                for w, h in re.findall(r"(\d+)\s*[xX×]\s*(\d+)", resolution):  # noqa: RUF001
-                    if int(w) == width and int(h) == height:
-                        return name
-    return None
+            if name:
+                displays.append((name, display))
+    return displays
+
+
+def _parse_int(value: str | None, base: int = 10) -> int | None:
+    """Parse a system_profiler id string as an integer.
+
+    Args:
+        value (None | str): The string value.
+        base (int): The number base, system_profiler reports vendor and product
+            ids as hex.
+
+    Returns:
+        None | int: The integer value, or None if it couldn't be parsed.
+    """
+    try:
+        return int(str(value).strip(), base)
+    except ValueError:
+        return None
+
+
+def _system_profiler_display_has_resolution(
+    display: dict, width: int, height: int
+) -> bool:
+    """Return whether a system_profiler display entry has the given resolution.
+
+    Args:
+        display (dict): A system_profiler ``spdisplays_ndrvs`` entry.
+        width (int): Display width in pixels.
+        height (int): Display height in pixels.
+
+    Returns:
+        bool: True if any of the entry's resolutions matches.
+    """
+    for res_key in (
+        "spdisplays_resolution",
+        "_spdisplays_resolution",  # macOS Tahoe uses underscore prefix
+        "spdisplays_native-resolution",
+        "spdisplays_ui-resolution",
+        "spdisplays_pixelresolution",
+        "_spdisplays_pixels",  # macOS Tahoe physical pixel count
+    ):
+        resolution = display.get(res_key, "")
+        if not resolution:
+            continue
+        # findall captures every (w, h) pair in strings like
+        # "1920 x 1080 (3840 x 2160 HiDPI)" or "spdisplays_3840x2160"
+        for w, h in re.findall(r"(\d+)\s*[xX×]\s*(\d+)", resolution):  # noqa: RUF001
+            if int(w) == width and int(h) == height:
+                return True
+    return False
 
 
 def get_edid_from_xrandr(display_no: int) -> bytes:

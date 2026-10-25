@@ -1142,3 +1142,58 @@ def test_get_display_name_from_system_profiler_tahoe_no_match(
     result = get_display_name_from_system_profiler(3456, 2234)
 
     assert result == "Color LCD"
+
+
+# Reflects issue #991: two different displays with the same 1920x1080 logical
+# resolution (BenQ via USB-C, LG via HDMI on an M5 Pro Mac mini)
+_SYSTEM_PROFILER_JSON_SAME_RESOLUTION = json.dumps(
+    {
+        "SPDisplaysDataType": [
+            {
+                "_name": "Apple M5 Pro",
+                "spdisplays_ndrvs": [
+                    {
+                        "_name": "BenQ PD2706U",
+                        "_spdisplays_display-product-id": "8048",
+                        "_spdisplays_display-vendor-id": "9d1",
+                        "_spdisplays_displayID": "2",
+                        "_spdisplays_pixels": "3840 x 2160",
+                        "_spdisplays_resolution": "1920 x 1080 @ 60.00Hz",
+                    },
+                    {
+                        "_name": "LG ULTRAFINE",
+                        "_spdisplays_display-product-id": "5cbb",
+                        "_spdisplays_display-vendor-id": "1e6d",
+                        "_spdisplays_displayID": "3",
+                        "_spdisplays_pixels": "3840 x 2160",
+                        "_spdisplays_resolution": "1920 x 1080 @ 60.00Hz",
+                    },
+                ],
+            }
+        ]
+    }
+).encode()
+
+
+@pytest.mark.parametrize(
+    "identity, expected",
+    [
+        ((2, 0x09D1, 0x8048), "BenQ PD2706U"),
+        ((3, 0x1E6D, 0x5CBB), "LG ULTRAFINE"),
+        # Unknown display id, vendor/product still identifies the display
+        ((99, 0x1E6D, 0x5CBB), "LG ULTRAFINE"),
+        # Neither matches, falls back to the first resolution match
+        ((99, 0x1234, 0x5678), "BenQ PD2706U"),
+        ((), "BenQ PD2706U"),
+    ],
+)
+def test_get_display_name_from_system_profiler_same_resolution(
+    monkeypatch, patch_subprocess, identity, expected
+):
+    """Displays sharing a resolution are told apart by id/vendor/product (#991)."""
+    monkeypatch.setattr("DisplayCAL.edid.subprocess", patch_subprocess)
+    patch_subprocess.output["system_profilerSPDisplaysDataType-json"] = (
+        _SYSTEM_PROFILER_JSON_SAME_RESOLUTION
+    )
+
+    assert get_display_name_from_system_profiler(1920, 1080, *identity) == expected

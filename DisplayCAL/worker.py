@@ -115,6 +115,7 @@ from DisplayCAL.cgats import (
     CGATSKeyError,
     CGATSTypeError,
     CGATSValueError,
+    parse_float,
     rpad,
     sort_by_rec709_luma,
     sort_by_rgb,
@@ -4207,7 +4208,7 @@ END_DATA
                 )
             )
         try:
-            Y_cdm2 = float(luminance_XYZ_cdm2.split()[1])
+            Y_cdm2 = parse_float(luminance_XYZ_cdm2.split()[1])
         except (IndexError, ValueError):
             return Error(lang.getstr("error.testchart.invalid", ti3_path))
         if Y_cdm2 <= 0 or math.isnan(Y_cdm2):

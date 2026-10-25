@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import math
 import sys
 from typing import TypedDict
 
 import pytest
 from _pytest.fixtures import SubRequest
 
-from DisplayCAL.cgats import CGATS, stable_sort_by_l
+from DisplayCAL.cgats import CGATS, CGATSValueError, parse_float, stable_sort_by_l
 from DisplayCAL.dev.mocks import check_call
 
 
@@ -1125,3 +1126,98 @@ def test_fix_zero_measurements(
     assert len(cgats[0]["DATA"]) == unfiltered_sets if warn else filtered_sets
     if not warn:
         assert cgats[0]["DATA"][0] == result
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    (
+        (b"-nan(ind)", "nan"),
+        (b"nan(snan)", "nan"),
+        (b"-1.#IND", "nan"),
+        (b"1.#QNAN", "nan"),
+        (b"-1.#QNAN0", "nan"),
+        (b"nan", "nan"),
+        (b"-nan", "nan"),
+        (b"1.#INF", "inf"),
+        (b"-1.#INF00", "-inf"),
+        (b"inf", "inf"),
+        (b"-inf", "-inf"),
+        ("-nan(ind)", "nan"),
+        (b"95.046", 95.046),
+        (b"-0.25", -0.25),
+        (3, 3.0),
+    ),
+)
+def test_parse_float(value: bytes | str | int, expected: str | float) -> None:
+    """``parse_float()`` accepts the MSVC NaN/inf spellings Argyll writes."""
+    result = parse_float(value)
+    if expected == "nan":
+        assert math.isnan(result)
+    else:
+        assert result == float(expected)
+
+
+def test_parse_float_rejects_garbage() -> None:
+    """``parse_float()`` still raises ValueError for non-numeric values."""
+    with pytest.raises(ValueError):
+        parse_float(b"nan(ind")
+    with pytest.raises(ValueError):
+        parse_float(b"foo")
+
+
+def test_cgats_parses_msvc_nan_measurements() -> None:
+    """A .ti3 with MSVC "-nan(ind)" readings loads instead of raising (#978).
+
+    Argyll's Windows builds write NaN readings as "-nan(ind)", which used to
+    fail with "Invalid data type for b'XYZ_X' (expected float, got bytes)".
+    """
+    ti3 = CGATS(
+        b"""CTI3
+
+DESCRIPTOR "Argyll Calibration Target chart information 3"
+ORIGINATOR "Argyll dispread"
+DEVICE_CLASS "DISPLAY"
+COLOR_REP "RGB_XYZ"
+LUMINANCE_XYZ_CDM2 "-nan(ind) -nan(ind) -nan(ind)"
+
+NUMBER_OF_FIELDS 7
+BEGIN_DATA_FORMAT
+SAMPLE_ID RGB_R RGB_G RGB_B XYZ_X XYZ_Y XYZ_Z
+END_DATA_FORMAT
+
+NUMBER_OF_SETS 3
+BEGIN_DATA
+1 100.00 100.00 100.00 -nan(ind) -nan(ind) -nan(ind)
+2 0.0000 0.0000 0.0000 -nan(ind) -nan(ind) -nan(ind)
+3 6.2500 6.2500 6.2500 -nan(ind) -nan(ind) -nan(ind)
+END_DATA
+"""
+    )
+    data = ti3[0].DATA
+    assert len(data) == 3
+    for i in range(3):
+        for key in ("XYZ_X", "XYZ_Y", "XYZ_Z"):
+            assert math.isnan(data[i][key])
+    assert data[0]["RGB_R"] == 100.0
+
+
+def test_cgats_invalid_float_error_names_field_without_bytes_repr() -> None:
+    """The invalid float error names the field as 'XYZ_X', not b'XYZ_X'."""
+    with pytest.raises(CGATSValueError) as exc_info:
+        CGATS(
+            b"""CTI3
+
+NUMBER_OF_FIELDS 2
+BEGIN_DATA_FORMAT
+SAMPLE_ID XYZ_X
+END_DATA_FORMAT
+
+NUMBER_OF_SETS 1
+BEGIN_DATA
+1 foo
+END_DATA
+"""
+        )
+    assert str(exc_info.value) == (
+        "Invalid data type for 'XYZ_X' (expected float, got bytes)"
+    )

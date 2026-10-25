@@ -33,6 +33,50 @@ def debug_print(*args, other_conditions: bool = True) -> None:
         print(*args)
 
 
+# Non-finite spellings of the MSVC C runtime, which Argyll's Windows builds
+# write into .ti3 files but Python's float() rejects: "-nan(ind)",
+# "nan(snan)" (UCRT) and "1.#QNAN", "1.#IND", "1.#INF" (pre-UCRT).
+MSVC_NAN_RE = re.compile(rb"^[+-]?(?:nan\(\w*\)|1\.#(?:QNAN|SNAN|IND)\d*)$", re.I)
+MSVC_INF_RE = re.compile(rb"^([+-]?)1\.#INF\d*$", re.I)
+
+
+def parse_float(value: bytes | str | float) -> float:
+    """Convert a CGATS value to float, accepting MSVC NaN/inf spellings.
+
+    Args:
+        value (bytes | str | float): The value to convert.
+
+    Raises:
+        ValueError: If the value can not be converted to float.
+
+    Returns:
+        float: The converted value.
+    """
+    if isinstance(value, (bytes, str)):
+        bvalue = value.encode() if isinstance(value, str) else value
+        bvalue = bvalue.strip()
+        if MSVC_NAN_RE.match(bvalue):
+            return math.nan
+        match = MSVC_INF_RE.match(bvalue)
+        if match:
+            return -math.inf if match.group(1) == b"-" else math.inf
+    return float(value)
+
+
+def display_name(value: bytes | str) -> str:
+    """Return a CGATS type or field name as str for use in messages.
+
+    Args:
+        value (bytes | str): The name.
+
+    Returns:
+        str: The decoded name, so messages read 'XYZ_X' and not b'XYZ_X'.
+    """
+    if isinstance(value, bytes):
+        return value.decode(errors="replace")
+    return value
+
+
 def get_device_value_labels(color_rep: None | str = None) -> list[bytes]:
     """Return a list of device value labels.
 
@@ -1586,7 +1630,9 @@ class CGATS(MutableMapping):
         ):
             self._add_data_format_or_keywords(data)
         else:
-            raise CGATSInvalidOperationError(f"Cannot add data to {self.type}")
+            raise CGATSInvalidOperationError(
+                f"Cannot add data to {display_name(self.type)!r}"
+            )
         return context
 
     def _add_data_format_or_keywords(self, data: dict | list | tuple) -> None:
@@ -1600,7 +1646,7 @@ class CGATS(MutableMapping):
         """
         if not isinstance(data, (Mapping, list, tuple)):
             raise CGATSTypeError(
-                f"Invalid data type for {self.type} (expected "
+                f"Invalid data type for {display_name(self.type)!r} (expected "
                 f"CGATS, dict, list or tuple, got {type(data)})"
             )
 
@@ -1685,7 +1731,7 @@ class CGATS(MutableMapping):
                 value = float(value) if match.groups()[0] else int(value)
                 if self.type in (b"DATA_FORMAT", b"KEYWORDS"):
                     raise CGATSTypeError(
-                        f"Invalid data type for {self.type} "
+                        f"Invalid data type for {display_name(self.type)!r} "
                         "(expected bytes or str, "
                         f"got {type(value)})"
                     )
@@ -1712,7 +1758,7 @@ class CGATS(MutableMapping):
             self[key] = data
         else:
             raise CGATSTypeError(
-                f"Invalid data type for {self.type} "
+                f"Invalid data type for {display_name(self.type)!r} "
                 f"(expected bytes or str, got {type(data)})"
             )
 
@@ -1748,7 +1794,7 @@ class CGATS(MutableMapping):
             context = context.add_data(data, key)
         else:
             raise CGATSTypeError(
-                f"Invalid data type for {self.type} "
+                f"Invalid data type for {display_name(self.type)!r} "
                 f"(expected str or unicode without line endings, got {type(data)})"
             )
 
@@ -1773,8 +1819,8 @@ class CGATS(MutableMapping):
         """
         if not isinstance(data, (Mapping, list, tuple)):
             raise CGATSTypeError(
-                f"Invalid data type for {self.type} (expected CGATS, dict, list or "
-                f"tuple, got {type(data)})"
+                f"Invalid data type for {display_name(self.type)!r} "
+                f"(expected CGATS, dict, list or tuple, got {type(data)})"
             )
 
         if not self.parent["DATA_FORMAT"]:
@@ -1866,10 +1912,10 @@ class CGATS(MutableMapping):
             float: The processed value.
         """
         try:
-            value = float(value)
+            value = parse_float(value)
         except ValueError as e:
             raise CGATSValueError(
-                f"Invalid data type for {item} "
+                f"Invalid data type for {display_name(item)!r} "
                 f"(expected float, got {value.__class__.__name__})"
             ) from e
         else:

@@ -5,6 +5,7 @@ registry value.  When the display is in SDR mode that value must be ignored so
 the correct SDR profile (ICMProfile) is used instead.
 """
 
+import os
 import types
 from unittest import mock
 
@@ -129,14 +130,14 @@ class TestWinregGetDisplayProfile:
         assert result is not None
         assert hdr in result
 
-    def test_unknown_hdr_state_returns_hdr_profile(self, registry_with_both_profiles):
-        """advanced_color_active=None (unknown) must not filter; last entry wins."""
+    def test_unknown_hdr_state_prefers_sdr_profile(self, registry_with_both_profiles):
+        """advanced_color_active=None (unknown) must prefer the ICMProfile slot."""
         icc, sdr, hdr = registry_with_both_profiles
         result = icc._winreg_get_display_profile(
             _MONKEY, path_only=True, advanced_color_active=None
         )
         assert result is not None
-        assert hdr in result
+        assert sdr in result
 
     def test_only_sdr_profile_in_registry(self, tmp_path):
         """When no ICMProfileAC exists, SDR profile is still returned correctly."""
@@ -161,3 +162,111 @@ class TestWinregGetDisplayProfile:
             else:
                 _icc.winreg = orig_winreg
             _icc.ICCPROFILES = orig_profiles
+
+
+# ---------------------------------------------------------------------------
+# Issue #989: the profile must follow the display mode, not registry order
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def fake_registry(tmp_path):
+    """Return a callable that injects a fake winreg seeded with given values.
+
+    Each profile filename used in the values is created in ``tmp_path`` so it
+    passes the existence check.
+    """
+    orig_winreg = getattr(_icc, "winreg", None)
+    orig_profiles = _icc.ICCPROFILES
+
+    def _install(registry_values):
+        for _name, value, _type in registry_values:
+            for filename in value:
+                (tmp_path / filename).write_bytes(b"")
+        _icc.winreg = _make_fake_winreg(registry_values)
+        _icc.ICCPROFILES = [str(tmp_path)]
+        return _icc
+
+    yield _install
+
+    if orig_winreg is None:
+        if hasattr(_icc, "winreg"):
+            del _icc.winreg
+    else:
+        _icc.winreg = orig_winreg
+    _icc.ICCPROFILES = orig_profiles
+
+
+class TestProfileFollowsDisplayMode:
+    @pytest.mark.parametrize(
+        "registry_values",
+        [
+            # SDR profile installed first (ICMProfile value created first)
+            [
+                ("ICMProfile", ["sdr.icm"], 7),
+                ("ICMProfileAC", ["hdr.icm"], 7),
+            ],
+            # HDR profile installed first (ICMProfileAC value created first)
+            [
+                ("ICMProfileAC", ["hdr.icm"], 7),
+                ("ICMProfile", ["sdr.icm"], 7),
+            ],
+        ],
+        ids=["sdr_installed_first", "hdr_installed_first"],
+    )
+    @pytest.mark.parametrize(
+        ("advanced_color_active", "expected"),
+        [(False, "sdr.icm"), (True, "hdr.icm"), (None, "sdr.icm")],
+        ids=["sdr_mode", "hdr_mode", "unknown_mode"],
+    )
+    def test_registry_value_order_does_not_matter(
+        self, fake_registry, registry_values, advanced_color_active, expected
+    ):
+        """The active mode's slot is used regardless of registry value order."""
+        icc = fake_registry(registry_values)
+        result = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=advanced_color_active
+        )
+        assert result is not None
+        assert os.path.basename(result) == expected
+
+    def test_last_entry_of_active_slot_is_default(self, fake_registry):
+        """Within a slot the last associated profile is the default one."""
+        icc = fake_registry(
+            [
+                ("ICMProfileAC", ["hdr_old.icm", "hdr_new.icm"], 7),
+                ("ICMProfile", ["sdr_old.icm", "sdr_new.icm"], 7),
+            ]
+        )
+        sdr = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=False
+        )
+        hdr = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=True
+        )
+        assert os.path.basename(sdr) == "sdr_new.icm"
+        assert os.path.basename(hdr) == "hdr_new.icm"
+
+    def test_hdr_mode_falls_back_to_sdr_slot(self, fake_registry):
+        """In HDR mode without an ICMProfileAC association, ICMProfile is used."""
+        icc = fake_registry([("ICMProfile", ["sdr.icm"], 7)])
+        result = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=True
+        )
+        assert os.path.basename(result) == "sdr.icm"
+
+    def test_unknown_mode_falls_back_to_ac_slot(self, fake_registry):
+        """With unknown mode and only an ICMProfileAC association, it is used."""
+        icc = fake_registry([("ICMProfileAC", ["hdr.icm"], 7)])
+        result = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=None
+        )
+        assert os.path.basename(result) == "hdr.icm"
+
+    def test_sdr_mode_never_uses_ac_slot(self, fake_registry):
+        """In SDR mode an ICMProfileAC-only display falls back to sRGB."""
+        icc = fake_registry([("ICMProfileAC", ["hdr.icm"], 7)])
+        result = icc._winreg_get_display_profile(
+            _MONKEY, path_only=True, advanced_color_active=False
+        )
+        assert os.path.basename(result) == "sRGB Color Space Profile.icm"

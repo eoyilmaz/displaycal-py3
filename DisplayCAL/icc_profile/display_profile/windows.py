@@ -79,6 +79,12 @@ def _winreg_get_display_profile(
 ) -> None | str | ICCProfile:
     """Get display profile from Windows registry.
 
+    Windows keeps two separate association lists per display, ICMProfile for
+    SDR and ICMProfileAC for Advanced Color (HDR or Auto Color Management),
+    and the last entry of each list is that mode's default profile. Only the
+    list matching the display's current mode is used, so the result doesn't
+    depend on which registry value happened to be created first (issue #989).
+
     Args:
         monkey (list): Registry key path components for the display.
         current_user (bool): If True, use HKEY_CURRENT_USER, otherwise
@@ -87,9 +93,11 @@ def _winreg_get_display_profile(
             otherwise return an ICCProfile object.
         use_cache (bool): If True, use cached profile if available.
         advanced_color_active (bool | None): Whether the display is currently
-            in Advanced Color (HDR) mode.  If explicitly False, the
-            ICMProfileAC (Windows HDR Calibration) profile is excluded so the
-            SDR profile is returned instead.  None means unknown (include all).
+            in Advanced Color (HDR) mode. If True, the ICMProfileAC default is
+            used, falling back to ICMProfile if there is none. If False, only
+            ICMProfile is used. None means unknown, in which case ICMProfile
+            is preferred and ICMProfileAC is only used if there is no
+            ICMProfile association.
 
     Returns:
         None | str | ICCProfile: The display profile path as a string or
@@ -97,15 +105,17 @@ def _winreg_get_display_profile(
     """
     from DisplayCAL.icc_profile import ICCProfile
 
-    filename = None
-    filenames = _winreg_get_display_profiles(
-        monkey,
-        current_user,
-        exclude_advanced_color=advanced_color_active is False,
-    )
-    if filenames:
-        # last existing file in the list is active
-        filename = filenames.pop()
+    filenames_by_slot = _winreg_get_display_profiles_by_slot(monkey, current_user)
+    sdr_filenames = filenames_by_slot["ICMProfile"]
+    ac_filenames = filenames_by_slot["ICMProfileAC"]
+    if advanced_color_active:
+        filenames = ac_filenames or sdr_filenames
+    elif advanced_color_active is False:
+        filenames = sdr_filenames
+    else:
+        filenames = sdr_filenames or ac_filenames
+    # last existing file in the list is active
+    filename = filenames[-1] if filenames else None
     if not filename and not current_user:
         # fall back to sRGB
         filename = os.path.join(ICCPROFILES[0], "sRGB Color Space Profile.icm")
@@ -136,6 +146,33 @@ def _winreg_get_display_profiles(
         list: List of profile filenames.
     """
     filenames = []
+    for name, slot_filenames in _winreg_get_display_profiles_by_slot(
+        monkey, current_user
+    ).items():
+        if name == "ICMProfileAC" and exclude_advanced_color:
+            continue
+        filenames.extend(slot_filenames)
+    return filenames
+
+
+def _winreg_get_display_profiles_by_slot(
+    monkey: list,
+    current_user: bool = False,
+) -> dict[str, list]:
+    """Get display profile filenames from Windows registry, per slot.
+
+    Args:
+        monkey (list): Registry key path components for the display.
+        current_user (bool): If True, use HKEY_CURRENT_USER, otherwise
+            HKEY_LOCAL_MACHINE.
+
+    Returns:
+        dict[str, list]: The existing profile filenames associated in the
+            "ICMProfile" (SDR) and "ICMProfileAC" (Advanced Color) slots, in
+            registry enumeration order (the last entry of each slot is that
+            slot's default profile). Keys are always present.
+    """
+    filenames_by_slot = {"ICMProfile": [], "ICMProfileAC": []}
     try:
         if current_user and sys.getwindowsversion() >= (6,):
             # Vista / Windows 7 ONLY
@@ -163,9 +200,7 @@ def _winreg_get_display_profiles(
         numsubkeys, numvalues, mtime = winreg.QueryInfoKey(key)
         for i in range(numvalues):
             name, value, type_ = winreg.EnumValue(key, i)
-            if name not in ["ICMProfile", "ICMProfileAC"] or not value:
-                continue
-            if name == "ICMProfileAC" and exclude_advanced_color:
+            if name not in filenames_by_slot or not value:
                 continue
 
             if type_ == winreg.REG_BINARY:
@@ -180,7 +215,7 @@ def _winreg_get_display_profiles(
                 value = [value]
             while "" in value:
                 value.remove("")
-            filenames.extend(value)
+            filenames_by_slot[name].extend(value)
         winreg.CloseKey(key)
     except OSError as exception:
         if exception.args[0] == 2:
@@ -188,11 +223,14 @@ def _winreg_get_display_profiles(
             pass
         else:
             raise
-    return [
-        filename
-        for filename in filenames
-        if os.path.isfile(os.path.join(ICCPROFILES[0], filename))
-    ]
+    return {
+        name: [
+            filename
+            for filename in filenames
+            if os.path.isfile(os.path.join(ICCPROFILES[0], filename))
+        ]
+        for name, filenames in filenames_by_slot.items()
+    }
 
 
 def get_display_profile_windows(

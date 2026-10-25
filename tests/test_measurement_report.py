@@ -13,8 +13,8 @@ import pytest
 
 from DisplayCAL import measurement_report as mr
 from DisplayCAL.cgats import CGATS
-from DisplayCAL.config import setcfg
-from DisplayCAL.icc_profile import ICCProfile
+from DisplayCAL.config import get_data_path, setcfg
+from DisplayCAL.icc_profile import DictType, ICCProfile
 
 #: Real dispread/colprof output fixture set (matching .ti1/.ti3/.icc/.cal),
 #: reused across the pipeline tests so ``finalize_measurement_report`` runs
@@ -281,6 +281,126 @@ class TestStageMeasurementFiles:
         assert os.path.isfile(cal_path)
 
 
+def _devlink(tmp_path, collink_args):
+    """Write a stand-in device link carrying ``collink_args`` and reload it.
+
+    The ``meta`` tag values are only wrapped as ``{"value": ...}`` once the
+    profile has been read back from disk, which is how verification always
+    gets its device link.
+    """
+    devlink = ICCProfile(get_data_path("ref/Rec709.icm"))
+    devlink.tags.meta = DictType()
+    if collink_args is not None:
+        devlink.tags.meta.update([("collink.args", collink_args)])
+    devlink.calculate_id()
+    path = str(tmp_path / "link.icc")
+    devlink.write(path)
+    return ICCProfile(path)
+
+
+#: ``collink`` command lines as written into a device link's ``meta`` tag with
+#: "Apply calibration (vcgt)" off / on.
+_COLLINK_NO_CAL = "-v -qh -G -ir -3c -et -Et -b Rec709.icm display.icc link.icc"
+_COLLINK_CAL = (
+    "-v -qh -G -ir -3c -et -Et -b -a display.cal Rec709.icm display.icc link.icc"
+)
+
+
+class TestCalibrationSelection:
+    """Which calibration is active while verifying (issue 992)."""
+
+    @pytest.fixture
+    def oprof(self, icc_path):
+        profile = ICCProfile(icc_path)
+        assert "vcgt" in profile.tags, "fixture profile should carry a vcgt tag"
+        return profile
+
+    @pytest.fixture
+    def sim(self):
+        profile = ICCProfile(get_data_path("ref/Rec709.icm"))
+        assert "vcgt" not in profile.tags
+        return profile
+
+    @pytest.mark.parametrize(
+        "collink_args, apply_cal_cfg, expected",
+        [
+            (_COLLINK_NO_CAL, 1, False),
+            (_COLLINK_CAL, 0, True),
+            # No collink metadata, fall back to the current 3D LUT setting
+            (None, 0, False),
+            (None, 1, True),
+        ],
+    )
+    def test_devlink_applies_calibration(
+        self, tmp_path, collink_args, apply_cal_cfg, expected
+    ):
+        setcfg("3dlut.output.profile.apply_cal", apply_cal_cfg)
+        try:
+            devlink = _devlink(tmp_path, collink_args)
+            assert mr.devlink_applies_calibration(devlink) is expected
+        finally:
+            # Back to the default
+            setcfg("3dlut.output.profile.apply_cal", None)
+
+    def test_devlink_applies_calibration_without_devlink(self):
+        assert mr.devlink_applies_calibration(None) is False
+
+    def test_sim_as_output_without_devlink_drops_calibration(self, oprof, sim):
+        assert mr.select_calibration_profile(oprof, sim, True, None) is sim
+        assert mr.report_calibration_label(oprof, sim, True, None) == "No (linear)"
+
+    def test_sim_as_output_with_devlink_without_cal_keeps_vcgt(
+        self, oprof, sim, tmp_path
+    ):
+        # The desktop workflow from issue 992, a 3D LUT built with "Apply
+        # calibration (vcgt)" off is verified with the display's VCGT active.
+        devlink = _devlink(tmp_path, _COLLINK_NO_CAL)
+        assert mr.select_calibration_profile(oprof, sim, True, devlink) is oprof
+        assert (
+            mr.report_calibration_label(oprof, sim, True, devlink)
+            == "Yes (display profile)"
+        )
+
+    def test_sim_as_output_with_devlink_with_cal_does_not_apply_it_twice(
+        self, oprof, sim, tmp_path
+    ):
+        devlink = _devlink(tmp_path, _COLLINK_CAL)
+        assert mr.select_calibration_profile(oprof, sim, True, devlink) is sim
+        assert (
+            mr.report_calibration_label(oprof, sim, True, devlink)
+            == "No (already applied by the devicelink profile)"
+        )
+
+    def test_without_sim_as_output_keeps_vcgt(self, oprof, sim):
+        assert mr.select_calibration_profile(oprof, sim, False, None) is oprof
+        assert (
+            mr.report_calibration_label(oprof, oprof, False, None)
+            == "Yes (display profile)"
+        )
+
+    def test_display_profile_without_calibration(self, sim):
+        assert mr.report_calibration_label(sim, sim, False, None) == "No (linear)"
+
+    def test_self_check_report(self, oprof, sim):
+        assert mr.report_calibration_label(oprof, sim, True, None, True) == "N/A"
+
+    def test_stage_measurement_files_uses_display_vcgt_with_devlink(
+        self, oprof, sim, ti1_path, tmp_path
+    ):
+        devlink = _devlink(tmp_path, _COLLINK_NO_CAL)
+        worker = FakeWorker(tempdir=str(tmp_path))
+        _ti1_path, cal_path = mr.stage_measurement_files(
+            worker,
+            str(tmp_path / "My Report.html"),
+            CGATS(ti1_path, True),
+            oprof,
+            sim,
+            True,
+            devlink,
+        )
+        assert cal_path == str(tmp_path / "My Report.cal")
+
+
 class TestFinalizeMeasurementReport:
     def _worker(self, monkeypatch):
         monkeypatch.setattr(
@@ -361,6 +481,7 @@ class TestFinalizeMeasurementReport:
         assert os.path.isfile(save_path)
         html = open(save_path, encoding="utf-8").read()
         assert "Test Display" in html
+        assert 'CALIBRATION = "Yes (display profile)"' in html
         assert worker.wrapup_calls == [False]
 
     def test_self_check_report_overrides_display_instrument_and_type(
@@ -413,6 +534,8 @@ class TestFinalizeMeasurementReport:
         assert captured["${CORRECTION_MATRIX}"] == "N/A"
         # The fixture profile's device-model description is empty.
         assert captured["${DISPLAY}"] == "N/A"
+        # Nothing was measured, so no calibration was active either.
+        assert captured["${CALIBRATION}"] == "N/A"
 
     def test_removed_items_resync_reference_ti3(
         self, monkeypatch, ti1_path, ti3_path, icc_path, tmp_path

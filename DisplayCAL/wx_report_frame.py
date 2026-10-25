@@ -767,6 +767,8 @@ class ReportFrame(BaseFrame):
                 value = kwargs[name]
                 setattr(ctrl, name, value)
 
+        self.devlink_profile_missing_label.Wrap(480)
+
         items = [lang.getstr(item) for item in ("Gamma 2.2", "trc.rec1886", "custom")]
         self.mr_trc_ctrl.SetItems(items)
 
@@ -1025,6 +1027,16 @@ class ReportFrame(BaseFrame):
         self.devlink_profile_cb.SetValue(enable1 and enable2 and enable4)
         self.devlink_profile_ctrl.Enable(enable1 and enable2 and enable4)
         self.devlink_profile_ctrl.Show(enable1 and enable2)
+        devlink_used = enable4 and os.path.isfile(
+            getcfg("measurement_report.devlink_profile") or ""
+        )
+        # madVR/Prisma apply the 3D LUT themselves when it is enabled
+        lut_in_renderer = config.get_display_name() in ("madVR", "Prisma") and bool(
+            getcfg("3dlut.enable")
+        )
+        show_hint = enable1 and enable2 and not devlink_used and not lut_in_renderer
+        self.devlink_profile_missing_bmp.Show(show_hint)
+        self.devlink_profile_missing_label.Show(show_hint)
         self.output_profile_label.Enable(
             (color in ("LAB", "RGB", "XYZ") or enable1)
             and (

@@ -144,6 +144,7 @@ def update(report_path: str, pack: bool = True) -> None:
             0,
         ),
         ("${DEVICELINK_PROFILE}", r'DEVICELINK_PROFILE\s*=\s*"(.+?)"[;,]', 0),
+        ("${CALIBRATION}", r'CALIBRATION\s*=\s*"(.+?)"[;,]', 0),
         ("${TESTCHART}", r'"FF_testchart"\s*value="(.+?)"\s*/?>', 0),
         ("${ADAPTION}", r'"FF_adaption"\s*value="(.+?)"\s*/?>', 0),
         ("${DATETIME}", r'"FF_datetime"\s*value="(.+?)"\s*/?>', 0),

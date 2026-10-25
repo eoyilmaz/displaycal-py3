@@ -278,3 +278,60 @@ class TestEmbeddedPanel:
             assert panel.worker is shared_worker
         finally:
             config.CFG["Default"] = saved
+
+
+class TestDevlinkProfileMissingHint:
+    """The "no 3D LUT is verified" hint (issue 992)."""
+
+    @pytest.fixture
+    def sim_window(self, window):
+        from DisplayCAL.icc_profile import ICCProfile
+
+        # Set on the panel, ReportWindow only forwards attribute reads to it
+        window.panel.simulation_profile = ICCProfile(
+            config.get_data_path("ref/Rec709.icm")
+        )
+        config.setcfg("measurement_report.chart.fields", "RGB")
+        config.setcfg("measurement_report.use_simulation_profile", 1)
+        config.setcfg("measurement_report.use_simulation_profile_as_output", 1)
+        config.setcfg("measurement_report.use_devlink_profile", 0)
+        return window
+
+    def _hint_shown(self, window):
+        window.mr_update_main_controls()
+        return window.devlink_profile_missing_row.isVisibleTo(window)
+
+    def test_shown_without_devlink(self, sim_window):
+        assert self._hint_shown(sim_window)
+
+    def test_hidden_with_devlink(self, sim_window, data_path):
+        config.setcfg("measurement_report.use_devlink_profile", 1)
+        config.setcfg(
+            "measurement_report.devlink_profile",
+            str(
+                data_path
+                / "icc"
+                / "BenQ SW271 #1 2021-11-17 14-21 2.2 F-S 1xCurve+MTX.icc"
+            ),
+        )
+        assert self._hint_shown(sim_window) is False
+
+    def test_shown_when_devlink_enabled_but_missing(self, sim_window, tmp_path):
+        config.setcfg("measurement_report.use_devlink_profile", 1)
+        config.setcfg(
+            "measurement_report.devlink_profile", str(tmp_path / "missing.icc")
+        )
+        assert self._hint_shown(sim_window)
+
+    def test_hidden_when_sim_not_used_as_display_profile(self, sim_window):
+        config.setcfg("measurement_report.use_simulation_profile_as_output", 0)
+        assert self._hint_shown(sim_window) is False
+
+    def test_hidden_when_madvr_applies_the_3dlut(self, sim_window, monkeypatch):
+        from DisplayCAL.ui import measurement_report
+
+        monkeypatch.setattr(
+            measurement_report.config, "get_display_name", lambda *a, **k: "madVR"
+        )
+        config.setcfg("3dlut.enable", 1)
+        assert self._hint_shown(sim_window) is False

@@ -311,6 +311,30 @@
             </object>
             <flag>wxEXPAND|wxALIGN_CENTRE_VERTICAL</flag>
           </object>
+          <object class="spacer">
+            <size>0,0</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxStaticBitmap" name="devlink_profile_missing_bmp">
+                  <size>16,16</size>
+                  <bitmap>../theme/icons/16x16/dialog-warning.png</bitmap>
+                  <hidden>1</hidden>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="devlink_profile_missing_label">
+                  <label>warning.devlink_profile.missing</label>
+                  <fg>#F07F00</fg>
+                  <hidden>1</hidden>
+                </object>
+                <flag>wxLEFT</flag>
+                <border>8</border>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+          </object>
           <object class="sizeritem">
             <object class="wxStaticText" name="output_profile_label">
               <label>output.profile</label>

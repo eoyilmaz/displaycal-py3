@@ -2604,6 +2604,8 @@
   The system-wide autostart directory could not be determined.
 "warning.autostart_user": |-
   The user-specific autostart directory could not be determined.
+"warning.devlink_profile.missing": |-
+  No device link profile is selected, so no 3D LUT is applied to the measured patches and the report shows the display itself against the simulation profile. To verify a 3D LUT, select the device link profile that was saved next to it.
 "warning.discard_changes": |-
   Do you really want to discard the changes to the current settings?
 "warning.gamap.out_viewcond.nondisplay": |-

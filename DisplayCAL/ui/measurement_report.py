@@ -662,6 +662,26 @@ class ReportPanel(QWidget):
         self.devlink_profile_ctrl = _FileBrowse(name_func=friendly_file_name)
         self._add_row(self.devlink_profile_cb, self.devlink_profile_ctrl)
 
+        # Hint shown when the simulation profile stands in as the display
+        # profile but no device link is used, i.e. no 3D LUT gets verified.
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.devlink_profile_missing_bmp = QLabel()
+        pixmap = get_theme_pixmap(16, "dialog-warning")
+        if not pixmap.isNull():
+            self.devlink_profile_missing_bmp.setPixmap(pixmap)
+        layout.addWidget(self.devlink_profile_missing_bmp, 0, Qt.AlignTop)
+        self.devlink_profile_missing_label = QLabel(
+            lang.getstr("warning.devlink_profile.missing")
+        )
+        self.devlink_profile_missing_label.setStyleSheet("color: #F07F00")
+        self.devlink_profile_missing_label.setWordWrap(True)
+        layout.addWidget(self.devlink_profile_missing_label, 1)
+        self.devlink_profile_missing_row = row
+        row.setVisible(False)
+        self._add_row(None, row)
+
     def _build_output_row(self) -> None:
         """Build the output-profile label + browse + current button row."""
         self.output_profile_label = QLabel(lang.getstr("output.profile"))
@@ -1617,6 +1637,16 @@ class ReportPanel(QWidget):
         self.devlink_profile_cb.setChecked(enable1 and enable2 and enable4)
         self.devlink_profile_ctrl.setEnabled(enable1 and enable2 and enable4)
         self.devlink_profile_ctrl.setVisible(enable1 and enable2)
+        devlink_used = enable4 and os.path.isfile(
+            getcfg("measurement_report.devlink_profile") or ""
+        )
+        # madVR/Prisma apply the 3D LUT themselves when it is enabled
+        lut_in_renderer = config.get_display_name() in ("madVR", "Prisma") and bool(
+            getcfg("3dlut.enable")
+        )
+        self.devlink_profile_missing_row.setVisible(
+            enable1 and enable2 and not devlink_used and not lut_in_renderer
+        )
         output_enabled = (color in ("LAB", "RGB", "XYZ") or enable1) and (
             not enable1
             or not enable2

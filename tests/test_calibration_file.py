@@ -10,9 +10,26 @@ import os
 import zipfile
 from types import SimpleNamespace
 
+import pytest
+
 from DisplayCAL import calibration_file as cf
+from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.config import getcfg, setcfg
+
+
+@pytest.fixture(autouse=True)
+def _restore_config():
+    """Undo the ``setcfg()`` calls these tests make.
+
+    Several tests point ``displays`` at madVR/Resolve/Prisma and flip
+    ``3dlut.enable`` / ``measurement_report.use_devlink_profile``. Left in
+    place, a later test on the same pytest-xdist worker sees a virtual
+    display instead of an ordinary one.
+    """
+    saved = dict(config.CFG["Default"])
+    yield
+    config.CFG["Default"] = saved
 
 
 class FakeProfile:

@@ -9,6 +9,7 @@ import logging.handlers
 import os
 import re
 import sys
+import threading
 import warnings
 from codecs import EncodedFile
 from hashlib import md5
@@ -310,6 +311,79 @@ class SafeLogger(SafePrinter):
 
 safe_log = SafeLogger(print_=False)
 safe_print = SafeLogger()
+
+
+class StdoutLogger:
+    """Pass-through ``sys.stdout`` replacement that also logs what is printed.
+
+    The codebase uses plain ``print()`` where the Python 2 version used
+    ``safe_print``, which always logged. ``print()`` only reaches
+    ``sys.stdout``, which a frozen windowed executable discards (and which may
+    be None), so none of it ended up in the log file (issue #986). Every
+    complete line is logged, and everything is still written to the wrapped
+    stream if there is one.
+
+    Truthiness and attributes other than ``write``/``flush`` are those of the
+    wrapped stream, so existing ``sys.stdout and sys.stdout.isatty()`` checks
+    behave as before.
+
+    Args:
+        stream (None | TextIO): The stream to wrap, usually ``sys.stdout``.
+    """
+
+    def __init__(self, stream: None | TextIO) -> None:
+        self.stream = stream
+        # Per-thread line buffer, so lines printed concurrently from
+        # different threads don't get mixed up
+        self._local = threading.local()
+
+    def __bool__(self) -> bool:
+        """Return the truthiness of the wrapped stream."""
+        return bool(self.stream)
+
+    def __getattr__(self, name: str):  # noqa: ANN204
+        """Delegate everything else to the wrapped stream."""
+        if name == "stream":
+            # Not yet set, e.g. during unpickling
+            raise AttributeError(name)
+        return getattr(self.stream, name)
+
+    def write(self, text: str) -> int:
+        """Log complete lines and write text to the wrapped stream.
+
+        Args:
+            text (str): The text to write.
+
+        Returns:
+            int: The number of characters written.
+        """
+        if isinstance(text, bytes):
+            text = text.decode("utf-8", "replace")
+        local = self._local
+        # Don't recurse if logging itself ends up printing something
+        if not getattr(local, "logging", False):
+            *lines, local.buffer = (getattr(local, "buffer", "") + text).split("\n")
+            if lines:
+                local.logging = True
+                try:
+                    for line in lines:
+                        LOG(line)
+                finally:
+                    local.logging = False
+        if self.stream is not None:
+            self.stream.write(text)
+        return len(text)
+
+    def flush(self) -> None:
+        """Flush the wrapped stream."""
+        if self.stream is not None and hasattr(self.stream, "flush"):
+            self.stream.flush()
+
+
+def install_stdout_logger() -> None:
+    """Replace ``sys.stdout`` with a StdoutLogger wrapping it (once)."""
+    if not isinstance(sys.stdout, StdoutLogger):
+        sys.stdout = StdoutLogger(sys.stdout)
 
 
 def get_file_logger(
@@ -655,3 +729,6 @@ def setup_logging(
             streamformatter = logging.Formatter("%(asctime)s %(message)s")
             streamhandler.setFormatter(streamformatter)
             LOGGER.addHandler(streamhandler)
+        # Make print() output end up in the log file like it used to with
+        # Python 2 era safe_print
+        install_stdout_logger()

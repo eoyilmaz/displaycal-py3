@@ -81,8 +81,8 @@ class _FinishBridge(QObject):
     :meth:`ScriptingHostMixin.finish_processing` on the GUI thread.
     """
 
-    #: Emitted with ``(data, conn, command_timestamp)``.
-    requested = Signal(object, object, str)
+    #: Emitted with ``(data, conn, command_timestamp, fmt)``.
+    requested = Signal(object, object, str, str)
 
 
 def format_ui_element(  # noqa: C901
@@ -310,13 +310,18 @@ class ScriptingHostMixin:
                 if response is not None:
                     self.send_response(response, data, conn, command_timestamp)
                     continue
-                # UI command: run on the GUI thread.
-                self._finish_bridge.requested.emit(data, conn, command_timestamp)
+                # UI command: run on the GUI thread, in the format active now
+                # so a later setresponseformat can't change it mid-reply.
+                self._finish_bridge.requested.emit(
+                    data, conn, command_timestamp, responseformats[conn]
+                )
+        # Drop the format first so pending responses see the client as gone
+        # before the socket is closed.
+        responseformats.pop(conn, None)
         with contextlib.suppress(OSError):
             conn.shutdown(socket.SHUT_RDWR)
         print(lang.getstr("app.client.disconnect", addrport))
         conn.close()
-        responseformats.pop(conn, None)
 
     # -- non-UI commands (answered off the GUI thread) ---------------------
 
@@ -538,6 +543,7 @@ class ScriptingHostMixin:
         conn: socket.socket,
         command_timestamp: str,
         win: QWidget | None = None,
+        fmt: str | None = None,
     ) -> None:
         """Serialize ``response`` in the connection's format and send it.
 
@@ -547,11 +553,14 @@ class ScriptingHostMixin:
             conn (socket.socket): The client connection.
             command_timestamp (str): When the command was received.
             win (QWidget | None): The element a UI command acted on, if any.
+            fmt (str | None): The response format to use. Defaults to the
+                connection's current format.
         """
-        fmt = responseformats.get(conn)
-        if not fmt:
+        current_fmt = responseformats.get(conn)
+        if not current_fmt:
             # Client connection has broken down in the meantime.
             return
+        fmt = fmt or current_fmt
         if response == "invalid":
             print(lang.getstr("app.incoming_message.invalid"))
         if fmt != "plain":
@@ -690,7 +699,11 @@ class ScriptingHostMixin:
     # -- UI commands (run on the GUI thread via the bridge) ----------------
 
     def finish_processing(
-        self, data: list, conn: socket.socket, command_timestamp: str
+        self,
+        data: list,
+        conn: socket.socket,
+        command_timestamp: str,
+        fmt: str | None = None,
     ) -> None:
         """Run a UI command on the GUI thread and send its response.
 
@@ -698,10 +711,13 @@ class ScriptingHostMixin:
             data (list): The split command line.
             conn (socket.socket): The client connection.
             command_timestamp (str): When the command was received.
+            fmt (str | None): The response format active when the command was
+                received. Defaults to the connection's current format.
         """
-        fmt = responseformats.get(conn)
-        if not fmt:
+        current_fmt = responseformats.get(conn)
+        if not current_fmt:
             return
+        fmt = fmt or current_fmt
         state = self.get_app_state("plain")
         force_setcfg = False
         if data[0] == "setcfg" and len(data) == 4 and data[-1] == "force":
@@ -721,12 +737,12 @@ class ScriptingHostMixin:
             and data[0] not in allowed_when_busy
             and not force_setcfg
         ):
-            self.send_response(state, data, conn, command_timestamp)
+            self.send_response(state, data, conn, command_timestamp, fmt=fmt)
             return
         win = self._dispatch_ui_command(data, fmt)
         # _dispatch_ui_command stores its response on the instance so it can
         # also hand back an optional acted-on window for the response envelope.
-        self.send_response(self._last_response, data, conn, command_timestamp, win)
+        self.send_response(self._last_response, data, conn, command_timestamp, win, fmt)
 
     def _dispatch_ui_command(  # noqa: C901
         self, data: list, fmt: str

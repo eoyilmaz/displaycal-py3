@@ -71,3 +71,35 @@ def test_finish_processing_still_answers_connected_client():
         responseformats.pop(conn, None)
 
     conn.sendall.assert_called_once_with(b"invalid\x04")
+
+
+def test_finish_processing_uses_format_active_when_command_was_received():
+    """A setresponseformat after a UI command doesn't change that command's reply."""
+    conn = mock.MagicMock()
+    # The connection switched to "json" after the command was queued as "plain"
+    responseformats[conn] = "json"
+    host = _Host(conn)
+    host.get_app_state = lambda file_format: "idle"
+    try:
+        host.finish_processing(["GET", "/", "HTTP/1.1"], conn, "now", "plain")
+    finally:
+        responseformats.pop(conn, None)
+
+    conn.sendall.assert_called_once_with(b"invalid\x04")
+
+
+def test_message_handler_forgets_format_before_closing_connection():
+    """The format is dropped before close so in-flight replies skip the socket."""
+    conn = mock.MagicMock()
+    conn.recv.return_value = b""
+    host = _Host(conn)
+    host.listening = True
+
+    def close():
+        assert conn not in responseformats
+
+    conn.close.side_effect = close
+
+    host.message_handler(conn, ("127.0.0.1", 1234))
+
+    conn.close.assert_called_once()

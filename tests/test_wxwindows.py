@@ -122,8 +122,7 @@ def test_finish_processing_ignores_client_that_disconnects_mid_command(
     scripting_conn,
 ):
     """A client disconnecting during finish_processing must not raise KeyError."""
-    frame = mock.MagicMock()
-    frame.get_top_window.return_value = None
+    frame = _scripting_frame()
     frame.process_data.side_effect = RuntimeError("boom")
 
     def disconnect(file_format):
@@ -134,4 +133,53 @@ def test_finish_processing_ignores_client_that_disconnects_mid_command(
 
     BaseFrame.finish_processing(frame, ["GET", "/", "HTTP/1.1"], scripting_conn, "now")
 
-    frame.send_response.assert_called_once()
+    scripting_conn.sendall.assert_not_called()
+
+
+def _scripting_frame():
+    """Return a mock frame that runs the real BaseFrame.send_response()."""
+    frame = mock.MagicMock()
+    frame.get_top_window.return_value = None
+    frame.get_app_state.return_value = "idle"
+    frame.process_data.return_value = "invalid"
+    frame.send_response.side_effect = lambda *args, **kwargs: BaseFrame.send_response(
+        frame, *args, **kwargs
+    )
+    return frame
+
+
+def test_finish_processing_uses_format_active_when_command_was_received(
+    scripting_conn,
+):
+    """A setresponseformat after a UI command doesn't change that command's reply."""
+    frame = _scripting_frame()
+
+    # The connection switched to "json" after the command was queued as "plain"
+    BaseFrame.finish_processing(
+        frame, ["GET", "/", "HTTP/1.1"], scripting_conn, "now", "plain"
+    )
+
+    scripting_conn.sendall.assert_called_once_with(b"invalid\x04")
+
+
+def test_finish_processing_restore_defaults_resets_every_given_prefix(
+    scripting_conn,
+):
+    """restore-defaults resets the options of every prefix, not just the first."""
+    responseformats[scripting_conn] = "plain"
+    frame = _scripting_frame()
+    defaults = {"gamap_a": 1, "measure_b": 2, "other_c": 3}
+
+    with (
+        mock.patch.object(wx_windows, "DEFAULTS", defaults),
+        mock.patch.object(wx_windows, "setcfg") as setcfg,
+    ):
+        BaseFrame.finish_processing(
+            frame, ["restore-defaults", "gamap_", "measure_"], scripting_conn, "now"
+        )
+
+    assert sorted(call.args for call in setcfg.call_args_list) == [
+        ("gamap_a", None),
+        ("measure_b", None),
+    ]
+    scripting_conn.sendall.assert_called_once_with(b"ok\x04")

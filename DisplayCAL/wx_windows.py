@@ -1359,9 +1359,18 @@ class BaseFrame(wx.Frame):
                             self.send_response(response, data, conn, command_timestamp)
                             continue
                         # UI commands
+                        # Pass the format active when the command was received,
+                        # so a later setresponseformat can't change it mid-reply
                         wx.CallAfter(
-                            self.finish_processing, data, conn, command_timestamp
+                            self.finish_processing,
+                            data,
+                            conn,
+                            command_timestamp,
+                            responseformats[conn],
                         )
+        # Drop the format first so pending responses see the client as gone
+        # before the socket is closed
+        responseformats.pop(conn, None)
         try:
             conn.shutdown(socket.SHUT_RDWR)
         except OSError as exception:
@@ -1369,7 +1378,6 @@ class BaseFrame(wx.Frame):
                 print("Warning - could not shutdown connection:", exception)
         print(lang.getstr("app.client.disconnect", addrport))
         conn.close()
-        responseformats.pop(conn)
 
     def get_app_state(self, file_format):
         """Get the current application state.
@@ -1588,7 +1596,7 @@ class BaseFrame(wx.Frame):
         """
         return "invalid"
 
-    def finish_processing(self, data, conn, command_timestamp):
+    def finish_processing(self, data, conn, command_timestamp, fmt=None):
         """Finish processing a command.
 
         Send a response back to the client connection.
@@ -1597,11 +1605,14 @@ class BaseFrame(wx.Frame):
             data (list): The command data to process.
             conn (socket.socket): The connection to send the response to.
             command_timestamp (str): The timestamp of the command.
+            fmt (str, optional): The response format active when the command
+                was received. Defaults to the connection's current format.
         """
-        fmt = responseformats.get(conn)
-        if not fmt:
+        current_fmt = responseformats.get(conn)
+        if not current_fmt:
             # Client connection has broken down in the meantime
             return
+        fmt = fmt or current_fmt
         state = self.get_app_state("plain")
         dialog = isinstance(self.get_top_window(), wx.Dialog)
         if data[0] == "setcfg" and len(data) == 4 and data[-1] == "force":
@@ -1633,7 +1644,7 @@ class BaseFrame(wx.Frame):
         ):
             if dialog:
                 state = "blocked"
-            self.send_response(state, data, conn, command_timestamp)
+            self.send_response(state, data, conn, command_timestamp, fmt=fmt)
             return
         win = None
         child = None
@@ -2113,8 +2124,8 @@ class BaseFrame(wx.Frame):
                         for name in DEFAULTS:
                             if len(data) > 1:
                                 include = False
-                                for _ in data[1:]:
-                                    if name.startswith(data[1]):
+                                for prefix in data[1:]:
+                                    if name.startswith(prefix):
                                         include = True
                                         break
                                 if not include:
@@ -2156,10 +2167,18 @@ class BaseFrame(wx.Frame):
 
             relayfunc(restore_path_dialog_classes)
         relayfunc(
-            self.send_response, response, data, conn, command_timestamp, child or win
+            self.send_response,
+            response,
+            data,
+            conn,
+            command_timestamp,
+            child or win,
+            fmt,
         )
 
-    def send_response(self, response, data, conn, command_timestamp, win=None):
+    def send_response(
+        self, response, data, conn, command_timestamp, win=None, fmt=None
+    ):
         """Send a response back to the client.
 
         Args:
@@ -2168,11 +2187,14 @@ class BaseFrame(wx.Frame):
             conn (Connection): The client connection.
             command_timestamp (str): The timestamp of the command.
             win (wx.Window, optional): The window that was interacted with.
+            fmt (str, optional): The response format to use. Defaults to the
+                connection's current format.
         """
-        fmt = responseformats.get(conn)
-        if not fmt:
+        current_fmt = responseformats.get(conn)
+        if not current_fmt:
             # Client connection has broken down in the meantime
             return
+        fmt = fmt or current_fmt
         if response == "invalid":
             print(lang.getstr("app.incoming_message.invalid"))
         if fmt != "plain":

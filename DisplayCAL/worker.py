@@ -13566,11 +13566,12 @@ BEGIN_DATA
             for tagname in tags:
                 tag = tags[tagname]
                 if tagname == "mmod":
+                    # Slice, don't index: indexing ``bytes`` gives an ``int``
                     profile.device["manufacturer"] = (
-                        b"\0\0" + tag["manufacturer"][1] + tag["manufacturer"][0]
+                        b"\0\0" + tag["manufacturer"][1:2] + tag["manufacturer"][0:1]
                     )
                     profile.device["model"] = (
-                        b"\0\0" + tag["model"][0] + tag["model"][1]
+                        b"\0\0" + tag["model"][0:1] + tag["model"][1:2]
                     )
                 profile.tags[tagname] = tag
         elif tags is True:

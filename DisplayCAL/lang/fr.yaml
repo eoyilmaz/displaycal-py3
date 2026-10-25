@@ -2268,6 +2268,11 @@
 "instrument.reposition_sensor": |-
   La mesure a échoué car le capteur de la sonde de mesure est dans la mauvaise position. Veuillez corriger la position du capteur, puis cliquer sur « Valider » pour continuer.
 
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  Le mode de mesure « %s » du Spyder 2024 ne fonctionne pas avec ArgyllCMS %s à cause d’un bogue dans son pilote Spyder 2024. Les mesures dans ce mode échouent ou donnent des résultats peu fiables.
+
+  Veuillez choisir un autre mode de mesure, par exemple « LCD White LED » ou « LCD (generic) » avec une correction de colorimètre (CCMX) pour votre écran, ou mettez à jour ArgyllCMS dès qu’une version corrigée sera disponible.
+
 "internal": |-
   Interne
 
@@ -2613,6 +2618,12 @@
 
 "no_settings": |-
   Le fichier ne contient pas de paramètre.
+
+"no_settings.load_from_profile": |-
+  Ce fichier de calibrage ne contient que des courbes de calibrage et aucun paramètre, par ex. la table gamma de la carte graphique enregistrée lors d’une session de profilage seul. Le profil portant le même nom à côté contient les paramètres de cette session :
+  %s
+
+  Charger plutôt les paramètres depuis ce profil ?
 
 "none": |-
   Aucun
@@ -3845,6 +3856,9 @@
 "warning.autostart_user": |-
   Le répertoire d’autodémarrage spécifique à l’utilisateur/trice n'a pu être déterminé.
 
+"warning.devlink_profile.missing": |-
+  Aucun profil de liaison de périphérique n’est sélectionné, aucune 3D LUT n’est donc appliquée aux mires mesurées et le rapport montre l’écran lui-même par rapport au profil de simulation. Pour vérifier une 3D LUT, sélectionnez le profil de liaison de périphérique enregistré à côté d’elle.
+
 "warning.discard_changes": |-
   Voulez-vous réellement annuler les modifications des paramètres actuels ?
 
@@ -3922,6 +3936,12 @@
 
 "whitepoint.visual_editor.display_changed.warning": |-
   Attention : la configuration de l’affichage a changé et l’éditeur visuel de point blanc peut ne plus être capable de restaurer les profils d’affichage. Veuillez vérifier soigneusement les associations du profil d’affichage après avoir fermé l’éditeur et redémarré DisplayCAL.
+
+"whitepoint.visual_editor.panel.dock": |-
+  Attacher le panneau à la fenêtre de l’éditeur
+
+"whitepoint.visual_editor.panel.float": |-
+  Détacher le panneau dans sa propre fenêtre
 
 "whitepoint.xy": |-
   coordonnées de chromaticité

@@ -1061,6 +1061,49 @@ def parse_legacy_cal(ti3_lines: list[bytes], worker: Worker) -> LegacyCalResult:
     return result
 
 
+#: Keywords :func:`parse_legacy_cal` turns into settings.
+_LEGACY_CAL_SETTING_KEYWORDS = (
+    b"NATIVE_TARGET_WHITE",
+    b"TARGET_WHITE_XYZ",
+    b"TARGET_GAMMA",
+    b"DEGREE_OF_BLACK_OUTPUT_OFFSET",
+    b"BLACK_POINT_CORRECTION",
+    b"TARGET_BLACK_BRIGHTNESS",
+    b"QUALITY",
+)
+
+
+def find_settings_profile_for_cal(path: str, ti3_lines: list[bytes]) -> str | None:
+    """Return the session profile to load settings from instead of a ``.cal``.
+
+    A profile-only session (calibration skipped) stores the video LUT that
+    was active while measuring as a plain ``dispwin -s`` ``.cal`` file, which
+    has neither an ``ARGYLL_DISPCAL_ARGS`` section nor any of the keywords
+    :func:`parse_legacy_cal` understands, so loading it can only ever report
+    "no settings". The session's settings live in the profile next to it.
+
+    Args:
+        path: Path to the ``.cal`` file.
+        ti3_lines: The file's stripped lines, as returned by
+            :func:`parse_calibration_file`.
+
+    Returns:
+        The path of a same-named ``.icc``/``.icm`` profile next to ``path``,
+        or ``None`` if the ``.cal`` file has settings of its own or there is
+        no such profile.
+    """
+    if any(
+        line.split(b" ", 1)[0] in _LEGACY_CAL_SETTING_KEYWORDS for line in ti3_lines
+    ):
+        return None
+    stem = os.path.splitext(path)[0]
+    for ext in (PROFILE_EXT, *ICCPROFILE_FILE_EXTENSIONS):
+        profile_path = stem + ext
+        if os.path.isfile(profile_path):
+            return profile_path
+    return None
+
+
 def related_files_for(cal: str, dircontents: list[str]) -> dict[str, bool]:
     """Return the calibration dir entries related to ``cal``, all pre-checked.
 

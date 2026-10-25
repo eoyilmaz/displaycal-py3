@@ -4820,6 +4820,86 @@ def test_load_calibration_file_legacy_cal_no_settings_notifies(
     assert getcfg("calibration.file") == str(cal_file)
 
 
+def _settingsless_cal_session(window, monkeypatch, tmp_path, answer):
+    """Set up a profile-only session's .cal + .icc and record what gets loaded.
+
+    A profile-only session's .cal is a dispwin -s video LUT snapshot with no
+    settings; its settings live in the profile next to it (issue 972).
+    """
+    cal_file = tmp_path / "session.cal"
+    cal_file.write_bytes(b'CAL\n\nDEVICE_CLASS "DISPLAY"\nCOLOR_REP "RGB"\n')
+    profile_file = tmp_path / "session.icc"
+    profile_file.write_bytes(b"")
+    monkeypatch.setattr(mw, "get_options_from_cal", lambda path: ([], []))
+    loaded = []
+    original = window._load_calibration_file
+
+    def fake_load(path, silent=False):
+        if path == str(profile_file):
+            loaded.append(path)
+            return None
+        return original(path, silent=silent)
+
+    monkeypatch.setattr(window, "_load_calibration_file", fake_load)
+    calls = {"question": [], "information": []}
+    monkeypatch.setattr(
+        mw.QMessageBox,
+        "question",
+        lambda *a, **k: calls["question"].append(a) or answer,
+    )
+    monkeypatch.setattr(
+        mw.QMessageBox,
+        "information",
+        lambda *a, **k: calls["information"].append(a) or None,
+    )
+    return cal_file, profile_file, loaded, calls
+
+
+def test_load_calibration_file_settingsless_cal_asks_and_loads_session_profile(
+    window, monkeypatch, tmp_path
+):
+    cal_file, profile_file, loaded, calls = _settingsless_cal_session(
+        window, monkeypatch, tmp_path, mw.QMessageBox.Yes
+    )
+
+    window._load_calibration_file(str(cal_file), silent=False)
+
+    assert len(calls["question"]) == 1
+    assert str(profile_file) in calls["question"][0][2]
+    assert loaded == [str(profile_file)]
+    assert not calls["information"]
+
+
+def test_load_calibration_file_settingsless_cal_declined_loads_cal_quietly(
+    window, monkeypatch, tmp_path
+):
+    cal_file, _profile_file, loaded, calls = _settingsless_cal_session(
+        window, monkeypatch, tmp_path, mw.QMessageBox.No
+    )
+
+    window._load_calibration_file(str(cal_file), silent=False)
+
+    assert len(calls["question"]) == 1
+    assert loaded == []
+    assert getcfg("calibration.file") == str(cal_file)
+    # The question already said the file has no settings
+    assert not calls["information"]
+
+
+def test_load_calibration_file_settingsless_cal_silent_never_switches(
+    window, monkeypatch, tmp_path
+):
+    cal_file, _profile_file, loaded, calls = _settingsless_cal_session(
+        window, monkeypatch, tmp_path, mw.QMessageBox.Yes
+    )
+
+    window._load_calibration_file(str(cal_file), silent=True)
+
+    assert not calls["question"]
+    assert loaded == []
+    assert getcfg("calibration.file") == str(cal_file)
+
+
 def test_calibration_file_ctrl_handler_loads_selected_recent(window):
     path = _srgb_preset_path(window)
     idx = window.recent_cals.index(path)

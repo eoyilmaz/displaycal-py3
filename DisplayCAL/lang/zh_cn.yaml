@@ -2289,6 +2289,11 @@
 "instrument.reposition_sensor": |-
   因校色仪传感器位置错误导致测量失败。请校正传感器位置，然后单击“确定”继续。
 
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  Spyder 2024 的“%s”测量模式无法与 ArgyllCMS %s 配合使用，因为其 Spyder 2024 驱动程序存在错误。在此模式下测量会失败或结果不可靠。
+
+  请选择其他测量模式，例如“LCD White LED”或“LCD (generic)”并配合适用于您显示器的色度计校正 (CCMX)，或在有修复版本时更新 ArgyllCMS。
+
 "internal": |-
   内置
 
@@ -2634,6 +2639,12 @@
 
 "no_settings": |-
   文件不包含设置。
+
+"no_settings.load_from_profile": |-
+  此校准文件只包含校准曲线，不包含设置，例如仅创建特性文件的会话期间保存的显卡伽马表。旁边同名的特性文件保存了该会话的设置：
+  %s
+
+  改为从此特性文件加载设置吗？
 
 "none": |-
   无
@@ -3866,6 +3877,9 @@
 "warning.autostart_user": |-
   特定用户自启动目录不能确定。
 
+"warning.devlink_profile.missing": |-
+  未选择设备链接特性文件，因此测量的色块未应用 3D LUT，报告显示的是显示器本身与模拟特性文件的对比。要验证 3D LUT，请选择与其一起保存的设备链接特性文件。
+
 "warning.discard_changes": |-
   真要放弃对当前设置的更改吗？
 
@@ -3944,6 +3958,12 @@
 
 "whitepoint.visual_editor.display_changed.warning": |-
   敬告: 显示器配置已更改并且可视白点编辑器或许不再能正确恢复显示配置文件。请关闭编辑器并重启 DisplayCAL 后仔细检查显示配置文件关联。
+
+"whitepoint.visual_editor.panel.dock": |-
+  将面板附加到编辑器窗口
+
+"whitepoint.visual_editor.panel.float": |-
+  将面板分离为独立窗口
 
 "whitepoint.xy": |-
   色度坐标

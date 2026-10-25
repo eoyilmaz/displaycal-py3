@@ -57,6 +57,7 @@ from wx.lib.scrolledpanel import ScrolledPanel
 # Local Imports
 from DisplayCAL import (
     audio,
+    calibration_file,
     colord,
     colorimeter_correction,
     colormath,
@@ -19176,6 +19177,27 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     bitmap=get_icon(32, "dialog-error"),
                 )
                 return
+            if not options_dispcal and not options_colprof:
+                profile_path = calibration_file.find_settings_profile_for_cal(
+                    path, ti3_lines
+                )
+                if profile_path and not silent:
+                    dlg = ConfirmDialog(
+                        self,
+                        msg=lang.getstr("no_settings.load_from_profile", profile_path),
+                        ok=lang.getstr("ok"),
+                        cancel=lang.getstr("cancel"),
+                        bitmap=get_icon(32, "dialog-question"),
+                    )
+                    result = dlg.ShowModal()
+                    dlg.Destroy()
+                    if result == wx.ID_OK:
+                        self.load_cal_handler(
+                            event, profile_path, update_profile_name, load_vcgt=load_vcgt
+                        )
+                        return
+                    # The question already said there are no settings
+                    silent = True
         black_point_correction = False
         if options_dispcal or options_colprof:
             debug_print("[D] options_dispcal:", options_dispcal)

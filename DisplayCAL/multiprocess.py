@@ -24,6 +24,21 @@ if TYPE_CHECKING:
 # BUG #715 : Limiting the total workers/CPUs to 32
 MAX_CPUS = 32
 
+# BUG #979 : Always spawn worker processes instead of forking them. Forking the
+# multithreaded GUI process (wx/Qt, ctypes callbacks, worker threads) on Linux
+# can leave the children in an inconsistent state, e.g. garbage collecting an
+# inherited ctypes callback aborts in libffi's ffi_closure_free(). Windows and
+# macOS already use "spawn" by default.
+MP_CONTEXT = mp.get_context("spawn")
+
+# How often (in seconds) to check for crashed worker processes while waiting
+# for results.
+WORKER_POLL_INTERVAL = 0.5
+
+
+class WorkerProcessError(RuntimeError):
+    """Raised when a worker process died before returning its result."""
+
 
 def cpu_count(limit_by_total_vmem: bool = True) -> int:
     """Return the number of CPUs in the system.
@@ -223,7 +238,7 @@ def initialize_pool_manager(
     queue_class = FakeQueue
     if num_workers > 1:
         pool_class = NonDaemonicPool
-        manager = mp.Manager()
+        manager = MP_CONTEXT.Manager()
         if thread_abort is not None and not isinstance(
             thread_abort.event, mp.managers.EventProxy
         ):
@@ -380,29 +395,108 @@ def get_results(
     # Get results
     exception = None
     data_out = []
-    for result in results:
-        result = result.get()
-        if isinstance(result, Exception):
-            exception = result
-            continue
-        data_out.append(result)
+    try:
+        for result in results:
+            result = wait_for_result(result, pool)
+            if isinstance(result, Exception):
+                exception = result
+                continue
+            data_out.append(result)
+    except WorkerProcessError:
+        pool.terminate()
+        pool.join()
+        shutdown_manager(manager, event, thread_abort)
+        raise
 
     pool.close()
     pool.join()
-
-    if manager:
-        # Need to shutdown manager so it doesn't hold files in use
-        if event:
-            # Restore original event
-            if thread_abort.event.is_set():
-                event.set()
-            thread_abort.event = event
-        manager.shutdown()
+    shutdown_manager(manager, event, thread_abort)
 
     if exception:
         raise exception
 
     return data_out
+
+
+def wait_for_result(
+    result: mp.pool.AsyncResult | Result,
+    pool: NonDaemonicPool | FakePool,
+) -> Any:  # noqa: ANN401
+    """Wait for a worker result while watching for crashed worker processes.
+
+    ``multiprocessing.pool.Pool`` silently replaces a worker process that died
+    (e.g. killed by a signal) and the task it was processing is lost, so a
+    plain ``result.get()`` would block forever.
+
+    Args:
+        result (mp.pool.AsyncResult | Result): The result to wait for.
+        pool (NonDaemonicPool | FakePool): The pool that computes the result.
+
+    Raises:
+        WorkerProcessError: If a worker process of the pool died.
+
+    Returns:
+        Any: The result of the worker function.
+    """
+    while not result.ready():
+        result.wait(WORKER_POLL_INTERVAL)
+        if result.ready():
+            break
+        crashed = pool.crashed_workers()
+        if crashed:
+            raise WorkerProcessError(
+                "Worker process(es) died unexpectedly: "
+                + ", ".join(
+                    f"{proc.name} ({describe_exitcode(proc.exitcode)})"
+                    for proc in crashed
+                )
+            )
+    return result.get()
+
+
+def describe_exitcode(exitcode: int) -> str:
+    """Return a human readable description of a process exit code.
+
+    Args:
+        exitcode (int): The exit code of the process. Negative values are the
+            number of the signal that terminated the process.
+
+    Returns:
+        str: The description of the exit code.
+    """
+    if exitcode < 0:
+        import signal
+
+        try:
+            return f"killed by {signal.Signals(-exitcode).name}"
+        except ValueError:
+            return f"killed by signal {-exitcode}"
+    return f"exit code {exitcode}"
+
+
+def shutdown_manager(
+    manager: None | multiprocessing.Manager,
+    event: None | threading.Event,
+    thread_abort: None | threading.Thread,
+) -> None:
+    """Shutdown the manager and restore the original abort event.
+
+    Args:
+        manager (None | multiprocessing.Manager): The manager used for
+            inter-process communication.
+        event (None | threading.Event): The original event from thread_abort.
+        thread_abort (None | threading.Thread): The thread with the event
+            attribute.
+    """
+    if not manager:
+        return
+    # Need to shutdown manager so it doesn't hold files in use
+    if event:
+        # Restore original event
+        if thread_abort.event.is_set():
+            event.set()
+        thread_abort.event = event
+    manager.shutdown()
 
 
 class WorkerFunc:
@@ -512,7 +606,7 @@ class Mapper:
         return self.func(iterable, *self.args, **self.kwds)
 
 
-class NonDaemonicProcess(mp.Process):
+class NonDaemonicProcess(MP_CONTEXT.Process):
     """Process that is not daemonic.
 
     This is needed for Windows, as daemonic processes cannot have
@@ -542,7 +636,26 @@ class NonDaemonicProcess(mp.Process):
 
 
 class NonDaemonicPool(mp.pool.Pool):
-    """Pool that has non-daemonic workers."""
+    """Pool that has non-daemonic workers, always using the "spawn" context."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Every worker process ever started by this pool. The pool itself
+        # forgets about worker processes that exited.
+        self._all_workers = []
+        kwargs.setdefault("context", MP_CONTEXT)
+        super().__init__(*args, **kwargs)
+
+    def crashed_workers(self) -> list[NonDaemonicProcess]:
+        """Return the worker processes that exited while the pool was running.
+
+        Workers only exit when the pool is closed or terminated (there is no
+        ``maxtasksperchild`` limit), so any worker with a non-zero exit code
+        died unexpectedly.
+
+        Returns:
+            list[NonDaemonicProcess]: The crashed worker processes.
+        """
+        return [proc for proc in self._all_workers if proc.exitcode not in (None, 0)]
 
     def Process(self, *args, **kwargs) -> NonDaemonicProcess:  # noqa: N802
         """Return a non-daemonic process.
@@ -560,6 +673,7 @@ class NonDaemonicPool(mp.pool.Pool):
         proc = super().Process(*args, **kwargs)
         proc.__class__ = NonDaemonicProcess  # TODO: This is not cool, find a better way
         #                                            of doing it.
+        self._all_workers.append(proc)
         return proc
 
 
@@ -664,6 +778,14 @@ class FakePool:
     def terminate(self) -> None:
         """Terminate the pool."""
 
+    def crashed_workers(self) -> list:
+        """Return the crashed worker processes.
+
+        Returns:
+            list: Always empty, there are no worker processes.
+        """
+        return []
+
 
 class FakeQueue:
     """Fake queue."""
@@ -722,3 +844,18 @@ class Result:
             WorkerFunc: WorkerFunc instance as the result.
         """
         return self.result
+
+    def ready(self) -> bool:
+        """Return whether the result is available.
+
+        Returns:
+            bool: Always True, the result is computed synchronously.
+        """
+        return True
+
+    def wait(self, timeout: None | float = None) -> None:
+        """Wait for the result, which is always available already.
+
+        Args:
+            timeout (None | float): Not used.
+        """

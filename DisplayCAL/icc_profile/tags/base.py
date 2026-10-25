@@ -24,14 +24,9 @@ from DisplayCAL.icc_profile.constants import FS_ENC
 from DisplayCAL.icc_profile.structures import AODict
 
 if TYPE_CHECKING:
-    import sys
+    from typing import Self
 
     from DisplayCAL.icc_profile import ICCProfile
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
 
 
 class ICCProfileTag:

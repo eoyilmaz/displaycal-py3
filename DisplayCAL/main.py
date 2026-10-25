@@ -67,10 +67,7 @@ elif sys.platform == "darwin":
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from types import TracebackType
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+    from typing import Self
 
 
 def _excepthook(

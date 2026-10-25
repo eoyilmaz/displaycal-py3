@@ -48,7 +48,7 @@ Install through PyPI or Build From Source
 -----------------------------------------
 
 In macOS, you can install DisplayCAL into a virtual environment through PyPI or build
-it from source. Currently we support Python 3.9 to Python 3.14.
+it from source. Currently we support Python 3.11 to Python 3.14.
 
 Prerequisites
 -------------

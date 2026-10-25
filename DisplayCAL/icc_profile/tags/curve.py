@@ -18,15 +18,10 @@ from DisplayCAL.icc_profile.codecs import (
 from DisplayCAL.icc_profile.tags.base import ICCProfileTag, XYZType
 
 if TYPE_CHECKING:
-    import sys
     from collections.abc import Iterable
+    from typing import Self
 
     from DisplayCAL.icc_profile import ICCProfile
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
 
 
 class CurveType(ICCProfileTag, list):

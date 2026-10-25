@@ -78,16 +78,9 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["./"]
-exclude = [
-    "_native_build",
-    "_native_build.*",
-    "misc",
-    "misc.*",
-    "tests",
-    "tests.*",
-    "util",
-    "util.*",
-]
+# Whitelist instead of blacklisting, namespace discovery otherwise picks up
+# every top-level directory, e.g. Debian's `debian/` build tree (#993).
+include = ["DisplayCAL", "DisplayCAL.*"]
 
 [tool.setuptools.package-data]
 DisplayCAL = [

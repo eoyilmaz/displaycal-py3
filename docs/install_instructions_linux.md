@@ -38,12 +38,17 @@ code). Pick whichever matches your distro/preference:
   sudo apt install ./DisplayCAL-<version>-Linux-amd64.deb
   ```
 
-* `DisplayCAL-<version>-Linux-x86_64.rpm`, for Fedora/openSUSE and other RPM-based
-  distros:
+* `DisplayCAL-<version>-Linux-x86_64.rpm`, for Fedora and other RPM-based distros
+  using Fedora's package names:
 
   ```shell
   sudo dnf install ./DisplayCAL-<version>-Linux-x86_64.rpm
   ```
+
+  Both the DEB and the RPM need Python 3.11 to 3.14 and glibc 2.34 or newer (Debian
+  12, Ubuntu 24.04, Fedora or later). wxPython and dbus-python are installed from your
+  distro's own repositories, every other Python dependency is bundled in the package
+  itself, so installing it doesn't download anything from PyPI or compile anything.
 
 * `DisplayCAL-<version>-Linux-x86_64.flatpak`, distro-independent:
 

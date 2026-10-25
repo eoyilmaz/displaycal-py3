@@ -384,6 +384,10 @@ jobs:
           mkdir -p "${STAGING}/opt/displaycal"
           cp dist/displaycal-${VERSION}-*.whl "${STAGING}/opt/displaycal/"
 
+          # Every runtime dependency as a prebuilt wheel, so the post-install
+          # script sets up the venv offline, without reaching PyPI (#983)
+          util/linux_package/vendor_wheels.sh "${STAGING}/opt/displaycal/wheels"
+
           # Wrapper scripts that delegate to the venv binaries
           mkdir -p "${STAGING}/usr/bin"
           for cmd in displaycal displaycal-3dlut-maker displaycal-curve-viewer \
@@ -420,71 +424,6 @@ jobs:
           mkdir -p "${STAGING}/usr/share/metainfo"
           cp misc/net.displaycal.DisplayCAL.appdata.xml "${STAGING}/usr/share/metainfo/"
 
-      - name: Write post-install script
-        run: |
-          cat > /tmp/postinstall.sh << 'EOF'
-          #!/bin/sh
-          set -e
-          INSTALL_DIR=/opt/displaycal
-          echo "DisplayCAL: setting up virtual environment in ${INSTALL_DIR}/venv ..."
-          python3 -m venv "${INSTALL_DIR}/venv"
-          PIP="${INSTALL_DIR}/venv/bin/pip"
-
-          # Prefer a prebuilt wxPython wheel from the wxPython extras index for
-          # the running distro, so pip doesn't have to build wxWidgets/wxPython
-          # from source. The extras index only covers a fixed set of distro
-          # releases, so pick the newest one that is <= the running release
-          # (a wheel built against an older glibc/libstdc++ still runs fine on
-          # a newer system). Falls back to a source build via PyPI if nothing
-          # applies.
-          WX_FIND_LINKS=""
-          if [ -r /etc/os-release ]; then
-            . /etc/os-release
-            case "${ID}" in
-              ubuntu) WX_KNOWN="14.04 16.04 18.04 20.04 22.04 24.04" ;;
-              debian) WX_KNOWN="8 9 10 11" ;;
-              fedora) WX_KNOWN="23 24 26 27 28 29 30 31 35 36 37 38" ;;
-              centos) WX_KNOWN="7 8" ;;
-              rocky) WX_KNOWN="8 9" ;;
-              *) WX_KNOWN="" ;;
-            esac
-
-            WX_VERSION=""
-            for known in ${WX_KNOWN}; do
-              if [ "$(printf '%s\n%s\n' "${known}" "${VERSION_ID}" | sort -V | head -n1)" = "${known}" ]; then
-                WX_VERSION="${known}"
-              fi
-            done
-
-            if [ -n "${WX_VERSION}" ]; then
-              WX_FIND_LINKS="-f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/${ID}-${WX_VERSION}/"
-            fi
-          fi
-
-          if [ -n "${WX_FIND_LINKS}" ]; then
-            echo "DisplayCAL: installing DisplayCAL and its dependencies (using a prebuilt wxPython wheel) ..."
-          else
-            echo "DisplayCAL: installing DisplayCAL and its dependencies (no prebuilt wxPython wheel found for this distro, so it will be built from source, this can take a long time) ..."
-          fi
-          "${PIP}" install --progress-bar=on ${WX_FIND_LINKS} "${INSTALL_DIR}"/displaycal-*.whl
-          echo "DisplayCAL: install complete."
-          if [ -d /etc/udev/rules.d ]; then
-            udevadm control --reload-rules 2>/dev/null || true
-          fi
-          EOF
-          chmod +x /tmp/postinstall.sh
-
-      - name: Write pre-remove script
-        run: |
-          cat > /tmp/preremove.sh << 'EOF'
-          #!/bin/sh
-          rm -rf /opt/displaycal/venv
-          if [ -d /etc/udev/rules.d ]; then
-            udevadm control --reload-rules 2>/dev/null || true
-          fi
-          EOF
-          chmod +x /tmp/preremove.sh
-
       - name: Build DEB package
         run: |
           VERSION=${{ env.VERSION }}
@@ -499,13 +438,23 @@ jobs:
             --maintainer "Erkan Ozgur Yilmaz <eoyilmaz@gmail.com>" \
             --category graphics \
             --depends "python3 (>= 3.11)" \
-            --depends "python3-pip" \
             --depends "python3-venv" \
-            --depends "pkg-config" \
-            --depends "libdbus-1-dev" \
-            --depends "libdbus-glib-1-dev" \
-            --after-install /tmp/postinstall.sh \
-            --before-remove /tmp/preremove.sh \
+            --depends "python3-wxgtk4.0" \
+            --depends "python3-dbus" \
+            --depends "libegl1" \
+            --depends "libgl1" \
+            --depends "libfontconfig1" \
+            --depends "libxkbcommon0" \
+            --depends "libxkbcommon-x11-0" \
+            --depends "libxcb-cursor0" \
+            --depends "libxcb-icccm4" \
+            --depends "libxcb-image0" \
+            --depends "libxcb-keysyms1" \
+            --depends "libxcb-render-util0" \
+            --depends "libxcb-shape0" \
+            --depends "libxcb-xinerama0" \
+            --after-install util/linux_package/postinstall.sh \
+            --before-remove util/linux_package/preremove.sh \
             -C /tmp/displaycal-staging \
             --package dist/ \
             .
@@ -529,16 +478,31 @@ jobs:
             --rpm-summary "Display calibration and profiling" \
             --category "Applications/Multimedia" \
             --depends "python3 >= 3.11" \
-            --depends "python3-pip" \
-            --depends "pkgconfig" \
-            --depends "dbus-devel" \
-            --depends "dbus-glib-devel" \
-            --after-install /tmp/postinstall.sh \
-            --before-remove /tmp/preremove.sh \
+            --depends "python3-wxpython4" \
+            --depends "python3-dbus" \
+            --depends "mesa-libEGL" \
+            --depends "mesa-libGL" \
+            --depends "fontconfig" \
+            --depends "libxkbcommon" \
+            --depends "libxkbcommon-x11" \
+            --depends "xcb-util-cursor" \
+            --depends "xcb-util-wm" \
+            --depends "xcb-util-image" \
+            --depends "xcb-util-keysyms" \
+            --depends "xcb-util-renderutil" \
+            --after-install util/linux_package/postinstall.sh \
+            --before-remove util/linux_package/preremove.sh \
             -C /tmp/displaycal-staging \
             --package dist/ \
             .
           echo "RPM_FILE=$(ls dist/*.rpm)" >> $GITHUB_ENV
+
+      - name: Test package installs without network access
+        run: |
+          for image in debian:bookworm ubuntu:24.04 debian:trixie; do
+            util/linux_package/test_install.sh "${image}" dist/*.deb
+          done
+          util/linux_package/test_install.sh fedora:43 dist/*.rpm
 
       - name: Delete old nightly Linux assets
         env:

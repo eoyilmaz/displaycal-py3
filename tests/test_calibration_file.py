@@ -106,7 +106,23 @@ class TestMatchDisplayAndInstrument:
         setcfg("display.number", 1)
         profile = FakeProfile(meta={"EDID_md5": {"value": "abc123"}})
         worker = FakeWorker(
-            display_edid=[{}, {b"hash": "abc123"}],
+            display_edid=[{}, {"hash": "abc123"}],
+            display_names=["Display 1", "Display 2"],
+            instruments=[],
+        )
+
+        match = cf.match_display_and_instrument(profile, worker)
+
+        assert match.display_index == 1
+
+    def test_edid_monitor_name_match(self):
+        setcfg(
+            "displays", ["Display 1 @ 0, 0, 1920x1080", "Display 2 @ 0, 0, 1024x768"]
+        )
+        setcfg("display.number", 1)
+        profile = FakeProfile(model_description="DELL U2410")
+        worker = FakeWorker(
+            display_edid=[{}, {"monitor_name": "DELL U2410"}],
             display_names=["Display 1", "Display 2"],
             instruments=[],
         )

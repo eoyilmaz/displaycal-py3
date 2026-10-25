@@ -6097,13 +6097,20 @@ def test_create_profile_from_edid_finish_gamut_result_sets_metadata_and_id(
     fake_profile = _FakeEdidProfile()
     fake_profile.filename = "/tmp/edid.icc"
     fake_profile.tags.meta["prefix"] = b"DATA_"
-    monkeypatch.setattr(window.worker, "get_device_id", lambda quirk=True: "DEV123")
+    device_id_calls = []
+
+    def fake_get_device_id(**kwargs):
+        device_id_calls.append(kwargs)
+        return "DEV123"
+
+    monkeypatch.setattr(window.worker, "get_device_id", fake_get_device_id)
     build_calls = []
     monkeypatch.setattr(
         window, "_on_profile_build_finished", lambda path: build_calls.append(path)
     )
     window._create_profile_from_edid_finish((0.95, {"sRGB": 0.9}), fake_profile)
     assert fake_profile.gamut_metadata_calls == [(0.95, {"sRGB": 0.9})]
+    assert device_id_calls == [{"quirk": False, "query": True}]
     assert fake_profile.tags.meta["MAPPING_device_id"] == "DEV123"
     assert fake_profile.tags.meta["prefix"] == "DATA_,MAPPING_"
     assert fake_profile.calculate_id_called is True

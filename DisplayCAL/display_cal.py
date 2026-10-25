@@ -17543,7 +17543,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 # Set license
                 profile.tags.meta["License"] = getcfg("profile.license")
                 # Set device ID
-                device_id = self.worker.get_device_id(quirk=False)
+                device_id = self.worker.get_device_id(quirk=False, query=True)
                 if device_id:
                     profile.tags.meta["MAPPING_device_id"] = device_id
                     prefixes.append("MAPPING_")
@@ -19111,11 +19111,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 edid_md5_indexes = []
                 for i, edid in enumerate(self.worker.display_edid):
                     if display_name in (
-                        edid.get(b"monitor_name", False),
+                        edid.get("monitor_name", False),
                         self.worker.display_names[i],
                     ):
                         display_name_indexes.append(i)
-                    if edid_md5 == edid.get(b"hash", False):
+                    if edid_md5 == edid.get("hash", False):
                         edid_md5_indexes.append(i)
 
                 if len(display_name_indexes) == 1:

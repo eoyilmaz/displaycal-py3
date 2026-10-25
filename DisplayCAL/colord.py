@@ -447,7 +447,10 @@ def get_profile_install_parameters(
             logfn("About to overwrite existing", profile_install_name)
         profile.filename = None
 
-    if profile.ID == "\0" * 16:
+    # colord uses the profile ID from the header as its own ID suffix, and only
+    # falls back to the MD5 of the file contents if the header ID is not set.
+    # Make sure it is set so the ID we query for matches the one colord uses.
+    if profile.ID == b"\0" * 16:
         profile.calculate_id()
         profile.filename = None
     profile_id = "icc-" + hexlify(profile.ID).decode()
@@ -508,7 +511,9 @@ def install_profile_with_colord(
     write_profile_to_destination(profile, profile_install_name, profile_exists, logfn)
 
     client = client_connect()
-    cdprofile = query_colord_for_newly_added_profile(profile_id, timeout=timeout)
+    cdprofile = query_colord_gi_for_newly_added_profile(
+        client, profile_id, filename=profile_install_name, timeout=timeout
+    )
 
     # Connect to profile
     if not cdprofile.connect_sync(cancellable):
@@ -642,16 +647,25 @@ def import_profile(
             f"Trying to import profile '{profile.filename}' failed after {n} tries."
         )
 
-    return query_colord_for_newly_added_profile(profile_id, timeout=timeout)
+    return query_colord_for_newly_added_profile(
+        profile_id, filename=profile_install_name, timeout=timeout
+    )
 
 
 def query_colord_for_newly_added_profile(
-    profile_id: str, timeout: float = CD_CLIENT_IMPORT_DAEMON_TIMEOUT / 1000.0
+    profile_id: str,
+    filename: None | str = None,
+    timeout: float = CD_CLIENT_IMPORT_DAEMON_TIMEOUT / 1000.0,
 ) -> str:
     """Query colord for newly added profile.
 
+    The profile is looked up by its ID first, and by its filename second, in
+    case colord registered it under a different ID.
+
     Args:
         profile_id (str): ID of the profile to query for.
+        filename (None | str): Filename of the profile to query for if it can't
+            be found by its ID.
         timeout (float): Time to allow for colord to pick up new profiles
             (recommended not below 2 secs).
 
@@ -661,22 +675,100 @@ def query_colord_for_newly_added_profile(
     Returns:
         str: Object path of the queried profile.
     """
-    cdprofile = None
+    searches = [("profile-by-id", profile_id)]
+    if filename:
+        searches.append(("profile-by-filename", filename))
+    last_error = None
     for _ in range(int(timeout / 1.0)):
-        # Profile might not be found so suppress the error
-        with contextlib.suppress(CDObjectQueryError):
-            cdprofile = get_object_path(profile_id, "profile")
-        if cdprofile:
-            break
+        for what, search in searches:
+            try:
+                cdprofile = find(what, search)
+            except CDObjectNotFoundError:
+                continue
+            except CDObjectQueryError as exception:
+                last_error = exception
+                continue
+            if cdprofile:
+                return cdprofile
         # Give colord time to pick up the profile
         sleep(1)
 
-    if not cdprofile:
-        raise CDTimeoutError(
-            f"Querying for profile {profile_id!r} returned no result for {timeout} secs"
-        )
+    raise CDTimeoutError(
+        _query_timeout_message(profile_id, filename, timeout, last_error)
+    )
 
-    return cdprofile
+
+def query_colord_gi_for_newly_added_profile(
+    client: Colord.Client,
+    profile_id: str,
+    filename: None | str = None,
+    timeout: float = CD_CLIENT_IMPORT_DAEMON_TIMEOUT / 1000.0,
+) -> Colord.Profile:
+    """Query colord for newly added profile using the Colord GI client.
+
+    The profile is looked up by its ID first, and by its filename second, in
+    case colord registered it under a different ID.
+
+    Args:
+        client (Colord.Client): Connected colord client instance.
+        profile_id (str): ID of the profile to query for.
+        filename (None | str): Filename of the profile to query for if it can't
+            be found by its ID.
+        timeout (float): Time to allow for colord to pick up new profiles
+            (recommended not below 2 secs).
+
+    Raises:
+        CDTimeoutError: If querying for the profile takes too long.
+
+    Returns:
+        Colord.Profile: The queried profile.
+    """
+    searches = [(client.find_profile_sync, profile_id)]
+    if filename:
+        searches.append((client.find_profile_by_filename_sync, filename))
+    last_error = None
+    for _ in range(int(timeout / 1.0)):
+        for find_profile_sync, search in searches:
+            try:
+                cdprofile = find_profile_sync(search, cancellable)
+            except Exception as exception:  # noqa: BLE001
+                # Not found yet, or a query error
+                last_error = exception
+                continue
+            if cdprofile:
+                return cdprofile
+        # Give colord time to pick up the profile
+        sleep(1)
+
+    raise CDTimeoutError(
+        _query_timeout_message(profile_id, filename, timeout, last_error)
+    )
+
+
+def _query_timeout_message(
+    profile_id: str,
+    filename: None | str,
+    timeout: float,
+    last_error: None | Exception,
+) -> str:
+    """Return the error message for a timed out profile query.
+
+    Args:
+        profile_id (str): ID of the queried profile.
+        filename (None | str): Filename of the queried profile, if any.
+        timeout (float): The query timeout in seconds.
+        last_error (None | Exception): The last query error, if any.
+
+    Returns:
+        str: The error message.
+    """
+    message = f"Querying for profile {profile_id!r}"
+    if filename:
+        message += f" (or by filename {filename!r})"
+    message += f" returned no result for {timeout} secs"
+    if last_error:
+        message += f": {safe_str(last_error)}"
+    return message
 
 
 def add_profile_to_device(

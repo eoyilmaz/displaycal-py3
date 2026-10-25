@@ -1538,6 +1538,10 @@
   (%i) Please place your %s on the test area
 "instrument.reposition_sensor": |-
   The measurement failed because the instrument sensor is in the wrong position. Please correct the sensor position, then click OK to continue.
+"instrument.spyder2024.measurement_mode.unsupported": |-
+  The "%s" measurement mode of the Spyder 2024 doesn't work with ArgyllCMS %s because of a bug in its Spyder 2024 driver. Measurements in this mode fail or give unreliable results.
+
+  Please select a different measurement mode, for example "LCD White LED" or "LCD (generic)" together with a colorimeter correction (CCMX) for your display, or update ArgyllCMS once a version with a fix is available.
 "internal": |-
   Internal
 "interval": |-

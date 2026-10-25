@@ -80,10 +80,17 @@ LIBPYTHON="$(ldd "$(command -v "python${PYVER}")" | awk '/libpython/{print $3}')
 # finds anywhere under the AppDir (not just ones reachable from
 # --executable), so it aborts on incomplete/broken dependency chains inside
 # those unused subsystems, e.g. a QtQuick VirtualKeyboard QML plugin needing
-# libQt6QuickShapesDesignHelpers.so.6, which the wheel doesn't even ship.
+# libQt6QuickShapesDesignHelpers.so.6, which older wheels didn't even ship.
 # This is a denylist, not an allowlist: anything not named below (including
 # Linux-specific internals like libQt6XcbQpa.so, invisible when checking
-# against a macOS/Windows PySide6 install) is left alone.
+# against a macOS/Windows PySide6 install) is left alone. The flip side is
+# that a PySide6 release adding a new Qt library can break the build again,
+# e.g. 6.11.2 started shipping libQt6QuickShapesDesignHelpers.so.6 in
+# Qt/lib, which still depends on the pruned QuickShapes/Quick/Qml modules:
+#   Could not find dependency: libQt6QuickShapes.so.6
+# When that happens, scan every ELF file left after pruning for
+# libQt6*.so.6 DT_NEEDED entries that no longer exist, and add all of them
+# to the denylist in one go rather than one reported error at a time.
 QT_DIR="$APPDIR/usr/lib/python${PYVER}/site-packages/PySide6/Qt"
 PYSIDE_DIR="$(dirname "$QT_DIR")"
 if [ -d "$QT_DIR" ]; then
@@ -137,7 +144,7 @@ if [ -d "$QT_DIR" ]; then
     QuickControls2MaterialStyleImpl QuickControls2Universal \
     QuickControls2UniversalStyleImpl QuickDialogs2 QuickDialogs2QuickImpl \
     QuickDialogs2Utils QuickEffects QuickLayouts QuickParticles \
-    QuickShapes QuickTemplates2 QuickTest QuickTimeline \
+    QuickShapes QuickShapesDesignHelpers QuickTemplates2 QuickTest QuickTimeline \
     QuickTimelineBlendTrees QuickVectorImage QuickVectorImageGenerator \
     QuickVectorImageHelpers QuickWidgets RemoteObjects RemoteObjectsQml \
     Scxml ScxmlQml Sensors SensorsQuick SerialBus SerialPort ShaderTools \

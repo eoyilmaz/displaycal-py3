@@ -1894,7 +1894,7 @@ class MainWindow(BaseWindow):
                 prefix = prefix.decode("utf-8")
             prefixes = prefix.split(",")
             profile.tags.meta["License"] = getcfg("profile.license")
-            device_id = self.worker.get_device_id(quirk=False)
+            device_id = self.worker.get_device_id(quirk=False, query=True)
             if device_id:
                 profile.tags.meta["MAPPING_device_id"] = device_id
                 prefixes.append("MAPPING_")

@@ -8811,7 +8811,7 @@ def test_language_menu_positioned_between_tools_and_help(window):
 
 
 def test_set_language_action_handler_persists_and_offers_restart_when_confirmed(
-    window, monkeypatch
+    window, monkeypatch, _no_writecfg
 ):
     original = getcfg("lang")
     monkeypatch.setattr(mw.QMessageBox, "question", lambda *a, **k: mw.QMessageBox.Yes)
@@ -8825,7 +8825,9 @@ def test_set_language_action_handler_persists_and_offers_restart_when_confirmed(
         setcfg("lang", original)
 
 
-def test_set_language_action_handler_skips_restart_when_declined(window, monkeypatch):
+def test_set_language_action_handler_skips_restart_when_declined(
+    window, monkeypatch, _no_writecfg
+):
     original = getcfg("lang")
     monkeypatch.setattr(mw.QMessageBox, "question", lambda *a, **k: mw.QMessageBox.No)
     restarted = []

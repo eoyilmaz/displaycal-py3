@@ -143,6 +143,10 @@ def test_worker_madtpg_measurement_setup(
     config.setcfg("patterngenerator.use_pattern_window", 0)
     config.setcfg("patterngenerator.ffp_insertion", 0)
     monkeypatch.setattr(config, "get_display_name", lambda *args: "madVR")
+    # Resolve Argyll utility names without an installed Argyll on PATH.
+    monkeypatch.setattr(
+        worker_module, "get_argyll_utilname", lambda name, paths=None: name
+    )
     monkeypatch.setattr(worker_module.wx, "CallAfter", lambda *args: None)
     peer = MagicMock()
     peer.__class__ = madvr.MadTPGNet if network else madvr.MadTPG

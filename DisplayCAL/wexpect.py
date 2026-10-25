@@ -2310,9 +2310,8 @@ class Wtty:
         """Release from the current console and attatches to the childs.
 
         On recent Windows 11 builds AttachConsole intermittently fails with
-        ERROR_INVALID_FUNCTION (1), see issue #990. The failure is transient,
-        so retry for up to ``retry_timeout`` seconds (None = for as long as
-        the console reader process is alive) before re-raising.
+        ERROR_INVALID_FUNCTION (1), see issue #990, so the attach is retried for
+        up to ``retry_timeout`` seconds (see ``_attach_console()``).
         """
         if not self.__switch or not self.__oproc_isalive():
             return
@@ -2321,17 +2320,28 @@ class Wtty:
             with contextlib.suppress(pywintypes.error):
                 FreeConsole()
 
+        self._attach_console(self.conpid, retry_timeout)
+        self.__consin = GetStdHandle(STD_INPUT_HANDLE)
+        self.__consout = self.getConsoleOut()
+
+    def _attach_console(self, pid: int, retry_timeout: float | None) -> None:
+        """Attach to the console of ``pid``, retrying transient failures.
+
+        Retries for up to ``retry_timeout`` seconds (None = for as long as the
+        console reader process is alive) before re-raising, see issue #990.
+        """
         start = time.time()
         attempt = 0
         while True:
             try:
-                AttachConsole(self.conpid)
+                AttachConsole(pid)
                 break
             except pywintypes.error as e:
                 attempt += 1
                 if attempt == 1 or attempt % 100 == 0:
                     log(
-                        f"AttachConsole failed (attempt {attempt}): {e!r}, retrying",
+                        f"AttachConsole({pid}) failed (attempt {attempt}): {e!r}, "
+                        "retrying",
                         "_exceptions",
                     )
                 # Make sure we are not half-attached before the next try
@@ -2343,9 +2353,10 @@ class Wtty:
                     raise
                 time.sleep(min(0.005 * attempt, 0.05))
         if attempt:
-            log(f"AttachConsole succeeded after {attempt} retries", "_exceptions")
-        self.__consin = GetStdHandle(STD_INPUT_HANDLE)
-        self.__consout = self.getConsoleOut()
+            log(
+                f"AttachConsole({pid}) succeeded after {attempt} retries",
+                "_exceptions",
+            )
 
     def switchBack(self):
         """Release from the current console and attaches to the parents."""
@@ -2360,14 +2371,7 @@ class Wtty:
                 FreeConsole()
             if len(self.processList) > 1:
                 # Our original console is still present, re-attach
-                for _attempt in range(200):
-                    try:
-                        AttachConsole(self.__parentPid)
-                        break
-                    except pywintypes.error:
-                        if _attempt == 199:
-                            raise
-                        time.sleep(0.01)
+                self._attach_console(self.__parentPid, 2.0)
             else:
                 # Our original console has been free'd, allocate a new one
                 AllocConsole()
@@ -2577,11 +2581,13 @@ class Wtty:
 
         return s
 
-    def read_nonblocking(self, timeout, size):
-        """Read data from the console if available, else wait up to timeout seconds."""
-        # Keep retrying the attach within the caller's timeout instead of
-        # aborting the whole measurement (issue #990). If we still cannot
-        # attach, behave like "no data arrived within timeout".
+    def _switch_to_for_read(self, timeout: float | None) -> bool:
+        """Attach to the child console for reading, return False on failure.
+
+        Keep retrying the attach within the caller's timeout instead of
+        aborting the whole measurement (issue #990). If we still cannot
+        attach, the caller should behave like "no data arrived within timeout".
+        """
         try:
             self.switchTo(retry_timeout=None if timeout is None else max(timeout, 2.0))
         except pywintypes.error as e:
@@ -2591,11 +2597,21 @@ class Wtty:
                 "returning no data.",
                 "_exceptions",
             )
-            self.__consin = None
-            self.__consout = None
-            return ""
-        if getattr(self, "_Wtty__consout", None) is None:
-            # Console reader already gone (switchTo returned early)
+            # Re-attach to our own console (if we had one) rather than staying
+            # detached from every console
+            try:
+                self.switchBack()
+            except pywintypes.error as e2:
+                log(e2, "_exceptions")
+                self.__consin = None
+                self.__consout = None
+            return False
+        # Console reader already gone if switchTo returned early
+        return getattr(self, "_Wtty__consout", None) is not None
+
+    def read_nonblocking(self, timeout, size):
+        """Read data from the console if available, else wait up to timeout seconds."""
+        if not self._switch_to_for_read(timeout):
             return ""
 
         consinfo = self.__consout.GetConsoleScreenBufferInfo()

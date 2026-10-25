@@ -13,6 +13,7 @@ from unittest import mock
 
 from DisplayCAL.worker import (
     _get_macos_display_profile,
+    get_macos_display_identity,
     reload_macos_videoluts,
     vcgt_values_to_videolut,
 )
@@ -211,3 +212,24 @@ def test_reload_macos_videoluts_applies_all_displays_in_one_call():
         reloaded = reload_macos_videoluts([0, 1])
     assert reloaded == [0, 1]
     assert set_calls == [0, 1]
+
+
+def test_get_macos_display_identity():
+    """The CoreGraphics id and vendor/product numbers are returned by index."""
+    cg = mock.Mock()
+    cg.CGDisplayVendorNumber.side_effect = {2: 0x09D1, 3: 0x1E6D}.get
+    cg.CGDisplayModelNumber.side_effect = {2: 0x8048, 3: 0x5CBB}.get
+    with mock.patch(
+        "DisplayCAL.worker._macos_active_display_ids", return_value=(cg, [2, 3])
+    ):
+        assert get_macos_display_identity(0) == (2, 0x09D1, 0x8048)
+        assert get_macos_display_identity(1) == (3, 0x1E6D, 0x5CBB)
+        assert get_macos_display_identity(2) is None
+
+
+def test_get_macos_display_identity_without_coregraphics():
+    """None is returned when CoreGraphics is unavailable."""
+    with mock.patch(
+        "DisplayCAL.worker._macos_active_display_ids", return_value=(None, [])
+    ):
+        assert get_macos_display_identity(0) is None

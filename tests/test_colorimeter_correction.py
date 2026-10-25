@@ -469,3 +469,65 @@ class TestDetectImportKind:
             ccmx_module.convert_devicecorrections_to_ccmx = original
         assert icd is True
         assert result is True
+
+    def test_txt_path_converts_real_devicecorrections_file(self, tmp_path, monkeypatch):
+        path = tmp_path / "DeviceCorrections.txt"
+        path.write_text(
+            '"i1 Display 2 / Monitor Y" =\n'
+            "{\n"
+            '  Name = "i1 Display 2 / Monitor Y"\n'
+            '  Device = "i1 Display 2"\n'
+            '  Display = "Monitor Y"\n'
+            '  ReferenceDevice = "eye-one Pro Rev.D"\n'
+            '  MatrixXYZ = "3 3 1 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0"\n'
+            "}\n",
+            encoding="utf-8",
+        )
+        ccmx_dir = tmp_path / "argyll"
+        ccmx_dir.mkdir()
+        monkeypatch.setattr(config, "get_argyll_data_dir", lambda: str(ccmx_dir))
+        worker = MagicMock()
+        result, _i1d3, _spyd4, icd = cc.detect_import_kind(
+            worker, None, False, False, False, False, False, None, str(path), False
+        )
+        assert (result, icd) == (True, True)
+        assert os.listdir(ccmx_dir) == ["i1 Display 2 _ Monitor Y.ccmx"]
+
+    def test_txt_parse_error_is_reported_as_file_invalid(self, tmp_path, monkeypatch):
+        from DisplayCAL import ccmx as ccmx_module
+        from DisplayCAL import localization as lang
+        from DisplayCAL.debughelpers import Error
+
+        path = tmp_path / "DeviceCorrections.txt"
+        path.write_text("not a DeviceCorrections file\n", encoding="utf-8")
+        monkeypatch.setattr(config, "get_argyll_data_dir", lambda: str(tmp_path))
+        result, _i1d3, _spyd4, icd = cc.detect_import_kind(
+            MagicMock(), None, False, False, False, False, False, None, str(path), False
+        )
+        assert isinstance(result, Error)
+        assert str(result).startswith(lang.getstr("file.invalid"))
+        assert icd is False
+        assert issubclass(ccmx_module.DeviceCorrectionsError, Exception)
+
+    def test_txt_internal_value_error_is_not_reported_as_file_invalid(
+        self, tmp_path, monkeypatch
+    ):
+        from DisplayCAL import ccmx as ccmx_module
+        from DisplayCAL.debughelpers import Error
+
+        path = tmp_path / "DeviceCorrections.txt"
+        path.write_text("dummy", encoding="utf-8")
+        monkeypatch.setattr(config, "get_argyll_data_dir", lambda: str(tmp_path))
+        bug = ValueError("invalid mode: 'utf8'")
+
+        def raise_bug(_path, _target_dir):
+            raise bug
+
+        monkeypatch.setattr(
+            ccmx_module, "convert_devicecorrections_to_ccmx", raise_bug
+        )
+        result, _i1d3, _spyd4, _icd = cc.detect_import_kind(
+            MagicMock(), None, False, False, False, False, False, None, str(path), False
+        )
+        assert result is bug
+        assert not isinstance(result, Error)

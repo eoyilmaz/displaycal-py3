@@ -23,7 +23,6 @@ VERSION_TUPLE = None
 VERSION_WIN = None
 WX_MINVERSION = None
 APPSTREAM_ID = None
-get_latest_changelog_entry = None
 
 
 def load() -> None:
@@ -32,7 +31,7 @@ def load() -> None:
     global DOMAIN, PY_MAXVERSION, PY_MINVERSION
     global VERSION_STRING, VERSION_LIN, VERSION_MAC
     global VERSION_SRC, VERSION_TUPLE, VERSION_WIN
-    global WX_MINVERSION, APPSTREAM_ID, get_latest_changelog_entry
+    global WX_MINVERSION, APPSTREAM_ID
 
     from textwrap import fill
 
@@ -56,7 +55,6 @@ def load() -> None:
         VERSION_TUPLE,
         VERSION_WIN,
         WX_MINVERSION,
-        get_latest_changelog_entry,
     )
 
     LONG_DESCRIPTION = fill(LONG_DESCRIPTION)

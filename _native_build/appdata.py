@@ -1,14 +1,42 @@
+import re
 from pathlib import Path
 
 from _native_build import meta
 from _native_build.templates import format_changelog, replace_placeholders
 
 
+def strip_non_linux_sections(markdown: str) -> str:
+    """Remove the Windows and macOS sections of a changelog entry.
+
+    AppStream metadata is only used on Linux.
+    """
+    lines = []
+    skip_level = None
+    for line in markdown.split("\n"):
+        heading = re.match(r"(#+)\s", line)
+        if heading:
+            level = len(heading.group(1))
+            if skip_level is not None and level <= skip_level:
+                skip_level = None
+            if skip_level is None and re.search(r"\b(?:Windows|macOS)\b", line):
+                skip_level = level
+        if skip_level is None:
+            lines.append(line)
+    return "\n".join(lines)
+
+
 def generate(pydir: Path, lastmod_time) -> None:
     """Generate dist/<APPSTREAM_ID>.appdata.xml from misc/<APPSTREAM_ID>.appdata.xml."""
-    with open(str(Path(pydir, "CHANGES.html")), encoding="UTF-8") as f:
-        readme = f.read()
-        changelog = meta.get_latest_changelog_entry(readme)
+    from DisplayCAL.changelog import (
+        CHANGELOG_FILENAME,
+        get_latest_entry,
+        markdown_to_html,
+    )
+
+    with open(str(Path(pydir, CHANGELOG_FILENAME)), encoding="UTF-8") as f:
+        changelog = markdown_to_html(
+            strip_non_linux_sections(get_latest_entry(f.read()) or "")
+        )
 
     from DisplayCAL import localization as lang
     from DisplayCAL._setup import get_scripts

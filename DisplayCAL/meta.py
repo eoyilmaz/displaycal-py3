@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import sys
 
 # globals
@@ -73,28 +72,6 @@ VERSION_TUPLE = tuple(int(n) for n in VERSION_STRING.split("-")[0].split(".")[:3
 
 WX_MINVERSION = (4, 0, 0)
 WX_RECVERSION = (4, 2, 0)
-
-
-def get_latest_changelog_entry(readme: str) -> None | str:
-    """Get changelog entry for latest version from ReadMe HTML.
-
-    Args:
-        readme (str): ReadMe HTML content.
-
-    Returns:
-        None | str: Changelog entry or None if not found.
-    """
-    changelog = re.search(
-        r'<div id="(?:changelog|history)">.+?<h2>.+?</h2>.+?<dl>.+?</dd>', readme, re.S
-    )
-
-    if changelog:
-        changelog = changelog.group()
-        changelog = re.sub(r'\s*<div id="(?:changelog|history)">\n?', "", changelog)
-        changelog = re.sub(r"\s*</?d[ld]>\n?", "", changelog)
-        changelog = re.sub(r"\s*<(h[23])>.+?</\1>\n?", "", changelog)
-
-    return changelog
 
 
 def script2pywname(script: str) -> str:

@@ -106,6 +106,7 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
+from DisplayCAL.changelog import markdown_to_html
 from DisplayCAL.colormath import (
     XYZ2CCT,
     CIEDCCT2xyY,
@@ -177,7 +178,6 @@ from DisplayCAL.meta import (
     GITHUB_API_URL,
     VERSION_STRING,
     VERSION_TUPLE,
-    get_latest_changelog_entry,
 )
 from DisplayCAL.meta import (
     NAME as APPNAME,
@@ -492,7 +492,6 @@ def app_update_check(
     elif snapshot:
         # Snapshot — fetch the version file directly from the project domain
         curversion_tuple = VERSION_TUPLE
-        chglog_file = "SNAPSHOT_CHANGES.html"
         resp = http_request(
             parent,
             DOMAIN,
@@ -529,7 +528,6 @@ def app_update_check(
         # Stable
         print(lang.getstr("update_check"))
         curversion_tuple = VERSION_TUPLE
-        chglog_file = "CHANGES.html"
         resp = is_new_update()
         if resp is False or resp is None:
             # No update available, or the check itself failed (network/parse
@@ -546,36 +544,34 @@ def app_update_check(
         APP_IS_UP_TO_DATE = new_version_tuple <= curversion_tuple
     if new_version_tuple > curversion_tuple:
         # Get changelog
-        resp = http_request(
-            parent, chglog_domain, "GET", "/" + chglog_file, silent=True
-        )
         chglog = None
-        if resp:
-            readme = str(resp.read())
-            if argyll:
-                chglog = readme
-            else:
-                chglog = get_latest_changelog_entry(readme)
-                if chglog:
-                    chglog = f"""<!DOCTYPE html>
+        if argyll:
+            resp = http_request(
+                parent, chglog_domain, "GET", "/" + chglog_file, silent=True
+            )
+            if resp:
+                chglog = resp.read().decode("utf-8", "replace")
+        elif not snapshot and RELEASE_DATA and RELEASE_DATA.get("body"):
+            # The GitHub release notes of the new version (Markdown)
+            chglog = f"""<!DOCTYPE html>
 <html>
 <head>
     <title></title>
 </head>
 <body>
-{chglog}
+{markdown_to_html(RELEASE_DATA["body"])}
 </body>"""
-            if chglog:
-                chglog = re.sub(
-                    re.compile(r"<h\d>(.+?)</h\d>", flags=re.I | re.S),
-                    r"<p><strong>\1</strong></p>",
-                    chglog,
-                )
-                chglog = re.sub(
-                    re.compile(r'href="(#[^"]+)"', flags=re.I),
-                    rf'href="https://{chglog_domain}/\1"',
-                    chglog,
-                )
+        if chglog:
+            chglog = re.sub(
+                re.compile(r"<h\d>(.+?)</h\d>", flags=re.I | re.S),
+                r"<p><strong>\1</strong></p>",
+                chglog,
+            )
+            chglog = re.sub(
+                re.compile(r'href="(#[^"]+)"', flags=re.I),
+                rf'href="https://{chglog_domain}/\1"',
+                chglog,
+            )
 
         if not wx.GetApp():
             return

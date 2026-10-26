@@ -48,6 +48,7 @@ from dataclasses import dataclass
 import requests
 
 from DisplayCAL.argyll import get_argyll_latest_version
+from DisplayCAL.changelog import markdown_to_html
 from DisplayCAL.meta import (
     ARGYLL_CHANGELOG_DOMAIN,
     ARGYLL_CHANGELOG_PATH,
@@ -55,7 +56,6 @@ from DisplayCAL.meta import (
     DOMAIN,
     GITHUB_API_URL,
     VERSION_TUPLE,
-    get_latest_changelog_entry,
 )
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.worker import http_request
@@ -176,30 +176,36 @@ def _format_changelog(html: str, domain: str) -> str:
     )
 
 
-def fetch_changelog_html(domain: str, path: str, latest_entry_only: bool) -> str | None:
-    """Fetch and lightly reformat a changelog page.
+def fetch_changelog_html(domain: str, path: str) -> str | None:
+    """Fetch and lightly reformat a changelog page (ArgyllCMS's).
 
     Args:
         domain: The host to request from.
-        path: The changelog path (e.g. ``"CHANGES.html"``).
-        latest_entry_only: If True, extract just the most recent entry (the
-            app changelog); if False, use the page verbatim (Argyll's).
+        path: The changelog path (e.g. ``"Argyll/ChangesSummary.html"``).
     """
     resp = http_request(None, domain, "GET", "/" + path, silent=True)
     if not resp:
         return None
-    readme = resp.read().decode("utf-8", "replace")
-    if latest_entry_only:
-        entry = get_latest_changelog_entry(readme)
-        if not entry:
-            return None
-        html = (
-            "<!DOCTYPE html><html><head><title></title></head>"
-            f"<body>{entry}</body></html>"
-        )
-    else:
-        html = readme
-    return _format_changelog(html, domain)
+    return _format_changelog(resp.read().decode("utf-8", "replace"), domain)
+
+
+def release_notes_html(release_data: dict) -> str | None:
+    """Render a GitHub release's Markdown notes as a changelog page.
+
+    Args:
+        release_data: The GitHub release payload (``fetch_latest_release_data``).
+
+    Returns:
+        str | None: The HTML page, or None if the release has no notes.
+    """
+    body = release_data.get("body")
+    if not body:
+        return None
+    html = (
+        "<!DOCTYPE html><html><head><title></title></head>"
+        f"<body>{markdown_to_html(body)}</body></html>"
+    )
+    return _format_changelog(html, DOMAIN)
 
 
 def check_app_update(
@@ -232,7 +238,7 @@ def check_app_update(
         component="app",
         current_version=".".join(str(n) for n in current),
         new_version=newversion,
-        changelog_html=fetch_changelog_html(DOMAIN, "CHANGES.html", True),
+        changelog_html=release_notes_html(data),
         download_url=resolve_app_download_url(data, newversion),
         release_page_url=f"{DEVELOPMENT_HOME_PAGE}/releases",
     )
@@ -267,7 +273,7 @@ def check_argyll_update(
         current_version=".".join(str(n) for n in current),
         new_version=latest_str,
         changelog_html=fetch_changelog_html(
-            ARGYLL_CHANGELOG_DOMAIN, ARGYLL_CHANGELOG_PATH, False
+            ARGYLL_CHANGELOG_DOMAIN, ARGYLL_CHANGELOG_PATH
         ),
         download_url=None,
         release_page_url=ARGYLL_HOME_PAGE,

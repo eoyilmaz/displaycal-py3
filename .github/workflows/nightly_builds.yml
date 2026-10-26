@@ -509,7 +509,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh api "/repos/${{ github.repository }}/releases/291565678/assets" \
-            --jq '.[] | select(.name | test("nightly-Linux")) | .id' \
+            --jq '.[] | select(.name | test("nightly-Linux.*\\.(deb|rpm)$")) | .id' \
             | while read -r id; do
               echo "Deleting old asset ID: $id"
               gh api --method DELETE "/repos/${{ github.repository }}/releases/assets/$id"

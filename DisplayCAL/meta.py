@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 # globals
@@ -66,9 +67,27 @@ VERSION_LIN = VERSION_STRING  # Linux
 VERSION_MAC = VERSION_STRING  # Mac OS X
 VERSION_WIN = VERSION_STRING  # Windows
 VERSION_SRC = VERSION_STRING
-# follow semver format
-VERSION_TUPLE = tuple(int(n) for n in VERSION_STRING.split("-")[0].split(".")[:3])
+
+
+def parse_version(version: str) -> tuple[tuple[int, ...], bool]:
+    """Split a PEP 440 version string into its release tuple and stage.
+
+    Args:
+        version (str): A version like "3.10.0", "3.10.0rc1" or "3.10.0.dev105".
+
+    Returns:
+        tuple[tuple[int, ...], bool]: The first three release numbers, and
+            whether it is a pre-release (alpha, beta, release candidate or
+            development) version, which is older than the release itself.
+    """
+    release = re.match(r"\d+(?:\.\d+)*", version).group()
+    return tuple(int(n) for n in release.split(".")[:3]), release != version
+
+
+VERSION_TUPLE = parse_version(VERSION_STRING)[0]
 """tuple[int, int, int]: The version number as a tuple of integers."""
+VERSION_IS_PRERELEASE = parse_version(VERSION_STRING)[1]
+"""bool: Whether ``VERSION_STRING`` is a pre-release of ``VERSION_TUPLE``."""
 
 WX_MINVERSION = (4, 0, 0)
 WX_RECVERSION = (4, 2, 0)

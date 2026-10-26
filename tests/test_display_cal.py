@@ -505,7 +505,22 @@ def test_is_new_update_returns_false_when_current(monkeypatch):
     monkeypatch.setattr(
         "DisplayCAL.display_cal.requests.get", lambda *a, **kw: mock_resp
     )
+    monkeypatch.setattr(display_cal, "VERSION_IS_PRERELEASE", False)
     assert display_cal.is_new_update() is False
+
+
+def test_is_new_update_offers_release_of_running_prerelease(monkeypatch):
+    """is_new_update() offers 3.10.0 to a 3.10.0rc1 (or .dev) build."""
+    from DisplayCAL.meta import VERSION_TUPLE
+
+    tag = ".".join(str(n) for n in VERSION_TUPLE[:3])
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"tag_name": tag, "assets": []}
+    monkeypatch.setattr(
+        "DisplayCAL.display_cal.requests.get", lambda *a, **kw: mock_resp
+    )
+    monkeypatch.setattr(display_cal, "VERSION_IS_PRERELEASE", True)
+    assert display_cal.is_new_update() == VERSION_TUPLE[:3]
 
 
 def test_is_new_update_returns_none_on_network_error(monkeypatch):

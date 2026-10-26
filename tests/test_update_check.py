@@ -123,6 +123,26 @@ class TestCheckAppUpdate:
         monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
         assert uc.check_app_update(current_version=(1, 0, 0)) is None
 
+    def test_release_is_newer_than_its_prerelease(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"tag_name": "1.0.0", "assets": []}
+        monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
+        result = uc.check_app_update(current_version=(1, 0, 0), prerelease=True)
+        assert result is not None
+        assert result.new_version == "1.0.0"
+
+    def test_running_prerelease_is_offered_its_release(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"tag_name": "3.10.0", "assets": []}
+        monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
+        monkeypatch.setattr(uc, "VERSION_TUPLE", (3, 10, 0))
+        monkeypatch.setattr(uc, "VERSION_STRING", "3.10.0rc1")
+        monkeypatch.setattr(uc, "VERSION_IS_PRERELEASE", True)
+        result = uc.check_app_update()
+        assert result is not None
+        assert result.current_version == "3.10.0rc1"
+        assert result.new_version == "3.10.0"
+
     def test_returns_none_on_fetch_failure(self, monkeypatch):
         monkeypatch.setattr(uc, "fetch_latest_release_data", lambda: None)
         assert uc.check_app_update(current_version=(1, 0, 0)) is None

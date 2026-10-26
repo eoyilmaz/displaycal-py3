@@ -285,6 +285,9 @@ jobs:
           uv build
           VERSION=$(cat DisplayCAL/VERSION)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          # dpkg and rpm sort "3.10.0rc1" after "3.10.0", "3.10.0~rc1" before it
+          PKG_VERSION=$(echo "${VERSION}" | sed -E 's/\.?((a|b|rc|dev)[0-9]*)$/~\1/')
+          echo "PKG_VERSION=${PKG_VERSION}" >> $GITHUB_ENV
 
       - name: Create package staging directory
         run: |
@@ -331,12 +334,11 @@ jobs:
 
       - name: Build DEB package
         run: |
-          VERSION=${{ env.VERSION }}
           fpm \
             -s dir \
             -t deb \
             -n displaycal \
-            -v "${VERSION}" \
+            -v "${{ env.PKG_VERSION }}" \
             --description "Display calibration and profiling with a focus on accuracy and versatility" \
             --url "https://displaycal.net/" \
             --license "GPL-3.0-or-later" \
@@ -367,8 +369,7 @@ jobs:
 
       - name: Build RPM package
         run: |
-          VERSION=${{ env.VERSION }}
-          RPM_VERSION=$(echo "${VERSION}" | tr '-' '_' | tr '+' '.')
+          RPM_VERSION=$(echo "${{ env.PKG_VERSION }}" | tr '-' '_' | tr '+' '.')
           fpm \
             -s dir \
             -t rpm \
@@ -524,6 +525,16 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Check whether the tag is a pre-release
+        id: version
+        run: |
+          # "3.10.0" and "3.9.18.1" are releases, "3.10.0rc1" is a pre-release
+          if [[ "${GITHUB_REF_NAME}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release with assets
         uses: softprops/action-gh-release@v2
         with:
@@ -531,5 +542,5 @@ jobs:
           name: DisplayCAL ${{ github.ref_name }}
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.version.outputs.prerelease }}
           files: artifacts/**

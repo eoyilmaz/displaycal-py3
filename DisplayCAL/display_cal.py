@@ -177,6 +177,7 @@ from DisplayCAL.meta import (
     DEVELOPMENT_HOME_PAGE,
     DOMAIN,
     GITHUB_API_URL,
+    VERSION_IS_PRERELEASE,
     VERSION_STRING,
     VERSION_TUPLE,
 )
@@ -437,7 +438,10 @@ def is_new_update() -> bool | tuple | None:
         return None
 
     current_version = VERSION_TUPLE[:3]
-    if latest_version_tuple > current_version:
+    # A pre-release is older than the release it leads up to
+    if latest_version_tuple > current_version or (
+        latest_version_tuple == current_version and VERSION_IS_PRERELEASE
+    ):
         print("New updates available!")
         return latest_version_tuple
     print("No new updates available.")

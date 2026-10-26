@@ -55,6 +55,8 @@ from DisplayCAL.meta import (
     DEVELOPMENT_HOME_PAGE,
     DOMAIN,
     GITHUB_API_URL,
+    VERSION_IS_PRERELEASE,
+    VERSION_STRING,
     VERSION_TUPLE,
 )
 from DisplayCAL.meta import NAME as APPNAME
@@ -210,11 +212,15 @@ def release_notes_html(release_data: dict) -> str | None:
 
 def check_app_update(
     current_version: tuple[int, ...] | None = None,
+    prerelease: bool | None = None,
 ) -> UpdateCheckResult | None:
     """Check for a newer DisplayCAL release.
 
     Args:
         current_version: Defaults to the running ``VERSION_TUPLE``.
+        prerelease: Whether ``current_version`` is a pre-release, which the
+            release of the same version is newer than. Defaults to
+            ``VERSION_IS_PRERELEASE`` for the running version, False otherwise.
 
     Returns:
         UpdateCheckResult | None: None if up to date or the check failed.
@@ -228,15 +234,21 @@ def check_app_update(
     except (KeyError, ValueError, IndexError, AttributeError, TypeError) as exception:
         print(f"Error checking for updates: Parsing error - {exception}")
         return None
+    if prerelease is None:
+        prerelease = current_version is None and VERSION_IS_PRERELEASE
     current = tuple(current_version or VERSION_TUPLE)[:3]
-    if latest <= current:
+    if latest < current or (latest == current and not prerelease):
         print("No new updates available.")
         return None
     print("New updates available!")
     newversion = ".".join(str(n) for n in latest)
     return UpdateCheckResult(
         component="app",
-        current_version=".".join(str(n) for n in current),
+        current_version=(
+            VERSION_STRING
+            if current_version is None
+            else ".".join(str(n) for n in current)
+        ),
         new_version=newversion,
         changelog_html=release_notes_html(data),
         download_url=resolve_app_download_url(data, newversion),

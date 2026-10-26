@@ -46,7 +46,15 @@ CHANNEL_COLORS = {
     "Gray": QColor("#CCCCCC"),
 }
 
-#: Point size for UI text, matching wx's ``SetMaxFontSize(11)``.
+#: *Maximum* point size for UI text, matching wx's ``SetMaxFontSize(11)``.
+#: wx's helper (:func:`DisplayCAL.wx_addons.SetMaxFontSize`) only *shrinks*
+#: the native font if it exceeds this -- it never grows a smaller native
+#: default up to it. :func:`apply_theme` must mirror that asymmetry: the
+#: native default is ~13pt on macOS (capped down to 11, matching wx) but only
+#: ~9pt on Windows (Segoe UI) -- unconditionally forcing 11pt there, as a
+#: naive ``setPointSize(11)`` would, makes the whole Qt UI noticeably larger
+#: than its wx counterpart on Windows while happening to still match on
+#: macOS, which is what made this asymmetry easy to miss.
 FONT_POINT_SIZE = 11
 
 #: Palette role → colour for the dark scheme, tuned to match wx's actual
@@ -148,9 +156,11 @@ def build_palette(dark: bool) -> QPalette:
 def apply_theme(app: QApplication) -> None:
     """Apply the DisplayCAL theme (palette + font) to ``app``.
 
-    Selects the dark or light palette from the OS colour scheme and sets the
-    base font to wx's 11-point size. On Windows, also switches the style to
-    **Fusion**: the native ``windowsvista`` style renders combo-box popups and
+    Selects the dark or light palette from the OS colour scheme and caps the
+    base font at wx's 11-point size (see :data:`FONT_POINT_SIZE`), only
+    shrinking it, never growing it beyond the platform's native default. On
+    Windows, also switches the style to **Fusion**: the native
+    ``windowsvista`` style renders combo-box popups and
     several other controls via the OS's own (always-light, unless the OS is
     told otherwise through undocumented dark-mode APIs) theme engine and
     ignores the application :class:`QPalette` entirely, which left combo boxes
@@ -170,8 +180,9 @@ def apply_theme(app: QApplication) -> None:
         app.setStyle(QStyleFactory.create("Fusion"))
     app.setPalette(build_palette(is_dark()))
     font = app.font()
-    font.setPointSize(FONT_POINT_SIZE)
-    app.setFont(font)
+    if font.pointSize() > FONT_POINT_SIZE:
+        font.setPointSize(FONT_POINT_SIZE)
+        app.setFont(font)
 
 
 def label_color(source: QWidget | None = None) -> QColor:

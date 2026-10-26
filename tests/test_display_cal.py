@@ -35,6 +35,7 @@ from DisplayCAL.display_cal import (
     get_cgats_path,
     get_profile_load_on_login_label,
     install_scope_handler,
+    qt_ui_message,
     show_ccxx_error_dialog,
     webbrowser_open,
 )
@@ -105,6 +106,55 @@ def test_check_donation(mainframe: MainFrame) -> None:
     """Test check for user disabled donation."""
     with check_call(wx, "CallAfter", call_count=-1):
         check_donation(mainframe, False)
+
+
+@pytest.mark.parametrize("offer_qt", (True, False), ids=("Qt offer", "Donation"))
+def test_check_donation_shows_one_startup_dialog(
+    mainframe: MainFrame, monkeypatch: pytest.MonkeyPatch, offer_qt: bool
+) -> None:
+    """The Qt UI offer replaces the donation message for that launch."""
+    monkeypatch.setattr(display_cal, "should_offer_qt_ui", lambda: offer_qt)
+    setcfg("show_donation_message", 1)
+    calls = []
+    monkeypatch.setattr(wx, "CallAfter", lambda func, *args: calls.append(func))
+    check_donation(mainframe, True)
+    assert calls == [qt_ui_message if offer_qt else donation_message]
+
+
+@pytest.mark.parametrize(
+    "response, do_not_show_again, toolkit, offer_qt, restarted",
+    [
+        (wx.ID_OK, False, "qt", 0, True),
+        (wx.ID_CANCEL, False, "wx", 1, False),
+        (wx.ID_CANCEL, True, "wx", 0, False),
+    ],
+    ids=("Switch", "Not now", "Do not show again"),
+)
+def test_qt_ui_message(
+    mainframe: MainFrame,
+    monkeypatch: pytest.MonkeyPatch,
+    response: int,
+    do_not_show_again: bool,
+    toolkit: str,
+    offer_qt: int,
+    restarted: bool,
+) -> None:
+    """The Qt UI offer persists the user's choice and restarts on accept."""
+    setcfg("ui.toolkit", "wx")
+    setcfg("ui.offer_qt", 1)
+    restarts = []
+    monkeypatch.setattr(display_cal, "restart_application", lambda: restarts.append(1))
+    monkeypatch.setattr(display_cal, "writecfg", lambda: None)
+    monkeypatch.setattr(wx.CheckBox, "GetValue", lambda self: do_not_show_again)
+    try:
+        with check_call(BaseInteractiveDialog, "ShowModal", response, call_count=1):
+            qt_ui_message(mainframe)
+        assert getcfg("ui.toolkit") == toolkit
+        assert getcfg("ui.offer_qt") == offer_qt
+        assert bool(restarts) is restarted
+    finally:
+        setcfg("ui.toolkit", None)
+        setcfg("ui.offer_qt", None)
 
 
 def test_app_up_to_date(mainframe: MainFrame) -> None:

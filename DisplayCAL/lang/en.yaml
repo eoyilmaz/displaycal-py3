@@ -2491,6 +2491,14 @@
   Use Qt user interface (experimental)
 "ui.use_qt.confirm_restart": |-
   The user interface toolkit will change the next time DisplayCAL is started. Would you like to restart DisplayCAL now?
+"ui.use_qt.offer": |-
+  DisplayCAL now comes with a new user interface built with Qt. It will become the default in DisplayCAL 3.11 and replace the current one in DisplayCAL 4.0, so please give it a try and report any problems you run into on GitHub.
+
+  You can switch back at any time via “%s” → “%s” → “%s”.
+"ui.use_qt.offer.header": |-
+  Try the new user interface
+"ui.use_qt.offer.switch": |-
+  Switch and restart
 "unassigned": |-
   Unassigned
 "uninstall": |-

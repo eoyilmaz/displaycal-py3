@@ -11,9 +11,9 @@ DisplayCAL 3.10.0 is the first release that ships a second user interface built 
 ### ✨ Highlights
 
 - **New Qt user interface (opt-in).** Every main window, tool and dialog has a Qt (PySide6) counterpart: the main window, measurement and adjustment windows, profile info viewer, curve viewer, 3D LUT maker, testchart editor, synthetic ICC creator, visual whitepoint editor, measurement reports, untethered measurement, display uniformity, the scripting client and the profile loader tray icon. ([#836](https://github.com/eoyilmaz/displaycal-py3/pull/836) and follow-ups by @eoyilmaz)
-  - To try it, enable **Options > Advanced > Use Qt user interface (experimental)** and restart DisplayCAL. You can switch back the same way from the Qt UI. The `--qt` / `--wx` command line flags and the `DISPLAYCAL_UI=qt` / `DISPLAYCAL_UI=wx` environment variable override the setting for a single launch.
+  - To try it, accept the offer DisplayCAL shows on startup, or enable **Options > Advanced > Use Qt user interface (experimental)** and restart DisplayCAL. You can switch back the same way from the Qt UI. The `--qt` / `--wx` command line flags and the `DISPLAYCAL_UI=qt` / `DISPLAYCAL_UI=wx` environment variable override the setting for a single launch.
   - **Roadmap:** in 3.10.x wx stays the default and Qt is opt-in. In 3.11.x Qt becomes the default and wx is still available. DisplayCAL 4.0 will be Qt only.
-  - Please [report](https://github.com/eoyilmaz/displaycal-py3/issues/new/choose) anything that looks or behaves differently from the wx UI, and mention that you were using the Qt UI.
+  - Please [report](https://github.com/eoyilmaz/displaycal-py3/issues/new?template=bug_report.yml) anything that looks or behaves differently from the wx UI, and choose "Qt" as the user interface in the bug report.
 - **Python 3.11 is now the minimum.** Python 3.9 and 3.10 are no longer supported. ([#1001](https://github.com/eoyilmaz/displaycal-py3/pull/1001) by @eoyilmaz)
 - **The DEB and RPM packages install offline.** All Python dependencies are bundled as wheels, so installing no longer downloads or compiles anything. ([#1012](https://github.com/eoyilmaz/displaycal-py3/pull/1012) by @eoyilmaz)
 

@@ -310,6 +310,8 @@ _RESTORE_SKIP = (
     "tc_vrml_device",
     "tc_vrml_device_colorspace",
     "tc.show",
+    "ui.offer_qt",
+    "ui.toolkit",
     "uniformity.measure.continuous",
     "untethered.measure.auto",
     "untethered.measure.manual.delay",

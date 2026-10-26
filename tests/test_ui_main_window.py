@@ -7922,6 +7922,7 @@ def test_use_qt_ui_toggled_persists_config(window, monkeypatch):
     assert getcfg("ui.toolkit") == "qt"
     window.use_qt_ui_action.setChecked(False)
     assert getcfg("ui.toolkit") == "wx"
+    assert getcfg("ui.offer_qt") == 0
 
 
 def test_use_qt_ui_toggled_restarts_when_confirmed(window, monkeypatch):

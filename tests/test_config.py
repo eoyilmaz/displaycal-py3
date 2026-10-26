@@ -515,6 +515,76 @@ def test_get_ui_toolkit_env_var_overrides_persisted_preference(monkeypatch):
     assert config.get_ui_toolkit() == "qt"
 
 
+def _offer_qt_cfg(monkeypatch, offer_qt=1, toolkit="wx"):
+    """Patch getcfg for should_offer_qt_ui() and clear any toolkit override."""
+    monkeypatch.setattr(sys, "argv", ["DisplayCAL"])
+    monkeypatch.delenv("DISPLAYCAL_UI", raising=False)
+    values = {"ui.offer_qt": offer_qt, "ui.toolkit": toolkit}
+    monkeypatch.setattr(config, "getcfg", lambda name: values.get(name))
+
+
+@pytest.mark.parametrize(
+    "argv, env, expected",
+    [
+        (["DisplayCAL"], None, None),
+        (["DisplayCAL", "--qt"], None, "qt"),
+        (["DisplayCAL", "--wx"], "qt", "wx"),
+        (["DisplayCAL"], "WX", "wx"),
+        (["DisplayCAL"], "gtk", None),
+    ],
+)
+def test_get_ui_toolkit_override(monkeypatch, argv, env, expected):
+    """Only the --qt/--wx flags and DISPLAYCAL_UI force a toolkit."""
+    monkeypatch.setattr(sys, "argv", argv)
+    if env is None:
+        monkeypatch.delenv("DISPLAYCAL_UI", raising=False)
+    else:
+        monkeypatch.setenv("DISPLAYCAL_UI", env)
+
+    assert config.get_ui_toolkit_override() == expected
+
+
+def test_should_offer_qt_ui_on_wx_by_preference(monkeypatch):
+    """A wx user who hasn't opted out gets the Qt offer."""
+    _offer_qt_cfg(monkeypatch)
+    monkeypatch.setattr(config.importlib.util, "find_spec", lambda name: object())
+
+    assert config.should_offer_qt_ui() is True
+
+
+@pytest.mark.parametrize(
+    "offer_qt, toolkit, argv, env",
+    [
+        (0, "wx", ["DisplayCAL"], None),
+        (1, "qt", ["DisplayCAL"], None),
+        (1, "wx", ["DisplayCAL", "--wx"], None),
+        (1, "wx", ["DisplayCAL"], "wx"),
+    ],
+    ids=("opted out", "already on Qt", "--wx flag", "DISPLAYCAL_UI=wx"),
+)
+def test_should_offer_qt_ui_skipped(monkeypatch, offer_qt, toolkit, argv, env):
+    """No offer after opting out, on Qt, or when wx is forced for the process."""
+    _offer_qt_cfg(monkeypatch, offer_qt, toolkit)
+    monkeypatch.setattr(sys, "argv", argv)
+    if env:
+        monkeypatch.setenv("DISPLAYCAL_UI", env)
+    monkeypatch.setattr(config.importlib.util, "find_spec", lambda name: object())
+
+    assert config.should_offer_qt_ui() is False
+
+
+def test_should_offer_qt_ui_skipped_without_qt(monkeypatch):
+    """No offer when PySide6 isn't installed."""
+    _offer_qt_cfg(monkeypatch)
+    monkeypatch.setattr(
+        config.importlib.util,
+        "find_spec",
+        lambda name: None if name == "PySide6" else object(),
+    )
+
+    assert config.should_offer_qt_ui() is False
+
+
 def test_restart_application_reexecs_process(monkeypatch):
     """restart_application() re-execs via os.execv, stripping --qt/--wx flags."""
     monkeypatch.setattr(sys, "argv", ["DisplayCAL", "--qt", "--verbose"])

@@ -517,6 +517,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write  # sign the build provenance attestation
+      attestations: write
+      artifact-metadata: write
 
     steps:
       - name: Download all build artifacts
@@ -524,6 +527,13 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+
+      # Lets users verify that a downloaded file was built by this workflow
+      # from this tag: `gh attestation verify <file> -R eoyilmaz/displaycal-py3`
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: artifacts/**
 
       - name: Check whether the tag is a pre-release
         id: version

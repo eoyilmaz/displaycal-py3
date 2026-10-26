@@ -71,6 +71,7 @@ DisplayCAL 3.10.0 is the first release that ships a second user interface built 
 - Split `icc_profile.py` into a package, made `CGATS` a `MutableMapping` instead of a `dict` subclass, and removed leftover Python 2 compatibility code. ([#935](https://github.com/eoyilmaz/displaycal-py3/pull/935), [#937](https://github.com/eoyilmaz/displaycal-py3/pull/937), [#939](https://github.com/eoyilmaz/displaycal-py3/pull/939), [#941](https://github.com/eoyilmaz/displaycal-py3/pull/941), [#943](https://github.com/eoyilmaz/displaycal-py3/pull/943) by @eoyilmaz)
 - Fixed the `pip` console-script entry points pointing at functions that didn't exist. ([#833](https://github.com/eoyilmaz/displaycal-py3/pull/833) by @eoyilmaz)
 - The changelog is now this Markdown file; the pre-3.9 history moved to `CHANGELOG-legacy.html`. ([#1017](https://github.com/eoyilmaz/displaycal-py3/issues/1017) by @eoyilmaz)
+- Release downloads come with a signed build provenance attestation, so you can check that a file was built by the release workflow from the tagged source with `gh attestation verify <file> -R eoyilmaz/displaycal-py3`. ([#1017](https://github.com/eoyilmaz/displaycal-py3/issues/1017) by @eoyilmaz)
 
 ### 🙏 Thanks
 

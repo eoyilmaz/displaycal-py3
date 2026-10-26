@@ -43,6 +43,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Setup xvfb
+      timeout-minutes: 2
       run: |
         sudo apt-get install -y xvfb \
             libxkbcommon-x11-0 \
@@ -58,6 +59,7 @@ jobs:
         sudo /usr/bin/Xvfb $DISPLAY -screen 0 1280x1024x24 &
 
     - name: Setup libnotify4
+      timeout-minutes: 2
       run: |
         sudo apt-get install -y libnotify4
 
@@ -74,6 +76,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install system dependencies
+      # Normally ~30 s; a slow apt mirror can otherwise eat the whole job
+      # timeout, so fail fast and rerun instead
+      timeout-minutes: 2
       run: |
         set -euxo pipefail
         sudo apt-get update -y

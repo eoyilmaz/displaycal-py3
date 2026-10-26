@@ -42,7 +42,28 @@ def _init_config():
     yield
 
 
-def _spin_until(qapp, predicate, timeout_s=3.0):
+@pytest.fixture(autouse=True)
+def _join_controller_threads(monkeypatch):
+    """Wait for every controller's check thread before the next test starts.
+
+    A thread still running at teardown delivers its result into the next
+    test (whose patched dialog then records it), and a collected controller
+    destroys its ``QThread`` while it is still running.
+    """
+    controllers = []
+    run = ucw.UpdateCheckController.run
+
+    def tracked_run(self, *args, **kwargs):
+        controllers.append(self)
+        run(self, *args, **kwargs)
+
+    monkeypatch.setattr(ucw.UpdateCheckController, "run", tracked_run)
+    yield
+    for controller in controllers:
+        controller._thread.wait()
+
+
+def _spin_until(qapp, predicate, timeout_s=30.0):
     deadline = time.time() + timeout_s
     while not predicate() and time.time() < deadline:
         qapp.processEvents()

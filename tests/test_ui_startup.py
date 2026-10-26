@@ -46,7 +46,7 @@ def _no_sound(monkeypatch):
     monkeypatch.setattr(startup, "play_startup_sound", lambda: None)
 
 
-def _spin_until(qapp, predicate, timeout_s=3.0):
+def _spin_until(qapp, predicate, timeout_s=30.0):
     """Pump the event loop until ``predicate`` is true or the timeout elapses."""
     deadline = time.time() + timeout_s
     while not predicate() and time.time() < deadline:

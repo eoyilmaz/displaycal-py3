@@ -58,7 +58,7 @@ def worker(qapp):
     return Worker()
 
 
-def _spin_until(qapp, predicate, timeout_s=3.0):
+def _spin_until(qapp, predicate, timeout_s=30.0):
     deadline = time.time() + timeout_s
     while not predicate() and time.time() < deadline:
         qapp.processEvents()

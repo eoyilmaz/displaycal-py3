@@ -134,7 +134,8 @@ def init(
         for lib_ in libs:
             try:
                 audio_lib = init(lib_, samplerate, channels, buffersize, reinit)
-                break
+                if audio_lib:
+                    break
             except Exception:
                 pass
 
@@ -200,7 +201,9 @@ def _load_audio_dll(
         print(f"{libname}:", libfn)
     if libname.endswith("_mixer"):
         if not dll:
-            return None
+            # Keep the already loaded SDL library, the caller moves on to the
+            # next one
+            return sdl
         if not sdl:
             raise RuntimeError("SDL library not loaded")
         sdl.SDL_RWFromFile.restype = POINTER(SDL_RWops)
@@ -261,6 +264,9 @@ def _init_sdl_windows(samplerate: int, channels: int, buffersize: int) -> None:
             libfn,
             handle,
         )
+        if _SERVER:
+            # The mixer is loaded, don't let the next SDL version replace it
+            break
 
 
 def _init_sdl_macos(samplerate: int, channels: int, buffersize: int) -> None:
@@ -290,6 +296,9 @@ def _init_sdl_macos(samplerate: int, channels: int, buffersize: int) -> None:
             libfn,
             handle,
         )
+        if _SERVER:
+            # The mixer is loaded, don't let the next SDL version replace it
+            break
 
 
 def _init_sdl_linux(samplerate: int, channels: int, buffersize: int) -> None:
@@ -322,6 +331,9 @@ def _init_sdl_linux(samplerate: int, channels: int, buffersize: int) -> None:
             libfn,
             handle,
         )
+        if _SERVER:
+            # The mixer is loaded, don't let the next SDL version replace it
+            break
 
 
 def _init_sdl(samplerate: int, channels: int, buffersize: int) -> None:
@@ -609,7 +621,8 @@ class Sound:
             self._ch = pyglet.media.Player()
             self._snd = snd
         elif self._lib == "SDL":
-            rw = sdl.SDL_RWFromFile(safe_str(self._filename, "UTF-8"), "rb")
+            # ctypes passes str as wchar_t*, SDL expects UTF-8 encoded char*
+            rw = sdl.SDL_RWFromFile(self._filename.encode("UTF-8"), b"rb")
             self._snd = self._server.Mix_LoadWAV_RW(rw, 1)
         elif self._lib == "wx":
             self._snd = wx.Sound(self._filename)

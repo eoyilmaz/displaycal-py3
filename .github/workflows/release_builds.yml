@@ -393,6 +393,7 @@ jobs:
             --depends "libEGL.so.1()(64bit)" \
             --depends "libGL.so.1()(64bit)" \
             --depends "libfontconfig.so.1()(64bit)" \
+            --depends "libgthread-2.0.so.0()(64bit)" \
             --depends "libxkbcommon.so.0()(64bit)" \
             --depends "libxkbcommon-x11.so.0()(64bit)" \
             --depends "libxcb-cursor.so.0()(64bit)" \

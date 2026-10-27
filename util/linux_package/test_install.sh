@@ -10,6 +10,8 @@
 # The distro dependencies are installed first (with network, from the
 # distro's own repositories), the result is committed to a temporary image
 # and the package itself is then installed in a --network none container.
+# The distro's own Argyll package is installed alongside the dependencies, so
+# a file conflict with it fails the test (#1022).
 
 set -euo pipefail
 
@@ -22,7 +24,7 @@ DEPS_IMAGE="displaycal-test-deps:$(echo "${IMAGE}" | tr ':/' '--')"
 case "${PACKAGE_NAME}" in
   *.deb)
     DEPENDS="$(dpkg-deb --field "${PACKAGE}" Depends)"
-    INSTALL_DEPS="apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get satisfy -y --no-install-recommends \"${DEPENDS}\""
+    INSTALL_DEPS="apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get satisfy -y --no-install-recommends \"${DEPENDS}\" && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends argyll"
     INSTALL_PACKAGE="dpkg -i /pkg/${PACKAGE_NAME}"
     ;;
   *.rpm)
@@ -32,11 +34,11 @@ case "${PACKAGE_NAME}" in
     # package itself and drop it again (with everything its post-install
     # script created) before the offline install (#1022).
     INSTALL_DEPS="if command -v zypper >/dev/null; then
-        zypper --non-interactive install --no-recommends --allow-unsigned-rpm /pkg/${PACKAGE_NAME}
+        zypper --non-interactive install --no-recommends --allow-unsigned-rpm /pkg/${PACKAGE_NAME} argyllcms
         rpm -e --nodeps --noscripts \$(rpm -qp --qf '%{NAME}' /pkg/${PACKAGE_NAME})
         rm -rf /opt/displaycal
       else
-        dnf install -y ${DEPENDS}
+        dnf install -y ${DEPENDS} argyllcms
       fi"
     INSTALL_PACKAGE="rpm -i /pkg/${PACKAGE_NAME}"
     ;;

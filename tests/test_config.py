@@ -515,6 +515,85 @@ def test_get_ui_toolkit_env_var_overrides_persisted_preference(monkeypatch):
     assert config.get_ui_toolkit() == "qt"
 
 
+@pytest.mark.parametrize(
+    "session, display, gdk_backend, qpa_platform, expected",
+    [
+        ("wayland", ":0", None, None, ("x11", "xcb")),
+        ("wayland", ":0", "wayland", "wayland", ("wayland", "wayland")),
+        ("wayland", None, None, None, (None, None)),
+        ("x11", ":0", None, None, (None, None)),
+    ],
+)
+def test_use_xwayland_for_ui(
+    monkeypatch, session, display, gdk_backend, qpa_platform, expected
+):
+    """The UI is moved to XWayland only in a Wayland session that has XWayland.
+
+    Backends the user has set themselves are kept.
+    """
+    for name, value in (
+        ("XDG_SESSION_TYPE", session),
+        ("DISPLAY", display),
+        ("GDK_BACKEND", gdk_backend),
+        ("QT_QPA_PLATFORM", qpa_platform),
+    ):
+        if value is None:
+            monkeypatch.delenv(name, raising=False)
+        else:
+            monkeypatch.setenv(name, value)
+
+    config.use_xwayland_for_ui()
+
+    assert (os.getenv("GDK_BACKEND"), os.getenv("QT_QPA_PLATFORM")) == expected
+
+
+@pytest.mark.parametrize(
+    "session, gdk_backend, expected",
+    [
+        ("wayland", None, True),
+        ("wayland", "wayland,x11", True),
+        ("wayland", "*", True),
+        ("wayland", "x11", False),
+        ("wayland", "x11,wayland", False),
+        ("x11", None, False),
+    ],
+)
+def test_is_ui_native_wayland_wx(monkeypatch, session, gdk_backend, expected):
+    """Without a Qt application, the GDK backend decides."""
+    monkeypatch.delitem(sys.modules, "qtpy", raising=False)
+    monkeypatch.setenv("XDG_SESSION_TYPE", session)
+    if gdk_backend is None:
+        monkeypatch.delenv("GDK_BACKEND", raising=False)
+    else:
+        monkeypatch.setenv("GDK_BACKEND", gdk_backend)
+
+    assert config.is_ui_native_wayland() is expected
+
+
+@pytest.mark.parametrize(
+    "session, platform_name, expected",
+    [
+        ("wayland", "wayland", True),
+        ("wayland", "wayland-egl", True),
+        ("wayland", "xcb", False),
+        ("x11", "wayland", False),
+    ],
+)
+def test_is_ui_native_wayland_qt(monkeypatch, session, platform_name, expected):
+    """With a Qt application, the platform plugin Qt loaded decides."""
+    app = MagicMock()
+    app.platformName.return_value = platform_name
+    qtgui = MagicMock()
+    qtgui.QGuiApplication.instance.return_value = app
+    monkeypatch.setitem(sys.modules, "qtpy", MagicMock(QtGui=qtgui))
+    monkeypatch.setitem(sys.modules, "qtpy.QtGui", qtgui)
+    monkeypatch.setenv("XDG_SESSION_TYPE", session)
+    # GDK's choice must not matter for a Qt UI
+    monkeypatch.setenv("GDK_BACKEND", "x11" if expected else "wayland")
+
+    assert config.is_ui_native_wayland() is expected
+
+
 def _offer_qt_cfg(monkeypatch, offer_qt=1, toolkit="wx"):
     """Patch getcfg for should_offer_qt_ui() and clear any toolkit override."""
     monkeypatch.setattr(sys, "argv", ["DisplayCAL"])

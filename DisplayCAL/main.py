@@ -48,6 +48,7 @@ from DisplayCAL.config import (
     get_ui_toolkit,
     getcfg,
     initcfg,
+    use_xwayland_for_ui,
 )
 from DisplayCAL.debughelpers import ResourceError, handle_error
 from DisplayCAL.log import LOG
@@ -131,6 +132,7 @@ def _main(
 
         print_system_version_information()
         initialize_fault_handler()
+        use_xwayland_for_ui()
         initialize_wx_module()
         set_high_dpi_awareness()
         initcfg(module)

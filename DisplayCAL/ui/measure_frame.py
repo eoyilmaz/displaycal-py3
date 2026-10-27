@@ -30,7 +30,6 @@ the other ported tools made (Qt handles high-DPI in logical coordinates).
 from __future__ import annotations
 
 import math
-import os
 import sys
 from typing import TYPE_CHECKING, Callable
 
@@ -409,12 +408,19 @@ class MeasureFrame(BaseWindow):
             icon_name=APPNAME.lower(),
         )
         self.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
-        if os.getenv("XDG_SESSION_TYPE") != "wayland" and getcfg(
+        if not config.is_ui_native_wayland() and getcfg(
             "patterngenerator.use_pattern_window"
         ):
             self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
 
         self.display_size_mm: dict[tuple[int, int, int, int], list[float]] = {}
+        # Argyll's X11 test window is sized from the X screen, so its density
+        # takes precedence over the monitor's own size where there is one
+        self.x_screen_px_per_mm = (
+            real_display_size_mm.get_x_screen_px_per_mm()
+            if real_display_size_mm is not None
+            else None
+        )
         self.default_size = float(DEFAULTS.get("size.measureframe", 300))
         self._current_geometry: tuple[int, int, int, int] | None = None
 
@@ -434,7 +440,7 @@ class MeasureFrame(BaseWindow):
 
     def _build_controls(self) -> None:
         """Build the zoom / centre / measure controls on the panel."""
-        wayland = os.getenv("XDG_SESSION_TYPE") == "wayland"
+        native_wayland = config.is_ui_native_wayland()
         dark = is_dark(self)
 
         root = QVBoxLayout(self._panel)
@@ -472,10 +478,10 @@ class MeasureFrame(BaseWindow):
         root.addLayout(zoom_row)
         root.addStretch(1)
 
-        # Row 2 (middle): centre. No manual centring under Wayland.
+        # Row 2 (middle): centre. No manual centring under native Wayland.
         center_row = QHBoxLayout()
         center_row.addStretch(1)
-        if wayland:
+        if native_wayland:
             self.center_widget: QWidget = QLabel(
                 lang.getstr("measureframe.center.manual")
             )
@@ -494,7 +500,7 @@ class MeasureFrame(BaseWindow):
         # Row 3 (bottom): darken-background checkbox and Measure button.
         bottom = QVBoxLayout()
         self.darken_cb: QCheckBox | None = None
-        if not wayland or config.is_virtual_display():
+        if not native_wayland or config.is_virtual_display():
             self.darken_cb = QCheckBox(lang.getstr("measure.darken_background"))
             self.darken_cb.setChecked(bool(int(getcfg("measure.darken_background"))))
             self.darken_cb.toggled.connect(self._darken_handler)
@@ -574,6 +580,8 @@ class MeasureFrame(BaseWindow):
         Returns:
             float: The default patch edge length in pixels.
         """
+        if self.x_screen_px_per_mm:
+            return float(round(100.0 * max(self.x_screen_px_per_mm)))
         screen = self._current_screen()
         if screen is None:
             return float(DEFAULTS.get("size.measureframe", 300))
@@ -812,7 +820,7 @@ class MeasureFrame(BaseWindow):
             event (QMoveEvent): The Qt move event.
         """
         super().moveEvent(event)
-        if not self.isVisible() or os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if not self.isVisible() or config.is_ui_native_wayland():
             return
         if config.is_virtual_display():
             return
@@ -899,6 +907,9 @@ def main() -> int:
     window.show()
     window.listen()
     app.exec()
+    # The parent process reloads the config once we exit, so the geometry and
+    # display the user picked have to be on disk by then
+    config.writecfg()
     if MeasureFrame.exitcode != 255:
         # A plain close/cancel reports success (0); the default of 1 only
         # survives if the process is killed before the event loop returns.

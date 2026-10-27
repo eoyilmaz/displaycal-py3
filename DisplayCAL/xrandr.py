@@ -162,6 +162,23 @@ class XDisplay:
 
         return atom_id
 
+    def screen_size(self, screen_no: int = 0) -> tuple[int, int, int, int]:
+        """Get the size of an X screen in pixels and millimetres.
+
+        Args:
+            screen_no (int): The screen number. Defaults to 0.
+
+        Returns:
+            tuple[int, int, int, int]: Width and height in pixels, then width
+            and height in millimetres.
+        """
+        return (
+            libx11.XDisplayWidth(self.display, screen_no),
+            libx11.XDisplayHeight(self.display, screen_no),
+            libx11.XDisplayWidthMM(self.display, screen_no),
+            libx11.XDisplayHeightMM(self.display, screen_no),
+        )
+
     def root_window(self, screen_no=0):
         """Get the root window for a given screen number.
 

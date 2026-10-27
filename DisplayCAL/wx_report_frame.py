@@ -33,6 +33,7 @@ from DisplayCAL.config import (
     get_data_path,
     getcfg,
     hascfg,
+    is_ui_native_wayland,
     setcfg,
 )
 from DisplayCAL.icc_profile import (
@@ -118,7 +119,7 @@ class ReportFrame(BaseFrame):
                     paths = get_data_path("ref", wildcard) or []
                     for path in paths:
                         basepath, ext = os.path.splitext(path)
-                        if os.getenv("XDG_SESSION_TYPE") == "wayland" and (
+                        if is_ui_native_wayland() and (
                             ext.lower() != ".ti1"
                             or os.path.basename(path) == "ccxx.ti1"
                         ):

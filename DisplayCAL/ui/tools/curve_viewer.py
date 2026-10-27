@@ -877,7 +877,7 @@ class CurveViewerWindow(BaseWindow):
             event (QMoveEvent): The Qt move event.
         """
         super().moveEvent(event)
-        if not self.isVisible() or os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if not self.isVisible() or config.is_ui_native_wayland():
             return
         geometry = self._current_display_geometry()
         if geometry is None or geometry == self._current_geometry:

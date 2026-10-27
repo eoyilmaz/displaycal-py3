@@ -1234,7 +1234,7 @@ class PIFrame2WaySplitter(TwoWaySplitter):
                 w = max(self.GetExpandedSize()[0], self._splitx)
                 if not self.Parent.IsMaximized() and self.Parent.ClientSize[0] > w:
                     self.Parent.ClientSize = (w, self.Parent.ClientSize[1])
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
+            if config.is_ui_native_wayland():
                 self.Parent.MaxSize = self.Parent.Size
                 wx.CallAfter(set_maxsize, self.Parent, (-1, -1))
             if self.GetTopLeft().Size[0] != win0w:

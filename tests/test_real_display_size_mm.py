@@ -312,3 +312,36 @@ def test_get_dispwin_output_returns_dispwin_output_as_bytes(
 
     result = real_display_size_mm.get_dispwin_output()
     assert isinstance(result, bytes)
+
+
+@pytest.mark.parametrize(
+    "platform,display", [("win32", ":0"), ("darwin", ":0"), ("linux", None)]
+)
+def test_get_x_screen_px_per_mm_without_x_screen(
+    monkeypatch: MonkeyPatch, platform: str, display: None | str
+) -> None:
+    """get_x_screen_px_per_mm() returns None if there is no X screen to ask."""
+    monkeypatch.setattr(real_display_size_mm.sys, "platform", platform)
+    if display is None:
+        monkeypatch.delenv("DISPLAY", raising=False)
+    else:
+        monkeypatch.setenv("DISPLAY", display)
+    assert real_display_size_mm.get_x_screen_px_per_mm() is None
+
+
+@pytest.mark.parametrize(
+    "screen_size,expected",
+    [((3840, 1200, 1016, 318), (3840 / 1016, 1200 / 318)), ((3840, 1200, 0, 0), None)],
+)
+def test_get_x_screen_px_per_mm(
+    monkeypatch: MonkeyPatch, screen_size: tuple, expected: None | tuple
+) -> None:
+    """get_x_screen_px_per_mm() returns the X screen's pixels per mm."""
+    xrandr = pytest.importorskip("DisplayCAL.xrandr")
+    monkeypatch.setattr(real_display_size_mm.sys, "platform", "linux")
+    monkeypatch.setenv("DISPLAY", ":0.0")
+    x_display = mock.MagicMock()
+    x_display.__enter__.return_value.screen_size.return_value = screen_size
+    monkeypatch.setattr(xrandr, "XDisplay", mock.MagicMock(return_value=x_display))
+    assert real_display_size_mm.get_x_screen_px_per_mm() == expected
+    x_display.__enter__.return_value.screen_size.assert_called_once_with(0)

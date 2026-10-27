@@ -438,7 +438,7 @@ def test_init_startup_frame(monkeypatch) -> None:
     if (
         sys.platform == "darwin"
         and intlist(platform.mac_ver()[0].split(".")) >= [10, 10]
-    ) or os.getenv("XDG_SESSION_TYPE") == "wayland":
+    ) or config.is_ui_native_wayland():
         show_func_name = "ShowModal"
 
     # StartupFrame.__init__() schedules wx.CallLater(1, self.startup), which

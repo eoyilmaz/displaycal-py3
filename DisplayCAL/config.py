@@ -105,7 +105,11 @@ else:
 DATA_DIRS = [
     # venv/share/DisplayCAL
     os.path.join(os.path.dirname(os.path.dirname(PYPATH)), "share", "DisplayCAL"),
-    # venv/lib/python3.x/site-packages/DisplayCAL
+    # venv/lib/python3.x/site-packages/DisplayCAL, the package's own data must
+    # take precedence over leftovers of older installs in the XDG data dirs
+    # (e.g. a stale /usr/share/DisplayCAL/lang/en.yaml lacking newer strings)
+    os.path.abspath(os.path.dirname(__file__)),
+    # venv/lib/python3.x/site-packages
     PYDIR,
     # venv/share
     os.path.join(os.path.dirname(PYDIR), "share"),

@@ -3704,6 +3704,17 @@
 "ui.use_qt.confirm_restart": |-
   使用者介面工具包將在 DisplayCAL 下次啟動時變更。是否要立即重新啟動 DisplayCAL?
 
+"ui.use_qt.offer": |-
+  DisplayCAL 現已提供以 Qt 建立的全新使用者介面。它將在 DisplayCAL 3.11 中成為預設介面，並在 DisplayCAL 4.0 中取代目前的介面。歡迎試用，如遇到任何問題，請在 GitHub 上回報。
+
+  您可以隨時透過「%s」→「%s」→「%s」切換回原介面。
+
+"ui.use_qt.offer.header": |-
+  試用全新使用者介面
+
+"ui.use_qt.offer.switch": |-
+  切換並重新啟動
+
 "unassigned": |-
   未指定
 

@@ -2483,6 +2483,14 @@
   Usar la interfaz de usuario Qt (experimental)
 "ui.use_qt.confirm_restart": |-
   El conjunto de herramientas de la interfaz de usuario cambiará la próxima vez que se inicie DisplayCAL. ¿Desea reiniciar DisplayCAL ahora?
+"ui.use_qt.offer": |-
+  DisplayCAL incluye ahora una nueva interfaz de usuario creada con Qt. Será la predeterminada en DisplayCAL 3.11 y sustituirá a la actual en DisplayCAL 4.0. Pruébela e informe en GitHub de cualquier problema que encuentre.
+
+  Puede volver a la anterior en cualquier momento desde “%s” → “%s” → “%s”.
+"ui.use_qt.offer.header": |-
+  Pruebe la nueva interfaz de usuario
+"ui.use_qt.offer.switch": |-
+  Cambiar y reiniciar
 "unassigned": |-
   Sin asignar
 "uninstall": |-

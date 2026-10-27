@@ -110,7 +110,6 @@ class TestCheckAppUpdate:
         mock_resp = MagicMock()
         mock_resp.json.return_value = {"tag_name": "99.0.0", "assets": []}
         monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
-        monkeypatch.setattr(uc, "fetch_changelog_html", lambda *a, **kw: None)
         result = uc.check_app_update(current_version=(1, 0, 0))
         assert result is not None
         assert result.component == "app"
@@ -123,6 +122,26 @@ class TestCheckAppUpdate:
         mock_resp.json.return_value = {"tag_name": "1.0.0", "assets": []}
         monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
         assert uc.check_app_update(current_version=(1, 0, 0)) is None
+
+    def test_release_is_newer_than_its_prerelease(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"tag_name": "1.0.0", "assets": []}
+        monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
+        result = uc.check_app_update(current_version=(1, 0, 0), prerelease=True)
+        assert result is not None
+        assert result.new_version == "1.0.0"
+
+    def test_running_prerelease_is_offered_its_release(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"tag_name": "3.10.0", "assets": []}
+        monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
+        monkeypatch.setattr(uc, "VERSION_TUPLE", (3, 10, 0))
+        monkeypatch.setattr(uc, "VERSION_STRING", "3.10.0rc1")
+        monkeypatch.setattr(uc, "VERSION_IS_PRERELEASE", True)
+        result = uc.check_app_update()
+        assert result is not None
+        assert result.current_version == "3.10.0rc1"
+        assert result.new_version == "3.10.0"
 
     def test_returns_none_on_fetch_failure(self, monkeypatch):
         monkeypatch.setattr(uc, "fetch_latest_release_data", lambda: None)
@@ -164,35 +183,37 @@ class TestCheckArgyllUpdate:
 class TestFetchChangelogHtml:
     def test_returns_none_when_request_fails(self, monkeypatch):
         monkeypatch.setattr(uc, "http_request", lambda *a, **kw: False)
-        assert uc.fetch_changelog_html("example.com", "CHANGES.html", True) is None
+        assert uc.fetch_changelog_html("example.com", "ChangesSummary.html") is None
 
-    def test_latest_entry_only_extracts_and_rewrites_anchors(self, monkeypatch):
+    def test_full_page_is_used_and_reformatted(self, monkeypatch):
         mock_resp = MagicMock()
-        mock_resp.read.return_value = (
-            b'<div id="changelog">\n<h2>1.0</h2><dl><dt>x</dt>'
-            b'<dd><a href="#foo">bar</a></dd></dl>'
-        )
+        mock_resp.read.return_value = b'<h2>Full page</h2><a href="#foo">bar</a>'
         monkeypatch.setattr(uc, "http_request", lambda *a, **kw: mock_resp)
-        monkeypatch.setattr(
-            uc, "get_latest_changelog_entry", lambda readme: '<a href="#foo">bar</a>'
-        )
-        html = uc.fetch_changelog_html("example.com", "CHANGES.html", True)
-        assert html is not None
-        assert 'href="https://example.com/#foo"' in html
-
-    def test_latest_entry_only_returns_none_when_no_entry_found(self, monkeypatch):
-        mock_resp = MagicMock()
-        mock_resp.read.return_value = b"<html></html>"
-        monkeypatch.setattr(uc, "http_request", lambda *a, **kw: mock_resp)
-        monkeypatch.setattr(uc, "get_latest_changelog_entry", lambda readme: None)
-        assert uc.fetch_changelog_html("example.com", "CHANGES.html", True) is None
-
-    def test_full_page_used_verbatim_when_not_latest_entry_only(self, monkeypatch):
-        mock_resp = MagicMock()
-        mock_resp.read.return_value = b"<h2>Full page</h2>"
-        monkeypatch.setattr(uc, "http_request", lambda *a, **kw: mock_resp)
-        html = uc.fetch_changelog_html(
-            "example.com", "Argyll/ChangesSummary.html", False
-        )
+        html = uc.fetch_changelog_html("example.com", "Argyll/ChangesSummary.html")
         assert html is not None
         assert "<strong>Full page</strong>" in html
+        assert 'href="https://example.com/#foo"' in html
+
+
+class TestReleaseNotesHtml:
+    def test_renders_release_body_markdown(self):
+        html = uc.release_notes_html({"body": "## Highlights\n\n- **New** `Qt` UI"})
+        assert html is not None
+        assert "<p><strong>Highlights</strong></p>" in html
+        assert "<li><strong>New</strong> <code>Qt</code> UI</li>" in html
+
+    @pytest.mark.parametrize("data", [{}, {"body": ""}, {"body": None}])
+    def test_returns_none_without_body(self, data):
+        assert uc.release_notes_html(data) is None
+
+    def test_check_app_update_uses_release_body(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {
+            "tag_name": "99.0.0",
+            "assets": [],
+            "body": "- Fixed things",
+        }
+        monkeypatch.setattr(uc.requests, "get", lambda *a, **kw: mock_resp)
+        result = uc.check_app_update(current_version=(1, 0, 0))
+        assert result is not None
+        assert "<li>Fixed things</li>" in result.changelog_html

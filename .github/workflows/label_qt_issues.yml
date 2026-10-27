@@ -1,0 +1,29 @@
+name: Label Qt issues
+
+# Adds the `qt` label to bug reports filed with "Qt" as the "User interface",
+# so Qt reports can be counted when deciding whether to make Qt the default.
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    if: contains(github.event.issue.body, '### User interface')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add the qt label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          ui=$(printf '%s\n' "$BODY" | tr -d '\r' | awk '/^### User interface$/ {found = 1; next} found && NF {print; exit}')
+          echo "User interface: $ui"
+          if [ "$ui" = "Qt" ]; then
+            gh issue edit "$ISSUE" --add-label qt
+          fi

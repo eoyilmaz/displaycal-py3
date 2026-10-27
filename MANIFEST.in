@@ -4,13 +4,15 @@ include DisplayCAL/VERSION
 include MANIFEST.in
 include README.html
 include README-fr.html
-include CHANGES.html
+include CHANGELOG.md
+include CHANGELOG-legacy.html
 include DisplayCAL*.pyw
 include DisplayCAL-*.pyw
 include DisplayCAL-*.py
 include native_build.py
 recursive-include _native_build *.py
-include CHANGES.html
+include CHANGELOG.md
+include CHANGELOG-legacy.html
 include README.html
 include README-fr.html
 include screenshots/DisplayCAL-screenshot-GNOME-adjust-1024x576.png

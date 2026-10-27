@@ -47,6 +47,7 @@ cross-platform equivalent.
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import threading
 from typing import Callable
@@ -579,6 +580,10 @@ class QtProfileLoader(profile_loader.ProfileLoader):
             # tray menu's own _is_other_running() checks) excludes our own
             # process by pid.
             self._pid = os.getpid()
+            # Also matches wx's setup_taskbar_icon(): the inherited
+            # calibration-loading logic sets/reads the gamma ramps via gdi32.
+            if exception := self._init_gdi32():
+                self.notify([], [str(exception)], show_notification=True)
             self._check_display_conf_thread = threading.Thread(
                 target=self._check_display_conf_wrapper,
                 name="DisplayConfigurationMonitoring",
@@ -780,6 +785,31 @@ class QtProfileLoader(profile_loader.ProfileLoader):
 
         dlg = ProfileAssociationsDialog(self)
         dlg.exec()
+
+    def open_display_settings(self, event: object = None) -> None:
+        """Open the Windows display settings.
+
+        Mirrors wx's ``TaskBarIcon.open_display_settings``. Only ever wired
+        up on Windows (see module docstring).
+
+        Args:
+            event: Unused; kept for interface parity with the wx override.
+        """
+        print("Menu command: Open display settings")
+        try:
+            subprocess.call(
+                [  # noqa: S607
+                    "control",
+                    "/name",
+                    "Microsoft.Display",
+                    "/page",
+                    "Settings",
+                ],
+                close_fds=True,
+            )
+        except Exception as exception:
+            QApplication.beep()
+            print(exception)
 
     def set_exceptions(self, event: object = None) -> None:
         """Open the Qt exceptions dialog and persist any changes.

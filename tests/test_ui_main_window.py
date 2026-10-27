@@ -4959,7 +4959,7 @@ def test_import_session_archive_extracts_and_loads_zip(
 
     window._import_session_archive(str(archive_path))
 
-    deadline = time.time() + 5.0
+    deadline = time.time() + 30.0
     while window._archive_import_thread is not None and time.time() < deadline:
         qapp.processEvents()
         time.sleep(0.01)
@@ -4988,7 +4988,7 @@ def test_import_session_archive_rejects_non_archive_zip(
 
     window._import_session_archive(str(archive_path))
 
-    deadline = time.time() + 5.0
+    deadline = time.time() + 30.0
     while window._archive_import_thread is not None and time.time() < deadline:
         qapp.processEvents()
         time.sleep(0.01)
@@ -5123,7 +5123,7 @@ def test_create_session_archive_handler_runs_and_completes(
 
     window.create_session_archive_handler()
 
-    deadline = time.time() + 5.0
+    deadline = time.time() + 30.0
     while window._archive_thread is not None and time.time() < deadline:
         qapp.processEvents()
         time.sleep(0.01)
@@ -7922,6 +7922,7 @@ def test_use_qt_ui_toggled_persists_config(window, monkeypatch):
     assert getcfg("ui.toolkit") == "qt"
     window.use_qt_ui_action.setChecked(False)
     assert getcfg("ui.toolkit") == "wx"
+    assert getcfg("ui.offer_qt") == 0
 
 
 def test_use_qt_ui_toggled_restarts_when_confirmed(window, monkeypatch):

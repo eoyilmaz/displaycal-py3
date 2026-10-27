@@ -36,6 +36,20 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: ui_toolkit
+    attributes:
+      label: User interface
+      description: >
+        Which user interface were you using? The Qt user interface is turned on under
+        `Options` -> `Advanced` -> `Use Qt user interface (experimental)`.
+        If you're not sure, it's the default wxPython one.
+      options:
+        - wxPython (default)
+        - Qt
+        - Both
+    validations:
+      required: true
+  - type: dropdown
     id: os_type
     attributes:
       label: "Operating System (OS)"

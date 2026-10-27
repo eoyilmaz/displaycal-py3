@@ -155,20 +155,13 @@ def setup():
 
     if "readme" in sys.argv[1:]:
         if not dry_run:
-            for tmpl_name in ["CHANGES", "README", "history"]:
-                for suffix in ("", "-fr"):
-                    if suffix:
-                        if tmpl_name == "README":
-                            tmpl_name += suffix
-                        else:
-                            continue
-
-                    replace_placeholders(
-                        Path(pydir, "misc", f"{tmpl_name}.template.html"),
-                        Path(pydir, f"{tmpl_name}.html"),
-                        lastmod_time,
-                        {"STABILITY": "Beta" if stability != "stable" else ""},
-                    )
+            for tmpl_name in ("README", "README-fr"):
+                replace_placeholders(
+                    Path(pydir, "misc", f"{tmpl_name}.template.html"),
+                    Path(pydir, f"{tmpl_name}.html"),
+                    lastmod_time,
+                    {"STABILITY": "Beta" if stability != "stable" else ""},
+                )
         sys.argv.remove("readme")
 
         if len(sys.argv) == 1 or (len(sys.argv) == 2 and dry_run):

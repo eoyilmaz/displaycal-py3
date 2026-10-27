@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import configparser
 import contextlib
+import importlib.util
 import locale
 import math
 import os
@@ -104,7 +105,11 @@ else:
 DATA_DIRS = [
     # venv/share/DisplayCAL
     os.path.join(os.path.dirname(os.path.dirname(PYPATH)), "share", "DisplayCAL"),
-    # venv/lib/python3.x/site-packages/DisplayCAL
+    # venv/lib/python3.x/site-packages/DisplayCAL, the package's own data must
+    # take precedence over leftovers of older installs in the XDG data dirs
+    # (e.g. a stale /usr/share/DisplayCAL/lang/en.yaml lacking newer strings)
+    os.path.abspath(os.path.dirname(__file__)),
+    # venv/lib/python3.x/site-packages
     PYDIR,
     # venv/share
     os.path.join(os.path.dirname(PYDIR), "share"),
@@ -1985,6 +1990,7 @@ DEFAULTS = {
     "trc.should_use_viewcond_adjust.show_msg": 1,
     "trc.type": "g",
     "trc.type.backup": "g",
+    "ui.offer_qt": 1,
     "ui.toolkit": "wx",
     "uniformity.cols": 5,
     "uniformity.measure.continuous": 0,
@@ -2546,6 +2552,17 @@ def get_ui_toolkit() -> str:
     Returns:
         str: ``"qt"`` if Qt was requested, ``"wx"`` otherwise.
     """
+    return get_ui_toolkit_override() or getcfg("ui.toolkit") or "wx"
+
+
+def get_ui_toolkit_override() -> None | str:
+    """Return the UI toolkit forced for this process, if any.
+
+    Returns:
+        None | str: ``"qt"`` or ``"wx"`` if the ``--qt``/``--wx`` command line
+            flags or the ``DISPLAYCAL_UI`` environment variable force a
+            toolkit, None otherwise.
+    """
     if "--qt" in sys.argv[1:]:
         return "qt"
     if "--wx" in sys.argv[1:]:
@@ -2553,7 +2570,26 @@ def get_ui_toolkit() -> str:
     env = os.getenv("DISPLAYCAL_UI", "").lower()
     if env in ("qt", "wx"):
         return env
-    return getcfg("ui.toolkit") or "wx"
+    return None
+
+
+def should_offer_qt_ui() -> bool:
+    """Check whether the wx UI should offer to switch to the Qt UI on startup.
+
+    The offer is made while the user is on wx by preference (not forced to it
+    by ``--wx``/``DISPLAYCAL_UI=wx``), Qt is installed, and the user neither
+    switched to Qt nor chose "do not show again" before.
+
+    Returns:
+        bool: True if the offer should be shown.
+    """
+    return (
+        bool(getcfg("ui.offer_qt"))
+        and get_ui_toolkit_override() is None
+        and getcfg("ui.toolkit") == "wx"
+        and importlib.util.find_spec("PySide6") is not None
+        and importlib.util.find_spec("qtpy") is not None
+    )
 
 
 def restart_application() -> None:

@@ -2173,6 +2173,26 @@ class ProfileLoader:
             # is left as a one-shot and does not enter the watch loop.
             self._macos_watch()
 
+    def _init_gdi32(self) -> None | Exception:
+        """Load gdi32 for direct video card gamma ramp access (Windows only).
+
+        Sets ``self.gdi32`` to the loaded library, or to None on failure.
+        Shared by every toolkit's UI setup, as the calibration-loading logic
+        (``apply_profiles``, ``_check_display_conf``) relies on it.
+
+        Returns:
+            None | Exception: The exception if gdi32 couldn't be loaded.
+        """
+        try:
+            self.gdi32 = ctypes.windll.gdi32
+            self.gdi32.GetDeviceGammaRamp.restype = ctypes.c_bool
+            self.gdi32.SetDeviceGammaRamp.restype = ctypes.c_bool
+        except Exception as exception:
+            self.gdi32 = None
+            print(exception)
+            return exception
+        return None
+
     def setup_taskbar_icon(self, app: None | BaseApp) -> None:
         """Set up the taskbar icon.
 
@@ -2188,13 +2208,7 @@ class ProfileLoader:
         self.taskbar_icon = TaskBarIcon(self)
         self._tray_active = True
 
-        try:
-            self.gdi32 = ctypes.windll.gdi32
-            self.gdi32.GetDeviceGammaRamp.restype = ctypes.c_bool
-            self.gdi32.SetDeviceGammaRamp.restype = ctypes.c_bool
-        except Exception as exception:
-            self.gdi32 = None
-            print(exception)
+        if exception := self._init_gdi32():
             self.taskbar_icon.show_notification(str(exception))
 
         if self.use_madhcnet:

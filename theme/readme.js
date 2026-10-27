@@ -152,7 +152,7 @@ jQuery(function ($) {
 	$('#content p > br').after('<span class="indent"></span>')
 
 	/* Intro */
-	if (location.pathname != '/history.html' && location.pathname != '/CHANGES.html' && $(window).width() >= 760 &&
+	if (location.pathname != '/CHANGELOG-legacy.html' && $(window).width() >= 760 &&
 		(location.protocol != 'file:' ||
 		 (location.search || '').indexOf('debug') > -1 ||
 		 (document.cookie || '').indexOf('debug') > -1) &&

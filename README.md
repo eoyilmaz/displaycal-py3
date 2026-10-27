@@ -21,6 +21,26 @@ Thanks to all the efforts put by the community DisplayCAL is now working with Py
 
 ![image](screenshots/DisplayCAL-screenshot-GNOME-3.9.5-running_on_python3.10.png)
 
+New Qt User Interface
+=====================
+
+DisplayCAL 3.10 comes with a new user interface built with Qt, next to the classic
+wxPython one. The plan is:
+
+- **3.10.x**: wxPython stays the default, the Qt UI is opt-in.
+- **3.11.x**: the Qt UI becomes the default, wxPython is still available.
+- **4.0.0**: Qt only.
+
+To try it, accept the offer DisplayCAL shows on startup, or enable
+**Options > Advanced > Use Qt user interface (experimental)** and restart DisplayCAL.
+You can switch back the same way from the Qt UI. The `--qt` / `--wx` command line
+flags and the `DISPLAYCAL_UI=qt` / `DISPLAYCAL_UI=wx` environment variable override
+the setting for a single launch.
+
+If something looks or behaves differently from the wxPython UI, please
+[open a bug report](https://github.com/eoyilmaz/displaycal-py3/issues/new?template=bug_report.yml)
+and choose "Qt" as the user interface.
+
 Installation Instructions
 =========================
 

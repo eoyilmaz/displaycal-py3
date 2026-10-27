@@ -106,6 +106,7 @@ from DisplayCAL.cgats import (
     CGATSTypeError,
     CGATSValueError,
 )
+from DisplayCAL.changelog import markdown_to_html
 from DisplayCAL.colormath import (
     XYZ2CCT,
     CIEDCCT2xyY,
@@ -142,6 +143,7 @@ from DisplayCAL.config import (
     restart_application,
     setcfg,
     setcfg_cond,
+    should_offer_qt_ui,
     writecfg,
 )
 from DisplayCAL.debughelpers import (
@@ -175,9 +177,9 @@ from DisplayCAL.meta import (
     DEVELOPMENT_HOME_PAGE,
     DOMAIN,
     GITHUB_API_URL,
+    VERSION_IS_PRERELEASE,
     VERSION_STRING,
     VERSION_TUPLE,
-    get_latest_changelog_entry,
 )
 from DisplayCAL.meta import (
     NAME as APPNAME,
@@ -436,7 +438,10 @@ def is_new_update() -> bool | tuple | None:
         return None
 
     current_version = VERSION_TUPLE[:3]
-    if latest_version_tuple > current_version:
+    # A pre-release is older than the release it leads up to
+    if latest_version_tuple > current_version or (
+        latest_version_tuple == current_version and VERSION_IS_PRERELEASE
+    ):
         print("New updates available!")
         return latest_version_tuple
     print("No new updates available.")
@@ -492,7 +497,6 @@ def app_update_check(
     elif snapshot:
         # Snapshot — fetch the version file directly from the project domain
         curversion_tuple = VERSION_TUPLE
-        chglog_file = "SNAPSHOT_CHANGES.html"
         resp = http_request(
             parent,
             DOMAIN,
@@ -529,7 +533,6 @@ def app_update_check(
         # Stable
         print(lang.getstr("update_check"))
         curversion_tuple = VERSION_TUPLE
-        chglog_file = "CHANGES.html"
         resp = is_new_update()
         if resp is False or resp is None:
             # No update available, or the check itself failed (network/parse
@@ -546,36 +549,34 @@ def app_update_check(
         APP_IS_UP_TO_DATE = new_version_tuple <= curversion_tuple
     if new_version_tuple > curversion_tuple:
         # Get changelog
-        resp = http_request(
-            parent, chglog_domain, "GET", "/" + chglog_file, silent=True
-        )
         chglog = None
-        if resp:
-            readme = str(resp.read())
-            if argyll:
-                chglog = readme
-            else:
-                chglog = get_latest_changelog_entry(readme)
-                if chglog:
-                    chglog = f"""<!DOCTYPE html>
+        if argyll:
+            resp = http_request(
+                parent, chglog_domain, "GET", "/" + chglog_file, silent=True
+            )
+            if resp:
+                chglog = resp.read().decode("utf-8", "replace")
+        elif not snapshot and RELEASE_DATA and RELEASE_DATA.get("body"):
+            # The GitHub release notes of the new version (Markdown)
+            chglog = f"""<!DOCTYPE html>
 <html>
 <head>
     <title></title>
 </head>
 <body>
-{chglog}
+{markdown_to_html(RELEASE_DATA["body"])}
 </body>"""
-            if chglog:
-                chglog = re.sub(
-                    re.compile(r"<h\d>(.+?)</h\d>", flags=re.I | re.S),
-                    r"<p><strong>\1</strong></p>",
-                    chglog,
-                )
-                chglog = re.sub(
-                    re.compile(r'href="(#[^"]+)"', flags=re.I),
-                    rf'href="https://{chglog_domain}/\1"',
-                    chglog,
-                )
+        if chglog:
+            chglog = re.sub(
+                re.compile(r"<h\d>(.+?)</h\d>", flags=re.I | re.S),
+                r"<p><strong>\1</strong></p>",
+                chglog,
+            )
+            chglog = re.sub(
+                re.compile(r'href="(#[^"]+)"', flags=re.I),
+                rf'href="https://{chglog_domain}/\1"',
+                chglog,
+            )
 
         if not wx.GetApp():
             return
@@ -635,7 +636,10 @@ def check_donation(parent: wx.Window, snapshot: bool) -> None:
         setcfg("show_donation_message", 1)
         # store the current version as the last_launch version
         setcfg("last_launch", VERSION_STRING)
-    if getcfg("show_donation_message"):
+    if should_offer_qt_ui():
+        # One startup dialog is enough, the donation message can wait
+        wx.CallAfter(qt_ui_message, parent)
+    elif getcfg("show_donation_message"):
         wx.CallAfter(donation_message, parent)
 
 
@@ -909,6 +913,48 @@ def donation_message(parent: None | wx.Window = None) -> None:
         show_again = not chkbox.Value
     setcfg("show_donation_message", int(show_again))
     dlg.Destroy()
+
+
+def qt_ui_message(parent: None | wx.Window = None) -> None:
+    """Offer to switch to the Qt user interface.
+
+    Accepting switches the ``ui.toolkit`` preference to Qt and restarts the
+    app. Declining asks again on the next start, unless "do not show again"
+    is checked.
+
+    Args:
+        parent (None | wx.Window, optional): The parent window for the dialog.
+    """
+    dlg = ConfirmDialog(
+        parent,
+        title=lang.getstr("ui.use_qt.offer.header"),
+        msg=lang.getstr(
+            "ui.use_qt.offer",
+            (
+                lang.getstr("menu.options"),
+                lang.getstr("advanced"),
+                lang.getstr("ui.use_qt"),
+            ),
+        ),
+        ok=lang.getstr("ui.use_qt.offer.switch"),
+        cancel=lang.getstr("not_now"),
+        bitmap=get_icon(32, "dialog-information"),
+        log=False,
+    )
+    chk = wx.CheckBox(dlg, -1, lang.getstr("dialog.do_not_show_again"))
+    dlg.sizer3.Add(chk, flag=wx.TOP | wx.ALIGN_LEFT, border=12)
+    dlg.sizer0.SetSizeHints(dlg)
+    dlg.sizer0.Layout()
+    result = dlg.ShowModal()
+    show_again = not chk.GetValue()
+    dlg.Destroy()
+    if result == wx.ID_OK:
+        setcfg("ui.toolkit", "qt")
+        show_again = False
+    setcfg("ui.offer_qt", int(show_again))
+    writecfg()
+    if result == wx.ID_OK:
+        restart_application()
 
 
 def colorimeter_correction_web_check_choose(
@@ -4365,6 +4411,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             "tc_vrml_device",
             "tc_vrml_device_colorspace",
             "tc.show",
+            "ui.offer_qt",
+            "ui.toolkit",
             "uniformity.measure.continuous",
             "untethered.measure.auto",
             "untethered.measure.manual.delay",
@@ -6240,6 +6288,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         """
         use_qt = self.menuitem_use_qt_ui.IsChecked()
         setcfg("ui.toolkit", "qt" if use_qt else "wx")
+        # The user found the switch, no need to offer it on startup anymore
+        setcfg("ui.offer_qt", 0)
         writecfg()
         dlg = ConfirmDialog(
             self,

@@ -75,7 +75,7 @@ def format_changelog(changelog, fmt="appstream"):
         changelog = re.sub(r"\s*\n+\s*", " ", changelog)
 
         # Parse into ETree
-        tree = ET.fromstring(f"<root>{changelog.encode('UTF-8')}</root>")
+        tree = ET.fromstring(f"<root>{changelog}</root>")
     else:
         raise ValueError(f"Changelog format not supported: {fmt!r}")
 

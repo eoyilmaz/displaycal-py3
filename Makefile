@@ -85,6 +85,10 @@ new-release:
 		printf "\n\033[31m--- $@: Virtualenv '$(VIRTUALENV_DIR)' not found, run 'make venv' first ---\033[0m\n"; \
 		exit 1; \
 	fi
+	@if [[ ! "$(VERSION)" =~ ^[0-9]+(\.[0-9]+)*$$ ]]; then \
+		printf "\n\033[31m--- $@: '$(VERSION)' is a pre-release, use 'make new-prerelease' ---\033[0m\n"; \
+		exit 1; \
+	fi
 	git add $(VERSION_FILE)
 	git commit -m "Version $(VERSION)"
 	git push
@@ -95,6 +99,31 @@ new-release:
 	git push origin main --tags
 	git tag -f nightly
 	git push --force origin nightly
+	@source ./$(VIRTUALENV_DIR)/bin/activate; \
+	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
+	uv pip install -r requirements.txt -r requirements-dev.txt; \
+	uv build; \
+	twine check dist/displaycal-$(VERSION).tar.gz; \
+	twine upload dist/displaycal-$(VERSION).tar.gz;
+
+# Tags a release candidate (e.g. 3.10.0rc1) on the current branch, without
+# merging into main or moving the nightly tag. The tag triggers the release
+# builds, which publish it as a GitHub pre-release.
+new-prerelease:
+	@printf "\n\033[36m--- $@: Generating New Pre-Release ---\033[0m\n"
+	@if [ ! -d "$(VIRTUALENV_DIR)" ]; then \
+		printf "\n\033[31m--- $@: Virtualenv '$(VIRTUALENV_DIR)' not found, run 'make venv' first ---\033[0m\n"; \
+		exit 1; \
+	fi
+	@if [[ ! "$(VERSION)" =~ ^[0-9]+(\.[0-9]+)*(a|b|rc)[0-9]+$$ ]]; then \
+		printf "\n\033[31m--- $@: '$(VERSION)' is not an alpha, beta or release candidate version (e.g. 3.10.0rc1) ---\033[0m\n"; \
+		exit 1; \
+	fi
+	git add $(VERSION_FILE)
+	git commit -m "Version $(VERSION)"
+	git push
+	git tag $(VERSION)
+	git push origin $(VERSION)
 	@source ./$(VIRTUALENV_DIR)/bin/activate; \
 	printf "\n\033[36m--- $@: Using python interpreter '`which python`' ---\033[0m\n"; \
 	uv pip install -r requirements.txt -r requirements-dev.txt; \

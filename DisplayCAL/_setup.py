@@ -116,7 +116,8 @@ if sys.platform in ("darwin", "win32"):
 config = {
     "data": ["tests/*.icc"],
     "doc": [
-        "CHANGES.html",
+        "CHANGELOG.md",
+        "CHANGELOG-legacy.html",
         "LICENSE.txt",
         "README.html",
         "README-fr.html",
@@ -233,7 +234,7 @@ def create_app_symlinks(dist_dir: str, scripts: list[tuple[str, str]]) -> None:
     # containing the app bundle
     for src, tgt in [
         ("ref", "Reference"),
-        ("CHANGES.html", "CHANGES.html"),
+        ("CHANGELOG.md", "CHANGELOG.md"),
         ("README.html", "README.html"),
         ("README-fr.html", "README-fr.html"),
         ("LICENSE.txt", "LICENSE.txt"),
@@ -1168,7 +1169,8 @@ def _run_install_or_uninstall(
                     "theme",
                     "ti1",
                     "x3d-viewer",
-                    "CHANGES.html",
+                    "CHANGELOG.md",
+                    "CHANGELOG-legacy.html",
                     "LICENSE.txt",
                     "README.html",
                     "README-fr.html",
@@ -1195,7 +1197,8 @@ def _run_install_or_uninstall(
                 for fname in [
                     "screenshots",
                     "theme",
-                    "CHANGES.html",
+                    "CHANGELOG.md",
+                    "CHANGELOG-legacy.html",
                     "LICENSE.txt",
                     "README.html",
                     "README-fr.html",
@@ -1303,7 +1306,8 @@ def _write_manifest_in(
             "include MANIFEST.in",
             "include README.html",
             "include README-fr.html",
-            "include CHANGES.html",
+            "include CHANGELOG.md",
+            "include CHANGELOG-legacy.html",
             f"include {NAME}*.pyw",
             f"include {NAME}-*.pyw",
             f"include {NAME}-*.py",

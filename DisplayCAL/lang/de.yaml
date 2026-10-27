@@ -3677,6 +3677,17 @@
 "ui.use_qt.confirm_restart": |-
   Das Benutzeroberflächen-Toolkit wird erst beim nächsten Start von DisplayCAL geändert. Möchten Sie DisplayCAL jetzt neu starten?
 
+"ui.use_qt.offer": |-
+  DisplayCAL enthält jetzt eine neue, mit Qt erstellte Benutzeroberfläche. Sie wird in DisplayCAL 3.11 zum Standard und ersetzt in DisplayCAL 4.0 die bisherige. Bitte probieren Sie sie aus und melden Sie auftretende Probleme auf GitHub.
+
+  Sie können jederzeit über „%s“ → „%s“ → „%s“ zurückwechseln.
+
+"ui.use_qt.offer.header": |-
+  Neue Benutzeroberfläche ausprobieren
+
+"ui.use_qt.offer.switch": |-
+  Wechseln und neu starten
+
 "unassigned": |-
   Nicht zugewiesen
 

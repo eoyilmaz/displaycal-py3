@@ -50,7 +50,8 @@ if sys.platform in ("darwin", "win32"):
 config = {
     "data": ["tests/data/icc/*.icc"],
     "doc": [
-        "CHANGES.html",
+        "CHANGELOG.md",
+        "CHANGELOG-legacy.html",
         "LICENSE.txt",
         "README.html",
         "README-fr.html",

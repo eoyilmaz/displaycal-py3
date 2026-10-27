@@ -790,3 +790,16 @@ class TestImportSessionArchive:
         result = cf.import_session_archive(request, exec_cmd=fake_exec_cmd)
 
         assert result == os.path.join(str(tmp_path / "storage"), "test", "test.icc")
+
+
+def test_restore_defaults_keeps_ui_toolkit_preferences():
+    """Restoring defaults must not silently switch a Qt user back to wx."""
+    setcfg("ui.toolkit", "qt")
+    setcfg("ui.offer_qt", 0)
+    try:
+        cf.restore_defaults()
+        assert getcfg("ui.toolkit") == "qt"
+        assert getcfg("ui.offer_qt") == 0
+    finally:
+        setcfg("ui.toolkit", None)
+        setcfg("ui.offer_qt", None)

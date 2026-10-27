@@ -2283,6 +2283,8 @@ class MainWindow(BaseWindow):
         effect immediately.
         """
         setcfg("ui.toolkit", "qt" if checked else "wx")
+        # Switching back to wx from here shouldn't bring the wx startup offer back
+        setcfg("ui.offer_qt", 0)
         writecfg()
         answer = message_box.question(
             self,

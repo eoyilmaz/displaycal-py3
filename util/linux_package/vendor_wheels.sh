@@ -14,7 +14,8 @@
 # wxPython and dbus-python are left out, PyPI only has source distributions of
 # them for Linux, so the packages depend on the distro's own builds instead
 # (python3-wxgtk4.0/python3-dbus on Debian, python3-wxpython4/python3-dbus on
-# Fedora), which the venv sees through --system-site-packages.
+# Fedora, python3-wxPython/python3-dbus-python on openSUSE), which the venv
+# sees through --system-site-packages.
 #
 # PySide6 is swapped for PySide6-Essentials, DisplayCAL only uses QtCore,
 # QtGui and QtWidgets, so the much bigger PySide6-Addons isn't needed.

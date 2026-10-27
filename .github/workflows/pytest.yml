@@ -8,6 +8,13 @@ on:
     branches:
       - develop
 
+# A new push to a pull request cancels its outdated run, so the two don't
+# compete for the scarce macOS arm64 runners (#1024). Push runs on develop
+# get a group of their own (run_id) and are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Centralized variables for easy updates
 env:
   ARGYLL_VERSION: "3.5.0"
@@ -28,7 +35,8 @@ jobs:
       DISPLAY: :0
       DEBIAN_FRONTEND: noninteractive
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Generous backstop, the real limit is on the "Test with pytest" step
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -131,6 +139,8 @@ jobs:
         uv pip install --system $wheel_file
 
     - name: Test with pytest
+      # Typically under 2 min, a hung test can't hold the runner for long
+      timeout-minutes: 5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -143,7 +153,8 @@ jobs:
   windows:
     name: Windows + Python ${{ matrix.python-version }}
     runs-on: windows-latest
-    timeout-minutes: 15
+    # Generous backstop, the real limit is on the "Test with pytest" step
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -215,6 +226,8 @@ jobs:
         uv pip install --system $wheel_file
 
     - name: Test with pytest
+      # Typically under 3 min, a hung test can't hold the runner for long
+      timeout-minutes: 5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -223,7 +236,8 @@ jobs:
   macos:
     name: macOS + Python ${{ matrix.python-version }}
     runs-on: macos-14
-    timeout-minutes: 15
+    # Generous backstop, the real limit is on the "Test with pytest" step
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -286,6 +300,8 @@ jobs:
         uv pip install --system "$wheel_file"
 
     - name: Test with pytest
+      # Typically about 5.5 min, a hung test can't hold the runner for long
+      timeout-minutes: 10
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |

@@ -140,6 +140,7 @@ from DisplayCAL.config import (
     initcfg,
     is_ccxx_testchart,
     is_profile,
+    is_ui_native_wayland,
     restart_application,
     setcfg,
     setcfg_cond,
@@ -2578,13 +2579,9 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             ):
                 # We just moved to this workspace
                 if sys.platform not in ("darwin", "win32"):
-                    # Linux
-                    if os.getenv("XDG_SESSION_TYPE") == "wayland":
-                        # Client-side decorations
-                        safety_margin = 0
-                    else:
-                        # Assume server-side decorations
-                        safety_margin = 40
+                    # Linux: client-side decorations on native Wayland,
+                    # otherwise assume server-side decorations
+                    safety_margin = 0 if is_ui_native_wayland() else 40
                 else:
                     safety_margin = 20
                 resize = False
@@ -2801,7 +2798,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         if sys.platform not in ("darwin", "win32"):
             # Linux
             # Client-side decorations in Wayland, server-side decorations in X11
-            safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
+            safety_margin = 0 if is_ui_native_wayland() else 40
         else:
             safety_margin = 20
 
@@ -2907,7 +2904,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             self.MinClientSize = minsize
         else:
             self.MinSize = (minsize[0] + borders_lr, minsize[1] + borders_tb)
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if is_ui_native_wayland():
             self.MaxSize = self.Size
             wx.CallAfter(set_maxsize, self, (-1, -1))
         if self.IsShown():
@@ -20928,7 +20925,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
 
 if (
     sys.platform == "darwin" and intlist(platform.mac_ver()[0].split(".")) >= [10, 10]
-) or os.getenv("XDG_SESSION_TYPE") == "wayland":
+) or is_ui_native_wayland():
     # Use a wx.Dialog so we can use ShowModal() which seems to be the only way to
     # center the splash screen under Wayland.
     # Under macOS, it fixes the splash screen not animating when running

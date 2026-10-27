@@ -1370,8 +1370,8 @@ def get_options_from_ti3(ti3):
 def get_pattern_geometry():
     """Return pattern geometry for pattern generator."""
     x, y, size = [float(v) for v in getcfg("dimensions.measureframe").split(",")]
-    if os.getenv("XDG_SESSION_TYPE") == "wayland":
-        # No way to get coordinates under Wayland, default to center
+    if config.is_ui_native_wayland():
+        # No way to get coordinates under native Wayland, default to center
         x = y = 0.5
     size = size * DEFAULTS["size.measureframe"]
     match = re.search(r"@ -?\d+, -?\d+, (\d+)x(\d+)", getcfg("displays", raw=True))
@@ -2892,12 +2892,13 @@ class Worker(WorkerBase):
                     # very small
                     dimensions_measureframe = "1,1,0.01"
                 else:
-                    if os.getenv("XDG_SESSION_TYPE") == "wayland":
-                        # The following is a workaround for Wayland not exposing the
-                        # absolute screen positions of a window.
-                        dimensions_measureframe = "0.5,0.5,1.5"
-                    else:
-                        dimensions_measureframe = getcfg("dimensions.measureframe")
+                    dimensions_measureframe = getcfg("dimensions.measureframe")
+                    if config.is_ui_native_wayland():
+                        # Native Wayland doesn't expose the absolute screen
+                        # position of a window, so center the patch but keep
+                        # the user's scale
+                        scale = dimensions_measureframe.split(",")[-1]
+                        dimensions_measureframe = f"0.5,0.5,{scale}"
                     if get_arg("-dcc", args):
                         # Rescale for Chromecast default patch size of 10%
                         dimensions_measureframe = config.get_measureframe_dimensions(

@@ -49,6 +49,7 @@ from wx.lib.buttons import ThemedGenButton as _ThemedGenButton
 from wx.lib.scrolledpanel import ScrolledPanel
 
 from DisplayCAL.colormath import convert_range
+from DisplayCAL.config import is_ui_native_wayland
 
 if not hasattr(wx.Window, "HasFocus"):
     # wxPython < 3.0
@@ -653,8 +654,8 @@ def set_maxsize(window, maxsize):
     window.MaxSize = maxsize
 
 
-if os.getenv("XDG_SESSION_TYPE") == "wayland":
-    # Fix erroneous extra spacing around window contents under Wayland
+if is_ui_native_wayland():
+    # Fix erroneous extra spacing around window contents under native Wayland
 
     is_first_toplevel_window = True
 

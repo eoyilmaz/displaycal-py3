@@ -220,8 +220,10 @@ def SetSaneGeometry(self, x=None, y=None, w=None, h=None):  # noqa: D417
     # is completely outside the client area of all displays
     display_client_rect = self.GetDisplay().ClientArea
     if sys.platform not in ("darwin", "win32"):  # Linux
+        from DisplayCAL.config import is_ui_native_wayland
+
         # Client-side decorations on wayland, otherwise assume server-side decorations
-        safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
+        safety_margin = 0 if is_ui_native_wayland() else 40
     else:
         safety_margin = 20
     if None not in (w, h):

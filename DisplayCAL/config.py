@@ -2573,6 +2573,60 @@ def get_ui_toolkit_override() -> None | str:
     return None
 
 
+def use_xwayland_for_ui() -> None:
+    """Run the UI under XWayland when the session is Wayland.
+
+    Wayland never tells a client its global window position, so the measure
+    frame can't be placed where the user dragged it, while Argyll's test window
+    (Argyll has no native Wayland support) runs under XWayland anyway. Running
+    the UI under XWayland too puts both in the same coordinate space.
+
+    Must be called before the GUI toolkit opens its display connection, which
+    for wx is when the ``wx.App`` is created and for Qt when the
+    ``QApplication`` is created. ``GDK_BACKEND`` and ``QT_QPA_PLATFORM`` the
+    user has set themselves are left alone, so ``GDK_BACKEND=wayland`` or
+    ``QT_QPA_PLATFORM=wayland`` still give a native Wayland UI.
+    """
+    if os.getenv("XDG_SESSION_TYPE") != "wayland" or not os.getenv("DISPLAY"):
+        # Not a Wayland session, or no XWayland server to fall back to
+        return
+    os.environ.setdefault("GDK_BACKEND", "x11")
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+    print(
+        "Wayland session, UI backend:",
+        f"GDK_BACKEND={os.environ['GDK_BACKEND']}",
+        f"QT_QPA_PLATFORM={os.environ['QT_QPA_PLATFORM']}",
+    )
+
+
+def is_ui_native_wayland() -> bool:
+    """Check whether the UI runs as a native Wayland client.
+
+    Unlike checking ``XDG_SESSION_TYPE``, this is False when the UI runs under
+    XWayland in a Wayland session (see :func:`use_xwayland_for_ui`), where
+    window positions can be read and set as under X11. Use it for things that
+    depend on the UI backend, e.g. the measure frame position, and keep the
+    ``XDG_SESSION_TYPE`` check for things that depend on the session, e.g.
+    installing profiles through colord.
+
+    Returns:
+        bool: True if the UI runs as a native Wayland client.
+    """
+    if os.getenv("XDG_SESSION_TYPE") != "wayland":
+        return False
+    if "qtpy" in sys.modules:
+        from qtpy.QtGui import QGuiApplication
+
+        app = QGuiApplication.instance()
+        if app is not None:
+            # Qt UI: ask Qt which platform plugin it actually loaded
+            return app.platformName().startswith("wayland")
+    # wx UI: the first GDK backend in the list wins, GDK prefers Wayland if
+    # none is given
+    backend = os.getenv("GDK_BACKEND", "").split(",")[0].strip()
+    return backend in ("", "*", "wayland")
+
+
 def should_offer_qt_ui() -> bool:
     """Check whether the wx UI should offer to switch to the Qt UI on startup.
 

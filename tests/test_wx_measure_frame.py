@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 import wx
 from _pytest.fixtures import SubRequest
@@ -25,8 +27,12 @@ def fixture_size_in_mm(request: SubRequest) -> tuple[int, int]:
     (True, False),
     ids=("with_real_display_size_mm", "without_real_display_size_mm"),
 )
-def test_get_default_size_1(real_display: bool, size_in_mm: tuple[int, int]) -> None:
+def test_get_default_size_1(
+    real_display: bool, size_in_mm: tuple[int, int], monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Testing wx_measure_frame.get_default_size() function."""
+    # Cover the fallback used when there is no X screen to ask
+    monkeypatch.setattr(real_display_size_mm, "get_x_screen_px_per_mm", lambda: None)
     with check_call_str("DisplayCAL.wx_measure_frame.getcfg", DisplayData.CFG_DATA):
         with check_call_str(
             "DisplayCAL.wx_measure_frame.get_display_number",
@@ -50,6 +56,18 @@ def test_get_default_size_1(real_display: bool, size_in_mm: tuple[int, int]) -> 
                         result = get_default_size()
     assert isinstance(result, int)
     assert result > 1
+
+
+def test_get_default_size_x_screen(monkeypatch: pytest.MonkeyPatch) -> None:
+    """get_default_size() matches Argyll's X11 window, sized from the X screen."""
+    monkeypatch.setattr(
+        real_display_size_mm, "get_x_screen_px_per_mm", lambda: (3.78, 3.77)
+    )
+    # The monitor's own size must not be consulted
+    real_size = mock.MagicMock(return_value=(600, 340))
+    monkeypatch.setattr(real_display_size_mm, "real_display_size_mm", real_size)
+    assert get_default_size() == 378
+    real_size.assert_not_called()
 
 
 @pytest.mark.skip(

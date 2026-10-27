@@ -56,6 +56,12 @@ def get_default_size():
 
     This function is used internally.
     """
+    if real_display_size_mm and (
+        px_per_mm := real_display_size_mm.get_x_screen_px_per_mm()
+    ):
+        # Argyll's X11 test window is sized from the X screen, match it so the
+        # scale passed to -P gives the size the user picked
+        return round(100.0 * max(px_per_mm))
     display_sizes = []
     display_sizes_mm = []
     for display_no in range(len(getcfg("displays"))):
@@ -144,7 +150,7 @@ class MeasureFrame(InvincibleFrame):
 
     def __init__(self, parent=None, id=-1):  # noqa: A002
         style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
-        if os.getenv("XDG_SESSION_TYPE") != "wayland" and getcfg(
+        if not config.is_ui_native_wayland() and getcfg(
             "patterngenerator.use_pattern_window"
         ):
             style |= wx.STAY_ON_TOP
@@ -158,7 +164,7 @@ class MeasureFrame(InvincibleFrame):
         )
         self.SetIcons(config.get_icon_bundle([256, 48, 32, 16], APPNAME))
         self.Bind(wx.EVT_CLOSE, self.close_handler, self)
-        if os.getenv("XDG_SESSION_TYPE") != "wayland":
+        if not config.is_ui_native_wayland():
             self.Bind(wx.EVT_MOVE, self.move_handler, self)
         self.Bind(wx.EVT_SHOW, self.show_handler)
         self.Bind(wx.EVT_KILL_FOCUS, self.focus_lost_handler)
@@ -166,7 +172,7 @@ class MeasureFrame(InvincibleFrame):
         self.panel = BitmapBackgroundPanel(self)
         self.panel.scalebitmap = (False, False)
 
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if config.is_ui_native_wayland():
             self.sizer = wx.FlexGridSizer(3, 1, 0, 0)
             self.sizer.AddGrowableCol(0)
             self.sizer.AddGrowableRow(1)
@@ -243,8 +249,8 @@ class MeasureFrame(InvincibleFrame):
         )
         self.zoomoutbutton.SetToolTipString(lang.getstr("measureframe.zoomout"))
 
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
-            # No manual centering under Wayland...
+        if config.is_ui_native_wayland():
+            # No manual centering under native Wayland...
             self.centermsg = wx.StaticText(
                 self.panel,
                 -1,
@@ -273,7 +279,7 @@ class MeasureFrame(InvincibleFrame):
         self.vsizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.vsizer, flag=wx.ALIGN_BOTTOM | wx.ALIGN_CENTER_HORIZONTAL)
 
-        if os.getenv("XDG_SESSION_TYPE") != "wayland" or config.is_virtual_display():
+        if not config.is_ui_native_wayland() or config.is_virtual_display():
             self.measure_darken_background_cb = wx.CheckBox(
                 self.panel, -1, lang.getstr("measure.darken_background")
             )
@@ -500,7 +506,7 @@ class MeasureFrame(InvincibleFrame):
         self._last_set_size = size[0]
         if (
             sys.platform not in ("darwin", "win32")
-            and os.getenv("XDG_SESSION_TYPE") != "wayland"
+            and not config.is_ui_native_wayland()
             and not os.getenv("XDG_CURRENT_DESKTOP", "").startswith("KDE")
             and hasattr(self, "MaxClientSize")
         ):

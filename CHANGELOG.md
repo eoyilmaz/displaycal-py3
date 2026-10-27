@@ -60,6 +60,7 @@ DisplayCAL 3.10.0 is the first release that ships a second user interface built 
 
 #### 🐧 Linux
 
+- Fixed the test patch always being drawn in the centre of the screen at a fixed size on Wayland, wherever the measurement window was placed and however it was zoomed. DisplayCAL now runs under XWayland in a Wayland session, like ArgyllCMS, so both agree on window positions. Set `GDK_BACKEND=wayland` (wx) or `QT_QPA_PLATFORM=wayland` (Qt) to keep a native Wayland UI. The patch is then still centred, but at the size you picked. Also fixed the Qt measurement window forgetting where it was moved on Linux, and the test patch coming out bigger or smaller than the measurement window when the X screen's DPI didn't match the monitor's real size (always the case under XWayland, which reports 96 DPI). ([#1020](https://github.com/eoyilmaz/displaycal-py3/issues/1020) by @eoyilmaz)
 - Fixed installing profiles through colord on Wayland. ([#974](https://github.com/eoyilmaz/displaycal-py3/pull/974) by @ahjulstad)
 - Fixed the profile creation worker processes aborting on Linux, by starting them with `spawn` instead of `fork`. ([#1013](https://github.com/eoyilmaz/displaycal-py3/pull/1013) by @eoyilmaz)
 - Fixed the AppImage and Flatpak builds. ([#963](https://github.com/eoyilmaz/displaycal-py3/pull/963), [#1000](https://github.com/eoyilmaz/displaycal-py3/pull/1000) by @eoyilmaz)

@@ -898,7 +898,7 @@ class BaseApp(wx.App):
         self._lock = threading.Lock()
         self.Bind(wx.EVT_QUERY_END_SESSION, self.query_end_session)
         self.Bind(wx.EVT_END_SESSION, self.end_session)
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if config.is_ui_native_wayland():
             # Fix erroneous extra spacing around window contents under
             # Wayland. First frame will get size right, but not min size,
             # so create a 'dummy' frame, call Show() which is needed so
@@ -2506,7 +2506,7 @@ class BaseFrame(wx.Frame):
         if sys.platform not in ("darwin", "win32"):  # Linux
             # Client-side decorations on wayland,
             # otherwise assume server-side decorations
-            safety_margin = 0 if os.getenv("XDG_SESSION_TYPE") == "wayland" else 40
+            safety_margin = 0 if config.is_ui_native_wayland() else 40
         else:
             safety_margin = 20
         w, h = 0, 0
@@ -2524,7 +2524,7 @@ class BaseFrame(wx.Frame):
             min(clientarea[3] - border_tb - safety_margin, self.ClientSize[1]),
         )
         if not self.IsIconized() and not self.IsMaximized():
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
+            if config.is_ui_native_wayland():
                 self.MaxSize = (-1, -1)
             if (
                 minsize[0] > clientsize[0]
@@ -2533,7 +2533,7 @@ class BaseFrame(wx.Frame):
             ):
                 if not getattr(self, "_layout", False):
                     clientsize = minsize
-                elif os.getenv("XDG_SESSION_TYPE") != "wayland":
+                elif not config.is_ui_native_wayland():
                     # XXX this causes brief flickering to previous height on
                     # manual resize under Wayland
                     clientsize = clientsize[0], minsize[1]
@@ -2545,7 +2545,7 @@ class BaseFrame(wx.Frame):
                 self._layout = True
             else:
                 self.Layout()
-            if os.getenv("XDG_SESSION_TYPE") == "wayland":
+            if config.is_ui_native_wayland():
                 self.MaxSize = self.Size
                 wx.CallAfter(set_maxsize, self, (-1, -1))
         self.Sizer.SetMinSize((minsize[0], minsize[1]))
@@ -3669,7 +3669,7 @@ class FileBrowseBitmapButtonWithChoiceHistory(filebrowse.FileBrowseButtonWithHis
             return
         value = list(value)
 
-        if os.getenv("XDG_SESSION_TYPE") == "wayland":
+        if config.is_ui_native_wayland():
             # When the number of items in a dropdown popup menu exceeds
             # the available display client area height, the popup menu
             # gets shown at weird positions or not at all under Wayland.

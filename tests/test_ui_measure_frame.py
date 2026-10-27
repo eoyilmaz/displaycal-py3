@@ -234,3 +234,39 @@ def test_close_guard_allow_closes_and_emits_frame_closed(qapp):
         assert not frame.isVisible()
     finally:
         frame.deleteLater()
+
+
+def test_main_writes_config_on_exit(monkeypatch):
+    """The standalone frame writes the config before exiting.
+
+    The parent process reloads it from disk to pick up the chosen geometry.
+    """
+    from unittest.mock import MagicMock
+
+    from DisplayCAL.ui import measure_frame as mf
+
+    writecfg = MagicMock()
+    monkeypatch.setattr(mf.config, "initcfg", MagicMock())
+    monkeypatch.setattr(mf.config, "writecfg", writecfg)
+    monkeypatch.setattr(mf, "Application", MagicMock())
+    monkeypatch.setattr(mf, "Worker", MagicMock())
+    monkeypatch.setattr(mf, "MeasureFrame", MagicMock(exitcode=1))
+
+    assert mf.main() == 0
+    writecfg.assert_called_once_with()
+
+
+def test_default_size_follows_x_screen(qapp, monkeypatch):
+    """The 100 mm default matches Argyll's X11 window, sized from the X screen."""
+    from DisplayCAL.ui import measure_frame
+
+    monkeypatch.setattr(
+        measure_frame.real_display_size_mm,
+        "get_x_screen_px_per_mm",
+        lambda: (3.78, 3.77),
+    )
+    frame = MeasureFrame()
+    try:
+        assert frame._default_measureframe_size() == 378.0
+    finally:
+        frame.deleteLater()

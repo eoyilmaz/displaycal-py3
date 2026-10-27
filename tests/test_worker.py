@@ -43,6 +43,7 @@ from DisplayCAL.worker import (
     extract_device_gray_primaries,
     get_argyll_version_string,
     get_options_from_profile,
+    get_pattern_geometry,
 )
 from tests.data.display_data import DisplayData
 
@@ -274,6 +275,46 @@ def test_add_measurement_features_rejects_spyder2024_oled(monkeypatch):
     finally:
         setcfg("measurement_mode", measurement_mode)
     assert isinstance(result, Error)
+
+
+@pytest.mark.parametrize(
+    "native_wayland, expected",
+    [(False, "-P0.1,0.9,2.5"), (True, "-P0.5,0.5,2.5")],
+)
+def test_add_measurement_features_measureframe(monkeypatch, native_wayland, expected):
+    """The measure frame position is passed on unless the UI is native Wayland.
+
+    On native Wayland only the user's scale is kept and the patch is centered.
+    """
+    worker = Worker()
+    worker.argyll_version = [3, 5, 0]
+    worker.argyll_version_string = "3.5.0"
+    monkeypatch.setattr(worker, "get_instrument_name", lambda: "i1 DisplayPro")
+    monkeypatch.setattr(config, "get_display_name", lambda *args: "Monitor 1")
+    monkeypatch.setattr(config, "is_ui_native_wayland", lambda: native_wayland)
+    measureframe = getcfg("dimensions.measureframe")
+    setcfg("dimensions.measureframe", "0.1,0.9,2.5")
+    args = ["-v"]
+    try:
+        result = worker.add_measurement_features(args, display=True)
+    finally:
+        setcfg("dimensions.measureframe", measureframe)
+    assert result is True
+    assert expected in args
+
+
+@pytest.mark.parametrize("native_wayland", [False, True])
+def test_get_pattern_geometry_position(monkeypatch, native_wayland):
+    """The pattern is only forced to the center on native Wayland."""
+    monkeypatch.setattr(config, "get_display_name", lambda *args: "Monitor 1")
+    monkeypatch.setattr(config, "is_ui_native_wayland", lambda: native_wayland)
+    measureframe = getcfg("dimensions.measureframe")
+    setcfg("dimensions.measureframe", "0,0,1.0")
+    try:
+        x, y, _w, _h, _size = get_pattern_geometry()
+    finally:
+        setcfg("dimensions.measureframe", measureframe)
+    assert (x > 0 and y > 0) is native_wayland
 
 
 # @pytest.mark.skip(reason="Test segfaults with python 3.12 - further investigation required.")

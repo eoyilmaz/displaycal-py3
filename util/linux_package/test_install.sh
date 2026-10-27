@@ -5,6 +5,7 @@
 #
 # Usage: util/linux_package/test_install.sh <image> <package_file>
 #   e.g. util/linux_package/test_install.sh debian:trixie dist/displaycal.deb
+#        util/linux_package/test_install.sh opensuse/tumbleweed dist/displaycal.rpm
 #
 # The distro dependencies are installed first (with network, from the
 # distro's own repositories), the result is committed to a temporary image
@@ -26,7 +27,17 @@ case "${PACKAGE_NAME}" in
     ;;
   *.rpm)
     DEPENDS="$(rpm -qpR "${PACKAGE}" | grep -v '^rpmlib(' | sed "s/.*/'&'/" | tr '\n' ' ')"
-    INSTALL_DEPS="dnf install -y ${DEPENDS}"
+    # zypper hangs resolving rich deps like "(a or b)" given on its command
+    # line, but resolves them fine from a package's metadata, so install the
+    # package itself and drop it again (with everything its post-install
+    # script created) before the offline install (#1022).
+    INSTALL_DEPS="if command -v zypper >/dev/null; then
+        zypper --non-interactive install --no-recommends --allow-unsigned-rpm /pkg/${PACKAGE_NAME}
+        rpm -e --nodeps --noscripts \$(rpm -qp --qf '%{NAME}' /pkg/${PACKAGE_NAME})
+        rm -rf /opt/displaycal
+      else
+        dnf install -y ${DEPENDS}
+      fi"
     INSTALL_PACKAGE="rpm -i /pkg/${PACKAGE_NAME}"
     ;;
   *)
@@ -36,7 +47,8 @@ case "${PACKAGE_NAME}" in
 esac
 
 echo "::group::Installing the distro dependencies in ${IMAGE}"
-CONTAINER="$(docker create "${IMAGE}" sh -c "${INSTALL_DEPS}")"
+CONTAINER="$(docker create --volume "${PACKAGE_DIR}:/pkg:ro" "${IMAGE}" sh -c "set -e
+  ${INSTALL_DEPS}")"
 trap 'docker rm -f "${CONTAINER}" >/dev/null 2>&1 || true; docker rmi -f "${DEPS_IMAGE}" >/dev/null 2>&1 || true' EXIT
 docker start --attach "${CONTAINER}"
 docker commit "${CONTAINER}" "${DEPS_IMAGE}" >/dev/null

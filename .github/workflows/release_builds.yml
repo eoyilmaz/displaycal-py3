@@ -370,6 +370,11 @@ jobs:
       - name: Build RPM package
         run: |
           RPM_VERSION=$(echo "${{ env.PKG_VERSION }}" | tr '-' '_' | tr '+' '.')
+          # Fedora and openSUSE name their packages differently, so depend on
+          # sonames for the libraries and on "or" deps for wxPython and
+          # dbus-python (Fedora first, openSUSE second). openSUSE only gives
+          # its python3-* provides to the flavor /usr/bin/python3 belongs to,
+          # so the venv's Python always matches the one they're built for (#1022)
           fpm \
             -s dir \
             -t rpm \
@@ -383,18 +388,20 @@ jobs:
             --rpm-summary "Display calibration and profiling" \
             --category "Applications/Multimedia" \
             --depends "python3 >= 3.11" \
-            --depends "python3-wxpython4" \
-            --depends "python3-dbus" \
-            --depends "mesa-libEGL" \
-            --depends "mesa-libGL" \
-            --depends "fontconfig" \
-            --depends "libxkbcommon" \
-            --depends "libxkbcommon-x11" \
-            --depends "xcb-util-cursor" \
-            --depends "xcb-util-wm" \
-            --depends "xcb-util-image" \
-            --depends "xcb-util-keysyms" \
-            --depends "xcb-util-renderutil" \
+            --depends "(python3-wxpython4 or python3-wxPython)" \
+            --depends "(python3-dbus or python3-dbus-python)" \
+            --depends "libEGL.so.1()(64bit)" \
+            --depends "libGL.so.1()(64bit)" \
+            --depends "libfontconfig.so.1()(64bit)" \
+            --depends "libxkbcommon.so.0()(64bit)" \
+            --depends "libxkbcommon-x11.so.0()(64bit)" \
+            --depends "libxcb-cursor.so.0()(64bit)" \
+            --depends "libxcb-icccm.so.4()(64bit)" \
+            --depends "libxcb-image.so.0()(64bit)" \
+            --depends "libxcb-keysyms.so.1()(64bit)" \
+            --depends "libxcb-render-util.so.0()(64bit)" \
+            --depends "libxcb-shape.so.0()(64bit)" \
+            --depends "libxcb-xinerama.so.0()(64bit)" \
             --after-install util/linux_package/postinstall.sh \
             --before-remove util/linux_package/preremove.sh \
             -C /tmp/displaycal-staging \
@@ -407,7 +414,9 @@ jobs:
           for image in debian:bookworm ubuntu:24.04 debian:trixie; do
             util/linux_package/test_install.sh "${image}" dist/*.deb
           done
-          util/linux_package/test_install.sh fedora:43 dist/*.rpm
+          for image in fedora:43 opensuse/tumbleweed opensuse/leap:16.0; do
+            util/linux_package/test_install.sh "${image}" dist/*.rpm
+          done
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4

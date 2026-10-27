@@ -16,6 +16,7 @@ DisplayCAL 3.10.0 is the first release that ships a second user interface built 
   - Please [report](https://github.com/eoyilmaz/displaycal-py3/issues/new?template=bug_report.yml) anything that looks or behaves differently from the wx UI, and choose "Qt" as the user interface in the bug report.
 - **Python 3.11 is now the minimum.** Python 3.9 and 3.10 are no longer supported. ([#1001](https://github.com/eoyilmaz/displaycal-py3/pull/1001) by @eoyilmaz)
 - **The DEB and RPM packages install offline.** All Python dependencies are bundled as wheels, so installing no longer downloads or compiles anything. ([#1012](https://github.com/eoyilmaz/displaycal-py3/pull/1012) by @eoyilmaz)
+- **The RPM package installs on openSUSE Tumbleweed and Leap 16.** It depends on library sonames instead of Fedora's package names, so the same RPM works on Fedora and openSUSE. ([#1022](https://github.com/eoyilmaz/displaycal-py3/issues/1022) by @eoyilmaz)
 
 ### 🚀 Improvements
 

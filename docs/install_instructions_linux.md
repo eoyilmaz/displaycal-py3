@@ -38,17 +38,25 @@ code). Pick whichever matches your distro/preference:
   sudo apt install ./DisplayCAL-<version>-Linux-amd64.deb
   ```
 
-* `DisplayCAL-<version>-Linux-x86_64.rpm`, for Fedora and other RPM-based distros
-  using Fedora's package names:
+* `DisplayCAL-<version>-Linux-x86_64.rpm`, for Fedora, openSUSE Tumbleweed / Leap 16
+  and other RPM-based distros:
 
   ```shell
+  # Fedora
   sudo dnf install ./DisplayCAL-<version>-Linux-x86_64.rpm
+
+  # openSUSE Tumbleweed / Leap 16, the RPM isn't signed, so zypper needs to be told to accept it
+  sudo zypper install --allow-unsigned-rpm ./DisplayCAL-<version>-Linux-x86_64.rpm
   ```
 
   Both the DEB and the RPM need Python 3.11 to 3.14 and glibc 2.34 or newer (Debian
-  12, Ubuntu 24.04, Fedora or later). wxPython and dbus-python are installed from your
-  distro's own repositories, every other Python dependency is bundled in the package
-  itself, so installing it doesn't download anything from PyPI or compile anything.
+  12, Ubuntu 24.04, Fedora, openSUSE Tumbleweed / Leap 16 or later). wxPython and
+  dbus-python are installed from your distro's own repositories, every other Python
+  dependency is bundled in the package itself, so installing it doesn't download
+  anything from PyPI or compile anything.
+
+  openSUSE Leap 15 ships Python 3.6 as its `python3`, so it can't use the RPM, please
+  use the Flatpak or AppImage there.
 
 * `DisplayCAL-<version>-Linux-x86_64.flatpak`, distro-independent:
 

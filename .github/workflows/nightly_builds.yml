@@ -415,10 +415,12 @@ jobs:
             done
           done
 
-          # udev rules (installed to the distro-managed location)
+          # udev rules (installed to the distro-managed location). Renamed, as
+          # the distros' own Argyll packages ship 55-Argyll.rules there too,
+          # which made the packages conflict (#1022)
           mkdir -p "${STAGING}/usr/lib/udev/rules.d"
-          cp misc/55-Argyll.rules "${STAGING}/usr/lib/udev/rules.d/"
-          cp misc/45-Argyll.rules "${STAGING}/usr/lib/udev/rules.d/"
+          cp misc/55-Argyll.rules "${STAGING}/usr/lib/udev/rules.d/55-DisplayCAL-Argyll.rules"
+          cp misc/45-Argyll.rules "${STAGING}/usr/lib/udev/rules.d/45-DisplayCAL-Argyll.rules"
 
           # AppStream metadata
           mkdir -p "${STAGING}/usr/share/metainfo"

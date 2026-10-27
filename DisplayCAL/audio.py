@@ -416,6 +416,13 @@ def _init_pyglet() -> None:
         pyglet.lib.LibraryLoader.linux_not_found_error = ""
         # Set audio driver preference
         pyglet.options["audio"] = ("pulse", "openal", "directsound", "silent")
+        # pyglet's GStreamer decoder runs a GLib main loop on the default
+        # main context in a background thread as soon as pyglet.media is
+        # imported. That thread then also dispatches the GTK timers wx (and
+        # Qt) rely on, so they fire off the main thread and wx asserts on
+        # every timer (#1022). Our sounds are all WAV files, which pyglet
+        # decodes without GStreamer, so keep it from loading.
+        sys.modules.setdefault("pyglet.media.codecs.gstreamer", None)
         _SERVER = pyglet.media
         _LIB_VERSION = pyglet.version
 

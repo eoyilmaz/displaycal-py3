@@ -580,6 +580,10 @@ class QtProfileLoader(profile_loader.ProfileLoader):
             # tray menu's own _is_other_running() checks) excludes our own
             # process by pid.
             self._pid = os.getpid()
+            # Also matches wx's setup_taskbar_icon(): the inherited
+            # calibration-loading logic sets/reads the gamma ramps via gdi32.
+            if exception := self._init_gdi32():
+                self.notify([], [str(exception)], show_notification=True)
             self._check_display_conf_thread = threading.Thread(
                 target=self._check_display_conf_wrapper,
                 name="DisplayConfigurationMonitoring",

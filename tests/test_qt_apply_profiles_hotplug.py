@@ -219,6 +219,10 @@ def test_setup_ui_starts_hotplug_thread_on_windows(qapp, monkeypatch):
     monkeypatch.setattr(
         "DisplayCAL.ui.tools.apply_profiles.threading.Thread", _FakeThread
     )
+    windll = mock.Mock()
+    monkeypatch.setattr(
+        "DisplayCAL.profile_loader.ctypes.windll", windll, raising=False
+    )
 
     pl = _make_pl(monkeypatch)
     pl._skip = False
@@ -231,6 +235,43 @@ def test_setup_ui_starts_hotplug_thread_on_windows(qapp, monkeypatch):
         "started": True,
     }
     assert pl._pid == os.getpid()
+    # Inherited apply_profiles()/_check_display_conf() need gdi32 for the
+    # gamma ramps (AttributeError on QtProfileLoader missing gdi32).
+    assert pl.gdi32 is windll.gdi32
+
+
+def test_setup_ui_notifies_when_gdi32_fails_to_load(qapp, monkeypatch):
+    monkeypatch.setattr("DisplayCAL.ui.tools.apply_profiles.sys.platform", "win32")
+    monkeypatch.setattr(
+        "DisplayCAL.ui.tools.apply_profiles.QSystemTrayIcon.isSystemTrayAvailable",
+        staticmethod(lambda: False),
+    )
+    monkeypatch.setattr(
+        "DisplayCAL.ui.tools.apply_profiles._ScriptingHost",
+        lambda pl: mock.Mock(),
+    )
+    monkeypatch.setattr(
+        "DisplayCAL.ui.tools.apply_profiles.threading.Thread",
+        lambda *a, **k: mock.Mock(),
+    )
+
+    class _BrokenWindll:
+        @property
+        def gdi32(self):
+            raise OSError("gdi32 not found")
+
+    monkeypatch.setattr(
+        "DisplayCAL.profile_loader.ctypes.windll", _BrokenWindll(), raising=False
+    )
+
+    pl = _make_pl(monkeypatch)
+    pl._skip = False
+    monkeypatch.setattr(pl, "notify", mock.Mock())
+
+    pl._setup_ui()
+
+    assert pl.gdi32 is None
+    pl.notify.assert_called_once_with([], ["gdi32 not found"], show_notification=True)
 
 
 def test_setup_ui_does_not_start_hotplug_thread_off_windows(qapp, monkeypatch):

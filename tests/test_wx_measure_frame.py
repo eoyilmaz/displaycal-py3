@@ -61,10 +61,10 @@ def test_get_default_size_1(
     assert result > 1
 
 
-def test_get_default_size_is_factor_times_100mm(
+def test_get_default_size_is_100mm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The default measure frame size is MEASUREFRAME_DEFAULT_SIZE_FACTOR x 100 mm."""
+    """The default measure frame size is 100 mm."""
     monkeypatch.setattr(
         wx_measure_frame,
         "getcfg",

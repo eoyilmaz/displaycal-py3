@@ -16,7 +16,6 @@ from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     DEFAULTS,
-    MEASUREFRAME_DEFAULT_SIZE_FACTOR,
     SCALE_ADJUSTMENT_FACTOR,
     get_argyll_display_number,
     get_default_dpi,
@@ -139,10 +138,8 @@ def get_argyll_measureframe_dimensions(dimensions_measureframe: str) -> str:
 def get_default_size():
     """Get and return the default size for the window in pixels.
 
-    The default size is always equivalent to ``MEASUREFRAME_DEFAULT_SIZE_FACTOR``
-    times 100 x 100 mm according to the display's size as returned by the
-    real_display_size_mm() function, which uses the same code as Argyll to
-    determine that size.
+    The default size is always equivalent to 100 x 100 mm according to the display's size as returned by the
+    real_display_size_mm() function, which uses the same code as Argyll to determine that size.
 
     This function is used internally.
     """
@@ -224,7 +221,7 @@ def get_default_size():
     if DEBUG:
         print("[D]  H px_per_mm:", px_per_mm[0])
         print("[D]  V px_per_mm:", px_per_mm[1])
-    return round(MEASUREFRAME_DEFAULT_SIZE_FACTOR * 100.0 * max(px_per_mm))
+    return round(100.0 * max(px_per_mm))
 
 
 class MeasureFrame(InvincibleFrame):

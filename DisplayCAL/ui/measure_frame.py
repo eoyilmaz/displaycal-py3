@@ -52,7 +52,6 @@ from DisplayCAL import config
 from DisplayCAL import localization as lang
 from DisplayCAL.config import (
     DEFAULTS,
-    MEASUREFRAME_DEFAULT_SIZE_FACTOR,
     SCALE_ADJUSTMENT_FACTOR,
     get_argyll_display_number,
     getcfg,
@@ -93,8 +92,7 @@ def default_measureframe_size(
     """Return the default patch size, in pixels, for a display.
 
     Mirrors ``wx_measure_frame.get_default_size``: the default patch is
-    ``MEASUREFRAME_DEFAULT_SIZE_FACTOR`` times 100 mm square, converted to
-    pixels via the display's physical size.
+    100 mm square, converted to pixels via the display's physical size.
 
     Args:
         display_size_px (tuple[int, int]): Display size in pixels (w, h).
@@ -107,7 +105,7 @@ def default_measureframe_size(
         display_size_px[0] / display_size_mm[0],
         display_size_px[1] / display_size_mm[1],
     )
-    return round(MEASUREFRAME_DEFAULT_SIZE_FACTOR * 100.0 * px_per_mm)
+    return round(100.0 * px_per_mm)
 
 
 def resolve_screen_size_mm(

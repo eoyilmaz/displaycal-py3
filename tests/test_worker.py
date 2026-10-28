@@ -312,6 +312,28 @@ def test_add_measurement_features_measureframe(monkeypatch, native_wayland, expe
     assert expected in args
 
 
+def test_add_measurement_features_chromecast_skips_measureframe_conversion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Chromecast sizing is percentage-based and must not use X-pixel units."""
+    worker = Worker()
+    worker.argyll_version = [3, 5, 0]
+    worker.argyll_version_string = "3.5.0"
+    monkeypatch.setattr(worker, "get_instrument_name", lambda: "i1 DisplayPro")
+    monkeypatch.setattr(config, "get_display_name", lambda *args: "Monitor 1")
+    monkeypatch.setattr(config, "is_ui_native_wayland", lambda: False)
+    monkeypatch.setattr(
+        config, "get_measureframe_dimensions", lambda dimensions, percent: "0.5,0.5,2.0"
+    )
+    monkeypatch.setattr(
+        "DisplayCAL.worker.get_argyll_measureframe_dimensions",
+        lambda dimensions: pytest.fail("Chromecast dimensions must not be converted"),
+    )
+    args = ["-v", "-dcc"]
+    assert worker.add_measurement_features(args, display=True) is True
+    assert "-P0.5,0.5,2.0" in args
+
+
 @pytest.mark.parametrize("native_wayland", [False, True])
 def test_get_pattern_geometry_position(monkeypatch, native_wayland):
     """The pattern is only forced to the center on native Wayland."""

@@ -84,13 +84,14 @@ def test_get_default_size_is_100mm(
             return 1
 
     monkeypatch.setattr(wx_measure_frame.wx, "Display", FakeDisplay)
-    # 100 mm at 2560 px / 600 mm density, scaled by the default size factor:
-    # round(1.5 * 100 * 2560 / 600)
-    assert get_default_size() == 640
+    # 100 mm at 2560 px / 600 mm density: round(100 * 2560 / 600)
+    assert get_default_size() == 427
 
 
 def test_get_ui_to_x_scale_factor(monkeypatch: pytest.MonkeyPatch) -> None:
     """The UI to X scale factor is the X screen size over the UI screen size."""
+    monkeypatch.setattr(wx_measure_frame.sys, "platform", "linux")
+    monkeypatch.setenv("DISPLAY", ":0")
     monkeypatch.setattr(
         real_display_size_mm, "get_x_screen_size", lambda: (8960, 2880, 2371, 762)
     )
@@ -148,6 +149,37 @@ def test_get_argyll_measureframe_dimensions_without_x_screen(
     """Without an X screen, the scale is passed through unchanged."""
     monkeypatch.setattr(real_display_size_mm, "get_x_screen_px_per_mm", lambda: None)
     assert get_argyll_measureframe_dimensions("0.25,0.5,1.5") == "0.25,0.5,1.5"
+
+
+def test_get_argyll_measureframe_dimensions_clamps_scale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The converted Argyll scale does not exceed its maximum of 50."""
+    monkeypatch.setattr(
+        real_display_size_mm, "get_x_screen_px_per_mm", lambda: (3.78, 3.77)
+    )
+    monkeypatch.setattr(wx_measure_frame, "get_default_size", lambda: 427)
+    monkeypatch.setattr(wx_measure_frame, "get_ui_to_x_scale_factor", lambda: 2.0)
+    result = get_argyll_measureframe_dimensions("0.25,0.5,50")
+    assert result == "0.25,0.5,50.0"
+
+
+def test_get_argyll_measureframe_dimensions_uses_qt_frame_size(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Qt conversion uses the per-screen base stored by the Qt measure frame."""
+    qt_gui = mock.Mock()
+    qt_gui.QGuiApplication.instance.return_value = object()
+    monkeypatch.setitem(sys.modules, "qtpy", mock.Mock())
+    monkeypatch.setitem(sys.modules, "qtpy.QtGui", qt_gui)
+    monkeypatch.setattr(wx_measure_frame, "get_default_size", lambda: pytest.fail())
+    monkeypatch.setattr(wx_measure_frame, "get_ui_to_x_scale_factor", lambda: 2.0)
+    monkeypatch.setitem(wx_measure_frame.DEFAULTS, "size.measureframe", 427)
+    monkeypatch.setattr(
+        real_display_size_mm, "get_x_screen_px_per_mm", lambda: (3.78, 3.77)
+    )
+    result = get_argyll_measureframe_dimensions("0.25,0.5,1.5")
+    assert result == f"0.25,0.5,{1.5 * 427 * 2 / 378}"
 
 
 @pytest.mark.skip(

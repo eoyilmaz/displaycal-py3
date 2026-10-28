@@ -2905,11 +2905,12 @@ class Worker(WorkerBase):
                         dimensions_measureframe = config.get_measureframe_dimensions(
                             dimensions_measureframe, 10
                         )
-                    # The stored scale is in measure frame (UI pixel) units,
-                    # Argyll's test window is sized in X screen pixels
-                    dimensions_measureframe = get_argyll_measureframe_dimensions(
-                        dimensions_measureframe
-                    )
+                    else:
+                        # The stored scale is in measure frame (UI pixel) units,
+                        # Argyll's test window is sized in X screen pixels
+                        dimensions_measureframe = get_argyll_measureframe_dimensions(
+                            dimensions_measureframe
+                        )
                 args.append(f"-P{dimensions_measureframe}")
             farg = get_arg("-F", args, True)
             if (

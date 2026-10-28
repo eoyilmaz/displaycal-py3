@@ -131,7 +131,23 @@ def get_argyll_measureframe_dimensions(dimensions_measureframe: str) -> str:
         px_per_mm := real_display_size_mm.get_x_screen_px_per_mm()
     ):
         base_argyll = 100.0 * max(px_per_mm)
-        scale = scale * get_default_size() * get_ui_to_x_scale_factor() / base_argyll
+        if "qtpy" in sys.modules:
+            from qtpy.QtGui import QGuiApplication
+
+            qt_app = QGuiApplication.instance()
+        else:
+            qt_app = None
+        base_measureframe = (
+            float(DEFAULTS["size.measureframe"])
+            if qt_app is not None
+            else float(get_default_size())
+        )
+        scale = min(
+            scale * base_measureframe * get_ui_to_x_scale_factor() / base_argyll,
+            50.0,
+        )
+    else:
+        scale = min(scale, 50.0)
     return ",".join(str(n) for n in (x, y, scale))
 
 

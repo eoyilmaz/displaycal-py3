@@ -130,6 +130,10 @@ def test_get_argyll_measureframe_dimensions(monkeypatch: pytest.MonkeyPatch) -> 
     """
     # X screen reports 96 DPI (XWayland), display 0 is 2560 px wide over
     # 600 mm, so the measure frame base is round(100 * 2560 / 600) = 427
+    qt_gui = mock.Mock()
+    qt_gui.QGuiApplication.instance.return_value = None
+    monkeypatch.setitem(sys.modules, "qtpy", mock.Mock())
+    monkeypatch.setitem(sys.modules, "qtpy.QtGui", qt_gui)
     monkeypatch.setattr(
         real_display_size_mm, "get_x_screen_px_per_mm", lambda: (3.78, 3.77)
     )

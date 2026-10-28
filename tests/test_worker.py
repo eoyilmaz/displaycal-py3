@@ -279,12 +279,13 @@ def test_add_measurement_features_rejects_spyder2024_oled(monkeypatch):
 
 @pytest.mark.parametrize(
     "native_wayland, expected",
-    [(False, "-P0.1,0.9,2.5"), (True, "-P0.5,0.5,2.5")],
+    [(False, "-P0.1,0.9,4.711"), (True, "-P0.5,0.5,4.711")],
 )
 def test_add_measurement_features_measureframe(monkeypatch, native_wayland, expected):
     """The measure frame position is passed on unless the UI is native Wayland.
 
     On native Wayland only the user's scale is kept and the patch is centered.
+    The stored scale is converted to Argyll ``-P`` units either way.
     """
     worker = Worker()
     worker.argyll_version = [3, 5, 0]
@@ -292,6 +293,14 @@ def test_add_measurement_features_measureframe(monkeypatch, native_wayland, expe
     monkeypatch.setattr(worker, "get_instrument_name", lambda: "i1 DisplayPro")
     monkeypatch.setattr(config, "get_display_name", lambda *args: "Monitor 1")
     monkeypatch.setattr(config, "is_ui_native_wayland", lambda: native_wayland)
+
+    def fake_convert(dimensions_measureframe):
+        x, y, _scale = dimensions_measureframe.split(",")
+        return f"{x},{y},4.711"
+
+    monkeypatch.setattr(
+        "DisplayCAL.worker.get_argyll_measureframe_dimensions", fake_convert
+    )
     measureframe = getcfg("dimensions.measureframe")
     setcfg("dimensions.measureframe", "0.1,0.9,2.5")
     args = ["-v"]
@@ -1197,7 +1206,7 @@ def test_prepare_colprof_for_271(monkeypatch, data_path):
     worker.prepare_colprof()
 
 
-def test_prepare_dispcal_1():
+def test_prepare_dispcal_1(monkeypatch: pytest.MonkeyPatch):
     """Worker.prepare_dispcal() return value should be quoted properly."""
     # prepare_dispcal() builds its arg list from many getcfg() calls, which
     # only fall back to config.DEFAULTS for options that were never set.
@@ -1220,6 +1229,11 @@ def test_prepare_dispcal_1():
     original_cfg = dict(config.CFG["Default"])
     for name in list(config.CFG["Default"]):
         setcfg(name, None)
+    # The -P scale is converted to Argyll units where there is an X screen to
+    # ask; not relevant for this test, keep the pass-through behavior
+    monkeypatch.setattr(
+        "DisplayCAL.worker.get_argyll_measureframe_dimensions", lambda dims: dims
+    )
     try:
         worker = Worker()
         return_val = worker.prepare_dispcal()

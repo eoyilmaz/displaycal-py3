@@ -291,6 +291,7 @@ from DisplayCAL.worker_base import (
 from DisplayCAL.wx_addons import BetterCallLater, BetterWindowDisabler, wx
 from DisplayCAL.wx_display_adjustment_frame import DisplayAdjustmentFrame
 from DisplayCAL.wx_display_uniformity_frame import DisplayUniformityFrame
+from DisplayCAL.wx_measure_frame import get_argyll_measureframe_dimensions
 from DisplayCAL.wx_untethered_frame import UntetheredFrame
 from DisplayCAL.wx_windows import (
     ConfirmDialog,
@@ -2904,6 +2905,11 @@ class Worker(WorkerBase):
                         dimensions_measureframe = config.get_measureframe_dimensions(
                             dimensions_measureframe, 10
                         )
+                    # The stored scale is in measure frame (UI pixel) units,
+                    # Argyll's test window is sized in X screen pixels
+                    dimensions_measureframe = get_argyll_measureframe_dimensions(
+                        dimensions_measureframe
+                    )
                 args.append(f"-P{dimensions_measureframe}")
             farg = get_arg("-F", args, True)
             if (

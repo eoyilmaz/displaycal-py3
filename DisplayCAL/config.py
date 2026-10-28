@@ -190,6 +190,14 @@ else:  # Linux
     EXE_EXT = ""
     PROFILE_EXT = ".icc"
 
+#: The default measure frame edge length as a multiple of 100 x 100 mm
+#: according to the measured display's density. Larger than the physical size
+#: ArgyllCMS uses for ``-P`` scale 1.0, so the default measurement area is
+#: easier to place the measurement device on; the scale passed to ``-P`` is
+#: converted to match, see
+#: :func:`DisplayCAL.wx_measure_frame.get_argyll_measureframe_dimensions()`.
+MEASUREFRAME_DEFAULT_SIZE_FACTOR = 1.5
+
 STORAGE = os.path.join(DATA_HOME, "storage")
 
 RES_FILES = [

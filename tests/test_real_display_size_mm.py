@@ -349,3 +349,42 @@ def test_get_x_screen_px_per_mm(
     monkeypatch.setattr(DisplayCAL, "xrandr", xrandr, raising=False)
     assert real_display_size_mm.get_x_screen_px_per_mm() == expected
     x_display.__enter__.return_value.screen_size.assert_called_once_with(0)
+
+
+@pytest.mark.parametrize(
+    "platform,display", [("win32", ":0"), ("darwin", ":0"), ("linux", None)]
+)
+def test_get_x_screen_size_without_x_screen(
+    monkeypatch: MonkeyPatch, platform: str, display: None | str
+) -> None:
+    """get_x_screen_size() returns None if there is no X screen to ask."""
+    monkeypatch.setattr(real_display_size_mm.sys, "platform", platform)
+    if display is None:
+        monkeypatch.delenv("DISPLAY", raising=False)
+    else:
+        monkeypatch.setenv("DISPLAY", display)
+    assert real_display_size_mm.get_x_screen_size() is None
+
+
+@pytest.mark.parametrize(
+    "screen_size,expected",
+    [
+        ((3840, 1200, 1016, 318), (3840, 1200, 1016, 318)),
+        ((3840, 1200, 0, 0), (3840, 1200, 0, 0)),
+    ],
+)
+def test_get_x_screen_size(
+    monkeypatch: MonkeyPatch, screen_size: tuple, expected: None | tuple
+) -> None:
+    """get_x_screen_size() returns the X screen's size in pixels and mm."""
+    monkeypatch.setattr(real_display_size_mm.sys, "platform", "linux")
+    monkeypatch.setenv("DISPLAY", ":0.0")
+    x_display = mock.MagicMock()
+    x_display.__enter__.return_value.screen_size.return_value = screen_size
+    # A fake xrandr module, the real one can't be imported without libX11
+    xrandr = mock.MagicMock()
+    xrandr.XDisplay.return_value = x_display
+    monkeypatch.setitem(sys.modules, "DisplayCAL.xrandr", xrandr)
+    monkeypatch.setattr(DisplayCAL, "xrandr", xrandr, raising=False)
+    assert real_display_size_mm.get_x_screen_size() == expected
+    x_display.__enter__.return_value.screen_size.assert_called_once_with(0)

@@ -375,6 +375,30 @@ def get_wayland_display(x: int, y: int, w: int, h: int) -> None | dict:
     return None
 
 
+def get_x_screen_size() -> tuple[int, int, int, int] | None:
+    """Return the X screen's size in pixels and millimetres.
+
+    ArgyllCMS sizes its X11 test window from the X screen's size in mm, not
+    from the size of the monitor the window is on, so the measure frame has to
+    use the same density for the scale it passes to ``-P`` to match. XWayland
+    always reports 96 DPI here, whatever the monitors' real sizes are.
+
+    Returns:
+        tuple[int, int, int, int] | None: Width and height in pixels, then
+        width and height in millimetres, or None if there is no X display to
+        ask (e.g. on macOS and Windows).
+    """
+    if sys.platform in ("darwin", "win32") or not os.getenv("DISPLAY"):
+        return None
+    try:
+        from DisplayCAL import xrandr
+
+        with xrandr.XDisplay() as x_display:
+            return x_display.screen_size(_get_x_display()[2])
+    except (ImportError, ValueError):
+        return None
+
+
 def get_x_screen_px_per_mm() -> tuple[float, float] | None:
     """Return the X screen's horizontal and vertical pixels per mm.
 
@@ -387,17 +411,10 @@ def get_x_screen_px_per_mm() -> tuple[float, float] | None:
         tuple[float, float] | None: The pixels per mm, or None if there is no
         X display to ask (e.g. on macOS and Windows).
     """
-    if sys.platform in ("darwin", "win32") or not os.getenv("DISPLAY"):
+    size = get_x_screen_size()
+    if size is None:
         return None
-    try:
-        from DisplayCAL import xrandr
-
-        with xrandr.XDisplay() as x_display:
-            width, height, width_mm, height_mm = x_display.screen_size(
-                _get_x_display()[2]
-            )
-    except (ImportError, ValueError):
-        return None
+    width, height, width_mm, height_mm = size
     if not (width_mm and height_mm):
         return None
     return width / width_mm, height / height_mm

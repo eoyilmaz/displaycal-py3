@@ -22,6 +22,7 @@ pytest.importorskip("qtpy")
 from DisplayCAL import config  # noqa: E402
 from DisplayCAL import localization as lang  # noqa: E402
 from DisplayCAL.ui import colorimeter_correction_io as ccio  # noqa: E402
+from DisplayCAL.ui import file_dialog  # noqa: E402
 from DisplayCAL.worker import Worker  # noqa: E402
 
 
@@ -270,7 +271,7 @@ class TestImportController:
 
         monkeypatch.setattr(ccio._ImportOptionsDialog, "exec_", _fake_exec)
         monkeypatch.setattr(
-            ccio.QFileDialog,
+            file_dialog.QFileDialog,
             "getOpenFileNames",
             lambda *a, **k: (["/tmp/DeviceCorrections.txt"], ""),
         )

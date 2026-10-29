@@ -36,7 +36,6 @@ from typing import Callable
 from qtpy.QtCore import QObject, Qt, QThread, Signal
 from qtpy.QtWidgets import (
     QDialog,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
     QProgressDialog,
@@ -50,7 +49,7 @@ from DisplayCAL import localization as lang
 from DisplayCAL.argyll import check_set_argyll_bin, get_argyll_util
 from DisplayCAL.config import getcfg
 from DisplayCAL.meta import DOMAIN
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.worker_runner import PasswordPromptAdapter
 from DisplayCAL.util_os import getenvu, safe_glob
 from DisplayCAL.worker import Worker
@@ -241,7 +240,7 @@ class Spyder2EnableController(QObject):
 
         path = None
         if dialog.mode == "files":
-            path, _filter = QFileDialog.getOpenFileName(
+            path, _filter = file_dialog.get_open_file_name(
                 self._parent,
                 lang.getstr("file.select"),
                 "",

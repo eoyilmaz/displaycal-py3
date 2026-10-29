@@ -24,6 +24,7 @@ from DisplayCAL import config  # noqa: E402
 from DisplayCAL import localization as lang  # noqa: E402
 from DisplayCAL.config import setcfg  # noqa: E402
 from DisplayCAL.icc_profile import ICCProfile  # noqa: E402
+from DisplayCAL.ui import file_dialog  # noqa: E402
 from DisplayCAL.ui.tools import curve_viewer as cv  # noqa: E402
 from DisplayCAL.worker import Worker  # noqa: E402
 
@@ -184,7 +185,7 @@ def test_save_cal_writes_vcgt_file(panel, monkeypatch, tmp_path):
     panel.set_mode("vcgt")
     out_path = str(tmp_path / "out.cal")
     monkeypatch.setattr(
-        cv.QFileDialog, "getSaveFileName", lambda *a, **k: (out_path, "")
+        file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: (out_path, "")
     )
 
     panel._save_cal()
@@ -198,7 +199,7 @@ def test_save_cal_noop_when_dialog_cancelled(panel, monkeypatch, tmp_path):
     profile = ICCProfile(_VCGT_PROFILE)
     panel.set_profile(profile)
     panel.set_mode("vcgt")
-    monkeypatch.setattr(cv.QFileDialog, "getSaveFileName", lambda *a, **k: ("", ""))
+    monkeypatch.setattr(file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: ("", ""))
 
     panel._save_cal()  # must not raise despite no chosen path
 
@@ -209,7 +210,7 @@ def test_save_plot_exports_image(panel, monkeypatch, tmp_path):
     panel.set_mode("vcgt")
     out_path = str(tmp_path / "out.png")
     monkeypatch.setattr(
-        cv.QFileDialog, "getSaveFileName", lambda *a, **k: (out_path, "")
+        file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: (out_path, "")
     )
 
     panel._save_plot()

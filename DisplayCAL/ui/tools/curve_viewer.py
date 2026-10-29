@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -54,7 +53,7 @@ from DisplayCAL.config import (
 )
 from DisplayCAL.icc_profile import VideoCardGammaType
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -763,7 +762,7 @@ class CurvePanel(QWidget):
         )[0]
         default_dir, _ = get_verified_path("last_filedialog_path")
         default_path = os.path.join(default_dir, f"{mode_label} {base}.png")
-        path, _selected_filter = QFileDialog.getSaveFileName(
+        path, _selected_filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             default_path,
@@ -789,7 +788,7 @@ class CurvePanel(QWidget):
         )[0]
         default_dir, _ = get_verified_path("last_filedialog_path")
         default_path = os.path.join(default_dir, f"{base}.cal")
-        path, _selected_filter = QFileDialog.getSaveFileName(
+        path, _selected_filter = file_dialog.get_save_file_name(
             self, lang.getstr("save_as"), default_path, "CAL (*.cal)"
         )
         if not path:

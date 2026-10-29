@@ -49,7 +49,6 @@ from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QButtonGroup,
     QCheckBox,
-    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -68,7 +67,7 @@ from DisplayCAL.argyll import check_set_argyll_bin
 from DisplayCAL.config import get_verified_path, getcfg, setcfg, writecfg
 from DisplayCAL.icc_profile import ICCProfile, ICCProfileInvalidError
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -233,7 +232,7 @@ class InstallProfileWindow(BaseWindow):
 
     def _browse(self) -> None:
         default_dir, default_file = get_verified_path("last_icc_path")
-        path, _ = QFileDialog.getOpenFileName(
+        path, _ = file_dialog.get_open_file_name(
             self,
             lang.getstr("install_display_profile"),
             f"{default_dir}/{default_file}" if default_file else default_dir,

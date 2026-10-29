@@ -23,6 +23,7 @@ os.environ.setdefault("QT_API", "pyside6")
 
 pytest.importorskip("qtpy")
 
+from DisplayCAL.ui import file_dialog  # noqa: E402
 from DisplayCAL.ui.tools import profile_loader_exceptions as ple  # noqa: E402
 
 BAR_PATH = os.path.join("apps", "bar", "bar.exe")
@@ -140,7 +141,7 @@ def test_known_app_rejected_on_browse(qapp, monkeypatch):
     dialog = _make_dialog(qapp, known_apps={"known.exe"})
     try:
         monkeypatch.setattr(
-            ple.QFileDialog,
+            file_dialog.QFileDialog,
             "getOpenFileName",
             staticmethod(lambda *a, **k: (KNOWN_APP_PATH, "")),
         )
@@ -161,7 +162,7 @@ def test_add_new_executable(qapp, monkeypatch):
     dialog = _make_dialog(qapp)
     try:
         monkeypatch.setattr(
-            ple.QFileDialog,
+            file_dialog.QFileDialog,
             "getOpenFileName",
             staticmethod(lambda *a, **k: (NEW_PATH, "")),
         )
@@ -180,7 +181,7 @@ def test_add_existing_selects_row_without_duplicating(qapp, monkeypatch):
     dialog = _make_dialog(qapp, exceptions=exceptions)
     try:
         monkeypatch.setattr(
-            ple.QFileDialog,
+            file_dialog.QFileDialog,
             "getOpenFileName",
             staticmethod(lambda *a, **k: (NEW_PATH, "")),
         )
@@ -197,7 +198,7 @@ def test_browse_edit_to_different_exe_drops_stale_entry(qapp, monkeypatch):
     try:
         dialog.table.selectRow(0)
         monkeypatch.setattr(
-            ple.QFileDialog,
+            file_dialog.QFileDialog,
             "getOpenFileName",
             staticmethod(lambda *a, **k: (BAR_PATH, "")),
         )

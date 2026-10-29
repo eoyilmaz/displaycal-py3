@@ -135,7 +135,6 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
-    QFileDialog,
     QFormLayout,
     QFrame,
     QGridLayout,
@@ -213,7 +212,7 @@ from DisplayCAL.log import LOGBUFFER
 from DisplayCAL.meta import DEVELOPMENT_HOME_PAGE, DOMAIN, VERSION_STRING
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.options import TEST
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.about_window import AboutWindow
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.assets import (
@@ -1634,7 +1633,7 @@ class MainWindow(BaseWindow):
         if self._check_show_macos_bugs_warning(cal=False) is False:
             return
         default_dir, default_file = get_verified_path("last_ti3_path")
-        paths, _filter = QFileDialog.getOpenFileNames(
+        paths, _filter = file_dialog.get_open_file_names(
             self,
             lang.getstr("create_profile"),
             os.path.join(default_dir, default_file or ""),
@@ -1697,7 +1696,7 @@ class MainWindow(BaseWindow):
             default_dir, default_file = os.path.split(first_path)
             setcfg("last_ti3_path", first_path)
 
-        save_path, _filter = QFileDialog.getSaveFileName(
+        save_path, _filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, os.path.basename(source_filename) + PROFILE_EXT),
@@ -1833,7 +1832,7 @@ class MainWindow(BaseWindow):
         default_dir = get_verified_path(
             None, os.path.join(getcfg("profile.save_path"), default_file)
         )[0]
-        path, _filter = QFileDialog.getSaveFileName(
+        path, _filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, default_file),
@@ -1915,7 +1914,7 @@ class MainWindow(BaseWindow):
         :meth:`install_profile_btn_handler`'s current-profile shortcut.
         """
         default_dir, default_file = get_verified_path("last_icc_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("install_display_profile"),
             os.path.join(default_dir, default_file or ""),
@@ -2034,7 +2033,7 @@ class MainWindow(BaseWindow):
         """
         default_dir = os.path.join(*get_verified_path("argyll.dir"))
         while True:
-            path = QFileDialog.getExistingDirectory(
+            path = file_dialog.get_existing_directory(
                 self, lang.getstr("dialog.set_argyll_bin"), default_dir
             )
             if not path:
@@ -2808,7 +2807,7 @@ class MainWindow(BaseWindow):
         open it.
         """
         default_dir, default_file = get_verified_path("last_filedialog_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("measurement_report.update"),
             default_dir if default_file else "",
@@ -6390,7 +6389,7 @@ class MainWindow(BaseWindow):
         default_dir, default_file = config.get_verified_path(
             None, ccmx[-1] if ccmx else ""
         )
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("colorimeter_correction_matrix_file.choose"),
             default_dir if default_file else config.get_argyll_data_dir(),
@@ -7607,7 +7606,7 @@ class MainWindow(BaseWindow):
         default_dir, _default_file = get_verified_path(
             None, os.path.join(getcfg("profile.save_path"), context.default_file)
         )
-        path, _selected_filter = QFileDialog.getSaveFileName(
+        path, _selected_filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, context.default_file),
@@ -7701,7 +7700,7 @@ class MainWindow(BaseWindow):
         profile_save_path = profile.filename
         if not profile_save_path or not os.path.isfile(profile_save_path):
             default_dir, default_file = os.path.split(profile_save_path or "")
-            path, _filter = QFileDialog.getSaveFileName(
+            path, _filter = file_dialog.get_save_file_name(
                 self,
                 lang.getstr("save_as"),
                 os.path.join(default_dir, default_file),
@@ -7853,7 +7852,7 @@ class MainWindow(BaseWindow):
             if clicked is not browse_button:
                 return None
         default_dir, default_file = get_verified_path("last_icc_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("profile.choose"),
             os.path.join(default_dir, default_file or ""),
@@ -7875,7 +7874,7 @@ class MainWindow(BaseWindow):
         if not check_set_argyll_bin():
             return
         default_dir, default_file = get_verified_path("last_specplot_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("specplot.choose"),
             os.path.join(default_dir, default_file or ""),
@@ -8168,7 +8167,7 @@ class MainWindow(BaseWindow):
         pipeline the File menu's ``create_profile`` action uses.
         """
         default_dir, default_file = get_verified_path("last_ti3_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("measurement_file.choose"),
             os.path.join(default_dir, default_file or ""),
@@ -8220,7 +8219,7 @@ class MainWindow(BaseWindow):
             self._run_create_profile([tmp_path], skip_ti3_check=True)
             return
 
-        save_path, _filter = QFileDialog.getSaveFileName(
+        save_path, _filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(os.path.dirname(path), os.path.basename(path)),
@@ -8469,7 +8468,7 @@ class MainWindow(BaseWindow):
     def _testchart_btn_handler(self) -> None:
         """Browse for a testchart/profile file and load it as the testchart."""
         default_dir, default_file = get_verified_path("testchart.file")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("dialog.set_testchart"),
             os.path.join(default_dir, default_file),
@@ -8524,6 +8523,10 @@ class MainWindow(BaseWindow):
         """
         if path is None:
             path = getcfg("testchart.file")
+        if path != "auto":
+            # Earlier Qt builds stored forward slash paths from QFileDialog on
+            # Windows, which never match the testchart list (issue 1028)
+            path = os.path.normpath(path)
         filename, ext = os.path.splitext(path)
         ti1_path = f"{filename}.ti1"
         if (
@@ -8669,7 +8672,7 @@ class MainWindow(BaseWindow):
         """Choose the directory profiles/calibrations are saved under."""
         default_path = os.path.join(*get_verified_path("profile.save_path"))
         profile_name = getcfg("profile.name.expanded")
-        path = QFileDialog.getExistingDirectory(
+        path = file_dialog.get_existing_directory(
             self,
             lang.getstr("dialog.set_profile_save_path", profile_name),
             default_path,
@@ -9236,7 +9239,7 @@ class MainWindow(BaseWindow):
         """
         default_dir, _default_file = get_verified_path("last_3dlut_path")
         if file_format == "ReShade":
-            directory = QFileDialog.getExistingDirectory(
+            directory = file_dialog.get_existing_directory(
                 self, lang.getstr("3dlut.install"), default_dir
             )
             if not directory:
@@ -9246,7 +9249,7 @@ class MainWindow(BaseWindow):
             file_format, file_format.lower()
         )
         default_file = os.path.splitext(os.path.basename(lut3d_path))[0] + "." + ext
-        path, _filter = QFileDialog.getSaveFileName(
+        path, _filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("3dlut.save_as"),
             os.path.join(default_dir, default_file),
@@ -9481,7 +9484,7 @@ class MainWindow(BaseWindow):
         if not check_set_argyll_bin():
             return
         default_dir, default_file = get_verified_path("last_cal_or_icc_path")
-        path, _filter = QFileDialog.getOpenFileName(
+        path, _filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("calibration.load_from_cal_or_profile"),
             os.path.join(default_dir, default_file or ""),
@@ -10328,7 +10331,7 @@ class MainWindow(BaseWindow):
     def load_cal_btn_handler(self) -> None:
         """Prompt for a calibration/profile file and load it."""
         default_dir, default_file = get_verified_path("last_cal_or_icc_path")
-        path, _selected_filter = QFileDialog.getOpenFileName(
+        path, _selected_filter = file_dialog.get_open_file_name(
             self,
             lang.getstr("calibration.load_from_cal_or_profile"),
             f"{default_dir}/{default_file}" if default_file else default_dir,
@@ -10628,7 +10631,7 @@ class MainWindow(BaseWindow):
         sevenzip = get_program_file("7z", "7-zip")
         file_format = "7z" if sevenzip else "zip"
         default_dir, _default_file = get_verified_path("last_archive_save_path")
-        archive_path, selected_filter = QFileDialog.getSaveFileName(
+        archive_path, selected_filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("archive.create"),
             os.path.join(default_dir, f"{os.path.basename(path_name)}.{file_format}"),

@@ -38,7 +38,6 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
-    QFileDialog,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -79,7 +78,7 @@ from DisplayCAL.icc_profile import (
 )
 from DisplayCAL.log import LOG
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -1504,7 +1503,7 @@ class SynthICCWindow(BaseWindow):
         default_dir, _ = get_verified_path("last_icc_path")
         default_file = lang.getstr("unnamed")
         wildcard = f"{lang.getstr('filetype.icc')} (*{PROFILE_EXT})"
-        path, _ = QFileDialog.getSaveFileName(
+        path, _ = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, default_file),

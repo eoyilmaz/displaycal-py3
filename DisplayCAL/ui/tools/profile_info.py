@@ -20,7 +20,6 @@ from qtpy.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
     QComboBox,
-    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QHeaderView,
@@ -40,7 +39,7 @@ from DisplayCAL.argyll import make_argyll_compatible_path
 from DisplayCAL.config import get_data_path, getcfg, setcfg
 from DisplayCAL.icc_profile import ICCProfile
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -684,7 +683,7 @@ class ProfileInfoWindow(BaseWindow):
             default_path = (
                 os.path.join(default_dir, default_file) if default_file else default_dir
             )
-            path, _ = QFileDialog.getOpenFileName(
+            path, _ = file_dialog.get_open_file_name(
                 self,
                 lang.getstr("profile.choose"),
                 default_path,
@@ -915,7 +914,7 @@ class ProfileInfoWindow(BaseWindow):
         # Grab whichever plot is showing (gamut page vs the curve panel).
         target = self.plot if self.views.currentIndex() == 0 else self.curve_panel.plot
         default = f"{self.mode_combo.currentText()}.png"
-        path, _ = QFileDialog.getSaveFileName(
+        path, _ = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             default,

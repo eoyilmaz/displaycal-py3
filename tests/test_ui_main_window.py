@@ -5921,7 +5921,8 @@ def test_create_profile_action_handler_runs_with_selected_paths(window, monkeypa
         window, "_run_create_profile", lambda paths: run_calls.append(paths)
     )
     window._create_profile_action_handler()
-    assert run_calls == [["/a.ti3", "/b.ti3"]]
+    # The file_dialog wrapper normalizes the separators (backslashes on Windows)
+    assert run_calls == [[os.path.normpath("/a.ti3"), os.path.normpath("/b.ti3")]]
 
 
 def test_build_file_menu_matches_wx_xrc_order(window):

@@ -229,12 +229,20 @@ def test_install_runs_worker_and_reports_success(qapp, window, monkeypatch):
         Worker, "install_profile", lambda self, *a, **k: (True, None, None, None)
     )
     infos = []
-    monkeypatch.setattr(piw.QMessageBox, "information", lambda *a, **k: infos.append(a))
+    monkeypatch.setattr(
+        piw.QMessageBox,
+        "information",
+        lambda *a, **k: infos.append(window.isVisible()),
+    )
+    window.show()
 
     window._install()
     assert _spin_until(qapp, lambda: window._thread is None)
 
-    assert infos
+    # The result is shown while the window is still open, then it closes
+    # like the wx dialog does.
+    assert infos == [True]
+    assert not window.isVisible()
     assert window.install_btn.isEnabled()
 
 
@@ -250,9 +258,11 @@ def test_install_reports_exception(qapp, window, monkeypatch):
     monkeypatch.setattr(Worker, "install_profile", fake_install)
     errors = []
     monkeypatch.setattr(piw.QMessageBox, "critical", lambda *a, **k: errors.append(a))
+    window.show()
 
     window._install()
     assert _spin_until(qapp, lambda: window._thread is None)
 
     assert errors
     assert "dispwin exploded" in errors[0][2]
+    assert not window.isVisible()

@@ -348,8 +348,12 @@ class InstallProfileWindow(BaseWindow):
         self.install_btn.setEnabled(True)
         if isinstance(result, Exception):
             message_box.critical(self, self.windowTitle(), str(result))
-            return
-        show_install_summary(self, self.windowTitle(), result)
+        else:
+            show_install_summary(self, self.windowTitle(), result)
+        # wx's install dialog is gone once the install ran, close this window
+        # too. Closed after the result was shown, as closing the last window
+        # first would quit the standalone tool before the result is seen.
+        self.close()
 
 
 def show_install_summary(parent: QWidget | None, title: str, result: tuple) -> None:

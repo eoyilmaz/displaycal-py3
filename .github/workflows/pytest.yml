@@ -235,7 +235,7 @@ jobs:
 
   macos:
     name: macOS + Python ${{ matrix.python-version }}
-    runs-on: macos-14
+    runs-on: macos-15
     # Generous backstop, the real limit is on the "Test with pytest" step
     timeout-minutes: 30
 

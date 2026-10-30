@@ -47,21 +47,118 @@ except ImportError as exception:
     warnings.warn(str(exception), Warning, stacklevel=2)
 
 
-def get_default_size():
-    """Get and return the default size for the window in pixels.
+def get_ui_to_x_scale_factor() -> float:
+    """Return how many X screen pixels one UI (logical) pixel spans.
 
-    The default size is always equivalent to 100 x 100 mm according
-    to the display's size as returned by the real_display_size_mm() function,
-    which uses the same code as Argyll to determine that size.
+    UI toolkits size top-level windows in logical pixels, which the desktop
+    scales up (HiDPI / fractional scaling) before they reach the X screen,
+    while Argyll's X11 test window is sized in raw X screen pixels. The ratio
+    of the X screen's pixel size to the UI screen size converts between the
+    two.
 
-    This function is used internally.
+    Returns:
+        float: X screen pixels per UI pixel, or 1.0 if it cannot be
+        determined (macOS, Windows, or no X display or running UI).
     """
+    if sys.platform in ("darwin", "win32") or not os.getenv("DISPLAY"):
+        # UI pixels map 1:1 to screen pixels
+        return 1.0
+    x_screen = (
+        real_display_size_mm.get_x_screen_size() if real_display_size_mm else None
+    )
+    if not x_screen or not x_screen[0]:
+        return 1.0
+    if "qtpy" in sys.modules:
+        from qtpy.QtGui import QGuiApplication
+
+        app = QGuiApplication.instance()
+        if app is None:
+            return 1.0
+        screens = app.screens()
+        if not screens:
+            return 1.0
+        left = min(screen.geometry().x() for screen in screens)
+        top = min(screen.geometry().y() for screen in screens)
+        width = (
+            max(screen.geometry().x() + screen.geometry().width() for screen in screens)
+            - left
+        )
+        height = (
+            max(
+                screen.geometry().y() + screen.geometry().height() for screen in screens
+            )
+            - top
+        )
+    else:
+        if wx.GetApp() is None:
+            return 1.0
+        display_rects = [wx.Display(i).Geometry for i in range(wx.Display.GetCount())]
+        if not display_rects:
+            return 1.0
+        ui_rect = display_rects[0]
+        for rect in display_rects[1:]:
+            ui_rect = ui_rect.Union(rect)
+        width = ui_rect.width
+        height = ui_rect.height
+    if not (width and height):
+        return 1.0
+    # Match the axis of the larger density, like get_default_size
+    return max(x_screen[0] / width, x_screen[1] / height)
+
+
+def get_argyll_measureframe_dimensions(dimensions_measureframe: str) -> str:
+    """Convert measure frame dimensions to the scale units Argyll expects.
+
+    The scale stored in ``dimensions.measureframe`` is relative to the
+    measure frame's own default size (100 x 100 mm according to the measured
+    display's density, in UI pixels), while Argyll's X11 test window is sized
+    from the X screen's density in raw X screen pixels, which can differ from
+    the display's density (XWayland reports 96 DPI) and from the UI pixel
+    size (HiDPI scaling). Convert the scale so the test window is drawn at
+    the same size the measure frame had; the relative position is passed
+    through unchanged as it is unit-independent.
+
+    Args:
+        dimensions_measureframe (str): The measure frame dimensions as
+            ``"x,y,scale"`` with x and y in the range 0.0...1.0.
+
+    Returns:
+        str: The dimensions as ``"x,y,scale"`` with the scale in Argyll
+        ``-P`` units.
+    """
+    x, y, scale = [float(v) for v in dimensions_measureframe.split(",")]
     if real_display_size_mm and (
         px_per_mm := real_display_size_mm.get_x_screen_px_per_mm()
     ):
-        # Argyll's X11 test window is sized from the X screen, match it so the
-        # scale passed to -P gives the size the user picked
-        return round(100.0 * max(px_per_mm))
+        base_argyll = 100.0 * max(px_per_mm)
+        if "qtpy" in sys.modules:
+            from qtpy.QtGui import QGuiApplication
+
+            qt_app = QGuiApplication.instance()
+        else:
+            qt_app = None
+        base_measureframe = (
+            float(DEFAULTS["size.measureframe"])
+            if qt_app is not None
+            else float(get_default_size())
+        )
+        scale = min(
+            scale * base_measureframe * get_ui_to_x_scale_factor() / base_argyll,
+            50.0,
+        )
+    else:
+        scale = min(scale, 50.0)
+    return ",".join(str(n) for n in (x, y, scale))
+
+
+def get_default_size():
+    """Get and return the default size for the window in pixels.
+
+    The default size is always equivalent to 100 x 100 mm according to the display's size as returned by the
+    real_display_size_mm() function, which uses the same code as Argyll to determine that size.
+
+    This function is used internally.
+    """
     display_sizes = []
     display_sizes_mm = []
     for display_no in range(len(getcfg("displays"))):

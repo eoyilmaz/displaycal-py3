@@ -29,7 +29,7 @@ DEFAULT_SIZE = 300.0
 
 
 def test_default_measureframe_size_uses_larger_axis():
-    """The 100 mm patch uses the axis with the highest pixel density."""
+    """The default patch uses the axis with the highest pixel density."""
     # 1920 / 510 mm ~= 3.76 px/mm is the denser axis here.
     result = default_measureframe_size((1920, 1080), (510.0, 287.0))
     assert result == round(100.0 * 1920 / 510.0)
@@ -256,17 +256,24 @@ def test_main_writes_config_on_exit(monkeypatch):
     writecfg.assert_called_once_with()
 
 
-def test_default_size_follows_x_screen(qapp, monkeypatch):
-    """The 100 mm default matches Argyll's X11 window, sized from the X screen."""
+
+def test_default_size_uses_display_physical_size(qapp, monkeypatch):
+    """The 100 mm default comes from the display's own physical size."""
     from DisplayCAL.ui import measure_frame
 
     monkeypatch.setattr(
-        measure_frame.real_display_size_mm,
-        "get_x_screen_px_per_mm",
-        lambda: (3.78, 3.77),
+        measure_frame,
+        "resolve_screen_size_mm",
+        lambda screen, geometry: [600.0, 340.0],
     )
     frame = MeasureFrame()
     try:
-        assert frame._default_measureframe_size() == 378.0
+        geo = frame._current_screen().geometry()
+        expected = float(
+            measure_frame.default_measureframe_size(
+                (geo.width(), geo.height()), [600.0, 340.0]
+            )
+        )
+        assert frame._default_measureframe_size() == expected
     finally:
         frame.deleteLater()

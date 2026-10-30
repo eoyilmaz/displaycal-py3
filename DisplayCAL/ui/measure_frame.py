@@ -89,9 +89,9 @@ if TYPE_CHECKING:
 def default_measureframe_size(
     display_size_px: tuple[int, int], display_size_mm: tuple[float, float]
 ) -> int:
-    """Return the 100x100 mm default patch size, in pixels, for a display.
+    """Return the default patch size, in pixels, for a display.
 
-    Mirrors ``wx_measure_frame.get_default_size``: the default patch is always
+    Mirrors ``wx_measure_frame.get_default_size``: the default patch is
     100 mm square, converted to pixels via the display's physical size.
 
     Args:
@@ -99,7 +99,7 @@ def default_measureframe_size(
         display_size_mm (tuple[float, float]): Display size in millimetres.
 
     Returns:
-        int: The 100 mm patch edge length in pixels.
+        int: The default patch edge length in pixels.
     """
     px_per_mm = max(
         display_size_px[0] / display_size_mm[0],
@@ -414,13 +414,6 @@ class MeasureFrame(BaseWindow):
             self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
 
         self.display_size_mm: dict[tuple[int, int, int, int], list[float]] = {}
-        # Argyll's X11 test window is sized from the X screen, so its density
-        # takes precedence over the monitor's own size where there is one
-        self.x_screen_px_per_mm = (
-            real_display_size_mm.get_x_screen_px_per_mm()
-            if real_display_size_mm is not None
-            else None
-        )
         self.default_size = float(DEFAULTS.get("size.measureframe", 300))
         self._current_geometry: tuple[int, int, int, int] | None = None
 
@@ -580,8 +573,6 @@ class MeasureFrame(BaseWindow):
         Returns:
             float: The default patch edge length in pixels.
         """
-        if self.x_screen_px_per_mm:
-            return float(round(100.0 * max(self.x_screen_px_per_mm)))
         screen = self._current_screen()
         if screen is None:
             return float(DEFAULTS.get("size.measureframe", 300))

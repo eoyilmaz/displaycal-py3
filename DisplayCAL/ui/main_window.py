@@ -1445,6 +1445,13 @@ class MainWindow(BaseWindow):
         self._lut3d_init_input_profiles()
         self.update_controls()
         self._apply_initial_geometry()
+        #: Re-expands the profile name every second, Qt port of wx's
+        #: ``update_profile_name_timer``, so placeholders like ``%dns`` and the
+        #: date/time ones follow the selected display and the clock.
+        self._profile_name_timer = QTimer(self)
+        self._profile_name_timer.setInterval(1000)
+        self._profile_name_timer.timeout.connect(self._on_profile_name_timer)
+        self._profile_name_timer.start()
 
     # -- UI construction ---------------------------------------------------
 
@@ -5997,6 +6004,7 @@ class MainWindow(BaseWindow):
         if self.display_lut_link_ctrl.isVisibleTo(self):
             self.display_lut_link_ctrl_handler(self.display_lut_link_ctrl.isChecked())
         self._update_edid_menu_state()
+        self.update_profile_name()
 
     def comport_ctrl_handler(self, index: int) -> None:
         """Persist the selected instrument (comport) number.
@@ -7933,6 +7941,7 @@ class MainWindow(BaseWindow):
         if not self._setup_ccxx_measurement():
             self._restore_measurement_mode_and_testchart()
             return
+        self.update_profile_name()
         if not check_set_argyll_bin() or not self._check_overwrite(".ti3"):
             self._restore_measurement_mode_and_testchart()
             return
@@ -8744,6 +8753,18 @@ class MainWindow(BaseWindow):
             self.profile_name_label.setText(profile_name.replace("&", "&&"))
             setcfg("profile.name.expanded", profile_name)
 
+    def _on_profile_name_timer(self) -> None:
+        """Refresh the profile name, unless a run is using it.
+
+        wx stops its timer while a run is in progress (``stop_timers()``), as
+        the run's files are named after ``profile.name.expanded``. The main
+        window is hidden for the whole run, so skip while it's hidden or the
+        worker is busy.
+        """
+        if not self.isVisible() or self.worker.is_working():
+            return
+        self.update_profile_name()
+
     def _profile_name_context(self) -> profile_name_mod.ProfileNameContext:
         """Resolve the current widget/worker state into a :class:`ProfileNameContext`."""
         edid = self.worker.get_display_edid() if self.worker.displays else {}
@@ -8860,6 +8881,7 @@ class MainWindow(BaseWindow):
         existing ``profile.update``) will also build a profile.
         """
         self.worker.dispcal_create_fast_matrix_shaper = False
+        self.update_profile_name()
         if self._check_show_macos_bugs_warning(profile=False) is False:
             return
         info = preflight_checks.resolve_fast_matrix_shaper_choice_info()
@@ -8915,6 +8937,7 @@ class MainWindow(BaseWindow):
 
         Qt port of ``calibrate_and_profile_btn_handler``'s guard chain.
         """
+        self.update_profile_name()
         if self._check_show_macos_bugs_warning() is False:
             return
         if not check_set_argyll_bin():
@@ -8939,6 +8962,7 @@ class MainWindow(BaseWindow):
         wx call path only fires from an auto-retry event this Qt port doesn't
         have yet.
         """
+        self.update_profile_name()
         if self._check_show_macos_bugs_warning(cal=False) is False:
             return
         if not check_set_argyll_bin():

@@ -30,7 +30,6 @@ from typing import TYPE_CHECKING
 from qtpy.QtCore import Qt, QTimer, Signal
 from qtpy.QtGui import QGuiApplication, QIcon
 from qtpy.QtWidgets import (
-    QFileDialog,
     QGridLayout,
     QLabel,
     QPushButton,
@@ -49,7 +48,7 @@ from DisplayCAL.config import (
 from DisplayCAL.log import get_file_logger
 from DisplayCAL.meta import NAME as APPNAME
 from DisplayCAL.meta import VERSION_STRING as APPVERSION
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.util_os import launch_file, waccess
@@ -356,7 +355,7 @@ class UniformityWindow(BaseWindow):
         default_dir, _default_file = get_verified_path(
             None, os.path.join(getcfg("profile.save_path"), default_file)
         )
-        path, _filter = QFileDialog.getSaveFileName(
+        path, _filter = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, default_file),

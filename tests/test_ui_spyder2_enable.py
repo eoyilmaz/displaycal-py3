@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QMessageBox  # noqa: E402
 
 from DisplayCAL import config  # noqa: E402
 from DisplayCAL import localization as lang  # noqa: E402
+from DisplayCAL.ui import file_dialog  # noqa: E402
 from DisplayCAL.ui import spyder2_enable as s2  # noqa: E402
 from DisplayCAL.worker import Worker  # noqa: E402
 
@@ -267,7 +268,7 @@ class TestSpyder2EnableController:
             return s2.QDialog.Accepted
 
         monkeypatch.setattr(s2._EnableSpyder2Dialog, "exec_", _fake_exec)
-        monkeypatch.setattr(s2.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
+        monkeypatch.setattr(file_dialog.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
         controller = s2.Spyder2EnableController(worker, None)
         results = []
         controller.finished.connect(lambda attempted: results.append(attempted))

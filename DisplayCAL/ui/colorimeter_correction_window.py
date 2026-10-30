@@ -62,7 +62,6 @@ from qtpy.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -89,7 +88,7 @@ from DisplayCAL.cgats import CGATS, CGATSError
 from DisplayCAL.config import DEFAULTS, get_argyll_data_dir, getcfg, setcfg
 from DisplayCAL.edid import PNP_ID_CACHE, get_manufacturer_name
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -166,7 +165,7 @@ class _Ti3Browse(QWidget):
     def _on_browse(self) -> None:
         default_dir = os.path.dirname(self.path()) if self.path() else ""
         wildcard = f"{lang.getstr('filetype.ti3')} (*.ti3)"
-        path, _ = QFileDialog.getOpenFileName(
+        path, _ = file_dialog.get_open_file_name(
             self, self._dialog_title, default_dir, wildcard
         )
         if path:

@@ -29,6 +29,7 @@ pytest.importorskip("qtpy")
 
 from qtpy.QtCore import QThread  # noqa: E402
 
+from DisplayCAL.ui import file_dialog  # noqa: E402
 from DisplayCAL.ui import main_window as mw  # noqa: E402
 from DisplayCAL.ui import measurement_flow as mf  # noqa: E402
 
@@ -714,7 +715,7 @@ def test_colorimeter_correction_matrix_btn_handler_cancelled_is_noop(
     window, monkeypatch
 ):
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     before = getcfg("colorimeter_correction_matrix_file")
     window.colorimeter_correction_matrix_btn_handler()
@@ -1547,6 +1548,19 @@ def test_profile_type_ctrl_resets_testchart_within_same_category_too(
     assert getcfg("testchart.file") == "auto"
 
 
+def test_set_testchart_accepts_non_normalized_path(window, tmp_path):
+    # Issue 1028: on Windows QFileDialog returns forward slash paths while
+    # get_testchart_names() rebuilds the list with os.path.join(), so the
+    # chosen path was never found in the list ("... is not in list"). A
+    # doubled separator reproduces the same mismatch on any platform.
+    source = os.path.join(os.path.dirname(mw.__file__), "..", "ti1", "ccxx.ti1")
+    shutil.copy(source, tmp_path / "custom.ti1")
+    window._set_testchart(f"{tmp_path}{os.sep}{os.sep}custom.ti1")
+    expected = str(tmp_path / "custom.ti1")
+    assert getcfg("testchart.file") == expected
+    assert window._testchart_paths[window.testchart_ctrl.currentIndex()] == expected
+
+
 def test_profile_type_ctrl_offers_testchart_recommendation(window, monkeypatch):
     setcfg("profile.type", "S")
     # ``_apply_default_testchart`` (always run first) resets the testchart to
@@ -1983,7 +1997,7 @@ def test_report_measure_requested_cancelled_save_dialog_is_noop(
         lambda *a, **k: _fake_report_context(),
     )
     monkeypatch.setattr(
-        mw.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     began = []
     monkeypatch.setattr(window, "_begin_report_measurement", lambda: began.append(True))
@@ -2007,7 +2021,7 @@ def test_report_measure_requested_overwrite_declined_is_noop(
     existing = tmp_path / "report.html"
     existing.write_text("existing")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (str(existing), "")),
     )
@@ -2037,7 +2051,7 @@ def test_report_measure_requested_success_stages_and_begins(
     )
     target = tmp_path / "My Report.html"
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (str(target), "")),
     )
@@ -2064,7 +2078,7 @@ def test_report_measure_requested_write_access_denied_shows_error(
     )
     target = tmp_path / "My Report.html"
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (str(target), "")),
     )
@@ -2252,7 +2266,7 @@ def test_report_measurement_finished_finalize_error_shows_dialog(
 
 def test_testchart_btn_handler_cancelled_is_noop(window, monkeypatch):
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     before = getcfg("testchart.file")
     window._testchart_btn_handler()
@@ -2262,7 +2276,7 @@ def test_testchart_btn_handler_cancelled_is_noop(window, monkeypatch):
 def test_testchart_btn_handler_missing_file_shows_error(window, monkeypatch, tmp_path):
     missing = str(tmp_path / "nope.ti1")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (missing, "")),
     )
@@ -2283,7 +2297,7 @@ def test_testchart_btn_handler_loads_bundled_ti1(window, monkeypatch):
         os.path.dirname(config.__file__), "ti1", "d3-e4-s2-g28-m0-b0-f0.ti1"
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (path, "")),
     )
@@ -2309,7 +2323,7 @@ def test_profile_name_info_btn_shows_placeholders(window, monkeypatch):
 
 def test_profile_save_path_btn_cancelled_is_noop(window, monkeypatch):
     monkeypatch.setattr(
-        mw.QFileDialog, "getExistingDirectory", staticmethod(lambda *a, **k: "")
+        file_dialog.QFileDialog, "getExistingDirectory", staticmethod(lambda *a, **k: "")
     )
     before = getcfg("profile.save_path")
     window._profile_save_path_btn_handler()
@@ -2318,7 +2332,7 @@ def test_profile_save_path_btn_cancelled_is_noop(window, monkeypatch):
 
 def test_profile_save_path_btn_persists_and_updates_name(window, monkeypatch, tmp_path):
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getExistingDirectory",
         staticmethod(lambda *a, **k: str(tmp_path)),
     )
@@ -4380,7 +4394,7 @@ def test_prompt_3dlut_copy_destination_reshade_uses_folder_dialog(
     window, monkeypatch, tmp_path
 ):
     monkeypatch.setattr(
-        mw.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path)
+        file_dialog.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path)
     )
 
     result = window._prompt_3dlut_copy_destination("ReShade", "/tmp/x.png")
@@ -4391,7 +4405,7 @@ def test_prompt_3dlut_copy_destination_reshade_uses_folder_dialog(
 def test_prompt_3dlut_copy_destination_reshade_cancel_returns_empty(
     window, monkeypatch
 ):
-    monkeypatch.setattr(mw.QFileDialog, "getExistingDirectory", lambda *a, **k: "")
+    monkeypatch.setattr(file_dialog.QFileDialog, "getExistingDirectory", lambda *a, **k: "")
 
     result = window._prompt_3dlut_copy_destination("ReShade", "/tmp/x.png")
 
@@ -4402,7 +4416,7 @@ def test_prompt_3dlut_copy_destination_plain_uses_save_dialog_with_extension(
     window, monkeypatch, tmp_path
 ):
     chosen = str(tmp_path / "installed")
-    monkeypatch.setattr(mw.QFileDialog, "getSaveFileName", lambda *a, **k: (chosen, ""))
+    monkeypatch.setattr(file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: (chosen, ""))
 
     result = window._prompt_3dlut_copy_destination("eeColor", "/tmp/lut-3d.txt")
 
@@ -4410,7 +4424,7 @@ def test_prompt_3dlut_copy_destination_plain_uses_save_dialog_with_extension(
 
 
 def test_prompt_3dlut_copy_destination_cancel_returns_empty(window, monkeypatch):
-    monkeypatch.setattr(mw.QFileDialog, "getSaveFileName", lambda *a, **k: ("", ""))
+    monkeypatch.setattr(file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: ("", ""))
 
     result = window._prompt_3dlut_copy_destination("cube", "/tmp/lut.cube")
 
@@ -4423,7 +4437,7 @@ def test_prompt_3dlut_copy_destination_overwrite_declined_returns_empty(
     existing = tmp_path / "installed.cube"
     existing.write_bytes(b"already there")
     monkeypatch.setattr(
-        mw.QFileDialog, "getSaveFileName", lambda *a, **k: (str(existing), "")
+        file_dialog.QFileDialog, "getSaveFileName", lambda *a, **k: (str(existing), "")
     )
     monkeypatch.setattr(window, "_check_overwrite", lambda **k: False)
 
@@ -4999,7 +5013,7 @@ def test_import_session_archive_rejects_non_archive_zip(
 def test_load_cal_btn_handler_uses_file_dialog(window, monkeypatch):
     path = _srgb_preset_path(window)
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
     )
 
     window.load_cal_btn_handler()
@@ -5011,7 +5025,7 @@ def test_load_cal_btn_handler_uses_file_dialog(window, monkeypatch):
 def test_load_cal_btn_handler_cancelled_is_noop(window, monkeypatch):
     before = getcfg("calibration.file", False)
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
 
     window.load_cal_btn_handler()
@@ -5090,7 +5104,7 @@ def test_create_session_archive_handler_cancelled_is_noop(window, monkeypatch):
     path = _srgb_preset_path(window)
     setcfg("calibration.file", path)
     monkeypatch.setattr(
-        mw.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
     )
 
     window.create_session_archive_handler()
@@ -5116,7 +5130,7 @@ def test_create_session_archive_handler_runs_and_completes(
     setcfg("calibration.file", str(cal_file))
     archive_path = tmp_path / "test.zip"
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (str(archive_path), "*.zip")),
     )
@@ -5526,7 +5540,7 @@ class _FakeTi3:
 
 def test_measurement_file_check_action_handler_cancelled_is_noop(window, monkeypatch):
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     calls = []
     monkeypatch.setattr(
@@ -5543,7 +5557,7 @@ def test_measurement_file_check_action_handler_missing_file_shows_error(
 ):
     missing = str(tmp_path / "nope.ti3")
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (missing, ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (missing, ""))
     )
     errors = []
     monkeypatch.setattr(mw.QMessageBox, "critical", lambda *a, **k: errors.append(a))
@@ -5557,7 +5571,7 @@ def test_measurement_file_check_action_handler_load_error_shows_dialog(
     bogus = tmp_path / "bogus.icc"
     bogus.write_bytes(b"not an icc profile")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(bogus), "")),
     )
@@ -5576,7 +5590,7 @@ def test_measurement_file_check_action_handler_sanity_declined_is_noop(
         ti3=_FakeTi3(), profile=None
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(ti3_path), "")),
     )
@@ -5602,7 +5616,7 @@ def test_measurement_file_check_action_handler_no_suspicious_shows_info(
         ti3=_FakeTi3(modified=False), profile=None
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(ti3_path), "")),
     )
@@ -5640,7 +5654,7 @@ def test_measurement_file_check_action_handler_profile_regenerate_cancelled_is_n
         ti3=_FakeTi3(modified=True), profile=fake_profile
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(icc_path), "")),
     )
@@ -5672,7 +5686,7 @@ def test_measurement_file_check_action_handler_profile_regenerate_confirmed_reru
         ti3=_FakeTi3(modified=True), profile=fake_profile
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(icc_path), "")),
     )
@@ -5711,7 +5725,7 @@ def test_measurement_file_check_action_handler_saves_ti3(window, monkeypatch, tm
         ti3=fake_ti3, profile=None
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(ti3_path), "")),
     )
@@ -5722,7 +5736,7 @@ def test_measurement_file_check_action_handler_saves_ti3(window, monkeypatch, tm
         window, "_check_measurement_sanity", lambda ti3, force=False: (True, [])
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -5741,7 +5755,7 @@ def test_measurement_file_check_action_handler_save_denied_shows_error(
         ti3=fake_ti3, profile=None
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(ti3_path), "")),
     )
@@ -5752,7 +5766,7 @@ def test_measurement_file_check_action_handler_save_denied_shows_error(
         window, "_check_measurement_sanity", lambda ti3, force=False: (True, [])
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (str(tmp_path / "out.ti3"), "")),
     )
@@ -5884,7 +5898,7 @@ def test_create_profile_action_handler_cancelled_open_dialog_is_noop(
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     monkeypatch.setattr(window, "_check_show_macos_bugs_warning", lambda *a, **k: None)
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileNames", staticmethod(lambda *a, **k: ([], ""))
+        file_dialog.QFileDialog, "getOpenFileNames", staticmethod(lambda *a, **k: ([], ""))
     )
     run_calls = []
     monkeypatch.setattr(
@@ -5898,7 +5912,7 @@ def test_create_profile_action_handler_runs_with_selected_paths(window, monkeypa
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     monkeypatch.setattr(window, "_check_show_macos_bugs_warning", lambda *a, **k: None)
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileNames",
         staticmethod(lambda *a, **k: (["/a.ti3", "/b.ti3"], "")),
     )
@@ -5907,7 +5921,8 @@ def test_create_profile_action_handler_runs_with_selected_paths(window, monkeypa
         window, "_run_create_profile", lambda paths: run_calls.append(paths)
     )
     window._create_profile_action_handler()
-    assert run_calls == [["/a.ti3", "/b.ti3"]]
+    # The file_dialog wrapper normalizes the separators (backslashes on Windows)
+    assert run_calls == [[os.path.normpath("/a.ti3"), os.path.normpath("/b.ti3")]]
 
 
 def test_build_file_menu_matches_wx_xrc_order(window):
@@ -5941,7 +5956,7 @@ def test_select_install_profile_action_handler_cancelled_dialog_is_noop(
     window, monkeypatch
 ):
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     load_calls = []
     monkeypatch.setattr(
@@ -5957,7 +5972,7 @@ def test_select_install_profile_action_handler_loads_and_shows_window(
     window, monkeypatch, srgb_profile_path
 ):
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (srgb_profile_path, "")),
     )
@@ -6029,7 +6044,7 @@ def test_create_profile_from_edid_action_handler_cancelled_save_dialog_is_noop(
         lambda: {"monitor_name": "Foo", "product_id": 1},
     )
     monkeypatch.setattr(
-        mw.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     from_edid_calls = []
     monkeypatch.setattr(
@@ -6051,7 +6066,7 @@ def test_create_profile_from_edid_action_handler_write_access_denied_shows_error
         lambda: {"monitor_name": "Foo", "product_id": 1},
     )
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6078,7 +6093,7 @@ def test_create_profile_from_edid_action_handler_writes_and_finishes_directly(
     edid = {"monitor_name": "Foo", "product_id": 1}
     monkeypatch.setattr(window.worker, "get_display_edid", lambda: edid)
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6106,7 +6121,7 @@ def test_create_profile_from_edid_action_handler_runs_gamut_calculation(
     edid = {"monitor_name": "Foo", "product_id": 1}
     monkeypatch.setattr(window.worker, "get_display_edid", lambda: edid)
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6232,7 +6247,7 @@ def test_run_create_profile_no_cal_info_declined_aborts(window, monkeypatch, tmp
     monkeypatch.setattr(window, "_confirm_ti3_no_cal_info", lambda: False)
     save_calls = []
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: save_calls.append(True) or ("", "")),
     )
@@ -6244,7 +6259,7 @@ def test_run_create_profile_save_dialog_cancelled_is_noop(
     window, monkeypatch, cp_ti3_path
 ):
     monkeypatch.setattr(
-        mw.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     controller_calls = []
     monkeypatch.setattr(
@@ -6259,7 +6274,7 @@ def test_run_create_profile_write_access_denied_shows_error(
 ):
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6281,7 +6296,7 @@ def test_run_create_profile_overwrite_declined_aborts(
     existing_final.write_bytes(b"existing")
     typed_path = str(tmp_path / "out")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (typed_path, "")),
     )
@@ -6300,7 +6315,7 @@ def test_run_create_profile_single_file_runs_controller(
 ):
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6329,7 +6344,7 @@ def test_run_create_profile_sanity_declined_aborts(
 ):
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6348,7 +6363,7 @@ def test_run_create_profile_skip_ti3_check_bypasses_sanity(
 ):
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6378,7 +6393,7 @@ def test_run_create_profile_multi_file_merges_via_average(
     shutil.copyfile(cp_ti3_path, second_path)
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6409,7 +6424,7 @@ def test_run_create_profile_merge_failure_shows_error(
     shutil.copyfile(cp_ti3_path, second_path)
     save_path = str(tmp_path / "out.icc")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getSaveFileName",
         staticmethod(lambda *a, **k: (save_path, "")),
     )
@@ -6473,7 +6488,7 @@ def test_select_profile_for_hires_b2a_no_current_profile_browses(
 ):
     monkeypatch.setattr(mw.config, "get_current_profile", lambda *a, **k: None)
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (hires_b2a_profile_path, "")),
     )
@@ -6486,7 +6501,7 @@ def test_select_profile_for_hires_b2a_no_current_profile_cancelled_browse(
 ):
     monkeypatch.setattr(mw.config, "get_current_profile", lambda *a, **k: None)
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     assert window._select_profile_for_hires_b2a() is None
 
@@ -6498,7 +6513,7 @@ def test_select_profile_for_hires_b2a_invalid_profile_shows_error(
     bogus = tmp_path / "bogus.icc"
     bogus.write_bytes(b"nope")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (str(bogus), "")),
     )
@@ -6526,7 +6541,7 @@ def test_select_profile_for_hires_b2a_browse_from_current_choice(
     monkeypatch.setattr(mw, "QMessageBox", _FakeProfileChoiceMessageBox)
     _FakeProfileChoiceMessageBox.clicked_role = "browse"
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (hires_b2a_profile_path, "")),
     )
@@ -6649,7 +6664,7 @@ def test_specplot_action_handler_no_argyll_bin_is_noop(window, monkeypatch):
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: False)
     calls = []
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: calls.append(True) or ("", "")),
     )
@@ -6660,7 +6675,7 @@ def test_specplot_action_handler_no_argyll_bin_is_noop(window, monkeypatch):
 def test_specplot_action_handler_cancelled_dialog_is_noop(window, monkeypatch):
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     ran = []
     monkeypatch.setattr(mw.WorkerRunController, "run", lambda *a, **k: ran.append(True))
@@ -6674,7 +6689,7 @@ def test_specplot_action_handler_missing_util_shows_error(
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     path = str(tmp_path / "sample.sp")
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
     )
     monkeypatch.setattr(mw, "get_argyll_util", lambda name: None)
     errors = []
@@ -6688,7 +6703,7 @@ def test_specplot_action_handler_runs_worker(window, monkeypatch, tmp_path):
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     path = str(tmp_path / "sample.sp")
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
     )
     monkeypatch.setattr(mw, "get_argyll_util", lambda name: "/usr/bin/specplot")
     setcfg("extra_args.specplot", "")
@@ -6715,7 +6730,7 @@ def test_specplot_action_handler_appends_extra_args(window, monkeypatch, tmp_pat
     monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
     path = str(tmp_path / "sample.sp")
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (path, ""))
     )
     monkeypatch.setattr(mw, "get_argyll_util", lambda name: "/usr/bin/specplot")
     setcfg("extra_args.specplot", "-foo bar")
@@ -8804,7 +8819,7 @@ def test_on_report_finished_shows_output_text(window, monkeypatch):
 
 def test_update_measurement_report_action_cancelled_dialog_is_noop(window, monkeypatch):
     monkeypatch.setattr(
-        mw.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
+        file_dialog.QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: ("", ""))
     )
     update_calls = []
     monkeypatch.setattr(report, "update", lambda *a, **k: update_calls.append(True))
@@ -8817,7 +8832,7 @@ def test_update_measurement_report_action_updates_and_launches(
 ):
     report_path = str(tmp_path / "report.html")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (report_path, "")),
     )
@@ -8837,7 +8852,7 @@ def test_update_measurement_report_action_shows_error_on_failure(
 ):
     report_path = str(tmp_path / "report.html")
     monkeypatch.setattr(
-        mw.QFileDialog,
+        file_dialog.QFileDialog,
         "getOpenFileName",
         staticmethod(lambda *a, **k: (report_path, "")),
     )

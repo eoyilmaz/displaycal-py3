@@ -25,7 +25,6 @@ from qtpy.QtWidgets import (
     QAbstractItemView,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -38,6 +37,7 @@ from qtpy.QtWidgets import (
 )
 
 from DisplayCAL import localization as lang
+from DisplayCAL.ui import file_dialog
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.util_os import getenvu
 
@@ -288,7 +288,7 @@ class ProfileLoaderExceptionsDialog(QDialog):
             if default_dir or default_file
             else ""
         )
-        path, _selected_filter = QFileDialog.getOpenFileName(
+        path, _selected_filter = file_dialog.get_open_file_name(
             self, lang.getstr("add" if is_add else "browse"), start, "*.exe"
         )
         if not path:

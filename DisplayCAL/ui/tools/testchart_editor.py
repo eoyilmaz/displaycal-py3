@@ -56,7 +56,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QHeaderView,
@@ -100,7 +99,7 @@ from DisplayCAL.icc_profile import (
     NamedColor2Type,
 )
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.file_drop import FileDropTarget
@@ -1141,7 +1140,7 @@ class TestchartEditorWindow(BaseWindow):
     def _on_precond_profile_browse(self) -> None:
         """Browse for a preconditioning profile."""
         default_dir = get_verified_path("tc_precond_profile")[0]
-        path, _selected = QFileDialog.getOpenFileName(
+        path, _selected = file_dialog.get_open_file_name(
             self,
             lang.getstr("tc.precond"),
             default_dir,
@@ -2098,7 +2097,7 @@ class TestchartEditorWindow(BaseWindow):
             return
         if not chart:
             default_dir, default_file = get_verified_path("testchart.reference")
-            chart, _selected = QFileDialog.getOpenFileName(
+            chart, _selected = file_dialog.get_open_file_name(
                 self,
                 lang.getstr("testchart_or_reference"),
                 os.path.join(default_dir, default_file),
@@ -2702,7 +2701,7 @@ END_DATA"""
                 default_file = os.path.basename(self.ti1.filename)
             else:
                 default_file = os.path.basename(DEFAULTS["last_ti1_path"])
-            path, _ = QFileDialog.getSaveFileName(
+            path, _ = file_dialog.get_save_file_name(
                 self,
                 lang.getstr("save_as"),
                 os.path.join(default_dir, default_file),
@@ -2787,7 +2786,7 @@ END_DATA"""
             )[0]
         )
         labels = {f"{label} (*.csv)": scale for label, scale in CSV_EXPORT_FORMATS}
-        path, selected = QFileDialog.getSaveFileName(
+        path, selected = file_dialog.get_save_file_name(
             self,
             lang.getstr("export"),
             os.path.join(default_dir, default_file),
@@ -2887,7 +2886,7 @@ END_DATA"""
             default_dir = get_verified_path("last_vrml_path")[0]
             default_file = os.path.basename(DEFAULTS["last_vrml_path"])
         default_file = os.path.splitext(default_file)[0] + formatext
-        path, _ = QFileDialog.getSaveFileName(
+        path, _ = file_dialog.get_save_file_name(
             self,
             lang.getstr("save_as"),
             os.path.join(default_dir, default_file),

@@ -36,7 +36,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -71,7 +70,7 @@ from DisplayCAL.icc_profile import (
     VideoCardGammaType,
 )
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.ui.base_window import BaseWindow
@@ -275,7 +274,7 @@ class _ProfileBrowse(QWidget):
     def _on_browse(self) -> None:
         default_dir = os.path.dirname(self.path()) if self.path() else ""
         wildcard = f"{lang.getstr('filetype.icc')} (*.icc *.icm)"
-        path, _ = QFileDialog.getOpenFileName(
+        path, _ = file_dialog.get_open_file_name(
             self, self._dialog_title, default_dir, wildcard
         )
         if path:
@@ -2099,7 +2098,7 @@ class LUT3DWindow(BaseWindow):
         default_dir, default_file = get_verified_path("last_3dlut_path")
         ext = getcfg("3dlut.format")
         if ext == "ReShade":
-            directory = QFileDialog.getExistingDirectory(
+            directory = file_dialog.get_existing_directory(
                 self, lang.getstr("3dlut.install"), default_dir
             )
             if not directory:
@@ -2114,7 +2113,7 @@ class LUT3DWindow(BaseWindow):
         default_file = (
             os.path.splitext(default_file or lang.getstr("unnamed"))[0] + "." + ext
         )
-        path, _ = QFileDialog.getSaveFileName(
+        path, _ = file_dialog.get_save_file_name(
             self,
             lang.getstr("3dlut.save_as"),
             os.path.join(default_dir, default_file),

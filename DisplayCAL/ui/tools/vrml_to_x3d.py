@@ -24,7 +24,6 @@ import sys
 
 from qtpy.QtCore import QObject, Qt, QThread, Signal
 from qtpy.QtWidgets import (
-    QFileDialog,
     QHBoxLayout,
     QPushButton,
     QWidget,
@@ -33,7 +32,7 @@ from qtpy.QtWidgets import (
 from DisplayCAL import config, x3dom
 from DisplayCAL import localization as lang
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.ui.base_window import BaseWindow
@@ -193,7 +192,7 @@ class VRML2X3DWindow(BaseWindow):
         wildcard = (
             lang.getstr("filetype.vrml") + " (*.vrml *.vrml.gz *.wrl.gz *.wrl *.wrz)"
         )
-        path, _ = QFileDialog.getOpenFileName(
+        path, _ = file_dialog.get_open_file_name(
             self,
             lang.getstr("file.select"),
             os.path.join(default_dir, default_file) if default_file else default_dir,
@@ -218,7 +217,7 @@ class VRML2X3DWindow(BaseWindow):
         x3dpath = f"{filename}.x3d"
         if waccess(os.path.dirname(x3dpath), os.W_OK):
             return x3dpath
-        path, _ = QFileDialog.getSaveFileName(
+        path, _ = file_dialog.get_save_file_name(
             self,
             lang.getstr("error.access_denied.write", os.path.dirname(x3dpath)),
             f"{os.path.basename(filename)}.x3d",

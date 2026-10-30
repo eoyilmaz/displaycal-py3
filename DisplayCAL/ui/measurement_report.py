@@ -51,7 +51,6 @@ from qtpy.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QComboBox,
-    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -86,7 +85,7 @@ from DisplayCAL.icc_profile import (
     XYZType,
 )
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.application import Application
 from DisplayCAL.ui.assets import get_theme_pixmap
 from DisplayCAL.ui.base_window import BaseWindow
@@ -274,7 +273,7 @@ class _FileBrowse(QWidget):
 
     def _on_browse(self) -> None:
         default_dir = os.path.dirname(self.path()) if self.path() else ""
-        path, _ = QFileDialog.getOpenFileName(
+        path, _ = file_dialog.get_open_file_name(
             self, self._dialog_title, default_dir, self._wildcard
         )
         if path:

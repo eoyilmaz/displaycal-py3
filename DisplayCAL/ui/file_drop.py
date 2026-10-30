@@ -15,6 +15,7 @@ Improvements over the wx version:
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Callable
 
 from qtpy.QtCore import QEvent, QObject
@@ -109,8 +110,11 @@ class FileDropTarget(QObject):
         Returns:
             bool: True if a matching or unsupported-handler dispatch occurred.
         """
+        # toLocalFile() uses forward slashes on Windows too, see file_dialog
         paths = [
-            url.toLocalFile() for url in event.mimeData().urls() if url.isLocalFile()
+            os.path.normpath(url.toLocalFile())
+            for url in event.mimeData().urls()
+            if url.isLocalFile()
         ]
         matched = [(path, handler) for path in paths if (handler := self._match(path))]
         if matched:

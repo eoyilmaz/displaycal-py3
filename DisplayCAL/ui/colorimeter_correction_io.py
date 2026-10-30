@@ -53,7 +53,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMessageBox,
@@ -72,7 +71,7 @@ from DisplayCAL.argyll import get_argyll_util
 from DisplayCAL.config import get_argyll_data_dir, get_verified_path, getcfg, setcfg
 from DisplayCAL.meta import DOMAIN
 from DisplayCAL.meta import NAME as APPNAME
-from DisplayCAL.ui import message_box
+from DisplayCAL.ui import file_dialog, message_box
 from DisplayCAL.ui.base_window import BaseWindow
 from DisplayCAL.ui.measurement_flow import observer_items
 from DisplayCAL.ui.worker_runner import PasswordPromptAdapter
@@ -463,7 +462,7 @@ class ImportController(QObject):
 
         paths: list = []
         if dialog.mode == "files":
-            paths, _filter = QFileDialog.getOpenFileNames(
+            paths, _filter = file_dialog.get_open_file_names(
                 self._parent,
                 lang.getstr("colorimeter_correction.import.choose"),
                 "",
@@ -623,7 +622,7 @@ class UploadController(QObject):
         title = lang.getstr("colorimeter_correction.upload")
         if path is None:
             default_dir, _default_file = get_verified_path("last_filedialog_path")
-            path, _filter = QFileDialog.getOpenFileName(
+            path, _filter = file_dialog.get_open_file_name(
                 self._parent,
                 lang.getstr("colorimeter_correction_matrix_file.choose"),
                 default_dir,

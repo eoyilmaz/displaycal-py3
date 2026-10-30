@@ -24,6 +24,8 @@ def get(alist, index, default=None):
 def index_ignorecase(self, value, start=None, stop=None):
     """Case-insensitive version of list.index."""
     items = [(item.lower() if isinstance(item, str) else item) for item in self]
+    if isinstance(value, str):
+        value = value.lower()
     return items.index(value, start or 0, stop or len(self))
 
 

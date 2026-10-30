@@ -2498,8 +2498,8 @@ class ProfileLoader:
     ) -> bool:
         """Reload calibration for every clobbered display, all in one process.
 
-        Applies every clobbered display's calibration directly via
-        CoreGraphics (see :func:`DisplayCAL.worker.reload_macos_videoluts`),
+        Re-loads every clobbered display's calibration
+        (see :func:`DisplayCAL.worker.reload_macos_calibration`),
         back-to-back from this single still-running process. Re-loading one
         display's calibration by running (and exiting) a dispwin process is
         exactly the event that triggers macOS to clobber a *different*
@@ -2525,7 +2525,7 @@ class ProfileLoader:
                 ran out, False if some display was still clobbered when it
                 gave up.
         """
-        from DisplayCAL.worker import reload_macos_videoluts
+        from DisplayCAL.worker import reload_macos_calibration
 
         if max_passes is None:
             max_passes = int(
@@ -2542,7 +2542,7 @@ class ProfileLoader:
                 f"{', '.join(str(i + 1) for i in clobbered)} was clobbered - "
                 "re-loading calibration"
             )
-            reload_macos_videoluts(clobbered, log=print)
+            reload_macos_calibration(clobbered, log=print)
             if self._shutdown:
                 return True
             time.sleep(settle)

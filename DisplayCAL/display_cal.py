@@ -13426,7 +13426,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
         Idle backstop to the in-session recovery in worker.exec_cmd: runs only on
         macOS and only while idle (no measurement in progress, so it can never
         disturb a running calibration). Any display whose VideoLUT has gone black
-        is detected via CoreGraphics and re-loaded with ``dispwin -L``.
+        is detected and re-loaded via CoreGraphics.
         """
         if sys.platform != "darwin" or self.worker.is_working():
             return

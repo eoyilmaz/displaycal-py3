@@ -142,11 +142,11 @@ def test_reload_black_videoluts_reloads_only_black_displays():
             "dispwin",
             retries=4,
             _maxima_fn=lambda: next(maxima_seq),
-            _run=runs.append,
+            _reload=runs.append,
             _sleep=lambda s: None,
         )
     assert reloaded == [1]
-    assert runs == [["dispwin", "-v", "-d2", "-L"]]
+    assert runs == [[1]]
 
 
 def test_reload_black_videoluts_retries_until_sticks():
@@ -159,11 +159,11 @@ def test_reload_black_videoluts_retries_until_sticks():
             "dispwin",
             retries=5,
             _maxima_fn=lambda: next(maxima_seq),
-            _run=runs.append,
+            _reload=runs.append,
             _sleep=lambda s: None,
         )
     assert reloaded == [0]
-    assert runs == [["dispwin", "-v", "-d1", "-L"], ["dispwin", "-v", "-d1", "-L"]]
+    assert runs == [[0], [0]]
 
 
 def test_reload_black_videoluts_noop_when_all_fine():
@@ -173,7 +173,7 @@ def test_reload_black_videoluts_noop_when_all_fine():
         reloaded = reload_black_videoluts(
             "dispwin",
             _maxima_fn=lambda: [1.0, 0.98],
-            _run=runs.append,
+            _reload=runs.append,
             _sleep=lambda s: None,
         )
     assert reloaded == []
@@ -187,11 +187,50 @@ def test_reload_black_videoluts_ignores_unreadable_displays():
         reloaded = reload_black_videoluts(
             "dispwin",
             _maxima_fn=lambda: [None, 1.0],
-            _run=runs.append,
+            _reload=runs.append,
             _sleep=lambda s: None,
         )
     assert reloaded == []
     assert runs == []
+
+
+def test_reload_black_videoluts_reloads_all_black_displays_in_one_call():
+    """All black displays are re-loaded together, not one process per display.
+
+    Reloading one display per dispwin process exit blacks out the other one on
+    macOS, making both flicker (issue #991).
+    """
+    runs = []
+    maxima_seq = iter([[0.0, 0.0], [1.0, 1.0]])
+    with mock.patch("DisplayCAL.worker.sys.platform", "darwin"):
+        reloaded = reload_black_videoluts(
+            "dispwin",
+            _maxima_fn=lambda: next(maxima_seq),
+            _reload=runs.append,
+            _sleep=lambda s: None,
+        )
+    assert reloaded == [0, 1]
+    assert runs == [[0, 1]]
+
+
+def test_reload_black_videoluts_doesnt_run_dispwin():
+    """The default re-load never runs a dispwin process."""
+    maxima_seq = iter([[1.0, 0.0], [1.0, 1.0]])
+    with (
+        mock.patch("DisplayCAL.worker.sys.platform", "darwin"),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_calibration", return_value=[1]
+        ) as reload_mock,
+        mock.patch("DisplayCAL.worker.sp.call") as call_mock,
+    ):
+        reloaded = reload_black_videoluts(
+            "dispwin",
+            _maxima_fn=lambda: next(maxima_seq),
+            _sleep=lambda s: None,
+        )
+    assert reloaded == [1]
+    reload_mock.assert_called_once_with([1], log=None)
+    call_mock.assert_not_called()
 
 
 def _maxima_from_clobbered(ndisplays, clobbered):
@@ -238,7 +277,9 @@ def test_reload_clobbered_displays_batches_simultaneous_clobbers_in_one_pass():
             "DisplayCAL.worker.get_macos_videolut_maxima",
             side_effect=lambda: _maxima_from_clobbered(2, clobbered),
         ),
-        mock.patch("DisplayCAL.worker.reload_macos_videoluts", side_effect=fake_reload),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_calibration", side_effect=fake_reload
+        ),
         mock.patch("DisplayCAL.profile_loader.time.sleep"),
     ):
         converged = pl._reload_clobbered_displays(
@@ -285,7 +326,9 @@ def test_reload_clobbered_displays_converges_after_a_reload_not_sticking():
             "DisplayCAL.worker.get_macos_videolut_maxima",
             side_effect=lambda: _maxima_from_clobbered(2, clobbered),
         ),
-        mock.patch("DisplayCAL.worker.reload_macos_videoluts", side_effect=fake_reload),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_calibration", side_effect=fake_reload
+        ),
         mock.patch("DisplayCAL.profile_loader.time.sleep", side_effect=fake_sleep),
     ):
         converged = pl._reload_clobbered_displays(
@@ -317,7 +360,9 @@ def test_reload_clobbered_displays_stops_after_max_passes_without_hanging():
             "DisplayCAL.worker.get_macos_videolut_maxima",
             side_effect=lambda: _maxima_from_clobbered(2, clobbered),
         ),
-        mock.patch("DisplayCAL.worker.reload_macos_videoluts", side_effect=fake_reload),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_calibration", side_effect=fake_reload
+        ),
         mock.patch("DisplayCAL.profile_loader.time.sleep"),
     ):
         converged = pl._reload_clobbered_displays(
@@ -350,7 +395,9 @@ def test_reload_clobbered_displays_stops_on_shutdown():
             "DisplayCAL.worker.get_macos_videolut_maxima",
             side_effect=lambda: _maxima_from_clobbered(1, clobbered),
         ),
-        mock.patch("DisplayCAL.worker.reload_macos_videoluts", side_effect=fake_reload),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_calibration", side_effect=fake_reload
+        ),
         mock.patch("DisplayCAL.profile_loader.time.sleep"),
     ):
         converged = pl._reload_clobbered_displays(

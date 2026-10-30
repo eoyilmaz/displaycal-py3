@@ -2237,6 +2237,7 @@ class WPopen(sp.Popen):
 
 _coregraphics = None
 _corefoundation = None
+_colorsync = None
 
 
 def _get_coregraphics():
@@ -2263,6 +2264,19 @@ def _get_corefoundation():
         except OSError:
             _corefoundation = False  # Mark as tried-and-failed
     return _corefoundation or None
+
+
+def _get_colorsync():
+    """Return the ColorSync CDLL (macOS only), or None."""
+    global _colorsync
+    if _colorsync is None and sys.platform == "darwin":
+        try:
+            _colorsync = ctypes.CDLL(
+                "/System/Library/Frameworks/ColorSync.framework/ColorSync"
+            )
+        except OSError:
+            _colorsync = False  # Mark as tried-and-failed
+    return _colorsync or None
 
 
 def _macos_active_display_ids(max_displays=16):
@@ -2575,6 +2589,235 @@ def reload_macos_videoluts(indices, log=None):
     return reloaded
 
 
+def _setup_colorsync_device_api(cs, cf):
+    """Declare the ctypes signatures used by the ColorSync device helpers."""
+    vp = ctypes.c_void_p
+    cs.CGDisplayCreateUUIDFromDisplayID.restype = vp
+    cs.CGDisplayCreateUUIDFromDisplayID.argtypes = [ctypes.c_uint32]
+    cs.ColorSyncDeviceCopyDeviceInfo.restype = vp
+    cs.ColorSyncDeviceCopyDeviceInfo.argtypes = [vp, vp]
+    cs.ColorSyncDeviceSetCustomProfiles.restype = ctypes.c_bool
+    cs.ColorSyncDeviceSetCustomProfiles.argtypes = [vp, vp, vp]
+    cf.CFDictionaryGetValue.restype = vp
+    cf.CFDictionaryGetValue.argtypes = [vp, vp]
+    cf.CFDictionaryGetCount.restype = ctypes.c_long
+    cf.CFDictionaryGetCount.argtypes = [vp]
+    cf.CFDictionaryGetKeysAndValues.argtypes = [vp, vp, vp]
+    cf.CFDictionaryCreate.restype = vp
+    cf.CFDictionaryCreate.argtypes = [
+        vp,
+        ctypes.POINTER(vp),
+        ctypes.POINTER(vp),
+        ctypes.c_long,
+        vp,
+        vp,
+    ]
+    cf.CFGetTypeID.restype = ctypes.c_ulong
+    cf.CFGetTypeID.argtypes = [vp]
+    cf.CFURLGetTypeID.restype = ctypes.c_ulong
+    cf.CFURLGetTypeID.argtypes = []
+    cf.CFURLCreateFromFileSystemRepresentation.restype = vp
+    cf.CFURLCreateFromFileSystemRepresentation.argtypes = [
+        vp,
+        ctypes.c_char_p,
+        ctypes.c_long,
+        ctypes.c_bool,
+    ]
+    cf.CFURLGetFileSystemRepresentation.restype = ctypes.c_bool
+    cf.CFURLGetFileSystemRepresentation.argtypes = [
+        vp,
+        ctypes.c_bool,
+        ctypes.c_char_p,
+        ctypes.c_long,
+    ]
+    cf.CFRelease.argtypes = [vp]
+
+
+def get_macos_display_custom_profile_path(display_index, max_displays=16):
+    """Return the path of the custom profile ColorSync has assigned to a display.
+
+    Args:
+        display_index (int): Zero-based display index (CoreGraphics/dispwin
+            order, see :func:`_macos_active_display_ids`).
+        max_displays (int): Maximum number of active displays to enumerate.
+
+    Returns:
+        None | str: The profile path, or None if the display has no custom
+            (user assigned) profile or it couldn't be read.
+    """
+    _cg, ids = _macos_active_display_ids(max_displays)
+    cs = _get_colorsync()
+    cf = _get_corefoundation()
+    if cs is None or cf is None or display_index >= len(ids):
+        return None
+    _setup_colorsync_device_api(cs, cf)
+    vp = ctypes.c_void_p
+    uuid = cs.CGDisplayCreateUUIDFromDisplayID(ids[display_index])
+    if not uuid:
+        return None
+    try:
+        info = cs.ColorSyncDeviceCopyDeviceInfo(
+            vp.in_dll(cs, "kColorSyncDisplayDeviceClass"), uuid
+        )
+    finally:
+        cf.CFRelease(uuid)
+    if not info:
+        return None
+    try:
+        custom = cf.CFDictionaryGetValue(
+            info, vp.in_dll(cs, "kColorSyncCustomProfiles")
+        )
+        if not custom:
+            return None
+        # Custom profiles are keyed by the display mode's profile ID, the
+        # active one is the factory profiles' default ID.
+        url = None
+        factory = cf.CFDictionaryGetValue(
+            info, vp.in_dll(cs, "kColorSyncFactoryProfiles")
+        )
+        if factory:
+            default_id = cf.CFDictionaryGetValue(
+                factory, vp.in_dll(cs, "kColorSyncDeviceDefaultProfileID")
+            )
+            if default_id:
+                url = cf.CFDictionaryGetValue(custom, default_id)
+        if not url and cf.CFDictionaryGetCount(custom) == 1:
+            values = (vp * 1)()
+            cf.CFDictionaryGetKeysAndValues(custom, None, values)
+            url = values[0]
+        if not url or cf.CFGetTypeID(url) != cf.CFURLGetTypeID():
+            return None
+        buf = ctypes.create_string_buffer(4096)
+        if not cf.CFURLGetFileSystemRepresentation(url, True, buf, len(buf)):
+            return None
+        return buf.value.decode("UTF-8")
+    finally:
+        cf.CFRelease(info)
+
+
+def set_macos_display_profile(display_index, path, max_displays=16):
+    """Assign a profile to a display for the current user via ColorSync.
+
+    macOS loads the profile's vcgt into the display's VideoLUT itself, so,
+    unlike a dispwin run, this doesn't leave a process exit behind that can
+    black out a display (issue #991).
+
+    Args:
+        display_index (int): Zero-based display index (CoreGraphics/dispwin
+            order, see :func:`_macos_active_display_ids`).
+        path (str): Path of the ICC profile.
+        max_displays (int): Maximum number of active displays to enumerate.
+
+    Returns:
+        bool: True on success.
+    """
+    _cg, ids = _macos_active_display_ids(max_displays)
+    cs = _get_colorsync()
+    cf = _get_corefoundation()
+    if cs is None or cf is None or display_index >= len(ids):
+        return False
+    _setup_colorsync_device_api(cs, cf)
+    vp = ctypes.c_void_p
+    uuid = cs.CGDisplayCreateUUIDFromDisplayID(ids[display_index])
+    if not uuid:
+        return False
+    raw_path = os.fsencode(path)
+    url = cf.CFURLCreateFromFileSystemRepresentation(
+        None, raw_path, len(raw_path), False
+    )
+    if not url:
+        cf.CFRelease(uuid)
+        return False
+    keys = (vp * 2)(
+        vp.in_dll(cs, "kColorSyncDeviceDefaultProfileID").value,
+        vp.in_dll(cs, "kColorSyncProfileUserScope").value,
+    )
+    values = (vp * 2)(url, vp.in_dll(cf, "kCFPreferencesCurrentUser").value)
+    profile_info = cf.CFDictionaryCreate(
+        None,
+        keys,
+        values,
+        2,
+        ctypes.addressof(vp.in_dll(cf, "kCFTypeDictionaryKeyCallBacks")),
+        ctypes.addressof(vp.in_dll(cf, "kCFTypeDictionaryValueCallBacks")),
+    )
+    try:
+        return bool(
+            profile_info
+            and cs.ColorSyncDeviceSetCustomProfiles(
+                vp.in_dll(cs, "kColorSyncDisplayDeviceClass"), uuid, profile_info
+            )
+        )
+    finally:
+        if profile_info:
+            cf.CFRelease(profile_info)
+        cf.CFRelease(url)
+        cf.CFRelease(uuid)
+
+
+def reassign_macos_display_profiles(indices, log=None):
+    """Make macOS re-load calibration by re-assigning each display's profile.
+
+    Re-assigning the display's current custom profile via ColorSync makes
+    macOS load its vcgt again, which recovers a black VideoLUT without
+    DisplayCAL writing the VideoLUT itself. A process that wrote a VideoLUT
+    makes macOS black out a display when it exits (issue #824), this doesn't
+    (issue #991).
+
+    Only profiles installed for the current user are re-assigned. Re-assigning
+    a system wide profile for the current user would leave a user level
+    assignment behind that hides later system wide installs.
+
+    Args:
+        indices (Iterable[int]): Zero-based display indices to reload.
+        log (None | Callable): Optional logging callable.
+
+    Returns:
+        list[int]: Indices whose profile was re-assigned.
+    """
+    user_profiles_dir = os.path.join(
+        os.path.expanduser("~"), "Library", "ColorSync", "Profiles"
+    )
+    reassigned = []
+    for i in indices:
+        path = get_macos_display_custom_profile_path(i)
+        if (
+            not path
+            or os.path.dirname(path) != user_profiles_dir
+            or not os.path.isfile(path)
+        ):
+            continue
+        if set_macos_display_profile(i, path):
+            reassigned.append(i)
+        elif log:
+            log(f"Failed to re-assign profile {path} to display {i + 1:d}")
+    return reassigned
+
+
+def reload_macos_calibration(indices, log=None):
+    """Re-load calibration on macOS displays, preferring ColorSync.
+
+    Uses :func:`reassign_macos_display_profiles`, and only falls back to
+    writing the VideoLUT directly (:func:`reload_macos_videoluts`) for
+    displays without a profile installed for the current user. The fallback
+    keeps the display calibrated while this process runs, but macOS may black
+    it out again when this process exits.
+
+    Args:
+        indices (Iterable[int]): Zero-based display indices to reload.
+        log (None | Callable): Optional logging callable.
+
+    Returns:
+        list[int]: Indices that were successfully reloaded.
+    """
+    indices = list(indices)
+    reloaded = reassign_macos_display_profiles(indices, log=log)
+    remaining = [i for i in indices if i not in reloaded]
+    if remaining:
+        reloaded.extend(reload_macos_videoluts(remaining, log=log))
+    return reloaded
+
+
 def reload_black_videoluts(
     dispwin,
     threshold=0.05,
@@ -2582,26 +2825,34 @@ def reload_black_videoluts(
     settle=0.3,
     log=None,
     _maxima_fn=None,
-    _run=None,
+    _reload=None,
     _sleep=None,
 ):
     """Re-load the VideoLUT of any macOS display that has gone black (issue #694).
 
     On macOS the OS (WindowServer) intermittently resets a display's VideoLUT to
     all-black when an ArgyllCMS display tool exits, turning the screen black.
-    This detects that via CoreGraphics and re-loads the display's installed
-    calibration with ``dispwin -d{N} -L`` (exactly what un-blacks the screen),
-    retrying until it sticks (the re-load itself can occasionally be clobbered
-    again) or the retries run out.
+    This detects that via CoreGraphics and re-loads every black display's
+    installed calibration from this process (see
+    :func:`reload_macos_calibration`), retrying until it sticks or the retries
+    run out.
+
+    The re-load deliberately doesn't run ``dispwin -d{N} -L``: every dispwin
+    process exit can make macOS clobber a *different* display's VideoLUT
+    (issue #824), so on multi-display setups reloading one display per dispwin
+    run blacks out the other one, which then gets reloaded and blacks out the
+    first one again, making both displays flicker between black and normal
+    (issue #991).
 
     Args:
-        dispwin (str): Path to the dispwin executable.
+        dispwin (str): Path to the dispwin executable. Only used to check that
+            ArgyllCMS is available.
         threshold (float): VideoLUT max output below which a display is
             considered black.
         retries (int): Maximum number of detect/re-load passes.
         settle (float): Seconds to wait between passes.
         log (None | Callable): Optional logging callable.
-        _maxima_fn, _run, _sleep: Injection points for testing.
+        _maxima_fn, _reload, _sleep: Injection points for testing.
 
     Returns:
         list[int]: Zero-based indices of displays that were re-loaded.
@@ -2609,7 +2860,7 @@ def reload_black_videoluts(
     if sys.platform != "darwin" or not dispwin:
         return []
     maxima_fn = _maxima_fn or get_macos_videolut_maxima
-    run = _run or (lambda cmd: sp.call(cmd))
+    reload_fn = _reload or (lambda indices: reload_macos_calibration(indices, log=log))
     sleep_fn = _sleep or sleep
     reloaded = []
     for _ in range(max(1, int(retries))):
@@ -2618,13 +2869,14 @@ def reload_black_videoluts(
         ]
         if not black:
             break
+        if log:
+            log(
+                f"{APPNAME}: VideoLUT for display(s) "
+                f"{', '.join(str(i + 1) for i in black)} is black - "
+                "re-loading calibration (issue #694)"
+            )
+        reload_fn(black)
         for i in black:
-            if log:
-                log(
-                    f"{APPNAME}: VideoLUT for display {i + 1:d} is black - "
-                    "re-loading calibration (issue #694)"
-                )
-            run([dispwin, "-v", f"-d{i + 1:d}", "-L"])
             if i not in reloaded:
                 reloaded.append(i)
         sleep_fn(settle)

@@ -2355,6 +2355,46 @@ def test_update_profile_name_reflects_display_selection(window):
     assert window.profile_name_label.text() != first
 
 
+def test_display_ctrl_handler_refreshes_profile_name(window):
+    # Selecting another display updates the %dns-based name right away,
+    # without waiting for the profile name timer (issue #1032).
+    setcfg("profile.name", "%dns")
+    window.profile_name_textctrl.setText("%dns")
+    window.display_ctrl.setCurrentIndex(0)
+    window.update_profile_name()
+    first = window.profile_name_label.text()
+    assert window.display_ctrl.count() > 1
+    window.display_ctrl.setCurrentIndex(1)
+    assert window.profile_name_label.text() != first
+    assert getcfg("profile.name.expanded") == window.profile_name_label.text()
+
+
+def test_profile_name_timer_runs_every_second(window):
+    assert window._profile_name_timer.isActive()
+    assert window._profile_name_timer.interval() == 1000
+
+
+def test_profile_name_timer_skips_while_hidden_or_working(window, monkeypatch):
+    # Like wx stopping its timer during a run, the name isn't touched while
+    # the run uses it (the main window is hidden and the worker is busy).
+    calls = []
+    monkeypatch.setattr(window, "update_profile_name", lambda: calls.append(1))
+    working = [False]
+    monkeypatch.setattr(window.worker, "is_working", lambda: working[0], raising=False)
+
+    window.hide()
+    window._on_profile_name_timer()
+    assert calls == []
+
+    window.show()
+    window._on_profile_name_timer()
+    assert calls == [1]
+
+    working[0] = True
+    window._on_profile_name_timer()
+    assert calls == [1]
+
+
 # --- 3D LUT tab wiring -----------------------------------------------------
 
 
@@ -3380,6 +3420,40 @@ def test_calibrate_and_profile_btn_handler_runs_all_overwrite_checks(
 
     assert exts == [".cal", ".ti3", mw.PROFILE_EXT]
     assert begin_calls == [mw.MeasurementAction.CALIBRATE_AND_PROFILE]
+
+
+@pytest.mark.parametrize(
+    "handler",
+    ["calibrate_btn_handler", "calibrate_and_profile_btn_handler", "profile_btn_handler"],
+)
+def test_run_handlers_refresh_profile_name_before_overwrite_check(
+    window, monkeypatch, handler
+):
+    # A stale name (e.g. the previously profiled display's) made the
+    # overwrite check warn about, and the run reuse, that profile's files
+    # (issue #1032). The name is refreshed before any overwrite check.
+    monkeypatch.setattr(mw, "check_set_argyll_bin", lambda: True)
+    monkeypatch.setattr(window, "_check_show_macos_bugs_warning", lambda *a, **k: None)
+    monkeypatch.setattr(
+        mw.preflight_checks,
+        "resolve_fast_matrix_shaper_choice_info",
+        lambda: SimpleNamespace(show_dialog=False),
+    )
+    monkeypatch.setattr(window, "_current_cal_choice", lambda: True)
+    monkeypatch.setattr(window, "begin_measurement", lambda action, **k: None)
+    order = []
+    monkeypatch.setattr(window, "update_profile_name", lambda: order.append("update"))
+
+    def fake_overwrite(ext="", filename=None):
+        order.append(ext)
+        return True
+
+    monkeypatch.setattr(window, "_check_overwrite", fake_overwrite)
+
+    getattr(window, handler)()
+
+    assert order[0] == "update"
+    assert len(order) > 1
 
 
 # --- worker execution wiring (Stage 5) -------------------------------------

@@ -14,6 +14,8 @@ from unittest import mock
 from DisplayCAL.worker import (
     _get_macos_display_profile,
     get_macos_display_identity,
+    reassign_macos_display_profiles,
+    reload_macos_calibration,
     reload_macos_videoluts,
     vcgt_values_to_videolut,
 )
@@ -233,3 +235,111 @@ def test_get_macos_display_identity_without_coregraphics():
         "DisplayCAL.worker._macos_active_display_ids", return_value=(None, [])
     ):
         assert get_macos_display_identity(0) is None
+
+
+def _user_profile_path(tmp_path, name="display.icc"):
+    """Create a fake profile in a fake ~/Library/ColorSync/Profiles."""
+    profiles_dir = tmp_path / "Library" / "ColorSync" / "Profiles"
+    profiles_dir.mkdir(parents=True, exist_ok=True)
+    path = profiles_dir / name
+    path.write_bytes(b"fake-icc-bytes")
+    return str(path)
+
+
+def test_reassign_macos_display_profiles_reassigns_user_profile(tmp_path):
+    """A profile installed for the current user is re-assigned via ColorSync."""
+    path = _user_profile_path(tmp_path)
+    with (
+        mock.patch("DisplayCAL.worker.os.path.expanduser", return_value=str(tmp_path)),
+        mock.patch(
+            "DisplayCAL.worker.get_macos_display_custom_profile_path",
+            return_value=path,
+        ),
+        mock.patch(
+            "DisplayCAL.worker.set_macos_display_profile", return_value=True
+        ) as mock_set,
+    ):
+        reassigned = reassign_macos_display_profiles([0, 1])
+
+    assert reassigned == [0, 1]
+    assert mock_set.call_args_list == [mock.call(0, path), mock.call(1, path)]
+
+
+def test_reassign_macos_display_profiles_skips_system_wide_profile(tmp_path):
+    """A system wide profile isn't re-assigned for the current user.
+
+    That would leave a user level assignment behind that hides later system
+    wide installs.
+    """
+    with (
+        mock.patch("DisplayCAL.worker.os.path.expanduser", return_value=str(tmp_path)),
+        mock.patch(
+            "DisplayCAL.worker.get_macos_display_custom_profile_path",
+            return_value="/Library/ColorSync/Profiles/display.icc",
+        ),
+        mock.patch("DisplayCAL.worker.set_macos_display_profile") as mock_set,
+    ):
+        assert reassign_macos_display_profiles([0]) == []
+
+    mock_set.assert_not_called()
+
+
+def test_reassign_macos_display_profiles_skips_display_without_profile(tmp_path):
+    """A display without a custom profile, or a missing file, is skipped."""
+    missing = str(tmp_path / "Library" / "ColorSync" / "Profiles" / "gone.icc")
+    with (
+        mock.patch("DisplayCAL.worker.os.path.expanduser", return_value=str(tmp_path)),
+        mock.patch(
+            "DisplayCAL.worker.get_macos_display_custom_profile_path",
+            side_effect=[None, missing],
+        ),
+        mock.patch("DisplayCAL.worker.set_macos_display_profile") as mock_set,
+    ):
+        assert reassign_macos_display_profiles([0, 1]) == []
+
+    mock_set.assert_not_called()
+
+
+def test_reassign_macos_display_profiles_reports_set_failure(tmp_path):
+    """A failed ColorSync assignment is logged and not counted as reloaded."""
+    path = _user_profile_path(tmp_path)
+    logged = []
+    with (
+        mock.patch("DisplayCAL.worker.os.path.expanduser", return_value=str(tmp_path)),
+        mock.patch(
+            "DisplayCAL.worker.get_macos_display_custom_profile_path",
+            return_value=path,
+        ),
+        mock.patch("DisplayCAL.worker.set_macos_display_profile", return_value=False),
+    ):
+        assert reassign_macos_display_profiles([0], log=logged.append) == []
+
+    assert logged == [f"Failed to re-assign profile {path} to display 1"]
+
+
+def test_reload_macos_calibration_prefers_colorsync():
+    """Displays re-assigned via ColorSync don't get their VideoLUT written."""
+    with (
+        mock.patch(
+            "DisplayCAL.worker.reassign_macos_display_profiles", return_value=[0, 1]
+        ),
+        mock.patch("DisplayCAL.worker.reload_macos_videoluts") as mock_videoluts,
+    ):
+        assert reload_macos_calibration([0, 1]) == [0, 1]
+
+    mock_videoluts.assert_not_called()
+
+
+def test_reload_macos_calibration_falls_back_to_videolut():
+    """Displays that couldn't be re-assigned get their VideoLUT written."""
+    with (
+        mock.patch(
+            "DisplayCAL.worker.reassign_macos_display_profiles", return_value=[1]
+        ),
+        mock.patch(
+            "DisplayCAL.worker.reload_macos_videoluts", return_value=[0, 2]
+        ) as mock_videoluts,
+    ):
+        assert reload_macos_calibration([0, 1, 2]) == [1, 0, 2]
+
+    mock_videoluts.assert_called_once_with([0, 2], log=None)

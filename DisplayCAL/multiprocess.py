@@ -644,6 +644,32 @@ class NonDaemonicPool(mp.pool.Pool):
         self._all_workers = []
         kwargs.setdefault("context", MP_CONTEXT)
         super().__init__(*args, **kwargs)
+        # Pool's result handler notifies an empty cache AFTER making the last
+        # result ready, so the caller can already be closing/terminating the
+        # pool. Both threads write to this same parent-only connection.
+        # Windows SimpleQueue omits its write lock because pipe messages are
+        # atomic across processes, but PipeConnection rejects overlapping
+        # sends from threads using the same object (#1040).
+        # Upstream: https://github.com/python/cpython/issues/130733
+        if self._change_notifier._wlock is None:
+            self._change_notifier._wlock = threading.Lock()
+
+    def _setup_queues(self) -> None:
+        """Serialize result sentinels sent by the pool's parent threads."""
+        super()._setup_queues()
+        if self._outqueue._wlock is None:
+            put = self._outqueue.put
+            lock = threading.Lock()
+
+            def parent_put(value: object) -> None:
+                with lock:
+                    put(value)
+
+            # The task handler and terminate() share this connection too.
+            # SimpleQueue.__getstate__ omits instance methods, so spawned
+            # workers retain the standard put() and atomic Windows writes.
+            # A worker dying must not strand a shared result-queue write lock.
+            self._outqueue.put = parent_put
 
     def crashed_workers(self) -> list[NonDaemonicProcess]:
         """Return the worker processes that exited while the pool was running.

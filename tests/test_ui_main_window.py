@@ -8874,7 +8874,26 @@ def test_on_report_finished_shows_error_on_exception(window, monkeypatch):
     assert opened == []
 
 
-def test_on_report_finished_shows_output_text(window, monkeypatch):
+@pytest.mark.parametrize(
+    "progress_lines",
+    [
+        [],
+        [
+            "Display type is LCD",
+            "Doing some initial measurements",
+            "patch 1 of 12",
+            "point 7",
+            "Current RGB 0.1 0.2 0.3",
+            "***",
+            "...",
+            "50%",
+            "Hit any key to continue",
+            "Nov 26 16:28:16 dispcal[1006] <Warning>: driver diagnostic",
+        ],
+    ],
+    ids=["plain", "progress-and-prompts"],
+)
+def test_on_report_finished_shows_output_text(window, monkeypatch, progress_lines):
     logged = []
     shown = []
     monkeypatch.setattr(
@@ -8885,10 +8904,12 @@ def test_on_report_finished_shows_output_text(window, monkeypatch):
     monkeypatch.setattr(mw.LogWindow, "Log", lambda self, txt: logged.append(txt))
     monkeypatch.setattr(mw.LogWindow, "show", lambda self: shown.append(True))
     window.report_title = "Some report"
-    window.worker.output = ["line one", "", "line two"]
+    output = ["line one", "", *progress_lines, "White point ΔE: 0.42"]
+    window.worker.output = output.copy()
     window._on_report_finished("ok")
-    assert logged == ["line one\nline two"]
+    assert logged == ["line one\nWhite point ΔE: 0.42"]
     assert shown == [True]
+    assert window.worker.output == output
 
 
 def test_update_measurement_report_action_cancelled_dialog_is_noop(window, monkeypatch):

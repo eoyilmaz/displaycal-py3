@@ -123,6 +123,7 @@ import re
 import sys
 from decimal import Decimal
 from hashlib import md5
+from io import StringIO
 from typing import TYPE_CHECKING, Callable
 
 from qtpy.QtCore import QEvent, QSize, Qt, QThread, QTimer, Signal
@@ -288,6 +289,7 @@ from DisplayCAL.util_decimal import stripzeros
 from DisplayCAL.util_dict import dict_sort
 from DisplayCAL.util_os import get_program_file, launch_file, waccess, which
 from DisplayCAL.worker import (
+    FilteredStream,
     Worker,
     check_file_isfile,
     get_options_from_cal,
@@ -2922,7 +2924,18 @@ class MainWindow(BaseWindow):
         if isinstance(result, Exception):
             message_box.critical(self, APPNAME, str(result))
             return
-        text = "\n".join(line for line in self.worker.output if line.strip())
+        stream = FilteredStream(
+            StringIO(),
+            discard=self.worker.recent.discard,
+            triggers=FilteredStream.triggers,
+            prestrip=self.worker.recent.prestrip,
+        )
+        for line in self.worker.output:
+            # Worker stores complete lines without their terminators.
+            stream.write(line + "\r\n")
+        text = "\n".join(
+            line for line in stream.getvalue().splitlines() if line.strip()
+        )
         window = LogWindow(self, title=self.report_title)
         window.Log(text)
         window.show()

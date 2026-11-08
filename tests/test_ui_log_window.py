@@ -13,6 +13,8 @@ os.environ.setdefault("QT_API", "pyside6")
 
 pytest.importorskip("qtpy")
 
+from qtpy.QtGui import QFont, QFontDatabase, QFontInfo  # noqa: E402
+
 from DisplayCAL import config  # noqa: E402
 from DisplayCAL import localization as lang  # noqa: E402
 from DisplayCAL.config import getcfg, setcfg  # noqa: E402
@@ -66,6 +68,27 @@ def test_log_appends_text(qapp):
 def test_text_widget_is_read_only(qapp):
     window = lw.LogWindow()
     assert window._text.isReadOnly()
+
+
+def test_text_honors_platform_fixed_font(qapp, monkeypatch):
+    fixed_font = QFont()
+    fixed_font.setFixedPitch(True)
+    fixed_font.setPointSize(13)
+    monkeypatch.setattr(
+        QFontDatabase,
+        "systemFont",
+        lambda role: fixed_font if role == QFontDatabase.FixedFont else QFont(),
+    )
+    window = lw.LogWindow()
+    assert window._text.font().fixedPitch()
+    assert window._text.font().pointSize() == 13
+
+
+def test_text_resolves_to_fixed_pitch_on_native_platform(qapp):
+    if qapp.platformName() in ("offscreen", "minimal"):
+        pytest.skip("Requires the native platform's font database")
+    window = lw.LogWindow()
+    assert QFontInfo(window._text.font()).fixedPitch()
 
 
 def test_position_persists_across_instances(qapp):

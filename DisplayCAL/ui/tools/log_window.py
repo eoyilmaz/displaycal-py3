@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import sys
 
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFontDatabase
 from qtpy.QtWidgets import QPlainTextEdit
 
 from DisplayCAL import config
@@ -40,9 +40,7 @@ class LogWindow(BaseWindow):
         )
         self._text = QPlainTextEdit(self)
         self._text.setReadOnly(True)
-        font = QFont("Monospace")
-        font.setStyleHint(QFont.TypeWriter)
-        self._text.setFont(font)
+        self._text.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.setCentralWidget(self._text)
         self.restore_position()
         if not self.restore_size():

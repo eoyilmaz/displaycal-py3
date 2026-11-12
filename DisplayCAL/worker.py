@@ -1811,6 +1811,57 @@ class FilteredStream:
             self.stream.write(self.linesep_out.join(lines))
 
 
+def _is_abort(exception: Exception) -> bool:
+    """Return whether an exception means the user cancelled the run.
+
+    Mirrors ``Worker._generic_consumer``: a plain ``Exception("aborted")`` is
+    a cancelled run, and an ``Info`` is reported as a result, not an error.
+
+    Args:
+        exception (Exception): The exception to check.
+
+    Returns:
+        bool: True if the exception means the run was cancelled.
+    """
+    if isinstance(exception, Info):
+        return True
+    return exception.__class__ is Exception and exception.args[:1] == ("aborted",)
+
+
+# Exceptions that take a single message argument, so they can be recreated
+# with a longer message without changing how they are shown
+_MESSAGE_ONLY_EXCEPTIONS = (
+    Error,
+    Info,
+    UnloggedError,
+    UnloggedInfo,
+    UnloggedWarning,
+    UntracedError,
+    Warn,
+)
+
+
+def _with_incomplete_run_note(exception: Exception, path: str) -> Exception:
+    """Return a copy of an error that also says where the run's files were kept.
+
+    Args:
+        exception (Exception): The error of the failed run.
+        path (str): The folder the files of the run were moved to.
+
+    Returns:
+        Exception: A new exception of the same type if it only takes a
+            message, otherwise an ``Error``.
+    """
+    note = lang.getstr(
+        "profiling.incomplete.files_kept",
+        (path, f"{lang.getstr('menu.file')} > {lang.getstr('create_profile')}"),
+    )
+    message = str(exception).strip()
+    message = f"{message}\n\n{note}" if message else note
+    cls = type(exception) if type(exception) in _MESSAGE_ONLY_EXCEPTIONS else Error
+    return cls(message)
+
+
 class Producer:
     """Generic producer.
 
@@ -4955,6 +5006,8 @@ END_DATA
         self.patterngenerator_sent_count = 0
         self.exec_cmd_returnvalue = None
         self.tmpfiles = {}
+        # Where the last wrapup() moved the files of a failed run, or None
+        self.incomplete_run_path = None
         self.buffer = []
         self._detected_instrument = None
         self._detected_instrument_serial = None
@@ -12192,6 +12245,13 @@ BEGIN_DATA
     ):
         """Create an ICC profile and process the generated file.
 
+        Files of a failed run are moved to the "incomplete" folder, whether the
+        failure is returned or raised. A raised exception used to skip that, and
+        the caller's cleanup (``wrapup(False)``) then deleted the temporary
+        directory, and with it the measurements of the whole run. When files
+        were kept, the error says where (a raised one comes back as an
+        ``Error`` chained to the original exception).
+
         Args:
             dst_path (str): Path to save the profile to. If None, uses the
                 default save path and profile name.
@@ -12201,6 +12261,50 @@ BEGIN_DATA
             display_manufacturer (str): Optional manufacturer name for the
                 display.
             tags (list): Optional list of tags to apply to the profile.
+
+        Returns:
+            str or Exception: The path to the created profile on success, or an
+                Exception object on error.
+        """
+        self.incomplete_run_path = None
+        try:
+            result = self._create_profile(
+                dst_path, skip_scripts, display_name, display_manufacturer, tags
+            )
+        except Exception as exception:
+            if _is_abort(exception):
+                raise
+            # wrapup only keeps the files if something changed since the
+            # snapshot exec_cmd takes before each command, which isn't the
+            # case if the error happened after the last command. Keep them
+            # anyway, they include the measurements of the whole run.
+            self.tmpfiles.clear()
+            try:
+                self.wrapup(exception, dst_path=dst_path)
+            except Exception as wrapup_exception:
+                # Don't mask the original error
+                print(
+                    "Warning - could not keep the files of the incomplete run:",
+                    wrapup_exception,
+                )
+            if not self.incomplete_run_path:
+                raise
+            raise _with_incomplete_run_note(
+                exception, self.incomplete_run_path
+            ) from exception
+        if isinstance(result, Exception) and self.incomplete_run_path:
+            result = _with_incomplete_run_note(result, self.incomplete_run_path)
+        return result
+
+    def _create_profile(
+        self,
+        dst_path,
+        skip_scripts,
+        display_name,
+        display_manufacturer,
+        tags,
+    ):
+        """Create an ICC profile, see :meth:`create_profile`.
 
         Returns:
             str or Exception: The path to the created profile on success, or an
@@ -19101,6 +19205,7 @@ BEGIN_DATA
         """
         if DEBUG:
             print(f"[D] wrapup(copy={copy}, remove={remove})")
+        self.incomplete_run_path = None
         if not self.tempdir or not os.path.isdir(self.tempdir):
             return None  # nothing to do
         if (
@@ -19186,9 +19291,10 @@ BEGIN_DATA
                     remove = False
                 else:
                     if isinstance(copy, Exception):
+                        self.incomplete_run_path = os.path.dirname(dst_path)
                         print(
                             "Moving files of incomplete run to",
-                            os.path.dirname(dst_path),
+                            self.incomplete_run_path,
                         )
                     for basename in src_listdir:
                         name, ext = os.path.splitext(basename)

@@ -415,11 +415,13 @@ def get_file_logger(
     Returns:
         logging.Logger: The logger object.
     """
-    global _LOGDIR
-    global LOGGER
+    # Don't touch the module-wide LOGGER here, only setup_logging() may set
+    # it. Rebinding it made every print() go to whichever file logger was
+    # created last (e.g. "interact" or a session log), and nowhere once that
+    # one was closed.
     if logdir is None:
         logdir = _LOGDIR
-    LOGGER = logging.getLogger(name)
+    logger = logging.getLogger(name)
     if not filename:
         filename = name
     mode = "a"
@@ -432,13 +434,13 @@ def get_file_logger(
             mode,
         )
     logfile = os.path.join(logdir, filename + ".log")
-    for handler in LOGGER.handlers:
+    for handler in logger.handlers:
         if isinstance(
             handler, logging.FileHandler
         ) and handler.baseFilename == os.path.abspath(logfile):
-            return LOGGER
-    LOGGER.propagate = 0
-    LOGGER.setLevel(level)
+            return logger
+    logger.propagate = 0
+    logger.setLevel(level)
     if not os.path.exists(logdir):
         try:
             os.makedirs(logdir)
@@ -458,10 +460,10 @@ def get_file_logger(
                 filehandler = logging.FileHandler(logfile, mode)
             fileformatter = logging.Formatter("%(asctime)s %(message)s")
             filehandler.setFormatter(fileformatter)
-            LOGGER.addHandler(filehandler)
+            logger.addHandler(filehandler)
         except Exception as exception:
             print(f"Warning - logging to file '{logfile}' not possible: {exception}")
-    return LOGGER
+    return logger
 
 
 def update_filename_for_confighome(

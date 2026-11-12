@@ -163,7 +163,7 @@ class UpdateCheckController(QObject):
                 date (used for the startup check).
         """
         self._silent = silent
-        self._thread = _CallThread(self._fetch)
+        self._thread = _CallThread(self._fetch, parent=self)
         self._thread.done.connect(self._on_fetched)
         self._thread.start()
 

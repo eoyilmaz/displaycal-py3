@@ -295,7 +295,7 @@ class WebCheckController(QObject):
         self._progress = _indeterminate_progress(
             lang.getstr("colorimeter_correction.web_check"), self._parent
         )
-        self._thread = _CallThread(self._fetch)
+        self._thread = _CallThread(self._fetch, parent=self)
         self._thread.done.connect(self._on_fetched)
         self._thread.start()
 
@@ -478,7 +478,7 @@ class ImportController(QObject):
         self._progress = _indeterminate_progress(
             lang.getstr("colorimeter_correction.import"), self._parent
         )
-        self._thread = _CallThread(self._do_import)
+        self._thread = _CallThread(self._do_import, parent=self)
         self._thread.done.connect(self._on_done)
         self._thread.start()
 
@@ -653,7 +653,7 @@ class UploadController(QObject):
 
         self._params = ccxx_helpers.build_upload_params(cgats)
         self._progress = _indeterminate_progress(title, self._parent)
-        self._thread = _CallThread(self._do_upload)
+        self._thread = _CallThread(self._do_upload, parent=self)
         self._thread.done.connect(self._on_done)
         self._thread.start()
 

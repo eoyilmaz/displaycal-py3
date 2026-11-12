@@ -191,7 +191,7 @@ class PrismaHostDialog(QDialog):
             "on_client_added",
             lambda addr_client: self._client_discovered.emit(addr_client[1]["name"]),
         )
-        self._discover_thread = _CallThread(self._discover)
+        self._discover_thread = _CallThread(self._discover, parent=self)
         self._discover_thread.start()
 
     def _discover(self) -> None:
@@ -219,7 +219,9 @@ class PrismaHostDialog(QDialog):
         self.error_label.setText(lang.getstr("please_wait"))
         self.error_label.setStyleSheet("")
         self.buttons.button(QDialogButtonBox.Ok).setEnabled(False)
-        self._check_thread = _CallThread(lambda: self._check_host(host))
+        self._check_thread = _CallThread(
+            lambda: self._check_host(host), parent=self
+        )
         self._check_thread.done.connect(self._on_host_checked)
         self._check_thread.start()
 
@@ -485,8 +487,12 @@ class Lut3DAPIInstallController(QObject):
         self._progress.setCancelButton(None)
         self._progress.setWindowModality(Qt.WindowModal)
         self._progress.show()
+        # Parented: _on_install_done drops the reference while the thread is
+        # still finishing, and an unparented QThread destroyed while running
+        # aborts the whole application
         self._thread = _CallThread(
-            lambda: self._worker.install_3dlut(self._lut3d_path, filename)
+            lambda: self._worker.install_3dlut(self._lut3d_path, filename),
+            parent=self,
         )
         self._thread.done.connect(self._on_install_done)
         self._thread.start()

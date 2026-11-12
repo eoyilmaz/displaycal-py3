@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import builtins
+import contextlib
 import ctypes
 import errno
 import fnmatch
@@ -16,6 +17,7 @@ import subprocess as sp
 import sys
 import tempfile
 import time
+import uuid
 from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
@@ -985,6 +987,24 @@ def safe_translate(pat: str) -> str:
     return re.escape(os.path.sep).join(components)
 
 
+def _probe_write_access(directory: str) -> None:
+    """Create and remove a uniquely named file in directory, trying once.
+
+    Not tempfile: on Windows it retries up to 10000 names when creating a
+    file is refused but os.access() reports the folder as writable (it only
+    looks at the read-only attribute), so checking e.g. a protected folder
+    took minutes.
+
+    Raises:
+        OSError: If the file can't be created.
+    """
+    probe = os.path.join(directory, f".write-test-{uuid.uuid4().hex}.tmp")
+    fd = os.open(probe, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    os.close(fd)
+    with contextlib.suppress(OSError):
+        os.remove(probe)
+
+
 def waccess(path: str, mode: int) -> bool:
     """Test access to path.
 
@@ -1008,8 +1028,7 @@ def waccess(path: str, mode: int) -> bool:
                 with open(path, "ab"):
                     pass
             else:
-                with tempfile.TemporaryFile(prefix=".", dir=directory):
-                    pass
+                _probe_write_access(directory)
         except OSError:
             return False
     if mode & os.X_OK:

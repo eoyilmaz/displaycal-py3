@@ -371,8 +371,31 @@ class StdoutLogger:
                 finally:
                     local.logging = False
         if self.stream is not None:
-            self.stream.write(text)
+            self._write_to_stream(text)
         return len(text)
+
+    def _write_to_stream(self, text: str) -> None:
+        """Write text to the wrapped stream, replacing unencodable characters.
+
+        A console or redirected stdout with a legacy encoding (e.g. cp1252 on
+        Windows) can't encode every character DisplayCAL prints, e.g. the "≈"
+        in the calibration transfer function message. The raised
+        UnicodeEncodeError used to abort whatever printed it, like profile
+        creation. The complete text has already been logged at this point.
+
+        Args:
+            text (str): The text to write.
+        """
+        try:
+            self.stream.write(text)
+        except UnicodeEncodeError:
+            encoding = getattr(self.stream, "encoding", None) or "ascii"
+            try:
+                text = text.encode(encoding, "replace").decode(encoding, "replace")
+            except LookupError:
+                # The stream reports a codec Python doesn't know
+                text = text.encode("ascii", "replace").decode("ascii")
+            self.stream.write(text)
 
     def flush(self) -> None:
         """Flush the wrapped stream."""

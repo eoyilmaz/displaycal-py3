@@ -86,6 +86,33 @@ if TYPE_CHECKING:
 #    get_dimensions so it can be unit-tested without a screen) ----------------
 
 
+def screen_for_argyll_display(display: str, screens: list) -> object | None:
+    """Return the screen of an Argyll display entry, None if none matches.
+
+    Args:
+        display: Argyll's entry, e.g. ``"Mi Monitor @ 3840, 718, 2560x1440"``.
+        screens: The Qt screens.
+
+    Qt names screens after the monitor model, like Argyll; between two
+    displays of the same model the top-left corner decides (it isn't scaled
+    by Windows display scaling, sizes are).
+    """
+    name, _sep, where = display.partition(" @ ")
+    name = name.strip().lower()
+    same_name = [s for s in screens if s.name().strip().lower() == name]
+    if len(same_name) == 1:
+        return same_name[0]
+    try:
+        x, y = (int(v) for v in where.split(",")[:2])
+    except ValueError:
+        return same_name[0] if same_name else None
+    for screen in same_name or screens:
+        geometry = screen.geometry()
+        if (geometry.x(), geometry.y()) == (x, y):
+            return screen
+    return same_name[0] if same_name else None
+
+
 def default_measureframe_size(
     display_size_px: tuple[int, int], display_size_mm: tuple[float, float]
 ) -> int:
@@ -659,6 +686,26 @@ class MeasureFrame(BaseWindow):
         self.setFixedSize(side, side)
         setcfg("dimensions.measureframe", ",".join(strlist((x, y, saved_scale))))
         self.move(*pos)
+
+    def move_to_screen(self, screen: QScreen) -> None:
+        """Put the window on ``screen``, at the same relative place and size.
+
+        Used when the display to measure changes (e.g. the next display of a
+        chain), so the measurement area doesn't stay on the previous one.
+        """
+        if screen is None or self._current_screen() is screen:
+            return
+        relative = getcfg("dimensions.measureframe") or DEFAULTS[
+            "dimensions.measureframe"
+        ]
+        x, y, scale = (float(v) for v in relative.split(","))
+        # Onto the screen first: placement is relative to the current screen
+        centre = screen.geometry().center()
+        self.move(centre.x() - self.width() // 2, centre.y() - self.height() // 2)
+        handle = self.windowHandle()
+        if handle is not None:
+            handle.setScreen(screen)
+        self.place_n_zoom(x, y, scale)
 
     def get_dimensions(self) -> str:
         """Return the current geometry in Argyll relative coordinates.

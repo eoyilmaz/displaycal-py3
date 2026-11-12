@@ -583,23 +583,29 @@ def listdir_re(path, rex: None | str = None) -> list[str]:
     return files
 
 
-def make_win32_compatible_long_path(path: str, maxpath: int = 259) -> str:
+def make_win32_compatible_long_path(path, maxpath: int = 259):
     """Make a path compatible with Windows long path limitations.
 
     Args:
-        path (str): The path to make compatible.
+        path (str | bytes | os.PathLike | int): The path to make compatible.
+            pathlib passes ``Path`` objects to the wrapped ``os.stat``; file
+            descriptors are passed through unchanged.
         maxpath (int): The maximum path length. Defaults to 259.
 
     Returns:
-        str: The compatible path.
+        The path, as ``str``/``bytes`` with the ``\\\\?\\`` prefix if it was
+        long, otherwise unchanged.
     """
+    if sys.platform != "win32" or not isinstance(path, (str, bytes, os.PathLike)):
+        return path
+    fspath = os.fspath(path)
+    prefix = b"\\\\?\\" if isinstance(fspath, bytes) else "\\\\?\\"
     if (
-        sys.platform == "win32"
-        and len(str(path)) > maxpath
-        and os.path.isabs(path)
-        and not str(path).startswith("\\\\?\\")
+        len(fspath) > maxpath
+        and os.path.isabs(fspath)
+        and not fspath.startswith(prefix)
     ):
-        path = "\\\\?\\" + path
+        return prefix + fspath
     return path
 
 

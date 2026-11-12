@@ -16,6 +16,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import weakref
 from functools import cache
 from typing import TYPE_CHECKING, Callable, overload
 
@@ -366,6 +367,38 @@ def set_argyll_bin(
     return result
 
 
+# The "ArgyllCMS not found" prompt of the running Qt UI, as a weak reference
+# so a closed window isn't kept alive (see set_missing_argyll_prompt)
+_missing_argyll_prompt: None | weakref.WeakMethod | Callable[[], Callable] = None
+
+
+def set_missing_argyll_prompt(prompt: None | Callable[[], None]) -> None:
+    """Register the running UI's own "ArgyllCMS not found" prompt.
+
+    The Qt UI registers its prompt so :func:`check_set_argyll_bin` never opens
+    the wx dialogs of :func:`set_argyll_bin` inside the Qt application: wx and
+    Qt in one process crash with an access violation on Windows.
+
+    Args:
+        prompt (None | Callable[[], None]): Shows the prompt and returns once
+            the user has dealt with it, or None to unregister.
+    """
+    global _missing_argyll_prompt
+    if prompt is None:
+        _missing_argyll_prompt = None
+    elif hasattr(prompt, "__self__"):
+        _missing_argyll_prompt = weakref.WeakMethod(prompt)
+    else:
+        _missing_argyll_prompt = lambda: prompt  # noqa: E731
+
+
+def _get_missing_argyll_prompt() -> None | Callable[[], None]:
+    """Return the registered prompt if the Qt UI is running and still alive."""
+    if _missing_argyll_prompt is None or config.get_ui_toolkit() != "qt":
+        return None
+    return _missing_argyll_prompt()
+
+
 def check_set_argyll_bin(paths: None | list[str] = None) -> bool:
     """Check if Argyll binaries can be found, otherwise let the user choose.
 
@@ -374,6 +407,10 @@ def check_set_argyll_bin(paths: None | list[str] = None) -> bool:
     """
     if check_argyll_bin(paths):
         return True
+    prompt = _get_missing_argyll_prompt()
+    if prompt is not None:
+        prompt()
+        return check_argyll_bin(paths)
     return set_argyll_bin()
 
 

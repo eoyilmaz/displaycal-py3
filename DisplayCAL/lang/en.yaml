@@ -2119,6 +2119,10 @@
   Profiling complete!
 "profiling.incomplete": |-
   Profiling has not been finished.
+"profiling.incomplete.files_kept": |-
+  The files of this run, including the measurements, were kept in:
+  %s
+  To create the profile without measuring again, use "%s".
 "projection_television": |-
   Projection television
 "projector": |-

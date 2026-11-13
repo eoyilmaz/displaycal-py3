@@ -21,7 +21,7 @@ from DisplayCAL.argyll import (
 )
 from DisplayCAL.cgats import CGATS
 from DisplayCAL.config import getcfg, initcfg, setcfg
-from DisplayCAL.debughelpers import Error
+from DisplayCAL.debughelpers import Error, Info, UnloggedError
 from DisplayCAL.dev.mocks import check_call_str
 from DisplayCAL.icc_profile import (
     ICCProfile,
@@ -1755,3 +1755,186 @@ def test_check_instrument_calibration_failure_allows_retry_dialog(monkeypatch):
     assert worker.do_instrument_calibration_calls[1] is False
     # No additional silent retries should have been sent
     assert len(worker.safe_send_calls) == 1
+
+
+def test_create_profile_raising_keeps_measurements_as_incomplete_run(
+    tmp_path, monkeypatch
+):
+    """Measurements survive a profile creation step that raises.
+
+    ``create_profile`` moves the files of a failed run to the "incomplete"
+    folder only when it *returns* an error. When something inside it raises
+    instead (e.g. issue #1040's "concurrent send_bytes() calls are not
+    supported"), the wx ``profile_finish`` consumer shows the error and calls
+    ``start_timers(True)``, whose ``worker.wrapup(False)`` deletes the
+    temporary directory, and with it the measurements of the whole run.
+    """
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    name = "Test Display #1 2026-11-11 D6500 2.2 F-S XYZLUT+MTX"
+    dst_path = tmp_path / "out" / name / f"{name}.icc"
+    worker = Worker()
+    worker.create_tempdir()
+    ti3_path = pathlib.Path(worker.tempdir) / f"{name}.ti3"
+    ti3_path.write_text("CTI3\n")
+
+    def raise_during_profiling(*args, **kwargs):
+        raise ValueError("concurrent send_bytes() calls are not supported")
+
+    monkeypatch.setattr(worker, "prepare_colprof", raise_during_profiling)
+
+    with pytest.raises(Error, match="concurrent send_bytes"):
+        worker.create_profile(dst_path=str(dst_path))
+    # What the wx profile_finish consumer does after showing the error
+    worker.wrapup(False)
+
+    kept = data_home / "incomplete" / name / f"{name}.ti3"
+    assert kept.read_text() == "CTI3\n"
+
+
+def test_create_profile_raised_error_tells_where_measurements_were_kept(
+    tmp_path, monkeypatch
+):
+    """The error shown to the user names the folder the run was moved to.
+
+    Without it the measurements are safe but nobody knows where to find them.
+    The original exception stays attached as the cause, so the logged
+    traceback still shows where it came from.
+    """
+    lang.init()
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    name = "Test Display #1 2026-11-11 D6500 2.2 F-S XYZLUT+MTX"
+    dst_path = tmp_path / "out" / name / f"{name}.icc"
+    worker = Worker()
+    worker.create_tempdir()
+    (pathlib.Path(worker.tempdir) / f"{name}.ti3").write_text("CTI3\n")
+    original = ValueError("concurrent send_bytes() calls are not supported")
+
+    def raise_during_profiling(*args, **kwargs):
+        raise original
+
+    monkeypatch.setattr(worker, "prepare_colprof", raise_during_profiling)
+
+    with pytest.raises(Error) as cm:
+        worker.create_profile(dst_path=str(dst_path))
+    worker.wrapup(False)
+
+    message = str(cm.value)
+    assert message.startswith("concurrent send_bytes() calls are not supported")
+    assert str(data_home / "incomplete" / name) in message
+    assert lang.getstr("create_profile") in message
+    assert "profiling.incomplete.files_kept" not in message
+    assert cm.value.__cause__ is original
+
+
+def test_create_profile_returned_error_tells_where_measurements_were_kept(
+    tmp_path, monkeypatch
+):
+    """A returned error keeps its type and gains the folder of the kept run."""
+    lang.init()
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    name = "Test Display #1 2026-11-11 D6500 2.2 F-S XYZLUT+MTX"
+    dst_path = tmp_path / "out" / name / f"{name}.icc"
+    worker = Worker()
+    worker.create_tempdir()
+    (pathlib.Path(worker.tempdir) / f"{name}.ti3").write_text("CTI3\n")
+
+    def fail_preparing_colprof(*args, **kwargs):
+        return UnloggedError("colprof could not be prepared"), None
+
+    monkeypatch.setattr(worker, "prepare_colprof", fail_preparing_colprof)
+
+    result = worker.create_profile(dst_path=str(dst_path))
+    worker.wrapup(False)
+
+    assert type(result) is UnloggedError
+    message = str(result)
+    assert message.startswith("colprof could not be prepared")
+    kept_dir = data_home / "incomplete" / name
+    assert str(kept_dir) in message
+    assert (kept_dir / f"{name}.ti3").read_text() == "CTI3\n"
+
+
+def test_create_profile_error_without_kept_run_is_unchanged(tmp_path, monkeypatch):
+    """No folder is mentioned when nothing was kept."""
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    worker = Worker()
+    worker.create_tempdir()
+    original = UnloggedError("colprof could not be prepared")
+
+    def fail_preparing_colprof(*args, **kwargs):
+        return original, None
+
+    monkeypatch.setattr(worker, "prepare_colprof", fail_preparing_colprof)
+
+    result = worker.create_profile(dst_path=str(tmp_path / "out" / "x" / "x.icc"))
+    worker.wrapup(False)
+
+    assert result is original
+    assert not (data_home / "incomplete").exists()
+
+
+def test_create_profile_raising_keeps_measurements_unchanged_since_snapshot(
+    tmp_path, monkeypatch
+):
+    """Measurements are kept even if no file changed since the last command.
+
+    ``exec_cmd`` snapshots the temporary directory before every Argyll command,
+    and ``wrapup`` only keeps the files of a failed run if something changed
+    since that snapshot. An error raised after the last command, before any
+    new file was written, must still keep the measurements.
+    """
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    name = "Test Display #1 2026-11-11 D6500 2.2 F-S XYZLUT+MTX"
+    dst_path = tmp_path / "out" / name / f"{name}.icc"
+    worker = Worker()
+    worker.create_tempdir()
+    ti3_path = pathlib.Path(worker.tempdir) / f"{name}.ti3"
+    ti3_path.write_text("CTI3\n")
+    # What exec_cmd records before running colprof
+    worker.tmpfiles[ti3_path.name] = os.stat(ti3_path).st_mtime
+
+    def raise_during_profiling(*args, **kwargs):
+        raise ValueError("concurrent send_bytes() calls are not supported")
+
+    monkeypatch.setattr(worker, "prepare_colprof", raise_during_profiling)
+
+    with pytest.raises(Error, match="concurrent send_bytes"):
+        worker.create_profile(dst_path=str(dst_path))
+    worker.wrapup(False)
+
+    kept = data_home / "incomplete" / name / f"{name}.ti3"
+    assert kept.read_text() == "CTI3\n"
+
+
+@pytest.mark.parametrize(
+    "abort",
+    [Info("aborted"), Exception("aborted")],
+    ids=["Info", "Exception"],
+)
+def test_create_profile_raised_abort_is_not_kept_as_incomplete_run(
+    tmp_path, monkeypatch, abort
+):
+    """A run the user cancelled is discarded, like a returned abort is."""
+    data_home = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_HOME", str(data_home))
+    name = "Test Display #1 2026-11-11 D6500 2.2 F-S XYZLUT+MTX"
+    dst_path = tmp_path / "out" / name / f"{name}.icc"
+    worker = Worker()
+    worker.create_tempdir()
+    (pathlib.Path(worker.tempdir) / f"{name}.ti3").write_text("CTI3\n")
+
+    def raise_abort(*args, **kwargs):
+        raise abort
+
+    monkeypatch.setattr(worker, "prepare_colprof", raise_abort)
+
+    with pytest.raises(type(abort)):
+        worker.create_profile(dst_path=str(dst_path))
+    worker.wrapup(False)
+
+    assert not (data_home / "incomplete").exists()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import _ctypes
 import ctypes
+import os
 import platform
 import struct
 import sys
@@ -460,6 +461,112 @@ def get_pids() -> list[int]:
             continue
         count = byte_words.value / (pids_size / pids_count)
         return [_f for _f in pids[:count] if _f]
+
+
+_TH32CS_SNAPPROCESS = 0x00000002
+
+
+class _PROCESSENTRY32W(ctypes.Structure):
+    _fields_ = [
+        ("dwSize", DWORD),
+        ("cntUsage", DWORD),
+        ("th32ProcessID", DWORD),
+        ("th32DefaultHeapID", ctypes.c_size_t),
+        ("th32ModuleID", DWORD),
+        ("cntThreads", DWORD),
+        ("th32ParentProcessID", DWORD),
+        ("pcPriClassBase", ctypes.c_long),
+        ("dwFlags", DWORD),
+        ("szExeFile", ctypes.c_wchar * 260),
+    ]
+
+
+def _get_parent_pids() -> dict[int, int]:
+    """Map the PID of every running process to the PID of its parent.
+
+    Raises:
+        OSError: If the process snapshot can't be taken.
+
+    Returns:
+        dict[int, int]: Parent PID by PID.
+    """
+    # Own instance, so setting argtypes doesn't affect other users of windll
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateToolhelp32Snapshot.argtypes = (DWORD, DWORD)
+    kernel32.CreateToolhelp32Snapshot.restype = HANDLE
+    kernel32.Process32FirstW.argtypes = (HANDLE, POINTER(_PROCESSENTRY32W))
+    kernel32.Process32FirstW.restype = wintypes.BOOL
+    kernel32.Process32NextW.argtypes = (HANDLE, POINTER(_PROCESSENTRY32W))
+    kernel32.Process32NextW.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = (HANDLE,)
+    kernel32.CloseHandle.restype = wintypes.BOOL
+
+    snapshot = kernel32.CreateToolhelp32Snapshot(_TH32CS_SNAPPROCESS, 0)
+    if snapshot in (None, HANDLE(-1).value):
+        raise ctypes.WinError(ctypes.get_last_error())
+    parents = {}
+    try:
+        entry = _PROCESSENTRY32W()
+        entry.dwSize = sizeof(_PROCESSENTRY32W)
+        more = kernel32.Process32FirstW(snapshot, byref(entry))
+        while more:
+            parents[entry.th32ProcessID] = entry.th32ParentProcessID
+            more = kernel32.Process32NextW(snapshot, byref(entry))
+    finally:
+        kernel32.CloseHandle(snapshot)
+    return parents
+
+
+_PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+
+def _creation_time(pid: int) -> float | None:
+    """Return when a process was created (seconds), None if unknown."""
+    try:
+        handle = win32api.OpenProcess(_PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    except pywintypes.error:
+        return None
+    try:
+        return win32process.GetProcessTimes(handle)["CreationTime"].timestamp()
+    except (pywintypes.error, KeyError, AttributeError, OSError, ValueError):
+        return None
+    finally:
+        win32api.CloseHandle(handle)
+
+
+def get_ancestor_pids(pid: int | None = None) -> set[int]:
+    """Return the PIDs of the parent, grandparent etc. of a process.
+
+    Used to tell the launcher a process was started from (e.g. the
+    ``displaycal.exe`` that pip/uv create for an entry point) apart from
+    another running instance of the application.
+
+    A PID can be reused once its process has ended, so a "parent" created
+    after its child is someone else's process; the walk stops there, and
+    where a creation time can't be read.
+
+    Args:
+        pid (int | None): The process, the current one if None.
+
+    Returns:
+        set[int]: The PIDs of the ancestors that are still running.
+    """
+    if pid is None:
+        pid = os.getpid()
+    parents = _get_parent_pids()
+    ancestors = set()
+    child, child_created = pid, _creation_time(pid)
+    parent = parents.get(pid)
+    while parent and parent in parents and parent not in ancestors | {pid}:
+        parent_created = _creation_time(parent)
+        if child_created is None or parent_created is None:
+            break
+        if parent_created > child_created:
+            break
+        ancestors.add(parent)
+        child, child_created = parent, parent_created
+        parent = parents.get(child)
+    return ancestors
 
 
 def get_real_display_devices_info() -> list[dict]:

@@ -584,7 +584,17 @@ def terminate_conflicting_instance(
     import pywintypes
     import win32ts
 
+    from DisplayCAL import util_win
+
     opid = os.getpid()
+    # When started through the displaycal.exe launcher pip/uv create for the
+    # entry point, that launcher is our ancestor and has the name of the app,
+    # but it isn't another instance
+    try:
+        own_pids = {opid} | util_win.get_ancestor_pids(opid)
+    except OSError as exception:
+        print("Enumerating parent processes failed:", exception)
+        own_pids = {opid}
 
     try:
         osid = win32ts.ProcessIdToSessionId(opid)
@@ -612,7 +622,7 @@ def terminate_conflicting_instance(
             is_session_exe_match = (
                 osid is None or sid == osid
             ) and basename_lower == pyexe_lower
-            if not (is_pid_match or is_session_exe_match) or pid2 == opid:
+            if not (is_pid_match or is_session_exe_match) or pid2 in own_pids:
                 continue
             # Other instance running
             incoming = False

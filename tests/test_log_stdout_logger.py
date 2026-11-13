@@ -41,6 +41,48 @@ def test_complete_lines_are_logged_and_passed_through(logged):
     assert stream.getvalue() == ("Loading calibration curves...\n1. PA279CRV ...ok.\n")
 
 
+def test_unencodable_text_is_replaced_not_raised(logged: list[str]) -> None:
+    """A character the wrapped stream can't encode must not abort the caller.
+
+    Profile creation prints "Calibration overall transfer function ≈ ...";
+    a UnicodeEncodeError from a cp1252 stdout used to abort it.
+    """
+    raw = io.BytesIO()
+    stream = io.TextIOWrapper(raw, encoding="cp1252", newline="\n", write_through=True)
+    out = log.StdoutLogger(stream)
+
+    print("Calibration overall transfer function ≈ Gamma 2.4", file=out)
+
+    assert logged == ["Calibration overall transfer function ≈ Gamma 2.4"]
+    assert raw.getvalue().decode("cp1252") == (
+        "Calibration overall transfer function ? Gamma 2.4\n"
+    )
+
+
+def test_unencodable_text_with_unknown_stream_encoding_falls_back_to_ascii(
+    logged: list[str],
+) -> None:
+    """A stream reporting a codec Python doesn't know must not raise either."""
+
+    class StrictStream:
+        encoding = "no-such-codec"
+
+        def __init__(self) -> None:
+            self.written: list[str] = []
+
+        def write(self, text: str) -> None:
+            text.encode("ascii")
+            self.written.append(text)
+
+    stream = StrictStream()
+    out = log.StdoutLogger(stream)
+
+    print("gamma ≈ 2.4", file=out)
+
+    assert logged == ["gamma ≈ 2.4"]
+    assert "".join(stream.written) == "gamma ? 2.4\n"
+
+
 def test_partial_line_is_logged_once_complete(logged):
     out = log.StdoutLogger(None)
     print("Menu command:", end=" ", file=out)

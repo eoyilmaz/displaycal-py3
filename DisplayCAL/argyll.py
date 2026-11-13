@@ -37,7 +37,7 @@ from DisplayCAL.config import (
     writecfg,
 )
 from DisplayCAL.util_os import getenvu, safe_glob, which
-from DisplayCAL.util_str import make_filename_safe
+from DisplayCAL.util_str import make_filename_safe, wrap
 
 if TYPE_CHECKING:
     import wx  # noqa: TC004
@@ -274,7 +274,9 @@ def set_argyll_bin(
             )
         dlg = wx.SingleChoiceDialog(
             parent,
-            lang.getstr("dialog.argyll.notfound.choice"),
+            # SingleChoiceDialog doesn't wrap its message, one long line
+            # makes a very wide and flat dialog
+            wrap(lang.getstr("dialog.argyll.notfound.choice"), 70),
             APPNAME,
             [label for _, label in choices],
             style=wx.CHOICEDLG_STYLE,

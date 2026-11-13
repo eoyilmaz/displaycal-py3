@@ -180,6 +180,7 @@ from DisplayCAL.argyll import (
     get_argyll_util,
     get_homebrew_argyll_bin,
     make_argyll_compatible_path,
+    set_missing_argyll_prompt,
 )
 from DisplayCAL.argyll_instruments import get_canonical_instrument_name
 from DisplayCAL.argyll_names import ALTNAMES as ARGYLL_ALTNAMES
@@ -1357,6 +1358,9 @@ class MainWindow(BaseWindow):
         #: dialog (:class:`~DisplayCAL.ui.profile_finish_dialog.ProfileFinishDialog`),
         #: as opposed to :attr:`_install_profile_window`'s standalone flow.
         self._profile_install_thread: _ProfileInstallThread | None = None
+        # check_set_argyll_bin() (used all over the Qt UI) would otherwise
+        # open wx dialogs inside this Qt application when Argyll is missing
+        set_missing_argyll_prompt(self._prompt_missing_argyll)
         self._profile_install_progress: QProgressDialog | None = None
         #: Background ArgyllCMS download+extract driven by the missing-Argyll
         #: startup prompt (:meth:`_prompt_missing_argyll`).

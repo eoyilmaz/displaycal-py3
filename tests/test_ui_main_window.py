@@ -1335,6 +1335,10 @@ def test_visual_whitepoint_editor_measure_consumer_sets_colortemp_whitepoint(win
     # config leaked from an earlier test elsewhere in the suite can leave a
     # new MainWindow's whitepoint_ctrl pre-set to index 2.
     window.whitepoint_ctrl.setCurrentIndex(0)
+    # Likewise the locus: tests/test_main_settings.py leaves it at "T"
+    # (Planckian), then the "Daylight temperature" output doesn't match and
+    # the consumer opens a modal error box that hangs the test run.
+    setcfg("whitepoint.colortemp.locus", "t")
     window.worker.output = ["Daylight temperature = 6504K"]
     window._visual_whitepoint_editor_measure_consumer("ok")
     assert editor.measure_btn.isEnabled() is True

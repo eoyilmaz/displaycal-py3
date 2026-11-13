@@ -258,7 +258,7 @@ class Spyder2EnableController(QObject):
         self._progress.setCancelButton(None)
         self._progress.setWindowModality(Qt.WindowModal)
         self._progress.show()
-        self._thread = _EnableThread(self._do_enable)
+        self._thread = _EnableThread(self._do_enable, parent=self)
         self._thread.done.connect(self._on_done)
         self._thread.start()
 

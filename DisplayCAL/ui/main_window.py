@@ -241,6 +241,7 @@ from DisplayCAL.ui.measure_frame import (
     MeasureFrame,
     default_measureframe_size,
     resolve_screen_size_mm,
+    screen_for_argyll_display,
 )
 from DisplayCAL.ui.measurement_flow import (
     MeasurementFlow,
@@ -9626,7 +9627,26 @@ class MainWindow(BaseWindow):
         self._ensure_measureframe()
         self.measureframe.show_controls(True)
         self.measureframe.show()
+        # On the display being measured (e.g. the next one of a chain), not
+        # wherever it was last time
+        self.measureframe.move_to_screen(
+            self._screen_for_display(getcfg("display.number") - 1)
+        )
         self.measureframe.raise_()
+
+    def _screen_for_display(self, display_index: int) -> object | None:
+        """Return the Qt screen of an Argyll display (index into its list).
+
+        Qt names a screen after the monitor model ("DELL S2721QS"), as
+        Argyll's display list does ("DELL S2721QS @ 0, 0, 3840x2160").
+        Geometry alone doesn't match under display scaling (Qt sees that
+        display as 2560x1440 at 150 %); two displays of the same model are
+        told apart by their top-left corner, which scaling doesn't move.
+        """
+        displays = self.worker.displays
+        if not 0 <= display_index < len(displays):
+            return None
+        return screen_for_argyll_display(displays[display_index], QApplication.screens())
 
     def _ensure_measureframe(self) -> None:
         """Create the child measure frame once, wiring its signals."""

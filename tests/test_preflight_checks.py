@@ -81,20 +81,30 @@ class TestShouldWarnCalibrationBugs:
 
 
 class TestShouldWarnProfileBugs:
-    def test_non_s_type_no_warning(self):
-        setcfg("profile.type", "G")
-        setcfg("profile.black_point_compensation", 1)
-        assert pfc.should_warn_profile_bugs() is False
+    """The Apple CMM shows only single curve + matrix with BPC right.
 
-    def test_s_type_without_bpc_no_warning(self):
-        setcfg("profile.type", "S")
-        setcfg("profile.black_point_compensation", 0)
-        assert pfc.should_warn_profile_bugs() is False
+    Any other type is warned about, as DisplayCAL used to (``profile.type
+    != "S" or not BPC``). Moved into preflight_checks, it was turned round:
+    an XYZ LUT profile was made without a word and turned a MacBook's
+    screen washed out and yellow once installed, while the safe choice got
+    the warning.
+    """
 
-    def test_s_type_with_bpc_warns(self):
-        setcfg("profile.type", "S")
+    @pytest.mark.parametrize("profile_type", ["X", "x", "l", "s", "g", "G"])
+    def test_any_other_type_warns(self, profile_type):
+        setcfg("profile.type", profile_type)
         setcfg("profile.black_point_compensation", 1)
         assert pfc.should_warn_profile_bugs() is True
+
+    def test_s_type_without_bpc_warns(self):
+        setcfg("profile.type", "S")
+        setcfg("profile.black_point_compensation", 0)
+        assert pfc.should_warn_profile_bugs() is True
+
+    def test_s_type_with_bpc_no_warning(self):
+        setcfg("profile.type", "S")
+        setcfg("profile.black_point_compensation", 1)
+        assert pfc.should_warn_profile_bugs() is False
 
 
 class TestResolveCalChoiceInfo:

@@ -65,9 +65,14 @@ def should_warn_calibration_bugs() -> bool:
 
 
 def should_warn_profile_bugs() -> bool:
-    """Whether the current profile settings hit the macOS BPC/S-curve bug."""
-    return getcfg("profile.type") == "S" and bool(
-        getcfg("profile.black_point_compensation")
+    """Whether the profile would be shown wrong by the Apple CMM (macOS).
+
+    It shows a display profile right only as single curve + matrix with
+    black point compensation; an XYZ LUT one makes the whole screen look
+    washed out once installed.
+    """
+    return getcfg("profile.type") != "S" or not getcfg(
+        "profile.black_point_compensation"
     )
 
 

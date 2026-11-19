@@ -2973,6 +2973,32 @@ def test_macos_bugs_cal_warning_cancel_aborts(window, monkeypatch):
     assert window._check_show_macos_bugs_warning(profile=False) is False
 
 
+def test_macos_bugs_profile_warning_catches_an_xyz_lut_profile(window, monkeypatch):
+    """A larger testchart switches to an XYZ LUT profile without a word.
+
+    The Apple CMM shows such a profile washed out: on a Mac the warning
+    must come before profiling, and Yes switches to curve + matrix with BPC.
+    """
+    monkeypatch.setattr(
+        mw.preflight_checks, "macos_bugs_warning_applicable", lambda: True
+    )
+    warned = []
+
+    def _warning(*args, **kwargs):
+        warned.append(args[2])
+        return mw.QMessageBox.Yes
+
+    monkeypatch.setattr(mw.QMessageBox, "warning", _warning)
+    setcfg("profile.type", "X")
+    setcfg("profile.black_point_compensation", 0)
+
+    assert window._check_show_macos_bugs_warning(cal=False) is None
+
+    assert warned == [lang.getstr("macos.bugs.profile.warning")]
+    assert getcfg("profile.type") == "S"
+    assert getcfg("profile.black_point_compensation") == 1
+
+
 def test_macos_bugs_profile_warning_yes_updates_profile_controls(window, monkeypatch):
     monkeypatch.setattr(
         mw.preflight_checks, "macos_bugs_warning_applicable", lambda: True

@@ -711,6 +711,9 @@ def initialize_app(
         from DisplayCAL.wx_windows import BaseApp
 
         BaseApp.register_exitfunc(_exit, app_lock_file_name, port)
+        # The Qt UI runs its own app's exit handlers (see run_app)
+        global _EXIT_ARGS
+        _EXIT_ARGS = (app_lock_file_name, port)
         check_for_required_resource_files(module)
         create_main_data_dir()
 
@@ -913,6 +916,13 @@ def _get_qt_main(module: str) -> Callable[[], int] | None:
     return None
 
 
+#: Lock file name and port for :func:`_exit`, set by :func:`initialize_app`
+_EXIT_ARGS: tuple[str, int] | None = None
+
+#: How long :func:`_exit` waits for each thread still running at a quit
+_THREAD_EXIT_TIMEOUT = 10.0
+
+
 def run_app(module: str) -> None:
     """Run the application.
 
@@ -926,6 +936,10 @@ def run_app(module: str) -> None:
         initialize_qt_module()
         qt_main = _get_qt_main(module)
         if qt_main is not None:
+            if _EXIT_ARGS:
+                from DisplayCAL.ui.application import Application
+
+                Application.register_exitfunc(_exit, *_EXIT_ARGS)
             qt_main()
             return
 
@@ -994,8 +1008,12 @@ def _exit(lockfilename: str, oport: int) -> None:
             and not thread.daemon
         ):
             print(f"Waiting for thread {thread.name} to exit")
-            thread.join()
-            print(thread.name, "exited")
+            # Bounded: one stuck thread mustn't keep the app from quitting
+            thread.join(_THREAD_EXIT_TIMEOUT)
+            if thread.is_alive():
+                print(thread.name, "still running, not waiting longer")
+            else:
+                print(thread.name, "exited")
 
     if lockfilename and os.path.isfile(lockfilename):
         with AppLock(lockfilename, "r+", False, True) as lock:

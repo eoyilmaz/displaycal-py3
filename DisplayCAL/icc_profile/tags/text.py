@@ -331,14 +331,20 @@ class TextDescriptionType(ICCProfileTag, ADict):  # ICC v2
             self.macScriptCode = uInt16Number(tagData[mac_offset : mac_offset + 2])
             mac_description_length = ord(tagData[mac_offset + 2 : mac_offset + 3])
             if mac_description_length:
+                mac_bytes = tagData[
+                    mac_offset + 3 : mac_offset + 3 + mac_description_length
+                ]
                 try:
-                    mac_description = str(
-                        tagData[
-                            mac_offset + 3 : mac_offset + 3 + mac_description_length
-                        ],
-                        "mac-" + ENCODINGS["mac"][self.macScriptCode],
-                        errors="replace",
-                    ).strip("\0\n\r ")
+                    if mac_bytes[:2] in (b"\xfe\xff", b"\xff\xfe"):
+                        # Some writers put UTF-16 here, byte order mark first
+                        mac_description = mac_bytes.decode("utf-16", errors="replace")
+                    else:
+                        mac_description = str(
+                            mac_bytes,
+                            "mac-" + ENCODINGS["mac"][self.macScriptCode],
+                            errors="replace",
+                        )
+                    mac_description = mac_description.strip("\0\n\r ")
                     if mac_description:
                         self.Macintosh = mac_description
                 except KeyError:

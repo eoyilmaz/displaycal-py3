@@ -41,8 +41,12 @@ from __future__ import annotations
 
 import codecs
 import os
+import re
 import subprocess as sp
+import sys
 import tempfile
+import time
+import traceback
 from typing import TYPE_CHECKING, Any
 
 # Third Party Imports
@@ -50,8 +54,16 @@ import pywintypes
 import winerror
 
 # Local Imports
+from DisplayCAL.config import (
+    AUTOSTART,
+    AUTOSTART_HOME,
+    get_data_path,
+)
+from DisplayCAL.meta import DOMAIN
 from DisplayCAL.meta import NAME as APPNAME
+from DisplayCAL.options import DEBUG
 from DisplayCAL.safe_print import ENC
+from DisplayCAL.util_os import is_superuser, which
 from DisplayCAL.util_str import indent, universal_newlines
 from DisplayCAL.util_win import run_as_admin
 
@@ -223,7 +235,8 @@ class ExecAction(_Dict2XML):
 
     def __init__(self, cmd: str, args: None | list[str] = None) -> None:
         # Filter any None values
-        args = [arg for arg in args if arg is not None]
+        if args is not None:
+            args = [arg for arg in args if arg is not None]
         _Dict2XML.__init__(
             self,
             command=cmd,
@@ -377,10 +390,7 @@ class Task(_Dict2XML):
             xmlfilename (str): The filename to write the XML to.
         """
         with open(xmlfilename, "wb") as xmlfile:
-            str_self = str(self)
-            if isinstance(str_self, str):
-                str_self = str_self.encode()
-            xmlfile.write(codecs.BOM_UTF16_LE + str_self)
+            xmlfile.write(codecs.BOM_UTF16_LE + str(self).encode("UTF-16-LE"))
 
     def __str__(self) -> str:
         """Convert the task to a string representation in XML format.
@@ -388,13 +398,9 @@ class Task(_Dict2XML):
         Returns:
             str: The string representation of the task in XML format.
         """
-        return (
-            universal_newlines(
-                f'<?xml version="1.0" encoding="UTF-16"?>\n{super().__str__()}'
-            )
-            .replace("\n", "\r\n")
-            .encode("UTF-16-LE")
-        )
+        return universal_newlines(
+            f'<?xml version="1.0" encoding="UTF-16"?>\n{super().__str__()}'
+        ).replace("\n", "\r\n")
 
 
 class TaskScheduler:
@@ -577,10 +583,11 @@ class TaskScheduler:
         task = Task(**kwargs)
         xmlfilename = os.path.join(tempdir, f"{name}.xml")
         task.write_xml(xmlfilename)
+        args = ["/Create", "/TN", name, "/XML", xmlfilename]
+        if replace_existing:
+            args.append("/F")
         try:
-            return self._schtasks(
-                ["/Create", "/TN", name, "/XML", xmlfilename], elevated, echo
-            )
+            return self._schtasks(args, elevated, echo)
         finally:
             os.remove(xmlfilename)
             os.rmdir(tempdir)
@@ -852,6 +859,176 @@ class TaskScheduler:
             list[Task]: A list of Task objects representing existing tasks.
         """
         return list(map(self.get, self))
+
+
+def setup_profile_loader_task(
+    exe: str, exedir: str, pydir: str, force: bool = False
+) -> None:
+    """Setup profile loader task for Windows.
+
+    Args:
+        exe (str): Path to the executable.
+        exedir (str): Directory of the executable.
+        pydir (str): Directory of the Python installation.
+        force (bool): Force creation of the task even if it already exists.
+    """
+    print("setup_profile_loader_task start")
+    if sys.getwindowsversion() < (6,):
+        print("setup_profile_loader_task end 1")
+        return
+
+    taskname = f"{APPNAME} Profile Loader Launcher"
+
+    try:
+        ts = TaskScheduler()
+    except Exception as exception:
+        print("Warning - could not access task scheduler:", exception)
+        print("setup_profile_loader_task end 2")
+        return
+
+    if "--task" not in sys.argv[1:] and (force or is_superuser()) and (force or not ts.query_task(taskname)):
+        # Check if our task exists, and if it does not, create it.
+        # (requires admin privileges)
+        print(f"Trying to create task {taskname}...")
+        # Note that we use a stub so the task cannot be accidentally
+        # stopped (the stub launches the actual profile loader and
+        # then immediately exits)
+        loader_args = []
+        if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
+            cmd = os.path.join(exedir, "pythonw.exe")
+            pyw = os.path.normpath(
+                os.path.join(pydir, "..", f"{APPNAME}-apply-profiles.pyw")
+            )
+            script = get_data_path(
+                "/".join(["scripts", f"{APPNAME}-apply-profiles-launcher"])
+            )
+            if os.path.exists(pyw):
+                # Running from source or 0install
+                # Check if this is a 0install implementation, in which
+                # case we want to call 0launch with the appropriate
+                # command
+                if re.match(
+                    r"sha\d+(?:new)?",
+                    os.path.basename(os.path.dirname(pydir)),
+                ):
+                    # No stub needed as 0install-win acts as stub
+                    cmd = which("0install-win.exe") or "0install-win.exe"
+                    loader_args.extend(
+                        [
+                            "run",
+                            "--batch",
+                            "--no-wait",
+                            "--offline",
+                            "--command=run-apply-profiles",
+                            "--",
+                            f"http://{DOMAIN}/0install/{APPNAME}.xml",
+                            "--task",
+                        ]
+                    )
+                else:
+                    # Running from source
+                    loader_args.append(script)
+            else:
+                # Regular (site-packages) install
+                loader_args.append(script)
+        else:
+            # Standalone executable
+            cmd = os.path.join(pydir, f"{APPNAME}-apply-profiles-launcher.exe")
+        # Start at login, restart when resuming from sleep,
+        # restart daily at 04:00
+        triggers = [
+            LogonTrigger(),
+            ResumeFromSleepTrigger(),
+        ]
+        daily = CalendarTrigger(
+            start_boundary=time.strftime("%Y-%m-%dT04:00:00"),
+            days_interval=1,
+        )
+        actions = [ExecAction(cmd, loader_args)]
+        try:
+            # Create the main task
+            created = ts.create_task(
+                taskname,
+                "Open Source Developer, Florian Höch",
+                "This task launches the profile "
+                "loader with the applicable "
+                "privileges for logged in users",
+                multiple_instances_policy=MULTIPLEINSTANCES_IGNORENEW,
+                replace_existing=True,
+                triggers=triggers,
+                actions=actions,
+            )
+            # Create the supplementary task
+            created = ts.create_task(
+                f"{taskname} - Daily Restart",
+                "Open Source Developer, Florian Höch",
+                "This task restarts the profile "
+                "loader with the applicable "
+                "privileges for logged in users",
+                multiple_instances_policy=MULTIPLEINSTANCES_IGNORENEW,
+                replace_existing=True,
+                triggers=[daily],
+                actions=actions,
+            )
+        except Exception as exception:
+            if DEBUG:
+                exception = traceback.format_exc()
+            print(
+                f"Warning - Could not create task {taskname}:",
+                exception,
+            )
+            if ts.stdout:
+                print(str(ts.stdout, encoding=ENC, errors="replace"))
+        else:
+            print(str(ts.stdout, encoding=ENC, errors="replace"))
+            if created:
+                # Remove autostart entries, if any
+                name = f"{APPNAME} Profile Loader"
+                entries = []
+                if AUTOSTART:
+                    entries.append(os.path.join(AUTOSTART, f"{name}.lnk"))
+                if AUTOSTART_HOME:
+                    entries.append(os.path.join(AUTOSTART_HOME, f"{name}.lnk"))
+                for entry in entries:
+                    if os.path.isfile(entry):
+                        print("Removing", entry)
+                        try:
+                            os.remove(entry)
+                        except OSError as exception:
+                            print(exception)
+
+    from DisplayCAL.util_win import win_ver
+
+    pname, _, _, build_str = win_ver()
+    is_win10_or_later = "Windows 10" in pname or "Windows 11" in pname
+    if not is_win10_or_later and build_str:
+        try:
+            bnum = int(build_str.split()[1].split(".")[0])
+            if bnum >= 10240:
+                is_win10_or_later = True
+        except Exception:
+            pass
+
+    if not is_win10_or_later:
+        print("setup_profile_loader_task end 3")
+        return
+
+    # Disable Windows Calibration Loader.
+    # This is absolutely REQUIRED under Win10 1903 to prevent
+    # banding and not applying calibration twice
+    ms_cal_loader = r"\Microsoft\Windows\WindowsColorSystem\Calibration Loader"
+    try:
+        ts.disable(ms_cal_loader)
+    except Exception as exception:
+        print(
+            f"Warning - Could not disable task {ms_cal_loader!r}:",
+            exception,
+        )
+        if ts.stdout:
+            print(str(ts.stdout, encoding=ENC, errors="replace"))
+    else:
+        print(str(ts.stdout, encoding=ENC, errors="replace"))
+    print("setup_profile_loader_task end 4")
 
 
 if __name__ == "__main__":

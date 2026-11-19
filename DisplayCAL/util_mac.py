@@ -1,9 +1,11 @@
 """macOS utility functions for AppleScript, system info, and Terminal settings."""
 
 import codecs
+import ctypes
 import os
 import re
 import subprocess as sp
+import sys
 from time import sleep
 
 
@@ -188,3 +190,67 @@ def get_machine_attributes(model_id=None):
                 codecs.decode(match.group(2), "unicode_escape"), "unicode_escape"
             )
     return attrs
+
+
+_objc = None
+
+
+def _get_objc():
+    """Return the Objective-C runtime with typed functions (macOS), or None."""
+    global _objc
+    if _objc is None and sys.platform == "darwin":
+        try:
+            objc = ctypes.CDLL("/usr/lib/libobjc.A.dylib")
+        except OSError:
+            _objc = False
+        else:
+            objc.objc_getClass.restype = ctypes.c_void_p
+            objc.objc_getClass.argtypes = [ctypes.c_char_p]
+            objc.sel_registerName.restype = ctypes.c_void_p
+            objc.sel_registerName.argtypes = [ctypes.c_char_p]
+            objc.object_getClassName.restype = ctypes.c_char_p
+            objc.object_getClassName.argtypes = [ctypes.c_void_p]
+            _objc = objc
+    return _objc or None
+
+
+def _send(receiver, selector, *args):
+    """Send an Objective-C message returning an object (or nothing)."""
+    objc = _get_objc()
+    prototype = ctypes.CFUNCTYPE(
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        *[ctypes.c_void_p] * len(args),
+    )
+    send = prototype(("objc_msgSend", objc))
+    return send(receiver, objc.sel_registerName(selector), *args)
+
+
+def _shared_application():
+    """Return NSApp (created if need be), None off macOS."""
+    objc = _get_objc()
+    if objc is None:
+        return None
+    return _send(objc.objc_getClass(b"NSApplication"), b"sharedApplication")
+
+
+def app_delegate():
+    """Return the application's delegate (an object pointer), None if none."""
+    app = _shared_application()
+    return _send(app, b"delegate") if app else None
+
+
+def set_app_delegate(delegate):
+    """Make ``delegate`` (from :func:`app_delegate`) the application's again."""
+    app = _shared_application()
+    if app:
+        _send(app, b"setDelegate:", delegate)
+
+
+def app_delegate_class():
+    """Return the class name of the application's delegate, None if none."""
+    delegate = app_delegate()
+    if not delegate:
+        return None
+    return _get_objc().object_getClassName(delegate).decode()

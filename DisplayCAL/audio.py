@@ -388,6 +388,26 @@ def _init_pyo(samplerate: int, channels: int, buffersize: int) -> None:
             _LIB_VERSION = ".".join(str(v) for v in pyo.getVersion())
 
 
+def _import_pyglet_media_keeping_app_delegate() -> None:
+    """Import pyglet.media, leaving the application's delegate as it was.
+
+    pyglet.media imports pyglet.app, which on macOS makes pyglet's own
+    delegate the application's unless an event loop already runs (the
+    startup sound comes before Qt's). pyglet's delegate lets macOS end the
+    process at once on a Quit from the Dock, at logout or shutdown: Qt never
+    closes its windows (window position unsaved, listening socket left open)
+    and PySide crashes tearing them down.
+    pyglet's event loop isn't used (Qt's runs): its delegate isn't needed.
+    """
+    from DisplayCAL import util_mac
+
+    delegate = util_mac.app_delegate()
+    import pyglet.media  # noqa: F401 - imported here, under watch
+
+    if delegate and util_mac.app_delegate() != delegate:
+        util_mac.set_app_delegate(delegate)
+
+
 def _init_pyglet() -> None:
     """Initialize pyglet audio subsystem."""
     global _SERVER, _LIB, _LIB_VERSION, pyglet
@@ -423,6 +443,8 @@ def _init_pyglet() -> None:
         # every timer (#1022). Our sounds are all WAV files, which pyglet
         # decodes without GStreamer, so keep it from loading.
         sys.modules.setdefault("pyglet.media.codecs.gstreamer", None)
+        if sys.platform == "darwin":
+            _import_pyglet_media_keeping_app_delegate()
         _SERVER = pyglet.media
         _LIB_VERSION = pyglet.version
 

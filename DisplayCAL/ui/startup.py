@@ -36,7 +36,7 @@ import sys
 import traceback
 from typing import Callable
 
-from qtpy.QtCore import QObject, QRect, Qt, QThread, QTimer, Signal
+from qtpy.QtCore import QCoreApplication, QObject, QRect, Qt, QThread, QTimer, Signal
 from qtpy.QtGui import QColor, QPainter, QPixmap
 from qtpy.QtWidgets import QApplication, QSplashScreen
 
@@ -479,8 +479,23 @@ class StartupController(QObject):
         self._timeout_timer.start(self._timeout_ms)
         self._thread = _EnumerateThread(self.worker, should_enumerate_ports(), self)
         self._thread.done.connect(self._on_enum_done)
+        app = QCoreApplication.instance()
+        if app is not None:
+            app.aboutToQuit.connect(self._stop_enumeration)
         self._thread.start()
         self._animator.start(self._on_anim_done)
+
+    def _stop_enumeration(self) -> None:
+        """Quitting during the splash: stop the enumeration and wait for it.
+
+        Qt aborts the whole application when a running QThread is destroyed
+        (a crash report on macOS instead of a quit).
+        """
+        if self._thread is None or not self._thread.isRunning():
+            return
+        self._timeout_timer.stop()
+        self.worker.abort_subprocess()
+        self._thread.wait(self._timeout_ms)
 
     def _on_enum_done(self, error: Exception | None) -> None:
         self._timeout_timer.stop()

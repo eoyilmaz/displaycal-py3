@@ -10,6 +10,7 @@ don't wait on real animation timing or touch the audio subsystem. See
 """
 
 import os
+import threading
 import time
 
 import pytest
@@ -238,4 +239,42 @@ def test_controller_shows_welcome_message(qapp):
     try:
         assert controller.splash.pixmap().isNull() is False
     finally:
+        controller.splash.close()
+
+
+class _SlowWorker(_FakeWorker):
+    """Enumerates until aborted, like Argyll still running at a quit."""
+
+    def __init__(self):
+        super().__init__()
+        self._aborted = threading.Event()
+
+    def enumerate_displays_and_ports(self, enumerate_ports=True, silent=False):
+        self.enumerate_calls.append((enumerate_ports, silent))
+        self._aborted.wait(10)
+
+    def abort_subprocess(self, confirm=False):
+        super().abort_subprocess(confirm)
+        self._aborted.set()
+
+
+def test_quitting_during_the_splash_waits_for_the_enumeration(
+    qapp, _fast_controller_animation
+):
+    """A Quit while displays are enumerated: Qt aborts the whole app when a
+    running QThread is destroyed, so the enumeration is stopped and waited
+    for first."""
+    worker = _SlowWorker()
+    controller = startup.StartupController(lambda w: None, worker=worker)
+    try:
+        controller.start()
+        assert _spin_until(qapp, lambda: worker.enumerate_calls)
+
+        qapp.aboutToQuit.emit()
+
+        assert worker.abort_calls >= 1
+        assert not controller._thread.isRunning()
+    finally:
+        worker._aborted.set()
+        controller._thread.wait(5000)
         controller.splash.close()

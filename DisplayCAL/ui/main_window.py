@@ -9626,12 +9626,14 @@ class MainWindow(BaseWindow):
         """Show the measure frame and route its Measure button to the flow."""
         self._ensure_measureframe()
         self.measureframe.show_controls(True)
-        self.measureframe.show()
-        # On the display being measured (e.g. the next one of a chain), not
-        # wherever it was last time
+        # On the display being measured, not
+        # wherever it was last time. Before showing it: shown, the area takes
+        # the display it opens on as the one to measure (as when dragged
+        # there), which would lose the chosen one
         self.measureframe.move_to_screen(
             self._screen_for_display(getcfg("display.number") - 1)
         )
+        self.measureframe.show()
         self.measureframe.raise_()
 
     def _screen_for_display(self, display_index: int) -> object | None:

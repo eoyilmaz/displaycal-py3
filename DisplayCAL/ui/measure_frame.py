@@ -574,11 +574,19 @@ class MeasureFrame(BaseWindow):
     def _current_screen(self) -> QScreen | None:
         """Return the screen the window is on, falling back to the primary.
 
+        The screen under the window's centre, which follows :meth:`move`
+        before the window is shown too: placed onto another display before
+        showing (see :meth:`move_to_screen`), a window not shown yet has no
+        ``windowHandle()`` to tell its screen, which put the area back on
+        the primary display.
+
         Returns:
             QScreen | None: The resolved screen.
         """
-        handle = self.windowHandle()
-        screen = handle.screen() if handle is not None else None
+        screen = QApplication.screenAt(self.frameGeometry().center())
+        if screen is None:  # Off every screen, or unknown (Wayland)
+            handle = self.windowHandle()
+            screen = handle.screen() if handle is not None else None
         return screen or QApplication.primaryScreen()
 
     def _get_display(
@@ -702,9 +710,6 @@ class MeasureFrame(BaseWindow):
         # Onto the screen first: placement is relative to the current screen
         centre = screen.geometry().center()
         self.move(centre.x() - self.width() // 2, centre.y() - self.height() // 2)
-        handle = self.windowHandle()
-        if handle is not None:
-            handle.setScreen(screen)
         self.place_n_zoom(x, y, scale)
 
     def get_dimensions(self) -> str:

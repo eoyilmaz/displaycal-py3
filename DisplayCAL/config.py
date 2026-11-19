@@ -1246,11 +1246,25 @@ def get_data_path(relpath: str, regex: None | str = None) -> None | str | list[s
     ):
         return None
     dirs = list(DATA_DIRS)
-    argyll_dir = getcfg("argyll.dir") or os.path.dirname(
-        os.path.realpath(which(f"dispcal{EXE_EXT}") or "")
-    )
-    if argyll_dir and os.path.isdir(os.path.join(argyll_dir, "..", "ref")):
-        dirs.append(os.path.dirname(argyll_dir))
+    # Argyll's reference files, from where its tools are taken: the configured
+    # folder, else the PATH (the configured one may be on a USB stick that
+    # isn't plugged in)
+    def argyll_dirs():
+        yield getcfg("argyll.dir")
+        on_path = which(f"dispcal{EXE_EXT}")  # only if needed: icons come here
+        yield on_path and os.path.dirname(on_path)
+
+    for argyll_dir in argyll_dirs():
+        if not argyll_dir:
+            continue
+        # Tools linked from elsewhere (Homebrew's /opt/homebrew/bin): the ref
+        # folder sits beside the real ones
+        argyll_dir = os.path.dirname(
+            os.path.realpath(os.path.join(argyll_dir, f"dispcal{EXE_EXT}"))
+        )
+        if os.path.isdir(os.path.join(argyll_dir, "..", "ref")):
+            dirs.append(os.path.dirname(argyll_dir))
+            break
     dirs.extend(EXTRA_DATA_DIRS)
     intersection = []
     paths = []

@@ -690,3 +690,73 @@ def test_restart_application_frozen_omits_script_arg(monkeypatch):
     config.restart_application()
 
     assert calls == [("/Applications/DisplayCAL.app", ["/Applications/DisplayCAL.app"])]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges")
+def test_get_data_path_follows_symlinked_argyll_tools(tmp_path, monkeypatch):
+    """Homebrew links Argyll's tools into /opt/homebrew/bin; its ref folder
+    sits beside the real ones (Cellar/argyll-cms/<version>/ref)."""
+    real = tmp_path / "Cellar" / "argyll-cms" / "3.5.0"
+    (real / "bin").mkdir(parents=True)
+    (real / "ref").mkdir()
+    (real / "ref" / "Rec709.icm").write_bytes(b"icc")
+    (real / "bin" / "dispcal").write_bytes(b"")
+    linked = tmp_path / "bin"
+    linked.mkdir()
+    (linked / "dispcal").symlink_to(real / "bin" / "dispcal")
+    monkeypatch.setattr(config, "DATA_DIRS", [])
+    monkeypatch.setattr(config, "EXTRA_DATA_DIRS", [])
+    orig = config.getcfg("argyll.dir")
+    config.setcfg("argyll.dir", str(linked))
+    try:
+        found = config.get_data_path("ref/Rec709.icm")
+    finally:
+        config.setcfg("argyll.dir", orig)
+
+    assert found == str(real / "ref" / "Rec709.icm")
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges")
+def test_get_data_path_falls_back_to_argyll_on_path(tmp_path, monkeypatch):
+    """The configured Argyll folder is gone (a USB stick that isn't plugged
+    in): the tools come from the PATH, and so do their reference files."""
+    real = tmp_path / "Cellar" / "argyll-cms" / "3.5.0"
+    (real / "bin").mkdir(parents=True)
+    (real / "ref").mkdir()
+    (real / "ref" / "Rec709.icm").write_bytes(b"icc")
+    (real / "bin" / "dispcal").write_bytes(b"")
+    linked = tmp_path / "bin"
+    linked.mkdir()
+    (linked / "dispcal").symlink_to(real / "bin" / "dispcal")
+    monkeypatch.setattr(config, "DATA_DIRS", [])
+    monkeypatch.setattr(config, "EXTRA_DATA_DIRS", [])
+    monkeypatch.setattr(config, "which", lambda name: str(linked / name))
+    orig = config.getcfg("argyll.dir")
+    config.setcfg("argyll.dir", str(tmp_path / "Volumes" / "STICK" / "Argyll" / "bin"))
+    try:
+        found = config.get_data_path("ref/Rec709.icm")
+    finally:
+        config.setcfg("argyll.dir", orig)
+
+    assert found == str(real / "ref" / "Rec709.icm")
+
+
+def test_get_data_path_leaves_the_path_alone_when_argyll_dir_has_ref(
+    tmp_path, monkeypatch
+):
+    """Every icon goes through get_data_path: no PATH scan when not needed."""
+    argyll = tmp_path / "Argyll" / "bin"
+    argyll.mkdir(parents=True)
+    (tmp_path / "Argyll" / "ref").mkdir()
+    (tmp_path / "Argyll" / "ref" / "Rec709.icm").write_bytes(b"icc")
+    monkeypatch.setattr(config, "DATA_DIRS", [])
+    monkeypatch.setattr(config, "EXTRA_DATA_DIRS", [])
+    monkeypatch.setattr(config, "which", lambda name: pytest.fail("PATH scanned"))
+    orig = config.getcfg("argyll.dir")
+    config.setcfg("argyll.dir", str(argyll))
+    try:
+        found = config.get_data_path("ref/Rec709.icm")
+    finally:
+        config.setcfg("argyll.dir", orig)
+
+    assert found == str(tmp_path / "Argyll" / "ref" / "Rec709.icm")

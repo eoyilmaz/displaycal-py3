@@ -340,7 +340,9 @@ class CCXXPlot(wx.Frame):
 
         ref = cgats.queryv1("REFERENCE")
         if ref:
-            ref = get_canonical_instrument_name(ref).decode("utf-8")
+            ref = get_canonical_instrument_name(ref)
+            if isinstance(ref, bytes):
+                ref = ref.decode("utf-8")
 
         if not self.is_ccss:
             observers_ab = {}
@@ -355,7 +357,8 @@ class CCXXPlot(wx.Frame):
                 if ref_observer:
                     # If the .ccmx does not contain this value,
                     # the graph will still draw
-                    ref_observer = ref_observer.decode("utf-8")
+                    if isinstance(ref_observer, bytes):
+                        ref_observer = ref_observer.decode("utf-8")
                     ref += ", " + observers_ab.get(ref_observer, ref_observer)
                 x_label.append("")
                 x_label.append(ref)

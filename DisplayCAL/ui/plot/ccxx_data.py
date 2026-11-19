@@ -361,7 +361,9 @@ def compute_ccxx_plot_data(cgats: CGATS, worker: Worker | None = None) -> CCXXPl
 
     ref = cgats.queryv1("REFERENCE")
     if ref:
-        ref = get_canonical_instrument_name(ref).decode("utf-8")
+        ref = get_canonical_instrument_name(ref)
+        if isinstance(ref, bytes):
+            ref = ref.decode("utf-8")
 
     if not is_ccss:
         observers_ab = {}
@@ -372,7 +374,8 @@ def compute_ccxx_plot_data(cgats: CGATS, worker: Worker | None = None) -> CCXXPl
         if ref:
             ref_observer = cgats.queryv1("REFERENCE_OBSERVER")
             if ref_observer:
-                ref_observer = ref_observer.decode("utf-8")
+                if isinstance(ref_observer, bytes):
+                    ref_observer = ref_observer.decode("utf-8")
                 ref += ", " + observers_ab.get(ref_observer, ref_observer)
             x_label.append("")
             x_label.append(ref)

@@ -1017,6 +1017,21 @@ def waccess(path: str, mode: int) -> bool:
     return True
 
 
+def check_create_dir(path: str) -> None | Exception | bool:
+    """Try to create a directory and return an error on failure."""
+    from DisplayCAL import localization as lang
+    from DisplayCAL.debughelpers import Error
+
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except Exception as exception:
+            return Error(f"{lang.getstr('error.dir_creation', path)}\n\n{exception}")
+    if not os.path.isdir(path):
+        return Error(lang.getstr("error.dir_notdir", path))
+    return True
+
+
 def which(executable: str, paths: None | list[str] = None) -> None | str:
     """Return the full path of executable.
 

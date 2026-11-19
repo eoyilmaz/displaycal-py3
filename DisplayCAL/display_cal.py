@@ -4868,8 +4868,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 else:
                     desc = ellipsis_(desc, 100, "m")
                 self.ccmx_cached_descriptors[path] = desc
-                # get_canonical_instrument_name: returns bytes
-                self.ccmx_instruments[path] = get_canonical_instrument_name(
+                inst = get_canonical_instrument_name(
                     cgats.queryv1("INSTRUMENT") or b"",
                     {
                         "DTP94-LCD mode": "DTP94",
@@ -4877,11 +4876,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         "Spyder 2 LCD": "Spyder2",
                         "Spyder 3": "Spyder3",
                     },
-                ).decode("utf-8")
-                key = "{}\0{}".format(
-                    self.ccmx_instruments[path],
-                    (cgats.queryv1("DISPLAY") or b"").decode("utf-8"),
                 )
+                if isinstance(inst, bytes):
+                    inst = inst.decode("utf-8")
+                self.ccmx_instruments[path] = inst
+                disp = cgats.queryv1("DISPLAY") or ""
+                if isinstance(disp, bytes):
+                    disp = disp.decode("utf-8")
+                key = f"{self.ccmx_instruments[path]}\0{disp}"
                 if not self.ccmx_mapping.get(key) or (
                     len(ccmx) > 1 and path == ccmx[1]
                 ):
@@ -4992,7 +4994,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     else:
                         desc = ellipsis_(desc, 100, "m")
                     self.ccmx_cached_descriptors[ccmx[1]] = desc
-                    self.ccmx_instruments[ccmx[1]] = get_canonical_instrument_name(
+                    inst = get_canonical_instrument_name(
                         cgats.queryv1("INSTRUMENT") or b"",
                         {
                             "DTP94-LCD mode": "DTP94",
@@ -5000,11 +5002,14 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             "Spyder 2 LCD": "Spyder2",
                             "Spyder 3": "Spyder3",
                         },
-                    ).decode("utf-8")
-                    key = "{}\0{}".format(
-                        self.ccmx_instruments[ccmx[1]],
-                        (cgats.queryv1("DISPLAY") or b"").decode("utf-8"),
                     )
+                    if isinstance(inst, bytes):
+                        inst = inst.decode("utf-8")
+                    self.ccmx_instruments[ccmx[1]] = inst
+                    disp = cgats.queryv1("DISPLAY") or ""
+                    if isinstance(disp, bytes):
+                        disp = disp.decode("utf-8")
+                    key = f"{self.ccmx_instruments[ccmx[1]]}\0{disp}"
                     self.ccmx_mapping[key] = ccmx[1]
             if desc and (
                 self.worker.get_instrument_name().lower().replace(" ", "")
@@ -13845,10 +13850,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         cgats_observer = cgats.queryv1("OBSERVER")
                         if not cgats_observer:
                             cgats_observer = DEFAULTS["observer"].encode("utf-8")
+                        cgats_observer_str = (
+                            cgats_observer.decode("utf-8")
+                            if isinstance(cgats_observer, bytes)
+                            else str(cgats_observer)
+                        )
                         if event.GetId() == dlg.reference_ti3.textControl.Id:
                             setcfg(
                                 "colorimeter_correction.observer.reference",
-                                cgats_observer.decode("utf-8"),
+                                cgats_observer_str,
                             )
                             observer_ctrl.SetStringSelection(
                                 self.observers_ab[
@@ -13867,10 +13877,15 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                             print("observer =", observer)
                         if DEBUG or VERBOSE >= 2:
                             print("cgats_observer =", cgats_observer)
+                        cgats_instrument_str = (
+                            cgats_instrument.decode("utf-8")
+                            if isinstance(cgats_instrument, bytes)
+                            else (str(cgats_instrument) if cgats_instrument else "")
+                        )
                         if (
-                            cgats_instrument.decode("utf-8") != instrument
+                            cgats_instrument_str != instrument
                             or cgats_measurement_mode != measurement_mode
-                            or cgats_observer.decode("utf-8") != observer
+                            or cgats_observer_str != observer
                         ):
                             ti3 = None
                     else:
@@ -14853,9 +14868,12 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
             # using such a CCMX, observer A needs to be used, not observer B.
             observer = colorimeter_ti3.queryv1("OBSERVER")
             reference_observer = getcfg("colorimeter_correction.observer.reference")
-            if spectral and reference_observer != reference_ti3.queryv1(
-                "OBSERVER"
-            ).decode("utf-8"):
+            ref_obs = reference_ti3.queryv1("OBSERVER")
+            if isinstance(ref_obs, bytes):
+                ref_obs = ref_obs.decode("utf-8")
+            elif not ref_obs:
+                ref_obs = DEFAULTS["observer"]
+            if spectral and reference_observer != ref_obs:
                 # We can override the observer if we have spectral data
                 # Need to use spec2cie to convert spectral data to
                 # CIE XYZ with given observer, because we later use the XYZ
@@ -14926,7 +14944,7 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     args.append("-o")
                     args.append(reference_observer)
             else:
-                reference_observer = reference_ti3.queryv1("OBSERVER").decode("utf-8")
+                reference_observer = ref_obs
         else:
             # Create CCSS
             args.append("-S")
@@ -14948,8 +14966,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 for _j, meas in enumerate((reference_ti3, colorimeter_ti3)):
                     # Get absolute whitepoint
                     _lum = meas.queryv1("LUMINANCE_XYZ_CDM2")
+                    if isinstance(_lum, bytes):
+                        _lum = _lum.decode("utf-8")
                     white = (
-                        _lum.decode("utf-8") if _lum is not None else None
+                        _lum if _lum is not None else None
                     ) or meas.queryi1({"RGB_R": 100, "RGB_G": 100, "RGB_B": 100})
                     if isinstance(white, str):
                         white = [float(v) for v in white.split()]
@@ -15044,20 +15064,27 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 )
                 sizer = wx.BoxSizer(wx.HORIZONTAL)
                 dlg.sizer3.Add(sizer, 1, flag=wx.TOP | wx.EXPAND, border=12)
+                ref_inst = get_canonical_instrument_name(
+                    reference_ti3.queryv1("TARGET_INSTRUMENT")
+                    or lang.getstr("instrument")
+                )
+                if isinstance(ref_inst, bytes):
+                    ref_inst = ref_inst.decode("utf-8")
+
+                tgt_inst = get_canonical_instrument_name(
+                    (
+                        colorimeter_ti3.queryv1("TARGET_INSTRUMENT")
+                        if colorimeter_ti3
+                        else ccmx.queryv1("INSTRUMENT")
+                    )
+                    or lang.getstr("instrument")
+                )
+                if isinstance(tgt_inst, bytes):
+                    tgt_inst = tgt_inst.decode("utf-8")
+
                 labels = (
-                    "{} ({})".format(
-                        get_canonical_instrument_name(
-                            reference_ti3.queryv1("TARGET_INSTRUMENT")
-                            or lang.getstr("instrument")
-                        ).decode("utf-8"),
-                        lang.getstr("reference"),
-                    ),
-                    "{} ({})".format(
-                        get_canonical_instrument_name(
-                            ccmx.queryv1("INSTRUMENT") or lang.getstr("instrument")
-                        ).decode("utf-8"),
-                        lang.getstr("corrected"),
-                    ),
+                    f"{ref_inst} ({lang.getstr('reference')})",
+                    f"{tgt_inst} ({lang.getstr('corrected')})",
                 )
                 scale = getcfg("app.dpi") / config.get_default_dpi()
                 scale = max(scale, 1)
@@ -15077,11 +15104,11 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                     style = wx.BORDER_SIMPLE
                 else:
                     style = wx.BORDER_THEME
-                grid = CustomGrid(
+                grid = wx.grid.Grid(
                     dlg,
                     -1,
                     size=(
-                        640 * scale + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
+                        int(640 * scale + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)),
                         -1,
                     ),
                     style=style,
@@ -15251,10 +15278,10 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                 ):
                     XYZ_CDM2 = meas.queryv1("LUMINANCE_XYZ_CDM2")  # noqa: N806
                     if XYZ_CDM2:
+                        if isinstance(XYZ_CDM2, bytes):
+                            XYZ_CDM2 = XYZ_CDM2.decode("utf-8")
                         metadata.append(
-                            '{}_LUMINANCE_XYZ_CDM2 "{}"'.format(
-                                label, XYZ_CDM2.decode("utf-8")
-                            )
+                            f'{label}_LUMINANCE_XYZ_CDM2 "{XYZ_CDM2}"'
                         )
                     if not colorimeter_ti3:
                         break
@@ -15274,7 +15301,8 @@ class MainFrame(ReportFrame, BaseFrame, LUT3DMixin):
                         # Line length limit for CGATS keywords 1024 chars, add
                         # spectral data as individual keywords
                         for column in data_format.values():
-                            column = column.decode("utf-8")
+                            if isinstance(column, bytes):
+                                column = column.decode("utf-8")
                             if column not in ccmx_data_format and column != "SAMPLE_ID":
                                 metadata.append(
                                     f"{label}_DATA_{i + 1:.0f}_{column} "

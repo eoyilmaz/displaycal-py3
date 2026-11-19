@@ -442,16 +442,7 @@ def add_keywords_to_cgats(cgats, keywords):
     return cgats
 
 
-def check_create_dir(path):
-    """Try to create a directory and show an error message on failure."""
-    if not os.path.exists(path):
-        try:
-            os.makedirs(path)
-        except Exception as exception:
-            return Error(f"{lang.getstr('error.dir_creation', path)}\n\n{exception}")
-    if not os.path.isdir(path):
-        return Error(lang.getstr("error.dir_notdir", path))
-    return True
+from DisplayCAL.util_os import check_create_dir
 
 
 def check_cal_isfile(cal=None, missing_msg=None, notfile_msg=None, silent=False):

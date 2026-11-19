@@ -188,3 +188,23 @@ def get_machine_attributes(model_id=None):
                 codecs.decode(match.group(2), "unicode_escape"), "unicode_escape"
             )
     return attrs
+
+
+#: Every Mac has it, and no instrument is ever on it
+BLUETOOTH_INCOMING_PORT = "/dev/cu.Bluetooth-Incoming-Port"
+
+
+def skip_bluetooth_serial_scan(environ=None):
+    """Keep ArgyllCMS from probing the Bluetooth incoming port.
+
+    ArgyllCMS opens and closes every serial port while looking for
+    instruments; closing this one blocks for about 11 s, at DisplayCAL's
+    start and before each measurement. A user's own exclusion is kept.
+
+    Args:
+        environ: The environment ArgyllCMS inherits, ``os.environ`` by
+            default.
+    """
+    if environ is None:
+        environ = os.environ
+    environ.setdefault("ARGYLL_EXCLUDE_SERIAL_SCAN", BLUETOOTH_INCOMING_PORT)

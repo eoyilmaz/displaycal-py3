@@ -961,6 +961,11 @@ def main(module: None | str = None) -> None:
     mp.freeze_support()
     if mp.current_process().name != "MainProcess":
         return
+    if sys.platform == "darwin":
+        from DisplayCAL import util_mac
+
+        # Inherited by every ArgyllCMS run
+        util_mac.skip_bluetooth_serial_scan()
     name = f"{APPBASENAME}-{module}" if module else APPBASENAME
     app_lock_file_name = os.path.join(CONFIG_HOME, f"{name}.lock")
     try:

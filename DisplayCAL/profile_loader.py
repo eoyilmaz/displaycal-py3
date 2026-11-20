@@ -146,161 +146,7 @@ def debug_print(*args, **kwargs) -> None:
         print(*args, **kwargs)
 
 
-def setup_profile_loader_task(exe: str, exedir: str, pydir: str) -> None:
-    """Setup profile loader task for Windows.
-
-    Args:
-        exe (str): Path to the executable.
-        exedir (str): Directory of the executable.
-        pydir (str): Directory of the Python installation.
-    """
-    print("setup_profile_loader_task start")
-    if sys.getwindowsversion() < (6,):
-        print("setup_profile_loader_task end 1")
-        return
-
-    from DisplayCAL import taskscheduler
-
-    taskname = f"{APPNAME} Profile Loader Launcher"
-
-    try:
-        ts = taskscheduler.TaskScheduler()
-    except Exception as exception:
-        print("Warning - could not access task scheduler:", exception)
-        print("setup_profile_loader_task end 2")
-        return
-
-    if "--task" not in sys.argv[1:] and is_superuser() and not ts.query_task(taskname):
-        # Check if our task exists, and if it does not, create it.
-        # (requires admin privileges)
-        print(f"Trying to create task {taskname}...")
-        # Note that we use a stub so the task cannot be accidentally
-        # stopped (the stub launches the actual profile loader and
-        # then immediately exits)
-        loader_args = []
-        if os.path.basename(exe).lower() in ("python.exe", "pythonw.exe"):
-            cmd = os.path.join(exedir, "pythonw.exe")
-            pyw = os.path.normpath(
-                os.path.join(pydir, "..", f"{APPNAME}-apply-profiles.pyw")
-            )
-            script = get_data_path(
-                "/".join(["scripts", f"{APPNAME}-apply-profiles-launcher"])
-            )
-            if os.path.exists(pyw):
-                # Running from source or 0install
-                # Check if this is a 0install implementation, in which
-                # case we want to call 0launch with the appropriate
-                # command
-                if re.match(
-                    r"sha\d+(?:new)?",
-                    os.path.basename(os.path.dirname(pydir)),
-                ):
-                    # No stub needed as 0install-win acts as stub
-                    cmd = which("0install-win.exe") or "0install-win.exe"
-                    loader_args.extend(
-                        [
-                            "run",
-                            "--batch",
-                            "--no-wait",
-                            "--offline",
-                            "--command=run-apply-profiles",
-                            "--",
-                            f"http://{DOMAIN}/0install/{APPNAME}.xml",
-                            "--task",
-                        ]
-                    )
-                else:
-                    # Running from source
-                    loader_args.append(script)
-            else:
-                # Regular (site-packages) install
-                loader_args.append(script)
-        else:
-            # Standalone executable
-            cmd = os.path.join(pydir, f"{APPNAME}-apply-profiles-launcher.exe")
-        # Start at login, restart when resuming from sleep,
-        # restart daily at 04:00
-        triggers = [
-            taskscheduler.LogonTrigger(),
-            taskscheduler.ResumeFromSleepTrigger(),
-        ]
-        daily = taskscheduler.CalendarTrigger(
-            start_boundary=time.strftime("%Y-%m-%dT04:00:00"),
-            days_interval=1,
-        )
-        actions = [taskscheduler.ExecAction(cmd, loader_args)]
-        try:
-            # Create the main task
-            created = ts.create_task(
-                taskname,
-                "Open Source Developer, Florian Höch",
-                "This task launches the profile "
-                "loader with the applicable "
-                "privileges for logged in users",
-                multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
-                replace_existing=True,
-                triggers=triggers,
-                actions=actions,
-            )
-            # Create the supplementary task
-            created = ts.create_task(
-                f"{taskname} - Daily Restart",
-                "Open Source Developer, Florian Höch",
-                "This task restarts the profile "
-                "loader with the applicable "
-                "privileges for logged in users",
-                multiple_instances_policy=taskscheduler.MULTIPLEINSTANCES_IGNORENEW,
-                replace_existing=True,
-                triggers=[daily],
-                actions=actions,
-            )
-        except Exception:
-            if DEBUG:
-                exception = traceback.format_exc()
-            print(
-                f"Warning - Could not create task {taskname}:",
-                exception,
-            )
-            if ts.stdout:
-                print(str(ts.stdout, encoding=ENC, errors="replace"))
-        else:
-            print(str(ts.stdout, encoding=ENC, errors="replace"))
-            if created:
-                # Remove autostart entries, if any
-                name = f"{APPNAME} Profile Loader"
-                entries = []
-                if AUTOSTART:
-                    entries.append(os.path.join(AUTOSTART, f"{name}.lnk"))
-                if AUTOSTART_HOME:
-                    entries.append(os.path.join(AUTOSTART_HOME, f"{name}.lnk"))
-                for entry in entries:
-                    if os.path.isfile(entry):
-                        print("Removing", entry)
-                        try:
-                            os.remove(entry)
-                        except OSError as exception:
-                            print(exception)
-
-    if "Windows 10" not in win_ver()[0]:
-        print("setup_profile_loader_task end 3")
-        return
-
-    # Disable Windows Calibration Loader.
-    # This is absolutely REQUIRED under Win10 1903 to prevent
-    # banding and not applying calibration twice
-    ms_cal_loader = r"\Microsoft\Windows\WindowsColorSystem\Calibration Loader"
-    try:
-        ts.disable(ms_cal_loader)
-    except Exception as exception:
-        print(
-            f"Warning - Could not disable task {ms_cal_loader!r}:",
-            exception,
-        )
-        if ts.stdout:
-            print(str(ts.stdout, encoding=ENC, errors="replace"))
-    else:
-        print(str(ts.stdout, encoding=ENC, errors="replace"))
-    print("setup_profile_loader_task end 4")
+from DisplayCAL.taskscheduler import setup_profile_loader_task
 
 
 class DisplayIdentificationFrame(wx.Frame):
@@ -5295,6 +5141,24 @@ def main() -> None:
         display_help_message()
     elif "-V" in sys.argv[1:] or "--version" in sys.argv[1:]:
         print(f"{os.path.basename(sys.argv[0])} {VERSION_STRING}")
+    elif "--setup-task" in sys.argv[1:]:
+        if sys.platform == "win32":
+            setup_profile_loader_task(EXE, EXEDIR, PYDIR, force=True)
+        sys.exit(0)
+    elif "--disable-calibration-management" in sys.argv[1:]:
+        if sys.platform == "win32":
+            from DisplayCAL import util_win
+
+            if util_win.calibration_management_isenabled():
+                util_win.disable_calibration_management()
+        sys.exit(0)
+    elif "--enable-calibration-management" in sys.argv[1:]:
+        if sys.platform == "win32":
+            from DisplayCAL import util_win
+
+            if not util_win.calibration_management_isenabled():
+                util_win.enable_calibration_management()
+        sys.exit(0)
     else:
         if sys.platform == "win32":
             setup_profile_loader_task(EXE, EXEDIR, PYDIR)
@@ -5352,7 +5216,15 @@ def filter_unknown_args() -> None | str:
                 "-v",
             )
             and (
-                arg not in ("--oneshot", "--task", "--profile-associations")
+                arg
+                not in (
+                    "--oneshot",
+                    "--task",
+                    "--profile-associations",
+                    "--setup-task",
+                    "--disable-calibration-management",
+                    "--enable-calibration-management",
+                )
                 or sys.platform != "win32"
             )
             and (

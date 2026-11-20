@@ -1297,7 +1297,17 @@ class ProfileAssociationsDialog(InfoDialog):
                 if event and not isinstance(event, wx.TimerEvent):
                     wx.Bell()
                 return
-        _display, _edid, _moninfo, device = monitor
+        _display, _edid, moninfo, device = monitor
+        if not device and moninfo and "Device" in moninfo:
+            device = get_active_display_device(
+                moninfo["Device"]
+            ) or get_first_display_device(moninfo["Device"])
+            if device:
+                dindex = self.display_ctrl.GetSelection()
+                if -1 < dindex < len(self.monitors):
+                    display, edid = get_display_name_edid(device, moninfo, dindex)
+                    self.monitors[dindex] = (display, edid, moninfo, device)
+                    self.display_ctrl.SetString(dindex, display)
         if not device:
             if event and not isinstance(event, wx.TimerEvent):
                 wx.Bell()
@@ -3035,6 +3045,9 @@ class ProfileLoader:
 
     def _process_display_changed(self) -> None:
         """Process a display changed event."""
+        # Allow Windows display subsystem and GPU driver to settle
+        # (DPCD negotiation, EDID handshaking) after hot-plug / monitor power-on.
+        time.sleep(0.5)
         if self.lock.locked():
             print("ProcessDisplayChangedEvent: Waiting to acquire lock...")
         with self.lock:
@@ -3077,10 +3090,14 @@ class ProfileLoader:
         """
         # Check registry if display configuration changed (e.g. if a display
         # was added/removed, and not just the resolution changed)
-        if not (first_run or self._display_changed_event):
+        has_unknown = any(
+            not device or (display and "Unknown" in display)
+            for display, _edid, _moninfo, device in getattr(self, "monitors", [])
+        )
+        if not (first_run or self._display_changed_event or has_unknown):
             # Not first run and no prior display changed event
             return False
-        has_display_changed = False
+        has_display_changed = has_unknown
         ts = time.time()
         key_name = r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Configuration"
         try:
@@ -4104,6 +4121,7 @@ class ProfileLoader:
                 win32gui.DeleteDC(hdc)
 
             if not result:
+                self.setgammaramp_success[i] = False
                 # continue
                 return idle, True
 
@@ -4394,14 +4412,12 @@ class ProfileLoader:
                     i, moninfo["Device"]
                 )
             )
-            try:
-                device0 = win32api.EnumDisplayDevices(moninfo["Device"], 0)
-            except pywintypes.error as exception:
-                print(
-                    f"EnumDisplayDevices({moninfo['Device']!r}, 0) failed:",
-                    exception,
-                )
-                device0 = None
+            device0 = get_first_display_device(moninfo["Device"])
+            if not device and device0 and (device0.StateFlags & DISPLAY_DEVICE_ATTACHED):
+                device = device0
+                if device.DeviceKey not in self._active_displays:
+                    self._active_displays.append(device.DeviceKey)
+                display, edid = get_display_name_edid(device, moninfo, i)
             if device0:
                 debug_print(
                     f"Monitor {i:d} 1st display device name:", device0.DeviceName
@@ -4447,7 +4463,7 @@ class ProfileLoader:
     def _print_display_device_info(self) -> None:
         """Print information about display devices."""
         for display, _edid, device, device0 in self.display_devices.values():
-            if device0 and device.DeviceKey == device0.DeviceKey:
+            if device0 and device and device.DeviceKey == device0.DeviceKey:
                 device_name = "\\".join(device.DeviceName.split("\\")[:-1])
                 print(
                     self.adapters.get(
@@ -4458,7 +4474,7 @@ class ProfileLoader:
             if len(display_parts) > 1:
                 info = display_parts[1].split(" - ", 1)
                 display_parts[1] = "@" + " ".join(info[:1])
-            if not device.StateFlags & DISPLAY_DEVICE_ACTIVE:
+            if device and not device.StateFlags & DISPLAY_DEVICE_ACTIVE:
                 display_parts.append(" ({})".format(lang.getstr("deactivated")))
             print("  |-", "".join(display_parts))
 

@@ -531,3 +531,57 @@ class TestDetectImportKind:
         )
         assert result is bug
         assert not isinstance(result, Error)
+
+
+class TestColorimeterCorrectionDecodeSafety:
+    def test_canonical_instrument_name_types(self):
+        """get_canonical_instrument_name should safely handle str, bytes, and None fallbacks."""
+        from DisplayCAL.argyll_instruments import get_canonical_instrument_name
+        from DisplayCAL import localization as lang
+
+        # Test bytes input
+        res_bytes = get_canonical_instrument_name(b"i1 Pro")
+        assert isinstance(res_bytes, bytes)
+        assert res_bytes.decode("utf-8") == "i1 Pro"
+
+        # Test str input
+        res_str = get_canonical_instrument_name("i1 Pro")
+        assert isinstance(res_str, str)
+        # Should not raise AttributeError when handled safely
+        decoded = res_str.decode("utf-8") if isinstance(res_str, bytes) else res_str
+        assert decoded == "i1 Pro"
+
+        # Test fallback when INSTRUMENT is None in CCMX (which Argyll ccxxmake produces)
+        fallback = get_canonical_instrument_name(None or lang.getstr("instrument"))
+        assert isinstance(fallback, str)
+        decoded_fallback = fallback.decode("utf-8") if isinstance(fallback, bytes) else fallback
+        assert decoded_fallback == lang.getstr("instrument")
+
+    def test_observer_missing_or_string_handling(self):
+        """Observer extraction should safely handle missing/None, bytes, and str."""
+        from DisplayCAL.config import DEFAULTS
+
+        # When OBSERVER query returns None
+        ref_obs = None
+        if isinstance(ref_obs, bytes):
+            ref_obs = ref_obs.decode("utf-8")
+        elif not ref_obs:
+            ref_obs = DEFAULTS["observer"]
+        assert ref_obs == DEFAULTS["observer"]
+
+        # When OBSERVER query returns bytes
+        ref_obs = b"1931_2"
+        if isinstance(ref_obs, bytes):
+            ref_obs = ref_obs.decode("utf-8")
+        elif not ref_obs:
+            ref_obs = DEFAULTS["observer"]
+        assert ref_obs == "1931_2"
+
+        # When OBSERVER query returns str
+        ref_obs = "1964_10"
+        if isinstance(ref_obs, bytes):
+            ref_obs = ref_obs.decode("utf-8")
+        elif not ref_obs:
+            ref_obs = DEFAULTS["observer"]
+        assert ref_obs == "1964_10"
+

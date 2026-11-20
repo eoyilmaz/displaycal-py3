@@ -786,7 +786,7 @@ def detect_import_kind(
                 # Assume iColorDisplay DeviceCorrections.txt
                 ccmx_dir = config.get_argyll_data_dir()
                 if not os.path.exists(ccmx_dir):
-                    from DisplayCAL.worker import check_create_dir
+                    from DisplayCAL.util_os import check_create_dir
 
                     result = check_create_dir(ccmx_dir)
                     if isinstance(result, Exception):
@@ -1422,8 +1422,7 @@ def resolve_colorimeter_correction_selection(
             else:
                 desc = ellipsis_(desc, 100, "m")
             catalog.cached_descriptors[path] = desc
-            # get_canonical_instrument_name: returns bytes
-            catalog.instruments[path] = get_canonical_instrument_name(
+            inst = get_canonical_instrument_name(
                 cgats.queryv1("INSTRUMENT") or b"",
                 {
                     "DTP94-LCD mode": "DTP94",
@@ -1431,11 +1430,14 @@ def resolve_colorimeter_correction_selection(
                     "Spyder 2 LCD": "Spyder2",
                     "Spyder 3": "Spyder3",
                 },
-            ).decode("utf-8")
-            key = "{}\0{}".format(
-                catalog.instruments[path],
-                (cgats.queryv1("DISPLAY") or b"").decode("utf-8"),
             )
+            if isinstance(inst, bytes):
+                inst = inst.decode("utf-8")
+            catalog.instruments[path] = inst
+            disp = cgats.queryv1("DISPLAY") or ""
+            if isinstance(disp, bytes):
+                disp = disp.decode("utf-8")
+            key = f"{catalog.instruments[path]}\0{disp}"
             if not catalog.mapping.get(key) or (
                 len(ccmx_cfg) > 1 and path == ccmx_cfg[1]
             ):
@@ -1544,7 +1546,7 @@ def resolve_colorimeter_correction_selection(
                 else:
                     desc = ellipsis_(desc, 100, "m")
                 catalog.cached_descriptors[ccmx_cfg[1]] = desc
-                catalog.instruments[ccmx_cfg[1]] = get_canonical_instrument_name(
+                inst = get_canonical_instrument_name(
                     cgats.queryv1("INSTRUMENT") or b"",
                     {
                         "DTP94-LCD mode": "DTP94",
@@ -1552,11 +1554,14 @@ def resolve_colorimeter_correction_selection(
                         "Spyder 2 LCD": "Spyder2",
                         "Spyder 3": "Spyder3",
                     },
-                ).decode("utf-8")
-                key = "{}\0{}".format(
-                    catalog.instruments[ccmx_cfg[1]],
-                    (cgats.queryv1("DISPLAY") or b"").decode("utf-8"),
                 )
+                if isinstance(inst, bytes):
+                    inst = inst.decode("utf-8")
+                catalog.instruments[ccmx_cfg[1]] = inst
+                disp = cgats.queryv1("DISPLAY") or ""
+                if isinstance(disp, bytes):
+                    disp = disp.decode("utf-8")
+                key = f"{catalog.instruments[ccmx_cfg[1]]}\0{disp}"
                 catalog.mapping[key] = ccmx_cfg[1]
         if desc and (
             worker.get_instrument_name().lower().replace(" ", "")

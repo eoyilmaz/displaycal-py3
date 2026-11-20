@@ -7,6 +7,7 @@ import ctypes
 import platform
 import struct
 import sys
+import time
 import winreg
 from ctypes import POINTER, byref, sizeof, windll, wintypes
 from ctypes.wintypes import DWORD, HANDLE, LPWSTR
@@ -225,7 +226,9 @@ def enable_per_user_profiles(
     return False
 
 
-def get_display_devices(devicename: str) -> list[PyDISPLAY_DEVICE]:
+def get_display_devices(
+    devicename: str, max_retries: int = 4, retry_delay: float = 0.15
+) -> list[PyDISPLAY_DEVICE]:
     r"""Get all display devices of an output (there can be several).
 
     Example usage:
@@ -241,30 +244,55 @@ def get_display_devices(devicename: str) -> list[PyDISPLAY_DEVICE]:
     devices = []
     n = 0
     while True:
-        try:
-            devices.append(win32api.EnumDisplayDevices(devicename, n))
-        except pywintypes.error:
-            break
+        for attempt in range(max_retries if (n == 0 and devicename) else 1):
+            try:
+                devices.append(win32api.EnumDisplayDevices(devicename, n))
+                break
+            except pywintypes.error as exception:
+                # Error 6: ERROR_INVALID_HANDLE (monitor handle invalid during sleep/hotplug)
+                # Error 87: ERROR_INVALID_PARAMETER (mode transition)
+                if (
+                    n == 0
+                    and devicename
+                    and getattr(exception, "args", [None])[0] in (6, 87)
+                    and attempt < max_retries - 1
+                ):
+                    time.sleep(retry_delay)
+                    continue
+                return devices
         n += 1
     return devices
 
 
 def get_first_display_device(
-    devicename: str, exception_cls: Exception = pywintypes.error
+    devicename: str,
+    exception_cls: Exception = pywintypes.error,
+    max_retries: int = 4,
+    retry_delay: float = 0.15,
 ) -> PyDISPLAY_DEVICE:
     """Get the first display of device <devicename>.
 
     Args:
         devicename (str): The device name.
         exception_cls (Exception): The exception class to catch.
+        max_retries (int): Number of retries if handle is invalid during transitions.
+        retry_delay (float): Delay in seconds between retries.
 
     Returns:
         PyDISPLAY_DEVICE: The first display device.
     """
-    try:
-        return win32api.EnumDisplayDevices(devicename, 0)
-    except exception_cls:
-        pass
+    for attempt in range(max_retries):
+        try:
+            return win32api.EnumDisplayDevices(devicename, 0)
+        except exception_cls as exception:
+            if (
+                getattr(exception, "args", [None])[0] in (6, 87)
+                and attempt < max_retries - 1
+            ):
+                time.sleep(retry_delay)
+                continue
+            pass
+        break
 
 
 def get_active_display_device(
